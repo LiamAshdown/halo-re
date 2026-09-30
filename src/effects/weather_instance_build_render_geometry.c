@@ -31,6 +31,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
@@ -42,7 +43,7 @@ extern float camera_position_z; // 0x007c311c  "x, y, z; // 0x007c3114/18/1c" li
 extern const real *global_up3d_pointer;       // 0x00696720
 extern const uint32_t k_particle_render_constant[3]; // 0x006966f8
 
-extern void weather_instance_update(int16_t instance_index); // 0x458420, this module
+
 extern void vector3d_positive_modulo(real reference); // 0x4588e0, math module (skipped in this pass)
 extern void render_camera_facing_frame_build(real reference); // 0x458990, render module (skipped in this pass)
 extern uint8_t *structure_weather_polyhedra_find_within_radius(real radius); // 0x458b50, structures module (skipped in this pass);

@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "game.h"
+#include "fn_effects.h"
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0,
     // established; blam-cc: ECX -> object_index, stack -> type_mask

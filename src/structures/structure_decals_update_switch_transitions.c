@@ -25,6 +25,7 @@
 #include "projectiles.h"   // collision_result (the 0x50-byte record 0x505880 fills)
 #include "cache.h"
 #include "structures.h"
+#include "fn_effects.h"
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t *runtime_decals_suppressed;  // 0x0072278c, this module; UNSURE, see types/structures.h
@@ -39,8 +40,7 @@ extern double sin(double x); // MSVC CRT
 extern void decal_evict_object_decals(int32_t cluster_slot); // 0x44e310, foreign; UNSURE
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880, foreign; UNSURE
-extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction,
-    real radius_scale, uint8_t object_attached, int16_t sequence_index); // 0x44edc0
+
 
 // Detects, for each of `cluster_count` clusters, a bit transition between `switch_group_a` and
 // `switch_group_b` (two one-bit-per-cluster arrays), and either notifies of an object entering

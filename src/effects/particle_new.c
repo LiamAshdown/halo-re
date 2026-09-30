@@ -38,6 +38,7 @@
 #include "game.h"
 #include "fn_objects.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 #include <stdint.h> // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *particle_data;   // 0x0087abd0
@@ -57,8 +58,6 @@ extern real random_range_real(real minimum, real maximum); // 0x444af0
 extern uint16_t effect_random_uint16(void); // 0x44da40, this module
 extern int effect_random_int_between(int16_t minimum, int16_t maximum); // 0x44c800, this module;
     // blam-cc: ECX -> minimum, stack -> maximum
-extern real particle_current_radius(datum_index particle_handle); // 0x4566f0, this module
-extern uint8_t particle_next_sequence(datum_index particle_handle); // 0x455e60, this module
 
 
 // Creates a new individual particle from a particle_creation_data block: resolves its spawn

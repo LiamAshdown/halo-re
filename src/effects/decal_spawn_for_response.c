@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "projectiles.h"
+#include "fn_effects.h"
 
 extern uint8_t decals_enabled;             // 0x00687004
 extern uint8_t decals_for_all_responses;   // 0x006893f5
@@ -29,8 +30,7 @@ extern random_seed effect_random_seed;     // 0x00719cd4
 
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
-extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction,
-    real radius_scale, uint8_t object_attached, int16_t sequence_index); // 0x44edc0
+
 
 void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin,
     real_vector3d *direction, real radius, int32_t marker_index)

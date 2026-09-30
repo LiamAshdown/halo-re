@@ -29,6 +29,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;              // 0x0087abdc
 extern data_array *object_data;              // 0x008603b0
@@ -38,17 +39,12 @@ extern void *effect_marker_callback_context; // 0x006b0adc
 // effect_marker_node_context now lives in types/effects.h: the phase-4 integration pass folded
 // it there out of this file and effect_new_with_color.c, which build the same 0x18 byte block.
 
-extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index,
-    uint8_t force_create); // 0x451500, this module
-extern void effect_set_placement(effect *self, const ColorRGB *color,
-    const effect_tint_source *tint_source, real a_scale, real b_scale); // 0x451600, this module
-extern uint8_t effect_first_person_screen_timer_active(datum_index object_index); // 0x450680, ECX
+
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
-extern int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location,
-    object_marker *out, uint32_t max_count); // 0x451850, a thunk/label Ghidra did not split out;
+
     // UNSURE signature, see file header
-extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a30, this module
+
 
 // Creates an effect on `object_index` bound to a specific per-object-type node table entry,
 // with an explicit A/B scale range.

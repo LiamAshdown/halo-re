@@ -20,6 +20,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, math module
 

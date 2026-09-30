@@ -15,6 +15,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern const ColorRGB *global_white_color;  // 0x00686b04, UNSURE, see
     // effect_new_at_texture_coordinate.c

@@ -23,6 +23,7 @@
 #include "sound.h"
 #include "fn_math.h"
 #include "fn_camera.h"
+#include "fn_effects.h"
 #include <string.h>
 
 extern data_array *player_data;                               // 0x0087a480

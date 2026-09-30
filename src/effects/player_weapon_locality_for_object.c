@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_effects.h"
 #include <stdint.h>
 
 extern data_array *player_data; // 0x0087a480

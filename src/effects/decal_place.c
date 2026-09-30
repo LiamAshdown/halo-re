@@ -35,6 +35,7 @@
 #include "fn_rasterizer.h"
 #include "fn_math.h"
 #include "fn_structures.h"
+#include "fn_effects.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -62,14 +63,10 @@ extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_m
 
 
     // 0x44db30 (the decal sprite rectangle builder), EDX out_sprite_rect, EDI decal_definition
-extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer,
-    datum_index insert_before, uint8_t object_attached); // 0x44dd90, EAX requested_handle
-extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
+
+
     // 0x44e460, EDX placement
-extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator,
-    int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type,
-    int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue,
-    uint16_t *fallback_queue_count); // 0x44e730
+
 
 extern real vector3d_angle_between_4cd5e0(real_vector3d *a, real_vector3d *b); // 0x4cd5e0, EAX a, ECX b
 

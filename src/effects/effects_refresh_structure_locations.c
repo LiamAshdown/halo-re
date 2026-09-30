@@ -17,13 +17,14 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;                         // 0x0087abdc
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern ScenarioStructureBSP *global_structure_bsp;
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // memory module, 0x4d0630
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode); // 0x453180
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern void effect_delete(datum_index effect_handle); // 0x450be0
 

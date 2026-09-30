@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *decal_data;         // 0x0087abe4
 extern decal_grid *decal_grid_block;   // 0x006b0ad8
@@ -23,7 +24,7 @@ extern ScenarioStructureBSP *global_structure_bsp;
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
-extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer); // 0x44dd30,
+
     // this module; blam-cc: EBX -> cluster_index, ESI -> decal_index, EDI -> layer
 
 // Re-probes every object-attached decal against the structure BSP, and once it resolves to a

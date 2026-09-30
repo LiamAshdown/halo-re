@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern int16_t weather_particle_system_count;                // 0x00746b84
 extern weather_particle_system_state weather_wind_states[8]; // 0x00746b88

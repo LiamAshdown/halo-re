@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 

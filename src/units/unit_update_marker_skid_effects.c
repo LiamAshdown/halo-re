@@ -20,13 +20,12 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_units.h"
+#include "fn_effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
-    int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
-    real_point3d *position, real_vector3d *offset); // 0x453490, EAX, stack x4, EDX, EDI
+
 extern double sqrt(double x);
 
 // REWRITTEN from objdump. For each contact point (stride 0x130) with flag bit 1 whose velocity (+0x54..+0x5c)

@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "game.h"
+#include "fn_effects.h"
 
 extern data_array *effect_location_data;      // 0x0087abe0
 extern player_globals *local_player_globals;  // 0x0087a478

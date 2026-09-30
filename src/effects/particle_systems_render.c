@@ -18,12 +18,13 @@
 #include "objects.h"
 #include "game.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_system_data;    // 0x0087abd4
 extern player_globals *local_player_globals; // 0x0087a478
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
-extern void particle_system_render(datum_index particle_system_handle); // 0x454bf0, this module
+
 
 // Per-tick driver: renders every particle system whose cluster is currently visible to a local
 // player.

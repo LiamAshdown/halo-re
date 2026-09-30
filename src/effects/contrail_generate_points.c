@@ -31,6 +31,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
@@ -41,8 +42,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern random_seed effect_random_seed;  // 0x00719cd4
 
 
-extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max,
-    uint8_t bit_index); // 0x44c840, this module; blam-cc: EDX -> flags, stack -> the rest
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, established
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point

@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
@@ -31,8 +32,7 @@ extern tag_instance *tag_instances;           // 0x0087bc14
 extern float render_time_since_frame;          // 0x007c3110, render.h: seconds since the previous rendered frame
 extern float camera_position_z;               // 0x007c311c
 
-extern void weather_instance_adjust_count(int16_t instance_index, int16_t type_index,
-    real target_value); // 0x457fc0, this module
+
 extern void weather_particle_update(datum_index weather_particle_handle, int16_t type_index,
     int16_t instance_index); // 0x458630, this module
 extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)

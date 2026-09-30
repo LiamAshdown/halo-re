@@ -36,11 +36,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
 
-extern void effect_random_direction_from_table(real_point3d *out); // 0x4505e0, this module
+
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis,
     real sin_angle, real cos_angle); // 0x4cd820, foreign (math); EAX -> v, ECX -> axis
 

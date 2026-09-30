@@ -12,6 +12,7 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_math.h"
+#include "fn_effects.h"
 
 
 void effect_marker_from_node_table(int16_t entry_index, uint8_t *context, object_marker *out)

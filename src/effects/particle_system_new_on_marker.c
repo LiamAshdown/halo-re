@@ -26,6 +26,7 @@
 #include "effects.h"
 #include "cache.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern data_array *object_data;          // 0x008603b0
@@ -48,7 +49,7 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
     real_vector3d *out_angular_velocity); // 0x4f6aa0, objects module
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector,
     float *out_value); // 0x4f6e70, objects module
-extern uint8_t particle_system_new_type_states(datum_index handle); // 0x4538b0, this module
+
 
 datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index,
     int16_t attachment_index) // blam-cc: stack, stack, in_AX

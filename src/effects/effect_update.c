@@ -31,6 +31,7 @@
 #include "effects.h"
 #include "game.h"
 #include "units.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;                    // 0x0087abdc
 extern data_array *object_data;                    // 0x008603b0
@@ -45,13 +46,10 @@ extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector
     // 0x4f6e70, blam-cc: EAX -> object_index, CX -> selector, EDX -> out_value
 
 extern void effect_delete(datum_index effect_handle);                          // 0x450be0
-extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately);  // 0x450b20, blam-cc: EAX, stack
-extern void effect_start_event(datum_index effect_handle, int16_t event_index); // 0x451660, blam-cc: EAX, EDI
-extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
-    uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
+
+
     // 0x451290, blam-cc: DL -> bit_index, EBX -> self, ESI -> a_bitset, EDI -> b_bitset, stack -> the rest
-extern void effect_spawn_particles(effect *self);           // 0x451f90
-extern void object_change_color_evaluate(effect *self);     // 0x4529d0
+
 
 // One roll of the effect's random stream (tag flag bit 2 selects the global one), 0..1.
 static real effect_update_roll_fraction(uint8_t *tag)

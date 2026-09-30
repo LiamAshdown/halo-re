@@ -16,6 +16,7 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_effects.h"
 
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0

@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "physics.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -37,14 +38,10 @@ extern double sqrt(double x); // x87 FSQRT
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0,
                                     // objects module
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
-extern real particle_current_radius(datum_index particle_handle); // 0x4566f0, this module
-extern void particle_impact(datum_index particle_handle); // 0x456550, this module
-extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index,
-    real intensity); // 0x4565a0, EAX self, ECX fourcc, ESI definition_index, stack intensity
+
+
 extern uint8_t any_local_player_within_10_units(real_point3d *position); // 0x453330, players module
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
-    int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
-    real_point3d *position, real_vector3d *offset); // 0x453490, this module
+
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg,
     PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4,
     real_point3d *position, real_vector3d *wind, real_vector3d *out_normal,

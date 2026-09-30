@@ -23,6 +23,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 #include <stdint.h>
 
 extern data_array *decal_data;       // 0x0087abe4
@@ -31,7 +32,7 @@ extern random_seed effect_random_seed; // 0x00719cd4
 
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array); // 0x4d03d0
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator in EDI
-extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer); // 0x44dd30,
+
     // this module; blam-cc: EBX -> cluster_index, ESI -> decal_index, EDI -> layer
 
 // Allocates the decal datum at requested_handle. A non object-attached decal is randomly classed temporary

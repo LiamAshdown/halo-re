@@ -20,6 +20,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_math.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;     // 0x0087abdc
 extern tag_instance *tag_instances; // 0x0087bc14

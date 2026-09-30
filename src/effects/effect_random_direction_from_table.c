@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_effects.h"
 
 extern random_seed effect_random_seed;    // 0x00719cd4
 extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors

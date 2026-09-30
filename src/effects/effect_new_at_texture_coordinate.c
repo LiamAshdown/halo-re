@@ -23,12 +23,12 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data; // 0x0087abdc
 extern const ColorRGB *global_white_color; // 0x00686b04, UNSURE, see file header
 
-extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index,
-    uint8_t force_create); // 0x451500, this module
+
 extern int32_t local_player_index_for_object(datum_index object_index); // 0x4926f0, ESI
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
@@ -36,7 +36,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, const char
     object_marker *marker, uint32_t flags); // 0x4f6080, established (also used as a resolver here)
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location,
     object_marker *out, uint32_t max_count); // outside this batch's range
-extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a30, this module
+
 
 // Creates an effect attached to `object_index` at an explicit 2D marker/texture coordinate,
 // binding it to every object marker the effect's locations name.

@@ -18,13 +18,11 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_scenario.h"
+#include "fn_effects.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;    // 0x0087bc14
 
-
-extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags,
-    real_vector3d *out); // 0x53f940, blam-cc: AX, stack, stack, EDI
 
 uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position,
     real_vector3d *out, uint32_t filter_flags)

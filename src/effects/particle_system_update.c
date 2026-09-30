@@ -38,6 +38,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_math.h"
+#include "fn_effects.h"
 
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -54,8 +55,7 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
     real_vector3d *out_angular_velocity); // 0x4f6aa0, objects module
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector,
     float *out_value); // 0x4f6e70, objects module
-extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt); // 0x453b10, this module
-extern void particle_system_delete(datum_index handle); // 0x453f60, this module
+
 
 extern void particle_system_advance_type_state(particle_system_type_state *state,
     ParticleSystemType *type, particle_system *system); // 0x4543b0, this module

@@ -90,6 +90,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern uint8_t particle_spawn_debug_mode;   // 0x0069c565, UNSURE name: nonzero enables this
@@ -107,17 +108,13 @@ extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB 
     // 0x43f6a0, blam-cc: EAX -> color1, ECX -> color0, stack -> dest, flags, t
 extern real effect_distribution_function_evaluate(EffectDistributionFunction_t type,
     real fraction); // 0x453290, this module
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker,
-    int32_t mode); // 0x453180, this module
+
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
-extern void particle_new(particle_creation_data *creation_data); // 0x455740, this module
+
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime float-to-int truncation, UNSURE
-extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
-    uint32_t b_bitset, random_seed *seed, real base_min, real base_max); // 0x451290, this module
-extern void effect_random_velocity_vector(effect *self, random_seed *seed,
-    real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity,
-    real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
+
+
     // 0x451310, this module; self in EAX, see UNSURE 3
 
 // Rotates a point by a marker's real_matrix4x3 transform (scale, then forward/left/up, then

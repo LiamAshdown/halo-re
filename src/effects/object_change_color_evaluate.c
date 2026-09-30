@@ -51,6 +51,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_location_data; // 0x0087abe0
 extern data_array *object_data;          // 0x008603b0
@@ -58,8 +59,7 @@ extern tag_instance *tag_instances;      // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer;    // 0x0069672c, this module
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718, math module
 
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker,
-    int32_t mode); // 0x453180, this module
+
 extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker); // 0x453220,
     // this module
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
@@ -68,8 +68,7 @@ extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_
     // EffectCreateIn air_only, used directly for water_only)
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
     real_matrix4x3 *m); // 0x4cbde0, math module; blam-cc: EAX -> out, EDX -> point, stack -> m
-extern void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker,
-    real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale);
+
     // 0x452cf0, this module. Only `up` is a visible stack argument (Ghidra's param_4); forward
     // and position arrive in EAX and ECX and are the next two slots of the same block.
 

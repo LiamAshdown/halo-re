@@ -32,6 +32,7 @@
 #include "fn_game.h"
 #include "fn_objects.h"
 #include "fn_networking.h"
+#include "fn_effects.h"
 
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
@@ -47,7 +48,6 @@ extern uint8_t unknown_0071cc20[];           // 0x0071cc20, TYPES-GAP: message q
 
 extern void recorded_animations_update(void);            // 0x44aa90, UNSURE module
 extern void effects_update_all(float seconds_per_tick);  // 0x450aa0, UNSURE module/role
-extern void player_effect_clear_dead_players(void);                    // UNSURE module
 
 
 extern void first_person_weapon_interface_tick(void);                    // UNSURE module (hs-related, guarded by

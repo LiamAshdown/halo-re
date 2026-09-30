@@ -17,6 +17,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern random_seed effect_random_seed; // 0x00719cd4

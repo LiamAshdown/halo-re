@@ -14,6 +14,7 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#include "fn_effects.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -23,8 +24,7 @@ extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, EAX, ECX
 extern uint8_t message_delta_decode_compound_field_staged(void **context); // 0x4ec670, EAX
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI
-extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd,
-    const real_vector3d *direction, float random_blend, float damage_amount); // 0x456cf0, EAX, stack
+
 
 void player_effect_mark_damage_direction_dispatch(void **context)
 {

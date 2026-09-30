@@ -16,10 +16,10 @@
 #include "objects.h"
 #include "items.h"
 #include "fn_items.h"
+#include "fn_effects.h"
 
 extern data_array *object_data; // 0x008603b0
-extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
-    int16_t change_color_index, int16_t u, int16_t v); // 0x4506d0, EAX, EDX, CX, stack
+
 
 uint32_t weapon_stop_object_effect(datum_index item_index, datum_index tag_id)
 {

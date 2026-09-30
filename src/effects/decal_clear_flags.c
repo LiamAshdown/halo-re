@@ -15,6 +15,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 #include <stdint.h>
 
 extern data_array *decal_data;       // 0x0087abe4

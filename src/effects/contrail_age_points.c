@@ -22,6 +22,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8

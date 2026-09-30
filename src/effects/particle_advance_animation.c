@@ -18,11 +18,11 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t particle_advance_frame(datum_index particle_handle); // 0x456000, this module
 
 // Consumes `delta_time` seconds of a particle's animation clock, calling particle_advance_frame
 // once per whole animation period until the remaining time runs out. A tag flagged

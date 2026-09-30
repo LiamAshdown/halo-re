@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "interface.h"
+#include "fn_effects.h"
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern player_globals *local_player_globals;       // 0x0087a478
@@ -44,8 +45,7 @@ extern int16_t render_viewport_left;               // 0x007c3142
 extern float hud_damage_indicator_screen_center_x; // 0x0067321c (== 320.0f, half of 640)
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, blam-cc: ECX object_index
-extern void player_effect_fade_damage_indicators(int16_t local_player_index,
-                                                  uint32_t *out_previous_indicators); // 0x457220, blam-cc: EAX index, EDX out
+
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset); // 0x4ab8d0, blam-cc: EAX frame_index
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550, blam-cc: EAX bitmap

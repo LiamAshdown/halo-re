@@ -52,6 +52,7 @@
 #include "game.h"
 #include "fn_sound.h"
 #include "fn_objects.h"
+#include "fn_effects.h"
 
 extern random_seed random_seed_global;               // 0x00719cd0
 extern random_seed effect_random_seed;                // 0x00719cd4
@@ -68,15 +69,10 @@ extern void damage_apply_area_effect(damage_data *dd); // 0x4edd30 (the caller a
 extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0
 
-extern void effect_random_velocity_vector(effect *self, random_seed *seed,
-    real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity,
-    real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset); // 0x451310, EAX self
-extern void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max,
-    effect *self, uint32_t a_bitset, uint32_t b_bitset); // 0x451450, stack, EBX self, ESI a, EDI b
+
 extern datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position,
     real_vector3d *velocity, ColorARGB *color, float scale); // 0x453600
-extern void decal_spawn_for_response(datum_index response_tag_index, uint8_t deterministic, real_point3d *origin,
-    real_vector3d *direction, real radius, int32_t marker_index); // 0x44ece0, ESI, BL, ECX, stack
+
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward,
     datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint); // 0x543ce0, ESI, ECX, EAX, stack
 

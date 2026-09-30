@@ -11,16 +11,16 @@
 #include "game.h"
 #include "fn_sound.h"
 #include "fn_shaders.h"
+#include "fn_effects.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern game_time_globals *game_time;   // 0x006f1d6c
 extern real chimera_contrail_scale;    // 0x007c1208, TYPES-GAP
 
-extern void contrail_update(real delta_time);      // 0x44cb50
+
 extern void particle_systems_update(real delta_time);                    // UNSURE module
-extern void particles_update(real tick_delta_time);                 // UNSURE module
+
 extern void widgets_update_all(real tick_delta_time);             // 0x4ffd10
-extern void weather_update(void);                                  // 0x53f5c0
 
 
 // Per-tick update that advances contrail, weather, timer, sound and widget systems by a

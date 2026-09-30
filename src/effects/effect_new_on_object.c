@@ -25,23 +25,21 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;                 // 0x0087abdc
 extern uint8_t first_person_effects_enabled;    // 0x00687014
 
-extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index,
-    uint8_t force_create); // 0x451500, this module
-extern void effect_set_placement(effect *self, const ColorRGB *color,
-    const effect_tint_source *tint_source, real a_scale, real b_scale); // 0x451600, this module
+
 extern int32_t local_player_index_for_object(datum_index object_index); // 0x4926f0, ESI object_index
-extern uint8_t effect_first_person_screen_timer_active(datum_index object_index); // 0x450680, ECX object_index
+
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, established
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location,
     object_marker *out, uint32_t max_count); // outside this batch's range
-extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a30, this module
+
 
 // Creates an effect on `object_index` with an explicit A/B scale range, marking it first-person
 // when first_person_effects_enabled and the local player's screen timer is active, and binding

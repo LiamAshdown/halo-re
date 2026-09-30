@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "math.h"
 #include "fn_math.h"
+#include "fn_effects.h"
 
 extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;  // 0x006b7af8, 1026

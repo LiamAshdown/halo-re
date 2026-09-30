@@ -24,6 +24,7 @@
 #include "fn_objects.h"
 #include "fn_items.h"
 #include "fn_networking.h"
+#include "fn_effects.h"
 
 extern int16_t network_game_mode; // 0x00719720
 extern uint8_t network_action_apply_active; // 0x0071c2c0, UNSURE name
@@ -35,7 +36,7 @@ extern void hud_receive_item_message(void **context); // 0x4ae200, EAX
 
 extern void unit_dispatch_seat_exit_message(void **context); // 0x56c400, EAX
 
-extern void player_effect_mark_damage_direction_dispatch(void **context); // 0x456ad0, EAX
+
 extern void unit_apply_network_control_update(void **context); // 0x566c90, EAX
 extern uint8_t game_engine_apply_kill_streak_message(void **context); // 0x479b40, EAX
 extern void chat_dispatch_incoming(void **context); // 0x4aaf70, EAX

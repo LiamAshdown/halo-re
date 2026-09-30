@@ -21,15 +21,13 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern data_array *contrail_data;   // 0x0087abec
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 
-extern void contrail_next_sequence(contrail *self); // 0x44ced0, this module; blam-cc: EAX -> self
-extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count,
-    uint8_t force); // 0x44d020, this module;
     // blam-cc: EAX -> contrail_handle, stack -> (point_count, force)
 
 // Creates a new contrail attached to `object_index` at attachment `attachment_index`, and

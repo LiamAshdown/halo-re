@@ -17,8 +17,8 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
-extern void particle_system_update_physics_default(particle_system *system, real dt); // 0x4552a0, this batch
 
 // ParticleSystem.system_update_physics dispatch table entry 1, "explosion". Identical to the
 // default implementation (a plain jmp to it in the original binary).

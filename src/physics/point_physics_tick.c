@@ -45,16 +45,15 @@
 #include "objects.h"
 #include "projectiles.h"
 #include "physics.h"
+#include "fn_effects.h"
 
 extern float k_physics_gravity; // 0x0069c52c
 extern float k_water_density;   // 0x006b8d7c
 extern float k_air_density;     // 0x006b8d80
 
-extern uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position,
-    real_vector3d *out, uint32_t filter_flags); // 0x53f860, blam-cc: EAX, stack
+
     // module unresolved (scenario/weather); returns medium (0 air, 1 water); UNSURE args
-extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags,
-    real_vector3d *out); // 0x53f940, blam-cc: AX, stack, stack, EDI
+
     // file header
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index,

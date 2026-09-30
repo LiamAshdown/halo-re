@@ -15,12 +15,13 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
-extern void particle_system_delete(datum_index handle); // 0x453f60, this module
+
 
 void particle_systems_delete_all(void)
 {

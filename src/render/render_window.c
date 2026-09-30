@@ -57,6 +57,7 @@
 #include "fn_objects.h"
 #include "fn_structures.h"
 #include "fn_cseries.h"
+#include "fn_effects.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -108,9 +109,9 @@ extern void structure_leaf_faces_for_each(int32_t render_context,
     int32_t *surface_indices, int16_t surface_index_count);
     // 0x552de0, structures module; blam-cc: ECX -> surface_indices,
     // EAX -> surface_index_count, stack -> the first five
-extern void weather_update_local_player(void);        // 0x458a90, effects module
+
 extern void render_particles(void);                   // 0x50fd90, this module
-extern void particle_systems_render(void);            // 0x454b40, effects module
+
 extern void render_contrails(uint32_t render_type_flags); // 0x50df20, this module (cdecl here)
 
 

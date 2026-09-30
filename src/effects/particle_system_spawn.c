@@ -28,6 +28,7 @@
 #include "units.h"
 #include "fn_memory.h"
 #include "fn_scenario.h"
+#include "fn_effects.h"
 
 extern data_array *object_data;                   // 0x008603b0
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -42,7 +43,7 @@ extern void (*particle_creation_physics_table[3])(particle_system *system, int32
 
 
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX, EDX
-extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index); // 0x453a10
+
 extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index); // 0x50fcd0, blam-cc: EAX
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum); // 0x4f6080

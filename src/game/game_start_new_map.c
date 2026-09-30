@@ -29,6 +29,7 @@
 #include "fn_objects.h"
 #include "fn_camera.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -91,7 +92,7 @@ extern void scenario_objects_place(Scenario *scenario); // 0x4f3ba0. One plain s
 
 
 extern void game_state_build_header(void);                                     // 0x538000
-extern void ambient_color_randomize(void);                                                  // UNSURE module
+
 
 // Resets game state (objects, scripts, particle/effect pools, network server) to begin a new
 // game on the currently loaded map.

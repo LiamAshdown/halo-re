@@ -24,6 +24,7 @@
 #include "effects.h"
 #include "fn_objects.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *particle_system_data; // 0x0087abd4
@@ -32,7 +33,6 @@ extern uint8_t particle_systems_enabled; // 0x0069c566
 
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 
-extern uint8_t particle_system_new_type_states(datum_index handle); // 0x4538b0, this module
 
 datum_index particle_system_new_at_point(uint32_t definition_index, real_point3d *position,
     real_vector3d *velocity, ColorARGB *color, float scale)

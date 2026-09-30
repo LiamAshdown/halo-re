@@ -14,6 +14,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc

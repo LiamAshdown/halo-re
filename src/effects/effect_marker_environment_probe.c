@@ -28,6 +28,7 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer;  // 0x0069672c, the constant "down" vector
@@ -41,9 +42,6 @@ extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_
     // out/phase4/effects_types_notes.md (unresolved offsets, weather_instance 0x10/0x14); called
     // here with the collision result's leaf field as the (probably in/out) point/leaf argument
 
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type,
-    int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param,
-    real_point3d *position, real_vector3d *offset); // 0x453490, this module
 
 void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index,
     real_point3d *marker_position, uint32_t sound_param)

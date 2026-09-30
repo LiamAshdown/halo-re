@@ -39,6 +39,7 @@
 #include "fn_game.h"
 #include "fn_units.h"
 #include "fn_objects.h"
+#include "fn_effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -56,10 +57,6 @@ extern uint8_t g_006f1cf4;          // 0x006f1cf4, multiplayer friendly-fire mod
 extern player_globals *local_player_globals; // 0x0087a478
 
 
-extern void player_effect_send_network_update(datum_index player_handle, const real_vector3d *direction,
-    const damage_data *dd, float random_blend, float damage_amount); // 0x456bc0, EAX, EBX, stack
-extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd,
-    const real_vector3d *direction, float random_blend, float damage_amount); // 0x456cf0, EAX, stack
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, CX, DX
 
 

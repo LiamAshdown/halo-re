@@ -34,14 +34,12 @@
 #include "objects.h"
 #include "fn_sound.h"
 #include "fn_objects.h"
+#include "fn_effects.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 
 
-extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
-    int16_t change_color_index, int16_t u, int16_t v); // 0x4506d0, blam-cc: EAX, EDX, CX, stack (u, v)
-extern datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);
     // 0x44c910, blam-cc: AX, ECX, stack
 extern datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index,
     int16_t attachment_index); // 0x4536f0, blam-cc: stack, stack, AX

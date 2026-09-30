@@ -16,11 +16,11 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern uint8_t particle_next_sequence(datum_index particle_handle); // 0x455e60, this module
 
 // Steps a particle's frame index by one in the direction its flags request, resetting the per
 // frame animation timer either way. When the walk runs off the end (or start) of the current

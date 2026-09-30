@@ -22,12 +22,12 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed effect_random_seed; // 0x00719cd4
 
-extern void particle_impact(datum_index particle_handle); // 0x456550, this module
 
 // Walks a particle's sequence state machine (new -> initial -> looping -> final -> finished),
 // rolling a random frame out of the Particle tag's sequence bounds each time a state is

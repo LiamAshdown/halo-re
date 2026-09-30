@@ -19,6 +19,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern uint8_t weather_enabled;               // 0x00687350
 extern int16_t current_local_player_index;     // 0x007c3108, UNSURE: foreign module (render globals)
@@ -31,10 +32,7 @@ extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern real_point3d render_camera_global; // 0x007c3114
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out); // 0x53ed60, EBX point, stack (leaf, weather_index_out)
-extern void weather_instance_deactivate(int16_t instance_index); // 0x457f00, this module
-extern void weather_instance_activate(datum_index definition_index, int16_t instance_index,
-    real intensity); // 0x457e20, this module
-extern void weather_instance_build_render_geometry(int16_t instance_index); // 0x458bf0, this module
+
 
 // Per-tick weather driver for the local player: re-probes the render sample point's BSP cluster,
 // looks up that cluster's weather row, and activates/deactivates the local player's weather

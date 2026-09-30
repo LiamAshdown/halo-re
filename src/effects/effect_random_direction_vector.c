@@ -17,13 +17,12 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;  // 0x006b7af8, 1026
 extern const real_point3d *global_origin3d_pointer; // 0x00696714 -> 0x0065c230, math module
 
-extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
-    uint32_t b_bitset, random_seed *seed, real base_min, real base_max); // 0x451290, this module
 
 // Rolls a random magnitude in [min, max); if non-zero, scales a random unit vector out of
 // sphere_point_table by it, otherwise returns the global origin point.

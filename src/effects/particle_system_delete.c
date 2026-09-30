@@ -15,6 +15,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8

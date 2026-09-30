@@ -18,6 +18,7 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 // Returns a random value in [base_min, base_max), where base_min and (base_max - base_min) are
 // each independently multiplied by self->a_scale when their bit_index bit is set in a_bitset,

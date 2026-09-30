@@ -35,6 +35,7 @@
 #include "effects.h"
 #include "fn_math.h"
 #include "fn_structures.h"
+#include "fn_effects.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98, same declaration as
     // src/physics/collision_test_movement_segment.c

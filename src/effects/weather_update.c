@@ -13,6 +13,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern ScenarioStructureBSP *global_structure_bsp;
                                     // scenario's weather palette (ScenarioStructureBSPWeatherPalette)

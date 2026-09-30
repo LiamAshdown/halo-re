@@ -23,6 +23,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern weather_instance weather_instances[1]; // 0x006b0ae4
@@ -30,7 +31,6 @@ extern tag_instance *tag_instances;           // 0x0087bc14
 extern random_seed effect_random_seed;        // 0x00719cd4
 
 
-extern void effect_random_direction_from_table(real_point3d *out); // 0x4505e0, this module
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
 
 // Creates one new weather particle (raindrop/snowflake) for the given weather instance and

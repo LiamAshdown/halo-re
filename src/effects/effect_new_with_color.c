@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;         // 0x0087abdc
 extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90, passed to FUN_005013a0 in ECX
@@ -38,17 +39,13 @@ extern void *effect_marker_callback_context; // 0x006b0adc
 // field fewer than the one in effect_new_on_object_with_node_table.c, so the last forwarded
 // dword (Ghidra's local_8, param_7) was dropped; it is written below.
 
-extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index,
-    uint8_t force_create); // 0x451500, this module
-extern void effect_set_placement(effect *self, const ColorRGB *color,
-    const effect_tint_source *tint_source, real a_scale, real b_scale); // 0x451600, this module
+
 extern void effect_rebuild_markers(effect *self,
     int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t)); // 0x451710, this module
-extern int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location,
-    object_marker *out, uint32_t max_count); // 0x451850, UNSURE, see effect_new_on_object_with_node_table.c
+
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index
-extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a30, this module
+
 
 // Creates a free-standing effect (not attached to any object) at `position`, probing its BSP
 // location and defaulting its velocity to the global origin vector when `velocity` is NULL.

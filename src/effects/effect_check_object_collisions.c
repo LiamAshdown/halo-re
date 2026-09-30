@@ -38,6 +38,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "game.h"
+#include "fn_effects.h"
 #include <stdint.h>
 
 extern data_array *effect_data;              // 0x0087abdc
@@ -49,8 +50,7 @@ extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, stride 0x1ea0
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630
 extern void *data_iterator_next(data_iterator *iterator);              // 0x4d05d0
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker,
-    int32_t mode); // 0x453180, this module
+
 
 // Scans every effect that has not finished playing and whose Effect tag carries a nonzero
 // maximum_damage_radius, testing each of them against every player's controlled unit: for the

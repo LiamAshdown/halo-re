@@ -17,6 +17,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;     // 0x0087abdc
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -26,7 +27,7 @@ extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510,
     // blam-cc: EAX -> array, EDX -> handle
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,
     // memory module; blam-cc: DX -> after_index, EDI -> array
-extern void effect_start_event(datum_index effect_handle, int16_t event_index); // 0x451660,
+
     // this module; blam-cc: EAX -> effect_handle, EDI -> event_index
 
 // Allocates a new effect for `definition_index`, refusing effects flagged

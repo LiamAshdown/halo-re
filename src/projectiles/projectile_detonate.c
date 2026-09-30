@@ -62,6 +62,7 @@
 #include "units.h"
 #include "projectiles.h"
 #include "fn_objects.h"
+#include "fn_effects.h"
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -82,7 +83,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t 
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index); // 0x4f6610, objects module, UNSURE signature
 
     // see file header
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
+
     // blam-cc: EDI -> the contrail attachment handle
     // obj->attachment_handles[proj->contrail_attachment_index], reloaded at 0x4c089b immediately
     // before the call. Same declaration as src/projectiles/projectile_update.c, whose 0x4bea4b

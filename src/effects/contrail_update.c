@@ -27,6 +27,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *contrail_data; // 0x0087abec
 extern data_array *object_data;   // 0x008603b0
@@ -34,13 +35,12 @@ extern tag_instance *tag_instances; // 0x0087bc14
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,
     // memory module; blam-cc: DX -> after_index, EDI -> array
-extern void contrail_next_sequence(contrail *self); // 0x44ced0, this module; blam-cc: EAX -> self
-extern int16_t contrail_points_due(datum_index contrail_handle, real elapsed_time); // 0x44cf80,
+
+
     // this module; blam-cc: EAX -> contrail_handle, stack -> elapsed_time
-extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count,
-    uint8_t force); // 0x44d020, this module;
+
     // blam-cc: EAX -> contrail_handle, stack -> (point_count, force)
-extern void contrail_age_points(datum_index contrail_handle, real delta_time); // 0x44d470,
+
     // this module; blam-cc: EAX -> contrail_handle, stack -> delta_time
 extern void contrail_delete(datum_index contrail_index); // 0x44cad0, this module
 

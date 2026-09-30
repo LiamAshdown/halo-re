@@ -16,6 +16,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data;     // 0x0087abdc
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -23,7 +24,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680,
     // blam-cc: EDX -> handle, ESI -> array
 extern void effect_delete(datum_index effect_handle); // 0x450be0, this module
-extern void effect_start_event(datum_index effect_handle, int16_t event_index); // 0x451660,
+
     // this module; blam-cc: EAX -> effect_handle, EDI -> event_index
 
 // Stops a looping effect: deletes it outright if it was never looping, otherwise plays its

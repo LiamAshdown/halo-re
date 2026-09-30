@@ -30,6 +30,7 @@
 #include "fn_sound.h"
 #include "fn_math.h"
 #include "fn_objects.h"
+#include "fn_effects.h"
 
 extern data_array *object_data;        // 0x008603b0
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -51,8 +52,7 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags,
     uint32_t exclude_object_index, collision_result *result); // 0x401a20, EAX, ECX, stack
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point); // 0x453330, EDX
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index,
-    uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset); // 0x453490, EAX, stack, EDX, EDI
+
 
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal,
     real_point3d *point); // 0x4bd5d0, EAX, ECX, stack

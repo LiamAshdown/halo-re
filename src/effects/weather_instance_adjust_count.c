@@ -25,11 +25,12 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern data_array *weather_particle_data;     // 0x0087abcc
 
-extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index); // 0x458070,
+
                                     // this module
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
 

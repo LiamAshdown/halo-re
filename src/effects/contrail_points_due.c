@@ -20,6 +20,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *contrail_data;   // 0x0087abec
 extern tag_instance *tag_instances; // 0x0087bc14

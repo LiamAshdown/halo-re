@@ -14,12 +14,13 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *effect_data; // 0x0087abdc
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,
     // memory module; blam-cc: DX -> after_index, EDI -> array
-extern void effect_update(datum_index effect_handle, real delta_time); // 0x451a30, this module
+
 
 // Per-tick driver: advances every live effect by `delta_time`.
 void effects_update_all(real delta_time)

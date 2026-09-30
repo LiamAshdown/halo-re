@@ -28,6 +28,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern ambient_noise_grid ambient_noise; // 0x00746284
 extern real_point3d *sphere_point_table; // 0x006b7af4, 1026 unit vectors

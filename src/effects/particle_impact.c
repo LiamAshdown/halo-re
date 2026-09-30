@@ -22,12 +22,12 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index,
-    real intensity); // 0x4565a0, EAX self, ECX fourcc, ESI definition_index, stack intensity
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
 
 // Fires the particle's death effect or sound (if its Particle tag has one) and then always

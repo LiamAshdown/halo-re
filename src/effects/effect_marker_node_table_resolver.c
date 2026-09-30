@@ -12,11 +12,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_effects.h"
 #include <string.h>
 
 extern uint8_t *effect_marker_callback_context; // 0x006b0adc
 
-extern void effect_marker_from_node_table(int16_t entry_index, uint8_t *context, object_marker *out); // 0x451930, AX, EBX, stack
 
 int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location, object_marker *out,
     uint32_t max_count)

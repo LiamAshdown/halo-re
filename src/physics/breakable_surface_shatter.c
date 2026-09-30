@@ -27,6 +27,7 @@
 #include "sound.h"
 #include "bitmaps.h"
 #include "physics.h"
+#include "fn_effects.h"
 #include <string.h>
 
 extern uint8_t breakable_surfaces_enabled;                          // 0x00689470, the breakable_surfaces global
@@ -41,7 +42,7 @@ extern const real_point3d *global_origin3d_pointer;                 // 0x0069671
 extern real_point3d *sphere_point_table;                            // 0x006b7af4
 extern int16_t sphere_point_table_count;                            // 0x006b7af8
 
-extern void particle_new(particle_creation_data *creation_data); // 0x455740, EDI
+
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest,
     color_interpolation_flags flags, float t); // 0x43f6a0, EAX, ECX, stack
 extern uint8_t polygon2d_point_inside_margin(real_point2d *vertices, int16_t count, real_point2d *point,

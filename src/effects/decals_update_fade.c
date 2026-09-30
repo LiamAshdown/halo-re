@@ -13,12 +13,13 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 #include <stdint.h>
 
 extern data_array *decal_data; // 0x0087abe4
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module; iterator in EDI
-extern void decal_update_fade(datum_index decal_index); // 0x44dc30, this module; blam-cc: EAX -> decal_index
+
 
 // Per-tick driver: recomputes the fade alpha of every live decal.
 void decals_update_fade(void)

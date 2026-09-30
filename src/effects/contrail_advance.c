@@ -14,13 +14,13 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *contrail_data; // 0x0087abec
 
-extern int16_t contrail_points_due(datum_index contrail_handle, real elapsed_time); // 0x44cf80,
+
     // this module; blam-cc: EAX -> contrail_handle, stack -> elapsed_time
-extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count,
-    uint8_t force); // 0x44d020, this module;
+
     // blam-cc: EAX -> contrail_handle, stack -> (point_count, force)
 
 // Advances one contrail by `delta_time` seconds: generates any points now due, optionally

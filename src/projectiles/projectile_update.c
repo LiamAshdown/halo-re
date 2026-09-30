@@ -32,6 +32,7 @@
 #include "fn_math.h"
 #include "fn_objects.h"
 #include "fn_projectiles.h"
+#include "fn_effects.h"
 #include <string.h>
 
 extern data_array *object_data;        // 0x008603b0
@@ -64,8 +65,6 @@ extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, re
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 
-
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
 
 extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction); // 0x4c0670, EBX, stack
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI

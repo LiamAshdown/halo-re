@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "units.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_system_data;               // 0x0087abd4
 extern data_array *particle_system_particle_data;      // 0x0087abd8
@@ -29,7 +30,7 @@ extern datum_index datum_next(int16_t index, data_array *array); // 0x4d0630, DX
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, EAX, EDX
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
 extern void object_get_root_location(int32_t *out, uint32_t object_index); // 0x4f6b10, EAX, ECX
-extern void particle_system_delete(datum_index handle); // 0x453f60
+
 
 static int16_t particle_leaf_cluster(uint32_t leaf)
 {

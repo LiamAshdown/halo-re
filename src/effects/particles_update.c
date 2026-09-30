@@ -18,6 +18,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_effects.h"
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -25,11 +26,11 @@ extern int32_t render_frame_index; // 0x007c3100, UNSURE: foreign module (render
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
-extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time); // 0x4560c0,
+
                                     // this module
-extern uint8_t particle_update_motion(datum_index particle_handle, real delta_time); // 0x4561a0,
+
                                     // this module, UNSURE signature -- see that file
-extern void particle_impact(datum_index particle_handle); // 0x456550, this module
+
 
 // Per-tick driver: ages every live particle, advances its animation and motion while it still
 // has time (or life) left, triggers its impact response once its lifespan (and any final

@@ -32,6 +32,7 @@
 #include "fn_objects.h"
 #include "fn_structures.h"
 #include "fn_memory.h"
+#include "fn_effects.h"
 
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint8_t *game_state_base;   // 0x006e2dc8
@@ -55,9 +56,6 @@ extern player_effect_globals *player_effect_globals_pointer;
 extern void *recorded_animations;    // 0x006b0a10, TYPES-GAP
 extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP (7 dwords)
 
-
-extern void contrails_initialize(void);                 // 0x44c8b0
-extern void decals_initialize(void);                     // 0x44df90
 
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
     // blam-cc: EBX -> variant (matches src/game/game_engine_load_from_variant.c)
