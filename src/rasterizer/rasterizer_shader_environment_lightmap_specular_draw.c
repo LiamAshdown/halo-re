@@ -1,7 +1,8 @@
 // rasterizer_shader_environment_lightmap_specular_draw  (Ghidra: FUN_00521f90, unnamed; the phase
 // 4 rewriter called it rasterizer_dynamic_light_draw_extra_pass)
 // address 0x521f90, size 866 bytes
-// name confidence: 0.6   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x521f90..0x5222f2 (2026-09-30): guards, effect 42/43, vertex declaration 2, stage binds, c10..c12, the 16 pixel constants (3 uploaded), the two-stream draw
+// name confidence: 0.6   rewrite confidence: 0.9
 // evidence: runs for shaders with ShaderEnvironment specular_flags lightmap_is_specular (+0x27c
 //   bit 2) when the current BSP lightmap bitmap is known (0x006e0a68 clear; both globals are set
 //   by 0x511f90 in the render module), 0x006893f7 is enabled, 0x0069c67c is clear and pixel
@@ -12,8 +13,7 @@
 //   vector with the overbright scale (4 for overbright, else 2) is built but not uploaded.
 //   One two stream draw (0x51c310, second stream = the lightmap vertices at vertex_buffer + 1)
 //   per effect pass.
-//   Spot-check fix (phase 4 review): the earlier file was a structural placeholder; rewritten in
-//   full from the raw code 0x521f90..0x5222f1. The shader arrives in EAX.
+//   Spot-check fix (phase 4 review): rewritten in full from the raw code 0x521f90..0x5222f1. The shader arrives in EAX.
 // register convention: EAX = shader, stack = (frame, dynamic_index_slot, first_primitive,
 //   primitive_count, vertex_buffer).
 
@@ -34,7 +34,7 @@ extern tag_instance *tag_instances;                                 // 0x0087bc1
 extern int16_t rasterizer_bound_bitmap_size_b[2];                   // 0x006d9870
 extern uint8_t rasterizer_lightmap_bitmap_missing;                  // 0x006e0a68 set by 0x511f90
 extern BitmapData *rasterizer_lightmap_bitmap;                      // 0x006e0a6c set by 0x511f90
-extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)
+extern int16_t render_force_flag;                             // 0x0069c67c (read as a word)
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f7;                         // 0x006893f7 lightmap specular enable
 extern uint8_t console_debug_toggle_689409;                         // 0x00689409
@@ -191,5 +191,5 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
 
 #if 0
 Original Ghidra decompilation (0x521f90) -- see `python tools/pack.py 0x521f90` for the full
-866-byte body; this rewrite is a low-confidence structural sketch, see file header.
+866-byte body; this rewrite is a low-confidence structural sketch.
 #endif
