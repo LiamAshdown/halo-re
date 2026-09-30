@@ -9,21 +9,15 @@
 // documented in networking_types_notes.md's "misattributed" list as UI text generation over
 // game_variant, owned by types/game.h -- called here but not rewritten in this batch.
 // register convention: GameSpy entry pointer in ECX (in_ECX).
-// UNSURE: the exact key assigned to each of the four accessor calls is inferred from field
-// role, not from a visible argument (every accessor call shows zero visible arguments):
-// call 1 (string) = "gamevariant", call 2 (int) = "fraglimit", call 3 (string) = "game_flags",
-// call 4 (string) = "player_flags". string_convert_ascii_to_unicode (called twice, once per flags string, each
-// result discarded) is a foreign parser of unknown signature; declared here only as consuming
-// one string argument by EAX pass-through, matching this module's established chained-call
-// pattern.
-// UNSURE: DAT_006b5e74 (the scratch buffer multiplayer_game_variant_description_generate
-// writes into) and DAT_006651f8 (referenced but never shown at a call site) are not documented;
-// out/phase2/networking/00.md shows server_browser_open zeroing both DAT_006b5e58 and
-// DAT_006b5e74 as plain scalars, so they are declared here as opaque byte buffers rather than a
-// named struct.
-// UNSURE: `local_800`/`local_1000` are two adjacent stack buffers (2044 and 2048 bytes) whose
-// individual purposes (likely a title/description buffer pair) were not resolved.
+// The four accessor calls (disassembly 0x4b750e..0x4b7546) read, in order: "player_flags" (string,
+// default "") -> EDX of the description generator; "game_flags" (int) -> its `fraglimit`
+// (packed engine/flags) parameter; "gamevariant" (string) and "fraglimit" (string, default "0")
+// -> each widened into a 0x800-byte stack buffer and passed as its last two arguments. The
+// generator's own parameter names (variant_name / fraglimit / game_flags_wide / player_flags_wide)
+// are misnomers for what the browser keys actually carry.
+// Return value is AL = 1 on every path.
 
+// VERIFIED against disassembly 0x4b74e0..0x4b75af (2026-09-30): FIXED: the four key/role assignments were wrong (player_flags string -> EDX, game_flags int -> fraglimit arg, gamevariant and fraglimit strings widened into the last two args) and the generator extern lacked its EDX variant_name argument
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -37,39 +31,33 @@ extern char *SBServerGetStringValue(void *entry, const char *key, const char *de
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.
 // Widens an ASCII string into dest and returns dest, or NULL when it does not fit.
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990
-extern void multiplayer_game_variant_description_generate(ticker_text_buffer *ticker, int32_t fraglimit,
-                                                            wchar_t *game_flags_wide, wchar_t *player_flags_wide); // 0x4b8da0,
-    // owned by types/game.h, not rewritten here; its first cdecl argument is 0x006b5e74 itself
-    // (push 0x6b5e74 at 0x4b7588) and the variant name string rides in EDX (mov edx,ebp)
+extern void multiplayer_game_variant_description_generate(char *variant_name, ticker_text_buffer *ticker,
+    int32_t fraglimit, wchar_t *game_flags_wide, wchar_t *player_flags_wide); // 0x4b8da0; blam-cc: EDX -> variant_name, stack -> ticker, fraglimit, game_flags_wide, player_flags_wide
 extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74 (EDI at 0x4b74f7)
 extern void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self); // 0x4b8a60, this module
 
-// blam-cc: GameSpy entry pointer in ECX (in_ECX)
+// blam-cc: ECX -> entry
 int32_t server_browser_selected_variant_description_build(void *entry)
 {
-    char *variant_name;
-    int32_t fraglimit;
-    char *game_flags;
     char *player_flags;
-    wchar_t game_flags_wide[0x400];   // the 0x800-byte stack scratch at [esp+0x814]
-    wchar_t player_flags_wide[0x400]; // the 0x800-byte stack scratch at [esp+0x14]
+    int32_t game_flags;
+    char *gamevariant;
+    char *fraglimit;
+    wchar_t gamevariant_wide[0x400];  // the 0x800-byte stack scratch at [esp+0x814]
+    wchar_t fraglimit_wide[0x400];    // the 0x800-byte stack scratch at [esp+0x14]
 
     ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
     if (entry != 0) {
-        variant_name = SBServerGetStringValue(entry, "gamevariant", "");
-        fraglimit = SBServerGetIntValue(entry, "fraglimit", 0);
-        game_flags = SBServerGetStringValue(entry, "game_flags", "");
         player_flags = SBServerGetStringValue(entry, "player_flags", "");
-        if (variant_name != 0 && fraglimit != 0) {
-            // FIXED in the review pass: 0x4b755a/0x4b756b set EAX to the two stack scratch
-            // buffers and EDI to 0x800 before each call; an earlier draft passed only the
-            // source string, and passed the ticker as an opaque byte array.
-            string_convert_ascii_to_unicode(game_flags_wide, 0x800, game_flags);
-            string_convert_ascii_to_unicode(player_flags_wide, 0x800, player_flags);
-            multiplayer_game_variant_description_generate(&server_browser_variant_ticker,
-                fraglimit, game_flags_wide, player_flags_wide);
+        game_flags = SBServerGetIntValue(entry, "game_flags", 0);
+        gamevariant = SBServerGetStringValue(entry, "gamevariant", 0);
+        fraglimit = SBServerGetStringValue(entry, "fraglimit", "0");
+        if (player_flags != 0 && game_flags != 0) {
+            string_convert_ascii_to_unicode(gamevariant_wide, 0x800, gamevariant);
+            string_convert_ascii_to_unicode(fraglimit_wide, 0x800, fraglimit);
+            multiplayer_game_variant_description_generate(player_flags, &server_browser_variant_ticker,
+                game_flags, gamevariant_wide, fraglimit_wide);
         }
-        return 1;
     }
     return 1;
 }
