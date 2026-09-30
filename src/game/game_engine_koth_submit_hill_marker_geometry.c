@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_rasterizer.h"
 
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (0x46b306, 0x46b6c2, 0x46b6d2)
 extern void **rasterizer_dynamic_index_buffer;                // 0x006e09e8, UNSURE identity (vtable object, +0x30 called)
@@ -52,7 +53,7 @@ extern void rasterizer_model_draw_prepare_states(int32_t a); // 0x526f50, render
 extern void rasterizer_shader_environment_draw_dispatch(int32_t tag_data, int32_t a, int32_t b, int32_t c, int32_t d, int32_t e); // 0x52b050
 extern void rasterizer_transparent_geometry_group_build(int32_t tag_data, int32_t a, int32_t b, int32_t c, int32_t d, int32_t e,
     int32_t f, void *g); // 0x52b180
-extern void rasterizer_model_draw_restore_states(void); // 0x52b530
+
 
 // blam-cc: stack -> tag_handle_as_uint, position_override, orientation_override, param_4, param_5;
 //   unaff_EAX -> vertex_source

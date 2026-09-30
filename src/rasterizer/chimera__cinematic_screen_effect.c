@@ -18,6 +18,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_rasterizer.h"
 
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes)
 extern float rasterizer_default_z_near; // 0x0069c65c, rasterizer.h
@@ -29,7 +30,7 @@ extern uint8_t *texture_cache; // 0x006ac540 UNSURE: some HUD/cinematic object, 
 extern uint8_t decals_for_all_responses;                         // 0x006893f5
 extern uint8_t *rasterizer_decal_vertex_cache_handle;               // 0x0071d1c0 UNSURE: +0x2c shift, +0x3c data_array
 
-extern void lens_flare_update_visibility(void); // 0x513780 (this session)
+
 extern void decals_update_fade(void); // 0x44e2b0
 
 // blam-cc: ECX -> time_source

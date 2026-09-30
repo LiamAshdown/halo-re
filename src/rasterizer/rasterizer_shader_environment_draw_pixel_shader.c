@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h>
 
 extern void *rasterizer_device;                      // 0x0071d174
@@ -54,14 +55,10 @@ extern int32_t environment_techniques_no[];          // 0x006e17f4
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[]; // 0x0069e350
 extern uint32_t rasterizer_model_vertex_declaration; // 0x006e1ac0
 
-extern void rasterizer_clear_decal_zbias(void); // 0x519580
+
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color); // 0x4ab5d0
 extern uint32_t color_pack_argb_from_real(ColorARGB *color); // 0x497900
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-    int16_t default_index, int16_t frame, rasterizer_effect_slot *effect_slot); // 0x518860
-extern void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-    rasterizer_vertex_buffer *vertex_buffer, int32_t primitive_count, int32_t first_primitive,
-    int32_t dynamic_vertex_slot); // 0x51c730
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

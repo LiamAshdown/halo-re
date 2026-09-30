@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -45,9 +46,8 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
 // blam-cc: ECX -> shader
-extern rasterizer_effect_slot *rasterizer_shader_model_select_technique(const ShaderModel *shader); // 0x527500
-extern void rasterizer_apply_decal_zbias(void); // 0x5194e0
-extern void rasterizer_clear_decal_zbias(void); // 0x519580
+
+
 // blam-cc: EAX -> a, ECX -> b
 extern real vector3d_distance(const real_point3d *a, const real_point3d *b); // 0x4088b0
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color); // 0x4ab5d0
@@ -55,9 +55,7 @@ extern double fabs(double x);                                  // inline x87 fab
 // blam-cc: AX -> type, stack -> time
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-                                                      int16_t default_index, int16_t frame,
-                                                      rasterizer_effect_slot *effect_slot); // 0x518860
+
 // blam-cc: ECX -> function_source, ESI -> animation, EBX -> out_u, EDI -> out_v, stack -> the rest
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation,
                                               float *out_u, float *out_v, float u_scale, float v_scale,
@@ -65,19 +63,14 @@ extern void shader_texture_animation_evaluate(const void *function_source, const
                                               float time); // 0x53fe50
 // blam-cc: stack -> (index_buffer, dynamic_index_slot, vertex_buffer), EAX -> primitive_count,
 //   ECX -> first_primitive, EBX -> dynamic_vertex_slot
-extern void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-                                                      rasterizer_vertex_buffer *vertex_buffer, int32_t primitive_count,
-                                                      int32_t first_primitive, int32_t dynamic_vertex_slot); // 0x51c730
+
 // blam-cc: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
-extern void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-                                                   rasterizer_index_buffer *index_buffer); // 0x51c5f0
-extern void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffer, int32_t primitive_count,
-                                                   int32_t dynamic_vertex_slot); // 0x51c490
+
+
 // blam-cc: EAX -> primitive_count, ESI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive)
 extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
                                                                        int32_t dynamic_index_slot, int32_t first_primitive); // 0x51c1c0
-extern void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count,
-                                                int32_t dynamic_vertex_slot); // 0x51c090
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

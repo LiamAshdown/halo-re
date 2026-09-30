@@ -23,6 +23,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -42,21 +43,16 @@ extern int16_t render_force_flag;                             // 0x0069c67c UNSU
 // blam-cc: EAX -> bitmap_tag_id, DX -> index
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index); // 0x43f250
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot); // 0x5186c0
+
 // blam-cc: EAX -> bitmap_tag_id, EDI -> effect_slot, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int16_t stage, int16_t frame,
-                                                           rasterizer_effect_slot *effect_slot); // 0x518700
+
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-                                                      int16_t default_index, int16_t frame,
-                                                      rasterizer_effect_slot *effect_slot); // 0x518860
+
 // blam-cc: ESI -> shader_environment; writes u = periodic(u function, time / u period) * u scale
 //   and v likewise
 extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader); // 0x540060
 // blam-cc: EAX -> primitive_count, EDI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive, second_stream)
-extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-                                                                        int32_t dynamic_index_slot, int32_t first_primitive,
-                                                                        rasterizer_vertex_buffer *second_stream); // 0x51c310
+
 
 typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);

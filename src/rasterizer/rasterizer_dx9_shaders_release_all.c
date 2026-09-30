@@ -9,11 +9,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
-extern void rasterizer_dx9_vertex_declarations_release(void); // 0x530540
-extern void rasterizer_dx9_pixel_shaders_release(void);        // 0x52ff60
 
 // Releases vertex declarations, every created vertex-shader interface, then every pixel-shader
 // effect and the effect pool (via rasterizer_dx9_pixel_shaders_release).

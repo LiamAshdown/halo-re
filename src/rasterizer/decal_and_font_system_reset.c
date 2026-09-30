@@ -16,6 +16,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_rasterizer.h"
 
 extern Globals *global_globals; // 0x00746fa0
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164

@@ -14,6 +14,7 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern float rasterizer_ui_text_constants[20]; // 0x006e1d08
 

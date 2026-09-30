@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 // blam-cc: EAX -> height
 // Rounds an input vertical screen resolution up to the nearest value in a table of common

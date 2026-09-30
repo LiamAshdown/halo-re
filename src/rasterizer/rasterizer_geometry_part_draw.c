@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -27,18 +28,14 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern uint32_t rasterizer_depth_prepass_vertex_shader;     // 0x0069e460 rasterizer_vertex_shaders[34].shader
 
 // blam-cc: stack -> upload, EDI -> nodes
-extern void chimera__rasterizer_set_model_skinning(uint8_t upload, rasterizer_node_matrices *nodes); // 0x518b40
+
 // blam-cc: EAX -> node_part_count, ESI -> node_part_indices
-extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices); // 0x526cf0
-extern void rasterizer_prepare_lighting_constants(render_lighting *lighting); // 0x518ce0
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
+
+
 // blam-cc: ECX -> group, stack -> flag
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x533660
+
 // blam-cc: EAX -> flags, ECX -> dynamic_vertex_slot, EDX -> vertex_buffer, EDI -> index_buffer, stack -> (dynamic_index_slot, primitive_count)
-extern void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dynamic_vertex_slot,
-                                                    rasterizer_vertex_buffer *vertex_buffer,
-                                                    rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-                                                    int32_t primitive_count); // 0x528ae0
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 

@@ -13,15 +13,15 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
-extern void rasterizer_dx9_vertex_declarations_release(void);        // 0x530540
+
 extern int32_t rasterizer_dx9_vertex_declarations_create(void);      // 0x5301b0
-extern uint8_t rasterizer_dx9_vertex_shaders_reload(void);           // 0x530800
-extern void rasterizer_dx9_pixel_shaders_release(void);              // 0x52ff60
-extern uint8_t rasterizer_dx9_shaders_initialize(void);              // 0x52fab0
+
+
 extern int32_t rasterizer_screen_effect_init_shaders(void);          // 0x52d740
 extern int32_t rasterizer_screen_flash_init_shaders(void);           // 0x52ec40
-extern uint8_t rasterizer_shader_environment_build_technique_table(void); // 0x526930
+
 
 // Recreates vertex declarations, reloads vertex shaders, reloads pixel shaders/effects, then
 // initializes the screen-effect, screen-flash and shader_environment technique tables in order,

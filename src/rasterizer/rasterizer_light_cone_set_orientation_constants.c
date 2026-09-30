@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -41,9 +42,7 @@ extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x4052c0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-                                                      int16_t default_index, int16_t frame,
-                                                      rasterizer_effect_slot *effect_slot); // 0x518860
+
 
 typedef int32_t (__stdcall *d3d_call4v_fn)(void *self, uint32_t start_register, const void *data, uint32_t count);
 

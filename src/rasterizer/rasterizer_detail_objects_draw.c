@@ -19,6 +19,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern Scenario *global_scenario;                                   // 0x00746f8c
@@ -30,8 +31,7 @@ extern uint8_t console_debug_toggle_689404;                         // 0x0068940
 
 extern int16_t render_local_view_count(void);                                  // 0x4c9220, UNSURE: local player count
 // blam-cc: EAX -> bitmap_tag_id, the rest on the stack
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);

@@ -23,6 +23,7 @@
 #include "rasterizer.h"
 #include "cache.h"
 #include "bitmaps.h"
+#include "fn_rasterizer.h"
 #include <string.h>
 
 extern uint8_t rasterizer_water_enabled;              // 0x006893fe

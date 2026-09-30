@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -28,11 +29,9 @@ extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_sh
 
 // blam-cc: stack -> (index_buffer, dynamic_index_slot, vertex_buffer), EAX -> primitive_count,
 //   ECX -> first_primitive, EBX -> dynamic_vertex_slot
-extern void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-                                                      rasterizer_vertex_buffer *vertex_buffer, int32_t primitive_count,
-                                                      int32_t first_primitive, int32_t dynamic_vertex_slot); // 0x51c730
+
 // blam-cc: ESI -> vertex_buffer
-extern uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer); // 0x51c790
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 

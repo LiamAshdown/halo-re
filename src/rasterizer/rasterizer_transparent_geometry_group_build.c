@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern uint8_t console_debug_toggle_6893ec;                 // 0x006893ec
@@ -54,7 +55,7 @@ extern transparent_geometry_group *transparent_geometry_group_allocate_secondary
 extern int16_t transparent_geometry_group_index_from_pointer(transparent_geometry_group *group); // 0x5152d0
 // blam-cc: ECX -> shader
 extern uint8_t shader_is_decal(const Shader *shader); // 0x0053fde0
-extern void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *group, uint8_t attached); // 0x533850
+
 // blam-cc: EAX -> source, ECX -> size
 extern void *chimera__rasterizer_memory_alloc(const void *source, uint32_t size); // 0x514560
 

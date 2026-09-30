@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 // blam-cc: EAX -> out, ECX -> packed
 // Unpacks an 11:11:10 bit signed-normal-encoded direction vector (see

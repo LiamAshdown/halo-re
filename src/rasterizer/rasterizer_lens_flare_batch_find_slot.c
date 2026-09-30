@@ -11,12 +11,12 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots]; // 0x00746fc0
 extern lens_flare_batch_key lens_flare_current_key; // 0x00746fb0
 extern uint32_t lens_flare_batch_clock; // 0x00746fa8
 
-extern void rasterizer_lens_flare_batch_draw_slot(int32_t batch_index); // 0x536c10
 
 static int key_equal(const lens_flare_batch_key *a, const lens_flare_batch_key *b)
 {

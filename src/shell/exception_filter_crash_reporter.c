@@ -44,6 +44,7 @@
 #include "shell.h"
 #include <string.h>
 #include "interface.h"
+#include "fn_rasterizer.h"
 
 #if defined(_MSC_VER)
 #define CRASH_TRY __try
@@ -54,9 +55,6 @@
 #endif
 
 
-
-extern void chimera__registry_check_3(void);                                   // 0x5226c0 (rasterizer), restores the gamma ramp
-extern void rasterizer_service_deferred_windowed_ops(void);                    // 0x5180d0 (rasterizer)
 extern void sound_stop_all(void);                                              // 0x54adb0 (sound)
 extern int32_t __stdcall dialog_center_on_screen(void *hwnd, uint32_t message, uint32_t wparam,
                                                  int32_t lparam);              // 0x542f00

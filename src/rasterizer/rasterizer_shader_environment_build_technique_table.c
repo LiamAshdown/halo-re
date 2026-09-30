@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern d3d_caps9 rasterizer_caps;                                    // 0x007c10c0
@@ -35,7 +36,7 @@ extern const char rasterizer_shader_technique_name_suffixes[][0x80]; // 0x0069c7
 
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 // blam-cc: EDI -> effect, stack -> name
-extern void *rasterizer_shader_technique_for_name(void *effect, const char *name); // 0x530120
+
 
 // One stage: returns 0 at the first name that does not resolve.
 static uint8_t build_stage(int32_t *table, int32_t count, int effect_index, const char *format, uint8_t skip_middle)

@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -38,17 +39,16 @@ extern rasterizer_dynamic_screen_vertex rasterizer_shadow_screen_quad[4]; // 0x0
 // blam-cc: ECX -> v, returns the length in ST0
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 // blam-cc: EAX -> out, ECX -> packed
-extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400
-extern uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, float *out_screen,
-                                                      float *out_scale); // 0x525130
+
+
 // blam-cc: ESI -> rect (left, right, top, bottom), stack -> target_index
-extern void rasterizer_sun_glow_capture(const float *rect, int16_t target_index); // 0x525320, ESI rect, stack target
+
 extern int32_t rasterizer_sun_glow_blur(int16_t first_target_index, int16_t second_target_index,
                                                                uint16_t both_flag); // 0x525720
 // blam-cc: AX -> target_index, DX -> stage
-extern void *rasterizer_render_target_bind_texture_stage(int16_t target_index, int16_t stage); // 0x52cdd0
+
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x518770
+
 extern double floor(double x); // 0x623e40 CRT
 extern double cos(double x);   // inline x87 fcos
 

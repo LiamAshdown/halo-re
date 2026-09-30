@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
 extern void *rasterizer_device;     // 0x0071d174

@@ -16,12 +16,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern lens_flare_batch_key lens_flare_applied_key; // 0x007bf040
 
-extern uint8_t rasterizer_validate_and_rebind_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x5187e0, EAX tag
-extern uint8_t rasterizer_resolve_and_cache_submap_c(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-    int16_t default_index, int16_t frame); // 0x518a60, EAX tag, DI bitmap_type
+
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200
 
 // Finds (or LRU-evicts and reassigns) a batching slot matching the current material key for the

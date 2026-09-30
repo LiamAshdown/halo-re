@@ -17,13 +17,12 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots]; // 0x007bf060
 extern int32_t rasterizer_vertex_buffer_slot_high_water; // 0x0071d258
 extern int32_t rasterizer_vertex_buffer_slot_count;      // 0x0071d25c
 
-extern void *rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length, uint32_t fvf,
-                                                  uint8_t not_dynamic); // 0x530570
 
 // Looks up a free or matching entry in the vertex-buffer slot table, creates the buffer for it,
 // and stores its parameters; returns the 1-based slot handle, or 0 on failure.

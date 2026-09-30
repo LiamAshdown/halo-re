@@ -9,9 +9,8 @@
 
 #include "tags.h"
 #include "math.h"
+#include "fn_rasterizer.h"
 
-extern int32_t rasterizer_lens_flare_occlusion_test_issue(int32_t slot_index, const real_point3d *position,
-    float radius); // 0x537800, EDI slot, stack (position, radius)
 
 int32_t render_rasterizer_dispatch_537800(int32_t slot_index, real_point3d *point, float radius)
 {

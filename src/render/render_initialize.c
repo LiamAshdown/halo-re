@@ -14,6 +14,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t *game_state_base;              // 0x006e2dc8 (matches src/ai/ai_communication_initialize.c)
 extern int32_t game_state_cursor;             // 0x006e2dcc
@@ -21,7 +22,7 @@ extern uint32_t game_state_crc;               // 0x006e2dd4
 extern ColorARGB *rasterizer_model_ambient_reflection_tint; // 0x0071cfc0
 
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length); // 0x4d02d0, memory module
-extern uint8_t rasterizer_initialize_direct3d(void); // 0x5169c0, rasterizer module
+
 
 // Carves the 0x10 byte model ambient reflection tint block out of the game state arena and
 // initializes the Direct3D rasterizer device.

@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern int32_t transparent_geometry_group_count;           // 0x0071d154
 extern int16_t transparent_geometry_group_draw_cursor;     // 0x006d9838
@@ -28,10 +29,10 @@ extern uint32_t rasterizer_frustum_z_values[2]; // 0x0069c664
 
 extern void transparent_geometry_group_sort(void); // 0x5156d0
 // blam-cc: stack -> (z_near, z_far) as raw float bits
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
+
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
-extern void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *group, uint8_t attached); // 0x00533850
+
 
 // blam-cc: stack -> resort
 // Draws every active transparent-geometry group in depth-sorted order starting from the shared

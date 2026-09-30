@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_window_parameters rasterizer_window; // 0x007c1220
 

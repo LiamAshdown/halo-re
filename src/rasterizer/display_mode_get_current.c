@@ -14,6 +14,7 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_display_mode rasterizer_desktop_display_mode;           // 0x007c11f0
 

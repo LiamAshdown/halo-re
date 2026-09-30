@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 
 extern double log(double x);                    // inline fldln2 / fyl2x

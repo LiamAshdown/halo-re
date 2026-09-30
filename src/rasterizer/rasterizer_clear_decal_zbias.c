@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;    // 0x0071d174
 extern d3d_caps9 rasterizer_caps;  // 0x007c10c0

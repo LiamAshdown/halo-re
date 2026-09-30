@@ -17,11 +17,12 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 // blam-cc: EAX -> bitmap
 extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); // 0x43fb70
 // blam-cc: ESI -> bitmap
-extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap); // 0x523fa0
+
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828
 
 // Allocates and fills the 512x512 font atlas BitmapData (a4r4g4b4, one mip level), clears

@@ -15,10 +15,11 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 
 // Picks frame (mod the bitmap count) out of the bitmap group and binds it; 0 when the tag is
 // NONE, the group is empty or the entry is missing.

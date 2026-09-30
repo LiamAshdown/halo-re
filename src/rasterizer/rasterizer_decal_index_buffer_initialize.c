@@ -19,13 +19,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t rasterizer_software_vertex_processing; // 0x0069c680
 extern void *rasterizer_device;                       // 0x0071d174
 extern void *rasterizer_dynamic_index_buffer;          // 0x006e09e8
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count]; // 0x006d98e8
 
-extern int32_t rasterizer_vertex_buffer_slot_allocate(int32_t vertex_type, uint32_t fvf, uint32_t length); // 0x5305f0,
+
     // blam-cc: EBX -> vertex_type, ESI -> fvf, EDI -> length
 extern int16_t rasterizer_vertex_sizes[k_rasterizer_vertex_type_count]; // 0x0065de00
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90

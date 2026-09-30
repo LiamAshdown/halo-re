@@ -13,14 +13,14 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t console_debug_toggle_6893f4;         // 0x006893f4
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-    int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: EAX -> primitive_count, ESI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive)
 extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
     int32_t dynamic_index_slot, int32_t first_primitive); // 0x51c1c0

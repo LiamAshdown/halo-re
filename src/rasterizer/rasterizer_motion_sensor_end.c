@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "game.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                    // 0x0071d174
@@ -37,7 +38,7 @@ extern const float rasterizer_identity_vertex_constants[5][4]; // 0x0065e118 .rd
 // blam-cc: EAX -> bitmap, stack -> (wait, allocate_if_missing)
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 // blam-cc: EAX -> target_index, stack -> (clear_color, clear)
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear); // 0x52ccc0
 

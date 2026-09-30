@@ -53,6 +53,7 @@
 #include "structures.h"
 #include "game.h"
 #include "render.h"
+#include "fn_rasterizer.h"
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -93,20 +94,12 @@ extern void object_lights_update_all(void);           // 0x4f0cf0, objects modul
 extern void render_objects(void);                     // 0x50e930, this module
 extern void structure_picked_polygon_refresh(void);   // 0x5527f0, structures module
 extern void structure_picked_polygon_draw(void);      // 0x5528f0, structures module
-extern void lens_flare_update_samples(void);          // 0x513ba0, rasterizer module
+
 extern void render_object_shadows(object_render_data *data); // 0x50eb70, this module; EAX
 extern void lights_apply_spot_falloff(void);          // 0x4f1780, objects module
 extern void lights_apply_spot_falloff_specular(void); // 0x4f1950, objects module
-extern void rasterizer_decal_pass_begin(int16_t stage); // 0x51a810; blam-cc: DI -> stage
-extern void rasterizer_decals_draw_cluster(int16_t cluster_index); // 0x51aa50 (cdecl)
-extern void rasterizer_end_decal_pass(void);          // 0x51b0e0
-extern void rasterizer_fog_screen_overlay_set_states(void); // 0x51def0
-extern void rasterizer_force_bilinear_filtering(void); // 0x51e9f0
-extern void rasterizer_dynamic_light_technique_ps2_set_states(void); // 0x521cc0
-extern void rasterizer_shader_environment_technique_multipurpose_set_states(void); // 0x520790
-extern void rasterizer_shader_environment_technique_self_illumination_set_states(void); // 0x520b90
-extern void rasterizer_shader_decal_pass_set_states(void); // 0x520020
-extern void rasterizer_water_fade_compute_and_set_states(void); // 0x51eb20
+
+
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200; blam-cc: AX -> mode
 extern void structure_leaf_faces_for_each(int32_t render_context,
     structure_lightmap_begin_callback lightmap_begin, structure_material_callback material_cb,
@@ -119,11 +112,11 @@ extern void weather_update_local_player(void);        // 0x458a90, effects modul
 extern void render_particles(void);                   // 0x50fd90, this module
 extern void particle_systems_render(void);            // 0x454b40, effects module
 extern void render_contrails(uint32_t render_type_flags); // 0x50df20, this module (cdecl here)
-extern void transparent_geometry_group_draw_all(uint8_t resort); // 0x5154a0 (cdecl)
+
 extern void detail_objects_update_render_list(void);  // 0x5522d0, structures module
-extern void lens_flare_render_all(void);              // 0x513cf0, rasterizer module
+
 extern void first_person_weapon_update_screen_effects(void); // 0x494730, interface module
-extern void rasterizer_screen_flash_render(void);     // 0x52ed00, rasterizer module
+
 extern void widget_draw_fullscreen_region(int16_t controller_index); // 0x4984c0; AX
 extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
                                                uint8_t dropped);

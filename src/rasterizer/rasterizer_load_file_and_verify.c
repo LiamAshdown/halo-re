@@ -11,9 +11,8 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
-
-extern uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size); // 0x519980 (this session)
 
 // blam-cc: ECX -> path, stack -> (out_buffer, out_size)
 // Reads the whole file `path` into a newly GlobalAlloc'd buffer, verifies it with

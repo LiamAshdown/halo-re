@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device; // 0x0071d174
 extern uint8_t console_debug_toggle_689425; // 0x00689425

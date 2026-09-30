@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_capture_surfaces[4]; // 0x0069c66c
 

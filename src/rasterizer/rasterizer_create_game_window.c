@@ -17,6 +17,7 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 
 extern void *shell_window_proc;    // 0x007461d0, WNDPROC

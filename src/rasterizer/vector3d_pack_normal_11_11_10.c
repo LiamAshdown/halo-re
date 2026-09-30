@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern double floor(double x); // 0x00623e40
 

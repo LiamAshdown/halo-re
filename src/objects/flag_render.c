@@ -26,6 +26,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_rasterizer.h"
 
 extern double sqrt(double x);
 
@@ -37,7 +38,7 @@ extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg); // out of m
 extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f); // out of module scope
 extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f,
                           int32_t g, void *h); // out of module scope
-extern void rasterizer_model_draw_restore_states(void);      // out of module scope, unexamined
+
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern data_array *object_data;      // 0x008603b0
 

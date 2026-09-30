@@ -24,6 +24,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "game.h"
+#include "fn_rasterizer.h"
 
 extern int32_t render_frame_index;      // 0x007c3100, this module
 extern float render_time_since_tick;    // 0x007c310c, this module
@@ -37,8 +38,7 @@ extern void render_cinematic_screen_effect_update(rasterizer_frame_time *time_so
 
 extern uint8_t rasterizer_reset_device_if_needed(void); // 0x517500, rasterizer module
 extern void ui_draw_trouble_brewing_indicator(void);    // 0x49c870
-extern void rasterizer_end_frame(void);          // 0x517b90
-extern void rasterizer_unbind_stream_and_textures(void);                         // 0x518130
+
 
 extern void render_player_frame(Point2DInt *screenshot_tile, render_view *view); // 0x50ba80,
     // this module; blam-cc: EAX=screenshot_tile, stack=view

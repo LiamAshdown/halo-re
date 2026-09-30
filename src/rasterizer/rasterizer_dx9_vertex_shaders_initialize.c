@@ -9,12 +9,13 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <string.h> // memset
 
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern const char *rasterizer_shader_file_name; // 0x00722bbc
 
-extern uint32_t rasterizer_dx9_vertex_shaders_load_all(void); // 0x5306e0
+
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 // Clears the vertex-shader table, loads and creates all precompiled vertex shaders, and raises a

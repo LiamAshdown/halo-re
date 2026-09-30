@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -32,12 +33,11 @@ extern const ColorRGB *global_white_color;                  // 0x00686b04 points
 extern uint8_t console_debug_toggle_689423;                 // 0x00689423 plasma rendering enabled
 
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: EDX -> group
-extern uint32_t transparent_geometry_group_get_vertex_type_reference(transparent_geometry_group *group); // 0x515400
+
 // blam-cc: ECX -> group, stack -> flag
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x533660
+
 // blam-cc: ST1 -> base, ST0 -> exponent (CRT _CIpow)
 extern double pow(double base, double exponent); // 0x6283c0
 

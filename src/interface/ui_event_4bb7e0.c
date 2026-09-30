@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -32,11 +33,11 @@ extern int32_t game_time_force_single_tick; // 0x007196d8
 extern d3d_display_mode rasterizer_desktop_display_mode; // 0x007c11f0
 extern uint8_t rasterizer_needs_reset; // 0x0071d16d
 extern void *rasterizer_device; // 0x0071d174
-extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested); // 0x515d10, blam-cc: EDI
+
 extern void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterizer_display_mode *source); // 0x515fc0, blam-cc: EAX source
 extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters); // 0x515d90
-extern void rasterizer_resize_game_window(int32_t height, int32_t width); // 0x515b20, blam-cc: EAX height, ECX width
-extern void display_mode_get_current(rasterizer_display_mode *out); // 0x515ca0, blam-cc: EDI out
+
+
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern uint8_t ui_flag_007196d2; // 0x007196d2, UNSURE (only ever set to 1 here)
 

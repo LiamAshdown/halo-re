@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t unknown_006893ff;    // 0x006893ff UNSURE: console/debug toggle, owner module unclear
 extern int16_t unknown_00719aac;    // 0x00719aac UNSURE: gating value, owner module unclear
@@ -24,8 +25,6 @@ extern int16_t screenshot_scale;    // 0x00696568 UNSURE: gating value, owner mo
 extern lens_flare_instance lens_flare_instances[0x400]; // 0x006ce818
 extern int32_t lens_flare_instance_count; // 0x0071d134
 
-extern uint8_t *lens_flare_get_visibility_byte(lens_flare_instance *flare); // 0x5134f0
-extern int32_t rasterizer_lens_flare_occlusion_query_get_result(int32_t slot_index); // 0x537b40, ESI slot = the loop index (0x5137c0)
 
 // Per-frame smoothing pass: while occlusion queries are enabled (unknown_006893ff) and the
 // window/mode gate allows it, blends each active lens flare's visibility byte toward its

@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -34,16 +35,14 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: ECX -> function_source, ESI -> animation, EBX -> out_u, EDI -> out_v, stack -> the rest
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation,
                                               float *out_u, float *out_v, float u_scale, float v_scale,
                                               float unused_z, float unused_w, float unused_5,
                                               float time); // 0x53fe50
 // blam-cc: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
-extern void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-                                                   rasterizer_index_buffer *index_buffer); // 0x51c5f0
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

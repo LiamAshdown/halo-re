@@ -28,6 +28,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "bitmaps.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t *light_volume_instances; // 0x006b8d70
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -42,7 +43,7 @@ extern uint8_t *object_attachment_get_blended_marker(uint32_t object_index, uint
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t flags); // 0x4f6080
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value); // 0x4f6e70
-extern void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags); // 0x537130, AX, ECX
+
 extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index,
     int16_t bitmap_index); // 0x5120f0, EAX, ECX, stack
 extern float curve_apply_exponent(float value, float exponent); // 0x4fea50

@@ -22,6 +22,7 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t text_rendering_enabled;   // 0x00689402
 extern rasterizer_window_parameters rasterizer_window; // 0x007c1220
@@ -34,8 +35,7 @@ extern float rasterizer_ui_text_constants[20]; // 0x006e1d08
 
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
 // blam-cc: CX -> mode
-extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); // 0x5185d0
-extern void chimera__widescreen_text_scaling(void); // 0x531ab0
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

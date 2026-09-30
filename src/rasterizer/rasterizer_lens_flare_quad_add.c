@@ -14,14 +14,12 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots]; // 0x00746fc0
 extern uint32_t lens_flare_vertex_specular; // 0x0069e708
 
-extern int32_t rasterizer_lens_flare_batch_find_slot(void); // 0x536cb0
-extern void rasterizer_lens_flare_batch_draw_slot(int32_t batch_index); // 0x536c10
-extern uint8_t rasterizer_lens_flare_project_to_screen(const real_point3d *position, float radius,
-    float *out_screen, float *out_inverse_w, float *out_billboard_size); // 0x536d80
+
 extern double fcos(double x); // FCOS
 extern double fsin(double x); // FSIN
 

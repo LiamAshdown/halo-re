@@ -18,17 +18,15 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 // blam-cc: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
-extern void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-                                                   rasterizer_index_buffer *index_buffer); // 0x51c5f0
-extern void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffer, int32_t primitive_count,
-                                                   int32_t dynamic_vertex_slot); // 0x51c490
+
+
 // blam-cc: EAX -> primitive_count, ESI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive)
 extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
                                                                        int32_t dynamic_index_slot, int32_t first_primitive); // 0x51c1c0
-extern void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count,
-                                                int32_t dynamic_vertex_slot); // 0x51c090
+
 
 // blam-cc: stack -> (index_buffer, dynamic_index_slot, vertex_buffer), EAX -> primitive_count,
 //   ECX -> first_primitive, EBX -> dynamic_vertex_slot

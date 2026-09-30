@@ -13,13 +13,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern uint32_t screen_effect_techniques[k_rasterizer_screen_effect_techniques]; // 0x0071d210
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 // blam-cc: EDI -> effect, stack -> name
-extern void *rasterizer_shader_technique_for_name(void *effect, const char *name); // 0x530120
+
 
 static const char *const k_video_technique_names[k_rasterizer_screen_effect_techniques] = {
     "VideoOn",

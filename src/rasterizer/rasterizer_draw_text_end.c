@@ -11,6 +11,7 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t console_debug_toggle_6893e6;   // 0x006893e6
 extern void *rasterizer_device;               // 0x0071d174

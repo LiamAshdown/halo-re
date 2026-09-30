@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <wchar.h>
 #include <stdlib.h>
 
@@ -38,7 +39,6 @@ extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8 UNSUR
 extern void (*unknown_00721edc)(int32_t document, uint32_t a); // 0x00721edc UNSURE
 extern void (*unknown_00721ec8)(int32_t document); // 0x00721ec8 UNSURE: "release document"
 
-extern int32_t rasterizer_round_up_resolution_height(int32_t height); // 0x5195f0 (this session)
 
 // Lazily creates the debug KSML UI engine, then (re)loads the editbox and log KSML layout files
 // from a resolution-specific "content/" subfolder.

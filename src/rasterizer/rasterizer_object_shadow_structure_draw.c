@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -41,12 +42,11 @@ extern real_matrix4x3 rasterizer_object_shadow_projection;  // 0x006e1cd0
 extern uint8_t rasterizer_object_shadow_prepared;           // 0x0071d264
 extern uint8_t rasterizer_object_shadow_window_restored;    // 0x0069e550
 
-extern void rasterizer_object_shadow_blur(void); // 0x530830
+
 // blam-cc: AX -> target_index, DX -> stage
-extern void *rasterizer_render_target_bind_texture_stage(int16_t target_index, int16_t stage); // 0x52cdd0
+
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int16_t stage,
-                                                           int16_t frame); // 0x518770
+
 // blam-cc: EAX -> target_index, stack -> (clear_color, clear)
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear); // 0x52ccc0
 // blam-cc: AX -> mode

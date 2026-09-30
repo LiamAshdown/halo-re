@@ -35,6 +35,7 @@
 #include "rasterizer.h"
 #include "game.h"
 #include "units.h"
+#include "fn_rasterizer.h"
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
@@ -68,8 +69,8 @@ extern datum_index light_cluster_iterate_next(datum_index *cursor); // 0x4f3500
 extern void light_get_render_bounds(datum_index handle, real_point3d *center_out, float *radius_out); // 0x4f3530
 extern uint8_t light_not_marked_this_frame(datum_index handle); // 0x4f3620
 extern uint8_t light_mark_this_frame(datum_index handle); // 0x4f3650
-extern void rasterizer_light_disable_all(void); // 0x526700
-extern void structure_cluster_add_lens_flares(int16_t cluster_index); // 0x513a00, CX cluster
+
+
 extern void *color_interpolate_argb_with_tint(uint32_t flags, void *color1, void *dest, void *tint, void *color0,
     float t); // 0x43f7d0, EDX flags, EBX color1, ESI dest, EDI tint, stack color0, t
 extern void *color_interpolate(void *color1, void *color0, void *dest, uint32_t flags, float t); // 0x43f6a0,
@@ -79,14 +80,14 @@ extern void first_person_weapon_center_flashlight(datum_index unit_index, real_p
     real_vector3d *out_extents, real_vector3d *out_direction); // 0x492b80
 extern uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name,
     real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction); // 0x492c30
-extern void rasterizer_light_set(rasterizer_light *light); // 0x526760, ESI light
+
 extern int32_t local_player_index_for_weapon(datum_index weapon_index); // 0x494010
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
     object_marker *out, uint32_t maximum); // 0x492ad0
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum); // 0x4f6080
-extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction); // 0x5132d0, ESI direction
-extern void lens_flare_add_instance(lens_flare_instance *candidate); // 0x5138a0, EBX candidate
+
+
 extern int32_t fistp_round(float x); // FISTP, round to nearest
 
 static uint8_t *object_data_get(datum_index handle)

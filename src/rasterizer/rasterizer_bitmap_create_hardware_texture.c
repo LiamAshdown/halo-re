@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 // reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -30,7 +31,6 @@ extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c
 extern void *rasterizer_device; // 0x0071d174
 extern int32_t rasterizer_bitmap_format_to_d3dformat[]; // 0x0065e040, UNSURE element count
 
-extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height);
 
 typedef int32_t (__stdcall *d3d_create_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
 typedef int32_t (__stdcall *d3d_create_volume_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);

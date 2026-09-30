@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
@@ -57,8 +58,6 @@ typedef int32_t (__stdcall *d3d_set_indices_fn)(void *self, void *index_buffer);
 typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
                                                  uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
-
-
 
 
 static void **device_vtable(void)

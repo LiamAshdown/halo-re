@@ -11,12 +11,13 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *screen_flash_techniques[6]; // 0x0071d23c, FlashLighten .. FlashTint
 extern void *rasterizer_screen_flash_effect; // 0x0069e270
 
 // blam-cc: EDI -> effect, stack -> name
-extern void *rasterizer_shader_technique_for_name(void *effect, const char *name); // 0x530120
+
 
 // Looks up and caches the effect-technique handle for each of the six full-screen flash blend
 // modes (Lighten, Darken, Max, Min, Invert, Tint). Stops at the first failure, so a lookup

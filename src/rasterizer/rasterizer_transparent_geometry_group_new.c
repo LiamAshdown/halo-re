@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
@@ -36,9 +37,9 @@ extern uint8_t unknown_0071d276;                                    // 0x0071d27
 
 extern uint8_t shader_is_decal(const Shader *shader); // 0x0053fde0
 // blam-cc: EAX -> group, stack -> clear
-extern void transparent_geometry_group_set_drawn_bit(transparent_geometry_group *group, uint8_t clear); // 0x515370
+
 extern void *chimera__rasterizer_memory_alloc(const void *source, uint32_t size); // 0x00514560
-extern void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *group, uint8_t attached); // 0x00533850
+
 
 // Allocates (or, for `flags` bit 1 already set, reuses the single static "immediate" record) a
 // transparent_geometry_group, fills every field from the caller's arguments and the current

@@ -25,6 +25,7 @@
 #include "math.h"
 #include "game.h"
 #include "structures.h"
+#include "fn_rasterizer.h"
 
 extern player_globals *local_player_globals; // 0x0087a478, game.h
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
@@ -34,7 +35,7 @@ extern real_point3d render_camera_global; // 0x007c3114, this module (read, not 
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even);
     // the same reading src/math/periodic_function_evaluate.c gives Ghidra's ROUND()
 
-extern void rasterizer_detail_objects_begin(void); // 0x51b3f0, foreign render module; UNSURE, no visible arguments
+
 extern void rasterizer_detail_objects_vertex_buffer_fill(detail_object_render_list *render_list); // 0x51b6f0, foreign, submit
 extern void rasterizer_detail_objects_draw(detail_object_render_list *render_list); // 0x51b890, foreign, draw
 extern ScenarioStructureBSPGlobalDetailObjectCell *detail_object_cell_lower_bound(

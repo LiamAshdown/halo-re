@@ -12,11 +12,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots]; // 0x00746fc0
 extern void *rasterizer_device; // 0x0071d174
 
-extern uint8_t rasterizer_lens_flare_batch_apply_material(lens_flare_batch_key *key); // 0x536b70
 
 typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
                                             const void *data, uint32_t stride);

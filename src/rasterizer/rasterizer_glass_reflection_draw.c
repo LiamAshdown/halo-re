@@ -23,6 +23,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -40,19 +41,15 @@ extern uint8_t console_debug_toggle_689409;                         // 0x0068940
 // blam-cc: EAX -> bitmap_tag_id, DX -> index
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index); // 0x43f250
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot); // 0x5186c0
+
 // blam-cc: EAX -> bitmap_tag_id, EDI -> effect_slot, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int16_t stage, int16_t frame,
-                                                           rasterizer_effect_slot *effect_slot); // 0x518700
+
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-                                                      int16_t default_index, int16_t frame,
-                                                      rasterizer_effect_slot *effect_slot); // 0x518860
+
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: ECX -> group
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x00533660
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

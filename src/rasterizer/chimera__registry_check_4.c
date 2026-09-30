@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -32,7 +33,6 @@ extern d3d_gamma_ramp rasterizer_desktop_gamma_ramp; // 0x006e0b18
 extern HWND rasterizer_window_handle;        // 0x007461c8
 extern int32_t rasterizer_gamma_captured;    // 0x0071d1ec
 
-extern void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings); // 0x522890, blam-cc: EAX
 
 #define k_HKEY_CURRENT_USER ((HKEY)0x80000001)
 

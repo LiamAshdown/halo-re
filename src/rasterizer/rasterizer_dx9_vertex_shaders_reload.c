@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
-extern uint8_t rasterizer_dx9_vertex_shaders_initialize(void); // 0x5307b0
 
 // Releases every created vertex shader, then reloads and recreates them all (used after a device
 // reset). Returns whatever rasterizer_dx9_vertex_shaders_initialize returns.

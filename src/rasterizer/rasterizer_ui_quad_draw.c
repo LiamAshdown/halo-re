@@ -35,6 +35,7 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -48,9 +49,9 @@ extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_sh
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 
 // blam-cc: CX -> mode
-extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); // 0x5185d0
+
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 // blam-cc: EAX -> bitmap, stack -> (wait, allocate_if_missing)
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
 

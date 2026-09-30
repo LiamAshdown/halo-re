@@ -37,16 +37,15 @@
 #include "cache.h"
 #include "models.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
-extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices); // 0x526cf0
+
 extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame,
                                                           rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
                                                           int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x52b050
-extern void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t frame,
-                                                 rasterizer_index_buffer *index_buffer,
-                                                 rasterizer_vertex_buffer *vertex_buffer); // 0x531350
+
 
 // 0x52b180 is written in src/rasterizer/rasterizer_transparent_geometry_group_build.c; this is
 // its prototype verbatim. The call site 0x4d7433..0x4d7456 pushes, last to first,

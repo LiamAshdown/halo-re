@@ -10,12 +10,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots]; // 0x007bf060
 extern int32_t rasterizer_vertex_buffer_slot_high_water; // 0x0071d258
 
-extern void *rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length, uint32_t fvf,
-                                                  uint8_t not_dynamic); // 0x530570
 
 // Re-creates the Direct3D vertex buffer for any vertex-buffer-slot entry that is marked in-use
 // (length nonzero) but has lost its compiled buffer handle (managed byte clear), e.g. after a

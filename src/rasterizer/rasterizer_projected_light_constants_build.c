@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -29,7 +30,6 @@ extern uint8_t rasterizer_projected_light_has_cube_map; // 0x006e0a60
 extern uint32_t rasterizer_projected_light_cube_map;                // 0x006e0a64 bitmap tag id
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
 
-extern void rasterizer_projected_light_constants_build_cube_map(int32_t light_index); // 0x5215b0
 
 // blam-cc: EAX = light_index
 void rasterizer_projected_light_constants_build(int32_t light_index)

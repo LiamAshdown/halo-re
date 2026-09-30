@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,

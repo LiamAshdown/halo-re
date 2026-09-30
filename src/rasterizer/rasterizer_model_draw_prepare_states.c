@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                       // 0x0071d174
 extern d3d_caps9 rasterizer_caps;                      // 0x007c10c0
@@ -47,9 +48,7 @@ extern int16_t rasterizer_active_model_mode;  // 0x0071d1f8
 extern float unknown_007c047c;                // 0x007c047c UNSURE: planar fog blend factor output
 
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200, blam-cc: EAX -> mode
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
-extern void chimera__rasterizer_set_model_skinning(uint8_t upload, rasterizer_node_matrices *nodes); // 0x518b40
-extern void rasterizer_prepare_lighting_constants(render_lighting *lighting); // 0x518ce0
+
 
 typedef int32_t (__stdcall *d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
 typedef int32_t (__stdcall *d3d_set_transform_fn)(void *device, uint32_t state, const void *matrix);

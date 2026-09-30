@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -33,7 +34,7 @@ extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effec
 extern rasterizer_dynamic_screen_vertex rasterizer_shadow_screen_quad[4]; // 0x006e1720
 
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x518770
+
 // blam-cc: EAX -> target_index, stack -> (clear_color, clear)
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear); // 0x52ccc0
 

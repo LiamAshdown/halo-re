@@ -26,6 +26,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_rasterizer.h"
 
 extern heap *widget_memory_pool;                  // 0x006926c4
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
@@ -36,7 +37,7 @@ extern int32_t rasterizer_gamma_exponent; // 0x0071d1e0
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
 extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
-extern void chimera__gamma(void); // 0x5227a0
+
 extern void widget_extended_description_sync_selection(widget_instance *screen); // 0x4a66b0, cdecl
 
 uint8_t video_options_menu_update(widget_instance *screen)

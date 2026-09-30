@@ -16,6 +16,7 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 
 extern void *shell_window;            // 0x007461c4

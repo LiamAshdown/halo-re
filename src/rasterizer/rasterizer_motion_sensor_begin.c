@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                    // 0x0071d174
@@ -35,7 +36,7 @@ extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_sh
 // blam-cc: EAX -> bitmap, stack -> (wait, allocate_if_missing)
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x444550
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

@@ -10,12 +10,13 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdlib.h>
 
 extern int32_t transparent_geometry_group_count;           // 0x0071d154
 extern int16_t *transparent_geometry_group_sorted_indices; // 0x0071d15c
 extern transparent_geometry_group *transparent_geometry_groups; // 0x0071d14c
-extern int __cdecl transparent_geometry_group_compare(int16_t *a, int16_t *b); // 0x5155b0
+
 
 // Re-sorts the active transparent-geometry groups by transparent_geometry_group_compare and
 // records each group's new sorted index.

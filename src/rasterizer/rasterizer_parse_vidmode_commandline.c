@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdio.h>
 #include <stdlib.h>
 

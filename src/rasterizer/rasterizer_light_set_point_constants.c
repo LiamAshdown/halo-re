@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_light rasterizer_lights[k_rasterizer_maximum_lights]; // 0x007c1484
 

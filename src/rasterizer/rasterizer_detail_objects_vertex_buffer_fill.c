@@ -20,6 +20,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_detail_object_vertex_buffer;                // 0x0071d1c8
 extern Scenario *global_scenario;                                   // 0x00746f8c
@@ -29,9 +30,7 @@ extern uint8_t console_debug_toggle_689404;                         // 0x0068940
 
 extern int16_t render_local_view_count(void);                                  // 0x4c9220, UNSURE: local player count
 // blam-cc: EAX -> quad_count, ECX -> vertices, EDX -> instances, stack -> (collection, draw)
-extern void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, uint32_t *vertices, const uint8_t *instances,
-                                                           const DetailObjectCollection *collection,
-                                                           const rasterizer_detail_object_draw *draw); // 0x51b150
+
 
 typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
 typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);

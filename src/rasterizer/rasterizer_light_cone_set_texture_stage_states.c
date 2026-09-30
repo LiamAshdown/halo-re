@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -24,8 +25,7 @@ extern void *rasterizer_device;                  // 0x0071d174
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
 // blam-cc: EAX -> bitmap_tag_id, EDI -> effect_slot, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int16_t stage, int16_t frame,
-                                                           rasterizer_effect_slot *effect_slot); // 0x518700
+
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);

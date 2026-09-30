@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                 // 0x0071d174
 extern d3d_caps9 rasterizer_caps;               // 0x007c10c0
@@ -34,8 +35,7 @@ extern uint32_t renderer_unknown_69c684;        // 0x0069c684 low byte: ambient 
 extern ColorRGB zoom_static_tint_r;               // 0x0071d190 fixed function ambient base
 
 // blam-cc: EAX -> light_index, CX -> slot, EDX -> dest_base
-extern void rasterizer_light_set_point_constants(int32_t light_index, int16_t slot,
-                                                 rasterizer_point_light_constants *dest_base); // 0x518c10
+
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);

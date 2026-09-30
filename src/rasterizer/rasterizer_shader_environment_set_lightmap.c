@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f8; // 0x006893f8
@@ -24,7 +25,7 @@ extern rasterizer_effect_slot *rasterizer_active_environment_effect; // 0x0071d1
 extern uint8_t rasterizer_environment_lightmap_missing;           // 0x006e0a0c 1 when no lightmap was bound
 
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot); // 0x5186c0
+
 
 // blam-cc: EAX = lightmap
 void rasterizer_shader_environment_set_lightmap(BitmapData *lightmap)

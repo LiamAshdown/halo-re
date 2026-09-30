@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "units.h"
 #include "effects.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern data_array *decal_data;                                      // 0x0087abe4
@@ -43,10 +44,9 @@ extern int16_t rasterizer_decal_bitmap_frame;                       // 0x006d98e
 
 // blam-cc: CX -> mode
 // blam-cc: CX -> mode
-extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); // 0x5185d0
+
 // blam-cc: EAX -> bitmap_tag_id, the rest on the stack
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 // __ftol (0x6391b4, input on the FPU stack, chops toward zero) is written as a (long long) cast below
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);

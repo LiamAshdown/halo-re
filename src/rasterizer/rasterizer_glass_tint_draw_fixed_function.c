@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
@@ -29,11 +30,10 @@ extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasteriz
 extern void *rasterizer_device;          // 0x0071d174
 
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
-extern void rasterizer_glass_tint_draw(transparent_geometry_group *group); // 0x522930
+
+
 // blam-cc: ECX -> group
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x00533660
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

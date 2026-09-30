@@ -12,12 +12,13 @@
 #include "math.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_rasterizer.h"
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 
 extern int32_t rasterizer_gamma_exponent; // 0x0071d1e0
-extern void chimera__gamma(void); // 0x5227a0
+
 
 void hs_evaluate_set_gamma(int16_t function_index, uint32_t thread_index, char first)
 {

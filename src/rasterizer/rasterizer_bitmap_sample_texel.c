@@ -19,8 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
-extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height);
+
     // 0x523f10, blam-cc: EAX, EBX, stack
 extern void dxt1_decode_block_texel(void *out, void *block, int32_t x, int32_t y); // 0x43ffe0, EAX, stack
 extern void dxt3_decode_alpha_texel(int32_t x, int32_t y, void *texel_out, void *block); // 0x440150, BL, SI, EDI, stack

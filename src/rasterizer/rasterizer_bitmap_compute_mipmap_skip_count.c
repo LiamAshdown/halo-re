@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern int8_t renderer_texture_quality; // 0x0068944e, UNSURE owner; clamped to [0,2] skip levels
 

@@ -29,6 +29,7 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t text_rendering_enabled;                         // 0x00689402
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
@@ -42,12 +43,11 @@ extern int16_t screen_safe_area_right[2]; // 0x007c3148
 extern int16_t screen_safe_area_bottom[2]; // 0x007c314c
 
 // blam-cc: EDI -> state
-extern void rasterizer_draw_text_begin(ui_quad_render_state *state); // 0x531b80
-extern void rasterizer_draw_text_end(void); // 0x531e90
+
+
 extern void text_wrap_and_draw_narrow(void *glyph_callback, void *dest_rect, uint32_t position_or_color1,
                           void *clip_rect, uint32_t position_or_color2, const char *text); // 0x556400
-extern void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint32_t color, int16_t x,
-    int16_t y, int16_t source_x, int16_t source_y, int16_t width, int16_t height); // 0x514ce0
+
 void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
                                uint32_t position_or_color1, uint32_t position_or_color2,
                                const char *text)

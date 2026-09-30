@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void *rasterizer_detail_object_vertex_buffer;                // 0x0071d1c8

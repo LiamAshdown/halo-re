@@ -23,6 +23,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_rasterizer.h"
 
 extern motion_sensor_globals *motion_sensor;   // 0x00719438
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
@@ -36,8 +37,8 @@ extern float motion_sensor_sweep;              // 0x0071943c
 
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, blam-cc: ECX local_player_index (UNSURE)
-extern void rasterizer_motion_sensor_begin(void); // 0x52b690, rasterizer motion sensor blip batch begin
-extern void rasterizer_motion_sensor_end(const float *center, float sweep); // 0x52bc40, rasterizer motion sensor sweep, blam-cc: EBX center
+
+
 extern void motion_sensor_plot_blip(const float *position, uint8_t type, const motion_sensor_frame *frame, int8_t subtype,
                                     float pixels_per_unit, float alpha, float size_factor); // 0x4b37a0, blam-cc: EAX position, BL type
 

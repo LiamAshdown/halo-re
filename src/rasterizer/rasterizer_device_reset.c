@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -43,15 +44,14 @@ extern void *lens_flare_occlusion_queries[k_lens_flare_occlusion_queries]; // 0x
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_pending_clear; // 0x0071d16e
 
-extern void rasterizer_render_loading_screen(int32_t mode); // 0x5157e0 (this session)
+
 extern void rasterizer_set_default_render_states(void);           // 0x5160d0
-extern void rasterizer_editbox_log_dump(void); // 0x5196b0 (this session)
+
 extern void rasterizer_ksml_ui_shutdown(void); // 0x5198a0 (this session)
-extern uint8_t rasterizer_render_target_initialize(void);                                  // 0x52ca20 render target pool create
-extern void rasterizer_render_target_dispose(void);    // 0x52cc50, outside this session's range
-extern void rasterizer_dx9_pixel_shaders_release(void); // 0x52ff60
+
+
 extern int32_t rasterizer_dx9_effects_initialize(void);  // 0x5300d0
-extern void rasterizer_vertex_buffer_slot_recreate_lost(void);    // 0x530690, outside this session's range
+
 extern int32_t rasterizer_lens_flare_occlusion_queries_create(void); // 0x536f70
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 

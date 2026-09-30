@@ -33,6 +33,7 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "interface.h"
+#include "fn_rasterizer.h"
 
 extern int32_t safe_mode;   // 0x007196f4
 extern int16_t renderer_texture_quality;      // 0x0068944e
@@ -59,12 +60,12 @@ extern uint8_t particle_systems_enabled;     // 0x0069c566
 extern int32_t rasterizer_gamma_exponent;             // 0x0071d1e0
 extern struct cache *texture_cache;          // 0x006ac540
 
-extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested); // 0x515d10, blam-cc: EDI -> requested
+
 extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_mode *source); // 0x515fc0,
     // blam-cc: EAX -> source, stack -> dest
 extern uint8_t rasterizer_device_reset(void *present_parameters); // 0x515d90, stack -> present_parameters
-extern void rasterizer_resize_game_window(int32_t height, int32_t width); // 0x515b20, blam-cc: EAX -> height, ECX -> width
-extern void chimera__gamma(void); // 0x5227a0
+
+
 extern void cache_flush(struct cache *self); // 0x4d17f0, blam-cc: ESI -> self
 
 typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);

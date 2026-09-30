@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots]; // 0x00746fc0
 
-extern void rasterizer_lens_flare_batch_draw_slot(int32_t batch_index); // 0x536c10
 
 // Flushes (draws) every non-empty batch slot of the screen-space sprite rendering system,
 // typically once per frame.

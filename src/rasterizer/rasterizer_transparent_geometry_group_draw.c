@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t: pointer fields are held as uint32_t
 
 extern void *rasterizer_device;                                              // 0x0071d174
@@ -63,46 +64,43 @@ extern float console_debug_meter_period;                                    // 0
 extern float console_debug_meter_values[4];                                 // 0x00689458 negative keeps the animated value
 
 // blam-cc: EAX -> group
-extern uint8_t transparent_geometry_group_test_drawn_bit(transparent_geometry_group *group); // 0x515310
+
 // blam-cc: EAX -> group
-extern transparent_geometry_group *transparent_geometry_group_get_next_sorted(transparent_geometry_group *group); // 0x515290
+
 // blam-cc: stack -> upload, EDI -> nodes
-extern void chimera__rasterizer_set_model_skinning(uint8_t upload, rasterizer_node_matrices *nodes); // 0x518b40
+
 // blam-cc: EAX -> node_part_count, ESI -> node_part_indices
-extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices); // 0x526cf0
-extern void rasterizer_prepare_lighting_constants(render_lighting *lighting); // 0x518ce0
+
+
 // blam-cc: ECX -> group, stack -> flag
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x533660
-extern void rasterizer_geometry_part_draw(transparent_geometry_group *group); // 0x533730
+
+
 extern uint8_t rasterizer_transparent_decals_enabled(void); // 0x519ac0
-extern void rasterizer_render_target_capture_frame(void); // 0x519b00
+
 // blam-cc: ECX -> shader
 extern uint8_t shader_is_decal(const Shader *shader); // 0x0053fde0
 // blam-cc: ECX -> shader
 extern uint8_t shader_draw_before_water(const void *shader); // 0x53fe30 shaders module: flags bit 12 of shader types 5..7
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
-extern void chimera__transparent_decal_zbias(void); // 0x519530
-extern void rasterizer_clear_decal_zbias(void); // 0x519580
+
+
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200
-extern void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_geometry_group *group); // 0x519f70
+
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 // blam-cc: CX -> mode
-extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); // 0x5185d0
+
 // blam-cc: ECX -> function_source, ESI -> animation, EBX -> out_u, EDI -> out_v, stack -> the rest
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation,
                                               float *out_u, float *out_v, float u_scale, float v_scale,
                                               float unused_z, float unused_w, float unused_5,
                                               float time); // 0x53fe50
-extern void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *group, uint8_t attached); // 0x531ed0
-extern void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_group *group, uint8_t attached); // 0x532a40
+
+
 // blam-cc: EBX -> group
-extern void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group); // 0x52c4a0
+
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-                                                      int16_t default_index, int16_t frame,
-                                                      rasterizer_effect_slot *effect_slot); // 0x518860
+
 // blam-cc: AX -> type, stack -> time
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 

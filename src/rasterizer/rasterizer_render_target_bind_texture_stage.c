@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h>
 
 extern void *rasterizer_device; // 0x0071d174

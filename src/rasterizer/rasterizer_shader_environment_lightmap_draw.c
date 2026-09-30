@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h>
 
 extern void *rasterizer_device;                   // 0x0071d174
@@ -32,8 +33,7 @@ extern uint32_t rasterizer_vertex_declarations; // 0x006e1a90
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[]; // 0x0069e350
 extern double rasterizer_time;      // 0x007c1200
 
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-    int16_t default_index, int16_t frame, rasterizer_effect_slot *effect_slot); // 0x518860
+
 extern void shader_environment_texture_scrolling_evaluate(float *u_out, float *v_out, double time,
     void *environment); // 0x540060, blam-cc: ESI -> environment, stack -> (u_out, v_out, time)
 extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitive_count, void *vertex_buffer,

@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_skinning_matrix rasterizer_skinning_palette[63]; // 0x007c04e0
 extern void *rasterizer_device;                                   // 0x0071d174

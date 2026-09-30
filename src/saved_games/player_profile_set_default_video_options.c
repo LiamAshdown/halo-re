@@ -25,6 +25,7 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "saved_games.h"
+#include "fn_rasterizer.h"
 
 extern int32_t rasterizer_gamma_exponent; // 0x0071d1e0, only its low byte is read here (mov al,ds:0x71d1e0)
 extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
@@ -37,8 +38,7 @@ extern uint8_t width640; // UNSURE: "no display query" flag
 extern uint8_t unknown_006894ba; // UNSURE
 
 extern uint8_t rasterizer_decal_zbias_active(void); // 0x5195d0, not in this module
-extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out); // 0x5168c0, ESI width_out
-extern void display_mode_get_current(rasterizer_display_mode *out); // 0x515ca0, EDI out
+
 
 // Fills a profile's default video settings. On a low-end machine (any of four capability
 // thresholds unmet), hardcodes 640x480x60 with minimal capability flags. On a capable machine:

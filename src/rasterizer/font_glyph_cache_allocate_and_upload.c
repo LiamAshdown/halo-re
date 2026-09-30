@@ -15,15 +15,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern font_glyph_cache g_font_glyph_cache;   // 0x006d8828
 extern int32_t rasterizer_frame_index;        // 0x0069c694
 
 // blam-cc: bitmap in EDI, mip level in EAX, x and y on the stack
 extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y); // 0x43f8e0
-extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap);           // 0x524100
-extern void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap);      // 0x524270, EBX
-extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap); // 0x5243c0
+
 
 // Drops the glyph held by the oldest ring slot (if any) and advances the ring read index.
 static void font_glyph_cache_evict_oldest(void)

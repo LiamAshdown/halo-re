@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern uint32_t rasterizer_scratch_memory_used; // 0x0071d140
@@ -33,14 +34,14 @@ extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e
 extern uint8_t console_debug_toggle_6893e6;                         // 0x006893e6 wireframe
 extern void *rasterizer_device;   // 0x0071d174
 
-extern void rasterizer_light_disable_all(void); // 0x526700
+
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
-extern void rasterizer_set_fog_constants(const render_fog *fog); // 0x5176d0, EDX fog
+
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color); // 0x4ab5d0
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear_target); // 0x52ccc0, blam-cc: AX target_index
 // blam-cc: stack -> (z_near, z_far) as raw float bits
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
+
 
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 

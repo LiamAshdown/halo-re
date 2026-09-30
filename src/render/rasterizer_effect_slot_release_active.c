@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void **rasterizer_effect_pool_scratch; // 0x0071d278 UNSURE: &effects[48], types/rasterizer.h rasterizer_effect_slot
 extern void *rasterizer_device;              // 0x0071d174
 
-extern void rasterizer_lens_flare_batch_flush_all(void); // 0x536c80
 
 typedef int32_t (__stdcall *d3d_release_fn)(void *self);
 typedef int32_t (__stdcall *d3d_clear_state_slot_fn)(void *device, uint32_t value);

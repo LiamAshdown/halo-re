@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern transparent_geometry_group *transparent_geometry_groups; // 0x0071d14c
 extern int32_t transparent_geometry_group_count;                // 0x0071d154

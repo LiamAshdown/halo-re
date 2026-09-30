@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern d3d_caps9 rasterizer_caps;                      // 0x007c10c0

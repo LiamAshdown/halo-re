@@ -16,13 +16,13 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern float rasterizer_default_z_near;      // 0x0069c65c, rasterizer.h (R11)
 extern float rasterizer_default_z_far;       // 0x0069c660, rasterizer.h (R11)
 extern uint32_t rasterizer_frustum_z_values[2]; // 0x0069c664, rasterizer.h: the second {near, far}
                                              //   pair, float bits (0.01171875, 1024.0)
 
-extern void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source); // 0x517470
 
 // Ensures the two default near/far clip distance pairs have been seeded (once, the first time
 // either is still exactly 0.0), then dispatches the per-frame cinematic screen effect update.

@@ -20,6 +20,7 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_rasterizer.h"
 
 extern int16_t light_transient_count;        // 0x00860b0c
 extern light_transient light_transient_table[k_maximum_transient_lights]; // 0x008609cc
@@ -27,7 +28,7 @@ extern tag_instance *tag_instances;           // 0x0087bc14
 extern uint8_t render_window_index;                  // UNSURE: not owned by this module
 
 extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color); // 0x44da60
-extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction); // 0x5132d0, ESI
+
 
 void light_transient_add(datum_index light_tag, real_vector3d *color, real_point3d *position,
     uint32_t direction, uint32_t param_3, float intensity)

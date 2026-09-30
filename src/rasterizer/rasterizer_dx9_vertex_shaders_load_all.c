@@ -13,13 +13,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device; // 0x0071d174
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern const char *rasterizer_shader_file_name; // 0x00722bbc
 
 // blam-cc: ECX -> path, stack -> (out_buffer, out_size)
-extern uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, const char *path); // 0x5199f0
+
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 
 typedef int32_t (__stdcall *d3d_create_vertex_shader_fn)(void *device, const void *function, void *out_shader);

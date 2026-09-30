@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+#include "fn_rasterizer.h"
 
 extern data_array *texture_cache_entries;  // 0x006ac538
 extern struct cache *texture_cache;        // 0x006ac540
@@ -53,15 +54,15 @@ extern void console_print_va(const char *format, ...);       // 0x4c6920
 extern uint32_t texture_cache_page_allocate(BitmapData *bitmap, uint8_t priority); // this module, texture_cache_page_allocate.c
 
 extern uint32_t sound_idle_update(void); // outside this module; frame-watchdog pump, UNSURE
-extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap); // 0x523fa0; ESI -> bitmap
+
 
 // blam-cc: bitmap in EAX; outside this module, UNSURE
-extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap); // 2D texture conversion, stack-passed
-extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap); // cube map conversion, stack-passed
+
+
 // blam-cc: bitmap in EBX; outside this module, UNSURE
-extern void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap); // 3D texture conversion, register-passed
+
 // blam-cc: bitmap in EAX; outside this module, UNSURE
-extern void *rasterizer_get_capture_surface(uint8_t *object, void *fallback); // 0x515c30; EAX -> object, ECX -> fallback:
+
     // the default texture for the bitmap's type (+0xa): 2D/3D, cube map, or type 3
 
 // blam-cc: bitmap in EAX, wait as the first recognized stack parameter, allocate_if_missing as

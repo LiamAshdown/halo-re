@@ -37,6 +37,7 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t unknown_006893ff;    // 0x006893ff lens flares enabled
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
@@ -51,17 +52,16 @@ extern uint8_t rasterizer_caps_flag_68a;            // 0x0069c68a
 extern uint8_t unknown_00689426;            // 0x00689426
 
 // blam-cc: stack -> (z_near, z_far) as raw float bits
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
+
 // blam-cc: AX -> mode, ECX -> flags
-extern void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags); // 0x537130
+
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
-extern void rasterizer_lens_flare_batch_flush_all(void); // 0x536c80
-extern uint8_t *lens_flare_get_visibility_byte(lens_flare_instance *flare); // 0x5134f0, ECX
-extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400, EAX out, ECX packed
+
+
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX
 // blam-cc: ESI -> flare, DI -> mode
-extern float lens_flare_compute_rotation(lens_flare_instance *flare, int16_t mode); // 0x513540
+
 extern double fpatan(double y, double x); // x87 FPATAN, atan2(y, x) (harness/x87_shims.c)
 extern uint8_t color_channel_real_to_byte(float channel); // 0x5132b0, cdecl
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t); // 0x43f6a0, EAX color1, ECX color0
@@ -74,7 +74,7 @@ extern void rasterizer_lens_flare_set_vertex_specular(float intensity); // 0x512
 extern void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const real_point3d *position,
     float radius, float rotation_radians); // 0x537550, EAX scale, EBX diffuse, stack
 // blam-cc: EAX -> instance
-extern void rasterizer_sun_glow_render(lens_flare_instance *instance); // 0x525ab0
+
 
 static float lens_flare_clamp01(float x)
 {

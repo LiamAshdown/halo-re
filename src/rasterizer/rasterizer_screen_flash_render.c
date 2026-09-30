@@ -32,6 +32,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t console_debug_toggle_689427;                          // 0x00689427
 extern rasterizer_window_parameters rasterizer_window;                // 0x007c1220

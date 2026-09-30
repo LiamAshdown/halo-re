@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c
 extern void *rasterizer_device;   // 0x0071d174

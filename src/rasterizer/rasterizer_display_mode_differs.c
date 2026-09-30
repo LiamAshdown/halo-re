@@ -18,13 +18,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
 extern uint8_t video_force_mode_flag;      // 0x0071d170 UNSURE
 extern int32_t os_platform;           // 0x00721ef0
 extern void os_platform_identify(void); // 0x5427e0
-extern int32_t rasterizer_get_refresh_rate(int32_t requested_rate); // 0x515c70
+
 
 // blam-cc: unaff_EDI -> requested
 // Returns nonzero if `requested` differs from the currently active display mode (dimensions

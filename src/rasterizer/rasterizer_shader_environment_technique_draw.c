@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_frame_time rasterizer_time;                       // 0x007c1200
@@ -34,9 +35,7 @@ extern uint8_t console_debug_toggle_6893fa;                         // 0x006893f
 // blam-cc: ESI -> shader_environment
 extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader); // 0x540060
 // blam-cc: EAX -> primitive_count, EDI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive, second_stream)
-extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-                                                                        int32_t dynamic_index_slot, int32_t first_primitive,
-                                                                        rasterizer_vertex_buffer *second_stream); // 0x51c310
+
 
 typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);

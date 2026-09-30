@@ -26,6 +26,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_frame_time rasterizer_time;                       // 0x007c1200
@@ -46,22 +47,17 @@ extern uint8_t console_debug_toggle_689409;                         // 0x0068940
 // blam-cc: EAX -> bitmap_tag_id, DX -> index
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index); // 0x43f250
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot); // 0x5186c0
+
 // blam-cc: EAX -> bitmap_tag_id, EDI -> effect_slot, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int16_t stage, int16_t frame,
-                                                           rasterizer_effect_slot *effect_slot); // 0x518700
+
 // blam-cc: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
-extern int16_t *rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t stage,
-                                                      int16_t default_index, int16_t frame,
-                                                      rasterizer_effect_slot *effect_slot); // 0x518860
+
 // blam-cc: AX -> type, stack -> input
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0
 // blam-cc: ESI -> shader_environment
 extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader); // 0x540060
 // blam-cc: EAX -> primitive_count, EDI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive, second_stream)
-extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-                                                                        int32_t dynamic_index_slot, int32_t first_primitive,
-                                                                        rasterizer_vertex_buffer *second_stream); // 0x51c310
+
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);

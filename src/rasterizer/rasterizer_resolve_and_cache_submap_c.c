@@ -19,6 +19,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
@@ -28,7 +29,7 @@ extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t 
 // blam-cc: EAX -> bitmap
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 
 extern int16_t rasterizer_bound_bitmap_size_c[2];                    // 0x006d9874
 

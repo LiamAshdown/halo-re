@@ -12,7 +12,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
-
+#include "fn_rasterizer.h"
 
 
 extern uint8_t rasterizer_gamma_disabled;             // 0x0071d1e8

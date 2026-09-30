@@ -17,8 +17,8 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
-extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400, blam-cc: EAX out, ECX packed
 
 // Unpacks the 11:11:10 normal of a compressed BSP lightmap vertex.
 void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,

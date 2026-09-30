@@ -17,6 +17,7 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0

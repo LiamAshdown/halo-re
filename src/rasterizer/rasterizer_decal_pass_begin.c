@@ -18,6 +18,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
@@ -36,10 +37,10 @@ extern uint8_t console_debug_toggle_689441;                         // 0x0068944
 extern void *rasterizer_decal_vertex_cache; // 0x0071d1bc
 
 // blam-cc: ESI -> bitmap, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680
+
 // blam-cc: AX -> mode
 extern void rasterizer_set_shader_stage_config(int16_t mode);       // 0x519200
-extern void rasterizer_apply_decal_zbias(void); // 0x5194e0 (this session)
+
 
 typedef int32_t (__stdcall *d3d_set_sampler_state_fn)(void *device, uint32_t sampler, uint32_t type, uint32_t value);
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);

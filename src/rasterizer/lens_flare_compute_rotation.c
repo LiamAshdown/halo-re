@@ -22,10 +22,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 // blam-cc: EAX -> out, ECX -> packed
-extern real_vector3d *vector3d_unpack_normal_11_11_10(real_vector3d *out, uint32_t packed); // 0x513400
+
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); // 0x004052c0
 extern double atan2(double y, double x); // x87 FPATAN
 

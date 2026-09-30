@@ -32,6 +32,7 @@
 #include "effects.h"
 #include "projectiles.h"
 #include "game.h"
+#include "fn_rasterizer.h"
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -74,7 +75,7 @@ extern real vector3d_angle_between_4cd5e0(real_vector3d *a, real_vector3d *b); /
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX out, EDX dir
 extern datum_index cache_allocate_block(cache *self, uint32_t requested_bytes); // 0x4d1840
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20, EBX handle, EDI self
-extern void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count);
+
     // 0x51a770, EAX decal_index
 
 // One decal vertex as it goes into the vertex cache: position and the u / v bytes at bits 16..23 / 8..15.

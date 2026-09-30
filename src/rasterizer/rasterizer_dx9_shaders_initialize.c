@@ -21,6 +21,7 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3dx_macro rasterizer_effect_defines[2];                      // 0x007c0460, NULL-terminated
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
@@ -29,7 +30,7 @@ extern const char *rasterizer_shader_file_name;                       // 0x00722
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern uint8_t rasterizer_dx9_pixel_shaders_load_all(void); // 0x52fa00
+
 
 typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
 

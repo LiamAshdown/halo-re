@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -44,19 +45,19 @@ extern uint8_t rasterizer_render_states_dirty; // 0x0069c74c
 extern uint8_t unknown_0071d1fa;                                    // 0x0071d1fa UNSURE
 
 // blam-cc: stack -> (z_near, z_far) as raw float bits
-extern void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); // 0x518f40
+
 // blam-cc: EDX -> group
-extern uint32_t transparent_geometry_group_get_vertex_type_reference(transparent_geometry_group *group); // 0x515400
+
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x518770
+
 // blam-cc: ECX -> group
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x00533660
+
 // blam-cc: ESI -> context, stack -> flag
 extern void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context, uint8_t flag); // 0x526f50
 // blam-cc: EBX -> dynamic_vertex_slot, the rest on the stack
 extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint32_t shader, uint32_t shader_permutation, uint32_t index_buffer,
                          int32_t dynamic_index_slot, int32_t primitive_count, uint32_t vertex_buffer); // 0x52b050
-extern void rasterizer_model_draw_restore_states(void);                                     // 0x52b530
+
 extern void render_lighting_disable_workaround(void);                                     // 0x511ef0, render module
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

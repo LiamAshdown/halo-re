@@ -15,6 +15,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t console_debug_toggle_6893f1; // 0x006893f1, gates this whole function
 extern int16_t render_force_flag;                             // 0x0069c67c UNSURE (read as a word)

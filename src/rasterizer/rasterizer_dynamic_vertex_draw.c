@@ -20,6 +20,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
@@ -36,8 +37,7 @@ extern void *rasterizer_dynamic_index_buffer;                       // 0x006e09e
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t index_count);  // 0x51bd60
 // blam-cc: ECX -> dynamic_index_slot; locks the slot range and returns its first index
 extern uint16_t *rasterizer_dynamic_index_slot_lock(int32_t dynamic_index_slot);          // 0x511e80, render module
-extern void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count,
-                                                int32_t dynamic_vertex_slot); // 0x51c090
+
 
 typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);

@@ -14,6 +14,7 @@
 #include "cache.h"
 #include "bitmaps.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t console_debug_toggle_6893f1;         // 0x006893f1
@@ -27,12 +28,11 @@ extern int16_t rasterizer_bound_bitmap_size_a[2];   // 0x006d986c
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index); // 0x43f250, EAX, DX
-extern uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap); // 0x518680, ESI bitmap, stack stage
+
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550, EAX
 extern uint8_t unknown_006e0a04; // 0x006e0a04
 // blam-cc: EAX -> primitive_count, EDI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive, second_stream)
-extern void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-    int32_t dynamic_index_slot, int32_t first_primitive, rasterizer_vertex_buffer *second_stream); // 0x51c310
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

@@ -22,6 +22,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -38,24 +39,23 @@ extern const uint32_t rasterizer_extended_first_map_address_modes[4]; // 0x0065e
 
 // blam-cc: ECX -> shader, returns AX
 extern int16_t chimera__shader_get_vertex_shader_permutation(const Shader *shader); // 0x53fd60
-extern void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *group, uint8_t attached); // 0x533850
+
 // blam-cc: CX -> mode
-extern void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode); // 0x5185d0
+
 // blam-cc: AX -> digit, returns AX
 extern int16_t numeric_countdown_timer_get_digit(int16_t digit); // 0x5400c0
 extern double floor(double x); // 0x623e40 CRT
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: ECX -> function_source, ESI -> animation, EBX -> out_u, EDI -> out_v, stack -> the rest
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation,
                                               float *out_u, float *out_v, float u_scale, float v_scale,
                                               float u_offset, float v_offset, float rotation,
                                               float time); // 0x53fe50
 // blam-cc: ECX -> shader
-extern uint8_t rasterizer_shader_transparent_chicago_extended_set_texture_stages(const ShaderTransparentChicagoExtended *shader); // 0x537d60
+
 // blam-cc: ECX -> group, stack -> flag
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x533660
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

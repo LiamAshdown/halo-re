@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device; // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing; // 0x0069c680

@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <string.h>
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -37,7 +38,7 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern void *rasterizer_device; // 0x0071d174
 
 // blam-cc: EAX -> vertex_type, stack -> (length, fvf, not_dynamic)
-extern void *rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length, uint32_t fvf, uint8_t not_dynamic); // 0x530570
+
 
 typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **out_data, uint32_t flags);
 typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);

@@ -35,6 +35,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
+#include "fn_rasterizer.h"
 
 extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
                                            char *buffer); // 0x57e110
@@ -47,9 +48,6 @@ extern int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void
                                                                  // module function, not in the function list
 
 
-
-extern void chimera__registry_check_3(void);                  // 0x5226c0 (rasterizer), restores the gamma ramp
-extern void rasterizer_service_deferred_windowed_ops(void);   // 0x5180d0 (rasterizer)
 extern void sound_stop_all(void);                              // 0x54adb0 (sound)
 extern void keystone_library_unload(void); // 0x542cf0, below this module's rewrite range
 

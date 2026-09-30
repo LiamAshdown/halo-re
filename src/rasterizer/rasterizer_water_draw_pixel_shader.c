@@ -26,6 +26,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t rasterizer_caps_flag_689;                 // 0x0069c689
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe (also gates 0x534f80)
@@ -41,14 +42,13 @@ extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasteriz
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 
-extern void rasterizer_water_update_ripple_texture(void *water_shader); // 0x534f80
+
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-    int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x518770
+
 // blam-cc: ECX -> group
-extern void rasterizer_transparent_geometry_group_draw_vertices(transparent_geometry_group *group, uint8_t flag); // 0x00533660
+
 extern real vector3d_length(real_vector3d *v); // 0x401960, EAX
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);

@@ -22,13 +22,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t console_debug_toggle_689424;                                // 0x00689424
 extern uint8_t lens_flare_occlusion_queries_supported;                     // 0x006e1dc0
 extern void *lens_flare_occlusion_queries[k_lens_flare_occlusion_queries]; // 0x006e1dc8
 extern void *rasterizer_device;                                            // 0x0071d174
 
-extern uint8_t rasterizer_lens_flare_project_to_screen(const real_point3d *position, float radius, float *out_screen, float *out_inverse_w, float *out_billboard_size); // 0x00536d80
+
 extern double floor(double x); // 0x623e40 CRT
 
 typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,

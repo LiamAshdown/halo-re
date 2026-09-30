@@ -27,6 +27,7 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -44,16 +45,13 @@ extern rasterizer_dynamic_screen_vertex rasterizer_screen_effect_quad[4];       
 // blam-cc: EAX -> input, returns EAX
 extern weapon_screen_effect_parameters *cinematic_screen_effect_update(weapon_screen_effect_parameters *input); // 0x512360
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot); // 0x5186c0
+
 // blam-cc: AX -> target_index, EDX -> effect_slot, stack -> handle_index
-extern void rasterizer_render_target_bind_effect_texture(int16_t target_index, rasterizer_effect_slot *effect_slot,
-                                                         int16_t handle_index); // 0x52ce10
+
 // blam-cc: EAX -> target_index, stack -> (clear_color, clear)
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear); // 0x52ccc0
 // blam-cc: ECX -> width, EAX -> height, stack -> (params, pass, pass_count, shift_down)
-extern void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t height,
-                                                          weapon_screen_effect_parameters *params, int16_t pass,
-                                                          int16_t pass_count, uint8_t shift_down); // 0x52ce50
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

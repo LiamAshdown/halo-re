@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern void *unknown_007c048c; // 0x007c048c shader_environment self-illumination draw procedure
@@ -25,21 +26,14 @@ extern void *unknown_007c0490; // 0x007c0490 UNSURE: draw function pointer
 extern void *unknown_007c0494; // 0x007c0494 UNSURE: draw function pointer
 extern void *rasterizer_water_draw_procedure; // 0x007bf050
 
-extern void rasterizer_glass_draw_procedures_select(void); // 0x523ec0
-extern void rasterizer_shader_environment_select_draw_functions(void); // 0x52b630
 
-extern void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51f3e0
-extern void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51dc50
 extern void function_do_nothing(void);  // 0x44ad80
 // 0x51fd80, 0x51fad0, 0x51e8f0, 0x51e570 and 0x51e2a0 are functions Ghidra never defined (they are only
 //   referenced by these immediate stores); all have C now (2026-09-28).
-extern void rasterizer_shader_environment_self_illumination_draw_single_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51fd80
-extern void rasterizer_shader_environment_self_illumination_draw_two_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51fad0
-extern void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51e8f0
-extern void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer); // 0x51e570
+
+
 extern void rasterizer_shader_environment_lightmap_draw(void); // 0x51e2a0
-extern void rasterizer_water_draw_fixed_function(transparent_geometry_group *group); // 0x5358b0
-extern void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group);   // 0x535fd0
+
 
 // Selects vendor/driver-specific rendering code path function pointers based on the detected
 // GPU capability caps (max_streams, pixel_shader_version).

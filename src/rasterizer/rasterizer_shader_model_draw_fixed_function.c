@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 
 extern void *rasterizer_device;                             // 0x0071d174
@@ -38,8 +39,8 @@ extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
 extern double sqrt(double x);                   // inline x87 fsqrt
-extern void rasterizer_apply_decal_zbias(void); // 0x5194e0
-extern void rasterizer_clear_decal_zbias(void); // 0x519580
+
+
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color); // 0x4ab5d0
 // blam-cc: ECX -> function_source, ESI -> animation, EBX -> out_u, EDI -> out_v, stack -> the rest
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation,
@@ -47,15 +48,12 @@ extern void shader_texture_animation_evaluate(const void *function_source, const
                                               float unused_z, float unused_w, float unused_5,
                                               float time); // 0x53fe50
 // blam-cc: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
-extern int16_t *chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t bitmap_type,
-                                                int16_t default_index, int16_t frame); // 0x518960
+
 // blam-cc: ESI -> vertex_buffer
-extern uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer); // 0x51c790
+
 // blam-cc: stack -> (index_buffer, dynamic_index_slot, vertex_buffer), EAX -> primitive_count,
 //   ECX -> first_primitive, EBX -> dynamic_vertex_slot
-extern void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-                                                      rasterizer_vertex_buffer *vertex_buffer, int32_t primitive_count,
-                                                      int32_t first_primitive, int32_t dynamic_vertex_slot); // 0x51c730
+
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);

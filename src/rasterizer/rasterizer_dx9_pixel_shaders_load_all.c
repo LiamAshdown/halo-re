@@ -12,15 +12,16 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 
 // blam-cc: ECX -> path, stack -> (out_buffer, out_size)
-extern uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, const char *path); // 0x5199f0
+
 // blam-cc: EAX -> effect_index, stack -> (data, size)
-extern int32_t rasterizer_dx9_pixel_shader_effect_load(int32_t effect_index, const void *data, uint32_t size); // 0x52f980
+
 // blam-cc: EAX -> effect_index
-extern int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index); // 0x52f780
+
 
 // Loads shaders\fx.bin, then walks it as a run of [int32 chunk_size][chunk_size bytes] records,
 // compiling and initializing one rasterizer_effects[] slot per chunk. If the file is malformed

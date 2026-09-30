@@ -18,6 +18,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern uint32_t text_shadow_color_argb; // 0x0071d144
 extern uint8_t font_glyph_cache_slots[]; // 0x006d8838, 8 bytes per slot: +4 u, +6 v

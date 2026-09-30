@@ -19,6 +19,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 #include <stdint.h> // uintptr_t
 #include <string.h> // memcpy (rep movsd / rep movsb)
 

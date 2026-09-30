@@ -28,6 +28,7 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                          // 0x0071d174
 extern void *rasterizer_direct3d;                        // 0x0071d178
@@ -93,25 +94,20 @@ extern uint8_t crc32_lookup_table_initialized;           // 0x00719cd8
 extern crc32_table crc32_lookup_table;                   // 0x006b7b00
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes)
 
-extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out); // 0x5168c0, ESI width_out
-extern uint32_t rasterizer_create_game_window(int32_t height, int32_t width);    // 0x515930, EAX height, EBX width
-extern void rasterizer_resize_game_window(int32_t height, int32_t width);        // 0x515b20, EAX height, ECX width
+
 extern void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterizer_display_mode *source); // 0x515fc0, EAX source
 extern void rasterizer_set_default_render_states(void);           // 0x5160d0
-extern void rasterizer_render_loading_screen(int32_t mode);                      // 0x5157e0, EAX mode
-extern void __cdecl rasterizer_select_hardware_codepaths(void);                  // 0x516810
+
+
 extern int32_t rasterizer_dx9_effects_initialize(void);                          // 0x5300d0
-extern uint8_t rasterizer_decal_index_buffer_initialize(void);                   // 0x51bb90
-extern int32_t __cdecl transparent_geometry_pool_initialize(void);               // 0x5151c0
-extern int32_t __cdecl text_font_system_initialize(void);                        // 0x514820
-extern uint8_t rasterizer_detail_object_vertex_buffer_create(void);            // 0x51b370
-extern uint8_t rasterizer_render_target_initialize(void);                                               // 0x52ca20 render target pool create
+
+
 extern int32_t rasterizer_lens_flare_occlusion_queries_create(void);             // 0x536f70
-extern void chimera__registry_check_4(void);                                     // 0x522520
+
 extern void texture_cache_new(void);                                             // 0x4444d0
 extern uint8_t __cdecl rasterizer_reset_device_if_needed(void);                  // 0x517500
-extern void rasterizer_end_frame(void);                                          // 0x517b90
-extern void rasterizer_editbox_log_dump(void);                                   // 0x5196b0
+
+
 extern void __cdecl rasterizer_shutdown(void);                                   // 0x518450
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value); // 0x542760, EDI out_value
 extern int32_t shell_parse_config_txt(uint32_t adapter, void *direct3d);         // 0x57d410, ECX adapter, EDX direct3d

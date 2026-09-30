@@ -36,8 +36,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+#include "fn_rasterizer.h"
 
-extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias); // 0x524590, UNSURE cdecl signature, see bsp_lightmap_sample_vertex_color.c
+
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 
 // blam-cc: EAX -> material, ECX -> triangle_vertex_indices, stack -> bitmap, weight_1, weight_2, out

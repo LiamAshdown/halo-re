@@ -16,12 +16,13 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_rasterizer.h"
 
 extern uint8_t ui_flag_007196d1; // 0x007196d1, UNSURE (cleared by 0x4bb290, gates the gamma apply in 0x4bb300)
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern int32_t rasterizer_gamma_exponent; // 0x0071d1e0
-extern void chimera__gamma(void); // 0x5227a0
+
 
 uint8_t ui_event_4bb300(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

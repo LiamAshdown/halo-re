@@ -22,6 +22,7 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "fn_rasterizer.h"
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
@@ -40,10 +41,9 @@ extern uint8_t console_debug_toggle_689409;                         // 0x0068940
 // blam-cc: EAX -> bitmap_tag_id, DX -> index
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index); // 0x43f250
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
-extern uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasterizer_effect_slot *effect_slot); // 0x5186c0
+
 // blam-cc: EAX -> bitmap_tag_id, EDI -> effect_slot, stack -> (stage, frame)
-extern uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int16_t stage, int16_t frame,
-                                                           rasterizer_effect_slot *effect_slot); // 0x518700
+
 // blam-cc: ESI -> shader_environment
 extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader); // 0x540060
 // blam-cc: EAX -> primitive_count, ESI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive)
