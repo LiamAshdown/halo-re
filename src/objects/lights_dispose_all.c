@@ -12,6 +12,7 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_objects.h"
+#include "fn_memory.h"
 
 extern data_array *light_data;                 // 0x00860b14
 extern uint8_t *lights_enabled;                // 0x0071cfb8
@@ -19,7 +20,6 @@ extern datum_index *light_cluster_first;        // 0x00860b20
 extern data_array *light_cluster_references;    // 0x00860b24
 extern data_array *light_object_references;     // 0x00860b28
 
-extern void data_delete_all(data_array *array); // UNSURE: zero visible args at each call site; memory module, 0x4d0580
 
 void lights_dispose_all(void)
 {

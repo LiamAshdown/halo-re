@@ -16,8 +16,8 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
-extern uint32_t heap_allocate_raw(uint32_t size, heap *self); // this batch
 
 void *heap_allocate(uint32_t size, heap *self)
 {

@@ -25,6 +25,7 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_memory.h"
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60, reset to 0xff (0x1800 dwords)
@@ -36,7 +37,7 @@ extern uint8_t ui_list_has_default;                   // 0x007192f8
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count); // 0x53c4e0, stack (type, out, builtin_only), EBX &count
 extern uint8_t saved_game_last_profile_read(char *name_buffer); // 0x53d2b0

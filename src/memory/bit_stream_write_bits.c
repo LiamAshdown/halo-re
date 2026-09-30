@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern uint8_t bit_mask_clear[8]; // 0x0065c2b4, entry i = (uint8_t)(0xff << i)
 extern uint8_t bit_mask_keep[9];  // 0x0065c2c0, entry i = (uint8_t)((1 << i) - 1), entry 8 = 0xff

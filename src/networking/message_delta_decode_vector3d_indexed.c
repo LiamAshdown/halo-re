@@ -22,9 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer,
-    bit_stream *stream); // 0x4cf950; UNSURE: total_bit_count/buffer not visible at these call
+
     // sites, only the stream
 extern void vector3d_lerp_by_mode_denominator(void *table, real_vector3d *out_point,
     int32_t *ratios); // this module, 0x4eb370; UNSURE: arguments not visible at these call sites

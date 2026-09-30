@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "cache.h"
 #include "fn_cache.h"
+#include "fn_memory.h"
 
 extern data_array *sound_cache_entries; // 0x006ac528
 extern int32_t sound_cache_size_megabytes; // 0x006869c4, read but not owned by this module
@@ -26,7 +27,7 @@ extern void *sound_cache_base;          // 0x006ac52c
 extern void *sound_cache_memory;        // 0x006ac554, VirtualAlloc'd elsewhere
 extern uint8_t sound_cache_initialized; // 0x006ac534
 
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370
+
 extern void cache_new(char *name, struct cache *self, int32_t block_count, int32_t block_shift,
     int16_t maximum_count, void *release_procedure, void *in_use_procedure); // 0x4d1750
 

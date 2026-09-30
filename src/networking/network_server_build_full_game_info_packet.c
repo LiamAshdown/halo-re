@@ -25,11 +25,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 
 // Encodes a type-7 "full game info" message into a 0x600-byte scratch record, then -- unless
 // machine's channel already reports connected -- queues it onto that channel's outgoing

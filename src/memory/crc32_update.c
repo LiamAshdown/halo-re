@@ -7,11 +7,11 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern crc32_table crc32_lookup_table;                  // 0x006b7b00
 extern uint8_t crc32_lookup_table_initialized;           // 0x00719cd8
 
-extern void crc32_build_table(crc32_table *table); // blam-cc: table in EDX
 
 // Computes/continues a CRC-32 checksum over `length` bytes of `data`, folding into *crc.
 // Builds the CRC-32 lookup table on first use.

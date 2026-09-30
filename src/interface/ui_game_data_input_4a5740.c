@@ -29,11 +29,12 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old_payload, ESI self
+
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, blam-cc: EDX count
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state); // 0x498e60

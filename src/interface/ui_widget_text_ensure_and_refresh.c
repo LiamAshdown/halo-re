@@ -14,11 +14,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern uint16_t global_text_field_00719278[0x40]; // 0x00719278, TYPES-GAP
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 
 void ui_widget_text_ensure_and_refresh(widget_instance *widget)
 {

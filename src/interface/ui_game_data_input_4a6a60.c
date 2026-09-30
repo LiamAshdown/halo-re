@@ -15,12 +15,13 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_memory.h"
 #include <wchar.h>
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old_payload, ESI self
+
 
 void ui_game_data_input_4a6a60(widget_instance *widget)
 {

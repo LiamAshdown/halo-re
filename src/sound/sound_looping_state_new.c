@@ -20,6 +20,7 @@
 #include "sound.h"
 #include "fn_sound.h"
 #include "fn_math.h"
+#include "fn_memory.h"
 
 extern uint8_t sound_initialized;  // 0x00725200
 extern uint8_t sound_enabled;      // 0x00725201
@@ -28,8 +29,6 @@ extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0x
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern random_seed effect_random_seed;  // 0x00719cd4
 extern int32_t sound_time;             // 0x0072520c
-
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
 
 
 // blam-cc: stack -> (definition_index, owner, location)

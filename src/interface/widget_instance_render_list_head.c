@@ -33,6 +33,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_memory.h"
 
 extern double cos(double x);
 extern double sin(double x);
@@ -50,8 +51,8 @@ extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_
                                  int16_t *clip_rect, uint32_t vertex_color); // 0x498b20, UNSURE call mapping, per widget_instance_render.c
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index); // 0x5578c0; blam-cc: ECX -> tag, DX -> index
 extern uint32_t wcslen(uint16_t *s); // 0x625b7a, wide strlen
-extern void *heap_allocate(uint32_t size, heap *self); // 0x4d1f10
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
+
+
 extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget); // 0x4a8730, blam-cc: AX function, ECX widget
     // blam-cc: AX -> function, ECX -> widget; L"<invalid>" (0x0066a8a0) outside 0..3, else ui_replace_function_table[function](widget)
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, 8-bit to wide copy

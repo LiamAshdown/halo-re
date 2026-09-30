@@ -27,12 +27,12 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_memory.h"
 
-extern void data_delete_all(data_array *array); // blam-cc: ESI; memory module, 0x4d0580
-extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
+
 extern void datum_delete(data_array *array, datum_index handle);
     // blam-cc: EAX -> array, EDX -> handle; memory module, 0x4d0510
-extern void datum_element_initialize(data_array *array, void *element);
+
     // blam-cc: EDX -> array, ESI -> element; memory module, 0x4d06c0
 
 

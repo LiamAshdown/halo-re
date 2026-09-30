@@ -12,6 +12,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)

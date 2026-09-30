@@ -8,9 +8,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_memory.h"
 
 extern data_array *device_groups; // 0x0087abf0
-extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
+
 extern void device_groups_initialize(void); // 0x44c220 (tail call)
 
 void device_groups_dispose(void)

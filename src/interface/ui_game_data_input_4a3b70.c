@@ -17,6 +17,7 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_memory.h"
 #include <stdlib.h>
 
 extern uint8_t ui_split_screen; // 0x00718fc9
@@ -26,7 +27,7 @@ extern uint32_t network_game_socket_port; // 0x00698208, UNSURE name
 extern uint32_t network_game_option_a_00719210; // 0x00719210, TYPES-GAP
 extern uint32_t network_game_option_b_00719214; // 0x00719214, TYPES-GAP
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old_payload, ESI self
+
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
 extern void widget_extended_description_sync_selection(widget_instance *widget); // 0x4a66b0
 

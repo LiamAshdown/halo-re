@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 void heap_advance_free_slot(heap *self)
 {

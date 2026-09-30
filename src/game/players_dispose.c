@@ -14,6 +14,7 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern data_array *player_data;               // 0x0087a480, "players"
@@ -21,7 +22,6 @@ extern data_array *team_data;                 // 0x0087a47c, "teams"
 extern player_globals *local_player_globals;  // 0x0087a478
 extern datum_index machine_to_player[16];     // 0x006b1460
 
-extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array (memory module)
 
 // Zeroes player_globals, re-seeds its datum-index fields to the wildcard and its two counters
 // to zero, marks both the "players" and "teams" data arrays valid and deletes every live datum

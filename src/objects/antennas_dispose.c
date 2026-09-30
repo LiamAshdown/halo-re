@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *antenna_data; // 0x008603ac
 
-extern void data_delete_all(data_array *array); // memory module, 0x4d0580
 
 void antennas_dispose(void)
 {

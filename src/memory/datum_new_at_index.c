@@ -8,8 +8,8 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
-extern void datum_element_initialize(data_array *array, void *element); // blam-cc: array in EDX, element in ESI
 
 // blam-cc: index in AX, array in EDX
 // Allocates the data_array slot at `index`, auto-assigning it a fresh generation salt via

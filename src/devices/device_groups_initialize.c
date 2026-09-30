@@ -26,12 +26,12 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_memory.h"
 
 extern Scenario *global_scenario; // 0x00746f8c, the Scenario tag data; same spelling as the
     // six declarations in src/hs
 extern data_array *device_groups; // 0x0087abf0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, established
 
 void device_groups_initialize(void)
 {

@@ -18,6 +18,7 @@
 #include "ai.h"
 #include "cache.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern data_array *actor_data;      // 0x00880360
@@ -26,7 +27,6 @@ extern const real_vector3d *global_forward3d_pointer; // 0x00696718, read here a
                                                        // 12-byte block for all three caches
 
 extern real random_real(void); // 0x4019f0
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 
 
 // Allocates and default-initializes a new actor record for the unit type referenced by the

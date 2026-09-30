@@ -35,12 +35,13 @@
 #include "objects.h"
 #include "scenario.h"
 #include "cutscene.h"
+#include "fn_memory.h"
 
 extern Scenario *global_scenario;           // 0x00746f8c
 extern data_array *recorded_animations;     // 0x006b0a10
 extern data_array *object_data;             // 0x008603b0
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4]; // 0x00686fe8
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern recorded_animation *recorded_animation_find_by_object(datum_index unit_index,
     datum_index *out_index); // 0x44ad20, this module (same batch); blam-cc: EBX unit_index, stack out_index
 extern uint8_t recorded_animation_object_is_playing(datum_index unit_index); // 0x44acc0, this module (same batch);

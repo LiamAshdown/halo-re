@@ -14,9 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
+
 extern void ui_list_free_all(void); // 0x4a7b20
 
 uint32_t ui_controls_options_free_list(widget_instance *widget)

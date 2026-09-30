@@ -26,12 +26,13 @@
 #include "hs.h"
 #include "objects.h"
 #include "fn_objects.h"
+#include "fn_memory.h"
 
 extern data_array *light_data;      // 0x00860b14
 extern game_time_globals *game_time;         // 0x006f1d6c, game time globals; +0x0c is the current tick
 extern int32_t light_frame_counter; // 0x008607c4
 
-extern datum_index datum_new(data_array *array); // UNSURE: returns {handle, data_array*} as a
+
     // 64-bit pair in the original; only the handle is modeled here. memory module, 0x4d0480
 extern void object_light_recompute_transform(uint32_t light_index); // this module, 0x4f2a00 (out of range)
 

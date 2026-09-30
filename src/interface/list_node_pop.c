@@ -19,9 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
+
 
 // blam-cc: ECX -> out, EDX -> head
 // Pops the head widget_history_node from `*head` into `*out` (definition/list_definition/

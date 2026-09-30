@@ -19,11 +19,11 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 
 extern data_array *encounter_data;  // 0x008802c8
 extern data_array *ai_pursuit_data; // 0x008802d0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480
 
 // blam-cc: EAX -> encounter_index, stack -> type, min_last_tick, create_if_missing
 datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type, int32_t min_last_tick,

@@ -22,11 +22,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 #include <wchar.h>
 
 extern heap *widget_memory_pool; // 0x006926c4
 
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80
 
 // Replaces every occurrence of `search` inside `*buffer` with `replacement`, growing `*buffer`
 // through the widget heap if needed. Returns the number of replacements, or -1 if growth failed.

@@ -15,9 +15,9 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 
 extern data_array *prop_data; // 0x008802c0
-extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
 
 
 // blam-cc: stack -> actor_index, existing_prop, reference_prop

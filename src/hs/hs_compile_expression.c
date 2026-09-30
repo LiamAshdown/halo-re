@@ -18,9 +18,7 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
-
-
-extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
+#include "fn_memory.h"
 
 
 extern datum_index global_scenario_index; // 0x0069e8d4

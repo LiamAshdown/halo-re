@@ -26,13 +26,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_memory.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
 extern uint16_t missing_string_text[]; // 0x00671fac
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern uint16_t *text_string_list_get_string(void); // 0x5578c0, UNSURE args
 
 // blam-cc: both recognized stack parameters

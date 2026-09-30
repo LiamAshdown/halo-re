@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 int32_t heap_get_free_bytes(heap *self)
 {

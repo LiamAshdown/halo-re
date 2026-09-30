@@ -24,12 +24,13 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_memory.h"
 
 extern uint16_t hud_text_unknown[]; // 0x0066a750
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
     int16_t *out_level); // 0x539e00, ECX out_type, EDX profile, ESI out_level
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0, ECX list, EDX index

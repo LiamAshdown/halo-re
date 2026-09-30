@@ -31,12 +31,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 #include <wchar.h>
 
 extern wchar_t empty_string[]; // see UNSURE
 extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[]; // ping format string, see UNSURE
 
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module
+
 extern heap widget_memory_pool; // 0x006926c4
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.
 // Widens an ASCII string into dest and returns dest, or NULL when it does not fit.

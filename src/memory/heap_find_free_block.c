@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 int32_t heap_find_free_block(heap *self, uint32_t size_needed, void **out_predecessor)
 {

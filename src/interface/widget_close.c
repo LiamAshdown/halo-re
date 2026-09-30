@@ -27,6 +27,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_memory.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
@@ -40,7 +41,7 @@ extern player_control_globals *player_control_globals_ptr; // 0x006b145c, types/
 
 extern void widget_close(widget_instance *widget);
 extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag); // 0x49c4c0, UNSURE signature
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0, blam-cc: EAX -> block, ECX -> self, UNSURE not independently confirmed here
+
 
 // Closes a widget instance: fires its tag's "deleted" event handlers, unlinks it from the
 // widget tree (recursively closing every child first), frees its type-specific extra allocation

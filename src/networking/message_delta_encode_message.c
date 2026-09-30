@@ -22,6 +22,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
@@ -29,7 +30,7 @@ extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 extern uint8_t message_delta_encode_prepare_item(uint8_t *ctx); // 0x4ecb60, EAX ctx
 extern uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base); // 0x4ecc00, EAX ctx
 extern uint8_t message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, ESI ctx
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+
 
 // REWRITTEN from objdump 0x4ec940..0x4ecb57 (EAX = output buffer, EDX = its size in bits; stack as declared).
 // The context (0x94 bytes, zeroed) holds: +0 "started" byte, +4 message type, +8 flag, +0xc buffer, +0x10 size,

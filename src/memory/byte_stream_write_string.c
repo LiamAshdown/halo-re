@@ -9,6 +9,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 
 // blam-cc: max_length in CX, stream in ESI, string as the recognized parameter

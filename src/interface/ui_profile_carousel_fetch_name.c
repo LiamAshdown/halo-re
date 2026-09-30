@@ -15,11 +15,12 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "fn_memory.h"
 #include <wchar.h>
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 
 // Copies up to 11 wide characters of the carousel-slot profile's display name (starting 2
 // bytes into the record, as in the sibling profile helpers) into a freshly allocated 24 byte

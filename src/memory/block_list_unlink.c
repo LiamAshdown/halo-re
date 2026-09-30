@@ -15,6 +15,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: EAX -> payload_ptr, EDX -> arena
 void block_list_unlink(void **payload_ptr, memory_pool *arena)

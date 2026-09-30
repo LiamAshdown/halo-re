@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "effects.h"
 #include "units.h"
+#include "fn_memory.h"
 
 extern data_array *object_data;                   // 0x008603b0
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -38,7 +39,7 @@ extern random_seed effect_random_seed;             // 0x00719cd4
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index,
     particle_system_particle *particle, object_marker *marker); // 0x00657444
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX, EDX
 extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index); // 0x453a10
 extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index); // 0x50fcd0, blam-cc: EAX

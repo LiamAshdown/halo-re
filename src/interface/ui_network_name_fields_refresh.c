@@ -16,6 +16,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern uint16_t network_host_name_field_00719238[32]; // 0x00719238
@@ -23,7 +24,7 @@ extern uint16_t network_host_subname_007191f0[9];       // 0x007191f0
 extern uint8_t profile_globals_block[0x60a4];             // 0x00712dd8
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 
 void ui_network_name_fields_refresh(widget_instance *widget)

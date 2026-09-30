@@ -10,8 +10,8 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
-extern void datum_element_initialize(data_array *array, void *element); // blam-cc: array in EDX, element in ESI
 
 // blam-cc: requested handle (index | salt<<16) in EAX, array in EDX
 // Allocates the data_array slot at requested_handle's index, using requested_handle's own salt

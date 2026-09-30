@@ -20,8 +20,8 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
-extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream);
 
 // (superseded, see FIXED below) total bit count as the recognized parameter, value in EDX, stream in ESI (both
 // pass-through, unread by this function)

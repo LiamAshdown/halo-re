@@ -30,6 +30,7 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_memory.h"
 
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
@@ -39,7 +40,7 @@ extern ModelCollisionGeometryBSP *global_collision_bsp;            // 0x00746f90
 extern ScenarioStructureBSP *global_structure_bsp;
 extern random_seed effect_random_seed;  // 0x00719cd4
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; blam-cc: array in EDX
+
 extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max,
     uint8_t bit_index); // 0x44c840, this module; blam-cc: EDX -> flags, stack -> the rest
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,

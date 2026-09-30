@@ -16,11 +16,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_memory.h"
 #include <stdint.h>
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI iterator
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20, EBX handle, EDI self
-extern datum_index datum_new(data_array *array); // 0x4d0480, EDX array
+
 
 static cache_entry *cache_entry_at(cache *self, datum_index handle)
 {

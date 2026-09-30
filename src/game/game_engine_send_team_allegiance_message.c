@@ -28,6 +28,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_memory.h"
 #include <stdint.h>
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -43,7 +44,7 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
     // the seven stack arguments (see game_engine_notify_kill_event.c)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 
 // blam-cc: stack -> broadcast
 // While a multiplayer engine is loaded and teams are enabled, encodes network event 0x1a with

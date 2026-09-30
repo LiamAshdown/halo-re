@@ -24,14 +24,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
 extern int32_t message_delta_parameters_protocol_sequence;      // 0x0071cfac
 
-extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream);
 
 // blam-cc: stack -> stream, ESI -> state
 // Decodes the header of a message-delta message: the "incremental" bit, the 6-bit message type,

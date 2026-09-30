@@ -23,6 +23,7 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#include "fn_memory.h"
 
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
@@ -30,7 +31,7 @@ extern uint8_t ui_list_has_default; // 0x007192f8
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old_payload, ESI self
+
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"

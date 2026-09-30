@@ -24,6 +24,7 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -31,8 +32,6 @@ extern data_array *swarm_data;      // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 extern data_array *encounter_data;  // 0x008802c8
 
-
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 
 extern void object_mark_pending_delete(datum_index object_index); // 0x4f50f0, UNSURE signature
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag); // 0x569bf0, stack, CL

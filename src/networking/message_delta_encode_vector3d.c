@@ -15,6 +15,7 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#include "fn_memory.h"
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
@@ -28,7 +29,7 @@ extern uint32_t message_delta_vector3d_absolute_bits_mode1; // 0x0069a2cc
 extern double floor(double x); // CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11)
 extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0,
     // memory module; UNSURE: the stream operand is in a register at this call site
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+
 
 // Encodes a 3D position (values) either as a small quantized delta from previous (if the distance
 // between them is within range and each axis's delta fits the configured delta bit width), or as

@@ -35,6 +35,7 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_host_handoff_requested;          // 0x0071c2de, per types/networking.h
@@ -44,7 +45,7 @@ extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int16_t **capaci
 extern uint16_t network_challenge_packet_block[]; // 0x006b7f98, the reused message block
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length); // 0x440350, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 
 // blam-cc: stack -> connection
 int32_t network_send_join_request_packet(network_client_globals *connection)

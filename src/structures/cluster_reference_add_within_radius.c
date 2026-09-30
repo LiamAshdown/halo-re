@@ -29,11 +29,12 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+#include "fn_memory.h"
 
 extern uint8_t cluster_flood_in_progress; // 0x006e3f01, this module (types/structures.h)
 extern int32_t cluster_flood_stamp;       // 0x006e3f04, this module (types/structures.h)
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; array in EDX
+
 extern int32_t cluster_flood_fill_within_radius(int16_t cluster_index, real_point3d *point,
     float tolerance, int32_t remaining_budget, int16_t *output); // 0x554d10, this module
     // (signature taken verbatim from src/structures/cluster_flood_fill_within_radius.c)

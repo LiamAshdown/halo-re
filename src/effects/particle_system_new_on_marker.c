@@ -25,6 +25,7 @@
 #include "objects.h"
 #include "effects.h"
 #include "cache.h"
+#include "fn_memory.h"
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern data_array *object_data;          // 0x008603b0
@@ -39,7 +40,7 @@ extern const ColorRGB *global_white_color; // 0x00686b04. Ghidra names the
     // effect_new_at_texture_coordinate.c 0x4506d0 already had it right.
                                     //   here; see src/game/game_engine_koth_reset_hill_marker_history.c
 
-extern datum_index datum_new(data_array *array); // 0x4d0480
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
     object_marker *marker, uint32_t maximum_markers); // 0x4f6080, objects module

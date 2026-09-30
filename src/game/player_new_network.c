@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "fn_memory.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -36,8 +37,7 @@ extern wchar_t empty_string;                   // 0x00660c34, established fallba
                                                 //   src/game/game_engine_build_end_game_result_text.c)
 extern datum_index machine_to_player[16];      // 0x006b1460
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
-extern datum_index datum_new_at_index(int16_t index, data_array *array); // 0x4d0430,
+
     // blam-cc: AX -> index, EDX -> array (matches src/memory/datum_new_at_index.c)
 
 // CORRECTED (phase 4 review, against objdump): Ghidra shows this as void; it actually returns

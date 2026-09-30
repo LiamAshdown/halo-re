@@ -30,6 +30,7 @@
 #include "render.h"
 #include "fn_rasterizer.h"
 #include "fn_cache.h"
+#include "fn_memory.h"
 
 extern void *rasterizer_device;                          // 0x0071d174
 extern void *rasterizer_direct3d;                        // 0x0071d178
@@ -113,7 +114,7 @@ extern void __cdecl rasterizer_shutdown(void);                                  
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value); // 0x542760, EDI out_value
 extern int32_t shell_parse_config_txt(uint32_t adapter, void *direct3d);         // 0x57d410, ECX adapter, EDX direct3d
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
-extern void crc32_build_table(crc32_table *table);                               // 0x4d0330, blam-cc: table in EDX
+
 
 // Win32
 

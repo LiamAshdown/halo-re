@@ -13,8 +13,7 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
-
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX
+#include "fn_memory.h"
 
 
 extern data_array *object_list_header_data; // 0x0087a464

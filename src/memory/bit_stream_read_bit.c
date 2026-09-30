@@ -7,6 +7,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: destination as the recognized parameter, stream in EDX
 // Reads a single bit from a bounds-checked bit stream into *out_bit and advances the stream's

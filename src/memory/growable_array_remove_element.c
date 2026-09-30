@@ -10,6 +10,7 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 
 #define GMEM_MOVEABLE 0x0002

@@ -22,11 +22,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
-extern uint32_t circular_buffer_read(uint8_t *destination, uint32_t byte_count, char consume,
-    circular_buffer *stream); // 0x4d0240, memory module
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream); // 0x4cf950, memory module
+
+
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue); // 0x441ce0, this module
 
 // blam-cc: EAX -> max_item_bits

@@ -13,14 +13,13 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern uint8_t update_server_initialized;    // 0x006f1d88
 extern int32_t update_server_tick;            // 0x006f1d8c
 extern data_array *update_server_queues;      // 0x006f1d90
 extern update_record update_server_history[32]; // 0x006f1d94
-
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370, blam-cc: EBX -> element_size
 
 
 // Zeroes the server update-queue globals, allocates the 16-entry update_server_queues array

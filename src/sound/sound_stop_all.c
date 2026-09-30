@@ -21,6 +21,7 @@
 #include "memory.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_memory.h"
 
 extern uint8_t sound_initialized;               // 0x00725200
 extern data_array *sound_data;                   // 0x007252c0, "sounds" 0x200 x 0xb0
@@ -31,7 +32,7 @@ extern sound_driver *current_sound_driver;       // 0x00725208, header calls thi
 extern int32_t ai_communication_quiet_until_tick; // 0x00725204
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
-extern void data_delete_all(data_array *array);                       // 0x4d0580, memory module
+
 extern void sound_instance_stop(datum_index sound_handle);            // 0x54b180
 
 // Stops every playing sound and empties the looping sound table: used when a gain slider

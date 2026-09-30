@@ -23,6 +23,7 @@
 #include "math.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_memory.h"
 
 extern uint8_t sound_paused;        // 0x00725202
 extern uint8_t sound_initialized;   // 0x00725200
@@ -39,7 +40,6 @@ extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d06
 
 extern void sound_idle_update(void); // 0x549960
 
-extern void data_delete_all(data_array *array); // 0x4d0580
 
 static int32_t sound_fade_now_ms(void)
 {

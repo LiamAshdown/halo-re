@@ -11,10 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *flag_data; // 0x008603a8
 
-extern void data_delete_all(data_array *array); // UNSURE: zero visible args at the call site,
+
     // as in lights_dispose_all.c; memory module, 0x4d0580
 
 void flags_dispose(void)

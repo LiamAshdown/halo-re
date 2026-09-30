@@ -22,9 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_allocate(uint32_t size, heap *self); // 0x4d1f10
+
 
 // blam-cc: ESI -> template_record, EDI -> head
 // Allocates a widget_history_node from the widget heap, copies definition/list_definition/

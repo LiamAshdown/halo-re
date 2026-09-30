@@ -17,13 +17,14 @@
 #include "memory.h"
 #include "cache.h"
 #include "fn_cache.h"
+#include "fn_memory.h"
 
 extern data_array *texture_cache_entries; // 0x006ac538
 extern struct cache *texture_cache;       // 0x006ac540
 extern void *texture_cache_base;          // 0x006ac53c
 extern void *texture_cache_memory;        // 0x006ac550, VirtualAlloc'd elsewhere
 
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370
+
 extern void cache_new(char *name, struct cache *self, int32_t block_count, int32_t block_shift,
     int16_t maximum_count, void *release_procedure, void *in_use_procedure); // 0x4d1750
 

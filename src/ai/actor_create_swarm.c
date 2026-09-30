@@ -18,13 +18,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_memory.h"
 
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 extern data_array *object_data;          // 0x008603b0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern void object_get_position(real_point3d *out_position, datum_index object_index); // 0x4f6900
 
 // blam-cc: EAX -> actor_index

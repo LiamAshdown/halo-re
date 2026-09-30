@@ -7,6 +7,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: stream in ECX
 // Reads a NUL-terminated string out of `stream` starting at the current cursor, returning its

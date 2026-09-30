@@ -10,6 +10,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 uint32_t heap_find_first_free_slot(heap *self)
 {

@@ -15,13 +15,14 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 
-extern datum_index datum_new(data_array *array); // memory module, 0x4d0480
+
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array); // 0x4d03d0
 extern void datum_delete(data_array *array, datum_index handle); // memory module, 0x4d0510
-extern int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner);
+
     // memory module, 0x4d1d30, same declaration as src/memory/block_list_reallocate.c; this
     // call site only tests it for zero/non-zero
 

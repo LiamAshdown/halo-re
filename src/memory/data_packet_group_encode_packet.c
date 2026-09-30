@@ -22,17 +22,15 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern char *data_packet_group_error; // 0x006b7f00
 
 // blam-cc (0x4d0bc0): see data_packet_group_encode_packet_body.c for the full parameter
 // reconstruction and its UNSURE notes.
-extern int32_t data_packet_group_encode_packet_body(int16_t version, struct_definition *definition,
-    uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte,
-    int16_t capacity_check);
+
 // blam-cc (0x4d0b60): see data_packet_group_append_packet_header.c.
-extern int32_t data_packet_group_append_packet_header(uint8_t *buffer, data_packet_group *group,
-    int16_t *cursor, uint8_t header_byte);
+
 
 int32_t data_packet_group_encode_packet(int16_t version, struct_definition *definition,
     uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor,

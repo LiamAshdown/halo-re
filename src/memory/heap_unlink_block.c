@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 void heap_unlink_block(heap_block *block, heap *self)
 {

@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: stream in EDX; destination, count, consume flag are the recognized parameters
 // Reads byte_count bytes from stream into destination, with wraparound. Advances the read

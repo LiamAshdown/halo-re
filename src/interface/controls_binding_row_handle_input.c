@@ -34,6 +34,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern heap *widget_memory_pool;                          // 0x006926c4
 extern int32_t controls_capture_row; // 0x006953e8, -1 when no binding is being captured
@@ -44,7 +45,7 @@ extern int16_t controls_captured_binding[6];              // 0x007127c4..0x00712
 extern uint32_t controls_input_capture_buffer[0xa0];      // 0x00712544, UNSURE name
 extern uint8_t controls_action_table[][0x18];             // 0x00692fe8
 
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page); // 0x4b4790, blam-cc: EAX widget
 extern uint8_t controls_key_is_bindable(int32_t control); // 0x4b43c0, blam-cc: EDX control (returns 0 for a reserved one)

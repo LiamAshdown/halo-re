@@ -38,11 +38,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern uint32_t profile_globals_block[]; // 0x00712dd8, UNSURE name; row stride 0x801 dwords
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 
 // blam-cc: stack -> client, template_row
 char network_game_settings_ack_send(uint8_t *client, int16_t template_row)

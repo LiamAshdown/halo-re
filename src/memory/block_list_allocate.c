@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner)
 {

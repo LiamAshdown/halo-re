@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_memory.h"
 #include <string.h>
 
 
-extern void data_delete_all(data_array *array); // 0x004d0580
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 
 extern Scenario *global_scenario;              // 0x00746f8c

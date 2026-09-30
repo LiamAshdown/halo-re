@@ -20,6 +20,7 @@
 #include "math.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_memory.h"
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -30,7 +31,6 @@ extern int32_t sound_time;             // 0x0072520c
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded,
     void *permutation); // 0x443e10, cache module
 extern real random_range_real(real minimum, real maximum); // 0x444af0, math module
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
 
 
 // Creates a new one-shot detail sound for `definition_index`, owned by looping_sound `owner`,

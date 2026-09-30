@@ -15,10 +15,11 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern heap *widget_memory_pool; // 0x006926c4
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
+
 
 uint8_t ui_event_4a1b00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {

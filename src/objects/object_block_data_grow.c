@@ -23,12 +23,13 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 
-extern int32_t block_list_reallocate(void **owner_cell, int32_t new_size, memory_pool *arena); // 0x4d1de0,
+
     // EBX owner_cell, EDX new_size, stack arena
 
 // FIXED (objdump 0x4f7e50..0x4f7eeb): returns AL = 1 on success, 0 when the pool cannot grow (every caller in

@@ -20,6 +20,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#include "fn_memory.h"
 
 extern datum_index ui_cursor_bitmap; // 0x0068e67c
 extern uint8_t ui_widget_opened;     // 0x00718fc8
@@ -33,7 +34,7 @@ extern void widget_close(widget_instance *widget); // 0x497c00
 extern void list_node_prepend(widget_history_node *template_record, widget_history_node **head); // 0x499430
 extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, widget_instance *parent,
                                        uint16_t controller_index, UIWidgetDefinition *tag); // 0x499780
-extern void *heap_allocate(uint32_t size, heap *self); // 0x4d1f10
+
 
 // Opens a UI widget: resolves the widget tag by index or by path, allocates a widget_instance
 // from the widget heap and initializes it. With no parent the widget becomes the controller

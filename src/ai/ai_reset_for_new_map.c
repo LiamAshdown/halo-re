@@ -16,14 +16,13 @@
 #include "objects.h"
 #include "units.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 
 extern ai_globals *ai_globals_ptr;       // 0x00880354
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
 extern data_array *prop_data;            // 0x008802c0
-
-extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
 
 
 // Clears all AI data arrays (actors, swarms, position cache, props) and resets the AI

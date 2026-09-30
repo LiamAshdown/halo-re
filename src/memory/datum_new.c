@@ -8,6 +8,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: array in EDX
 // Allocates the next free slot in `array` (scanning forward from next_index), zero-initializing

@@ -31,6 +31,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_memory.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_list_current;     // 0x00692c04
@@ -40,7 +41,7 @@ extern uint8_t ui_widget_opened;    // 0x00718fc8
 extern int32_t ui_list_find_default(int32_t group_index); // 0x4a7cb0, blam-cc: group_index -> ECX
 extern int32_t ui_list_widget_compute_scroll_start(widget_instance *widget); // 0x4a7d00, blam-cc: widget -> EAX
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out); // 0x49c620, highlight color; blam-cc: EAX -> out
 
 // Item-format callback: fills a caller-owned 0x80 byte scratch buffer for the row at item_index

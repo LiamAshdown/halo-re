@@ -15,12 +15,13 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern hud_messaging_globals *hud_messaging;
 extern Scenario *global_scenario; // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 
 void ui_widget_text_from_hud_objective(widget_instance *widget)
 {

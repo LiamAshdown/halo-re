@@ -36,8 +36,8 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_memory.h"
 
-extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern char *hs_compile_error;     // 0x006b14d4

@@ -23,10 +23,11 @@
 #include "objects.h"
 #include "units.h"
 #include "sound.h"
+#include "fn_memory.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern void sound_impulse_fade_out(int32_t sound_handle); // 0x549ee0, stops a playing impulse sound, blam-cc: ECX handle
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             void *callback_data, int32_t unknown_3, int32_t unknown_4); // 0x549af0, starts a 2D impulse sound

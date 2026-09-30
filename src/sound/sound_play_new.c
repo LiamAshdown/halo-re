@@ -38,6 +38,7 @@
 #include "game.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_memory.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *sound_data;      // 0x007252c0
@@ -52,7 +53,7 @@ extern random_seed effect_random_seed; // 0x00719cd4, see src/sound/sound_comput
 extern int32_t sound_time;          // 0x0072520c
 extern uint8_t *cinematic_globals_ptr;   // 0x006f187c, UNSURE (see src/game/game_engine_update_local_player_control.c)
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded,
     void *permutation); // 0x443e10, src/cache/sound_cache_touch.c; blam-cc: stack, stack, BL, EDI
 

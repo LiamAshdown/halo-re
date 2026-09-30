@@ -18,15 +18,13 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
-extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
-    struct_definition_field *fields, int16_t *out_field_count);
+
 // blam-cc: struct_definition_decode(definition, input, version, dest, out_dest_size, fields,
 // out_field_count) -- see struct_definition_decode.c.
-extern void struct_definition_decode(struct_definition *definition, byte_stream *input,
-    int16_t version, void *dest, int16_t *out_dest_size, struct_definition_field *fields,
-    int16_t *out_field_count);
+
 
 // REWRITTEN from objdump 0x4d0c70..0x4d0d41. EAX is the packet buffer, ESI the struct definition; the stack holds
 // (remaining_length, dest, out_version_used, out_bytes_consumed). The original builds a byte_stream over the buffer on

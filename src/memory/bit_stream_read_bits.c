@@ -7,6 +7,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern uint8_t bit_mask_keep[9]; // 0x0065c2c0
 

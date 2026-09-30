@@ -28,11 +28,11 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+#include "fn_memory.h"
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *device_groups; // 0x0087abf0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, established
 
 void device_new(uint32_t object_index, device_placement_data *placement)
 {

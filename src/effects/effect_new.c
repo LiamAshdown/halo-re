@@ -16,11 +16,12 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#include "fn_memory.h"
 
 extern data_array *effect_data;     // 0x0087abdc
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; blam-cc: array in EDX
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510,
     // blam-cc: EAX -> array, EDX -> handle
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,

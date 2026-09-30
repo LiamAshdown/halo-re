@@ -15,14 +15,13 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 
 extern Scenario *global_scenario;                             // 0x00746f8c
 extern data_array *encounter_data;                            // 0x008802c8
 extern data_array *ai_pursuit_data;                           // 0x008802d0
 extern encounter_squad_state *encounter_squad_states;         // 0x008802cc
 extern encounter_platoon_state *encounter_platoon_states;     // 0x008802c4
-
-extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
 
 
 // Empties both AI datum arrays, wipes the two flat sub-record tables, and rebuilds one

@@ -13,8 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_memory.h"
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern data_array *light_volume_instances; // 0x006b8d70
 static void *datum_try_get(data_array *array, datum_index index)
 {

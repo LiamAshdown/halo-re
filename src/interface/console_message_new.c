@@ -17,12 +17,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern data_array *terminal_messages;     // 0x006b2f00, "terminal output"
 extern datum_index console_message_head;  // 0x006b2f04, newest
 extern datum_index console_message_tail;  // 0x006b2f08, oldest
 
-extern datum_index datum_new(data_array *array); // 0x4d0480
+
 extern void console_message_delete(datum_index message); // 0x496490
 
 // Allocates a new console_message slot, evicting the oldest message first if the terminal

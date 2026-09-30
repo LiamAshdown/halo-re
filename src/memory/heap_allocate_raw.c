@@ -14,12 +14,8 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
-extern void heap_compact(heap *self); // this batch
-extern int32_t heap_get_free_bytes(heap *self); // this batch
-extern int32_t heap_find_free_block(heap *self, uint32_t size_needed, void **out_predecessor); // this batch
-extern uint32_t heap_find_first_free_slot(heap *self); // this batch
-extern void heap_advance_free_slot(heap *self); // this batch
 
 uint32_t heap_allocate_raw(uint32_t size, heap *self)
 {

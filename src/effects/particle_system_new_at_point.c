@@ -23,12 +23,13 @@
 #include "objects.h"
 #include "effects.h"
 #include "fn_objects.h"
+#include "fn_memory.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern uint8_t particle_systems_enabled; // 0x0069c566
 
-extern datum_index datum_new(data_array *array); // 0x4d0480
+
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510
 
 extern uint8_t particle_system_new_type_states(datum_index handle); // 0x4538b0, this module

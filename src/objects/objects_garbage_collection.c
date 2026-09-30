@@ -34,6 +34,7 @@
 #include "objects.h"
 #include "game.h"
 #include "fn_objects.h"
+#include "fn_memory.h"
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
@@ -42,7 +43,7 @@ extern game_time_globals *game_time; // 0x006f1d6c
 extern void *ai_gc_callback_table; // 0x0065ddd0, UNSURE: see file header
 extern char network_log_path_format[]; // 0x0065efec, UNSURE: a console category tag FIXED: an array (the binary pushes the ADDRESS as an immediate; a pointer declaration loaded the string bytes)
 
-extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX (the object pool at all three sites)
+
     // takes `memory_pool *arena`; Ghidra models no argument at the call sites in this file,
     // so no prototype is asserted here rather than inventing an arena pointer.
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693

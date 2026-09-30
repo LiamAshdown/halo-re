@@ -37,6 +37,7 @@
 #include "effects.h"
 #include "game.h"
 #include "fn_objects.h"
+#include "fn_memory.h"
 #include <stdint.h> // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 
 extern data_array *particle_data;   // 0x0087abd0
@@ -48,7 +49,7 @@ extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, row stride 0x1ea0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
 extern int32_t render_frame_index; // 0x007c3100, UNSURE: foreign module (render globals)
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module
+
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m); // 0x4cbde0
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; blam-cc: ECX -> globals, EDX -> point, EAX -> index

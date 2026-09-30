@@ -13,8 +13,8 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
-extern uint32_t byte_stream_read_long(byte_stream *stream); // blam-cc: stream in ESI
 
 // blam-cc: maximum in EAX, stream in ECX
 // Reads a value out of `stream`, using the narrowest of 1/2/4 bytes that can represent `maximum`

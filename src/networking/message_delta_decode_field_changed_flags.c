@@ -19,11 +19,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_field_changed_flags[0x40];         // 0x006b89c0, shared scratch copy
 
-extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
+
 extern int32_t message_delta_decode_static_fields(int32_t message_type, bit_stream *stream, int32_t offset); // 0x4ed290, this module
 
 // Decodes the per-field "changed" flags for a message's array/compound field: on a baseline

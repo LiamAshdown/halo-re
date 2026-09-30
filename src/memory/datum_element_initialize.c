@@ -9,6 +9,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: array in EDX, element in ESI
 // Zero-fills one element's worth of bytes at `element`, then stamps its datum_header::identifier

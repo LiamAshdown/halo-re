@@ -31,12 +31,13 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_memory.h"
 #include <stdint.h>
 
 extern data_array *update_client_queues; // 0x006f7ed0
 extern data_array *player_data;          // 0x0087a480
 
-extern void data_delete_all(data_array *array);            // 0x4d0580, blam-cc: array in ESI
+
 extern void *data_iterator_next(data_iterator *iterator);  // 0x4d05d0, blam-cc: iterator in EDI
 
 // Resets update_client_queues to empty, then re-creates one zero-filled update_server_queue-sized

@@ -13,12 +13,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern uint8_t message_delta_parameters_enabled;           // 0x0071cfa8
 extern uint8_t message_delta_parameters_sending;            // 0x0071cfb4
 
 extern uint8_t bit_stream_write_bit(uint8_t bit, bit_stream *stream); // 0x4cf9a0, EDX stream, stack bit
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+
 extern int32_t message_delta_parameters_protocol_sequence; // 0x0071cfac, written as the 2-bit parameter field
 
 // Writes the leading header bit(s) of a message-delta message: whether the message is

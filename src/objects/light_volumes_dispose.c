@@ -12,9 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *light_volume_instances; // 0x006b8d70
-extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
+
 
 void light_volumes_dispose(void)
 {

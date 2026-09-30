@@ -17,10 +17,11 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 #include <string.h>
 
 // strncpy (0x00623a90 strncpy) comes from <string.h>.
-extern void data_delete_all(data_array *array); // 0x4d0580, below this batch's assigned range
+
 
 void cache_new(char *name, cache *self, int32_t block_count, int32_t block_shift,
     int16_t maximum_count, void *release_procedure, void *in_use_procedure)

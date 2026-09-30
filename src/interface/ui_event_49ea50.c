@@ -21,12 +21,13 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "fn_memory.h"
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern heap *widget_memory_pool; // 0x006926c4
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
+
 
 static widget_instance *first_list_child(widget_instance *widget)
 {

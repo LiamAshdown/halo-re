@@ -21,13 +21,14 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *flag_data;       // 0x008603a8
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_point3d *global_zero_vector3d_pointer;          // 0x006966f8, shared constant vector
 extern real_point3d *global_origin3d_pointer; // 0x00696714, shared constant vector
 
-extern datum_index datum_new(data_array *array); // UNSURE: returns {handle, data_array*} as a
+
     // 64-bit pair in the original; only the handle is modeled here, using flag_data directly
     // for the element base, matching light_new_attached.c's identical simplification.
     // memory module, 0x4d0480

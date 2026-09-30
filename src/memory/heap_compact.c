@@ -11,6 +11,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 #include <string.h>
 
 void heap_compact(heap *self)

@@ -19,10 +19,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 #include <string.h>
 
-extern uint32_t heap_allocate_raw(uint32_t size, heap *self); // this batch
-extern void heap_unlink_block(heap_block *block, heap *self); // this batch
 
 void *heap_resize_block(uint32_t new_size, heap_block *old_block, heap *self)
 {

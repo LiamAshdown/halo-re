@@ -32,12 +32,13 @@
 #include "math.h"
 #include "game.h"
 #include "fn_game.h"
+#include "fn_memory.h"
 #include <stdint.h>
 
 extern data_array *update_server_queues; // 0x006f1d90
 extern data_array *player_data;          // 0x0087a480
 
-extern void data_delete_all(data_array *array);            // 0x4d0580, blam-cc: array in ESI
+
 extern void *data_iterator_next(data_iterator *iterator);  // 0x4d05d0, blam-cc: iterator in EDI
 extern void player_update_queue_create(player_update_queue *queue); // 0x479f40, this batch (0x472cc0 area), blam-cc: ESI -> queue
 

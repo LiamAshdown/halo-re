@@ -19,13 +19,14 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *object_data;      // 0x008603b0
 extern data_array *widget_data;      // 0x00860398
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
 
-extern datum_index datum_new(data_array *array);    // memory module, 0x4d0480
+
 extern void datum_delete(data_array *array, datum_index handle); // memory module, 0x4d0510
 
 void widget_new(uint32_t object_index /*EAX*/) // blam-cc: EAX -> object_index

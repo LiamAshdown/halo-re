@@ -29,10 +29,11 @@
 #include "objects.h"
 #include "sound.h"
 #include "fn_sound.h"
+#include "fn_memory.h"
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, blam-cc: EAX/ECX/EDX/stack
 

@@ -13,6 +13,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // FIXED (objdump 0x4d0d6c..0x4d0e0e): the per-field size lives in EAX across iterations and is only assigned
 // inside the type switch. A field skipped by the version test, or whose type is out of range, therefore records

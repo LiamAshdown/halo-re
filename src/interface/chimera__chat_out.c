@@ -29,6 +29,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_client_globals *network_client; // 0x0071c2d8, UNSURE: pointer to a session struct, offset 0xadc read from it
@@ -37,7 +38,7 @@ extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); // 0x4ec940, EAX buffer, EDX size
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, ESI stream (channel +0x10), stack channel, mode
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 
 // Encodes a chat text message (type 0xf) for the given channel and, if the session's outgoing
 // buffer has room (or can be flushed to make room), queues its length and payload bits for

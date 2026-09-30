@@ -19,19 +19,19 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 #include <string.h>
 
 // blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
-extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
-    struct_definition_field *fields, int16_t *out_field_count);
+
 // blam-cc (0x4d08a0, below this batch's assigned range): maximum in EAX, stream in ECX. Reads a
 // 1/2/4-byte big-endian value chosen by `maximum`, the read counterpart of
 // byte_stream_write_ranged_integer.
-extern uint32_t byte_stream_read_ranged_integer(int32_t maximum, byte_stream *stream);
+
 // blam-cc (0x4d0930, below this batch's assigned range): stream in ECX. Returns a pointer to a
 // NUL-terminated string inside the stream's own buffer, or NULL (with stream->overflow set) if
 // unterminated.
-extern char *byte_stream_read_string(byte_stream *stream);
+
 // blam-cc (0x4cfd90, below this batch's assigned range): element size in EAX (2, 4 or 8), base
 // pointer in ECX, element count in EDX.
 extern void byte_swap_array(int32_t element_size, uint32_t *base, int32_t element_count);

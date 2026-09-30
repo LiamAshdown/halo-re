@@ -9,6 +9,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 
 // blam-cc: array in ESI

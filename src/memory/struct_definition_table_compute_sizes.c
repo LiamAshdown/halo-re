@@ -13,10 +13,10 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
-extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
-    struct_definition_field *fields, int16_t *out_field_count);
+
 
 void struct_definition_table_compute_sizes(data_packet_group *group)
 {

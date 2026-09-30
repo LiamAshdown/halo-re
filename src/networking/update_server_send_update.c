@@ -33,6 +33,7 @@
 #include "game.h"
 #include "networking.h"
 #include "fn_game.h"
+#include "fn_memory.h"
 #include <string.h>
 #include <stdint.h>
 
@@ -61,7 +62,7 @@ extern void update_client_stage_entry(void); // 0x473090, outside this batch
 extern void ui_network_wait_timeout_check(void); // 0x49c7b0, outside this batch
 extern void ui_network_wait_timeout_start(void); // 0x49c810, outside this batch
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
 extern void network_game_client_apply_position_update(void *record, uint8_t history_byte, uint32_t *values, network_client_globals *client); // 0x4dff70, this batch, elided args

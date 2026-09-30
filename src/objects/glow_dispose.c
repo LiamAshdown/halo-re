@@ -13,10 +13,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *glow_data; // 0x008603a0
 extern data_array *glow_particle_data; // 0x008603a4
-extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
+
 
 void glow_dispose(void)
 {

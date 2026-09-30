@@ -20,6 +20,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern int32_t ui_list_current;    // 0x00692c04
@@ -30,7 +31,7 @@ extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 
 void ui_network_adapter_details_refresh(widget_instance *widget)
 {

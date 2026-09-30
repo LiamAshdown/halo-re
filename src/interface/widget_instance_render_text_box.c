@@ -32,6 +32,7 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#include "fn_memory.h"
 
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern heap *widget_memory_pool;     // 0x006926c4
@@ -42,7 +43,7 @@ extern uint16_t ui_out_of_memory_text[];       // 0x00669ca8, L"<out of memory>"
 
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index); // 0x5578c0; blam-cc: ECX -> tag, DX -> index
 extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, src/memory; blam-cc: EAX -> old, ESI -> self
+
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source); // 0x557990, 8-bit to wide copy
     // blam-cc: EAX -> dest, EDI -> dest_bytes, EBX -> source; returns dest
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text); // 0x49be10

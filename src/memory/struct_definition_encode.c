@@ -23,19 +23,19 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 #include <string.h>
 
 // blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
-extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
-    struct_definition_field *fields, int16_t *out_field_count);
+
 
 // blam-cc (0x4d0700, below this batch's assigned range): maximum in EAX, value in EDX, stream in
 // ESI. Chooses a 1/2/4-byte big-endian encoding wide enough for `maximum` and writes `value`.
-extern uint32_t byte_stream_write_ranged_integer(int32_t maximum, uint32_t value, byte_stream *stream);
+
 
 // blam-cc (0x4d07e0, below this batch's assigned range): max_length in CX, stream in ESI, string
 // on the stack.
-extern uint32_t byte_stream_write_string(char *string, int16_t max_length, byte_stream *stream);
+
 
 // blam-cc (0x4cfd90, below this batch's assigned range): element size in EAX (2, 4 or 8), base
 // pointer in ECX, element count in EDX.

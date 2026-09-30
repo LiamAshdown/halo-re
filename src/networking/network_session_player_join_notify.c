@@ -31,12 +31,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern network_client_globals *network_client; // 0x0071c2d8
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this module
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values, stack bits
+
 
 // blam-cc: EAX -> client, ECX -> source
 void network_session_player_join_notify(network_client_globals *client, const uint32_t *source)

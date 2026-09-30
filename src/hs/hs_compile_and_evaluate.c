@@ -22,13 +22,13 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
+#include "fn_memory.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
 
 extern void hs_evaluate_expression(datum_index node_index); // 0x0048a250, outside this batch's assigned range
-extern void data_delete_all(data_array *array); // 0x004d0580
 
 
 extern uint8_t hs_compiling;               // 0x006b14b8

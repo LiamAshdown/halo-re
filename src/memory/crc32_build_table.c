@@ -7,6 +7,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 #define CRC32_POLYNOMIAL 0xedb88320u
 

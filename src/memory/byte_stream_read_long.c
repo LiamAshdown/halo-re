@@ -7,6 +7,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern void byte_swap_array(int32_t size_code, uint32_t *array, int32_t count); // blam-cc: size code EAX, array ECX, count EDX
 

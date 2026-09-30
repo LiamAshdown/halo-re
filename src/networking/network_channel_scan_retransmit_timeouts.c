@@ -21,12 +21,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 
 extern int32_t network_rate_override; // 0x00710308
 extern int32_t network_rate_table[]; // 0x00697edc
 
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+
 
 void network_channel_scan_retransmit_timeouts(network_channel *channel)
 {

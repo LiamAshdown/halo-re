@@ -26,15 +26,13 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 // blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
-extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
-    struct_definition_field *fields, int16_t *out_field_count);
+
 // blam-cc: struct_definition_encode(definition, output, version, source, out_source_size, fields,
 // out_field_count) -- see struct_definition_encode.c.
-extern void struct_definition_encode(struct_definition *definition, byte_stream *output,
-    int16_t version, void *source, int16_t *out_source_size, struct_definition_field *fields,
-    int16_t *out_field_count);
+
 
 int32_t data_packet_group_encode_packet_body(int16_t version, struct_definition *definition,
     uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte,

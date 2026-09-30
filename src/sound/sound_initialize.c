@@ -27,6 +27,7 @@
 #include "sound.h"
 #include "fn_sound.h"
 #include "fn_cache.h"
+#include "fn_memory.h"
 
 extern uint8_t sound_initialized;  // 0x00725200
 extern uint8_t sound_enabled;      // 0x00725201
@@ -47,10 +48,6 @@ extern sound_driver_parameters driver_parameters; // 0x0069f514
 extern uint16_t sound_channel_type_flag_table[4]; // 0x0069f528
 extern int16_t sound_channel_count; // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
-
-
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x4d0370, blam-cc: EBX -> element_size
-extern void data_delete_all(data_array *array); // 0x4d0580
 
 
 // Initializes the sound engine: resets state, allocates the sound cache, and (unless

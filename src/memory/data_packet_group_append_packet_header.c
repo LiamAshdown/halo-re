@@ -17,6 +17,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern char *data_packet_group_error; // 0x006b7f00
 extern byte_swap_definition packet_header_byte_swap_definition; // 0x00696780

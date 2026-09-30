@@ -27,10 +27,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 #include <string.h>
 
-extern int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner); // this batch
-extern void block_list_unlink(void **payload_ptr, memory_pool *arena); // this batch
 
 int32_t block_list_reallocate(void **owner_cell, int32_t new_size, memory_pool *arena)
 {

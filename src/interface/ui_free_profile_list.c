@@ -13,9 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
+
 extern void ui_list_free_all(void); // 0x4a7b20
 
 // Frees the widget's allocated profile-slot-id array (if any), clears its item count, and frees

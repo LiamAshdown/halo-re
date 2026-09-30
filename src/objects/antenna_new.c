@@ -25,11 +25,12 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_memory.h"
 
 extern data_array *antenna_data; // 0x008603ac
 extern tag_instance *tag_instances; // 0x0087bc14
 
-extern datum_index datum_new(data_array *array); // memory module, 0x4d0480
+
 extern void *bitmap_group_get_bitmap_data(void); // 0x43f250, UNSURE: signature guessed, see file header
 
 datum_index antenna_new(datum_index antenna_tag)

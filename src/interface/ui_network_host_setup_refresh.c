@@ -25,6 +25,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 #include <string.h>
 
 extern uint16_t network_host_name_00719170[144];  // 0x00719170
@@ -41,7 +42,7 @@ extern uint32_t network_game_socket_port;             // 0x00698208, TYPES-GAP
 extern uint8_t profile_globals_block[0x60a4];         // 0x00712dd8
 
 extern heap *widget_memory_pool; // 0x006926c4
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern void string_convert_ascii_to_unicode(void); // 0x557990, UNSURE args
 extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); // 0x557910
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710

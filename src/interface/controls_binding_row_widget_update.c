@@ -24,11 +24,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern heap *widget_memory_pool; // 0x006926c4
 extern uint8_t controls_action_table[][0x18]; // 0x00692fe8: char name[0x10], int32 bindable, uint32 unbindable columns
 
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern uint16_t *controls_action_display_name(int32_t device, const char *action_name); // 0x4b44c0, blam-cc: EAX device, EDI action_name
 
 static void controls_set_cell_text(widget_instance *cell, const uint16_t *text)

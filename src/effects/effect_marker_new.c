@@ -21,10 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#include "fn_memory.h"
 
 extern data_array *effect_location_data; // 0x0087abe0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; blam-cc: array in EDX
 
 // Allocates an effect_location_marker for a marker resolved by effect_rebuild_markers, copies
 // its transform, and links it at the head of effect->location_markers[location_index].

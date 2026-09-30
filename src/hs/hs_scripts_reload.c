@@ -11,9 +11,7 @@
 #include "memory.h"
 #include "hs.h"
 #include "fn_hs.h"
-
-
-extern void data_delete_all(data_array *array); // 0x004d0580
+#include "fn_memory.h"
 
 
 extern Scenario *global_scenario;                   // 0x00746f8c

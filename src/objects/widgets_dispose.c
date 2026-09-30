@@ -11,11 +11,12 @@
 #include "math.h"
 #include "objects.h"
 #include "fn_objects.h"
+#include "fn_memory.h"
 
 extern data_array *widget_data; // 0x00860398
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
 
-extern void data_delete_all(data_array *array); // UNSURE: zero visible args at the call site,
+
     // as in lights_dispose_all.c; memory module, 0x4d0580
 
 void widgets_dispose(void)

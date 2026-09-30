@@ -13,6 +13,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "fn_memory.h"
 
 extern data_array *terminal_messages;           // 0x006b2f00, "terminal output"
 extern uint8_t terminal_initialized;             // 0x006b2efc
@@ -22,8 +23,6 @@ extern datum_index console_message_tail;         // 0x006b2f08
 extern int32_t console_caret_blink_time;         // 0x006b2f14
 extern int32_t console_rcon_handle;              // 0x006b2f1c
 
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count);
-extern void data_delete_all(data_array *array);
 
 // Allocates the terminal-output console_message data array (capacity 0x20) and resets the
 // developer console/terminal globals to their empty state.

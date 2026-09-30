@@ -27,12 +27,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "fn_memory.h"
 #include <wchar.h>
 #include <stdint.h>
 
 extern heap widget_memory_pool; // 0x006926c4, "widget_memory_pool" (built by 0x4979b0)
-
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80
 
 
 // UNSURE: the text engine's shared "current string" scratch state; see file header.

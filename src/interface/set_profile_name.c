@@ -22,13 +22,14 @@
 #include "interface.h"
 #include <wchar.h>
 #include "cache.h"
+#include "fn_memory.h"
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
 extern uint16_t missing_string_text[]; // 0x00671fac, UNSURE name
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550; blam-cc: group in EDI
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, blam-cc: EAX old, ESI self
+
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
 
 // blam-cc: EBX -> widget, stack -> name_source

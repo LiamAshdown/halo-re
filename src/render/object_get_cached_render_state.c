@@ -22,13 +22,14 @@
 #include "objects.h"
 #include "rasterizer.h"
 #include "render.h"
+#include "fn_memory.h"
 
 extern data_array *object_data;                    // 0x008603b0
 extern data_array *object_render_state_cache;       // 0x007c30ec, this module
 extern int32_t render_window_count;  // 0x007c3104, this module
 extern int32_t render_frame_index;                    // 0x007c3100, this module
 
-extern datum_index datum_new(data_array *array);                       // 0x4d0480, memory module
+
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module
 extern void object_render_state_refresh(datum_index cache_index, datum_index object_index,
                                         real level_of_detail_pixels, uint8_t full_sample);

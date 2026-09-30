@@ -15,8 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#include "fn_memory.h"
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern data_array *glow_data; // 0x008603a0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag_index, int16_t frame_index,

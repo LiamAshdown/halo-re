@@ -17,6 +17,7 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "fn_memory.h"
 
 extern char *data_packet_group_error; // 0x006b7f00
 
@@ -28,8 +29,7 @@ extern void struct_definition_byte_swap(byte_swap_definition *definition, int32_
 extern byte_swap_definition packet_header_byte_swap_definition; // 0x00696780
 // blam-cc (0x4d0c70): see data_packet_group_decode_packet_body.c for the full parameter
 // reconstruction and its UNSURE notes.
-extern uint8_t data_packet_group_decode_packet_body(uint8_t *buffer, struct_definition *definition, int16_t remaining_length,
-    void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed); // 0x4d0c70, EAX buffer, ESI definition
+
 
 // REWRITTEN from objdump 0x4d09d0..0x4d0add. EAX points at the remaining length (an int16 the function decrements
 // by the header byte); the stack holds (group, decoded_body, buffer, out_type, out_version_used, expected_class). The

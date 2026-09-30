@@ -26,13 +26,14 @@
 #include "math.h"
 #include "ai.h"
 #include "fn_ai.h"
+#include "fn_memory.h"
 
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 extern float ticks_per_second;                            // 0x00672ac8, 30.0
 
-extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
+
 extern int32_t __ftol(double value);             // 0x006391b4, MSVC 7.1 CRT truncation
 
 
