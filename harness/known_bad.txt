@@ -37,15 +37,15 @@ security_check_write_access                        # shell: died tester process 
 sound_channel_check_loop_boundary                  # sound: differ 100/200: return 0xa5a50000 vs 0x00000000
 cluster_partition_new                              # structures: died tester process died
 effect_spawn_particles                             # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
-effect_update                                      # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
+effect_update                                      # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
 game_engine_update_netgame_equipment               # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
-object_apply_body_damage                           # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
-object_apply_shield_damage                         # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
-unit_apply_damage_effects                          # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
-unit_update                                        # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)
+object_apply_body_damage                           # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
+object_apply_shield_damage                         # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
+unit_apply_damage_effects                          # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
+unit_update                                        # calls __ftol() with no argument: the float it converts was not traced (UNSURE in the file)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
 physics_shape_pill_sweep_test_point                # physics: 6/200 differ (return value)
-actor_movement_action_cancel                       # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
-actor_update_activation_state                      # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
+actor_movement_action_cancel                       # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
+actor_update_activation_state                      # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)  [2026-09-30 audit: STALE? source now passes the args / no bare __ftol(); run difftest then delete]
 game_dispose                                       # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 game_engine_apply_player_grenade_counts            # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
 game_engine_compute_time_scale                     # calls a function pointer with no arguments; the original pushes arguments before its indirect call(s)
