@@ -34,6 +34,7 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -53,7 +54,7 @@ extern void projectile_detonate(uint32_t object_index, char first_collision,
                                 real remaining_tick_fraction); // 0x4c0670,
     // object index in EBX; out of range, not rewritten this pass. Both stack arguments are the
     // literal 0 at this call site
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state); // 0x4bf0f0, this batch
+
 extern void object_delete(uint32_t object_index); // 0x4f5bd0
 
 // Receiver of network message 0x30 (k_message_projectile_detonation), sent only by

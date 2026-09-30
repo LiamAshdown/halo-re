@@ -16,6 +16,7 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
 

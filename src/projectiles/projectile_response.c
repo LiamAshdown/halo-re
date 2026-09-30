@@ -51,6 +51,7 @@
 #include "projectiles.h"
 #include "fn_math.h"
 #include "fn_objects.h"
+#include "fn_projectiles.h"
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -73,8 +74,6 @@ extern void projectile_compute_deceleration(uint32_t object_index); // 0x4c0310,
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index); // 0x4f6440
-extern void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index); // 0x4bf120, this batch
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state); // 0x4bf0f0, this batch
 
 
     // blam-cc: ECX -> parallel_out, EDX -> axis, ESI -> v, EDI -> perp_out

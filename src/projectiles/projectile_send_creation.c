@@ -24,6 +24,7 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#include "fn_projectiles.h"
 
 extern network_id_table *object_network_id_table; // 0x00687130
     // function hashes the projectile's own datum_index through

@@ -31,6 +31,7 @@
 #include "fn_sound.h"
 #include "fn_math.h"
 #include "fn_objects.h"
+#include "fn_projectiles.h"
 #include <string.h>
 
 extern data_array *object_data;        // 0x008603b0
@@ -44,10 +45,9 @@ extern float k_physics_gravity;           // 0x0069c52c
 
 extern void contrail_delete(datum_index attachment_handle); // 0x44cad0
 extern void projectile_update_function_values(datum_index projectile_index); // 0x4c0250
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state); // 0x4bf0f0, EAX, ECX
+
 extern uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record); // 0x4c0450, EAX, EDI, stack
-extern void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position,
-    real_vector3d *velocity); // 0x4bf390, stack + EAX
+
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind,
     int16_t noise, int32_t unused); // 0x42c610
 
@@ -66,7 +66,7 @@ extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x
 
 
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time); // 0x44ca60, EDI, stack
-extern void projectile_send_detonation(datum_index projectile_index); // 0x4bda60
+
 extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction); // 0x4c0670, EBX, stack
 extern void object_delete_unparented(uint32_t object_index); // 0x4f5aa0, EDI
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings); // 0x4f59d0
