@@ -19,6 +19,9 @@
 //   - the delayed threat reaction (+0x406), melee lunge, animation timers, luminosity, autoaim (+0x28b);
 //   - the +0x2e8 decay, the flashlight (+0x204 bit 19, energy +0x344, glow +0x340, effects from the game globals
 //     and tag +0x194) and the weapon light (+0x348). Always returns 1.
+// VERIFIED (ftol operand only) against disassembly 0x562f10..0x562fa1 (2026-09-30): the one __ftol (0x562f99) converts
+//   clamp(angle / (aiming_velocity_maximum * 30 ticks ^-1), 0, 1) * 255.0 (0 when the maximum is 0) into the aim change
+//   byte +0x323, as written below. The rest of the body was not re-compared instruction by instruction.
 // blam-cc: stack -> unit_index
 
 #include "tags.h"

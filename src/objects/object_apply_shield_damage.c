@@ -19,6 +19,9 @@
 //   restarts the recent-damage bookkeeping (+0xe8, +0xf4, +0xfc) and records the dealt fraction. Locally, a hit
 //   of at least the minimum stun damage (+0x108) or an empty shield sets the stun ticks (+0x104) to
 //   (int)(stun time +0x10c * 30).
+// VERIFIED against disassembly 0x4ef820..0x4efbee (2026-09-30): the one __ftol (0x4efbae) converts
+//   geometry +0x10c * 30.0 into the stun ticks word, as written below; every branch, callee register/stack argument
+//   and store was compared.
 // blam-cc: EBX -> record, stack=(target_index, geometry, material, effect_block, notify_flags,
 //   shield_damage_out, remaining_damage, is_local, apply_state)
 

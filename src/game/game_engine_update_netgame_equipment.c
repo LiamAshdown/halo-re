@@ -15,14 +15,12 @@
 // +0x00, network_role +0x04).
 // register convention: `force respawn now` flag in AL (param_1, already an explicit stack/AL
 // parameter in Ghidra's own signature).
-// UNSURE: this function reuses one Ghidra-shown local (`iVar7`) for the do-while loop counter,
-// a `__ftol()` scratch result and the current game tick in three different spans; split into
-// separate, clearly-named locals here (the actual loop counter is `local_98` in the original,
-// restored at the bottom of the loop body). The `__ftol()` call itself takes its real argument on
-// the x87 stack, invisible to this decompilation -- see random_advance_draws.c for the same
-// pattern. FUN_0045f720 (tag_reflexive_pick_weighted_random_index, this batch) is called with no
-// visible argument; passed `item_collection_tag` here as the most plausible value still live at
-// that point.
+// VERIFIED against disassembly 0x45f9f0..0x45fc7c (2026-09-30). Fixed: the __ftol operand is
+//   (float)loop_index / (float)count * 300.0 (0x45fa66..0x45fa79); the game type test gets the engine index
+//   (engine +4, or -1); object_placement_data_initialize gets the picked item tag; the position/forward vectors
+//   are written into the SAME placement block that is passed to object_new_with_datum_role_control (the draft built a
+//   separate array); object_list_membership_set gets the new object in ECX; the pickup dispatch gets
+//   (new object, definition tag, loop index).
 
 #include "tags.h"
 #include "memory.h"
@@ -42,7 +40,6 @@ extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count
 extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id); // 0x45f720, this batch
 extern void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t picked_tag,
     int32_t param_2); // 0x45f850, this batch; UNSURE real args at call site
-extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0
 extern void object_delete(datum_index object_index); // 0x4f5bd0, UNSURE exact signature
@@ -50,7 +47,7 @@ extern void object_placement_data_initialize(object_placement_data *placement,
     datum_index definition_tag, datum_index role); // 0x4f53a0, canonical form (src/items)
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement,
     uint32_t role); // 0x4f54b0
-extern void object_list_membership_set(int32_t unknown); // 0x4f7450, not in this batch
+extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, blam-cc: ECX -> object_index, stack -> add
 extern void object_type_override_call_0x68(uint32_t object_index); // 0x4f4560, objects module; handle in ESI
 
 extern double fcos(double radians); // a single x87 FCOS instruction (see src/game/vector3d_clamp_length.c for the same sqrt idiom)
@@ -72,14 +69,16 @@ void game_engine_update_netgame_equipment(char force_respawn)
         datum_index item_collection_tag = *(datum_index *)&equipment->item_collection.tag_id;
             // TagID {index;id} is bit-identical to a datum_index; see src/objects/flag_new.c
 
-        if (!netgame_equipment_game_type_matches((int16_t *)&equipment->type_0, 4, 0)) {
-            // UNSURE: count (4) and current_engine_index (0) args not visible at this call site
+        if (!netgame_equipment_game_type_matches((int16_t *)&equipment->type_0, 4,
+                current_game_engine != 0 ? current_game_engine->index : -1)) { // 0x45fa39..0x45fa56: esi = engine index or -1, edx = 4
             continue;
         }
 
         {
             int32_t respawn_interval = 900;
-            int32_t extra = __ftol(); // UNSURE: see header note
+            // 0x45fa66: fild loop_index / (float)count * 300.0 -> __ftol. Staggers each entry's respawn phase across
+            //   the 10 s (300 tick) window by its position in the list.
+            int32_t extra = (int32_t)((float)loop_index / (float)count * 300.0f);
 
             if (equipment->spawn_time != 0) {
                 respawn_interval = equipment->spawn_time * 0x1e;
@@ -115,34 +114,32 @@ void game_engine_update_netgame_equipment(char force_respawn)
                     }
 
                     {
-                        int32_t placement[6];   // UNSURE: true object_placement_data layout
-                        uint32_t creation_data[6]; // matches Ghidra's 24-byte `local_88`
+                        object_placement_data placement;
                         datum_index new_object;
                         int32_t picked_tag = tag_reflexive_pick_weighted_random_index(item_collection_tag);
 
-                        object_placement_data_initialize((object_placement_data *)placement, k_datum_index_none,
-                                             k_datum_index_none); // UNSURE: role elided by Ghidra
+                        // 0x45fb50: push -1 (role); push picked (definition); eax = &placement
+                        object_placement_data_initialize(&placement, (datum_index)picked_tag, k_datum_index_none);
 
-                        creation_data[0] = *(uint32_t *)&equipment->position.x;
-                        creation_data[1] = *(uint32_t *)&equipment->position.y;
-                        creation_data[2] = *(uint32_t *)&equipment->position.z;
-                        creation_data[3] = 0;
-                        *(float *)&creation_data[4] = (float)fcos(equipment->facing);
-                        *(float *)&creation_data[5] = (float)fsin(equipment->facing);
+                        // 0x45fb5c..0x45fb89: position (+0x18), forward = (cos, sin, 0) (+0x34)
+                        placement.position = equipment->position;
+                        placement.forward.i = (float)fcos(equipment->facing);
+                        placement.forward.j = (float)fsin(equipment->facing);
+                        placement.forward.k = 0.0f;
 
-                        new_object = object_new_with_datum_role_control((object_placement_data *)creation_data, 3);
+                        new_object = object_new_with_datum_role_control(&placement, 3);
                         if (new_object != (datum_index)0xffffffff) {
                             object *obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
                             item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
-                            object_list_membership_set(0);
+                            object_list_membership_set(new_object, 0); // 0x45fbba: push 0; ecx = the new object
                             if (((uint8_t *)equipment)[0] & 1) {
                                 obj->flags = obj->flags | 0x20;
                             }
                             obj->network_role = 0;
                             object_type_override_call_0x68(new_object); // handle in ESI, elided by Ghidra
-                            game_engine_dispatch_item_pickup_event(obj->definition_tag, picked_tag, 0);
-                                // UNSURE: real args not visible at this call site
+                            // 0x45fbdc..0x45fbe7: ecx = new object, push loop index, push the object's definition tag
+                            game_engine_dispatch_item_pickup_event(new_object, obj->definition_tag, loop_index);
 
                             item->held_game_time = item->held_game_time + respawn_interval - 900;
 
