@@ -1,6 +1,6 @@
 // actor_update_look_target  (Ghidra: actor_update_look_target, renamed)
 // address 0x415480, size 3896 bytes
-// name confidence: 0.3   rewrite confidence: 0.85 (REWRITTEN from objdump 0x415480..0x4163b7)
+// name confidence: 0.3   rewrite confidence: 0.85 (VERIFIED against disassembly 0x415480..0x4163b7, 2026-09-30; rewritten from it)
 // Per-tick look / aim / facing selection for one actor. Works on three direction caches: A (+0x5a4, facing),
 //   B (+0x5b0, aiming) and C (+0x5bc, looking), which are published at the end to +0x6fc / +0x708 / +0x714
 //   (actor_apply_queued_look_to_unit hands those to the unit's control block). Sources, in order:
