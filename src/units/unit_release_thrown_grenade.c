@@ -1,4 +1,5 @@
 // unit_release_thrown_grenade  (Ghidra: FUN_0056e440)
+// VERIFIED against disassembly 0x56e440..0x56e81c (2026-09-30)
 // address 0x56e440, size 988 bytes
 // name confidence: 0.5 (functions.md summary matches; corroborated by throw-state writes)
 // rewrite confidence: 0.9
