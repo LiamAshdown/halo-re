@@ -44,6 +44,9 @@ extern real_plane3d near_clip_plane;     // 0x0065e64c
 extern double k_plane_side_epsilon;      // 0x00672c00, a QWORD in .rdata: the double 0.1
 extern float k_projection_numerator;     // 0x00672ba8 == -1.0
 
+// VERIFIED against disassembly 0x554850..0x5549b1 (2026-09-30): argument slots (camera, count, winding, out), the plane
+//   side test, the clip call (8 args), the projection loop and the return match. Fixed: the transform loop is skipped for a
+//   count <= 0 as an int16, the reverse walk steps by the winding word (not a constant -1), and the plane side sum order.
 // Transforms a portal (or mirror) polygon into view space, clips it against the near plane and
 // perspective-projects the survivors into `out`. Returns 2 when the camera sits within 0.1 of the
 // polygon's plane (the caller treats that as "do not clip at all"), 1 when the camera is behind
@@ -63,8 +66,9 @@ uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_ref, real
 
     out->point_count = 0;
 
-    side = (camera_position->x * plane->normal.i + camera_position->y * plane->normal.j +
-            camera_position->z * plane->normal.k - plane->d) * (float)(int32_t)winding;
+    // 0x554865..0x554879: z*nz + y*ny, then + x*nx, then - d (that order), scaled by the signed winding word
+    side = ((camera_position->z * plane->normal.k + camera_position->y * plane->normal.j) +
+            camera_position->x * plane->normal.i - plane->d) * (float)(int32_t)winding;
     if (*((int8_t *)camera_ref + 0x24) != 0) {
         winding = -winding;   // the original negates the stack slot, read back at 0x55492d
     }
@@ -75,7 +79,8 @@ uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_ref, real
         return 1;             // camera behind the plane: fully culled
     }
 
-    for (n = 0; n < (vertex_count & 0xffff); n = n + 1) {
+    // 0x5548d6: `test ax, ax; jle` -- the transform loop is skipped for a count that is not positive as an int16
+    for (n = 0; (int16_t)vertex_count > 0 && n < (vertex_count & 0xffff); n = n + 1) {
         matrix4x3_transform_point(&clipped[n], &vertices[n],
                                   (real_matrix4x3 *)((uint8_t *)camera + 0x10));
     }
@@ -87,7 +92,7 @@ uint8_t structure_bsp_portal_project(real_plane3d *plane, void *camera_ref, real
     if (winding == 1) {
         i = 0; stop = clipped_count; step = 1;
     } else {
-        i = (int16_t)(clipped_count - 1); stop = -1; step = -1;
+        i = (int16_t)(clipped_count - 1); stop = -1; step = winding; // 0x554979: add ecx, ebp -- the step IS the winding word
     }
     written = 0;
     while (i != stop) {
