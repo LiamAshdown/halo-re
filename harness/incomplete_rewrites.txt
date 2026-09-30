@@ -3,13 +3,13 @@
 actor_check_step_obstruction                       # ai: rewrite says 'not rewritten'
 actor_choose_best_target                           # ai: rewrite says 'simplified'
 actor_consider_combat_mode                         # ai: rewrite says 'not rewritten'
-actor_danger_update_reaction                       # ai: rewrite says 'not rewritten'
+actor_danger_update_reaction                       # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 actor_look_get_wait_ticks                          # ai: rewrite says 'simplified'
 actor_look_pick_random_point_in_cone               # ai: rewrite says 'not rewritten'
 actor_movement_advance_waypoint                    # ai: rewrite says 'simplified'
 actor_movement_collect_obstacle_candidates         # ai: rewrite says 'not rewritten'
 actor_movement_project_into_frame                  # ai: rewrite says 'not rewritten'
-actor_place_new_unit                               # ai: rewrite says 'not modeled'
+actor_place_new_unit                               # ai: rewrite says 'not modeled'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 actor_resolve_look_target                          # ai: rewrite says 'not rewritten'
 actor_scan_ally_death_panic_reaction               # ai: rewrite says 'omitted'
 actor_should_hold_position                         # ai: rewrite says 'placeholder'
@@ -17,30 +17,30 @@ actor_should_throw_grenade                         # ai: rewrite says 'simplifie
 actor_spawn_additional_units                       # ai: rewrite says 'omitted'
 actor_target_relationship_think                    # ai: rewrite says 'not rewritten'
 actor_update_crouch_state                          # ai: rewrite says 'not rewritten'
-actor_update_look_target                           # ai: rewrite says 'not rewritten'
-actor_update_movement_destination                  # ai: rewrite says 'simplified'
+actor_update_look_target                           # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+actor_update_movement_destination                  # ai: rewrite says 'simplified'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_alert_actors_in_grenade_radius                  # ai: rewrite says 'not reproduced'
-ai_communication_broadcast                         # ai: rewrite says 'placeholder'
+ai_communication_broadcast                         # ai: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_communication_initialize                        # ai: rewrite says 'not modeled'
 ai_communication_line_fade_multiplier              # ai: rewrite says 'placeholder'
-ai_communication_play_event_line                   # ai: rewrite says 'not rewritten'
+ai_communication_play_event_line                   # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_conversation_resolve_participant                # ai: rewrite says 'not reproduced'
 ai_object_process_nearby_actors                    # ai: rewrite says 'not rewritten'
-ai_process_vehicle_entry_queue                     # ai: rewrite says 'placeholder'
+ai_process_vehicle_entry_queue                     # ai: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_reference_detach_actors_from_encounters         # ai: rewrite says 'not rewritten'
 ai_reference_resolve_squad_datum                   # ai: rewrite says 'simplified'
 ai_release_inactive_encounters                     # ai: rewrite says 'not modeled'
-ai_search_choose_shorter_corner                    # ai: rewrite says 'placeholder'
+ai_search_choose_shorter_corner                    # ai: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_search_compute_point_tangents                   # ai: rewrite says 'not rewritten'
 ai_search_find_nearest_visible_point               # ai: rewrite says 'not rewritten'
 ai_search_flood_fill_group                         # ai: rewrite says 'omitted'
-ai_search_gather_obstacles                         # ai: rewrite says 'not rewritten'
+ai_search_gather_obstacles                         # ai: rewrite says 'not rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 ai_weighted_random_index                           # ai: rewrite says 'simplified'
 encounter_process_squad_reinforcements             # ai: rewrite says 'omitted'
 encounter_redistribute_squads_toward_targets       # ai: rewrite says 'omitted'
 path_find_compute_heuristic                        # ai: rewrite says 'not rewritten'
 path_find_score_avoidance_penalty                  # ai: rewrite says 'not rewritten'
-path_find_test_segment_unobstructed                # ai: rewrite says 'placeholder'
+path_find_test_segment_unobstructed                # ai: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 cache_file_download_poll                           # cache: rewrite says 'simplified'
 cache_file_open_by_name                            # cache: rewrite says 'Not rewritten'
 cache_io_thread_proc_async                         # cache: rewrite says 'not rewritten'
@@ -50,7 +50,7 @@ observer_evaluate_spline_velocity                  # camera: rewrite says 'omitt
 chimera__letterbox                                 # cutscene: rewrite says 'placeholder'
 device_control_touched                             # devices: rewrite says 'simplified'
 dialog_static_hyperlink_install                    # dialogs: rewrite says 'not rewritten'
-decal_place                                        # effects: rewrite says 'omitted'
+decal_place                                        # effects: rewrite says 'omitted'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 effect_spawn_particles                             # effects: rewrite says 'elided here'
 particle_creation_physics_default                  # effects: rewrite says 'placeholder'
 particle_creation_physics_explosion                # effects: rewrite says 'placeholder'
@@ -72,7 +72,7 @@ game_engine_build_visible_cluster_bitmask          # game: rewrite says 'not rep
 game_engine_cleanup_stray_items                    # game: rewrite says 'TODO'
 game_engine_ctf_notify_both_teams                  # game: rewrite says 'simplified'
 game_engine_dispatch_item_pickup_event             # game: rewrite says 'placeholder'
-game_engine_koth_relocate_object_hill              # game: rewrite says 'elided here'
+game_engine_koth_relocate_object_hill              # game: rewrite says 'elided here'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 game_engine_play_multiplayer_sound                 # game: rewrite says 'elided here'
 game_engine_player_round_reset                     # game: rewrite says 'not modeled'
 game_engine_players_ready_for_bsp_switch_strict    # game: rewrite says 'simplified'
@@ -90,7 +90,7 @@ unicode_string_list_get_string                     # game: rewrite says 'placeho
 update_client_queue_apply_tick                     # game: rewrite says 'placeholder'
 hs_add_script                                      # hs: rewrite says 'IS a stub'
 hs_evaluate_sleep                                  # hs: rewrite says 'placeholder'
-hs_object_angle_predicate_helper                   # hs: rewrite says 'simplified'
+hs_object_angle_predicate_helper                   # hs: rewrite says 'simplified'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 hs_parse_nonprimitive                              # hs: rewrite says 'simplified'
 hs_parse_variable                                  # hs: rewrite says 'placeholder'
 input_device_list_print                            # input: rewrite says 'omitted'
@@ -108,19 +108,19 @@ ui_network_name_fields_refresh                     # interface: rewrite says 'Si
 ui_widget_draw_formatted_prompt_string             # interface: rewrite says 'placeholder'
 widget_instance_verify_stack_chain                 # interface: rewrite says 'not reproduced'
 equipment_create_from_creation_message             # items: rewrite says 'placeholder'
-trigger_create_projectiles                         # items: rewrite says 'placeholder'
+trigger_create_projectiles                         # items: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 weapon_add_ammunition                              # items: rewrite says 'placeholder'
 weapon_apply_ammo_correction                       # items: rewrite says 'placeholder'
 weapon_apply_ammo_correction_and_resync            # items: rewrite says 'placeholder'
 weapon_create_from_creation_message                # items: rewrite says 'placeholder'
-weapon_get_first_person_animation_time             # items: rewrite says 'placeholder'
+weapon_get_first_person_animation_time             # items: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 weapon_magazine_begin_chamber                      # items: rewrite says 'placeholder'
 weapon_predict_ammo                                # items: rewrite says 'placeholder'
 weapon_prevents_melee_attack                       # items: rewrite says 'simplified'
 weapon_ready                                       # items: rewrite says 'placeholder'
-weapon_reload_recovery_finish                      # items: rewrite says 'placeholder'
-weapon_reset_triggers                              # items: rewrite says 'placeholder'
-weapon_trigger_begin_reload                        # items: rewrite says 'placeholder'
+weapon_reload_recovery_finish                      # items: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+weapon_reset_triggers                              # items: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+weapon_trigger_begin_reload                        # items: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 weapon_trigger_fire_or_reload                      # items: rewrite says 'placeholder'
 console_command_context_mask                       # main: rewrite says 'not reproduced'
 screenshot_render                                  # main: rewrite says 'simplified'
@@ -139,12 +139,12 @@ network_channel_service                            # networking: rewrite says 'p
 network_channel_transmit                           # networking: rewrite says 'elided here'
 network_connection_stats_log_tick                  # networking: rewrite says 'not reproduced'
 network_debug_fill_canary_buffer                   # networking: rewrite says 'placeholder'
-network_game_client_decode_player_slot_chunk       # networking: rewrite says 'placeholder'
+network_game_client_decode_player_slot_chunk       # networking: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 network_game_record_message_send                   # networking: rewrite says 'simplified'
 network_game_scenario_load_request                 # networking: rewrite says 'simplified'
 network_game_search_entry_is_fresh                 # networking: rewrite says 'simplified'
 network_game_search_results_add_or_update          # networking: rewrite says 'simplified'
-network_game_server_handle_join_password           # networking: rewrite says 'simplified'
+network_game_server_handle_join_password           # networking: rewrite says 'simplified'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 network_game_server_per_frame_tick                 # networking: rewrite says 'simplified'
 network_incoming_item_dispatch                     # networking: rewrite says 'placeholder'
 network_machine_reset                              # networking: rewrite says 'placeholder'
@@ -162,13 +162,13 @@ server_browser_list_row_populate                   # networking: rewrite says 'n
 server_browser_player_list_populate                # networking: rewrite says 'placeholder'
 server_browser_selected_variant_description_build  # networking: rewrite says 'not rewritten'
 server_list_reset                                  # networking: rewrite says 'placeholder'
-sv_ban                                             # networking: rewrite says 'omitted'
+sv_ban                                             # networking: rewrite says 'omitted'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 sv_players                                         # networking: rewrite says 'placeholder'
 light_transient_add                                # objects: rewrite says 'not modelled'
 lightning_render                                   # objects: rewrite says 'placeholder'
 object_animation_get_frames_remaining              # objects: rewrite says 'simplified'
 object_gather_light_list                           # objects: rewrite says 'placeholder'
-object_lights_update_all                           # objects: rewrite says 'not modelled'
+object_lights_update_all                           # objects: rewrite says 'not modelled'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 object_lights_update_all_continued                 # objects: rewrite says 'placeholder'
 objects_update                                     # objects: rewrite says 'omitted'
 breakable_surface_apply_damage                     # physics: rewrite says 'not rewritten'
@@ -181,8 +181,8 @@ physics_clamp_value_to_spring_range                # physics: rewrite says 'simp
 projectile_compute_rotation                        # projectiles: rewrite says 'not reproduced'
 projectile_detonation_message_apply                # projectiles: rewrite says 'not rewritten'
 projectile_response                                # projectiles: rewrite says 'not rewritten'
-projectile_update                                  # projectiles: rewrite says 'NOT rewritten'
-rasterizer_bitmap_sample_texel                     # rasterizer: rewrite says 'not reproduced'
+projectile_update                                  # projectiles: rewrite says 'NOT rewritten'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+rasterizer_bitmap_sample_texel                     # rasterizer: rewrite says 'not reproduced'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 rasterizer_glass_reflection_draw                   # rasterizer: rewrite says 'placeholder'
 rasterizer_glass_tint_draw_fixed_function          # rasterizer: rewrite says 'simplified'
 rasterizer_ksml_ui_shutdown                        # rasterizer: rewrite says 'omitted'
@@ -203,7 +203,7 @@ rasterizer_shader_model_draw_pixel_shader          # rasterizer: rewrite says 'p
 rasterizer_shader_transparent_plasma_draw          # rasterizer: rewrite says 'placeholder'
 rasterizer_sun_glow_render                         # rasterizer: rewrite says 'placeholder'
 rasterizer_vertex_buffer_create                    # rasterizer: rewrite says 'placeholder'
-render_frame                                       # render: rewrite says 'placeholder'
+render_frame                                       # render: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 render_nonplayer_frame                             # render: rewrite says 'placeholder'
 render_object_shadow_begin                         # render: rewrite says 'not reproduced'
 render_particles                                   # render: rewrite says 'not rewritten'
@@ -235,21 +235,21 @@ structure_bsp_build_fog_environment                # structures: rewrite says 's
 structure_debug_draw_surfaces_simple               # structures: rewrite says 'simplified'
 biped_clear_ground_surface_references              # units: rewrite says 'placeholder'
 biped_reset_state                                  # units: rewrite says 'placeholder'
-biped_update                                       # units: rewrite says 'simplified'
+biped_update                                       # units: rewrite says 'simplified'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 biped_update_scale_function_inputs                 # units: rewrite says 'placeholder'
 unit_ai_update_stagger_allocate                    # units: rewrite says 'placeholder'
 unit_ai_update_stagger_reset                       # units: rewrite says 'placeholder'
-unit_apply_damage_effects                          # units: rewrite says 'not reproduced'
+unit_apply_damage_effects                          # units: rewrite says 'not reproduced'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 unit_commit_speech                                 # units: rewrite says 'simplified'
 unit_exit_seat_end                                 # units: rewrite says 'placeholder'
 unit_find_weapon_marker_transform                  # units: rewrite says 'not reproduced'
 unit_forget_object_reference                       # units: rewrite says 'placeholder'
-unit_melee_lunge_damage_tick                       # units: rewrite says 'placeholder'
+unit_melee_lunge_damage_tick                       # units: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 unit_new                                           # units: rewrite says 'placeholder'
 unit_pick_random_spawned_actor_count               # units: rewrite says 'simplified'
 unit_predict_movement_delta                        # units: rewrite says 'omitted'
 unit_region_damage_reaction                        # units: rewrite says 'placeholder'
-unit_release_thrown_grenade                        # units: rewrite says 'placeholder'
+unit_release_thrown_grenade                        # units: rewrite says 'placeholder'  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
 unit_submit_periodic_network_update                # units: rewrite says 'not reproduced'
 unit_throw_grenade_release                         # units: rewrite says 'not reproduced'
 unit_update_ik_detail_nodes                        # units: rewrite says 'placeholder'
@@ -258,8 +258,8 @@ unit_update_scale_function_inputs                  # units: rewrite says 'placeh
 vehicle_calculate_ground_contact_lean              # units: rewrite says 'not modeled'
 vehicle_calculate_hover_lift_toward_target         # units: rewrite says 'placeholder'
 vehicle_calculate_hover_turn_controls              # units: rewrite says 'placeholder'
-unit_dispatch_reaction_animation  # ESI unit_index added but unused: the real body is a larger inlined switch (regfix batch 3)
-game_engine_ctf_notify_flag_carried_throttled  # EDI target_player added but not forwarded; callee's C signature drops it
-object_damage_effect_dispatch  # EAX/EDI added but not forwarded; callee declared argument-less
-network_channel_dispatch_bitstream_unit  # regfix batch 5: network_client_drain_queued_updates' EBX machine input still passed as 0 (UNSURE)
-biped_ground_adjust_solve                          # units: step-1 review: invented sphere-query/slide signatures; needs a rewrite from 0x558000
+unit_dispatch_reaction_animation  # ESI unit_index added but unused: the real body is a larger inlined switch (regfix batch 3)  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+game_engine_ctf_notify_flag_carried_throttled  # EDI target_player added but not forwarded; callee's C signature drops it  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+object_damage_effect_dispatch  # EAX/EDI added but not forwarded; callee declared argument-less  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+network_channel_dispatch_bitstream_unit  # regfix batch 5: network_client_drain_queued_updates' EBX machine input still passed as 0 (UNSURE)  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
+biped_ground_adjust_solve                          # units: step-1 review: invented sphere-query/slide signatures; needs a rewrite from 0x558000  [2026-09-30 audit: STALE? rewritten from objdump, no incomplete wording left; run difftest then delete this line]
