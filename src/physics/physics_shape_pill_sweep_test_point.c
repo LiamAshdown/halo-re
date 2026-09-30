@@ -33,6 +33,10 @@ extern uint8_t physics_shape_sphere_sweep_test_ray(real_point3d *point, real_poi
                                                     real_vector3d *delta, float *out_t,
                                                     float radius); // 0x503290, this batch
 
+// VERIFIED (logic) against disassembly 0x503050..0x503288 (2026-09-30): the discriminant, both roots, the t clamp, the edge
+//   parameter branches (near vertex / far vertex sphere test, out_edge_fraction 0 / 1 / param/len) and the return values match;
+//   only the floating point summation order was aligned with the x87 code. STILL-UNSURE: the original keeps every
+//   intermediate in 80-bit registers, so a rare 6/200 difference at the comparisons may remain.
 // blam-cc: ECX -> near_vertex, EDX -> delta, EBX -> origin, EDI -> edge_dir,
 //          stack -> radius, out_t, out_edge_fraction
 uint8_t physics_shape_pill_sweep_test_point(real_point3d *near_vertex, real_vector3d *delta,
@@ -43,17 +47,18 @@ uint8_t physics_shape_pill_sweep_test_point(real_point3d *near_vertex, real_vect
     float rel_x = origin->x - near_vertex->x;
     float rel_y = origin->y - near_vertex->y;
     float rel_z = origin->z - near_vertex->z;
-    float edge_len_sq = edge_dir->i * edge_dir->i + edge_dir->j * edge_dir->j +
-                         edge_dir->k * edge_dir->k;
-    float edge_dot_delta = edge_dir->i * delta->i + edge_dir->j * delta->j + edge_dir->k * delta->k;
-    float delta_len_sq = delta->i * delta->i + delta->j * delta->j + delta->k * delta->k;
+    // The sums keep the x87 order of 0x503075..0x5030c5 (z-first for the edge terms, x-first for delta and rel), which
+    // matters for the rounding at the t <= 1 / edge_param comparisons.
+    float edge_len_sq = (edge_dir->k * edge_dir->k + edge_dir->i * edge_dir->i) + edge_dir->j * edge_dir->j;
+    float edge_dot_delta = (edge_dir->k * delta->k + edge_dir->j * delta->j) + edge_dir->i * delta->i;
+    float delta_len_sq = (delta->i * delta->i + delta->j * delta->j) + delta->k * delta->k;
     float disc_scale = delta_len_sq * edge_len_sq - edge_dot_delta * edge_dot_delta;
 
     if (disc_scale != 0.0f) {
-        float rel_dot_edge = rel_z * edge_dir->k + rel_y * edge_dir->j + rel_x * edge_dir->i;
-        float rel_dot_delta = rel_z * delta->k + rel_y * delta->j + rel_x * delta->i;
+        float rel_dot_edge = (rel_x * edge_dir->i + rel_y * edge_dir->j) + rel_z * edge_dir->k;
+        float rel_dot_delta = (rel_x * delta->i + rel_y * delta->j) + rel_z * delta->k;
         float b = rel_dot_edge * edge_dot_delta - rel_dot_delta * edge_len_sq;
-        float rel_len_sq = rel_z * rel_z + rel_y * rel_y + rel_x * rel_x;
+        float rel_len_sq = (rel_x * rel_x + rel_y * rel_y) + rel_z * rel_z;
         float disc = b * b - ((rel_len_sq - radius * radius) * edge_len_sq - rel_dot_edge * rel_dot_edge) *
                               disc_scale;
 
