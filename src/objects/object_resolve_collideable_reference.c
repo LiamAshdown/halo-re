@@ -4,7 +4,7 @@
 //   object id stored in a per-category index table (selected by param_2) to its datum address
 //   and category/type tag" -- conf=0.3; renamed to reflect what the code actually does, which
 //   is walking one link of the collideable_object_references chain)
-// rewrite confidence: 0.95 (equivalent to its duplicate object_cluster_collideable_iterate_begin.c (0.95, objdump-verified))
+// rewrite confidence: 0.95 (objdump-verified; also known as object_cluster_collideable_iterate_begin, the cluster iterate-begin callback render_objects_collect hands to structure_bsp_collect_visible_objects)
 // evidence: types/objects.h object_cluster_reference (identifier 0x00, object_index 0x04,
 //   next_reference 0x08); globals 0x008603d0 collideable_cluster_first and 0x008603d4
 //   collideable_object_references.

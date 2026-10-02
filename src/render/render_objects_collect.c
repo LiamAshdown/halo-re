@@ -40,14 +40,14 @@ extern int16_t structure_bsp_collect_visible_objects(datum_index *out_handles, i
     // 0x554420
 
 // cluster reference iterators and the visit stamp callbacks, objects module (cdecl)
-extern datum_index object_cluster_collideable_iterate_begin(uint32_t *cursor, int16_t cluster_index);
-    // 0x4f5f00 (functions.txt: object_resolve_collideable_reference)
+extern datum_index object_resolve_collideable_reference(uint32_t *cursor, int16_t cluster_index);
+    // 0x4f5f00, the collideable cluster iterate-begin callback
 extern datum_index object_cluster_collideable_iterate_next(uint32_t *cursor);       // 0x4f5f40
 extern datum_index object_cluster_noncollideable_iterate_begin(uint32_t *cursor, int16_t cluster_index);
     // 0x4f5e90
 extern datum_index object_cluster_noncollideable_iterate_next(uint32_t *cursor);    // 0x4f5ed0
-extern uint8_t object_cluster_stamp_not_visited(datum_index object_index);
-    // 0x4f96f0 (functions.txt: object_disconnect_from_map)
+extern uint8_t object_disconnect_from_map(datum_index object_index);
+    // 0x4f96f0, the cluster visit-stamp predicate callback
 extern uint8_t object_cluster_stamp_mark_visited(datum_index object_index);        // 0x4f9720
 
 extern void render_object_get_cull_sphere(datum_index object_index, real_point3d *center,
@@ -64,10 +64,10 @@ void render_objects_collect(void)
     object_globals_pointer->collecting_in_clusters = 1;
 
     count = structure_bsp_collect_visible_objects(rendered_objects, 0x100,
-        (void *)object_cluster_collideable_iterate_begin,
+        (void *)object_resolve_collideable_reference,
         (void *)object_cluster_collideable_iterate_next,
         (void *)render_object_get_cull_sphere,
-        (void *)object_cluster_stamp_not_visited,
+        (void *)object_disconnect_from_map,
         (void *)object_cluster_stamp_mark_visited);
     rendered_object_count = count;
 
@@ -78,7 +78,7 @@ void render_objects_collect(void)
         (void *)object_cluster_noncollideable_iterate_begin,
         (void *)object_cluster_noncollideable_iterate_next,
         (void *)render_object_get_cull_sphere,
-        (void *)object_cluster_stamp_not_visited,
+        (void *)object_disconnect_from_map,
         (void *)object_cluster_stamp_mark_visited);
 
     object_globals_pointer->collecting_in_clusters = 0;

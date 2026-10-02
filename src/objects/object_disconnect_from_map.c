@@ -3,7 +3,7 @@
 // name confidence: 0.6 (already carries this name from an earlier phase; matches
 //   functions.md's summary: "Tests whether an object's attachment was not visited during the
 //   current map traversal (i.e. is effectively disconnected)")
-// rewrite confidence: 0.95 (equivalent to its duplicate object_cluster_stamp_not_visited.c (0.95, objdump-verified))
+// rewrite confidence: 0.95 (objdump-verified; also known as object_cluster_stamp_not_visited, the visit-stamp predicate render_objects_collect hands to structure_bsp_collect_visible_objects)
 // evidence: types/objects.h object (cluster_stamp 0x014); global 0x008603b0 object_data,
 //   global 0x008603cc object_cluster_stamp.
 // register convention: object index is the sole, genuinely-stack, parameter (Ghidra's own

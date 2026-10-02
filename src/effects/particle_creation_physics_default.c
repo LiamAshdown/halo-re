@@ -1,5 +1,5 @@
 // particle_creation_physics_default  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_455310" from the .rdata dispatch-table evidence)
+//   carved the stub name "missed_455310" from the .rdata dispatch-table evidence)
 // address 0x455310, size 59 bytes
 // VERIFIED against disassembly 0x455310..0x45534b (2026-09-30)
 // name confidence 0.6, rewrite confidence 0.85

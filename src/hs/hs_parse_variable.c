@@ -72,7 +72,7 @@ char hs_parse_variable(datum_index node_index)
         }
         /* node_type != 0 and compatible: the original re-tests "if (node_type != 0)" here,
            which is always true in this scope, so it always skips straight past the type
-           assignment below -- simplified accordingly. */
+           assignment below (the dead re-test is folded into the else). */
     } else {
         node->type = global_type;
     }

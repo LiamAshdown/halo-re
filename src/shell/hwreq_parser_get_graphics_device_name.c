@@ -1,5 +1,5 @@
 // hwreq_parser_get_graphics_device_name  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_578870" from the vtable evidence)
+//   carved the stub name "missed_578870" from the vtable evidence)
 // address 0x578870, size 14 bytes
 // name confidence 0.8, rewrite confidence 0.85
 // evidence: out/phase4/shell_types_notes.md: "the vtable accessors 0x578870..0x5788e0

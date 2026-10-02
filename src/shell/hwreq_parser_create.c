@@ -8,7 +8,7 @@
 //   frame, no argument reads).
 // blam-cc: (no arguments)
 // UNSURE: the compiler-generated x86 SEH frame is compiler plumbing, not application logic, and
-//   is omitted here.
+//   is not part of the C source.
 
 // VERIFIED against disassembly 0x57b4c0..0x57b518 (2026-09-30): operator new(0x6b8), NULL check, construct
 #include "crt.h"

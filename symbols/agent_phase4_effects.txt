@@ -88,7 +88,7 @@
 0x451660 effect_start_event func 0.50 agent-phase4 src/effects/effect_start_event.c_header_comment
 0x451710 effect_rebuild_markers func 0.45 agent-phase4 src/effects/effect_rebuild_markers.c_header_comment
 0x4517d0 effect_marker_new func 0.55 agent-phase4 src/effects/effect_marker_new.c_header_comment
-0x451930 effect_compute_spawn_basis func 0.30 agent-phase4 src/effects/effect_compute_spawn_basis.c_header_comment
+0x451930 effect_marker_from_node_table func 0.50 agent-phase4 src/effects/effect_marker_from_node_table.c_header_comment
 0x451a30 effect_update func 0.50 agent-phase4 src/effects/effect_update.c_header_comment_(renames_particle_system_update)
 0x451f90 effect_spawn_particles func 0.50 agent-phase4 src/effects/effect_spawn_particles.c_header_comment_(renames_particle_system_spawn_particles)
 0x4529d0 object_change_color_evaluate func 0.50 agent-phase4 src/effects/object_change_color_evaluate.c_header_comment

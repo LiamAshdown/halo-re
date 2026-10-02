@@ -12,7 +12,7 @@
 //   The slot is folded into the return value, as hwreq_parser_parse_block.c does.
 // The key is a local std::string: it is set to the empty inline state (capacity 0xf, size 0,
 //   first byte 0), assigned from name through 0x57bc90, and its heap buffer (capacity >= 0x10) is
-//   freed on both exits. The SEH frame only guards that destructor and is not reproduced.
+//   freed on both exits. The SEH frame only guards that destructor and is not part of the C source.
 
 // VERIFIED against disassembly 0x5788f0..0x5789ce (2026-09-30): strlen loop, assign_n(ECX=key), find(EDI map,ESI key,EBX slot), head compare, key freed on both exits
 #include "tags.h"

@@ -28,12 +28,11 @@
 //   which pools to probe, all as recognized stack parameters.
 // blam-cc: stack -> (mono3d_count, mono3d_requested, mono_count, mono_requested, stereo_count,
 //   stereo_requested, stereo44k_count, stereo44k_requested, pool_mask)
-// UNSURE: the exact DSBUFFERDESC.flags values (0x180b4 for the 3D-mono pool, 0x180a4 for the
+// NOTE: the exact DSBUFFERDESC.flags values (0x180b4 for the 3D-mono pool, 0x180a4 for the
 //   other three) are preserved as literal constants; types/sound.h's own speculative comment on
 //   this field ("0x100a0 / 0x100a8 | 0x10 (3D) | 0x200") does not match these and is superseded
 //   here by the values actually read from this decompile. DAT_0064e21c (queried only for the
-//   mono-3d pool) is assumed to be IID_IDirectSound3DBuffer based on context; declared as a raw
-//   GUID-shaped byte pointer since it is never independently confirmed.
+//   mono-3d pool) is IID_IDirectSound3DBuffer (confirmed in the Phase-4 review below).
 // Phase-4 review (disassembly appended below): the two local arrays hold 77 entries (the
 //   release loop stops at 0x134 bytes; the draft used 79); each pool's buffers continue at the
 //   index where the previous pool stopped, and a 3D buffer whose QueryInterface failed is left

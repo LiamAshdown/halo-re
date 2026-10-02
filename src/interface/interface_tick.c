@@ -26,7 +26,7 @@
 // widget_instance_handle_input_event consumes (Ghidra's `LARGE_INTEGER local_28[2]`, 16 bytes)
 // is not a type this session resolved; passed through as an opaque byte buffer, exactly as
 // large as Ghidra's own frame layout reserves for it.
-// Note: input_queue_pop_event's role is modeled only from this call site: `input_queue_pop_event(scratch, controller_index)` returning a bool, matching
+// Note: input_queue_pop_event's role is inferred only from this call site: `input_queue_pop_event(scratch, controller_index)` returning a bool, matching
 // the phase-4 summary "advances timers ... updates the active widget's input/selection state".
 // UNSURE: DAT_00718fac/ae/b0/b1 is the same "pending non-modal message" record
 // interface_handle_quit_request.c names quit_confirm_error_*; despite that name it is used here

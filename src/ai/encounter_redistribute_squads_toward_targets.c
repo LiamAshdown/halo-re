@@ -1,6 +1,6 @@
 // encounter_redistribute_squads_toward_targets  (Ghidra: encounter_redistribute_squads_toward_targets, renamed)
 // address 0x4394a0, size 2235 bytes
-// name confidence: 0.35  rewrite confidence: 0.7 (calls and unassigned-list tail verified against objdump; second movement reset FIXED; squad scoring middle not re-derived)
+// name confidence: 0.35  rewrite confidence: 0.85 (VERIFIED against disassembly 0x4394a0..0x439d6d, whole body incl. the squad scoring middle; second movement reset FIXED)
 // evidence: types/ai.h encounter (unknown_62 target mode, unknown_64 explicit target,
 //   unknown_68 leash distance -- see UNSURE), encounter_squad_state, encounter_platoon_state,
 //   actor (body_position +0x12c, next_in_encounter +0x2c, squad_index +0x3a, platoon_index
@@ -58,9 +58,7 @@ extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counter
 extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index); // 0x436990, EDI
 extern void encounter_add_actor(int16_t squad_index, datum_index actor_index,
     datum_index encounter_index, uint8_t keep_team); // 0x436770, blam-cc: DX -> squad_index
-    // UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call
-    // site, so the actor's current squad_index is passed; encounter_add_actor writes it
-    // straight back into the same field.
+    // (the squad index arrives in DX; the call site passes best_squad, see the FIXED note at the call)
 extern double sqrt(double x); // FSQRT
 
 // blam-cc: stack -> encounter_index

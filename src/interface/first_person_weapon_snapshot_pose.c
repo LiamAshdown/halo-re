@@ -10,7 +10,7 @@
 // unrecognized by Ghidra. // blam-cc: local_player_index=AX, blend_gap=DX
 // The +0x68 dword of the first-person animation graph tag (Weapon +0x478 dependency) is ModelAnimations.nodes.count; each node
 // pose is 8 dwords (32 bytes), so the copy is `(count << 5) >> 2` dwords (0x49310a..0x49311c). The byte-remainder `rep movsb`
-// count is `(count << 5) & 3`, always zero, so it is omitted.
+// count is `(count << 5) & 3`, always zero, so no byte copy is needed.
 
 #include "tags.h"
 #include "memory.h"

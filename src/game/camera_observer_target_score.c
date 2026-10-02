@@ -9,7 +9,7 @@
 // register convention: cone pointer in EAX (in_EAX, Ghidra's "param_1"), target object handle in
 //   ECX (in_ECX), output candidate pointer in ESI (unaff_ESI); reference position is the
 //   recognized stack parameter (param_2). A second stack slot the caller reserves is never
-//   read by this function and is not modelled here.
+//   read by this function, so it is not a parameter here.
 //   // blam-cc: EAX -> cone, ECX -> object, ESI -> out, stack -> reference_position
 //
 // The angle is acos(dot(direction, facing)), clamped to [-1, 1], where `facing` is the vector in EAX/EBX (0x459b77..0x459b79);

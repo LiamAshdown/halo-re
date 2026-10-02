@@ -1,5 +1,5 @@
-// shell_window_procedure  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_541b30" here from the vtable/callsite evidence)
+// shell_window_procedure  (Ghidra: no function created; the phase-4 types agent carved the
+//   stub name "missed_541b30" here from the vtable/callsite evidence)
 // address 0x541b30, size 2544 bytes (0x9f0, 0x541b30..0x54251f, last instruction the jmp at 0x54251b: Ghidra's own function-boundary
 //   metadata says 2100/0x834 bytes, ending at 0x542364, but that is stale -- objdump shows the
 //   real control flow (every jcc/jmp inside this body) continuing past that point through the

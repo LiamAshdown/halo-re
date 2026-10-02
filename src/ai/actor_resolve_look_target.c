@@ -1,8 +1,7 @@
 // actor_resolve_look_target  (Ghidra: actor_resolve_look_target, renamed)
 // address 0x414d00, size 580 bytes
 // name confidence: 0.35  rewrite confidence: 0.9 (VERIFIED against objdump 0x414d00..0x414f43; record target and horizontal aim FIXED)
-// evidence: the only caller (0x415480, the module's central look/aim update, not rewritten
-// in this pass) passes &actor.position_cache_a or &actor.position_cache_b as the register
+// evidence: the only caller (0x415480, the module's central look/aim update, actor_update_look_target) passes &actor.position_cache_a or &actor.position_cache_b as the register
 // vector argument; this function either accepts the recognized prop actor_select_facing_
 // target_prop finds, or falls back to that caller-supplied direction (normalized, or the
 // global forward vector if it is degenerate), and in both cases hands the result to

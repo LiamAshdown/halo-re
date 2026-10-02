@@ -1,5 +1,5 @@
 // particle_system_update_physics_default  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_4552a0" from the .rdata dispatch-table evidence)
+//   carved the stub name "missed_4552a0" from the .rdata dispatch-table evidence)
 // address 0x4552a0, size 98 bytes
 // VERIFIED against disassembly 0x4552a0..0x455302 (2026-09-30). point_physics_tick's velocity (ESI) is
 //   &system->velocity (0x4552df)

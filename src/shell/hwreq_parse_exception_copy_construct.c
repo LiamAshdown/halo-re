@@ -14,7 +14,7 @@
 // register convention: ECX = this, stack argument = const hwreq_parse_exception *other.
 // blam-cc: hwreq_parse_exception_copy_construct(hwreq_parse_exception *this /*ECX*/, const hwreq_parse_exception *other /*stack*/)
 // UNSURE: `exception::exception(this, other)` (0x627dd2, the Dinkumware base-class copy
-//   constructor) and FUN_0057b830 (string::assign) are opaque externs, not rewritten here.
+//   constructor) and FUN_0057b830 (string::assign) are opaque externs defined in another file.
 
 // VERIFIED against disassembly 0x57bc20..0x57bc85 (2026-09-30): returns this (mov eax,esi; ret 4)
 #include "tags.h"

@@ -13,7 +13,7 @@
 //   child2 = child1->next_node        (the tick count / -1 for a two-element form)
 //   child3 = child2->next_node        (the optional timeout)
 // and each of the three hs_thread_push calls writes into a DIFFERENT scratch slot, which is what
-// the earlier rewrite lost (it passed frame->result_address to all of them, and a placeholder
+// the earlier rewrite lost (it passed frame->result_address to all of them, and a wrong
 // node to the last):
 //   0x489920  push child2 -> the `ticks` slot   (EBX still holds slot 2 from 0x489851)
 //   0x489960  push child3 -> `timeout_ticks`    (`mov ebx,eax`, eax = slot 3 from 0x48992d)

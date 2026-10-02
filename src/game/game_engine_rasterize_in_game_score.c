@@ -10,7 +10,7 @@
 // marked_for_deletion +0xd5, deaths +0xae, ping +0xdc); game_engine_post_rasterize_post_game.c is the near-twin.
 // register convention: both inputs are stack arguments (subject_player, opacity).
 // REWRITTEN 2026-09-30 from the disassembly (the earlier draft was "rewrite confidence 0.15", built around a single reused
-// params block and placeholder indices). What was wrong / is now pinned:
+// params block and guessed string indices). What was wrong / is now pinned:
 //  - Order: the translucent background rectangle is drawn FIRST (color_real_to_argb_pack(opacity * 0.69, {0.125,0.125,0.125}) ->
 //    ui_draw_filled_rectangle(EAX packed color, ECX rect {top 0x3c, left 0xa, bottom 0x186, right 0x276})), then the result text.
 //  - Five hud_world_text_params blocks (alpha is always the opacity): result text (0.7 grey), the header row (0.5 grey), the

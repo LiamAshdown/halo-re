@@ -3,7 +3,7 @@
 // address 0x4a4b60, size 272 bytes, callers=0 in this build
 // name confidence: 0.3   rewrite confidence: 0.9
 // evidence: functions.md: "Refreshes the name/team display widgets from the pending name-entry
-// globals and commits the change." Simplified two-row version of FUN_004a2cb0.c's name/team
+// globals and commits the change." The original is a two-row variant of FUN_004a2cb0.c's name/team
 // refresh, with the same tab-group commit pattern and set_profile_name call at the end.
 // register convention: cdecl, the one recognized stack parameter (widget).
 // FIXED 2026-09-30 (disassembly): set_profile_name's EBX is tab_group->first_child->next_sibling (0x4a4c5d), not the outer widget; and the

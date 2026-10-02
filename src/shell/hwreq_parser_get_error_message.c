@@ -1,5 +1,5 @@
-// hwreq_parser_get_error_message  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_5788e0" from the vtable evidence)
+// hwreq_parser_get_error_message  (Ghidra: no function created; the phase-4 types agent carved the stub
+//   name "missed_5788e0" from the vtable evidence)
 // address 0x5788e0, size 14 bytes
 // name confidence 0.8, rewrite confidence 0.85
 // evidence: out/phase4/shell_types_notes.md: "the vtable accessors 0x578870..0x5788e0

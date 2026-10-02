@@ -39,7 +39,7 @@ extern heap *widget_memory_pool; //  0x006926c4 -- the global holds a POINTER to
 extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source); // 0x557990
 extern wchar_t string_widen_scratch[0x400]; // 0x006b5e90, the 0x800-byte shared target
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...); // 0x557910, blam-cc: EDX count;
-    // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign
+    // the bound (0x1f / 7 at the call sites) rides in EDX and is passed as `count` // foreign
 
 // blam-cc: row widget in EAX (in_EAX), flag1 in CL (in_CL), flag2 in DL (in_DL)
 void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,

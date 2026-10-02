@@ -5,9 +5,8 @@
 //   object index, plays a related sound when few hills have been used, and clears the object's
 //   'needs relocation' flag"); game_engine_variant::unknown_90 aliased 0x006f1d18;
 //   game_engine_koth_find_marker_position (0x46beb0, this batch); ctf_flag_object_clear_carrier
-//   (0x4666c0, already committed, blam-cc EBX -> flag_object_index, EDI -> position -- both
-//   elided here and modeled as forwarded, per the same pattern used throughout this batch's CTF
-//   helpers).
+//   (0x4666c0, already committed, blam-cc EBX -> flag_object_index, EDI -> position; both
+//   registers are set up by this function, see the FIXED note below).
 // register convention: object handle in EAX (also copied to EBX for ctf_flag_object_clear_carrier, EDI = the found position).
 //   // blam-cc: EAX -> object_index
 // FIXED 2026-09-28 (mp sound): 0x46be40 takes ESI sound, EDI player and a stack broadcast byte; the
