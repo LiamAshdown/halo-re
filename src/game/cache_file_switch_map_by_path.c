@@ -24,7 +24,7 @@ extern char *rasterizer_shader_file_name;      // 0x00722bbc
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern uint32_t unknown_00719979; // TYPES-GAP
 extern uint32_t unknown_00719774; // TYPES-GAP
-extern int32_t local_player_count;  // TYPES-GAP
+extern int16_t local_player_count;  // 0x006894b8, a WORD (TYPES-GAP)
 extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
 extern int32_t cached_profile_slot; // 0x0068e66c
 extern uint8_t last_profile_name;  // TYPES-GAP
