@@ -42,7 +42,7 @@ void sv_name(uint32_t argument_count, char **arguments)
 
     if (argument_count == 0) {
     report:
-        chimera__console_out((ColorARGB *)0, "sv_name: %ls", network_server_name);
+        chimera__console_out((ColorARGB *)0, (char *)"sv_name: %ls", network_server_name);
         return;
     }
     if (argument_count == 1) {
@@ -54,7 +54,7 @@ void sv_name(uint32_t argument_count, char **arguments)
             if (result == scratch) {
                 if (network_name_string_is_valid_for_mode(name, scratch, 3) != 0) {
                     network_server_globals *server = network_server;
-                    wcsncpy(network_server_name, scratch, 0x3f);
+                    wcsncpy((wchar_t *)network_server_name, (const wchar_t *)scratch, 0x3f);
                     network_server_name_is_default = 0;
                     if (server != 0) {
                         network_password_field_set();
@@ -62,13 +62,13 @@ void sv_name(uint32_t argument_count, char **arguments)
                     goto report;
                 }
             }
-            chimera__console_out((ColorARGB *)0, "Server names must only contain printable ASCII characters supported by the Halo UI.");
+            chimera__console_out((ColorARGB *)0, (char *)"Server names must only contain printable ASCII characters supported by the Halo UI.");
             goto usage;
         }
-        chimera__console_out((ColorARGB *)0, "Server names must be between 1 and %d characters.", 0x3f);
+        chimera__console_out((ColorARGB *)0, (char *)"Server names must be between 1 and %d characters.", 0x3f);
     }
 usage:
-    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_name for more information.");
+    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_name for more information.");
 }
 
 #if 0

@@ -75,7 +75,7 @@ network_channel *network_channel_new(uint32_t flags)
         ((flags & k_network_channel_listening) == 0 ||
          (network_listen_start(channel->endpoint) == 0 &&
           network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
-        channel->incoming = circular_buffer_new("transport-incoming", 0); // UNSURE: requested size elided
+        channel->incoming = circular_buffer_new((char *)"transport-incoming", 0); // UNSURE: requested size elided
         if (channel->incoming != 0) {
             goto primed;
         }

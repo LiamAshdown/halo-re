@@ -38,17 +38,17 @@ void sv_status(void)
     if (network_game_mode == 2) {
         if (network_server != 0) {
             int32_t player_count_info = players_active_count((int32_t)network_server->session.maximum_players);
-            chimera__console_out((ColorARGB *)0, "Dedicated server is running on map %s (%d / %d players)",
+            chimera__console_out((ColorARGB *)0, (char *)"Dedicated server is running on map %s (%d / %d players)",
                                   network_build_string, player_count_info);
             if (game_engine_state_value == _game_engine_state_not_started) {
-                chimera__console_out((ColorARGB *)0, "Use the 'sv_end_game' command to stop the game.");
+                chimera__console_out((ColorARGB *)0, (char *)"Use the 'sv_end_game' command to stop the game.");
                 return;
             }
-            chimera__console_out((ColorARGB *)console_message_default_color, "Game is ending...");
+            chimera__console_out((ColorARGB *)console_message_default_color, (char *)"Game is ending...");
         }
         return;
     }
-    chimera__console_out((ColorARGB *)global_white_argb, "%s is a server-only function!", "sv_status");
+    chimera__console_out((ColorARGB *)global_white_argb, (char *)"%s is a server-only function!", "sv_status");
 }
 
 #if 0

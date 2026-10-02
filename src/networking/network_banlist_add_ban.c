@@ -76,7 +76,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
         if (duration_override_seconds == -1) {
             entry->indefinite = 1;
             entry->expiry_time = 0;
-            chimera__console_out((ColorARGB *)0, "Banning %s (%s) indefinitely.", player_name, cd_key_hash);
+            chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) indefinitely.", player_name, cd_key_hash);
             network_banlist_save();
             return 1;
         }
@@ -85,7 +85,7 @@ uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_ov
         entry->expiry_time = expiry;
         entry->indefinite = 0;
         format_local_time_and_date(date_buf, 0x20, expiry, time_buf);
-        chimera__console_out((ColorARGB *)0, "Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
+        chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
         network_banlist_save();
     }
     return 1;

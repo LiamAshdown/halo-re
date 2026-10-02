@@ -44,7 +44,7 @@ void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char 
 
     if (argument_count == 0) {
     report:
-        chimera__console_out((ColorARGB *)0, "%s: %u", name, *value);
+        chimera__console_out((ColorARGB *)0, (char *)"%s: %u", name, *value);
         return;
     }
     if (argument_count == 1) {
@@ -65,7 +65,7 @@ void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char 
             }
         }
     }
-    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help %s for more information.", name);
+    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help %s for more information.", name);
 }
 
 #if 0

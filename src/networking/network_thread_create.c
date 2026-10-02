@@ -36,7 +36,7 @@ int32_t network_thread_create(uint8_t flags, void *start_address, void *paramete
             slot = &network_thread_table[i];
             slot->handle = 0;
             slot->in_use = 1;
-            slot->handle = CreateThread(0, 0x4000, start_address, parameter, 4, &thread_id);
+            slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)start_address, parameter, 4, (LPDWORD)&thread_id);
             *out_handle = slot;
             if (slot->handle != 0) {
                 if ((flags & 2) == 0) {

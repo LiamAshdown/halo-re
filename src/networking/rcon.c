@@ -44,17 +44,17 @@ void rcon(int32_t argument_count, char **arguments) // blam-cc: stack -> argumen
     int32_t i;
 
     if (network_game_mode != 1) {
-        chimera__console_out((ColorARGB *)global_white_argb, "rcon is a client-only function!");
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon is a client-only function!");
         return;
     }
     if (argument_count < 2) {
-        chimera__console_out((ColorARGB *)global_white_argb, "Incorrect usage. Type help rcon for more information.");
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Incorrect usage. Type help rcon for more information.");
         return;
     }
     password = arguments[0];
     password_len = strlen(password);
     if (password_len == 0 || 8 < password_len) {
-        chimera__console_out((ColorARGB *)global_white_argb, "rcon password must be between 1 and %d characters", 8);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon password must be between 1 and %d characters", 8);
         return;
     }
 
@@ -66,7 +66,7 @@ void rcon(int32_t argument_count, char **arguments) // blam-cc: stack -> argumen
 
         budget = budget + (-3 - word_len);
         if (budget < 0) {
-            chimera__console_out((ColorARGB *)global_white_argb, "rcon command can be no longer than %d characters", 0x40);
+            chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon command can be no longer than %d characters", 0x40);
             return;
         }
         if (command[0] != 0) {

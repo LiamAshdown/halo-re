@@ -95,7 +95,7 @@ int32_t network_connection_finalize_join(uint16_t *connection)
 
     if (debug_log_level > 2 && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
-        fprintf(network_summary_log_file, "%s\t", network_build_string);
+        fprintf((FILE *)network_summary_log_file, "%s\t", network_build_string);
     }
 
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc); // channel

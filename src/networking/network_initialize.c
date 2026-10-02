@@ -66,7 +66,7 @@ int16_t network_initialize(void)
                 network_resolved_local_address = network_local_address;
             }
         }
-        CreateThread(0, 0x10400, autopatch_proxy_initialize, 0, 0, &thread_id); // FIXED 2026-09-28: 0x4416ad pushes
+        CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)autopatch_proxy_initialize, 0, 0, (LPDWORD)&thread_id); // FIXED 2026-09-28: 0x4416ad pushes
             // 0x5771c0 (autopatch_proxy_initialize); the C started join_game_server_browser_tick on the thread
         network_initialized_at_ms = time_query_performance_counter_ms();
         network_winsock_initialized = 1;

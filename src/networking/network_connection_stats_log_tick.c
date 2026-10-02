@@ -65,7 +65,7 @@ void network_connection_stats_log_tick(void)
             tm_now = localtime(&now_time);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = network_log_path_resolve("Gamespy Metrics");
+            base_path = network_log_path_resolve((char *)"Gamespy Metrics");
             strcpy(path_buf, base_path);
             directory_create_recursive(path_buf);
 

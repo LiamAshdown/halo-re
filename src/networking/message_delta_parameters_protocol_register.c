@@ -60,9 +60,9 @@ void message_delta_parameters_protocol_register(char *scope, char *name, int32_t
             message_delta_parameter_count = message_delta_parameter_count + 1;
         }
         if (type == 1) {
-            message_delta_parameters_protocol_parse_value_from_config("%d", value);
+            message_delta_parameters_protocol_parse_value_from_config((char *)"%d", value);
         } else {
-            message_delta_parameters_protocol_parse_value_from_config("%f", value);
+            message_delta_parameters_protocol_parse_value_from_config((char *)"%f", value);
         }
     }
 }

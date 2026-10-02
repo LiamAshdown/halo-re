@@ -29,17 +29,17 @@ char *registry_get_halo_version(void)
     }
 
     size = 0x3f;
-    status = RegOpenKeyExA((void *)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+    status = RegOpenKeyExA((HKEY)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                             0x20019, (PHKEY)&key);
     if (status != 0) {
         registry_halo_version_buffer[0] = 0;
         return registry_halo_version_buffer;
     }
-    status = RegQueryValueExA(key, "Version", 0, 0, (uint8_t *)registry_halo_version_buffer, &size);
+    status = RegQueryValueExA((HKEY)key, "Version", 0, 0, (uint8_t *)registry_halo_version_buffer, (LPDWORD)&size);
     if (status != 0) {
         registry_halo_version_buffer[0] = 0;
     }
-    RegCloseKey(key);
+    RegCloseKey((HKEY)key);
     return registry_halo_version_buffer;
 }
 

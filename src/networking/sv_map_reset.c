@@ -32,7 +32,7 @@ extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b
 void sv_map_reset(void)
 {
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)0, "sv_map_reset is a server-only function!");
+        chimera__console_out((ColorARGB *)0, (char *)"sv_map_reset is a server-only function!");
         return;
     }
     widget_close_all();
@@ -41,12 +41,12 @@ void sv_map_reset(void)
             game_engine_reset_round_objects();
             game_engine_send_round_reset_message();
             game_engine_player_profile_cache_sync_all(-1);
-            chimera__console_out((ColorARGB *)console_message_default_color, "Map reset.");
+            chimera__console_out((ColorARGB *)console_message_default_color, (char *)"Map reset.");
             return;
         }
-        chimera__console_out((ColorARGB *)0, "Cannot restart the map when the game is over.");
+        chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
     }
-    chimera__console_out((ColorARGB *)global_white_argb, "Map reset.");
+    chimera__console_out((ColorARGB *)global_white_argb, (char *)"Map reset.");
 }
 
 #if 0

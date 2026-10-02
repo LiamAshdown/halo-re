@@ -58,7 +58,7 @@ int32_t autopatch_check_for_update_start(void)
             }
         }
 
-        thread = CreateThread(0, 0x10400, (void *)autopatch_version_check_request, 0, 0, &thread_id);
+        thread = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)autopatch_version_check_request, 0, 0, (LPDWORD)&thread_id);
         if (thread != (void *)0xffffffff) {
             autopatch_update_check_state = 1;
             CloseHandle(thread);

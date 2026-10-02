@@ -45,7 +45,7 @@ int32_t message_delta_decode_array_field(void **context)
     }
 
     {
-        bit_stream *stream = state->stream;
+        bit_stream *stream = (bit_stream *)state->stream;
         int32_t delta = state->start_bit_offset;
         uint32_t target = (uint32_t)stream->first_bit + (uint32_t)delta;
         if ((delta >= 0 || target <= stream->first_bit) &&

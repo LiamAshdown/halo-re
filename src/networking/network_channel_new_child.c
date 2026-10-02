@@ -29,7 +29,7 @@ network_channel *network_channel_new_child(network_receive_queue *endpoint)
     if (channel != 0) {
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
-        channel->incoming = circular_buffer_new("transport-incoming", 0); // UNSURE: requested size elided
+        channel->incoming = circular_buffer_new((char *)"transport-incoming", 0); // UNSURE: requested size elided
         network_channel_record_timestamp(channel);
         channel->reliable_count = 0;
         channel->reliable = 0;

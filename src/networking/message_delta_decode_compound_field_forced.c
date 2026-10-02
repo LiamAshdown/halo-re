@@ -34,7 +34,7 @@ uint8_t message_delta_decode_compound_field_forced(void **context, void *destina
                                                  (int32_t)(int32_t)destination);
     state->bits_read = state->bits_read + bits;
     if (bits == 0 && force == 0) {
-        bit_stream *stream = state->stream;
+        bit_stream *stream = (bit_stream *)state->stream;
         int32_t delta = state->start_bit_offset;
         uint32_t target = (uint32_t)stream->first_bit + (uint32_t)delta;
         if ((delta >= 0 || target <= stream->first_bit) &&

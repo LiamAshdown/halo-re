@@ -33,7 +33,7 @@ void player_update_history_play_for_update_index(datum_index player_index)
     player *plr;
 
     plr = (player *)((uint8_t *)player_data->data + (uint16_t)player_index * player_data->size);
-    player_update_history_play(0, 0, network_client->update_history, plr->unit,
+    player_update_history_play(0, 0, (player_update_history *)network_client->update_history, plr->unit,
         *(float *)&plr->unknown_f0, *(float *)&plr->unknown_f4, *(float *)&plr->unknown_f8, 0);
         // UNSURE: the AL/ECX prune pair is not visible at this call site; 0/0 preserved
 }

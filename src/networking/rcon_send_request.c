@@ -48,11 +48,11 @@ void rcon_send_request(char *command, char *password) // blam-cc: EAX -> command
     int32_t encoded_bits;
 
     if (strlen(password) > 8) {
-        chimera__console_out((ColorARGB *)global_white_argb, "ERROR: Maximum rcon password length is %d characters", 8);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon password length is %d characters", 8);
         return;
     }
     if (strlen(command) > 0x40) {
-        chimera__console_out((ColorARGB *)global_white_argb, "ERROR: Maximum rcon command length is %d characters", 0x40);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon command length is %d characters", 0x40);
         return;
     }
     strcpy(record.password, password);

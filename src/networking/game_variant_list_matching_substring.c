@@ -46,7 +46,7 @@ void game_variant_list_matching_substring(uint32_t argument_count, char **argume
             *p = towlower(*p);
         }
     }
-    chimera__console_out((ColorARGB *)console_color_00685214, "Game types matching substring \"%ls\" :", filter);
+    chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Game types matching substring \"%ls\" :", filter);
     if (playlist_profiles_need_defaults == 1) {
         playlist_profile_create_default_profiles_on_disk();
         playlist_profiles_need_defaults = 0;
@@ -68,12 +68,12 @@ void game_variant_list_matching_substring(uint32_t argument_count, char **argume
                 uint16_t variant_name[64];
                 if (saved_game_get_variant(saved_game_ids[i], variant_name) != 0) {
                     uint16_t lowered[64];
-                    wcsncpy(lowered, variant_name, 0x3f);
+                    wcsncpy((wchar_t *)lowered, (const wchar_t *)variant_name, 0x3f);
                     lowered[0x3f] = 0;
                     for (uint16_t *p = lowered; *p != 0; p = p + 1) {
                         *p = towlower(*p);
                     }
-                    if (filter[0] == 0 || wcsstr(lowered, filter) != 0) {
+                    if (filter[0] == 0 || wcsstr((wchar_t *)lowered, (const wchar_t *)filter) != 0) {
                         char formatted[64];
                         sprintf(formatted, "%-36ls ", variant_name);
                         strcat(line, formatted);

@@ -30,7 +30,7 @@ int network_local_hostent_get(void **out_hostent)
 
     network_hostname_ready = 0;
     thread_handle = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)network_hostname_thread_proc, // ends in ExitThread
-                                  network_local_hostname_buffer, 0, &thread_id);
+                                  network_local_hostname_buffer, 0, (LPDWORD)&thread_id);
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, 10000);
         if (wait_result == 0x102) {

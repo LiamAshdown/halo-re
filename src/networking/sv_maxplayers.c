@@ -27,7 +27,7 @@ void sv_maxplayers(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX 
 {
     if (argument_count == 0) {
     report:
-        chimera__console_out((ColorARGB *)0, "sv_maxplayers: %d", sv_maxplayers_value);
+        chimera__console_out((ColorARGB *)0, (char *)"sv_maxplayers: %d", sv_maxplayers_value);
         return;
     }
     if (argument_count == 1) {
@@ -38,13 +38,13 @@ void sv_maxplayers(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX 
                 network_server->session.maximum_players = (uint8_t)value;
             }
             if (value == 1) {
-                chimera__console_out((ColorARGB *)0, "WARNING: sv_maxplayers set to 1, are you sure you want to do this?");
+                chimera__console_out((ColorARGB *)0, (char *)"WARNING: sv_maxplayers set to 1, are you sure you want to do this?");
             }
             goto report;
         }
-        chimera__console_out((ColorARGB *)0, "sv_maxplayers must be between 1 and %d", 0x10);
+        chimera__console_out((ColorARGB *)0, (char *)"sv_maxplayers must be between 1 and %d", 0x10);
     }
-    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_maxplayers for more information.");
+    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_maxplayers for more information.");
 }
 
 #if 0

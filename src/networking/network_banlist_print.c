@@ -34,7 +34,7 @@ void network_banlist_print(void)
     char entry_text[63];
     char line[257];
 
-    chimera__console_out((ColorARGB *)console_color_00685214, "[Num Bans Name]");
+    chimera__console_out((ColorARGB *)console_color_00685214, (char *)"[Num Bans Name]");
     if (0 < ban_list.count) {
         do {
             int32_t in_line = 0;

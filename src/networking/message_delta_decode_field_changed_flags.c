@@ -45,7 +45,7 @@ int32_t message_delta_decode_field_changed_flags(void **context)
     state = (message_delta_decode_state *)context[0];
     definition = message_delta_definitions[state->message_type];
     field_count = definition->field_count;
-    stream = state->stream;
+    stream = (bit_stream *)state->stream;
     changed_flags = (uint8_t *)context + 4;
     bits_consumed = 0;
 

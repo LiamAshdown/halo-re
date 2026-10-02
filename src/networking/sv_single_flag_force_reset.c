@@ -52,7 +52,7 @@ void sv_single_flag_force_reset(uint32_t argument_count, char **arguments)
     console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
 
     if (new_value != old_value && current_game_engine != 0) {
-        chimera__console_out((ColorARGB *)0, "Game in progress...  Changes will apply to the next game.");
+        chimera__console_out((ColorARGB *)0, (char *)"Game in progress...  Changes will apply to the next game.");
     }
     network_single_flag_force_reset_value = new_value;
 }

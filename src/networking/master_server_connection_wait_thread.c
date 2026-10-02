@@ -43,7 +43,7 @@ void master_server_connection_wait_thread(void)
 
     master_server_request_flags = master_server_request_flags | 2;
     while (1) {
-        exited = GetExitCodeThread(server_list_thread->handle, &exit_code);
+        exited = GetExitCodeThread(server_list_thread->handle, (LPDWORD)&exit_code);
         if (exited != 0 && exit_code != 0x103) {
             break;
         }

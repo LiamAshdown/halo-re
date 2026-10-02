@@ -37,7 +37,7 @@ void sv_banlist_file(uint32_t argument_count, int32_t *arguments) // blam-cc: EA
 {
     if (argument_count == 0) {
     report:
-        chimera__console_out((ColorARGB *)0, "sv_banlist_file: %s", network_banlist_full_path);
+        chimera__console_out((ColorARGB *)0, (char *)"sv_banlist_file: %s", network_banlist_full_path);
         return;
     }
     if (argument_count == 1) {
@@ -45,14 +45,14 @@ void sv_banlist_file(uint32_t argument_count, int32_t *arguments) // blam-cc: EA
         int32_t len = strlen(suffix);
 
         if (len == 0) {
-            chimera__console_out((ColorARGB *)0, "Ban file names must not be empty.");
+            chimera__console_out((ColorARGB *)0, (char *)"Ban file names must not be empty.");
         } else if (0xf5 < len) {
-            chimera__console_out((ColorARGB *)0, "Ban file names cannot be longer than %d characters.", 0xfa);
+            chimera__console_out((ColorARGB *)0, (char *)"Ban file names cannot be longer than %d characters.", 0xfa);
         } else {
             int32_t i;
             for (i = 0; suffix[i] != 0; i = i + 1) {
                 if (!isalnum((uint8_t)suffix[i])) {
-                    chimera__console_out((ColorARGB *)0, "Ban list file names must be alphanumeric.");
+                    chimera__console_out((ColorARGB *)0, (char *)"Ban list file names must be alphanumeric.");
                     goto usage;
                 }
             }
@@ -63,7 +63,7 @@ void sv_banlist_file(uint32_t argument_count, int32_t *arguments) // blam-cc: EA
         }
     }
 usage:
-    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_banlist_file for more information.");
+    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_banlist_file for more information.");
 }
 
 #if 0

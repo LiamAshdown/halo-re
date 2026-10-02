@@ -63,7 +63,7 @@ uint32_t network_client_begin_connect(wchar_t *player_name, s_network_address *t
         0x7ff * 4); // UNSURE: overruns config_template, see header
     *(uint32_t *)((uint8_t *)network_client + 0xf4c) = 0; // UNSURE: see header
     if (network_client->state == 0 && target_address->ipv4 != 0 && target_address->port != 0) {
-        wcsncpy(scratch.name, player_name, 8);
+        wcsncpy((wchar_t *)scratch.name, (const wchar_t *)player_name, 8);
         scratch.name_terminator = 0;
         network_debug_fill_canary_buffer();
         if (chimera__on_connect((const uint32_t *)target_address, network_client,

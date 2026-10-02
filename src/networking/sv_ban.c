@@ -41,14 +41,14 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
     network_machine *machine;
 
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)global_white_argb, "sv_ban is a server-only function!");
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_ban is a server-only function!");
         return;
     }
     if (0 < (int32_t)argument_count && (int32_t)argument_count < 3) {
         if (argument_count == 2) {
             duration = parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
             if (duration == -1) {
-                chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_ban for more information.");
+                chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_ban for more information.");
                 return;
             }
         }
@@ -56,7 +56,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         if (player != 0) {
             machine = network_machine_find_by_id(network_server, player->machine_index);
             if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-                chimera__console_out((ColorARGB *)console_message_default_color, "sv_ban:  Can't ban a local client!");
+                chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_ban:  Can't ban a local client!");
                 return;
             }
             network_banlist_add_ban(machine->gcd_user_id, duration, player);
@@ -64,7 +64,7 @@ void sv_ban(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX -> argu
         }
         return;
     }
-    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_ban for more information.");
+    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_ban for more information.");
 }
 
 #if 0

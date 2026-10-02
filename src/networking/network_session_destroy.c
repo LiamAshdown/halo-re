@@ -24,7 +24,7 @@ void network_session_destroy(network_client_globals *client) // blam-cc: EAX -> 
 {
     message_delta_parameters_protocol_dump_to_config_file();
     if (client != 0) {
-        player_update_history_destroy(client->update_history);
+        player_update_history_destroy((player_update_history *)client->update_history);
         client->update_history = 0;
         if (client->channel != 0) {
             network_channel_delete(client->channel);

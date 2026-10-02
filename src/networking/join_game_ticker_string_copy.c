@@ -34,10 +34,10 @@ void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t st
 
     *buffer = 0;
     tag_index = tag_lookup(0x75737472, // 'ustr'
-        "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
     if (tag_index != -1) {
         source = text_string_list_get_string(tag_index, (int16_t)string_index);
-        wcsncpy(buffer, source, capacity - 1);
+        wcsncpy((wchar_t *)buffer, (const wchar_t *)source, capacity - 1);
         buffer[capacity - 1] = 0;
     }
 }

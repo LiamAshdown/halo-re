@@ -87,7 +87,7 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
                 widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;
             if (display_text != 0) {
-                wcsncpy(display_text, self->text, self->length);
+                wcsncpy(display_text, (const wchar_t *)self->text, self->length);
                 display_text[self->length] = 0;
             }
             goto wrap_cursor;
@@ -100,9 +100,9 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
                 (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;
             if (display_text != 0) {
-                wcsncpy(display_text, self->text + self->scroll_cursor, tail_length);
+                wcsncpy(display_text, (const wchar_t *)self->text + self->scroll_cursor, tail_length);
                 wrap_length = max_width[0];
-                wcsncpy(display_text + tail_length, self->text, wrap_length);
+                wcsncpy(display_text + tail_length, (const wchar_t *)self->text, wrap_length);
                 fit_count = tail_length + wrap_length;
                 display_text[fit_count] = 0;
                 self->scroll_delay_ms = 100 +
@@ -116,7 +116,7 @@ void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self)
             (uint32_t)((fit_count * 2 + 2) & 0xffff), widget_memory_pool);
         text_row[0xf] = (uint32_t)(uintptr_t)display_text;
         if (display_text != 0) {
-            wcsncpy(display_text, self->text + self->scroll_cursor, fit_count);
+            wcsncpy(display_text, (const wchar_t *)self->text + self->scroll_cursor, fit_count);
             display_text[fit_count] = 0;
         }
     }

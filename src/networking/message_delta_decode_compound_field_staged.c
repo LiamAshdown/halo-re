@@ -39,7 +39,7 @@ uint8_t message_delta_decode_compound_field_staged(void **context)
     bits = message_delta_read_changed_subfields(state, (uint8_t *)context + 4, changed_offset,
                                                  (int32_t)(int32_t)scratch);
     if (bits == 0 && state->incremental == 0) {
-        bit_stream *stream = state->stream;
+        bit_stream *stream = (bit_stream *)state->stream;
         int32_t delta = state->start_bit_offset;
         uint32_t target = (uint32_t)stream->first_bit + (uint32_t)delta;
         if ((delta >= 0 || target <= stream->first_bit) &&

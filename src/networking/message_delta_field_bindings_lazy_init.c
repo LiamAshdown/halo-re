@@ -55,9 +55,9 @@ uint8_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list
                 field_type = binding->field_type;
                 type_flag = (uint8_t *)field_type + 0x64;
                 if (*type_flag == 0) {
-                    message_delta_field_type_table[*(int32_t *)field_type].initialize(field_type);
+                    message_delta_field_type_table[*(int32_t *)field_type].initialize((message_delta_field_type *)field_type);
                     *(int32_t *)((uint8_t *)field_type + 0x5c) =
-                        message_delta_field_type_table[*(int32_t *)field_type].compute_size(field_type);
+                        message_delta_field_type_table[*(int32_t *)field_type].compute_size((message_delta_field_type *)field_type);
                     *type_flag = 1;
                 }
                 *binding_flag = 1;

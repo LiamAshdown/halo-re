@@ -30,10 +30,10 @@ void sv_rcon_password(uint32_t argument_count, int32_t *arguments) // blam-cc: E
     if (argument_count == 0) {
     report:
         if (sv_rcon_password_value[0] == 0) {
-            chimera__console_out((ColorARGB *)global_white_argb, "sv_rcon_password: '' (rcon is DISABLED)");
+            chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_rcon_password: '' (rcon is DISABLED)");
             return;
         }
-        chimera__console_out((ColorARGB *)global_white_argb, "sv_rcon_password: '%s'", sv_rcon_password_value, strlen(sv_rcon_password_value));
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_rcon_password: '%s'", sv_rcon_password_value, strlen(sv_rcon_password_value));
         return;
     }
     if (argument_count == 1) {
@@ -42,9 +42,9 @@ void sv_rcon_password(uint32_t argument_count, int32_t *arguments) // blam-cc: E
             strcpy(sv_rcon_password_value, arg);
             goto report;
         }
-        chimera__console_out((ColorARGB *)global_white_argb, "Maximum rcon password length is %d characters", 8);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Maximum rcon password length is %d characters", 8);
     }
-    chimera__console_out((ColorARGB *)global_white_argb, "Incorrect usage. Type help sv_rcon_password for more information.");
+    chimera__console_out((ColorARGB *)global_white_argb, (char *)"Incorrect usage. Type help sv_rcon_password for more information.");
 }
 
 #if 0

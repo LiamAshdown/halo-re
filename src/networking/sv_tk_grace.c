@@ -27,19 +27,19 @@ void sv_tk_grace(uint32_t argument_count, int32_t *arguments) // blam-cc: EAX ->
 {
     if (argument_count != 0) {
         if (argument_count != 1) {
-            chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_tk_grace for more information.");
+            chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_grace for more information.");
             return;
         }
         {
             int32_t seconds = parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
             if (seconds < 0) {
-                chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_tk_grace for more information.");
+                chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_grace for more information.");
                 return;
             }
             sv_tk_grace_ticks = seconds * 30;
         }
     }
-    chimera__console_out((ColorARGB *)0, "sv_tk_grace: %ds", sv_tk_grace_ticks / 30);
+    chimera__console_out((ColorARGB *)0, (char *)"sv_tk_grace: %ds", sv_tk_grace_ticks / 30);
 }
 
 #if 0

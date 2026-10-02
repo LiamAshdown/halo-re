@@ -17,9 +17,9 @@ uint8_t message_delta_item_placement_initialize(message_delta_field_type *field_
 {
     (void)field_type;
     if (message_delta_parameters_enabled == 1) {
-        message_delta_parameters_protocol_register(0, "gITEM_PLACEMENT_BITS_X", 1, &item_placement_bits_x);
-        message_delta_parameters_protocol_register(0, "gITEM_PLACEMENT_BITS_Y", 1, &item_placement_bits_y);
-        message_delta_parameters_protocol_register(0, "gITEM_PLACEMENT_BITS_Z", 1, &item_placement_bits_z);
+        message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_X", 1, &item_placement_bits_x);
+        message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Y", 1, &item_placement_bits_y);
+        message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Z", 1, &item_placement_bits_z);
     }
     return 1;
 }

@@ -59,15 +59,15 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w1->highlight_flag = 1;
     w1->visible = flag2 != 0;
     text = (wchar_t *)heap_reallocate(w2->label_text, 0x80, widget_memory_pool);
-    w2->label_text = text;
+    w2->label_text = (uint16_t *)text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, server_name);
-        wcsncpy(w2->label_text, source, 0x3f);
+        wcsncpy((wchar_t *)w2->label_text, source, 0x3f);
         *(uint16_t *)((uint8_t *)w2->label_text + 0x7e) = 0;
     }
     w1 = w2->next_sibling;
     text = (wchar_t *)heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
-    w1->label_text = text;
+    w1->label_text = (uint16_t *)text;
     if (text != 0) {
         wcsncpy(text, map_name, 0x1f);
         *(uint16_t *)((uint8_t *)w1->label_text + 0x3e) = 0;
@@ -77,15 +77,15 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w1->highlight_flag = 1;
     w1->visible = flag3 != 0;
     text = (wchar_t *)heap_reallocate(w2->label_text, 0x40, widget_memory_pool);
-    w2->label_text = text;
+    w2->label_text = (uint16_t *)text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, gametype_name);
-        wcsncpy(w2->label_text, source, 0x1f);
+        wcsncpy((wchar_t *)w2->label_text, source, 0x1f);
         *(uint16_t *)((uint8_t *)w2->label_text + 0x3e) = 0;
     }
     w1 = w2->next_sibling;
     text = (wchar_t *)heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
-    w1->label_text = text;
+    w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (count_a == -1 || count_b == -1) {
             wcscpy(text, L""); // FIXED 2026-09-28: the wcslen (0x625b7a) before it is the inlined copy's unused length
@@ -96,7 +96,7 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     }
     w1 = w1->next_sibling;
     text = (wchar_t *)heap_reallocate(w1->label_text, 0x10, widget_memory_pool);
-    w1->label_text = text;
+    w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (0 < ping && ping < 9999) {
             string_format_wide_va_bounded(7, text, PTR_s_parameter_handles_0063fff0_0x35_006607a0, ping); // FIXED: EDX = 7 at 0x4b6988
