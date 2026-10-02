@@ -57,7 +57,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
     }
 
     if (unit_tag_id != k_datum_index_none) {
-        uint8_t *tag_data = tag_instances[unit_tag_id & 0xffff].data;
+        uint8_t *tag_data = (uint8_t *)tag_instances[unit_tag_id & 0xffff].data;
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
             sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,

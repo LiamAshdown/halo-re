@@ -86,7 +86,7 @@ void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force)
         return;
     }
     if (desired_weapon == k_datum_index_none) {
-        unit_set_or_test_seat_and_weapon_label(unit_index, unit_get_seat_or_state_name(unit_index), "unarmed", 1);
+        unit_set_or_test_seat_and_weapon_label(unit_index, unit_get_seat_or_state_name(unit_index), (char *)"unarmed", 1);
         ((unit_object *)unit)->unit.current_weapon_index = -1;
         unit_validate_and_clear_weapon_switch(unit_index);
         return;

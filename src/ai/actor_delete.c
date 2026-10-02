@@ -69,12 +69,12 @@ void actor_delete(datum_index actor_index, uint32_t flag)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = data_iterator_next(&iterator);
+    p = (prop *)data_iterator_next(&iterator);
     while (p != 0) {
         if (p->owner_actor_index == actor_index) {
             p->owner_actor_index = (datum_index)k_datum_index_none;
         }
-        p = data_iterator_next(&iterator);
+        p = (prop *)data_iterator_next(&iterator);
     }
 
     ai_conversation_clear_participant(actor_index);

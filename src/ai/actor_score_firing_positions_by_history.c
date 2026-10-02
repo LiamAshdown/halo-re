@@ -39,7 +39,7 @@ void actor_score_firing_positions_by_history(datum_index actor_index,
     int32_t i;
     int32_t j;
 
-    variant = actor_get_actor_definition(actor_index);
+    variant = (ActorVariant *)actor_get_actor_definition(actor_index);
 
     travel_weight = 8.0f;
     if (query->have_target == 0 ||

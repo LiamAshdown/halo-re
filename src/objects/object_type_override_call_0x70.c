@@ -36,7 +36,7 @@ void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument
     int16_t i;
 
     if (obj == 0) {
-        message_delta_decode_compound_field_staged(edi_argument); // tail call
+        message_delta_decode_compound_field_staged((void **)edi_argument); // tail call
         return;
     }
     def = object_type_definitions[obj->type];

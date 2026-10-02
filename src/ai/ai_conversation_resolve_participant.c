@@ -208,7 +208,7 @@ int8_t ai_conversation_resolve_participant(int16_t participant_index, uint8_t *o
             }
             named_object = (datum_index)k_datum_index_none; // one shot only
         } else if (use_reference) {
-            candidate = ai_reference_actor_iterator_next(&reference_iterator);
+            candidate = (actor *)ai_reference_actor_iterator_next(&reference_iterator);
             candidate_index = reference_iterator.actor_index;
         } else {
             candidate = actor_iterator_next(&actor_iterator);

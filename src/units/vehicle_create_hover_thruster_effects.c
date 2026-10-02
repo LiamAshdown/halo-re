@@ -52,13 +52,13 @@ void vehicle_create_hover_thruster_effects(uint32_t unit_index)
     int16_t hover_count;
     int16_t total;
     int16_t i;
-    static char *names[3] = { "incident", "normal", "reflected" };
+    static char *names[3] = { (char *)"incident", (char *)"normal", (char *)"reflected" };
 
     if (*(int32_t *)(tag + 0x3ec) == -1) {
         return;
     }
-    hover_count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
-    total = (int16_t)(hover_count + (int16_t)object_get_node_local_transform(unit_index, "jet thrusters",
+    hover_count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
+    total = (int16_t)(hover_count + (int16_t)object_get_node_local_transform(unit_index, (char *)"jet thrusters",
         markers + hover_count * 0x6c, 0x10 - hover_count));
 
     for (i = 0; i < total; i++) {

@@ -228,7 +228,8 @@ shared_threshold:
 encounter_gate_open:
                 if (p->danger_radius <= 0.0f) {
                     if (!p->enemy || p->dead_ticks < 0x97) {
-                        int16_t grade = actor_get_current_mode_combat_grade(actor_index);
+                        int16_t grade;
+                        grade = actor_get_current_mode_combat_grade(actor_index);
                         if (grade < 2) {
                             float grade_threshold = 16.0f;
                             if (!p->enemy && self->awareness_level < 3) {

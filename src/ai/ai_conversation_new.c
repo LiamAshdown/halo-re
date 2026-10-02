@@ -53,14 +53,14 @@ datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t a
             iterator.next_index = 0;
             iterator.index = (datum_index)k_datum_index_none;
             iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-            candidate = data_iterator_next(&iterator);
+            candidate = (ai_conversation *)data_iterator_next(&iterator);
             while (candidate != 0) {
                 if (candidate->priority < best_priority || candidate->start_tick < best_tick) {
                     best_tick = candidate->start_tick;
                     best_priority = candidate->priority;
                     best_handle = iterator.index;
                 }
-                candidate = data_iterator_next(&iterator);
+                candidate = (ai_conversation *)data_iterator_next(&iterator);
             }
 
             if (best_handle != (datum_index)k_datum_index_none) {

@@ -39,7 +39,7 @@ void encounters_initialize(void)
 {
     uint32_t reserved_size;
 
-    encounter_data = (data_array *)game_state_new("encounter", k_encounter_data_maximum_count, k_encounter_size);
+    encounter_data = (data_array *)game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
 
     encounter_squad_states = (encounter_squad_state *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + 0x8000;
@@ -51,7 +51,7 @@ void encounters_initialize(void)
     reserved_size = 0x1000;
     crc32_update(&game_state_crc, &reserved_size, 4);
 
-    ai_pursuit_data = (data_array *)game_state_new("ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
+    ai_pursuit_data = (data_array *)game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }
 
 #if 0

@@ -50,7 +50,7 @@ void flag_cloth_stamp_region_split_flags(int16_t outer_start /*EAX*/, Flag *tag,
                     b = (size - inner) - 1 + inner_start;
                 }
 
-                cell = &entry->cell_split_codes[(tag->height - 1) * outer + inner];
+                cell = (uint16_t *)&entry->cell_split_codes[(tag->height - 1) * outer + inner];
                 if (a == b) {
                     *cell = split_code;
                 } else {

@@ -18,5 +18,5 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 
 void lightnings_initialize(void)
 {
-    lightning_instances = game_state_new("lightnings", 0x100, 8);
+    lightning_instances = game_state_new((char *)"lightnings", 0x100, 8);
 }

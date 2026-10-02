@@ -69,7 +69,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = data_iterator_next(&iterator);
+    p = (prop *)data_iterator_next(&iterator);
 
     while (p != 0) {
         if (p->is_parented && p->enemy) {
@@ -131,7 +131,7 @@ int32_t ai_scan_for_recent_combat_activity(uint8_t hard_difficulty)
             }
         }
 next_prop:
-        p = data_iterator_next(&iterator);
+        p = (prop *)data_iterator_next(&iterator);
     }
     return 0;
 }

@@ -55,7 +55,7 @@ extern void glow_particle_compute_color(glow *entry, glow_particle *particle); /
 extern glow_particle *glow_particle_spawn(glow *entry); // 0x4fdb20
 extern data_array *glow_particle_data; // 0x008603a4
 extern void datum_delete(data_array *array, datum_index handle); // memory module, 0x4d0510
-extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
+extern int32_t __ftol(double); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
     // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
     // fild qword ... , the classic _ftol2 body). The value arrives on the x87 stack, so
     // some call sites show a visible float argument and others show none; the empty

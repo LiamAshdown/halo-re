@@ -49,10 +49,10 @@ void objects_initialize(void)
     widgets_initialize();
     object_type_definition_chain_build();
     lights_initialize();
-    object_data = game_state_new("object", k_maximum_objects, 0xc /* EBX at the original call */);
+    object_data = game_state_new((char *)"object", k_maximum_objects, 0xc /* EBX at the original call */);
     // FIXED (objdump 0x4f4af7..0x4f4b06): EBX = 0x200000, the 2 MB object pool. The draft passed no size, so the pool
     //   (and every game-state allocation after it) got a garbage size.
-    object_memory_pool = game_state_new_pool("objects", 0x200000);
+    object_memory_pool = game_state_new_pool((char *)"objects", 0x200000);
 
     globals_region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x98;
@@ -67,8 +67,8 @@ void objects_initialize(void)
     object_name_list = (datum_index *)name_list_region;
 
     // 0x4f4b81..0x4f4b9a: EDI the category name, ESI the group
-    cluster_partition_new(&collideable_cluster_first, "collideable object");
-    cluster_partition_new(&noncollideable_cluster_first, "noncollideable object");
+    cluster_partition_new(&collideable_cluster_first, (char *)"collideable object");
+    cluster_partition_new(&noncollideable_cluster_first, (char *)"noncollideable object");
 }
 
 #if 0

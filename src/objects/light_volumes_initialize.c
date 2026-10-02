@@ -18,5 +18,5 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 
 void light_volumes_initialize(void)
 {
-    light_volume_instances = game_state_new("light volumes", 0x100, 8);
+    light_volume_instances = game_state_new((char *)"light volumes", 0x100, 8);
 }

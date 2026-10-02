@@ -61,7 +61,7 @@ void vehicle_calculate_wing_flex_controls(uint32_t unit_index, float angle, uint
     Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    uint8_t *physics_tag = tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     int32_t node_count = *(int32_t *)(physics_tag + 0x68);
     float bank_lookup = scenario_location_water_surface_distance(); // UNSURE args
     real_vector3d push = *(real_vector3d *)global_origin3d_pointer;

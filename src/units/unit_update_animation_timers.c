@@ -75,7 +75,7 @@ void unit_update_animation_timers(uint32_t unit_index)
             Vector3D forward;
             int16_t node = 0;
 
-            if ((int16_t)object_get_node_local_transform(unit_index, "head", &marker, 1) != 0) {
+            if ((int16_t)object_get_node_local_transform(unit_index, (char *)"head", &marker, 1) != 0) {
                 uint8_t *raw = (uint8_t *)&marker;
 
                 position = *(Point3D *)(raw + 0x2c);

@@ -34,7 +34,7 @@ actor *actor_iterator_next(actor_iterator_state *iterator)
 
     next = iterator->next_actor_index;
     while (next == (datum_index)k_datum_index_none) {
-        encounter *enc = data_iterator_next((data_iterator *)iterator);
+        encounter *enc = (encounter *)data_iterator_next((data_iterator *)iterator);
         if (enc == 0) {
             if (iterator->encounterless_done == 0) {
                 iterator->next_actor_index = ai_globals_ptr->first_encounterless_actor;

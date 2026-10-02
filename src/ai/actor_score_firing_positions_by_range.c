@@ -54,7 +54,7 @@ void actor_score_firing_positions_by_range(datum_index actor_index,
     int32_t j;
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    variant = actor_get_actor_definition(actor_index);
+    variant = (ActorVariant *)actor_get_actor_definition(actor_index);
 
     for (i = 0; i < (int16_t)count; i++) {
         c = &candidates[i];

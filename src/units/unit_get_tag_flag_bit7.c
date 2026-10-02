@@ -25,7 +25,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 uint32_t unit_get_tag_flag_bit7(uint32_t unit_index)
 {
     object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    uint8_t *tag = tag_instances[obj->definition_tag & 0xffff].data;
+    uint8_t *tag = (uint8_t *)tag_instances[obj->definition_tag & 0xffff].data;
     return (*(uint32_t *)(tag + 0x2f0) >> 7) & 1;
 }
 

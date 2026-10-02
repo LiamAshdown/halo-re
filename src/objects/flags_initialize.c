@@ -19,7 +19,7 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 
 void flags_initialize(void)
 {
-    flag_data = game_state_new("flag", k_maximum_flags, 0x16bc /* EBX at the original call */);
+    flag_data = game_state_new((char *)"flag", k_maximum_flags, 0x16bc /* EBX at the original call */);
 }
 
 #if 0

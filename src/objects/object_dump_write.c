@@ -39,7 +39,7 @@ void object_dump_write(object_memory_dump_record *record, void *file) // blam-cc
         name = tag_instances[(int16_t)record->definition_tag].path; // 0x4fa49c: movsx ecx, dx (a 16-bit SIGNED index)
     }
 
-    fprintf(file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",
+    fprintf((FILE *)file, "% 6d (% 6d) [% 7d/% 7d/% 7d/% 7d] % 7d % 7d %s\r\n",
         record->count, record->active_count, record->garbage_count, record->dead_count,
         record->outside_map_count, record->at_rest_count, record->maximum_size,
         record->total_size, name);

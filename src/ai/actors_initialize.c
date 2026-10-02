@@ -25,9 +25,9 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 // module.
 void actors_initialize(void)
 {
-    actor_data = (data_array *)game_state_new("actor", k_actor_data_maximum_count, k_actor_size);
-    swarm_data = (data_array *)game_state_new("swarm", k_swarm_data_maximum_count, k_swarm_size);
-    swarm_component_data = (data_array *)game_state_new("swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
+    actor_data = (data_array *)game_state_new((char *)"actor", k_actor_data_maximum_count, k_actor_size);
+    swarm_data = (data_array *)game_state_new((char *)"swarm", k_swarm_data_maximum_count, k_swarm_size);
+    swarm_component_data = (data_array *)game_state_new((char *)"swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
 }
 
 #if 0
