@@ -45,14 +45,14 @@ set(CMAKE_C_FLAGS_DEBUG "/Zi /FS")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO /DEBUG")
 
 # ---- the rewritten game functions, one file each
-file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.c")
+file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.c" "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
 add_library(halo_game OBJECT ${GAME_SOURCES})
 # the rewritten game code is compiled as C++20 (C++ conversion, phase 1); each file wraps its code in extern "C"
 # (tools/cxx_wrap_linkage.py) so every symbol keeps its C name. No exceptions, no RTTI.
 set(CXX_GAME_SOURCES ${GAME_SOURCES})
 list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
 set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
-target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
 target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
 

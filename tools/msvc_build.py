@@ -9,7 +9,7 @@ VCVARS = r"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\
 CACHE = os.path.join(ROOT, "build", "msvc_env.json")
 # /TC C, /W3, /Zi-free, /Od keeps a 1:1 shape for debugging in the harness; /GS- /Oy- like a 2004 build; /J not used (char is signed)
 DXSDK_INCLUDE = r"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include"
-CFLAGS = ["/nologo", "/c", "/TP", "/std:c++20", "/permissive-", "/GR-", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996", "/I", os.path.join(ROOT, "types"),
+CFLAGS = ["/nologo", "/c", "/TP", "/std:c++20", "/permissive-", "/GR-", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996", "/I", os.path.join(ROOT, "include"), "/I", os.path.join(ROOT, "types"),
           "/I", DXSDK_INCLUDE,
           "/FI" + os.path.join(ROOT, "harness", "msvc_compat.h")]
 
@@ -32,7 +32,7 @@ def main():
     env = msvc_env()
     cl = shutil.which("cl", path=env.get("PATH") or env.get("Path"))
     mods = args or sorted(d for d in os.listdir(os.path.join(ROOT, "src")) if os.path.isdir(os.path.join(ROOT, "src", d)))
-    files = [f for m in mods for f in sorted(glob.glob(os.path.join(ROOT, "src", m, "*.c")))]
+    files = [f for m in mods for ext in ("*.c", "*.cpp") for f in sorted(glob.glob(os.path.join(ROOT, "src", m, ext)))]
     def build(c):
         mod = os.path.basename(os.path.dirname(c)); od = os.path.join(ROOT, "build", "obj", mod); os.makedirs(od, exist_ok=True)
         obj = os.path.join(od, os.path.splitext(os.path.basename(c))[0] + ".obj")

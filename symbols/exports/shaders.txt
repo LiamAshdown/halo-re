@@ -1,0 +1,13 @@
+__real@00000000
+__real@3f800000
+__real@3f91df46a0000000
+__real@3ff0000000000000
+__real@43b40000
+__xmm@80000000000000008000000000000000
+_chimera__shader_get_vertex_shader_permutation
+_numeric_countdown_timer_get_digit
+_numeric_countdown_timer_update
+_shader_draw_before_water
+_shader_environment_texture_scrolling_evaluate
+_shader_is_decal
+_shader_texture_animation_evaluate

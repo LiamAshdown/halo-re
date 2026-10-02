@@ -1,0 +1,5 @@
+_dialog_box_show_localized
+_dialog_static_hyperlink_install
+_dialog_static_hyperlink_parent_proc@16
+_dialog_static_hyperlink_subclass_proc@16
+_fatal_error_dialog_proc@16
