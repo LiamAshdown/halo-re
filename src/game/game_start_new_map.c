@@ -69,7 +69,7 @@ extern uint8_t *object_globals_pointer; // TYPES-GAP
 extern void ai_reset_for_new_map(void);                 // 0x42a840
 extern void encounters_spawn_initial(void);                          // UNSURE module
 extern void camera_initialize(void);                       // 0x445580
-extern void observer_new(observer *this);                    // 0x447740, blam-cc: EDX -> this
+extern void observer_new(observer *observer_this);                    // 0x447740, blam-cc: EDX -> this
 extern observer observers[];                                 // 0x006ac65c, one per local player (0x29c each)
 extern void team_pair_table_init_defaults(void);               // this batch, 0x45bc80
 extern void game_engine_load_from_variant(const game_variant *variant); // 0x45c2c0,
@@ -190,15 +190,15 @@ void game_start_new_map(void)
     effect_location_data->valid = 1;
     data_delete_all(effect_location_data);
     *((uint8_t *)particle_system_data + 0x24) = 1;
-    data_delete_all(particle_system_data);
+    data_delete_all((data_array *)particle_system_data);
     particle_system_particle_data->valid = 1;
     data_delete_all(particle_system_particle_data);
 
     if (sound_disabled == 0) {
         *((uint8_t *)sound_data + 0x24) = 1;
-        data_delete_all(sound_data);
+        data_delete_all((data_array *)sound_data);
         *((uint8_t *)looping_sound_data + 0x24) = 1;
-        data_delete_all(looping_sound_data);
+        data_delete_all((data_array *)looping_sound_data);
     }
 
     // 0x45b233..0x45b252: 0x33 records of 12 bytes: two 1.0 floats then a zero word (byte offsets -8, -4, 0)
@@ -254,7 +254,7 @@ void game_start_new_map(void)
     cinematic_saved_music_gain = 0xbf800000;
     hs_scripts_reload();
     *((uint8_t *)recorded_animations + 0x24) = 1;
-    data_delete_all(recorded_animations);
+    data_delete_all((data_array *)recorded_animations);
 
     main_game_globals->active = 1;
     *object_globals_pointer = 1;

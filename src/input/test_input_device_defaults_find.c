@@ -38,10 +38,10 @@ void test_input_device_defaults_find(char *device_id_ansi)
     input_guid_parse_ansi(&guid, device_id_ansi);
     tag_id = (int32_t)input_device_default_profile_tag_find(guid, saved_profile);
     if (tag_id == -1) {
-        console_printf_verbose((ColorARGB *)0, "deviceid %s has no default", device_id_ansi);
+        console_printf_verbose((ColorARGB *)0, (char *)"deviceid %s has no default", device_id_ansi);
         return;
     }
-    console_printf_verbose((ColorARGB *)0, "Default profile in tag %d", tag_id);
+    console_printf_verbose((ColorARGB *)0, (char *)"Default profile in tag %d", tag_id);
 }
 
 #if 0

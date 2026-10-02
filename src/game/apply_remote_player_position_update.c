@@ -57,7 +57,7 @@ void apply_remote_player_position_update(player *plr, object *unit_obj)
         float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
         player_update_history_log_printf_filtered(1, "Waited [%d], dist [%f].", wait_tick_counter, (double)dist);
-        if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+        if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
             wait_tick_counter = 0;
         }
         plr->position_updates_applied_count = plr->position_updates_applied_count + 1;
@@ -85,7 +85,7 @@ void apply_remote_player_position_update(player *plr, object *unit_obj)
             int32_t *head_record = *(int32_t **)((uint8_t *)queue->records + read_index * 4);
             player_update_history_log_printf_filtered(1, "Can't update pos: [%d] != [%d]",
                                                         target_tick, *head_record);
-            if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+            if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
                 wait_tick_counter = wait_tick_counter + 1;
             }
         }

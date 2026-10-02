@@ -33,7 +33,7 @@ wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entry *entr
     int32_t place = entry->place & 0x7f;    // and eax,0x7f
     int32_t index = (place > 0xf) ? 0xf : place; // cmp eax,0xf / jg
 
-    tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr' unicode_string_list
+    tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text"); // 'ustr' unicode_string_list
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }

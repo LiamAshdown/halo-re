@@ -90,7 +90,7 @@ int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
                 count = count + 1;
                 entry = entry + 1;
             }
-            p = data_iterator_next(&iterator);
+            p = (player *)data_iterator_next(&iterator);
         }
     }
 

@@ -57,25 +57,25 @@ int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *ins
     hr = ((idirectinput8_createdevice_proc)(*(void ***)direct_input)[3])(direct_input,
         (input_guid *)&instance->instance_guid, &handle, 0);
     if (hr < 0) {
-        failed = "CreateDevice (gamepad)";
+        failed = (char *)"CreateDevice (gamepad)";
         goto fail;
     }
     vtable = *(void ***)handle;
     hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(handle, GetActiveWindow(), 5);
     if (hr < 0) {
-        failed = "SetCooperativeLevel (gamepad)";
+        failed = (char *)"SetCooperativeLevel (gamepad)";
         goto fail;
     }
     hr = ((idirectinputdevice8_setdataformat_proc)(*(void ***)handle)[11])(handle, &joystick_data_format);
     if (hr < 0) {
-        failed = "SetDataFormat (gamepad)";
+        failed = (char *)"SetDataFormat (gamepad)";
         goto fail;
     }
     memset(&caps, 0, sizeof(caps));
     caps.size = sizeof(caps);
     hr = ((idirectinputdevice8_getcapabilities_proc)(*(void ***)handle)[3])(handle, &caps);
     if (hr < 0) {
-        failed = "GetCapabilities (gamepad)";
+        failed = (char *)"GetCapabilities (gamepad)";
         goto fail;
     }
     device->record.product_instance = (uint8_t)input_device_count_by_guid((const uint32_t *)&instance->product_guid);
@@ -96,7 +96,7 @@ int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *ins
     hr = ((idirectinputdevice8_enumobjects_proc)(*(void ***)handle)[4])(handle,
         (void *)input_enumerate_gamepad_object_callback, (void *)(intptr_t)index, 0);
     if (hr < 0) {
-        failed = "EnumObjects (gamepad)";
+        failed = (char *)"EnumObjects (gamepad)";
         goto fail;
     }
     input_device_count = index + 1;

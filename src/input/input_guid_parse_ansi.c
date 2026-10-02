@@ -43,7 +43,7 @@ uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi)
             wide[i] = (uint8_t)ansi[i];
         }
     }
-    hresult = CLSIDFromString(wide, (LPCLSID)out_guid);
+    hresult = CLSIDFromString((LPCOLESTR)wide, (LPCLSID)out_guid);
     return hresult >= 0;
 }
 

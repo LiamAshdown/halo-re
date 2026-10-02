@@ -36,7 +36,7 @@ uint32_t input_keyboard_key_name_to_index(char *name)
     key_index = 0;
     for (;;) {
         input_get_keyboard_key_name((int16_t)key_index, wide);
-        length = (uint32_t)wcslen(wide);
+        length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 0x18) {
             for (i = 0; i < length; i++) {
                 ascii[i] = ((uint8_t *)wide)[i * 2 + 1] == 0 ? ((char *)wide)[i * 2] : ' ';

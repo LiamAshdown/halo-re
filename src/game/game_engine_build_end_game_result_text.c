@@ -48,7 +48,7 @@ extern void game_engine_get_player_scoreboard_entry(datum_index player_handle, s
 // tag_lookup("ui\\multiplayer_game_text") + text_string_list_get_string(tag, index), or the empty string when the tag is missing.
 static wchar_t *multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text"); // 'ustr'
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -93,7 +93,7 @@ void game_engine_build_end_game_result_text(datum_index player_handle, wchar_t *
         }
 
         if (result == -1) {
-            datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text"); // 'ustr'
             wchar_t *text = &empty_string;
 
             if (tag_id != k_datum_index_none) {

@@ -149,18 +149,18 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     server_browser_gametype3_options oddball;
 
     server_browser_custom_options_unpack(variant_name, &options); // blam-cc: EDX=text, ESI=&options
-    ticker_text_buffer_append(L"  ---  ", 0, ticker);
+    ticker_text_buffer_append((wchar_t *)L"  ---  ", 0, ticker);
 
     if (engine_index == 1) { // ctf
         server_browser_gametype1_flags_unpack((uint32_t)fraglimit, &engine_extra.ctf); // blam-cc: EAX=fraglimit, ECX=&engine_extra
         is_custom_variant = 1;
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 24);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 24);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 24);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 24);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -171,7 +171,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
             // Inlined equivalent of unicode_string_list_get_string(path, 0): same tag walk, same
             // scratch buffer (0x006b5c58), just without the round-trip through that function.
             datum_index tag_id = tag_lookup(0x75737472, // 'ustr'
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
                 UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
@@ -193,10 +193,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         // Ghidra's local_268 four flag bytes (engine_extra.ctf.flags[0..3]).
         if (engine_extra.ctf.flags[0] == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 25);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 25);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 26);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 26);
         }
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         line[255] = 0;
@@ -204,21 +204,21 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
         if (engine_extra.ctf.flags[1] != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 27);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 27);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
         if (engine_extra.ctf.flags[2] != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 28);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 28);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
         if (engine_extra.ctf.flags[3] != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 29);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 29);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
@@ -231,7 +231,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
             if (packed_low_high == 0x1518 || packed_low_high == 0x708 || packed_low_high == 0xe10 ||
                 packed_low_high == 9000 || packed_low_high == 18000) {
                 label_text = unicode_string_list_get_string(
-                    "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 30);
+                    (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 30);
                 swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, packed_low_high / 30);
                 line[255] = 0;
                 ticker_text_buffer_append(line, 0, ticker);
@@ -241,11 +241,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     } else if (engine_index == 2) { // slayer
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -254,7 +254,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
                 UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
@@ -275,21 +275,21 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
         if (((uint32_t)fraglimit >> 3 & 1) != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 32);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 32);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
         if (((uint32_t)fraglimit >> 4 & 1) != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 33);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 33);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
         if (((uint32_t)fraglimit >> 5 & 1) != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 34);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 34);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
@@ -298,11 +298,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         server_browser_gametype3_flags_unpack((uint32_t)fraglimit, &oddball); // blam-cc: EAX=fraglimit, ECX=&oddball
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 37);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 37);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 37);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 37);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -311,7 +311,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
                 UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
@@ -334,7 +334,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         // var_speed_with_ball's own strings shows.
         if (oddball.value_10 >= 0 && oddball.value_10 < 3) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_speed_with_ball",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_speed_with_ball",
                 (int16_t)oddball.value_10);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
@@ -342,25 +342,25 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if (oddball.value_14 > 1) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 38);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 38);
             swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, oddball.value_14);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
         if (oddball.flag0 != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 39);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 39);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
         }
         if (oddball.value_10 == 0 || oddball.value_10 == 2) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 41);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 41);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             // 0x4b955e: `mov ecx,ebx` -- index is oddball.value_10, not the 41 above.
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_speed_with_ball",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_speed_with_ball",
                 (int16_t)oddball.value_10);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -368,10 +368,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if (oddball.value_08 > 0 && oddball.value_08 < 4) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 42);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 42);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_trait_with_ball",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_trait_with_ball",
                 (int16_t)oddball.value_08);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -379,10 +379,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if (oddball.value_0c > 0 && oddball.value_0c < 4) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 43);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 43);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_trait_with_ball",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\oddball_edit\\var_trait_with_ball",
                 (int16_t)oddball.value_0c);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -391,11 +391,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     } else if (engine_index == 4) { // king
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -404,7 +404,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
                 UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
@@ -425,7 +425,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
         if (((uint32_t)fraglimit >> 3 & 1) != 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 36);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 36);
             swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
@@ -434,11 +434,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         server_browser_gametype5_flags_unpack((uint32_t)fraglimit, engine_extra.race); // blam-cc: ECX=fraglimit, EDX=&engine_extra
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 44);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 44);
             swprintf(line, 0xff, L"(%s)", label_text);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 44);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 44);
             swprintf(line, 0xff, L"(%s - \"%s\")", label_text, game_flags_wide);
         }
         line[255] = 0;
@@ -447,7 +447,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         if (options.teams != 0) {
             is_custom_variant = 1;
             datum_index tag_id = tag_lookup(0x75737472,
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
                 UnicodeStringList *list = (UnicodeStringList *)tag_instances[tag_id & 0xffff].data;
@@ -468,11 +468,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
         if (engine_extra.race[0] >= 0 && engine_extra.race[0] < 3) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 45);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 45);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             // 0x4b9947: `mov ecx,esi` -- index is engine_extra.race[0], not the 45 above.
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_race_type",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_race_type",
                 (int16_t)engine_extra.race[0]);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -480,10 +480,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if (engine_extra.race[1] >= 0 && engine_extra.race[1] < 3) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 46);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 46);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_team_scoring",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_team_scoring",
                 (int16_t)engine_extra.race[1]);
             wcscat(line, suffix_text);
             // Ghidra's "goto LAB_004b99ce" lands here: that label's entire body is the single
@@ -494,9 +494,9 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
     }
 
-    ticker_text_buffer_append(L"  ---  ", 0, ticker);
+    ticker_text_buffer_append((wchar_t *)L"  ---  ", 0, ticker);
     label_text = unicode_string_list_get_string(
-        "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 1);
+        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 1);
     swprintf(line, 0xff, L" %s %s", label_text, player_flags_wide);
     line[255] = 0;
     ticker_text_buffer_append(line, 0, ticker);
@@ -504,7 +504,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     switch (options.lives_per_round) { // Ghidra's local_244
     case 0: case 1: case 3: case 5:
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 2);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 2);
         swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.lives_per_round);
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
@@ -521,7 +521,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         if (speed_percent == 200 || speed_percent == 50 || speed_percent == 100 ||
             speed_percent == 150 || speed_percent == 300 || speed_percent == 400) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 3);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 3);
             swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, speed_percent);
             line[255] = 0;
             ticker_text_buffer_append(line, 0, ticker);
@@ -544,7 +544,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if (show_pair) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 4);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 4);
             swprintf(line, 0xff, L"%s%s %d+%d", ticker_field_separator, label_text,
                 options.respawn_time / 30, options.respawn_time_growth / 30);
             line[255] = 0;
@@ -554,32 +554,32 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
     if (options.suicide_penalty == 0x96 || options.suicide_penalty == 300 || options.suicide_penalty == 0x1c2) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 5);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 5);
         swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.suicide_penalty / 30);
         line[255] = 0;
         ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 8) == 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 6);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 6);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
     if (options.odd_man_out != 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 7);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 7);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 0x10) != 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 8);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 8);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 4) != 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 9);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 9);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
@@ -587,11 +587,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     if (is_custom_variant) {
         if (options.friendly_fire < 4) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 11);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 11);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             // 0x4b9d86: `movzx ecx,bl` -- index is options.unknown_38, not the 11 above.
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire",
                 (int16_t)options.friendly_fire);
             wcscat(line, suffix_text);
             if ((options.friendly_fire == 1 || options.friendly_fire == 3) &&
@@ -603,7 +603,7 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
                     (options.betrayal_penalty == 0x96) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
                 wcscat(line, L" (+");
                 suffix_text = unicode_string_list_get_string(
-                    "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty",
+                    (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty",
                     penalty_display_index);
                 wcscat(line, suffix_text);
                 wcscat(line, L")");
@@ -613,10 +613,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if ((options.red_vehicle_set & 0xf) < 9) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 12);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 12);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
                 (int16_t)(options.red_vehicle_set & 0xf));
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -624,10 +624,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if ((options.blue_vehicle_set & 0xf) < 9) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 13);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 13);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
                 (int16_t)(options.blue_vehicle_set & 0xf));
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -635,10 +635,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
     } else if ((options.red_vehicle_set & 0xf) < 9) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 10);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 10);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
+            (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicle_set",
             (int16_t)(options.red_vehicle_set & 0xf));
         wcscat(line, suffix_text);
         line[255] = 0;
@@ -665,10 +665,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
         }
         if (vehicle_respawn_index >= 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 14);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 14);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicles_respawn",
+                (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicles_respawn",
                 (int16_t)vehicle_respawn_index);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -678,10 +678,10 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
     if (options.weapon_set < 0xe) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 15);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 15);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\item_options_edit\\var_weapon_set",
+            (char *)"ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\item_options_edit\\var_weapon_set",
             (int16_t)options.weapon_set);
         wcscat(line, suffix_text);
         line[255] = 0;
@@ -690,11 +690,11 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
 
     if ((options.flags & 0x20) == 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 16);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 16);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
     } else {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 17);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 17);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
     }
     ticker_text_buffer_append(line, 0, ticker);
@@ -703,16 +703,16 @@ void multiplayer_game_variant_description_generate(char *variant_name, ticker_te
     // trailing shared value string at index 19.
     if (options.objective_indicator == 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
     } else {
         if (options.objective_indicator != 1) goto shared_tail; // LAB_004ba19f
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
     }
     suffix_text = unicode_string_list_get_string(
-        "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 19);
+        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 19);
     wcscat(line, suffix_text);
     ticker_text_buffer_append(line, 0, ticker);
 
@@ -720,17 +720,17 @@ shared_tail: // LAB_004ba19f
     if ((options.flags & 1) != 0) {
         if ((options.flags & 0x40) == 0) {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 21);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 21);
         } else {
             label_text = unicode_string_list_get_string(
-                "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 22);
+                (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 22);
         }
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }
     if ((options.flags & 2) != 0) {
         label_text = unicode_string_list_get_string(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 23);
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 23);
         swprintf(line, 0xff, L"%s%s", ticker_field_separator, label_text);
         ticker_text_buffer_append(line, 0, ticker);
     }

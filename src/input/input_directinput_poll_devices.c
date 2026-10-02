@@ -102,12 +102,12 @@ void input_directinput_poll_devices(void)
 
             if (hr > 0) {
                 if (hr == 1) { // DI_BUFFEROVERFLOW
-                    input_error_log_once(1, "keyboard_buffer_overflow");
+                    input_error_log_once(1, (char *)"keyboard_buffer_overflow");
                     event_count = 0xffffffff;
                     ((idirectinputdevice8_getdevicedata_proc)vtable[10])(keyboard_device, 0x14,
                         (di_device_object_data *)0, &event_count, 0);
                 } else {
-                    input_error_log_once(hr, "IDirectInputDevice_GetDeviceData (mouse)");
+                    input_error_log_once(hr, (char *)"IDirectInputDevice_GetDeviceData (mouse)");
                 }
                 break;
             }
@@ -135,7 +135,7 @@ void input_directinput_poll_devices(void)
             if (hr == k_dierr_reacquire_b || hr == k_dierr_reacquire_a) {
                 ((idirectinputdevice8_acquire_proc)vtable[7])(keyboard_device);
             } else {
-                input_error_log_once(hr, "IDirectInputDevice_GetDeviceData (mouse)");
+                input_error_log_once(hr, (char *)"IDirectInputDevice_GetDeviceData (mouse)");
             }
             break;
         }
@@ -150,7 +150,7 @@ void input_directinput_poll_devices(void)
             input_mouse_state_process(&live_mouse_state, &mouse_raw);
             goto joystick_poll;
         } else {
-            input_error_log_once(hr, "GetDeviceState (mouse)");
+            input_error_log_once(hr, (char *)"GetDeviceState (mouse)");
         }
         if (hr < 0) {
             memset(&live_mouse_state, 0, sizeof(live_mouse_state));
@@ -179,7 +179,7 @@ joystick_poll:
                 input_joystick_state_process(&joystick_raw, &joystick_states[slot], &input_devices[i]);
                 continue;
             } else {
-                input_error_log_once(hr, "Poll/GetDeviceState (gamepad)");
+                input_error_log_once(hr, (char *)"Poll/GetDeviceState (gamepad)");
             }
 
             if (hr < 0) {

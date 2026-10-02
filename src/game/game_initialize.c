@@ -121,7 +121,7 @@ void game_initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     *hs_camera_control_pointer = 0;
 
-    object_render_state_cache = (data_array *)game_state_new("cached object render states", 0x100, 0x100);
+    object_render_state_cache = (data_array *)game_state_new((char *)"cached object render states", 0x100, 0x100);
     objects_initialize();
     detail_objects_globals_allocate();
 
@@ -139,12 +139,12 @@ void game_initialize(void)
     players_initialize();
     contrails_initialize();
 
-    particle_data = (data_array *)game_state_new("particle", 0x400, 0x70);
-    effect_data = (data_array *)game_state_new("effect", 0x100, 0xfc);
-    effect_location_data = (data_array *)game_state_new("effect location", 0x200, 0x3c);
-    weather_particle_data = data_new(0x54, "weather particles", 0x200); // objdump 0x45ab96: EBX = 0x54
-    particle_system_data = game_state_new("particle systems", 0x40, 0x158);
-    particle_system_particle_data = (data_array *)game_state_new("particle system particles", 0x200, 0x80);
+    particle_data = (data_array *)game_state_new((char *)"particle", 0x400, 0x70);
+    effect_data = (data_array *)game_state_new((char *)"effect", 0x100, 0xfc);
+    effect_location_data = (data_array *)game_state_new((char *)"effect location", 0x200, 0x3c);
+    weather_particle_data = data_new(0x54, (char *)"weather particles", 0x200); // objdump 0x45ab96: EBX = 0x54
+    particle_system_data = game_state_new((char *)"particle systems", 0x40, 0x158);
+    particle_system_particle_data = (data_array *)game_state_new((char *)"particle system particles", 0x200, 0x80);
 
     size = 0x264;
     sound_class_gains = (void *)(game_state_cursor + game_state_base);
@@ -163,7 +163,7 @@ void game_initialize(void)
     hs_runtime_initialize();
     hs_scripts_reload();
 
-    recorded_animations = game_state_new("recorded animations", 0x40, 0x64);
+    recorded_animations = game_state_new((char *)"recorded animations", 0x40, 0x64);
 
     size = 0x1c;
     cinematic_globals_ptr = (uint32_t *)(game_state_cursor + game_state_base);

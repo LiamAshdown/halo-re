@@ -178,7 +178,7 @@ void game_engine_update_teleporter(uint32_t player_index)
 
                 if (teleport_message_cooldown < 1) {
                     wchar_t *text;
-                    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
                     teleport_message_cooldown = 0x78;
                     // objdump 0x4618c1: the string-list index is 0x65, not 0.
@@ -225,7 +225,7 @@ void game_engine_update_teleporter(uint32_t player_index)
                 forward.j = (float)fsin(yaw);
                 vector3d_normalize_with_length(&forward);
 
-                object_set_position_and_orientation(unit, &forward, 0, &exit_flag->position);
+                object_set_position_and_orientation(unit, &forward, 0, (real_point3d *)(&exit_flag->position));
 
                 if (p->local_player_index != -1) {
                     game_engine_compute_look_angles_from_vector(&forward,

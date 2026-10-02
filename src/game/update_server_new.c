@@ -30,7 +30,7 @@ uint8_t update_server_new(void)
     memset(&update_server_initialized, 0, 0x610c); // Ghidra's 0x1843 dwords == this exact byte
         // span, from update_server_initialized through the end of update_server_history
 
-    update_server_queues = data_new(0x64, "update server queues", 16);
+    update_server_queues = data_new(0x64, (char *)"update server queues", 16);
     if (update_server_queues != 0) {
         memset(update_server_history, 0, sizeof(update_server_history));
         if (update_client_new() != 0) {

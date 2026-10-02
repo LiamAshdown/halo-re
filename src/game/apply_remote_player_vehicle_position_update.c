@@ -76,7 +76,7 @@ void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj)
                 parent_obj->up = record.body.up;
             }
         }
-        if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+        if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
             vehicle_wait_tick_counter = 0;
         }
     } else {
@@ -98,7 +98,7 @@ void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj)
             int32_t *head_record = *(int32_t **)((uint8_t *)queue->records + read_index * 4);
             player_update_history_log_printf_filtered(1, "Can't update pos: [%d] != [%d]",
                                                         target_tick, *head_record);
-            if (wcscmp((uint16_t *)plr->name, local_player_name_filter) == 0) {
+            if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
                 vehicle_wait_tick_counter = vehicle_wait_tick_counter + 1;
             }
         }

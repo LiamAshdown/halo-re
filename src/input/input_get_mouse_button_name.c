@@ -35,7 +35,7 @@ void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name)
     uint16_t *source;
 
     tag_id = tag_lookup(0x75737472, // "ustr"
-        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
+        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
     source = missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)tag_instances[(uint16_t)tag_id].data;
@@ -47,7 +47,7 @@ void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name)
             }
         }
     }
-    wcsncpy(out_name, source, 0x18);
+    wcsncpy((wchar_t *)out_name, (const wchar_t *)source, 0x18);
     out_name[0x17] = 0;
 }
 

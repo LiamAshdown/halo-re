@@ -30,7 +30,7 @@ uint32_t update_client_new(void)
         // this byte count) span update_client_initialized through the end of
         // update_client_history exactly (0x3c header bytes + 128*0x308 history bytes)
 
-    update_client_queues = data_new(0x28, "update client queues", 16); // 0x472f55: mov ebx,0x28 (the draft copied the server's 0x64)
+    update_client_queues = data_new(0x28, (char *)"update client queues", 16); // 0x472f55: mov ebx,0x28 (the draft copied the server's 0x64)
     if (update_client_queues != 0) {
         memset(update_client_history, 0xff, sizeof(update_client_history));
         update_client_unknown_ea0 = -1;

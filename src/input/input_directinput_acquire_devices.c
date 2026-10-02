@@ -44,7 +44,7 @@ void input_directinput_acquire_devices(void)
         vtable = *(void ***)keyboard_device;
         hr = ((idirectinputdevice8_acquire_proc)vtable[7])(keyboard_device);
         if (hr < 0) {
-            input_error_log_once(hr, "Acquire (keyboard)");
+            input_error_log_once(hr, (char *)"Acquire (keyboard)");
         }
     }
 
@@ -52,7 +52,7 @@ void input_directinput_acquire_devices(void)
         vtable = *(void ***)mouse_device;
         hr = ((idirectinputdevice8_acquire_proc)vtable[7])(mouse_device);
         if (hr < 0) {
-            input_error_log_once(hr, "Acquire (mouse)");
+            input_error_log_once(hr, (char *)"Acquire (mouse)");
         } else {
             granularity.header.size = 0x14;
             granularity.header.header_size = 0x10;
@@ -72,7 +72,7 @@ void input_directinput_acquire_devices(void)
             vtable = *(void ***)device;
             hr = ((idirectinputdevice8_acquire_proc)vtable[7])(device);
             if (hr < 0) {
-                input_error_log_once(hr, "Acquire (gamepad)");
+                input_error_log_once(hr, (char *)"Acquire (gamepad)");
             }
         }
     }
