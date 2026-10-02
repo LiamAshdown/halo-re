@@ -65,17 +65,21 @@ add_custom_target(third_party_import_libs DEPENDS ${THIRD_PARTY_LIBS})
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
 file(GLOB IMAGE_ASM CONFIGURE_DEPENDS "${SA}/image/*.asm")
-file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")   # the engine globals as C definitions, one file per slice
+# the engine globals as C definitions (standalone/data/*.c), compiled with the game code's flags and headers
+file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")
+add_library(halo_data OBJECT ${DATA_SOURCES})
+target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_compile_options(halo_data PRIVATE /TC /W3 /Od /GS- /Oy- /Gy /wd4996
+    "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
 set(SUPPORT_SOURCES
     "${SA}/loader.c"
     "${SA}/d3dx_compat.c"
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
     "${SA}/image/pieces.c"
     "${SA}/generated/image_bindings.c")
-list(APPEND SUPPORT_SOURCES ${DATA_SOURCES})
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
     "${SA}/globals.asm" "${SA}/generated/code_entries.asm" "${SA}/bridges.asm"
-    $<TARGET_OBJECTS:halo_game>)
+    $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
 
 # ---- keep the committed link sources in step with src/ (tools/cmake_regen.py): after the game objects compile and

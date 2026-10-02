@@ -49,6 +49,14 @@ def compile_c(src, obj, includes=(), defines=()):
     return obj
 
 
+def compile_data_c(src, obj):
+    """a standalone/data/*.c file: the game code's headers and flags (tools/msvc_build.py CFLAGS)"""
+    run([gl.tool("cl"), "/nologo", "/c", "/TC", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996",
+         "/I" + os.path.join(ROOT, "types"), "/I" + os.path.join(DXSDK, "Include"),
+         "/FI" + os.path.join(ROOT, "harness", "msvc_compat.h"), "/Fo" + obj, src], "compile " + src)
+    return obj
+
+
 def assemble(src, obj):
     run([gl.tool("ml"), "/nologo", "/c", "/coff", "/Fo" + obj, src], "assemble " + src)
     return obj
@@ -74,12 +82,10 @@ def main():
              compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), o("x87_shims.obj")),
              compile_c(os.path.join(SA, "image", "pieces.c"), o("pieces.obj"), [SA]),
              compile_c(os.path.join(SA, "generated", "image_bindings.c"), o("image_bindings.obj"))]
-    for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):  # engine globals as C definitions
-        extra.append(compile_c(c, o("data_%s.obj" % os.path.splitext(os.path.basename(c))[0])))
     for p in json.load(open(os.path.join(SA, "image", "pieces.json"))):
         extra.append(assemble(os.path.join(SA, "image", p["label"] + ".asm"), o("image_%s.obj" % p["label"])))
     for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):   # the engine globals as C definitions, one file per slice
-        extra.append(compile_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj"), [SA]))
+        extra.append(compile_data_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj")))
     extra += [assemble(os.path.join(SA, "globals.asm"), o("globals.obj")),
               assemble(os.path.join(SA, "generated", "code_entries.asm"), o("code_entries.obj")),
               assemble(os.path.join(SA, "bridges.asm"), o("bridges.obj"))]
