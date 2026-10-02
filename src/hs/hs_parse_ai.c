@@ -27,7 +27,7 @@ char hs_parse_ai(datum_index node_index)
         (uint32_t *)&node->data);
 
     if (!found) {
-        hs_compile_error = "this is not a valid ai encounter or squad.";
+        hs_compile_error = (char *)"this is not a valid ai encounter or squad.";
         hs_compile_error_offset = node->source_offset;
     }
     return found;

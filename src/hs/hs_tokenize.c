@@ -28,7 +28,7 @@ datum_index hs_tokenize(char **cursor)
     nodes = hs_syntax_data;
     index = datum_new(nodes);
     if (index == k_datum_index_none) {
-        hs_compile_error = "i couldn't allocate a syntax node.";
+        hs_compile_error = (char *)"i couldn't allocate a syntax node.";
         return k_datum_index_none;
     }
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (index & 0xffff) * nodes->size);

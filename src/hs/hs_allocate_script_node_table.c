@@ -34,7 +34,7 @@ void hs_allocate_script_node_table(void)
 
     scenario = (global_scenario_index != k_datum_index_none) ? global_scenario : 0;
     if ((scenario == 0) || (scenario->script_syntax_data.size != k_hs_syntax_node_table_size)) {
-        hs_syntax_data = data_new(sizeof(hs_syntax_node), "script node", k_hs_syntax_node_maximum_count);
+        hs_syntax_data = data_new(sizeof(hs_syntax_node), (char *)"script node", k_hs_syntax_node_maximum_count);
         if (hs_syntax_data != 0) {
             hs_syntax_data->valid = 1;
             data_delete_all(hs_syntax_data);

@@ -56,9 +56,9 @@ char hs_parse_nonprimitive(datum_index node_index)
     identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & 0xffff) * nodes->size);
 
     if ((identifier_node->flags & _hs_syntax_node_primitive_bit) == 0) {
-        message = "\"script\" or \"global\"";
+        message = (char *)"\"script\" or \"global\"";
         if (node->type != _hs_type_special_form) {
-            message = "a function name";
+            message = (char *)"a function name";
         }
         sprintf(hs_compile_error_buffer, "i expected %s, but i got an expression.", message);
         hs_compile_error = hs_compile_error_buffer;
@@ -70,7 +70,7 @@ char hs_parse_nonprimitive(datum_index node_index)
         hs_resolve_identifier_as_function_or_script(node_index);
         resolved_index = node->index_union;
         if (resolved_index == -1) {
-            hs_compile_error = "this is not a valid function or script name.";
+            hs_compile_error = (char *)"this is not a valid function or script name.";
             hs_compile_error_offset = identifier_node->source_offset;
             return 0;
         }
@@ -91,12 +91,12 @@ char hs_parse_nonprimitive(datum_index node_index)
                 }
             }
             if ((hs_blocking_forbidden != 0) && ((resolved_index == _hs_function_sleep) || (resolved_index == _hs_function_sleep_until))) {
-                hs_compile_error = "it is illegal to block in this context.";
+                hs_compile_error = (char *)"it is illegal to block in this context.";
                 hs_compile_error_offset = node->source_offset;
                 return 0;
             }
             if ((hs_set_forbidden != 0) && (resolved_index == _hs_function_set)) {
-                hs_compile_error = "it is illegal to set the value of variables in this context.";
+                hs_compile_error = (char *)"it is illegal to set the value of variables in this context.";
                 hs_compile_error_offset = node->source_offset;
                 return 0;
             }
@@ -110,7 +110,7 @@ char hs_parse_nonprimitive(datum_index node_index)
         /* script call */
         script = (ScenarioScript *)global_scenario->scripts.pointer + resolved_index;
         if ((script->script_type != _hs_script_static) && (script->script_type != _hs_script_stub)) {
-            hs_compile_error = "this is not a static script.";
+            hs_compile_error = (char *)"this is not a static script.";
             hs_compile_error_offset = node->source_offset;
             return 0;
         }
@@ -141,7 +141,7 @@ char hs_parse_nonprimitive(datum_index node_index)
     if (strncmp(identifier_text, "script", 7) == 0) {
         return hs_add_script(node_index);
     }
-    hs_compile_error = "i expected \"script\" or \"global\".";
+    hs_compile_error = (char *)"i expected \"script\" or \"global\".";
     hs_compile_error_offset = identifier_node->source_offset;
     return 0;
 }

@@ -83,7 +83,7 @@ char hs_compile_postprocess(char **error_message, int32_t *error_offset)
 
         if ((node_type < 4) || (0x30 < node_type)) {
             if (node_type != 2) {
-                hs_compile_error = "missing type (you need to recompile scripts.)";
+                hs_compile_error = (char *)"missing type (you need to recompile scripts.)";
                 goto fail;
             }
             goto advance; /* _hs_function_name: nothing more to postprocess on this node */
@@ -100,17 +100,17 @@ char hs_compile_postprocess(char **error_message, int32_t *error_offset)
                     node_type = *(int16_t *)(stale_script_pointer + 0x22);
                     goto resolved;
                 }
-                hs_compile_error = "bad script index (you need to recompile.)";
+                hs_compile_error = (char *)"bad script index (you need to recompile.)";
                 goto fail;
             }
             /* function call */
             if (node->data.first_child == k_datum_index_none) {
-                hs_compile_error = "corrupt syntax tree (you need to recompile scripts.)";
+                hs_compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;
             }
             function_name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & 0xffff) * nodes->size);
             if (function_name_node->type != 2) {
-                hs_compile_error = "corrupt syntax tree (you need to recompile scripts.)";
+                hs_compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;
             }
             valid_offset = hs_verify_source_offset(function_name_node->source_offset); // 0x485a65: ECX = name node +0xc
@@ -121,7 +121,7 @@ char hs_compile_postprocess(char **error_message, int32_t *error_offset)
                 // 0x485a71: EDX = name node's source offset + hs_compiled_source
             nodes = hs_syntax_data;
             if (function_index == -1) {
-                hs_compile_error = "missing function (you need to recompile scripts.)";
+                hs_compile_error = (char *)"missing function (you need to recompile scripts.)";
                 goto fail;
             }
             node->index_union = function_index;
@@ -135,7 +135,7 @@ char hs_compile_postprocess(char **error_message, int32_t *error_offset)
         }
         valid_offset = 1;
         if ((node->source_offset < 0) || (hs_compiled_source_length <= node->source_offset)) {
-            hs_compile_error = "bad source offset (you need to recompile.)";
+            hs_compile_error = (char *)"bad source offset (you need to recompile.)";
             valid_offset = 0;
         }
         success = 0;
@@ -160,7 +160,7 @@ char hs_compile_postprocess(char **error_message, int32_t *error_offset)
         if (success != 0) {
             if ((((node_type < 4) || (0x30 < node_type)) && (node_type != 3)) ||
                 ((success = hs_types_are_compatible(node->type, node_type)), success == 0)) {
-                hs_compile_error = "type is inconsistent with usage (you need to recompile scripts.)";
+                hs_compile_error = (char *)"type is inconsistent with usage (you need to recompile scripts.)";
                 goto fail;
             }
             success = 1;

@@ -47,7 +47,7 @@ char hs_parse_variable(datum_index node_index)
     node->data.global_reference = (int16_t)global;
     if ((int16_t)global == -1) {
         if (hs_postprocessing != 0) {
-            hs_compile_error = "this is not a valid variable name.";
+            hs_compile_error = (char *)"this is not a valid variable name.";
             hs_compile_error_offset = node->source_offset;
         }
         return 0;

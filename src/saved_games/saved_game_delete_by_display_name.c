@@ -70,7 +70,7 @@ void saved_game_delete_by_display_name(const char *name)
             profile = default_profile_data;
         } else {
             ok = player_profile_get(handle, &profile);
-            if (ok != 0 && (profile.flags & 0x2) != 0 && _wcsicmp(name_wide, profile.name) == 0) {
+            if (ok != 0 && (profile.flags & 0x2) != 0 && _wcsicmp((const wchar_t *)name_wide, (const wchar_t *)profile.name) == 0) {
                 if (handle != -1) {
                     saved_game_delete_by_handle(handle);
                 }

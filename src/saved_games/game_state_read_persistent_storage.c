@@ -32,7 +32,7 @@ uint8_t game_state_read_persistent_storage(void)
     }
 
     if (SetFilePointer(game_state_persistent_storage, 0, 0, 0) != 0xffffffff &&
-        ReadFile(game_state_persistent_storage, game_state_snapshot_source, game_state_size, &bytes_read, 0) != 0 &&
+        ReadFile(game_state_persistent_storage, game_state_snapshot_source, game_state_size, (LPDWORD)&bytes_read, 0) != 0 &&
         bytes_read == game_state_size) {
         return 1;
     }

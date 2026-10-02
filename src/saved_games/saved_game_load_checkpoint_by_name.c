@@ -73,7 +73,7 @@ uint8_t saved_game_load_checkpoint_by_name(char *name)
     }
     main_queue_map_change(map_path);
     if (memcmp(name, "savegame", 9) != 0) {
-        saved_game_copy_files_to_target(directory, name, "savegame");
+        saved_game_copy_files_to_target(directory, name, (char *)"savegame");
     }
     return 1;
 }

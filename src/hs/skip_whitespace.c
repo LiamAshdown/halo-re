@@ -75,7 +75,7 @@ top:
     } else {
         p = *cursor;
         if (*p == '\0') {
-            hs_compile_error = "unterminated comment.";
+            hs_compile_error = (char *)"unterminated comment.";
             return;
         }
         if ((*p == '*') && (p[1] == ';')) {

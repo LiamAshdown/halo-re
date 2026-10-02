@@ -27,7 +27,7 @@ uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t s
     int32_t ok;
     uint32_t bytes_read;
 
-    ok = ReadFile(ref->handle, buffer, size, &bytes_read, 0);
+    ok = ReadFile(ref->handle, buffer, size, (LPDWORD)&bytes_read, 0);
     if (ok != 0) {
         if (bytes_read == size) {
             return 1;

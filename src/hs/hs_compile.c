@@ -41,7 +41,7 @@ void hs_compile(int32_t source_length, char *source_text, char **error_message, 
 
     cursor = hs_source_buffer_append(source_text, (uint32_t)source_length);
     if (cursor == 0) {
-        *error_message = "couldn't allocate memory for compiled source.";
+        *error_message = (char *)"couldn't allocate memory for compiled source.";
         return;
     }
     hs_compile_error = 0;

@@ -67,7 +67,7 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
     if (*new_name == 0) {
         return 1;
     }
-    if (wcscmp(entry.display_name, new_name) == 0) {
+    if (wcscmp((const wchar_t *)entry.display_name, (const wchar_t *)new_name) == 0) {
         return 1;
     }
 
@@ -95,7 +95,7 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
         finalize:
             XDeleteSaveGame(entry.display_name, savegames_directory);
             strncpy(entry.path, dest_path, 0xff);
-            wcsncpy(entry.display_name, new_name, 0x7f);
+            wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, 0x7f);
             entry.path[0xff] = 0;
             entry.display_name[0x7f] = 0;
             savegame_index_write_slot((int32_t)slot_index, &entry);
@@ -116,7 +116,7 @@ uint8_t player_profile_rename(int32_t handle, uint16_t *new_name)
             if (result == 1) {
                 XDeleteSaveGame(entry.display_name, savegames_directory);
                 strncpy(entry.path, dest_path, 0xff);
-                wcsncpy(entry.display_name, new_name, 0x7f);
+                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, 0x7f);
                 entry.path[0xff] = 0;
                 entry.display_name[0x7f] = 0;
                 savegame_index_write_slot((int32_t)slot_index, &entry);

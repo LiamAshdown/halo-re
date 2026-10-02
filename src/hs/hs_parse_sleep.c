@@ -28,7 +28,7 @@ char hs_parse_sleep(int16_t function_index, datum_index node_index)
     datum_index script;
 
     if (time == 0xffffffff) {
-        hs_compile_error = "the sleep call requires a time and, optionally, a script name."; // 0x00665a10
+        hs_compile_error = (char *)"the sleep call requires a time and, optionally, a script name."; // 0x00665a10
         hs_compile_error_offset = call->source_offset;
         return 0;
     }

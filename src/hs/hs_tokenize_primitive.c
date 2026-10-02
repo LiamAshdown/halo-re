@@ -47,7 +47,7 @@ void hs_tokenize_primitive(char **cursor, datum_index node_index)
             c = *p;
         }
         if (**cursor == '\0') {
-            hs_compile_error = "this quoted constant is unterminated.";
+            hs_compile_error = (char *)"this quoted constant is unterminated.";
             hs_compile_error_offset = node->source_offset - 1;
         }
         **cursor = '\0';

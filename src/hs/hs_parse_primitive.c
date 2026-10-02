@@ -39,12 +39,12 @@ char hs_parse_primitive(datum_index node_index)
     result = 0;
 
     if (node_type == _hs_type_special_form) {
-        hs_compile_error = "i expected a script or variable definition.";
+        hs_compile_error = (char *)"i expected a script or variable definition.";
         hs_compile_error_offset = node->source_offset;
         return result;
     }
     if (node_type == _hs_type_void) {
-        hs_compile_error = "the value of this expression (in a <void> slot) can never be used.";
+        hs_compile_error = (char *)"the value of this expression (in a <void> slot) can never be used.";
         hs_compile_error_offset = node->source_offset;
         return result;
     }

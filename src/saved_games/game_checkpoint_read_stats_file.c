@@ -52,10 +52,10 @@ int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name, int
         time.year = 0; time.month = 0; time.day_of_week = 0; time.day = 0;
         time.hour = 0; time.minute = 0; time.second = 0; time.milliseconds = 0;
 
-        fscanf(file, "%d,%d,%d", &level, &difficulty, &game_time_ticks);
-        fscanf(file, "%hu,%hu,%hu\n", &time.month, &time.day, &time.year);
-        fscanf(file, "%hu,%hu,%hu\n", &time.hour, &time.minute, &time.second);
-        fclose(file);
+        fscanf((FILE *)file, "%d,%d,%d", &level, &difficulty, &game_time_ticks);
+        fscanf((FILE *)file, "%hu,%hu,%hu\n", &time.month, &time.day, &time.year);
+        fscanf((FILE *)file, "%hu,%hu,%hu\n", &time.hour, &time.minute, &time.second);
+        fclose((FILE *)file);
 
         if (out_difficulty != 0) {
             *out_difficulty = difficulty;

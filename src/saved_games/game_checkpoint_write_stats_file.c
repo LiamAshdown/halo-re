@@ -49,10 +49,10 @@ void game_checkpoint_write_stats_file(char *scenario_name, int32_t difficulty)
     if (file != 0) {
         GetLocalTime((LPSYSTEMTIME)&now);
         level = campaign_level_find_index_for_path(scenario_name);
-        fprintf(file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
-        fprintf(file, "%hu,%hu,%hu\n", now.month, now.day, now.year);
-        fprintf(file, "%hu,%hu,%hu\n", now.hour, now.minute, now.second);
-        fclose(file);
+        fprintf((FILE *)file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
+        fprintf((FILE *)file, "%hu,%hu,%hu\n", now.month, now.day, now.year);
+        fprintf((FILE *)file, "%hu,%hu,%hu\n", now.hour, now.minute, now.second);
+        fclose((FILE *)file);
     }
 }
 

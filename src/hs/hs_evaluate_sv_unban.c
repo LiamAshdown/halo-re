@@ -31,7 +31,7 @@ void hs_evaluate_sv_unban(int16_t function_index, uint32_t thread_index, char fi
         int32_t index = arguments[0];
 
         if (index >= 0 && index < ban_list.count) {
-            chimera__console_out(0, "Unbanning %s.", (uint8_t *)ban_list.data + index * 0x38); // 0x0066d71c
+            chimera__console_out(0, (char *)"Unbanning %s.", (uint8_t *)ban_list.data + index * 0x38); // 0x0066d71c
             growable_array_remove_element(&ban_list, (uint32_t)index);
             network_banlist_save();
         }

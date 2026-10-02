@@ -44,7 +44,7 @@ uint8_t saved_game_load_checkpoint(char *name)
     saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
 
     if (name == 0 || *name == 0) {
-        name = "autosave";
+        name = (char *)"autosave";
     } else if (*name == '*') {
         game_checkpoint_enumerate_files(1, 1, game_checkpoint_print_list_entry, 0);
         return 1;

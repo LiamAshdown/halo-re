@@ -64,7 +64,7 @@ datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pai
     new_index = datum_new(nodes);
     cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & 0xffff) * nodes->size);
     if (new_index == k_datum_index_none) {
-        hs_compile_error = "i couldn't allocate a syntax node.";
+        hs_compile_error = (char *)"i couldn't allocate a syntax node.";
         hs_compile_error_offset = cond_node->source_offset;
         return k_datum_index_none;
     }
@@ -84,7 +84,7 @@ datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pai
 
     pair_node = (hs_syntax_node *)((uint8_t *)nodes->data + (pair_index & 0xffff) * nodes->size);
     if ((pair_node->flags & _hs_syntax_node_primitive_bit) != 0) {
-        hs_compile_error = "this argument to cond should be a condition/result pair";
+        hs_compile_error = (char *)"this argument to cond should be a condition/result pair";
         hs_compile_error_offset = pair_node->source_offset;
         return k_datum_index_none;
     }
@@ -99,7 +99,7 @@ datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pai
         if ((new_if_index == k_datum_index_none) || (replacement_index == k_datum_index_none)) {
             nodes = hs_syntax_data;
             cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & 0xffff) * nodes->size);
-            hs_compile_error = "i couldn't allocate a syntax node.";
+            hs_compile_error = (char *)"i couldn't allocate a syntax node.";
             hs_compile_error_offset = cond_node->source_offset;
             return k_datum_index_none;
         }
@@ -139,7 +139,7 @@ datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pai
         return new_index;
     }
     /* unreachable in retail -- see above */
-    hs_compile_error = "this argument to cond needs a result.";
+    hs_compile_error = (char *)"this argument to cond needs a result.";
     hs_compile_error_offset = condition_node->source_offset;
     return k_datum_index_none;
 }

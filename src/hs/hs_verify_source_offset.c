@@ -22,7 +22,7 @@ char hs_verify_source_offset(int32_t offset)
 
     valid = 1;
     if ((offset < 0) || (hs_compiled_source_length <= offset)) {
-        hs_compile_error = "bad source offset (you need to recompile.)";
+        hs_compile_error = (char *)"bad source offset (you need to recompile.)";
         valid = 0;
     }
     return valid;

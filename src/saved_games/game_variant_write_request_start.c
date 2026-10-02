@@ -40,7 +40,7 @@ void game_variant_write_request_start(int32_t handle, game_variant *variant)
     if (variant_write_thread != 0) {
         do {
             do {
-            } while (GetExitCodeThread(variant_write_thread->handle, &exit_code) == 0);
+            } while (GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code) == 0);
         } while (exit_code == 0x103);
         CloseHandle(variant_write_thread->handle);
         variant_write_thread->handle = 0;

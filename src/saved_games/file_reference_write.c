@@ -28,7 +28,7 @@ uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uin
     int32_t ok;
     uint32_t bytes_written;
 
-    ok = WriteFile(ref->handle, buffer, size, &bytes_written, 0);
+    ok = WriteFile(ref->handle, buffer, size, (LPDWORD)&bytes_written, 0);
     if (ok != 0 && bytes_written == size) {
         return 1;
     }

@@ -25,7 +25,7 @@ void hs_evaluate_sv_mapcycle_del(int16_t function_index, uint32_t thread_index, 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        chimera__console_out(0, "sv_mapcycle_del is a dedicated server-only function!"); // 0x0066dcb0
+        chimera__console_out(0, (char *)"sv_mapcycle_del is a dedicated server-only function!"); // 0x0066dcb0
         hs_thread_return(0, thread_index);
     }
 }

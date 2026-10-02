@@ -35,7 +35,7 @@ void game_state_read_profile_file(char *name, int32_t size, void *buffer)
     sprintf(path, "%s\\%s", game_state_core_directory, name);
     file = CreateFileA(path, 0x80000000, 0, 0, 3 /* OPEN_EXISTING */, 0x80 /* FILE_FLAG_RANDOM_ACCESS */, 0);
     if (file == (void *)0xffffffff ||
-        ReadFile(file, buffer, size, &bytes_read, 0) == 0 ||
+        ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
         shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
     }

@@ -59,7 +59,7 @@ void game_state_save_thread_proc(void)
                     chunk = 0x4000;
                 }
                 WriteFile(game_state_persistent_storage, game_state_write_buffer + (game_state_size - remaining),
-                    chunk, &bytes_written, 0);
+                    chunk, (LPDWORD)&bytes_written, 0);
                 remaining = remaining - bytes_written;
                 Sleep(0);
             }
@@ -77,8 +77,8 @@ void game_state_save_thread_proc(void)
                 game_state_write_buffer, k_game_state_header_size, k_game_state_size);
             game_checkpoint_write_stats_file(((game_state_header *)game_state_write_buffer)->scenario_name,
                 ((game_state_header *)game_state_write_buffer)->difficulty);
-            saved_game_copy_files_to_target(directory, "checkpoints\\autosave", "checkpoints\\autosave1");
-            saved_game_copy_files_to_target(directory, "savegame", "checkpoints\\autosave");
+            saved_game_copy_files_to_target(directory, (char *)"checkpoints\\autosave", (char *)"checkpoints\\autosave1");
+            saved_game_copy_files_to_target(directory, (char *)"savegame", (char *)"checkpoints\\autosave");
         }
 
         game_state_write_completed = 1;

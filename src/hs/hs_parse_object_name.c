@@ -46,7 +46,7 @@ char hs_parse_object_name(datum_index node_index)
 
     match_index = scenario_object_name_find_index(scenario, hs_compiled_source + node->source_offset);
     if (match_index == -1) {
-        hs_compile_error = "this is not a valid object name.";
+        hs_compile_error = (char *)"this is not a valid object name.";
         hs_compile_error_offset = node->source_offset;
         return 0;
     }

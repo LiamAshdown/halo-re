@@ -27,9 +27,9 @@ extern uint16_t empty_string[]; // 0x00660c34, L"" (src/game and src/networking 
 void player_profile_set_default_server_options(saved_player_profile *profile)
 {
     wcslen(L"Halo");
-    wcscpy(profile->server_name, L"Halo");
-    wcslen(empty_string);
-    wcscpy(profile->server_password, L"");
+    wcscpy((wchar_t *)profile->server_name, L"Halo");
+    wcslen((const wchar_t *)empty_string);
+    wcscpy((wchar_t *)profile->server_password, L"");
     profile->unknown_ebe = 0;
     profile->server_maximum_players_index = 3;
     profile->join_server_address[0] = 0;

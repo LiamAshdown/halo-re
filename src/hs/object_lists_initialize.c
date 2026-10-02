@@ -21,7 +21,7 @@ void object_lists_initialize(void)
 {
     char name[256];
 
-    object_list_header_data = game_state_new("object list header", k_hs_object_list_header_count, 0xc /* EBX at the original call */);
+    object_list_header_data = game_state_new((char *)"object list header", k_hs_object_list_header_count, 0xc /* EBX at the original call */);
     sprintf(name, "%s reference", "list object");
     object_list_reference_data = game_state_new(name, k_hs_object_list_reference_count, 0xc /* EBX at the original call */);
 }

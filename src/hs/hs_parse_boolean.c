@@ -33,7 +33,7 @@ char hs_parse_boolean(datum_index node_index)
         node->data.boolean_value = 1;
         return 1;
     }
-    hs_compile_error = "i expected \"true\" or \"false\".";
+    hs_compile_error = (char *)"i expected \"true\" or \"false\".";
     hs_compile_error_offset = node->source_offset;
     node->data.boolean_value = (uint8_t)node_index; // 0x486aaa: cl = the argument's low byte
     return 0;

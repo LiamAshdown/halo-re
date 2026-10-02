@@ -17,6 +17,6 @@ extern void chimera__console_out(void *color, char *format, ...); // 0x496b50, b
 
 void hs_evaluate_sv_map_next(int16_t function_index, uint32_t thread_index, char first)
 {
-    chimera__console_out(0, "sv_map_next is a dedicated server-only function!"); // 0x0066dc7c
+    chimera__console_out(0, (char *)"sv_map_next is a dedicated server-only function!"); // 0x0066dc7c
     hs_thread_return(0, thread_index);
 }

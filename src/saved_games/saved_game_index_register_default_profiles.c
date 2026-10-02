@@ -76,7 +76,7 @@ int16_t saved_game_index_register_default_profiles(void)
     saved_player_profile_file file;
     uint8_t written;
 
-    tag_id = tag_lookup(0x75737472, "ui\\shell\\strings\\default_player_profile_names"); // 'ustr'
+    tag_id = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names"); // 'ustr'
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none) {
@@ -118,7 +118,7 @@ int16_t saved_game_index_register_default_profiles(void)
             if (exists != 0) {
                 memset(&entry, 0, sizeof(entry));
                 strncpy(entry.path, path, 0xff);
-                wcsncpy(entry.display_name, source_name, 0x7f);
+                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)source_name, 0x7f);
                 entry.type = _saved_game_type_player_profile;
                 entry.builtin = 1;
 

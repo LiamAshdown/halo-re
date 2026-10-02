@@ -54,7 +54,7 @@ void hs_tokenize_nonprimitive(datum_index node_index, char **cursor)
             *prev_cursor = '\0';
         }
         if (**cursor == '\0') {
-            hs_compile_error = "this left parenthesis is unmatched.";
+            hs_compile_error = (char *)"this left parenthesis is unmatched.";
             hs_compile_error_offset = node->source_offset;
             goto empty_check;
         }
@@ -71,7 +71,7 @@ void hs_tokenize_nonprimitive(datum_index node_index, char **cursor)
         continue;
     empty_check:
         if ((child_slot == first_child_slot) && (hs_compile_error == 0)) {
-            hs_compile_error = "this expression is empty.";
+            hs_compile_error = (char *)"this expression is empty.";
             hs_compile_error_offset = node->source_offset;
         }
         return;

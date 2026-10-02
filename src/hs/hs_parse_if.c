@@ -83,7 +83,7 @@ char hs_parse_if(int16_t function_index, datum_index node_index)
             return hs_parse(then_index, resolved_type);
         }
     }
-    hs_compile_error = "i expected (if <condition> <then> [<else>]).";
+    hs_compile_error = (char *)"i expected (if <condition> <then> [<else>]).";
     hs_compile_error_offset = node->source_offset;
     return 0;
 }

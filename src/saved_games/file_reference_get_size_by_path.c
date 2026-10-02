@@ -34,7 +34,7 @@ uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint32_t *ou
     int32_t ok;
 
     path_build_full(ref->path, full_path, ref->location);
-    ok = GetFileAttributesExA(full_path, 0 /* GetFileExInfoStandard */, &attributes);
+    ok = GetFileAttributesExA(full_path, (GET_FILEEX_INFO_LEVELS)(0 /* GetFileExInfoStandard */), &attributes);
     if (ok != 0) {
         *out_size = attributes.file_size_low;
         return 1;

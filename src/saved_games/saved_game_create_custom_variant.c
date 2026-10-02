@@ -69,7 +69,7 @@ uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name)
         memcpy(&file.variant, defaults_ptr, sizeof(file.variant));
         file.variant.variant_flags = (int16_t)((uint16_t)file.variant.variant_flags & 0xfffe);
         game_variant_sanitize_options(&file.variant);
-        wcsncpy(file.variant.name, name, 0x17);
+        wcsncpy((wchar_t *)file.variant.name, (const wchar_t *)name, 0x17);
         file.variant.name[0x17] = 0;
         file.checksum = 0xffffffff;
         crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
