@@ -28,8 +28,8 @@
 //    there is no weapon at all, nothing after the aim bookkeeping runs.
 // Verified against the disassembly 0x493740..0x493c52 (2026-09-30): aim bookkeeping, tag/graph resolution, base pose (0x4d4a80 /
 // 0x4d7610), ammunition / moving / overcharged overlays, the nine sway channels, the blend and the final matrix build all match,
-// including every register/stack argument order. The 0x4d4xxx animation helpers belong to the animation module (not
-// rewritten here); their meanings are inferred from the arguments alone. 0x7c312c is taken to be the camera up vector.
+// including every register/stack argument order. The 0x4d4xxx animation helpers belong to the animation module (defined
+// in other files); their meanings are inferred from the arguments alone. 0x7c312c is taken to be the camera up vector.
 
 #include "tags.h"
 #include "memory.h"

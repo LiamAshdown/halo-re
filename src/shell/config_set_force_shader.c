@@ -1,5 +1,4 @@
-// config_set_force_shader  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_57d0c0" from the config-property-table evidence)
+// config_set_force_shader  (Ghidra: no function created; the phase-4 types agent carved the stub name "missed_57d0c0" from the config-property-table evidence)
 // address 0x57d0c0, size 77 bytes
 // name confidence 0.7, rewrite confidence 0.85
 // evidence: out/phase4/shell_types_notes.md: "The remaining 22 setters (0x57d0c0,

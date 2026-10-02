@@ -12,7 +12,7 @@
 // fistp of intensity * 255.0 (round to nearest), not "+ 0.5 and truncate".
 // register convention: datum_index light_tag in EAX (in_EAX); real_vector3d *color in EDX
 // (in_EDX); real_point3d *position on the stack (param_1); two undefined4 values on the stack
-// (param_2/param_3, forwarded to vector3d_pack_normal_11_11_10 — UNSURE how); float intensity on the stack
+// (param_2/param_3, the forward and up vectors, each passed to vector3d_pack_normal_11_11_10 in ESI); float intensity on the stack
 // (param_4).
 // blam-cc: EAX=light_tag, EDX=color, stack=(position, param_2, param_3, intensity)
 

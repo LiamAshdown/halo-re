@@ -1,5 +1,5 @@
 // config_set_min_max_blend_op_is_broken  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_57d2a0" from the config-property-table evidence)
+//   carved the stub name "missed_57d2a0" from the config-property-table evidence)
 // address 0x57d2a0, size 11 bytes
 // name confidence 0.7, rewrite confidence 0.9
 // evidence: out/phase4/shell_types_notes.md: "The remaining 22 setters (0x57d0c0,

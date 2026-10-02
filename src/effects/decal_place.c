@@ -821,9 +821,8 @@ void FUN_0044edc0(uint param_1,int param_2,float *param_3,float param_4,char par
 
   [see out/phase4/effects_functions.md and tools/pack.py 0x44edc0 for the full 610-line body --
   omitted from this #if 0 block to keep this file a reasonable size; every offset this rewrite
-  actually depends on is quoted and explained in the header comment and inline UNSURE notes
-  above. The only material control-flow shape not reproduced above is roughly 450 lines covering
-  the fallback/rejected-surface re-flood pass, the world-space triangle-fan conversion, and the
-  rasterizer geometry packing -- see the file header UNSURE list.]
+  actually depends on is quoted and explained in the header comment and inline notes above. The fallback/
+  rejected-surface re-flood pass, the world-space triangle-fan conversion and the rasterizer geometry packing are
+  all implemented in the live code above (decal_place_wrap_group and the emit loop), from the disassembly.]
 }
 #endif

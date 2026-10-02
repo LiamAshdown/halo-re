@@ -7,7 +7,7 @@
 // UI"); the four literal keys (player_flags, game_flags, gamevariant, fraglimit) match the
 // four GameSpy accessor calls; multiplayer_game_variant_description_generate (0x4b8da0) is
 // documented in networking_types_notes.md's "misattributed" list as UI text generation over
-// game_variant, owned by types/game.h -- called here but not rewritten in this batch.
+// game_variant, owned by types/game.h -- called here, rewritten in src/game/.
 // register convention: GameSpy entry pointer in ECX (in_ECX).
 // The four accessor calls (disassembly 0x4b750e..0x4b7546) read, in order: "player_flags" (string,
 // default "") -> EDX of the description generator; "game_flags" (int) -> its `fraglimit`

@@ -98,7 +98,7 @@ extern int32_t ServerBrowserState(void *engine); // foreign, GameSpy library
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module
 extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index); // 0x4b6160, this module, see UNSURE
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, EDX count
-    // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is not modeled here // foreign, see UNSURE
+    // the bound (0x1f at the 0x4b84e0 call sites) rides in EDX and is passed as `count` // foreign
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self); // 0x4b8b40, this
     // module; its `widget` parameter is a raw byte pointer there because the body walks it by

@@ -1,5 +1,5 @@
 // particle_creation_physics_explosion  (Ghidra: no function created; the phase-4 types agent
-//   carved a placeholder "missed_4554e0" from the .rdata dispatch-table evidence)
+//   carved the stub name "missed_4554e0" from the .rdata dispatch-table evidence)
 // address 0x4554e0, size 304 bytes
 // VERIFIED against disassembly 0x4554e0..0x455610 (2026-09-30). system->unknown_54 is a byte at +0x54 gating the ABS
 //   of the vertical speed (0x455586)

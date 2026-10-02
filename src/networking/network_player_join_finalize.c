@@ -18,8 +18,8 @@
 // objdump also shows network_player_entry_validate (0x4d9e36) and network_player_entry_add
 // (0x4d9e4c) both take this same entry pointer via EAX (validate: EAX only; add: EAX -> entry,
 // stack -> &client->session), and that network_player_entry_add itself only ever returns a
-// plain bool in AL (never re-read as a pointer) -- resolving the two UNSURE notes below about
-// those two calls' arguments.
+// plain bool in AL (never re-read as a pointer) -- settling how those two calls' arguments are
+// passed.
 // The row created by network_player_entry_add is players[entry->slot_index]; its own slot_index feeds
 // player_data_iterator_advance (stack), whose result is the player handle used by
 // game_set_local_player (ECX handle, SI player index), datum_new_at_index_with_salt (EAX handle,

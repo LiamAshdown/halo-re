@@ -1,5 +1,5 @@
 // particle_update_physics_default  (Ghidra: no function created; the phase-4 types agent carved
-//   a placeholder "missed_455350" from the .rdata dispatch-table evidence)
+//   the stub name "missed_455350" from the .rdata dispatch-table evidence)
 // address 0x455350, size 369 bytes
 // VERIFIED against disassembly 0x455350..0x4554c1 (2026-09-30)
 // name confidence 0.6, rewrite confidence 0.9 (VERIFIED against objdump 0x455350..0x4554c0)

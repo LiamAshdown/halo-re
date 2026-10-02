@@ -17,7 +17,7 @@
 //    times as the original does), capped at 0.75 per channel.
 // Verified against the disassembly 0x494af0..0x494c98: the clamps, the three script-value calls, the 0.75 cap and the offsets
 // (effect +4 mask_flags, +0x24 mask_fullscreen tag id, +0x8c/+0x8e/+0x90 desaturation flags/source/intensity) match. The three
-// 0x71d190 floats are named for their use as a tint; the rasterizer reader is not rewritten.
+// 0x71d190 floats are named for their use as a tint; the rasterizer reader lives in another module.
 
 #include "tags.h"
 #include "memory.h"

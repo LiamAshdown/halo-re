@@ -584,7 +584,7 @@ These are the ones to treat with suspicion; each says so in its own header.
 | `decal_place.c` | `0x44edc0` | 6111 bytes, ~0x21000 bytes of stack, 35 `UNSURE`. The Decal tag index as parameter 1 and the final `decal` record writes are well evidenced and preserved exactly; the fallback/re-flood, triangle-fan and rasterizer geometry-packing section (~450 lines) is control flow only. The `placement` parameter is still an opaque `uint8_t *` with named-offset comments. |
 | `weather_instance_build_render_geometry.c` | `0x458bf0` | A rasterizer / frustum-culling / BSP-portal function. Only its per-tick side-effect calls are reproduced; none of the geometry math is. |
 | `particle_system_render.c` | `0x454bf0` | Offset-preserving best-effort pass; several call arguments are reconstructed rather than evidenced. |
-| `effect_compute_spawn_basis.c` | `0x451930` | Almost every operand arrives in a register. |
+| `effect_marker_from_node_table.c` | `0x451930` | Almost every operand arrives in a register. |
 | `ambient_color_sample.c`, `ambient_color_marker_visible.c` | `0x53fc80`, `0x53f860` | Heavy cross-module guesswork. `ambient_color_sample` deliberately applies `types/effects.h`'s documented 0.1 / 0.2 / 0.07 band weights, which the disassembly sets up but never visibly multiplies. |
 | `player_effect_set_camera_impulse.c` | `0x4579b0` | The `player_effect` record itself arrives in `EBX` and is never a visible parameter. |
 
@@ -709,7 +709,7 @@ Rewrite-confidence distribution: 7 files at 0.10–0.19, 25 at 0.20–0.29, 20 a
 | `0x451660` | `effect_start_event` | 172 | 0.5 | 0.55 | 1 |
 | `0x451710` | `effect_rebuild_markers` | 182 | 0.45 | 0.35 | 3 |
 | `0x4517d0` | `effect_marker_new` | 117 | 0.55 | 0.55 | 1 |
-| `0x451930` | `effect_compute_spawn_basis` | 251 | 0.3 | 0.1 | 5 |
+| `0x451930` | `effect_marker_from_node_table` | 251 | 0.3 | 0.1 | 5 |
 | `0x451a30` | `effect_update` | 1358 | 0.5 | 0.4 | 15 |
 | `0x451f90` | `effect_spawn_particles` | 2600 | 0.5 | 0.2 | 18 |
 | `0x4529d0` | `object_change_color_evaluate` | 770 | 0.5 | 0.55 | 5 |

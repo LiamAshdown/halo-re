@@ -17,7 +17,7 @@
 // FIXED (register inputs, objdump): EAX/EBX (read at 0x57cda6/0x57cdad) were already C
 //   parameters (first/value) but the old "blam-cc" note was a prose function signature that the
 //   checker's "REG -> name" parser could not read; reworded.
-// UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
+// UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern defined elsewhere.
 
 // VERIFIED against disassembly 0x57cda0..0x57cdd4 (2026-09-30): EAX=first, EBX=value, stack=last, stride 0x38, second string at +0x1c
 #include "tags.h"

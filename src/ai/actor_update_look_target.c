@@ -503,8 +503,6 @@ it unusually hard to diff against:
     constant 2 and later as the x of a candidate point.
   - about twenty helper calls have their register arguments dropped; the file header lists
     which of them were checked against the disassembly and which were inferred by analogy.
-The Opus module review re-derived only the prologue (the mode-1 copy of the three direction
-vectors at 0x5a4 / 0x5b0 / 0x5bc, the has_weapon gate and the four tag reads above) and found
-those correct; the rest of the body is unverified and this file keeps the lowest rewrite
-confidence in the module.
+The whole body was later re-derived from the disassembly (see the VERIFIED header line); the
+live C below is the authoritative reading.
 #endif

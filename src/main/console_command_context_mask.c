@@ -9,7 +9,7 @@
 // plain stack argument (`or eax,DWORD PTR [ebp+0x8]`) and that the 8188-byte `rep movsd` Ghidra
 // shows is a copy of the whole saved_player_profile_slot (0x1ffc-byte profile) onto the stack
 // merely to read its `flags` field at a fixed +0x11c; that copy has no other observable effect,
-// so it is not reproduced here (see the UNSURE note).
+// so it is not reproduced here (see the VERIFIED note below).
 // register convention: context_flags is the recognized stack parameter (param_1).
 // VERIFIED against disassembly 0x4c69c0..0x4c6a7a (2026-09-30): the 8188-byte on-stack copy of profile_globals_block[0] is
 // dropped (only its flags byte at +0x11c is read, no other effect). Each forbid step is `and eax, 0x0000fffX`, which also

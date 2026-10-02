@@ -9,7 +9,7 @@
 // register convention: a player handle, in EAX at entry (immediately copied into the
 // callee-saved EBX -- see FIXED note below -- and forwarded to player_kill_and_release_unit and
 // to the player_round_reset callback unchanged); a second, callback-only argument is this
-// function's own (previously unmodeled) stack parameter.
+// function's own stack parameter.
 //   // blam-cc: EAX -> player_handle, stack -> callback_argument
 // FIXED (register inputs, objdump): EAX carries player_handle (read at 0x463621, mov ebx,eax,
 // right after the prologue's `push ebx`). The old note attributed the handle to EBX itself, but

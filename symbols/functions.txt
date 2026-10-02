@@ -750,7 +750,7 @@
 0x451660 effect_start_event func 0.50 agent-phase4 src/effects/effect_start_event.c_header_comment
 0x451710 effect_rebuild_markers func 0.45 agent-phase4 src/effects/effect_rebuild_markers.c_header_comment
 0x4517d0 effect_marker_new func 0.55 agent-phase4 src/effects/effect_marker_new.c_header_comment
-0x451930 effect_compute_spawn_basis func 0.30 agent-phase4 src/effects/effect_compute_spawn_basis.c_header_comment
+0x451930 effect_marker_from_node_table func 0.50 agent-phase4 src/effects/effect_marker_from_node_table.c_header_comment
 0x451a30 effect_update func 0.50 agent-phase4 src/effects/effect_update.c_header_comment_(renames_particle_system_update)
 0x451a33 sig__effect_table_sig code 0.90 chimera:core inside=0x451a30
 0x451c3a sig__spectate_cull_effects_sig code 0.90 chimera:client_spectate inside=0x451a30

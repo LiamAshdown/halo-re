@@ -9,7 +9,7 @@
 // game_engine_state, game_engine_definition (is_winner +0x8c, get_team_score +0x50, build_player_text +0x54,
 // build_team_score_text +0x5c); scoreboard_entry (place +0x18, tie bit 0x80000000).
 // register convention: none; both parameters are stack args (player handle, out wchar_t[0x50]).
-// REWRITTEN 2026-09-30 from the disassembly. Every string index is now pinned (the draft used placeholder indices 0..11 through
+// REWRITTEN 2026-09-30 from the disassembly. Every string index is now pinned (the draft guessed indices 0..11 through
 // a mis-modelled helper): every lookup is `tag_lookup('ustr', "ui\\multiplayer_game_text")` + text_string_list_get_string(tag, N)
 // with N = 0x34 / 0x35 / 0x36 (no lives / one life / N lives, the last one a format string), 0x37 (no clear leader, read
 // straight from the tag data), 0x38 / 0x39 (result 0 with / without teams), 0x3a / 0x3b (result 1 with / without teams),
