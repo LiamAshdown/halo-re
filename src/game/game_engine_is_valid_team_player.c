@@ -19,7 +19,7 @@
 #include "game.h"
 
 extern int32_t game_engine_unknown_aa00; // 0x0087aa00
-extern int32_t light_count_enabled;               // 0x0068944c, UNSURE: not owned by this module
+extern int16_t light_count_enabled;               // 0x0068944c, UNSURE: not owned by this module (a WORD: 2 bytes at 0x68944c)
 extern data_array *player_data;          // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
