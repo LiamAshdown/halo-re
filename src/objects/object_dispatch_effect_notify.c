@@ -22,10 +22,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index,
     datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale,
     const ColorRGB *color, const effect_tint_source *tint_source);

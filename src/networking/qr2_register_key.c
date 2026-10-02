@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const char *qr2_registered_key_list[255]; // 0x00683990
 
 void qr2_register_key(int32_t keyid, const char *key)

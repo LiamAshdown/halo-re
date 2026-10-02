@@ -38,10 +38,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_list_current;                        // 0x00692c04
 extern growable_array ui_lists[3];                      // 0x006b3830
 extern int16_t local_player_count;                      // 0x006894b8

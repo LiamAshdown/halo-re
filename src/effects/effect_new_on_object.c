@@ -25,10 +25,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *effect_data;                 // 0x0087abdc
 extern uint8_t first_person_effects_enabled;    // 0x00687014
 

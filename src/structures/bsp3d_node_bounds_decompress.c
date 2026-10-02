@@ -21,9 +21,6 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Decompresses one BSP3D node's byte-quantized per-axis bounds (each byte 0..255 mapping
 // linearly across the corresponding world_bounds range, with 0xff mapping to exactly the range's
@@ -32,6 +29,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // both callers pass a different record whose first six bytes have that shape:
 // bsp3d_node_query_recursive passes a ScenarioStructureBSPNode, structure_bsp_leaf_query passes a
 // ScenarioStructureBSPLeaf (bounds_x/y/z then cluster).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void bsp3d_node_bounds_decompress(real_rectangle3d *parent_bounds, uint8_t *compressed_bounds,
     real_rectangle3d *out)
     // blam-cc: ECX -> parent_bounds, EDX -> compressed_bounds, ESI -> out

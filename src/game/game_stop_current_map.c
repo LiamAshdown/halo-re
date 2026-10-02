@@ -21,10 +21,10 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *recorded_animations; // 0x006b0a10, TYPES-GAP (data_array*)
 extern uint32_t rasterizer_globals_data; // TYPES-GAP
 extern uint32_t *cinematic_globals_ptr; // 0x006f187c, TYPES-GAP

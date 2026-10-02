@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float rasterizer_default_z_near;      // 0x0069c65c, rasterizer.h (R11)
 extern float rasterizer_default_z_far;       // 0x0069c660, rasterizer.h (R11)
 extern uint32_t rasterizer_frustum_z_values[2]; // 0x0069c664, rasterizer.h: the second {near, far}

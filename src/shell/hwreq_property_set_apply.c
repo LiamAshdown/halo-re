@@ -10,10 +10,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hwreq_property_set_upsert(hwreq_property_set *property_set, char *key, char *value); // 0x578410
 
 static char *c_str(msvc_std_string *s)

@@ -15,10 +15,10 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe
 extern void *rasterizer_device;                  // 0x0071d174
 extern GlobalsRasterizerData *rasterizer_globals_data; // 0x0071d164

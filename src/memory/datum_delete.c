@@ -13,15 +13,15 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: array in EAX, handle in EDX
 // Frees the datum slot named by `handle` (index in the low 16 bits, salt in the high 16, with a
 // zero salt acting as a wildcard that matches any live slot), recycling its slot and compacting
 // the array's trailing free space. Passing an invalid handle (bad index, empty slot, or salt
 // mismatch) is not a supported call and crashes via a null-pointer write -- see UNSURE above.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void datum_delete(data_array *array, datum_index handle)
 {
     int16_t index;

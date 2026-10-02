@@ -30,10 +30,10 @@
 #include "input.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern Scenario *global_scenario;      // 0x00746f8c, foreign (game module)
 extern game_time_globals *game_time;   // 0x006f1d6c, foreign (game module)

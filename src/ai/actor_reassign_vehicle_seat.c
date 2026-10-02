@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0, blam-cc: ECX -> object_index, stack -> kind
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b); // 0x45bd50, teams_are_enemies; blam-cc: CX -> team_a, DX -> team_b

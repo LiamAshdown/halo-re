@@ -24,10 +24,10 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0

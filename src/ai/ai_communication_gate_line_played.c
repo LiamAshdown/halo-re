@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier,
                                                  int16_t communication_line_id,
                                                  int16_t conversation_line_id); // 0x42f9e0

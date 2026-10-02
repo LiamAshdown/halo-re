@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
     uint32_t vertex_count, uint32_t primitive_count); // TEMPORARY first-person diagnostics

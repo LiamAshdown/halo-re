@@ -8,10 +8,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // Normalizes the quaternion in place, falling back to the identity quaternion when its length

@@ -31,10 +31,10 @@
 #include "units.h"
 #include "cache.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern camera_script_globals camera_script;         // 0x006869d0
 extern game_time_globals *game_time;                // 0x006f1d6c
 extern int16_t network_game_mode;                   // 0x00719720

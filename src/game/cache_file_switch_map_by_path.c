@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t map_download_in_progress;   // 0x006ac470
 extern char *rasterizer_shader_file_name;      // 0x00722bbc
 extern game_main_globals *main_game_globals; // 0x006b0b80

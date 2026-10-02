@@ -49,10 +49,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> {0,0,0} at 0x0065c230 (types/math.h
                                                    // global_math_constant_pointers slot 10; slot 17,
                                                    // 0x00696714, global_origin3d_pointer, points at the

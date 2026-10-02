@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "sound.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char *sound_class_names[k_maximum_sound_classes]; // 0x0069f3a8
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0
 

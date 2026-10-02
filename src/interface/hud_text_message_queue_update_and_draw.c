@@ -19,10 +19,10 @@
 #include "interface.h"
 #include <wchar.h>
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t hud_text_message_time_base; // 0x0071922c

@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_head_relative_speech; // 0x00722b5c
 
 // config.txt "HeadRelativeSpeech" setter: presence alone sets the flag.

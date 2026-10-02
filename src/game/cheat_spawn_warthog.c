@@ -16,10 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals; // 0x00746fa0
 
 extern int32_t strstr(const char *a, const char *b); // 0x625430, UNSURE: CRT strcmp-shaped

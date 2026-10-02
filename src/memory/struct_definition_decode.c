@@ -20,11 +20,11 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
+// blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
 extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
     struct_definition_field *fields, int16_t *out_field_count);
 // blam-cc (0x4d08a0, below this batch's assigned range): maximum in EAX, stream in ECX. Reads a

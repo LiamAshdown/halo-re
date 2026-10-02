@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index global_scenario_index; // 0x0069e8d4, UNSURE name
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t profile_slot_id[]; // 0x00714dde, per types/interface.h globals list (profile_slot_id[])

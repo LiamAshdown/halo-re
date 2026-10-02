@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index ui_cursor_bitmap; // 0x0068e67c, ui\shell\bitmaps\cursor
 extern int32_t ui_cursor_x;          // 0x00718f84
 extern int32_t ui_cursor_y;          // 0x00718f88

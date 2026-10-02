@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern char network_ban_file_read_mode_string[]; // 0x0066d81c, fopen mode "rt"
 

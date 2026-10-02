@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
 extern void *animation_get_frame_data(ModelAnimationsAnimation *animation, int16_t frame); // 0x4d4810, see animation_get_frame_data.c

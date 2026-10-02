@@ -30,10 +30,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t current_local_player_index; // 0x007c3108
 extern tag_instance *tag_instances;        // 0x0087bc14
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c

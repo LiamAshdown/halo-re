@@ -28,10 +28,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data; // 0x006b7020
 
 extern int standalone_devmode(void); // standalone/loader.c: "-devmode" or HALO_DEVMODE

@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "cache.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;            // 0x0087bc14
 
 // 0x00671fac is not an empty string and not a pointer: it holds the characters of

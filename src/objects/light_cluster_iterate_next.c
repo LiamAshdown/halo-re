@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index *light_cluster_first; // 0x00860b20
 extern data_array *light_cluster_references; // 0x00860b24
 

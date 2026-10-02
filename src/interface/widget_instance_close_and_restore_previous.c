@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern uint8_t ui_restoring_previous_widget;      // 0x00718fcb
 

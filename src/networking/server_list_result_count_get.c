@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_thread_record *server_list_thread; // 0x007196ac
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern server_list_globals server_list;         // 0x007196bc

@@ -7,13 +7,13 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: destination as the recognized parameter, stream in EDX
 // Reads a single bit from a bounds-checked bit stream into *out_bit and advances the stream's
 // one-bit cursor. Returns 1 on success, 0 if the stream has no room left.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream)
 {
     uint32_t pos;

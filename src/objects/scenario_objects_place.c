@@ -22,10 +22,10 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_server;  // 0x0071c2d4, pointer; +8 is its connection state
 extern int32_t network_client;   // 0x0071c2d8, pointer; +0xb14 is its connection state
 extern int16_t network_game_mode; // 0x00719720: 1 single player, 2 multiplayer

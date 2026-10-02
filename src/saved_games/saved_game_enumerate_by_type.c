@@ -25,10 +25,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern network_mutex_record *savegame_index_mutex; // 0x00721440
 extern uint8_t savegame_index_dirty; // 0x00721447

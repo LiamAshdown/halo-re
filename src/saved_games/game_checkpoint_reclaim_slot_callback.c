@@ -21,11 +21,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,
     int32_t difficulty, int32_t game_time_ticks, const win32_systemtime *time, void *user_data)
 {

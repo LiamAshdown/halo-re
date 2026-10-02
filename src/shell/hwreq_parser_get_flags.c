@@ -12,10 +12,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 hwreq_property_set *hwreq_parser_get_flags(hwreq_parser *parser)
 {
     return (hwreq_property_set *)parser->flags;

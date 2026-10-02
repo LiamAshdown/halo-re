@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Rectangle2D game_window_top_left; // 0x0069c634, foreign (rasterizer module)
 extern Rectangle2D game_screen_rect; // 0x0069c63c, foreign (rasterizer module)
 

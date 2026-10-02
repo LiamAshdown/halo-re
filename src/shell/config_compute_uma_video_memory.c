@@ -22,10 +22,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t physical_memory; // 0x00722ba8, MB
 extern uint32_t video_memory;    // 0x00722bb0, bytes
 

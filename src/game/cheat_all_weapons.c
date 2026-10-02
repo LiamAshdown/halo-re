@@ -22,10 +22,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals; // 0x00746fa0
 
 extern datum_index tag_iterator_next(tag_iterator *iterator); // 0x4425d0, blam-cc: ESI ->

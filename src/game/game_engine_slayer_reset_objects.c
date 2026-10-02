@@ -11,10 +11,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418

@@ -13,13 +13,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Steps each of 3 floats in `current` toward the matching float in `target` by at most
 // `max_delta`, in place. Used to smooth cached lighting samples frame to frame instead of
 // snapping to the freshly sampled value.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void render_lighting_step_vector3_toward(float *current, float *target, float max_delta) // blam-cc: ECX=current, EDX=target, stack=max_delta
 {
     float delta;

@@ -26,10 +26,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t save_in_progress_00719010;           // 0x00719010
 extern int32_t quality_selection_00692b04;          // 0x00692b04
 extern int32_t resolution_selection_00719204;       // 0x00719204

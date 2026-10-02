@@ -35,10 +35,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
     // this module, 0x48a560; blam-cc: EBX -> result_address (documented in types/hs.h), the
     // other two registers UNSURE

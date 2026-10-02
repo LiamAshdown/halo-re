@@ -18,11 +18,11 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530
 

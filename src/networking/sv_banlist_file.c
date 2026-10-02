@@ -23,10 +23,10 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_banlist_full_path[0x104]; // 0x0071c308
 extern char profile_directory[0x105]; // 0x006ac900 (types/cache.h); pushed as an address (0x4e3e90)
 

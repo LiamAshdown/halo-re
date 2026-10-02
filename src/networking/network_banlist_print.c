@@ -18,10 +18,10 @@
 #include "networking.h"
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 
 extern void *console_color_00685214; // 0x00685214, a ColorARGB * the original loads into EAX

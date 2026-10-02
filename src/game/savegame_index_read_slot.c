@@ -22,10 +22,10 @@
 #include "hs.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
 extern file_reference savegame_index_file; // 0x00721330
 extern network_mutex_record *savegame_index_mutex; // 0x00721440, networking.h record; +0x00 is the HANDLE

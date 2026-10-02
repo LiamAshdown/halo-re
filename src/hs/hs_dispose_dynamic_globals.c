@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void datum_delete(data_array *array, datum_index handle); // blam-cc: EAX -> array,
     // EDX -> handle; memory module, 0x4d0510
 

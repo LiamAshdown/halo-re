@@ -12,11 +12,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Transforms a vector from world space into a matrix4x3's local space, without translation.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Transforms a vector from world space into a matrix4x3's local space, without translation.
 void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m)
 {
     real i, j, k;

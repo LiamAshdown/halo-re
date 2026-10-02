@@ -13,13 +13,13 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: DX -> after_index, EDI -> array
 // Finds the handle of the next in-use slot strictly after `after_index`, or k_datum_index_none
 // if none remain.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 datum_index datum_next(int16_t after_index, data_array *array)
 {
     uint32_t result;

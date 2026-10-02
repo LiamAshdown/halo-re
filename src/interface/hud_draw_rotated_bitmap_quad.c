@@ -21,10 +21,10 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float sinf(float x);
 extern float cosf(float x);
 extern long lrint(double x); // x87 fistp under the default control word (round-half-to-even)

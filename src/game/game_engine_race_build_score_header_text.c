@@ -13,10 +13,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_variant; // 0x006f1c88
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index); // 0x5578c0, blam-cc: ECX list, EDX index

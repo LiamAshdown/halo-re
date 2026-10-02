@@ -13,12 +13,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Second-stage remap from item_type_to_message_stage's result to the final index used to index
 // the weapon_hud_interface message table; -1 for any input with no entry.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t item_type_to_animation_stage(int16_t message_stage)
 {
     switch (message_stage) {

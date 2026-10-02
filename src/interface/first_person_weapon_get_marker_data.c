@@ -19,10 +19,10 @@
 #include "interface.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14, types/cache.h
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 

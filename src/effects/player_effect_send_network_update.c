@@ -16,10 +16,10 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_id_table *object_network_id_table; // 0x00687130

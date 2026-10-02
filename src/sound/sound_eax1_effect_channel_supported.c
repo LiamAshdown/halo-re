@@ -15,12 +15,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> this
 // EAX1 has no per-channel EAX properties; always reports unsupported.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t __thiscall sound_eax1_effect_channel_supported(sound_effect_object *this_object)
 {
     return 0;

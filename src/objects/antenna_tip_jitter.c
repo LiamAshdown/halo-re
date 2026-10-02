@@ -19,10 +19,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t effect_random_seed; // 0x00719cd4
 
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); // 0x4cbe50

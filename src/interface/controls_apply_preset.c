@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t controls_menu_list_mode;          // 0x00719445, UNSURE name
 extern int32_t selected_saved_item;              // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80

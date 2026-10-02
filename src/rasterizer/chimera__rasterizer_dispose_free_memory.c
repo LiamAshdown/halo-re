@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_misc_vertex_buffer; // 0x0071d270
 extern transparent_geometry_group *transparent_geometry_groups;           // 0x0071d14c
 extern transparent_geometry_group *transparent_geometry_groups_secondary; // 0x0071d150

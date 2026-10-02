@@ -17,10 +17,10 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 extern char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state); // 0x405520, this session

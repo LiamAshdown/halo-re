@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, blam-cc: CX -> local_player_index
 extern player_globals *local_player_globals;     // 0x0087a478
 extern data_array *player_data;                  // 0x0087a480

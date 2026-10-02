@@ -13,13 +13,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Tests whether the parser's cursor is currently positioned at the given keyword, followed by a
 // valid delimiter character, without consuming the token.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *parser)
 {
     uint32_t length;

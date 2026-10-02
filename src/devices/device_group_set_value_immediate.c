@@ -19,10 +19,10 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *device_groups; // 0x0087abf0
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module

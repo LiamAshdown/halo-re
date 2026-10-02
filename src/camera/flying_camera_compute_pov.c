@@ -18,10 +18,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t flying_camera_follow_script;                 // 0x006f17fd, UNSURE name
 extern void *flying_camera_render_frame;                    // 0x00686aa4 -> 0x007c3100; +0x14 is a render_camera
 extern editor_camera_data *flying_camera_data;              // 0x006f1814

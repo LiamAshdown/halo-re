@@ -7,10 +7,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void unit_inventory_get_weapon(void)
 {
     return;

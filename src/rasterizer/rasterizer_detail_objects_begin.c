@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void *rasterizer_detail_object_vertex_buffer;                // 0x0071d1c8
 extern uint8_t console_debug_toggle_689404;                         // 0x00689404 detail objects enable

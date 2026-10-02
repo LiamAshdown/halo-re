@@ -22,10 +22,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float render_camera_global[3]; // 0x007c3114, UNSURE: guessed name
 extern float camera_forward_x[3];  // 0x007c3120, UNSURE: guessed name
 extern float render_camera_facing_basis[16]; // 0x007c31e0, UNSURE: guessed name/shape

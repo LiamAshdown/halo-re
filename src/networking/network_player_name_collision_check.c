@@ -16,10 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 
 // blam-cc: EAX -> session, EBX -> candidate_name

@@ -19,10 +19,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hs_get_parameter_indices(char *function_name, int16_t required_count, datum_index node_index, datum_index *out_indices); // 0x00484fb0, this batch
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 

@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t directsound_eax_enabled;             // 0x00746121
 extern uint8_t directsound_eax_available;           // 0x00746120
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24

@@ -15,10 +15,10 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern wchar_t empty_string; // 0x00660c34

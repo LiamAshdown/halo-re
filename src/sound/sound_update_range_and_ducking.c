@@ -18,10 +18,10 @@
 #include "cache.h"
 #include "game.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *sound_data;               // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances;          // 0x0087bc14

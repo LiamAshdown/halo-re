@@ -19,13 +19,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> node
 // True if every ancestor from `node` up to the tree root has its focused_child pointing back at
 // the node it was reached from (i.e. the whole chain above `node` is internally consistent).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t widget_instance_verify_stack_chain(widget_instance *node)
 {
     widget_instance *ancestor;

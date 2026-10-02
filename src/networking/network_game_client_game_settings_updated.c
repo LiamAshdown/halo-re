@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *local_player_globals;  // 0x0087a478, UNSURE identity, see update_server_send_update.c
 extern void *variant_defaults_source;      // 0x0087aa40, UNSURE identity: strncpy'd map-name-ish
 extern uint8_t game_engine_pending_variant[0x98]; // 0x0087aa80, UNSURE identity: copied into session+0x10c-ish

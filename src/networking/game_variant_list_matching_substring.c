@@ -18,10 +18,10 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0
 
 extern void string_format_wide_va_bounded(uint16_t *dest, const char *format, ...); // foreign, UNSURE shape, 0x557910

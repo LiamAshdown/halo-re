@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_allocate_script_node_table(void); // 0x00483100, this batch
 extern char hs_compile_source(void); // 0x00484090, this batch
 extern char hs_compile_postprocess(char **error_message, int32_t *error_offset); // 0x004858c0, this batch

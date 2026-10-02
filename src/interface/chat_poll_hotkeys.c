@@ -16,10 +16,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data;          // 0x006b7020, main.h; +0x00 active = console open (R08)
 extern uint8_t chat_dialog_open;   // 0x006b3858
 extern uint8_t chat_hotkey_all;    // 0x007124a7, UNSURE name

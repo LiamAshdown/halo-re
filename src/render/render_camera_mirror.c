@@ -29,10 +29,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 

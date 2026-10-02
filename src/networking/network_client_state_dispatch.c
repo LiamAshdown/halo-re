@@ -17,9 +17,6 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // The five per-state handlers. 0x4d8bb0's own dispatch table shows how each is reached:
 //   case 0  mov eax,esi / jmp 0x4daa20   -> client in EAX, tail call
@@ -27,6 +24,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 //   case 2  call 0x4daef0                -> client still in ESI
 //   case 3  push esi / call 0x4daf80     -> client on the stack
 //   case 4  mov eax,esi / jmp 0x4db100   -> client in EAX, tail call
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern char network_join_handshake_tick(network_client_globals *client);        // 0x4daa20
 extern char network_join_connect_retry_tick(network_client_globals *client);    // 0x4dab80
 extern char network_host_lobby_tick(network_client_globals *client);            // 0x4daef0

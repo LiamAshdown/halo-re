@@ -17,10 +17,10 @@
 #include "cache.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 // UNSURE: `team` is actually compared to ScenarioNetgameFlags::type, and `type` to

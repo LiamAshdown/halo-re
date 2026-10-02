@@ -15,10 +15,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 extern void string_throw_length_error(void); // 0x638eb4, _Xlen: throws length_error("string too long")
 extern msvc_std_string *string_erase(msvc_std_string *this_, uint32_t pos, uint32_t count); // 0x57bd80

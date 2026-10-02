@@ -11,12 +11,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // sqrt is a single x87 FSQRT instruction in the original code (Ghidra's SQRT() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double sqrt(double x);
 
 extern int16_t k_quaternion_next_index_matrix3x3[3]; // 0x00696668, {1,2,0}

@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void rasterizer_transparent_geometry_group_new(void *shader, int16_t shader_permutation, uint32_t lightmap_bitmap,
     uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count, uint32_t vertex_buffer, void *tint,
     uint32_t lighting, uint32_t flags, void *world_position); // 0x522300, stack, EAX = world_position

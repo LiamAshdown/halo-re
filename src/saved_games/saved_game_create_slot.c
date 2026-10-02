@@ -36,10 +36,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern int16_t quit_confirm_error_string_index; // 0x00718fac, UNSURE name (interface error code slot)
 extern int16_t quit_confirm_error_unknown_ae; // 0x00718fae

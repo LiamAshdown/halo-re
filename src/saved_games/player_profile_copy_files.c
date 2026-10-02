@@ -33,9 +33,6 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: source directory in ESI; destination directory as the one stack argument
@@ -44,6 +41,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // dest_dir. Stops at the first failed copy; a failed savegame.sav copy skips both checkpoint
 // phases and a failed checkpoints\*.sav copy skips the *.bin phase. Returns the blam.sav /
 // savegame.bin copy result (0 if either failed), never the later ones.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t player_profile_copy_files(const char *source_dir, char *dest_dir)
 {
     char dest_path[0x100];

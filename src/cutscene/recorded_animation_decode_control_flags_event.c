@@ -16,13 +16,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> (state, control, header, cursor)
 // Compressed event type 4: copies one word from *cursor into control->control_flags and advances
 // *cursor by 2. state and header are unused.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_decode_control_flags_event(recorded_animation_decoder_state *state,
     unit_control_data *control, uint8_t *header, uint8_t **cursor)
 {

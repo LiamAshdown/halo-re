@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern uint8_t unknown_006893f6, unknown_006893f7, unknown_006893f8, console_debug_toggle_6893f9; // UNSURE debug toggles
 extern uint8_t unknown_006893fd, unknown_0068941d, console_debug_toggle_6893f2; // UNSURE debug toggles

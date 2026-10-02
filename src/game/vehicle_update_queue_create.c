@@ -13,12 +13,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ESI -> queue
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void vehicle_update_queue_create(circular_queue *queue)
 {
     uint32_t *storage;

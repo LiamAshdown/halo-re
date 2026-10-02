@@ -15,10 +15,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                                     // 0x0071d174
 // blam-cc: EAX -> bitmap
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550

@@ -18,10 +18,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index); // 0x4f52c0, ESI, EDI

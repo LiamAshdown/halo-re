@@ -19,10 +19,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 
 // Reads a raw int16 value out of the carousel-slot profile record and clamps it into 0..0x11

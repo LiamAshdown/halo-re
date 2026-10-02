@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t unknown_006893ef; // 0x006893ef UNSURE: debug toggle
 extern int16_t rasterizer_shader_stage_config; // 0x0069c6ac
 extern void *rasterizer_device; // 0x0071d174

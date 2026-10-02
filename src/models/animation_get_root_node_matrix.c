@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
                                               int16_t frame, real_orientation *out_orientations); // 0x4d4a80

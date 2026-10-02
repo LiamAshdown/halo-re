@@ -11,10 +11,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void unit_animation_set_state(void)
 {
     return;

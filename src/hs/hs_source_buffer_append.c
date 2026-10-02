@@ -13,11 +13,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern char *hs_compiled_source;          // 0x006b14c0
 extern int32_t hs_compiled_source_length; // 0x006b14bc
 

@@ -25,10 +25,10 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *light_data;      // 0x00860b14
 extern game_time_globals *game_time;         // 0x006f1d6c, game time globals; +0x0c is the current tick
 extern int32_t light_frame_counter; // 0x008607c4

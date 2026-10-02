@@ -13,10 +13,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t hwreq_token_parse_hex_id(hwreq_parser *parser); // 0x00578ef0
 
 // Parses a 4-hex-digit token and returns it byte-swapped, used when assembling multi-byte

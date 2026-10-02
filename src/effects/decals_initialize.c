@@ -19,10 +19,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *decal_data;          // 0x0087abe4
 extern decal_grid *decal_grid_block;    // 0x006b0ad8
 extern uint8_t *game_state_base;        // 0x006e2dc8

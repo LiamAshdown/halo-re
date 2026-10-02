@@ -16,10 +16,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern int32_t game_state_cursor; // 0x006e2dcc
 extern uint32_t game_state_crc; // 0x006e2dd4

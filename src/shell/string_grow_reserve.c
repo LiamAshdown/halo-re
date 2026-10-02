@@ -30,12 +30,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ECX -> this, stack -> new_capacity, preserve_count
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void string_grow_reserve(msvc_std_string *self, uint32_t new_capacity, uint32_t preserve_count)
 {
     uint32_t capacity = new_capacity | 0xf;

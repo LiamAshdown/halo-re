@@ -18,10 +18,10 @@
 #include "hs.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 failed, 1 running
 
 extern uint8_t *autopatch_update_cfg_directory; // UNSURE: implicit path component this resolves against

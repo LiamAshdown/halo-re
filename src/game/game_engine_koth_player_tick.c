@@ -24,10 +24,10 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                  // 0x0087a480
 extern uint8_t king_hill_player_in_hill[16];     // 0x006b0f40
 extern game_engine_definition *current_game_engine; // 0x006f1d20

@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern uint32_t rasterizer_scratch_memory_used; // 0x0071d140
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count]; // 0x006d98e8

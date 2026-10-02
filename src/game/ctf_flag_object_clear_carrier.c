@@ -23,10 +23,10 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;                    // 0x008603b0
 extern game_time_globals *game_time;                  // 0x006f1d6c
 extern real_vector3d *global_forward3d_pointer;        // 0x00696718, (1,0,0)

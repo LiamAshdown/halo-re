@@ -17,10 +17,10 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode; // 0x00719720
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc

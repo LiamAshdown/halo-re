@@ -15,11 +15,11 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
 // blam-cc: searched name in EDX

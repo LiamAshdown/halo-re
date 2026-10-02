@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <time.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
     char *time_dest); // this batch, 0x4e5320
 

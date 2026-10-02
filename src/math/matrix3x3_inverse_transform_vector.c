@@ -11,12 +11,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Transforms a vector by the transpose of a 3x3 matrix (inverse transform for an orthonormal
 // matrix).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void matrix3x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix3x3 *m)
 {
     real_vector3d snapshot;

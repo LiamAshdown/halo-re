@@ -16,10 +16,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 
 extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory); // 0x53d080, blam-cc: handle in EAX, out buffer in ESI; bool in AL

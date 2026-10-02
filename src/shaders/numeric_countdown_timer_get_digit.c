@@ -21,10 +21,10 @@
 
 #include "tags.h"
 #include "shaders.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t numeric_countdown_timer_remaining_ms; // 0x00721e50
 
 int16_t numeric_countdown_timer_get_digit(int16_t digit_index) // blam-cc: AX -> digit_index

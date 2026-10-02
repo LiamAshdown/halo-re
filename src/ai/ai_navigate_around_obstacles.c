@@ -23,10 +23,10 @@
 #include <stdint.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c
 extern double sqrt(double x); // FSQRT

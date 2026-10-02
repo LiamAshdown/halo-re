@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern heap *widget_memory_pool; // 0x006926c4
 extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0
 

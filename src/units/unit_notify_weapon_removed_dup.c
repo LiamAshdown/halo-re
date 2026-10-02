@@ -10,10 +10,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state); // 0x565f90
 
 // FIXED (objdump 0x56ab30..0x56ab40): the state is the constant 0x26 (the seat close), not an argument.

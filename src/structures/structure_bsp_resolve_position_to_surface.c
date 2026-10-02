@@ -34,10 +34,10 @@
 #include "objects.h"   // bsp_leaf_reference, needed by projectiles.h's collision_result
 #include "projectiles.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 // 0x0067 2db0, the 1/4096 step the walk nudges the position by on each retry.

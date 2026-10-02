@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 extern void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index target_prop_index,

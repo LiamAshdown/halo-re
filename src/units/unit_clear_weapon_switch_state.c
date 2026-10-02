@@ -27,10 +27,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale); // 0x543dd0, src/sound/sound_start_unspatialized.c
 extern void unit_invalidate_local_player_zoom_level(void);         // 0x4726f0, UNSURE: no traced args
 

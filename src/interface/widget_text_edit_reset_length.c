@@ -14,10 +14,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 
 // blam-cc: state in ESI (unaff_ESI)

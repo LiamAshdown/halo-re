@@ -25,10 +25,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern datum_index effect_marker_new(effect *self, int16_t location_index, object_marker *resolved_marker,

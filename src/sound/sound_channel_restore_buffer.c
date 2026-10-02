@@ -18,15 +18,15 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 
 // blam-cc: ESI -> buffer, EBX -> was_restored_out
 // Restores a DirectSound buffer whose memory was lost, retrying (Sleep(0)) while Restore keeps
 // answering DSERR_BUFFERLOST.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t sound_channel_restore_buffer(void *buffer, uint8_t *was_restored_out)
 {
     void **vtable;

@@ -26,10 +26,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern int32_t extract_product_id_digits(const char *product_id); // 0x57f360, blam-cc: product_id in EBX
 extern uint8_t compute_sha1_hash(const uint8_t *data, uint32_t length, uint8_t *digest_out); // 0x57f2a0

@@ -20,10 +20,10 @@
 #include "interface.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"

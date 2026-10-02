@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 
 int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order)

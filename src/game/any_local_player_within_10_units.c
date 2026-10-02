@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals; // 0x0087a478
 extern float camera_point[]; // 0x006ac6d0, stride 0x29c bytes (0xa7 floats) per player slot
 extern float camera_position_y_table[]; // 0x006ac6d4, same stride

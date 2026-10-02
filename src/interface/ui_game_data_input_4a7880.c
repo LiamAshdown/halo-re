@@ -19,10 +19,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t unknown_00719208; // 0x00719208, UNSURE
 extern uint8_t variant_teams_enabled_0071920c; // 0x0071920c, UNSURE name (variant byte +0x34 != 0)
 extern int32_t variant_team_selection_00692b08; // 0x00692b08, UNSURE name

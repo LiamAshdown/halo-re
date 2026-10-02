@@ -27,10 +27,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280, UNSURE name
 extern char k_empty_string[];                  // 0x0065512c
 

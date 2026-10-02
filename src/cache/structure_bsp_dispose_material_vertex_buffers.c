@@ -17,10 +17,10 @@
 
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device; // 0x0071d174
 
 // blam-cc: compiled_header in EAX

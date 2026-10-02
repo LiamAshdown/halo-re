@@ -15,10 +15,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_address_string[0x100]; // 0x006a3f38, shared format buffer
 
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);

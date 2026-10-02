@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name);            // this module, 0x490e30
 extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name);         // this module, 0x490f20
 extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name); // this module, 0x491010

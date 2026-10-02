@@ -14,9 +14,6 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 
@@ -24,6 +21,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // Appends a new 20-byte sample entry: while the buffer has not yet reached 30 entries it grows
 // in place, otherwise it overwrites the slot at the wrapping write_cursor. Either way, recomputes
 // the buffer's cached running average (of entry field index 4) over every entry currently held.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *ring, const int32_t *entry)
 {
     int32_t slot;

@@ -24,10 +24,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_channel_queue_message(network_channel *channel, uint32_t header_value, uint32_t body_value,
     int32_t header_bit_count, char immediate, char flush_after, int32_t body_bit_count); // 0x4dce40, EDI channel, EBX body bits
 

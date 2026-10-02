@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant_history_entry *game_variant_history; // 0x00687b0c
 extern uint32_t game_variant_history_count;              // 0x00687b10
 extern uint32_t game_variant_history_capacity;            // 0x00687b14

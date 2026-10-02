@@ -62,12 +62,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // cos/sin are single x87 instructions in the original code (Ghidra's fcos()/fsin() pseudo-
 // calls); declared locally instead of via <math.h> because -I types shadows that header name.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double cos(double x);
 extern double sin(double x);
 extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod: x in ST(1), y in ST(0)

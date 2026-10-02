@@ -8,10 +8,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index) // blam-cc: in_EAX, in_CX

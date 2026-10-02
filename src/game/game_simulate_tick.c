@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t DAT_0087ab18;                 // 0x0087ab18, UNSURE: "simulation in progress" reentrancy flag
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910

@@ -24,10 +24,10 @@
 #include "game.h"
 #include "camera.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160
 extern player_globals *local_player_globals; // 0x0087a478

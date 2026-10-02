@@ -20,10 +20,10 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern game_time_globals *game_time;   // 0x006f1d6c, foreign (game module)
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c

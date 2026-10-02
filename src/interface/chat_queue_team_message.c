@@ -26,10 +26,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern data_array *player_data; // 0x0087a480
 extern network_server_globals *network_server; // 0x0071c2d4, UNSURE: base for the +0x3b8/+0x3c4 tables

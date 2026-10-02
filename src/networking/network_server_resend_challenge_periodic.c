@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern void *network_prepare_challenge_packet(void); // 0x4deaf0, this module
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,

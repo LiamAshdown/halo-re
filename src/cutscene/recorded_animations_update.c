@@ -31,10 +31,10 @@
 #include "units.h"
 #include "cutscene.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *recorded_animations;     // 0x006b0a10
 extern data_array *object_data;             // 0x008603b0
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4]; // 0x00686fe8

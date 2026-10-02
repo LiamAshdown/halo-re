@@ -9,15 +9,15 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: max_length in CX, stream in ESI, string as the recognized parameter
 // Writes a NUL-terminated copy of `string` into `stream`, capped to the first max_length
 // characters (or up to the first NUL, whichever comes first). Sets the overflow flag and returns
 // false if there isn't room for the string plus its NUL; returns true on success.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t byte_stream_write_string(char *string, int16_t max_length, byte_stream *stream)
 {
     int32_t length;

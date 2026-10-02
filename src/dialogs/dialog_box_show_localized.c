@@ -21,11 +21,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern uint32_t shell_language_id; // 0x0069ff20, shell-owned; see types/dialogs.h
 
 // Shows a modal dialog box built from `template_name` (a resource name, or a MAKEINTRESOURCE id

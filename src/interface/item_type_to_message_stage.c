@@ -13,12 +13,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // First-stage remap from an item/weapon type code to an intermediate HUD message index; -1 for
 // any code with no entry.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t item_type_to_message_stage(int16_t item_type_code)
 {
     switch (item_type_code) {

@@ -18,10 +18,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest,
     color_interpolation_flags flags, float t); // 0x43f6a0, this batch
 

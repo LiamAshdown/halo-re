@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_allow_empty; // 0x006953fa
 extern uint8_t server_browser_allow_full;  // 0x006953fb
 extern uint8_t server_browser_filter_allow_unknown_map;               // 0x0071948d, server_browser_filters.allow_unknown_map

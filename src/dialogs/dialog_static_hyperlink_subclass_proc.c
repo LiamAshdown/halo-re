@@ -26,11 +26,11 @@
 #include "memory.h"
 #include "interface.h"
 #include "dialogs.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t dialog_hyperlink_hovered; // 0x00722bc8, this module; written only here, read by
                                          // dialog_static_hyperlink_parent_proc 0x57e2a0 (WM_CTLCOLORSTATIC)
 

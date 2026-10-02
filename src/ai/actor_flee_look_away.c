@@ -19,10 +19,10 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_look_request *request); // 0x4046c0, EAX, ESI, EBX
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data); // 0x40d8d0, this module

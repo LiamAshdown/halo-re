@@ -13,13 +13,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ESI -> widget
 // Returns widget's 0-based index among its parent's children (first_child, then next_sibling),
 // or -1 if it has no parent or is not found while walking the sibling chain.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t widget_get_sibling_index(widget_instance *widget)
 {
     int32_t index = -1;

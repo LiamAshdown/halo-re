@@ -15,10 +15,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void console_printf_verbose(const char *format, ...); // 0x496a80
 extern int32_t interface_loading_screen_progress; // 0x00718f90
 extern int32_t join_ui_state; // 0x00718f8c

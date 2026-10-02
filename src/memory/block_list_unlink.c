@@ -15,11 +15,11 @@
 
 #include "tags.h"
 #include "memory.h"
+
+// blam-cc: EAX -> payload_ptr, EDX -> arena
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> payload_ptr, EDX -> arena
 void block_list_unlink(void **payload_ptr, memory_pool *arena)
 {
     memory_pool_block *block = (memory_pool_block *)((uint8_t *)*payload_ptr - 0x18);

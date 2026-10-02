@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 
 // Linear-searches the ban list for an entry whose stored CD-key hash (+0x0d) case-insensitively

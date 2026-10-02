@@ -40,10 +40,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances; // 0x0087bc14

@@ -29,10 +29,10 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t text_rendering_enabled;                         // 0x00689402
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828

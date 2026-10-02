@@ -24,10 +24,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t random_seed_global; // 0x00719cd0
 
 extern void actor_delete(datum_index actor_index, uint32_t flag); // 0x427e60

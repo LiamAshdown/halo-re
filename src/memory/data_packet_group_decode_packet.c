@@ -17,10 +17,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char *data_packet_group_error; // 0x006b7f00
 
 // blam-cc (0x4cfee0, below this batch's assigned range, already rewritten at

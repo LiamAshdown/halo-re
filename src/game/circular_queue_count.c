@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
+// blam-cc: EDX -> queue
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EDX -> queue
 int32_t circular_queue_count(circular_queue *queue)
 {
     int32_t write_index = queue->write_index;

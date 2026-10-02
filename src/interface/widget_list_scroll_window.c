@@ -14,15 +14,15 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Computes the previous/current/next item indices for a 3-wide scrolling list widget, wrapping
 // around item_count, writing -1 for any slot that ends up out of range. Which neighbor of
 // selection_index is treated as "current" depends on whether the widget's focused_child is
 // still its first row or has scrolled to the second row.
 // blam-cc: EAX -> out, ECX -> widget
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void widget_list_scroll_window(int32_t out[3], widget_instance *widget)
 {
     int32_t item_count = (uint16_t)widget->item_count;

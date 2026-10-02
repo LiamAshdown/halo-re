@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t light_frame_counter; // 0x008607c4
 extern uint8_t light_render_unknown_7c0; // 0x008607c0 (a byte: mov byte ptr at 0x4f2495)
 extern data_array *object_data; // 0x008603b0

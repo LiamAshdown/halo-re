@@ -28,10 +28,10 @@
 #include "sound.h"
 #include "interface.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t sound_disabled;       // 0x007252b6
 extern game_time_globals *game_time; // 0x006f1d6c
 extern console_globals console_globals_data; // 0x006b7020, main.h; +0x00 active = console open (R08)

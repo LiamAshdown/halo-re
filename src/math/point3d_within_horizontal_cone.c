@@ -40,10 +40,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
 

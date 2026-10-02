@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_random_seeded; // 0x006f0ca8, one-time seed flag
 
 extern int32_t __ftol(int32_t value);      // 0x006391b4, see UNSURE note above

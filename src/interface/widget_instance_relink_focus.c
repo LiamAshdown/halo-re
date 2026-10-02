@@ -22,10 +22,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 // A sibling is a focus candidate if it is not hidden and is either itself a list

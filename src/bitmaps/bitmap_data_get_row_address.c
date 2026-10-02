@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count]; // 0x006571f4 (types/bitmaps.h)
 
 // blam-cc: EDI -> bitmap_data, EAX (low half, AX) -> mip_level, stack -> x, y

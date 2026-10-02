@@ -56,11 +56,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+
+// UNSURE: signature reconstructed from this call site; see file header.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// UNSURE: signature reconstructed from this call site; see file header.
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias); // 0x524590 (0x4f08e0 calls it)
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 

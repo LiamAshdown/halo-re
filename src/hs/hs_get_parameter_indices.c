@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *hs_syntax_data;      // 0x0087a474
 extern char *hs_compile_error;          // 0x006b14d4
 extern int32_t hs_compile_error_offset; // 0x006b14d8

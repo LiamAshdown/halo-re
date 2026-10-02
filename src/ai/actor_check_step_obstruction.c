@@ -25,10 +25,10 @@
 #include "cache.h"
 #include "ai.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer; // 0x0069672c, UNSURE: see file header

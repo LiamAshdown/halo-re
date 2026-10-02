@@ -38,10 +38,10 @@
 #include "game.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern render_fog render_fog_state;                  // 0x007c32f4, this module (named
                                                      // render_fog_state; a variable cannot share
                                                      // the render_fog typedef's own name in C)

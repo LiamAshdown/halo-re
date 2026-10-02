@@ -17,15 +17,15 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ESI -> encounter_definition, stack -> name
 // Linear-searches one ScenarioEncounter's squads for one whose name matches (case-
 // insensitively, up to 32 characters), returning its index or -1 if there are none or none
 // match.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name)
 {
     int32_t index;

@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t saved_game_load_checkpoint_by_name(char *name); // 0x5391a0
 
 uint8_t ui_event_4a4270(widget_instance *widget, int16_t *event, uint8_t *out_handled)

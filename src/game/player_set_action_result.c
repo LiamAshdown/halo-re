@@ -14,10 +14,10 @@
 #include "objects.h"
 #include "hs.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 

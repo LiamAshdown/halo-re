@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void object_notify_children_recursive(datum_index object_index); // objects module, 0x4f7b00
 
 extern data_array *object_list_header_data;    // 0x0087a464

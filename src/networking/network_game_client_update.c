@@ -21,10 +21,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, UNSURE name; see file header
 extern void ui_network_wait_timeout_start(void); // 0x49c810, not in this batch

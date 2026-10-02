@@ -20,10 +20,10 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern director directors[1];                              // 0x006ac560
 

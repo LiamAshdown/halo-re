@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *terminal_messages;           // 0x006b2f00, "terminal output"
 extern uint8_t terminal_initialized;             // 0x006b2efc
 extern terminal_console *console_active;         // 0x006b2f0c

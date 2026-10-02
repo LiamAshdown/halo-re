@@ -16,10 +16,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t control_profile_gamepad_slot_find(saved_player_profile *profile, controls_gamepad_record *key); // 0x53b6b0, this module
 extern void control_profile_reset_slot(saved_player_profile *profile, int32_t gamepad_index); // 0x53b2b0, this module
 extern uint8_t control_profile_finalize_slot(saved_player_profile *profile, int32_t gamepad_index); // 0x53b500, this module

@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t local_team_00714dd8;              // 0x00714dd8, TYPES-GAP

@@ -18,12 +18,12 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: destination in ESI, component in EBX
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void path_append_component(char *destination, const char *component)
 {
     char *end;

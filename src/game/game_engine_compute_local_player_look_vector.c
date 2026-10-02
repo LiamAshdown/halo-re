@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern player_globals *local_player_globals;                  // 0x0087a478
 

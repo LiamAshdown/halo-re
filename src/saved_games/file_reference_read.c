@@ -15,10 +15,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void saved_games_report_last_error(void); // 0x556170, this module
 
 // blam-cc: ref in EDX, buffer in ECX, size in ESI

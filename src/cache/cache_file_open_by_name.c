@@ -51,10 +51,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void os_platform_identify(void); // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
 extern void interface_handle_quit_request(void); // 0x499170

@@ -9,11 +9,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
+// Tokenizer helper that skips spaces and tabs at the parser's current cursor position.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Tokenizer helper that skips spaces and tabs at the parser's current cursor position.
 void hwreq_token_skip_whitespace(hwreq_parser *parser)
 {
     char *cursor = (char *)parser->cursor;

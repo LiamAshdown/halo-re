@@ -17,11 +17,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+// blam-cc: ECX -> widget, EAX -> tag
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> widget, EAX -> tag
 void widget_spinner_list_sync_selected(widget_instance *widget, UIWidgetDefinition *tag)
 {
     widget_instance *child;

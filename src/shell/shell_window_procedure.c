@@ -58,13 +58,13 @@
 #include "interface.h"
 #include "main.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Minimal GDI BITMAP layout: only the fields GetObjectA's caller reads are named (bmWidth,
 // bmHeight); the rest is exactly the 0x18-byte buffer size the call site passes.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 typedef struct win32_bitmap {
     int32_t type;            // 0x00 bmType
     int32_t width;            // 0x04 bmWidth

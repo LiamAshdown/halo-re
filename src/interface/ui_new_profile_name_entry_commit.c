@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t new_profile_name_entry_player_00692b00; // 0x00692b00
 extern virtual_keyboard_globals virtual_keyboard;       // 0x007193a8 (committed at 0x007193be)
 extern uint16_t new_profile_name_buffer_006b37f4[0xb];   // 0x006b37f4

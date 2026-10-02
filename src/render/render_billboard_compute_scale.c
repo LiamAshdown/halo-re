@@ -17,10 +17,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern render_frustum render_frustum_global; // 0x007c3168, this module
 
 // blam-cc: EAX -> data, ECX -> scale, stack -> render_type/position/bitmap

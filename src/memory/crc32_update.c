@@ -7,10 +7,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern crc32_table crc32_lookup_table;                  // 0x006b7b00
 extern uint8_t crc32_lookup_table_initialized;           // 0x00719cd8
 

@@ -23,10 +23,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void data_delete_all(data_array *array); // 0x4d0580 memory module
 extern int16_t cache_file_find_slot_by_name(char *name); // blam-cc: name in EDI; 0x443770
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI

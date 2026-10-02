@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hwreq_quoted_string[k_hwreq_quoted_string_length]; // 0x00722d58
 
 extern void hwreq_parser_report_error(hwreq_parser *parser, const char *message); // 0x00578a20

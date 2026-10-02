@@ -15,10 +15,10 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 // blam-cc: EAX -> encounter_index, EDX -> out_edx, ESI -> out_esi, stack ->

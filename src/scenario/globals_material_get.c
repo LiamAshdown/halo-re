@@ -16,10 +16,10 @@
 
 #include "tags.h"
 #include "scenario.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals;              // 0x00746fa0
 extern uint8_t material_table_warning_issued;      // 0x00721e4c, owned by types/physics.h
 extern GlobalsMaterial material_table_fallback;   // 0x006e3208

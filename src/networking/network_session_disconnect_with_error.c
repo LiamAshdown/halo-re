@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconnect error
                                         // string index; -1 means none. WORD-sized everywhere
                                         // (cmp/mov WORD PTR ds:0x718fa4), consumed and reset by

@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t global_text_field_00719278[0x40]; // 0x00719278, TYPES-GAP
 
 extern heap *widget_memory_pool; // 0x006926c4

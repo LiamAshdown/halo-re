@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_scratch_memory;      // 0x0071d13c
 extern uint32_t rasterizer_scratch_memory_used; // 0x0071d140
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828, see font_glyph_cache_clear_all.c

@@ -14,10 +14,10 @@
 #include "math.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t input_event_queue_active; // 0x00712cc0
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, blam-cc: EAX, EDI
 

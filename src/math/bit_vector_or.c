@@ -12,11 +12,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Bitwise-ORs one fixed-size bit array into another, word by word.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Bitwise-ORs one fixed-size bit array into another, word by word.
 void bit_vector_or(uint32_t *a, int16_t bit_count, uint32_t *b, uint32_t *dst)
 {
     int16_t dword_count;

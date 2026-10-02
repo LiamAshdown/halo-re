@@ -19,12 +19,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // hwreq_parser_vtable slot 0x3c. Returns a pointer to hwreq_parser->error_message's character
 // data, following the string's own inline-vs-heap-buffer rule.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char *hwreq_parser_get_error_message(hwreq_parser *parser)
 {
     if (parser->error_message.capacity > 0xf) {

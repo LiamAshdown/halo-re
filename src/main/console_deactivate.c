@@ -19,10 +19,10 @@
 #include "input.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data; // 0x006b7020
 extern input_abstraction_globals input_globals; // 0x00710328 (mode_flags at +0x221a, 0x00712542)
 extern void *keyboard_device;           // 0x006b1800

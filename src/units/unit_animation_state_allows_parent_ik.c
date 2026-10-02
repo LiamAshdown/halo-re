@@ -13,12 +13,12 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> animation_block
 // False for the animation states 0x17..0x1b, 0x1d and 0x22..0x23; true for every other state.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block)
 {
     int32_t state_index = (int32_t)*(int8_t *)(animation_block + 0x0b) - 0x17; // animation_state

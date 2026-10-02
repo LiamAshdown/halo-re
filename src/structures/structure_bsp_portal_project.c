@@ -35,11 +35,11 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
+// math module. blam-cc: EAX -> out, EDX -> point, stack -> m
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// math module. blam-cc: EAX -> out, EDX -> point, stack -> m
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
                                        real_matrix4x3 *m); // 0x4cbde0
 extern int16_t polygon3d_clip_to_plane(int16_t count, real_point3d *in, real_plane3d *plane, int16_t max_count, real_point3d *out, uint8_t *clipped_flag, real epsilon, char keep_coplanar); // 0x4cb380

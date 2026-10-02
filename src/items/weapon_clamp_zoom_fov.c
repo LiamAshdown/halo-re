@@ -18,10 +18,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real k_weapon_zoom_fov_maximum; // 0x00672ea0
 extern real k_weapon_zoom_fov_minimum; // 0x00672ea4
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level); // 0x4c2d70

@@ -16,10 +16,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char input_action_names[k_input_action_count][0x10]; // 0x0065b730, "jump" .. "screenshot"
 
 extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc

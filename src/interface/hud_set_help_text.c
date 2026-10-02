@@ -16,10 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern hud_globals_flags *hud_flags;          // 0x00719420

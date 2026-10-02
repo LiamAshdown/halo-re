@@ -27,10 +27,10 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;    // 0x008603b0
 extern Scenario *global_scenario;  // 0x00746f8c
 extern ai_globals *ai_globals_ptr; // 0x00880354

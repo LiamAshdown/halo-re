@@ -20,10 +20,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char savegames_directory[0x100]; // 0x00721549
 
 extern int32_t savegame_find_first(const char *root, void *out_find_data); // 0x551bc0, game module

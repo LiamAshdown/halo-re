@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t server_list_scroll_offset; // 0x00719478
 
 extern int32_t server_list_result_count_get(void); // 0x4ba820, this module

@@ -30,11 +30,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern map_download_state *map_download; // 0x006869c0
 
 // blam-cc: progress_out is the recognized stack parameter (param_1); no register arguments

@@ -33,10 +33,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0, memory module;
     // UNSURE: the stream operand is in a register at this call site and Ghidra drops it;
     // the signature is src/memory/bit_stream_write_bit.c's.

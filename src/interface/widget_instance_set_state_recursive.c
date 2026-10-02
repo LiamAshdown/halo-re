@@ -12,12 +12,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Sets widget->state (and every descendant's state, recursively through first_child then
 // next_sibling) to the low byte of `state`.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state)
 {
     widget_instance *child = widget->first_child;

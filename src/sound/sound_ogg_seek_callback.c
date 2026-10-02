@@ -21,14 +21,14 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ESI -> file, EAX -> whence, stack -> (offset_low, offset_high)
 // fseek-style SEEK_SET(0)/SEEK_CUR(1)/SEEK_END(2) position update on a bounds-checked in-memory
 // Ogg Vorbis data source. Returns 0 on success, -1 if the resulting position would fall outside
 // [0, size], 0 for an unrecognized whence value.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t sound_ogg_seek_callback(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high, int32_t whence)
 {
     int64_t offset = ((int64_t)offset_high << 32) | offset_low;

@@ -20,10 +20,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sound_cache_decode_permutation(SoundPermutation *permutation); // 0x443d60, this module
 
 // Cache-I/O completion procedure installed by sound_cache_page_allocate for every sound format

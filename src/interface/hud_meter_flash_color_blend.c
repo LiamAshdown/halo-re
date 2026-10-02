@@ -22,10 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double cos(double x);           // FCOS
 extern double sqrt(double x);          // FSQRT
 extern double fmod(double x, double y); // 0x628cca, _CIfmod

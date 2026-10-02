@@ -18,10 +18,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern double pow(double x, double y); // the original calls _CIpow (0x6283c0): st(1) ** st(0) on the x87 stack

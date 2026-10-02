@@ -27,10 +27,10 @@
 #include "game.h"
 #include "networking.h"
 #include <time.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_console_connection_id; // 0x0069fdfc, "the rcon/console connection id" (networking.h)
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 

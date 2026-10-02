@@ -9,10 +9,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void rasterizer_shader_environment_set_lightmap(void *lightmap); // 0x520910, EAX
 
 void render_window_structure_lightmap_begin_0x512010(void *bitmap_data)

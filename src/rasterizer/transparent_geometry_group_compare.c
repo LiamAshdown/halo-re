@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern transparent_geometry_group *transparent_geometry_groups; // 0x0071d14c
 
 static int32_t is_batched_shader(Shader *shader)

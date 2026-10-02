@@ -14,10 +14,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags) // blam-cc: see file header

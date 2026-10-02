@@ -18,9 +18,6 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // VERIFIED against disassembly 0x491fd0..0x49213f (2026-09-30): button saturation, the pov threshold cascade (negative or
 //   0xffff low word -> none, >= 0x83d6 -> north), axis copy and all three loop counts (+0x238/+0x23c/+0x234) match.
@@ -29,6 +26,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // count, button count, and POV count that device reports: button hold-frame counters (saturating
 // at 255), POV hats quantized into 8 compass octants (or k_input_joystick_pov_none when
 // centered), and axis values passed through as int16.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void input_joystick_state_process(joystick_raw_state *raw, joystick_state *dest, input_device *device)
 {
     int32_t i;

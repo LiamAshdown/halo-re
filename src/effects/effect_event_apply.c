@@ -50,10 +50,10 @@
 #include "sound.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed random_seed_global;               // 0x00719cd0
 extern random_seed effect_random_seed;                // 0x00719cd4
 extern data_array *player_data;                       // 0x0087a480

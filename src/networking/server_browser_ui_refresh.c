@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern wchar_t DAT_00719498[0x100]; // see server_list_reset.c UNSURE
 extern ticker_text_buffer server_browser_player_ticker;  // 0x006b5e58
 extern ticker_text_buffer server_browser_variant_ticker; // 0x006b5e74

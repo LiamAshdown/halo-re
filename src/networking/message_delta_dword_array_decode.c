@@ -26,10 +26,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer,
     bit_stream *stream); // 0x4cf950
 extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream); // 0x4cfb80

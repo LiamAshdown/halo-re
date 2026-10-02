@@ -9,10 +9,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 extern int32_t ai_actor_get_activity_stage(datum_index actor_index); // 0x435680, this batch

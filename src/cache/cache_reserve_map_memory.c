@@ -23,10 +23,10 @@
 #include "cache.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *map_memory;             // 0x006ac548, VirtualAlloc at 0x40000000, 0x1b40000 bytes
 extern void *tag_data_base;          // 0x006ac54c, constant 0x40440000
 extern void *texture_cache_memory;   // 0x006ac550, VirtualAlloc 0x4000 bytes

@@ -12,10 +12,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
 // Finds which local player's first-person weapon interface currently has object_index attached

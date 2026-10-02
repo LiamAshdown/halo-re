@@ -28,9 +28,6 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> out, EBX -> queue
 // Peeks the queue's head record and decrements its references_remaining. If that reaches zero,
@@ -40,6 +37,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // (returns 0 with `out` left holding only the three -1 sentinels) or the defensive re-peek
 // branch above finds the queue unexpectedly empty (returns 0, though `out` is still written from
 // a NULL record in that unreachable case, exactly as compiled).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue)
 {
     uint32_t *raw_out = (uint32_t *)out;

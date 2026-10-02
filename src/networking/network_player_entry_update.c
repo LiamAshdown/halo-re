@@ -17,10 +17,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key); // 0x4de900, this batch
 
 // blam-cc: EAX -> incoming, ECX -> session

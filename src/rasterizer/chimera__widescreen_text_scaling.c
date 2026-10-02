@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float rasterizer_ui_text_constants[20]; // 0x006e1d08
 
 // Initializes the fixed 5x vec4 vertex-shader constant block (a 320x240-reference-resolution

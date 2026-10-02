@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void ui_game_data_input_4a7660(widget_instance *widget)
 {
     widget_instance *child;

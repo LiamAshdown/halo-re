@@ -11,10 +11,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // a single x87 FSQRT instruction in the original (Ghidra's SQRT())
 extern void object_get_position(real_point3d *out, uint32_t object_index); // 0x4f6900
 extern object * object_iterator_next(object_iterator *iterator);           // 0x4f6f20

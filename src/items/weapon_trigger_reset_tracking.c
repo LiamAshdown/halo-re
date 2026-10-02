@@ -12,10 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 // Fully resets a weapon's tracked-object reference and one trigger's effect state.

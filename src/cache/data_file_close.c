@@ -15,11 +15,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern void cache_io_wait_all_requests(void); // this module, 0x4432b0
 
 extern int16_t cache_file_index;            // 0x006ac494

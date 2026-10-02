@@ -17,10 +17,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_thread_record *player_profile_thread; // 0x0072127c
 extern saved_player_profile default_profile_data; // 0x0071d280
 

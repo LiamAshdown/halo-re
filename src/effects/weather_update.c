@@ -13,10 +13,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp;
                                     // scenario's weather palette (ScenarioStructureBSPWeatherPalette)
 extern int32_t weather_frame_counter;       // 0x00746f88

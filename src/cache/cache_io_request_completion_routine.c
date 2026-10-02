@@ -12,12 +12,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Marks an asynchronous cache read finished: raises the caller's completion flag and frees
 // the request slot for the worker thread.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void __stdcall cache_io_request_completion_routine(uint32_t error_code, uint32_t bytes_transferred,
     cache_io_request *overlapped)
 {

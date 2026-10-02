@@ -19,11 +19,11 @@
 #include "crt.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int16_t map_download_slot_index; // 0x006ac472, 0xffff (-1) when idle
 extern char map_download_name[0x20];    // 0x006ac474
 

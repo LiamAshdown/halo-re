@@ -23,10 +23,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index hs_thread_new(int32_t script_index, uint8_t type); // this module, 0x48a2f0
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
     // this module, 0x48a560; UNSURE, see hs_evaluate_random.c

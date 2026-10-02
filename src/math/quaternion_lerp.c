@@ -12,12 +12,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // out = signed_t*a + (1-t)*b, where signed_t is +-t chosen so the interpolation takes the
 // shorter path between the two quaternions (dot(a,b) >= 0).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t)
 {
     real one_minus_t;

@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "cache.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sound_cache_page_count;   // 0x006f17e4
 extern struct cache *sound_cache;        // 0x006ac530
 extern data_array *sound_cache_entries;  // 0x006ac528

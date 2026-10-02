@@ -26,10 +26,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void data_delete_all(data_array *array); // blam-cc: ESI; memory module, 0x4d0580
 extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
 extern void datum_delete(data_array *array, datum_index handle);

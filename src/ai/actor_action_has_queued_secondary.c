@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index); // 0x569c90, ECX = the unit (actor +0x18)
 

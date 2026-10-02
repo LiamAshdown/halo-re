@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t transparent_geometry_group_count;           // 0x0071d154
 extern int16_t transparent_geometry_group_draw_cursor;     // 0x006d9838
 extern int32_t transparent_geometry_group_last_drawn_key;  // 0x006e1d58

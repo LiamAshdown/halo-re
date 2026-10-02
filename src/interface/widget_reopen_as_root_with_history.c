@@ -30,10 +30,10 @@
 #include "interface.h"
 #include <string.h>
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,

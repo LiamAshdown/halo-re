@@ -21,10 +21,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state) // blam-cc: ECX -> animation_block, DX -> requested_state
 {
     switch ((int8_t)animation_block[0xb]) {       // 0x565be0: movsx ecx,BYTE PTR [ecx+0xb]

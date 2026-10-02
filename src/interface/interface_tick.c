@@ -50,10 +50,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_time_milliseconds;              // 0x00718f9c
 extern loading_thread_record *loading_thread;      // 0x00718fbc
 extern int16_t loading_thread_result;               // 0x00718fc0 (read with movsx word), 1/2 select which error string

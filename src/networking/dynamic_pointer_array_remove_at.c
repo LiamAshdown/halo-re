@@ -18,11 +18,11 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 void dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array)
 {
     if (index < array->result_count - 1) {

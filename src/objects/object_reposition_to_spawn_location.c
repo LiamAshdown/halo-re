@@ -27,10 +27,10 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0

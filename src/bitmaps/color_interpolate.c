@@ -18,10 +18,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float fabsf(float x); // x87 FABS
 
 extern real_hsv_color *color_rgb_to_hsv(ColorRGB *color, real_hsv_color *hsv); // 0x43f330, this batch

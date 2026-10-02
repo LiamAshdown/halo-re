@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 // FIXED 2026-09-27 (static loop): 0x00696714 holds a POINTER to (0,0,0); 0x4f5169..0x4f51a3 copy [ptr]. The
 // draft copied the pointer bits themselves into the velocities.

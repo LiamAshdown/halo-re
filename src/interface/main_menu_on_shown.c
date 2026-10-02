@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t main_menu_music_pending;    // 0x00718fc6
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern int32_t ui_time_milliseconds;       // 0x00718f9c

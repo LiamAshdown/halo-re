@@ -9,10 +9,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *update_server_queues;      // 0x006f1d90
 extern data_array *update_client_queues;      // 0x006f7ed0
 extern uint8_t update_server_initialized;     // 0x006f1d88

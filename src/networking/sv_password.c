@@ -19,10 +19,10 @@
 #include "networking.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t network_server_password[9]; // 0x0071c2f4 (UNSURE name; distinct storage from
     // network_server_globals::password, mirrored into it by network_server_password_set)
 extern uint8_t network_server_password_is_default; // 0x0071c304 (UNSURE name)

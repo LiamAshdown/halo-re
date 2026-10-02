@@ -29,10 +29,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count,
     void *rendered_data, void *lightmap_data, int32_t size); // UNSURE, see file header;
     // rasterizer module, 0x524980. Returns a success flag (see model_load_vertex_buffers.c,

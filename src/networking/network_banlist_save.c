@@ -21,10 +21,10 @@
 #include "networking.h"
 #include <stdio.h>
 #include <time.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see UNSURE note above
 extern char network_summary_log_mode_string[]; // 0x0065fd30, UNSURE: exact text unresolved (fopen mode)
 

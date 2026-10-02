@@ -18,10 +18,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t terminal_initialized;       // 0x006b2efc
 extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
 extern char console_echo_prefix[];         // 0x00669140, matched by chimera__console_out

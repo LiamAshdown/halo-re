@@ -14,12 +14,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // cos is a single x87 FCOS instruction in the original code (Ghidra's fcos() pseudo-call);
 // declared locally instead of via <math.h> because -I types shadows that header name.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double cos(double x);
 
 extern random_seed random_seed_global; // 0x00719cd0

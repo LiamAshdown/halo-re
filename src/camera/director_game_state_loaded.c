@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *hs_camera_control_pointer; // 0x0087bc0c, hs module
 
 extern void camera_initialize(void);        // 0x445580, this module

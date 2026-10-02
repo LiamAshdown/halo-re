@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
 extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b); // 0x4cd480, ESI a, EDI b

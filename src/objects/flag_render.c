@@ -26,10 +26,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x);
 
 extern int32_t rasterizer_dynamic_index_cache_reserve(void);   // out of module scope, unexamined

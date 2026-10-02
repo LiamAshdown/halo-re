@@ -24,11 +24,11 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
+// blam-cc: ECX -> clip, stack -> bsp, surface_index, origin, direction
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> clip, stack -> bsp, surface_index, origin, direction
 uint32_t collision_bsp_surface_clip_line_2d(collision_bsp_boundary_clip *clip,
                                              ModelCollisionGeometryBSP *bsp,
                                              int32_t surface_index, real_point2d *origin,

@@ -14,10 +14,10 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern unit_control_data_field_layout *unit_control_data_version_layouts[4]; // 0x00686d88
 
 // blam-cc: EBX -> control, stack -> (cursor, version)

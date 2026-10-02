@@ -12,10 +12,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
     uint32_t callback_extra, uint16_t *caller_record); // 0x407040, EDI caller_record

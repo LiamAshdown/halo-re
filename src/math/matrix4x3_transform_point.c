@@ -10,11 +10,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Transforms a point by a matrix4x3 (scale, rotate, translate).
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Transforms a point by a matrix4x3 (scale, rotate, translate).
 void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m)
 {
     real x, y, z;

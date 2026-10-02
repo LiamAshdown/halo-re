@@ -22,15 +22,15 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: flag in ESI
 // Blocks the calling thread in an alertable wait until `*flag` is set by an IO completion APC.
 // Returns as soon as the flag is already set, and otherwise sleeps alertably in 5-second slices
 // for as long as each slice is cut short by an APC running. Returns the flag's final value.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t cache_io_wait_for_flag(uint8_t *flag)
 {
     uint32_t wait_result;

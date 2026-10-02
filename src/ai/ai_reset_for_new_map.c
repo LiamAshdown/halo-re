@@ -15,10 +15,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ai_globals *ai_globals_ptr;       // 0x00880354
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c

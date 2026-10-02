@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern data_array *widget_data; // 0x00860398
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010

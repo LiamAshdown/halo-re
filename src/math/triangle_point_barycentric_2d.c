@@ -29,10 +29,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c
 

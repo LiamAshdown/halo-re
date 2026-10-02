@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed effect_random_seed;      // 0x00719cd4
 extern int16_t sound_permutation_limit;     // 0x007252b8, UNSURE: see types/sound.h globals
 

@@ -16,10 +16,10 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t controls_input_capture_flags;                    // 0x00712542
 extern player_globals *local_player_globals;        // 0x0087a478
 extern uint8_t director_camera_switching;           // 0x00686a98

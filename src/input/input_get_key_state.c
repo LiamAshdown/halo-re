@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t input_suppressed;              // 0x006b15f9
 extern uint8_t key_frames[0x6d];              // 0x006b1620
 extern key_block_timer key_block_timers[k_input_key_block_timer_count]; // 0x006b1600

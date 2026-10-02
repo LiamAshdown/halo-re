@@ -8,6 +8,9 @@
 #define HALO_BINK_H
 
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint32_t __stdcall _BinkOpenDirectSound(uint32_t param);
 int32_t __stdcall _BinkSetSoundSystem(void *open, uint32_t param);
@@ -30,4 +33,7 @@ int32_t __stdcall _BinkCopyToBuffer(void *bink, void *dest, int32_t dest_pitch, 
 #define BinkNextFrame _BinkNextFrame
 #define BinkCopyToBuffer _BinkCopyToBuffer
 
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
 #endif

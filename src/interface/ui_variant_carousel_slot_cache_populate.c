@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern variant_carousel_slot variant_carousel_slots[3]; // 0x00879d60
 extern uint8_t saved_game_get_variant(int32_t variant_id, void *out_slot_body); // 0x53bee0, UNSURE signature, not in this module's range
 

@@ -19,10 +19,10 @@
 #include "ai.h"
 #include <stdint.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position,
     real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b); // 0x43c9a0, ECX, AX, EDX, ESI, stack
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission,

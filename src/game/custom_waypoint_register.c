@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
 extern int16_t hud_waypoint_arrow_find(const char *name); // 0x4af070, not in this batch; blam-cc: EDI -> name

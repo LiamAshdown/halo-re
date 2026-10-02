@@ -18,10 +18,10 @@
 #include "math.h"
 #include "camera.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const real_vector3d *global_forward3d_pointer;    // 0x00696718 -> (1, 0, 0)
 extern const real_vector3d *global_up3d_pointer;         // 0x00696720 -> (0, 0, 1)
 extern const real_point3d *global_origin3d_pointer;      // 0x00696714 -> (0, 0, 0)

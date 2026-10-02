@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *light_data; // 0x00860b14
 static uint8_t *light_get(datum_index handle)
 {

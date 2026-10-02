@@ -31,10 +31,10 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float sinf(float x);
 extern float cosf(float x);
 extern float sqrtf(float x);

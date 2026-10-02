@@ -8,10 +8,10 @@
 // blam-cc: cdecl (a GT2 connection callback)
 
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct network_receive_queue network_receive_queue;
 extern void *gt2GetConnectionData(void *connection); // 0x614840 gt2GetConnectionData
 extern void network_receive_queue_close_socket(network_receive_queue *queue); // 0x442040, blam-cc: ESI queue

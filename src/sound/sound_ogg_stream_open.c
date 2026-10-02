@@ -22,10 +22,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t ov_read_thunk(void *destination, uint32_t size, uint32_t count, sound_ogg_memory_file *file); // 0x544d50
 extern int32_t ov_seek_thunk(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high, int32_t whence); // 0x544da0
 extern int32_t ov_close_thunk(sound_ogg_memory_file *file); // 0x544dc0

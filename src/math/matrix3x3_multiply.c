@@ -10,11 +10,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Multiplies two 3x3 matrices.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Multiplies two 3x3 matrices.
 void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b)
 {
     real_matrix3x3 scratch;

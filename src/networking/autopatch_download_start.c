@@ -17,10 +17,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
 extern int32_t ghttpGetEx(void *path, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6,

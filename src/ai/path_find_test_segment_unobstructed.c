@@ -20,10 +20,10 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
 extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start,

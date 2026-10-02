@@ -38,10 +38,10 @@
 #include "math.h"
 #include "memory.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sin(double x); // x87 FSIN
 extern double cos(double x); // x87 FCOS
 extern int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d *facing, real max_distance,

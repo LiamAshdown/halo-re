@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
 extern void effect_reattach_markers_for_object(int16_t first_person_weapon_index, datum_index object_index); // 0x450cb0, module effects

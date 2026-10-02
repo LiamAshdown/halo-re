@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t multiplayer_sound_queue_count; // 0x006b1140
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds]; // 0x006b10f0
 

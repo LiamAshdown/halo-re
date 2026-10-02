@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void skip_whitespace(char **cursor); // 0x00486350, this batch
 extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480

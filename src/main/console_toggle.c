@@ -18,10 +18,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t virtual_keyboard; // 0x007193a8, UNSURE: only tested here; blocks opening
                                            // the console while set (movie playback? name is a guess)

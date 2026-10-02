@@ -12,15 +12,15 @@
 
 #include "tags.h"
 #include "cseries.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: last in EAX, then the stack parameters first, compare (EAX, stack)
 // Selection-sorts the inclusive range [first, last] of 4-byte elements: each pass finds the
 // largest remaining element (by compare) and swaps it into the last slot, then shrinks the
 // range by one from the top. This is the small-partition fallback for qsort_dword_array; it is
 // never called on a range larger than k_qsort_dword_shortsort_cutoff elements.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void qsort_dword_array_shortsort(int32_t *last, int32_t *first, qsort_dword_compare_proc compare)
 {
     int32_t *max_ptr;

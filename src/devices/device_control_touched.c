@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void device_control_activate(uint32_t object_id); // 0x44adf0, EAX = object_id; outside

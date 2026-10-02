@@ -12,10 +12,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char *unit_base_animation_state_names[6]; // 0x0069fde4
 extern tag_instance *tag_instances;              // 0x0087bc14
 

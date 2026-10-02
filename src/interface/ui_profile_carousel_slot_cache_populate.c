@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60
 extern uint8_t player_profile_get(int32_t slot, void *out_profile); // 0x53a770, blam-cc: ECX out_profile
 

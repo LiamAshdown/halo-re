@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t local_player_name_filter[0x400]; // 0x0071c420, see player_update_history_log_printf_filtered.c
 
 // Copies name (an 8-bit string, e.g. a console command argument) into the shared UTF-16 filter

@@ -13,10 +13,10 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
     network_server_globals *server); // 0x4e0af0, blam-cc: CX reason, EDI machine

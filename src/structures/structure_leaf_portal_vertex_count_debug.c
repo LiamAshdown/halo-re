@@ -18,13 +18,13 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Walks every portal referenced by leaf `leaf_index`, and for each one, busy-loops counting up to
 // its vertex count (result discarded). A debug/validation pass with no observable effect on
 // program state; every read is bounds-implicit on the tag's own reflexive counts.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void structure_leaf_portal_vertex_count_debug(int32_t leaf_index, structure_bsp_leaf_map *leaf_map)
     // blam-cc: EAX -> leaf_index, ECX -> leaf_map
 {

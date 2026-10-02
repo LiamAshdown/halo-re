@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char * string_to_lowercase(char *string); // 0x004491e0
 
 extern data_array *hs_syntax_data;         // 0x0087a474

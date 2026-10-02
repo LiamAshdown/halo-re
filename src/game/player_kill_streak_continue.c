@@ -18,10 +18,10 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 

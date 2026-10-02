@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "cache.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_cache_entries; // 0x006ac528
 extern void *sound_decode_buffer;       // 0x006f17ec
 extern int32_t sound_decode_buffer_size; // 0x006f17f0

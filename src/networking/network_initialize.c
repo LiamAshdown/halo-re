@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_disabled_flag;      // 0x007196ec, UNSURE: see network_dispatch_initialize.c
 extern uint8_t network_winsock_initialized; // 0x006869b8, UNSURE
 extern uint32_t network_local_address;     // 0x006869b0, byte swapped before binding

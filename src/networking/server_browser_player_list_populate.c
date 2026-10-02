@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern wchar_t hud_text_unbound[]; // 0x00669cc8, L"???"
 
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor

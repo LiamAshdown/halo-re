@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int object_dump_compare_by_total_size(const object_memory_dump_record *a, const object_memory_dump_record *b)
 {
     if (a->total_size < b->total_size) {

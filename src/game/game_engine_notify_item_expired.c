@@ -19,10 +19,10 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 

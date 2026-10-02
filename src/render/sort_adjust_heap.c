@@ -27,10 +27,10 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sort_push_heap(rendered_particle_datum *first, int32_t hole, int32_t top,
     rendered_particle_datum value, int32_t predicate); // 0x510b20, blam-cc: ESI first, EAX hole, stack (top, value, predicate)
 

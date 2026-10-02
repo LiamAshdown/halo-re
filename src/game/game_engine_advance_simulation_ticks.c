@@ -21,10 +21,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t game_time_force_single_tick; // 0x007196d8
 extern int16_t network_game_mode;            // 0x00719720
 extern game_time_globals *game_time;          // 0x006f1d6c

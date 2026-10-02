@@ -22,10 +22,10 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern director directors[1];                           // 0x006ac560
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module
 

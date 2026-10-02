@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_invalid_sound_driver; // 0x00722b50
 
 // config.txt "InvalidSoundDriver" setter: presence alone sets the flag.

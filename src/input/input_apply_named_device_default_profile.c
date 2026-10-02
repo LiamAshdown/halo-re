@@ -24,10 +24,10 @@
 #include "input.h"
 
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; cache module, 0x4425d0
 

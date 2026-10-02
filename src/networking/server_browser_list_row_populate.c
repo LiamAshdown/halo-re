@@ -29,10 +29,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[]; // 0x006607a0, L"%d"
 
 extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self); // 0x4d1f80, memory module

@@ -23,11 +23,11 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags
 
 // Runs every line of file_name as a console command (used for the startup "-exec" script). Each

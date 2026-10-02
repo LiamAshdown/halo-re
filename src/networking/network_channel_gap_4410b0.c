@@ -9,10 +9,10 @@
 
 #include "tags.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_game_receive_buffer[0x2000]; // 0x006a4140
 extern const uint8_t natneg_magic[6];               // 0x00657208
 extern void *network_session_host_object;           // 0x00722a20

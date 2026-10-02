@@ -15,10 +15,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float build_sprite_screen_coverage;      // 0x007c30c4
 extern int16_t build_sprite_large_quad_count;   // 0x007c30c8
 extern real_vector3d build_sprite_view_up;      // 0x007c30d0

@@ -18,11 +18,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern void network_receive_queue_free(network_receive_queue *queue); // 0x441c80, this module; blam-cc: EAX -> queue
 extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list); // 0x441b00, this module
 

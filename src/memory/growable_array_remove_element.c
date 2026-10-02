@@ -10,9 +10,6 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 #define GMEM_MOVEABLE 0x0002
@@ -20,6 +17,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // blam-cc: array in ESI, index in EDI
 // Removes the element at `index`, compacting the elements above it down by one slot and
 // shrinking (or freeing) the GlobalAlloc-backed storage to match the new count. No return value.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void growable_array_remove_element(growable_array *array, uint32_t index)
 {
     uint32_t new_count;

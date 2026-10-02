@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed effect_random_seed; // 0x00719cd4
 
 extern real random_real_range_seeded(random_seed *seed, real min, real max); // 0x4cd170, math module

@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
 extern uint8_t network_join_error_reason; // 0x0071973c
 extern uint8_t split_screen_quit_prompt_armed; // 0x00719757

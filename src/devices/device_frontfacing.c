@@ -28,10 +28,10 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name,
     object_marker *marker, uint32_t flags); // 0x4f6080, established
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, established

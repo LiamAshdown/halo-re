@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client; // 0x0071c2d8
 
 extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX

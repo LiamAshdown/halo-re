@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 void object_offset_node_translation(uint32_t object_index, real_vector3d *delta) // blam-cc: EAX -> object_index, EDX -> delta

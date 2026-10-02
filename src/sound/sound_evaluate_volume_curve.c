@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 
 // Converts a DirectSound-style attenuation (hundredths of a decibel) into a linear gain via

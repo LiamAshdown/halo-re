@@ -21,11 +21,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; this module, 0x4435e0
 
 extern map_download_state *map_download; // 0x006869c0

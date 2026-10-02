@@ -8,12 +8,12 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: destination as the recognized parameter
 // Sets *out_index to the invalid datum_index sentinel (k_datum_index_none).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void datum_index_invalidate(datum_index *out_index)
 {
     *out_index = k_datum_index_none;

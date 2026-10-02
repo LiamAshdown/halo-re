@@ -38,10 +38,10 @@
 #include "cache.h"
 #include "models.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices); // 0x526cf0

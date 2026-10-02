@@ -30,10 +30,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
 extern data_array *object_data;         // 0x008603b0

@@ -24,10 +24,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_ack_resend_interval_ms; // 0x00689484
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 

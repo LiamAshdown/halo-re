@@ -13,11 +13,11 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
+// Not callable: see the header. Kept only so the address stays listed in the symbol tables.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Not callable: see the header. Kept only so the address stays listed in the symbol tables.
 void unit_throw_grenade_release(void)
 {
 }

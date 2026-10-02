@@ -15,10 +15,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t console_win32_attached;    // 0x006b2f18
 extern void *console_output_handle;       // 0x006b2dd0, win32 console output handle
 extern terminal_console *console_active;  // 0x006b2f0c

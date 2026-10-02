@@ -21,13 +21,13 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Resolves a global MaterialType_t out of definition's per-object materials table. Returns -1
 // when material_index itself is -1 (no material).
 // blam-cc: AX -> material_index, ECX -> definition
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t model_collision_geometry_resolve_material_type(int16_t material_index,
                                                          ModelCollisionGeometry *definition)
 {

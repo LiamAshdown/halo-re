@@ -21,10 +21,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void tree_destroy_subtree(hwreq_map_node *node); // 0x57cce0, same pass
 extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, same pass
 extern void tree_erase_one(msvc_std_map *tree, hwreq_map_node **erase_holder, hwreq_map_node *node); // 0x57c820, UNSURE: signature guessed, not this pass

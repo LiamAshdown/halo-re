@@ -22,10 +22,10 @@
 #include "camera.h"
 #include "sound.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                               // 0x0087a480
 extern player_effect_globals *player_effect_globals_pointer;  // 0x006f1884
 extern tag_instance *tag_instances;                           // 0x0087bc14

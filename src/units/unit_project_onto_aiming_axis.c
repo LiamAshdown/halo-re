@@ -35,10 +35,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out_position); // 0x568f80, blam-cc: ECX unit_index, EDI out
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,

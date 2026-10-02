@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h
 
 void ui_game_data_input_4a73d0(widget_instance *widget)

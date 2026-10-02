@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern game_time_globals *game_time;              // 0x006f1d6c
 extern float motion_sensor_blip_subtype_size[3];  // 0x00692fd4: 0.0, -0.75, 1.0

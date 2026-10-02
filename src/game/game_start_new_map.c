@@ -22,10 +22,10 @@
 #include "game.h"
 #include "scenario.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
 extern game_engine_definition *current_game_engine; // 0x006f1d20

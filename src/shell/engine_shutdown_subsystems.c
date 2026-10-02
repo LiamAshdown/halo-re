@@ -17,10 +17,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t global_scenario_index;   // hs.h: datum_index global_scenario_index, -1 = none
 extern uint16_t global_structure_bsp_index;   // physics.h/items.h: int16_t structure bsp index
 extern uint16_t *global_scenario_game_globals;  // scenario_game_globals * (0x7c-byte scenario game-state block; only +0x30..+0x7b is sound state)

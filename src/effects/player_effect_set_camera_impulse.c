@@ -26,10 +26,10 @@
 #include "effects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t *player_control_globals_ptr; // 0x006b145c, UNSURE: foreign module (player look/aim
                                     // globals); stride 0x40, +0x1c pitch, +0x20 yaw
 extern random_seed effect_random_seed; // 0x00719cd4

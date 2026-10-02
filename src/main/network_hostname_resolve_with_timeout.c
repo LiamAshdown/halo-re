@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t hostname_resolve_complete; // 0x00719b68, this module (network_hostname_resolve_thread_proc.c)
 extern void *hostname_resolve_result;     // 0x00719b6c, this module (network_hostname_resolve_thread_proc.c)
 

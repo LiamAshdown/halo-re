@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_old_driver; // 0x00722b44
 
 // config.txt "OldDriver" setter: presence alone sets the flag.

@@ -21,10 +21,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_list_current;    // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8

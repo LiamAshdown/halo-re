@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t level_select_flags_0071916b; // 0x0071916b, TYPES-GAP
 extern char level_select_current_path_00719068[0x106]; // 0x00719068, TYPES-GAP
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer

@@ -11,13 +11,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> code, EDX -> out
 // Decodes the compact type-5 code produced by server_browser_gametype5_flags_pack back into two
 // numeric fields, clamped to 0..2 (a decoded value of 3 is dropped to 0).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void server_browser_gametype5_flags_unpack(uint32_t code, int32_t *out)
 {
     uint32_t a = (code >> 3) & 3;

@@ -46,10 +46,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct win32_process_information { // Win32 PROCESS_INFORMATION
     void *process;
     void *thread;

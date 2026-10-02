@@ -17,10 +17,10 @@
 #include "objects.h"
 #include <stdint.h>
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern real_vector3d *global_down3d_pointer;    // 0x0069672c, the gravity direction
 extern real_vector3d *global_forward3d_pointer; // 0x00696718

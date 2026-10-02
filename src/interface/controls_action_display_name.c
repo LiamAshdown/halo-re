@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t controls_action_name_buffer[]; // 0x006b3d48
 extern const uint16_t hud_text_unbound[];      // 0x00669cc8, L"???"
 

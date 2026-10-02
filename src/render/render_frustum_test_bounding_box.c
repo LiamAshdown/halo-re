@@ -21,10 +21,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t render_frustum_classify_point_side_planes(render_frustum *frustum,
                                                           real_point3d *point); // 0x50d4c0, this
                                                                                // module

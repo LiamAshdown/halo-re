@@ -20,11 +20,11 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 void hash_table_grow_freelist(hash_table *table)
 {
     hash_node_block *block;

@@ -23,10 +23,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_abstraction_globals input_globals; // 0x00710328
 extern void *keyboard_device;                                 // 0x006b1800, IDirectInputDevice8A
 extern uint8_t key_frames[0x6d];                               // 0x006b1620

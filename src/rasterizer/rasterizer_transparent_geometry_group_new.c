@@ -24,10 +24,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
 extern uint8_t console_debug_toggle_6893fb; // 0x006893fb, gates this whole function

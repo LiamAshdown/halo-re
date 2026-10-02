@@ -11,11 +11,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 // Packs a 3-float {r, g, b} color (0..1 range) into a 0x00RRGGBB integer.
 uint32_t color_rgb_float_to_int(const float *rgb)

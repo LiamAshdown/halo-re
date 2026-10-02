@@ -33,10 +33,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t render_cluster_index;                     // 0x007c3348
 extern uint8_t debug_render_cluster_pvs;                  // 0x00724a45
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters]; // 0x007c3390

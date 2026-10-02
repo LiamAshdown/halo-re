@@ -26,11 +26,11 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+
+// blam-cc: ECX -> box_a, EDX -> box_b
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> box_a, EDX -> box_b
 structure_bsp_overlap aabb_overlap_classify(real_rectangle3d *box_a, real_rectangle3d *box_b)
 {
     if (box_b->x.lower <= box_a->x.upper && box_a->x.lower <= box_b->x.upper &&

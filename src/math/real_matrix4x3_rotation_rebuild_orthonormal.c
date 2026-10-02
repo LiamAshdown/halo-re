@@ -23,10 +23,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718 -> 0x0065c20c ( 1, 0, 0)
 extern const real_vector3d *global_left3d_pointer;    // 0x0069671c -> 0x0065c218 ( 0, 1, 0)

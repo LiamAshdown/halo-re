@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern team_pair_globals *team_pair_data; // 0x006b0b84
 
 // Clears the override list and both relationship bitmasks, then marks every team index as

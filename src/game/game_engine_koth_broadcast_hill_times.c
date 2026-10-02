@@ -21,10 +21,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 extern int32_t king_team_hill_seconds_network[16]; // 0x0087a7e0
 extern int32_t king_bucket_credit_ticks[16];       // 0x006b0ec0, this batch (source span extends

@@ -22,10 +22,10 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern datum_index hs_thread_find_by_script_index(int16_t script_index); // 0x48a960

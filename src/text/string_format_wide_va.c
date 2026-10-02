@@ -13,12 +13,12 @@
 #include "memory.h"
 #include "text.h"
 #include <stdarg.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: 0x627d49, Ghidra: _vswprintf. The unbounded CRT wide vswprintf: dest, format,
 // forwarded va_list, all cdecl stack args.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int _vswprintf(uint16_t *buffer, const uint16_t *format, va_list args); // CRT legacy _vswprintf (0x627d49: no count, the VC7.1 non-conforming form)
 
 // blam-cc: EDX=dest, stack=(format, ...)

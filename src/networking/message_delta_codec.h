@@ -10,7 +10,10 @@
 #include "game.h"
 #include "networking.h"
 #include "objects.h"
-#include <string.h>
+#include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern message_delta_field_type_vtable message_delta_field_type_table[28]; // 0x0069a2f0
 extern uint8_t message_delta_item_count_bits[];                             // 0x0065d51f, [n] = bits for 0..n-1
@@ -52,4 +55,7 @@ static __inline uint32_t message_delta_stream_position(const bit_stream *stream)
     return stream->bit_cursor + stream->byte_cursor * 8;
 }
 
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
 #endif

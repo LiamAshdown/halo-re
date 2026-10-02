@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8
 

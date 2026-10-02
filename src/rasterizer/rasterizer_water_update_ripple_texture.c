@@ -24,10 +24,10 @@
 #include "cache.h"
 #include "bitmaps.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t rasterizer_water_enabled;              // 0x006893fe
 extern uint8_t console_debug_toggle_689409;           // 0x00689409, "use the tag's ripple bitmap"
 extern void *rasterizer_device;                       // 0x0071d174

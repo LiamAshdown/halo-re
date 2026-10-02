@@ -30,14 +30,14 @@
 #include "ai.h"
 #include <stdint.h>
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // REWRITTEN 2026-09-28 against objdump 0x4303f0..0x4307b4: when either root cluster is -1 the original
 //   skips only the PVS test and still traces the segment (the draft dropped the player entirely);
 //   distance and facing sums follow the original z, y, x order. Everything else matched.
 
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern data_array *player_data;    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern data_array *object_data;    // 0x008603b0
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, the current structure BSP tag data

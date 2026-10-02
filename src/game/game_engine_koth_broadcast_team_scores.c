@@ -21,10 +21,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 extern network_server_globals *network_server;
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_8c aliased 0x006f1d14)

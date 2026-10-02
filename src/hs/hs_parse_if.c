@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 
 extern data_array *hs_syntax_data;      // 0x0087a474

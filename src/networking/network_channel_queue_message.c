@@ -29,10 +29,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 extern void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data,
     uint8_t *header_data, int32_t priority, uint32_t header_bits, uint32_t body_bits); // 0x4dcdb0, this batch

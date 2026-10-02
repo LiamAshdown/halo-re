@@ -19,13 +19,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> source, EDI -> destination, EBX -> count
 // Projects `count` real_point3d entries from `source` into `destination` as (x, y) pairs,
 // dropping z. Functionally a simple per-element copy; the original is manually unrolled 4-wide.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void point3d_array_project_to_xy_plane(real_point3d *source, Point2D *destination, int32_t count)
 {
     int32_t i;

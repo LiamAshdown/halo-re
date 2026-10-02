@@ -7,10 +7,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t bit_mask_keep[9]; // 0x0065c2c0
 
 // blam-cc: bit count and destination as the recognized parameters, stream in EDX

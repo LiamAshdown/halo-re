@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 
 float curve_apply_exponent(float value, float exponent) // blam-cc: stack -> value, exponent

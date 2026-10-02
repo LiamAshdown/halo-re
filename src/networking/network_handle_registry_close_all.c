@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_handle_registry_slot network_handle_registry[64]; // 0x006f14d0
 
 // blam-cc: __cdecl, no arguments

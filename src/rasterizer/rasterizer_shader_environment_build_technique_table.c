@@ -22,10 +22,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps;                                    // 0x007c10c0
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern int32_t environment_techniques_multipurpose[24];              // 0x006e1780

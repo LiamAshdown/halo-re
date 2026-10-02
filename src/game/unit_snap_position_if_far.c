@@ -18,10 +18,10 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_vector3d global_origin3d; // 0x0065c230
 
 extern double sqrt(double x); // x87 FSQRT

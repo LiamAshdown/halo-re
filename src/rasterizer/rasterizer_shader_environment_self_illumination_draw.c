@@ -26,10 +26,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_frame_time rasterizer_time;                       // 0x007c1200
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410

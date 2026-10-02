@@ -28,10 +28,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t console_debug_toggle_6893ec;                 // 0x006893ec
 extern uint8_t console_debug_toggle_6893ed;                 // 0x006893ed
 extern int16_t rasterizer_active_model_mode;                // 0x0071d1f8

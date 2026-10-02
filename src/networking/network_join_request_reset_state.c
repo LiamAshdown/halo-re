@@ -13,10 +13,10 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, blam-cc: EAX channel, ECX out
 extern uint32_t network_local_address; // 0x006869b0
 extern uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip,

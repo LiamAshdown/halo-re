@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint32_t game_no_player_is_dead(void); // 0x45bbe0
 

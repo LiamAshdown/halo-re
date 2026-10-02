@@ -9,14 +9,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: array in EDX, element in ESI
 // Zero-fills one element's worth of bytes at `element`, then stamps its datum_header::identifier
 // with array->next_identifier and advances/reseeds that salt counter (wrapping to
 // k_datum_identifier_wrap when it would otherwise become k_datum_identifier_none).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void datum_element_initialize(data_array *array, void *element)
 {
     int16_t element_size;

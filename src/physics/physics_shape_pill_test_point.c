@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // blam-cc: EAX -> point, ESI -> pill, EDI -> out_normal, stack -> out_depth

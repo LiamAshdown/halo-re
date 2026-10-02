@@ -14,10 +14,10 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_definition *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
 extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640 qr2_buffer_add_int

@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double ftan(double x); // x87 FPTAN
 
 extern uint8_t render_asymmetric_frustum_disabled; // 0x00710321, UNSURE name/owner

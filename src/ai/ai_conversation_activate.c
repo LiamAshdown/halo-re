@@ -17,10 +17,10 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 extern datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t allow_eviction); // 0x431590, this batch

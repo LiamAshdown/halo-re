@@ -15,15 +15,15 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ESI -> queue
 // Allocates and zeroes 30 records of 0x14 bytes each (storage), allocates a 30-entry pointer
 // table (records) and points each entry at its own record slot in storage, and resets the
 // read/write cursors.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void position_update_queue_create(circular_queue *queue)
 {
     uint32_t *storage;

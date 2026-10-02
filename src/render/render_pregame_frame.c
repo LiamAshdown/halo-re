@@ -21,10 +21,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t render_frame_index;           // 0x007c3100, this module
 extern render_camera render_camera_global;   // 0x007c3114, this module
 extern render_frustum render_frustum_global; // 0x007c3168, this module

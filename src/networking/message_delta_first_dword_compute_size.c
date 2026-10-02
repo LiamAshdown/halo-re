@@ -6,10 +6,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t message_delta_first_dword_compute_size(message_delta_field_type *field_type)
 {
     return *(int32_t *)field_type->array_descriptor;

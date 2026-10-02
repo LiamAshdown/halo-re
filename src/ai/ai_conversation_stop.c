@@ -16,10 +16,10 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;        // 0x00746f8c
 extern ai_globals *ai_globals_ptr;       // 0x00880354

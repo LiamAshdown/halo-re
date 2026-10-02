@@ -20,10 +20,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_detail_object_vertex_buffer;                // 0x0071d1c8
 extern Scenario *global_scenario;                                   // 0x00746f8c
 extern ScenarioStructureBSP *global_structure_bsp;                         // 0x00746f9c

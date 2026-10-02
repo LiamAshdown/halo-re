@@ -18,10 +18,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4, render.h (0x78 bytes)
 extern float rasterizer_default_z_near; // 0x0069c65c, rasterizer.h
 extern rasterizer_frame_time rasterizer_time; // 0x007c1200

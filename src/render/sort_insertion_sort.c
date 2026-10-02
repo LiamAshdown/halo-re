@@ -26,10 +26,10 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sort_rotate(rendered_particle_datum *first, rendered_particle_datum *mid,
     rendered_particle_datum *last); // 0x510ba0, blam-cc: EAX mid, EBX last, stack first
 

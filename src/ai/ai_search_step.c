@@ -19,10 +19,10 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_search_heap_sift_down(ai_search_context *context, int16_t index); // 0x43b4d0, ECX, DX
 extern void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_index,
     int16_t start_point_id); // 0x43ba60, stack, DX

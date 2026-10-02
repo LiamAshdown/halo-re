@@ -21,10 +21,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c)
 {
     return (b->k * a->j - a->k * b->j) * c->i +

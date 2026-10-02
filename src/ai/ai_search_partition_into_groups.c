@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask,
                                        int16_t start_index); // 0x43ca40
 

@@ -11,10 +11,10 @@
 
 #include "win32.h"
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_join_requested;    // 0x00719491
 extern void *master_server_query_engine;         // 0x0071946c, the ServerBrowser
 extern uint32_t master_server_request_flags;     // 0x0071969c

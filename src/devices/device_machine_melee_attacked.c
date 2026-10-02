@@ -17,10 +17,10 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void device_group_set_value_immediate(uint16_t group_index, float value); // 0x44bea0

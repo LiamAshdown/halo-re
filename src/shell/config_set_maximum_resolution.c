@@ -17,10 +17,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sscanf(const char *buffer, const char *format, ...); // 0x626572 CRT
 extern int32_t config_maximum_resolution; // 0x0069fe3c
 

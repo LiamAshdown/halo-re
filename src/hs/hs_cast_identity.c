@@ -7,10 +7,10 @@
 // blam-cc: stack -> value (cdecl)
 
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t hs_cast_identity(int32_t value)
 {
     return value;

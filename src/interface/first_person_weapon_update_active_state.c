@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t current_local_player_index; // 0x007c3108 (src/effects precedent name)
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 

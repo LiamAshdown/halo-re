@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_winsock_initialized;    // 0x006869b8
 extern int32_t network_query_socket;           // 0x006f14c8
 extern int32_t network_game_socket;            // 0x006f14c4

@@ -25,10 +25,10 @@
 #include "interface.h"
 #include "main.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data;                  // 0x006b7020, main.h; +0x00 active = console open
 extern player_effect_globals *player_effect_globals_pointer;  // 0x006f1884
 extern game_time_globals *game_time; // 0x006f1d6c

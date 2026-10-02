@@ -15,10 +15,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
 extern wchar_t empty_string; // 0x00660c34

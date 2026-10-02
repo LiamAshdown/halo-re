@@ -25,10 +25,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, ECX
 extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
                                        real cos_angle); // 0x4cb880

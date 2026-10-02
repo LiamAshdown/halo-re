@@ -25,10 +25,10 @@
 #include "projectiles.h"   // collision_result (the 0x50-byte record 0x505880 fills)
 #include "cache.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t *runtime_decals_suppressed;  // 0x0072278c, this module; UNSURE, see types/structures.h
 extern Scenario *global_scenario;           // 0x00746f8c, game.h/hs.h (read, not owned)

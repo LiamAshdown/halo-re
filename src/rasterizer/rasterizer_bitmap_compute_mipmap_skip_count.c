@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int8_t renderer_texture_quality; // 0x0068944e, UNSURE owner; clamped to [0,2] skip levels
 
 // Returns how many mip levels were skipped (0 if the quality setting, bitmap flags or mip count

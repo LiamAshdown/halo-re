@@ -25,10 +25,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t control_profile_gamepad_slot_find(saved_player_profile *profile, controls_gamepad_record *key); // 0x53b6b0, this module
 extern uint8_t control_profile_is_customized(saved_player_profile *profile, int32_t slot_index); // 0x53b370, saved_games (below this batch)
 extern void *memcpy(void *dest, const void *src, uint32_t count); // CRT

@@ -18,10 +18,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buffer_capacity, void *module,
                                            char *buffer); // 0x57e110
 extern char *strcat(char *dst, const char *src); // CRT, statically linked

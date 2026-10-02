@@ -16,13 +16,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> (state, control, header, cursor)
 // Compressed event type 3: copies one byte from *cursor into control->aiming_speed and advances
 // *cursor by 1. state and header are unused.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_decode_aiming_speed_event(recorded_animation_decoder_state *state,
     unit_control_data *control, uint8_t *header, uint8_t **cursor)
 {

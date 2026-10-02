@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_data;          // 0x007252c0
 extern data_array *looping_sound_data;  // 0x00724a50
 extern sound_driver *current_sound_driver;  // 0x00725208

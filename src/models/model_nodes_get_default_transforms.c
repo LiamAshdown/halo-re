@@ -15,12 +15,12 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Fills one real_orientation per node with that node's unanimated default pose (scale always
 // 1.0), i.e. the base pose before any animation is applied.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void model_nodes_get_default_transforms(GBXModel *model, real_orientation *out)
 {
     ModelNode *nodes;

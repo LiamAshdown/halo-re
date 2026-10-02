@@ -11,10 +11,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 uint32_t __cdecl video_refresh_rate_compare(const uint32_t *a, const uint32_t *b)
 {
     if (*a < *b) {

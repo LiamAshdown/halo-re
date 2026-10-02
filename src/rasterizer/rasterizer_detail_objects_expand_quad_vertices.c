@@ -17,11 +17,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
+// blam-cc: EAX -> quad_count, ECX -> vertices, EDX -> instances, stack -> (collection, draw)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> quad_count, ECX -> vertices, EDX -> instances, stack -> (collection, draw)
 void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, uint32_t *vertices, const uint8_t *instances,
                                                     const DetailObjectCollection *collection,
                                                     const rasterizer_detail_object_draw *draw)

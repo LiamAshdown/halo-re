@@ -16,10 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 
 extern ban_list_entry *ban_list_find_by_name(char *key); // this batch, 0x4e37d0

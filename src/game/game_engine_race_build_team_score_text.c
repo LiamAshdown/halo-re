@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t game_engine_bucket_scores[16]; // 0x006b1318
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest
 

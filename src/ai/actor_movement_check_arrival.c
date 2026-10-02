@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten (an engagement-range radius)
 

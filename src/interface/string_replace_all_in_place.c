@@ -19,9 +19,6 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: EAX -> buffer, then (search, replacement) on the stack
@@ -31,6 +28,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // length before the loop starts, not recomputed per iteration; if replacement is a different
 // length than search this is preserved verbatim from the original (not "fixed" here), and the
 // original also unconditionally strlen()s buffer before the NULL check below ever runs.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void string_replace_all_in_place(char *buffer, char *search, char *replacement)
 {
     uint32_t search_length;

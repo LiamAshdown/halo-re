@@ -17,10 +17,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index actor_get_threat_weapon_object_index(int32_t actor_index); // 0x4282c0, EAX -> actor_index

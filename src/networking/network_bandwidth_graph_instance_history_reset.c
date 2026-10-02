@@ -14,11 +14,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+// blam-cc: ESI -> graph
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ESI -> graph
 void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph)
 {
     int16_t baseline = graph->baseline;

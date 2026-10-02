@@ -17,13 +17,13 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> widget
 // Walks up the parent chain and returns the topmost ancestor (the widget itself if it has no
 // parent).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 widget_instance *widget_instance_find_root(widget_instance *widget)
 {
     while (widget->parent != (widget_instance *)0) {

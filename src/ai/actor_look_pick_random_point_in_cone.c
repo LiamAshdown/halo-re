@@ -29,10 +29,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t random_seed_global; // 0x00719cd0
 extern const real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
 extern const real_vector3d *global_up3d_pointer;    // 0x00696720

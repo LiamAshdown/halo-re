@@ -146,3 +146,8 @@ Reviews and automation
 4. GameSpy stays as is (vendored C, not converted, not wrapped beyond compiling as a C library with `extern "C"`).
 5. `ai` and `hs` are converted in the first pass. Because they are the biggest, behaviour-critical modules and replay tests do not exist yet, build the determinism replay harness (section 9, item 3) BEFORE phase 2 starts on them, and convert them mechanically (phases 1 to 3 only) with the difftest harness as the gate; no behavioural cleanups until replay coverage exists.
 6. Audio: miniaudio (plus libvorbis/ogg for Vorbis data). EAX reverb has no direct equivalent; document the parity gap and use miniaudio's node graph for a simple reverb as a later task.
+
+## 12. Standards added 2026-10-03
+
+- Comments: a method docblock of one or two short paragraphs per function (what it does, and any non-obvious contract such as register convention, units or caller assumptions), with one `@address 0x00xxxxxx` tag line. No inline commentary, no evidence or UNSURE essays. The existing long notes and the `#if 0` original-decompile blocks move to `docs/original/<module>/` verbatim.
+- glm: used for matrix and vector math in the new `halo::<module>` APIs, the camera/render code and the OpenGL backend. Stored and serialised types (`real_matrix3x3`, `real_matrix4x3` and similar) keep their layout and size and are converted at the boundary. A function's body switches to glm only after its byte-for-byte output test matches the original build, because simulation math must stay bit-exact; where glm changes the bits the original arithmetic stays and the reason is recorded in `docs/CPP_CONVENTIONS.md`.

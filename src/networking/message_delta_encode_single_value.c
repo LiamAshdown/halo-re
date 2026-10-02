@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type, int32_t changed_offset,
                                              void **items, int32_t type_offset, int32_t count,
                                              char force_changed); // 0x4ec940, this module

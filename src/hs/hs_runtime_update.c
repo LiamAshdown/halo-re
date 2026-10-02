@@ -18,10 +18,10 @@
 #include "math.h"
 #include "game.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index datum_next(int16_t after_index, data_array *array);
     // blam-cc: DX -> after_index, EDI -> array; memory module, 0x4d0630
 extern void hs_thread_evaluate_step(datum_index thread_handle); // this module, 0x48a370

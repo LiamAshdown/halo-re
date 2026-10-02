@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88
 
 // blam-cc: stack -> radius, EAX -> team, ECX -> point

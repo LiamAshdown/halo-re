@@ -18,11 +18,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern char map_path_prefix[]; // 0x006f16d8
 
 // VERIFIED against disassembly 0x442bb0..0x442c69 (2026-09-30): the "%s%s%s.map" path build (prefix 0x6f16d8, "maps\\", name), the

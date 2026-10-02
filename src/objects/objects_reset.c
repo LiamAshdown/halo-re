@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t object_unknown_006b8c60; // 0x006b8c60, UNSURE: foreign/undocumented global
 extern int32_t object_sound_event_last_tick; // 0x006b8a00, UNSURE: foreign/undocumented global
 extern uint16_t object_visibility_computed_mask; // 0x006b8cb0

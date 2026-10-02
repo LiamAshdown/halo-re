@@ -14,10 +14,10 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_display_mode rasterizer_desktop_display_mode;           // 0x007c11f0
 
 extern int32_t os_platform;            // 0x00721ef0

@@ -22,10 +22,10 @@
 #include "cache.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
     char use_matched_index); // 0x4f6c60, EAX object, stack (name, region, use)
 

@@ -42,10 +42,10 @@
 #include <string.h>
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t player_effect_reentry_count; // 0x00719ccc, foreign (effects module)
 extern main_globals main_globals_data;      // 0x00719700
 extern render_view render_views[2];         // 0x00719b70

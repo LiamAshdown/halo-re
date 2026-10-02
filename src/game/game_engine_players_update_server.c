@@ -45,12 +45,12 @@
 #include "game.h"
 #include <string.h>
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // client_update_carry is types/game.h's (0x10; every field still UNSURE, see that header).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;              // 0x008603b0

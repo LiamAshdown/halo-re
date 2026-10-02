@@ -15,9 +15,6 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // See src/math/bounded_ramp_profile_build.c for the profile buffer layout (TYPES-GAP, 0x20 bytes).
 
@@ -25,6 +22,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // *out_velocity. Returns nonzero once `time` has run past every phase in the profile (i.e. the
 // ramp has finished and the caller has reached its target); while the profile is already in the
 // dead zone (within_dead_zone != 0) it returns that same flag unchanged.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t bounded_ramp_profile_evaluate(bounded_ramp_profile *profile, real time, real start_position,
                                        real *out_position, real start_velocity, real *out_velocity)
 {

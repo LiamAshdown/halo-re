@@ -13,10 +13,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *effect_data; // 0x0087abdc
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630,

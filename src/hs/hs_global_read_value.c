@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern char *hs_empty_string; // 0x00688b50
 

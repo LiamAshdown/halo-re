@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index, int32_t parameter, uint32_t extra); // 0x417610, this module

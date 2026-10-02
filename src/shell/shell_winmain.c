@@ -46,9 +46,6 @@
 
 #if defined(_MSC_VER)
 #include <excpt.h>   // GetExceptionInformation is the _exception_info intrinsic, not a function
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 #define WINMAIN_TRY __try
 #define WINMAIN_EXCEPT __except (exception_filter_crash_reporter((win32_exception_pointers *)GetExceptionInformation()))
 #else
@@ -56,6 +53,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 #define WINMAIN_EXCEPT if (0)
 #endif
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern char *shell_command_line;             // 0x006e35c0
 extern void *shell_window;                   // 0x007461c4
 extern void *shell_instance;                 // 0x007461c0

@@ -17,10 +17,10 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,
                                              int16_t exclude_index, float extra_radius); // 0x43c890
 extern int16_t ai_search_add_node(ai_search_context *context, int16_t chain_head, real_point2d *position,

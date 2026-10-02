@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *game_state_base;    // 0x006e2dc8 (saved_games)
 extern int32_t game_state_cursor;   // 0x006e2dcc (saved_games)
 extern uint32_t game_state_crc;     // 0x006e2dd4 (saved_games)

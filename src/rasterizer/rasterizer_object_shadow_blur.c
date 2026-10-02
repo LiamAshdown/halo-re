@@ -23,10 +23,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                             // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing;       // 0x0069c680
 extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689

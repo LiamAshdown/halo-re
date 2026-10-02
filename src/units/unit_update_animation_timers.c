@@ -19,10 +19,10 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
 extern real_vector3d *global_forward3d_pointer; // 0x00696718

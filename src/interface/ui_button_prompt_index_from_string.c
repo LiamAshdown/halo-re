@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t *ui_button_caption[0x28]; // 0x00692708, first entry is the a-button token
 
 

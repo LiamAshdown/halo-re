@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
 // Returns +1.0 / -1.0 for the direction *value* should move to reach *target*, or 0.0 when it

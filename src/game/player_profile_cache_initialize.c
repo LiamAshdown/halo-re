@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_profile player_profile_cache[16];    // 0x006b0b88
 extern int32_t player_profile_cache_count;          // 0x006f1d34
 extern uint8_t player_profile_cache_initialized;    // 0x006f1d38

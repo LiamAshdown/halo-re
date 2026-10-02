@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern lens_flare_batch_key lens_flare_applied_key; // 0x007bf040
 
 extern uint8_t rasterizer_validate_and_rebind_texture(uint32_t bitmap_tag_id, int16_t stage, int16_t frame); // 0x5187e0, EAX tag

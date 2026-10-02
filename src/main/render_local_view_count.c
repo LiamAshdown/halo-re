@@ -21,10 +21,10 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_definition *current_game_engine; // 0x006f1d20, foreign
 extern game_engine_state game_engine_state_value;   // 0x0087aa10, foreign (game module)
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c

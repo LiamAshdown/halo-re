@@ -26,10 +26,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 extern void *ui_event_function_table[0xbe]; // 0x006927d0
 extern widget_instance *ui_root_widget[1]; // 0x00718f94

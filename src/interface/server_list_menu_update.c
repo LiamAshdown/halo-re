@@ -30,10 +30,10 @@
 #include "interface.h"
 #include <wchar.h>
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *server_list_entries_006b380c[9]; // 0x006b380c, TYPES-GAP
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc

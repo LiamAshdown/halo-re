@@ -13,13 +13,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> angles, EDX -> delta
 // Adds a compressed 8 bit yaw/pitch delta to a wrapped 1000-unit fixed-point angle pair,
 // wrapping yaw back into -1000..1000 (pitch is never wrapped).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_apply_char_difference(recorded_animation_angles *angles,
     recorded_animation_char_difference *delta)
 {

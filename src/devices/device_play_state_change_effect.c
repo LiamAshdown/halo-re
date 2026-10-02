@@ -35,10 +35,10 @@
 #include "objects.h"
 #include "devices.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern void *global_forward3d_pointer; // 0x00696718, a constant pointer to .rdata 0x0065c20c

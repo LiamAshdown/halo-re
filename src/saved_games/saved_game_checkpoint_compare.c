@@ -15,10 +15,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t checkpoint_sort_newest_first; // 0x0069e7e8
 
 

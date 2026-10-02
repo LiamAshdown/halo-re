@@ -14,10 +14,10 @@
 #include "cache.h"
 #include "bitmaps.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t console_debug_toggle_6893f1;         // 0x006893f1
 extern uint8_t console_debug_toggle_68941c;         // 0x0068941c

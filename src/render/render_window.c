@@ -57,10 +57,10 @@
 #include "structures.h"
 #include "game.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
 extern int16_t render_window_index;                   // 0x007c310a, this module

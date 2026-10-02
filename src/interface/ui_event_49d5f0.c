@@ -23,10 +23,10 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *map_list; // 0x00712dcc, map_list_entry[] (0xc bytes, +0 the map path)
 extern int32_t map_list_count; // 0x00712dd0
 extern uint8_t saved_game_last_mp_map_read(uint8_t *out_data); // 0x53d670

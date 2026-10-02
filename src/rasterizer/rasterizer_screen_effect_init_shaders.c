@@ -14,10 +14,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t screen_effect_techniques[k_rasterizer_screen_effect_techniques]; // 0x0071d210
 
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410

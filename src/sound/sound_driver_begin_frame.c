@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 
 // blam-cc: void

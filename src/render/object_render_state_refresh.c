@@ -37,10 +37,10 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_render_state_cache; // 0x007c30ec, this module
 extern data_array *object_data;                 // 0x008603b0, objects module
 extern int32_t render_frame_index;              // 0x007c3100, this module

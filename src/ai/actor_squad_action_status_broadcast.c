@@ -24,10 +24,10 @@
 #include "ai.h"
 #include "cache.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data;    // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
 extern uint16_t global_structure_bsp_index; // 0x0069e8d8, UNSURE: compared against ScenarioCommandList.precomputed_bsp_index

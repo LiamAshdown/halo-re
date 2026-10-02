@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t autopatch_proxy_ready; // 0x007228d0
 
 extern void *autopatch_get_proxy_settings(void); // 0x576f40, out of this rewrite's scope

@@ -20,13 +20,13 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Adds delta to *value, then keeps the result inside [range->lower, range->upper]: overshooting
 // the upper edge either wraps by the range's span (wrap != 0) or clamps to range->upper;
 // undershooting the lower edge does the mirror image against range->lower.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta)
 {
     float new_value = *value + delta;

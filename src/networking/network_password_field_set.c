@@ -16,11 +16,11 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
+// blam-cc: EAX -> source, ESI -> object
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> source, ESI -> object
 void network_password_field_set(uint8_t *object, wchar_t *source)
 {
     wcsncpy((wchar_t *)(object + 8), source, 0x3f);

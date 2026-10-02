@@ -25,10 +25,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
 extern transparent_geometry_group *transparent_geometry_groups;   // 0x0071d14c, 384 entries

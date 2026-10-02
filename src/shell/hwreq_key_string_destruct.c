@@ -10,10 +10,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void free(void *block); // CRT: 0x6277e8
 
 void hwreq_key_string_destruct(msvc_std_string *self)

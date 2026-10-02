@@ -21,10 +21,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void os_platform_identify(void); // 0x5427e0
 
 extern int32_t data_file_read_header(data_file *file, int32_t expected_file_id); // blam-cc:

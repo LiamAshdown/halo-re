@@ -15,10 +15,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern int32_t saved_item_name_changed(void); // 0x495c90

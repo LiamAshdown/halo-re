@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_log_path_format[]; // 0x0065efec, the shared "%s" format string (see network_log_path_resolve.c)
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);

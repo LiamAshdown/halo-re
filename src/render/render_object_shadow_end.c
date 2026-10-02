@@ -32,10 +32,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220, rasterizer module
 extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689 UNSURE
 extern uint8_t console_debug_toggle_6893f2;                 // 0x006893f2 object shadows enabled

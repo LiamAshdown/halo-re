@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern director directors[1]; // 0x006ac560
 
 // blam-cc: EAX -> data, stack -> local_player_index

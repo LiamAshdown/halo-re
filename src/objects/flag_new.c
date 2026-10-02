@@ -21,10 +21,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *flag_data;       // 0x008603a8
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_point3d *global_zero_vector3d_pointer;          // 0x006966f8, shared constant vector

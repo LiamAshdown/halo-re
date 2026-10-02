@@ -26,10 +26,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hwreq_map_node_key_destruct(hwreq_map_node *node); // 0x57cde0, same pass
 
 // blam-cc: ECX -> map_self, stack -> node

@@ -19,11 +19,11 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern rasterizer_effect_slot rasterizer_effects[k_rasterizer_pixel_shader_effects]; // 0x0069d410
 extern d3d_caps9 rasterizer_caps;                                    // 0x007c10c0
 extern int32_t config_safe_mode; // 0x00722b60 nonzero forces the "fallback" technique name

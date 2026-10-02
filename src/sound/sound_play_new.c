@@ -37,10 +37,10 @@
 #include "math.h"
 #include "game.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *sound_data;      // 0x007252c0
 

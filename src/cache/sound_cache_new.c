@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_cache_entries; // 0x006ac528
 extern int32_t sound_cache_size_megabytes; // 0x006869c4, read but not owned by this module
 extern int32_t sound_cache_page_count;  // 0x006f17e4

@@ -30,10 +30,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                // 0x0087a480
 extern wchar_t empty_string;                   // 0x00660c34, established fallback (see
                                                 //   src/game/game_engine_build_end_game_result_text.c)

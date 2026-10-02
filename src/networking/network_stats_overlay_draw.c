@@ -50,10 +50,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ***rasterizer_device; // 0x0071d174, foreign render module (read, not owned);
     // same global and access idiom as src/structures/structure_picked_polygon_draw.c
 

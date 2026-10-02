@@ -21,10 +21,10 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t unit_build_seat_occupant_zone_list(int32_t object_handle); // 0x56bbd0, not in this batch;
     // blam-cc: ECX -> object_handle, returns in EAX; UNSURE exact effect
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,

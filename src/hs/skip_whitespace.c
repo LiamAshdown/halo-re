@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hs_space_characters[2];   // 0x0065b660
 extern char hs_newline_characters[2]; // 0x0065b664
 extern char *hs_compile_error;        // 0x006b14d4

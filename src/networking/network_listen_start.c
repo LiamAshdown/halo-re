@@ -17,10 +17,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_game_socket; // 0x006f14c4
 
 extern void gt2SetSocketData(int32_t socket, void *data); // 0x614810 gt2SetSocketData (socket +0x30)

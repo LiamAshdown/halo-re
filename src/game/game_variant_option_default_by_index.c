@@ -19,13 +19,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> selector
 // Returns one of eight hardcoded 32-bit constants selected by `selector` (0..7), or 0x249248
 // for any other value. UNSURE: see header for what these values actually mean.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t game_variant_option_default_by_index(uint32_t selector)
 {
     switch (selector) {

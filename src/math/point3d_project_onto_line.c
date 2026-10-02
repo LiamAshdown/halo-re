@@ -17,12 +17,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Projects *point onto the infinite line through *line_origin in direction *direction, and
 // writes the projected point to *out_result. out_result may alias point.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void point3d_project_onto_line(real_point3d *point, real_vector3d *direction,
     real_point3d *line_origin, real_point3d *out_result)
 {

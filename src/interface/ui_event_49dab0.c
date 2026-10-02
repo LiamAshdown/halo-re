@@ -21,10 +21,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int16_t quit_confirm_error_string_index; // 0x00718fac

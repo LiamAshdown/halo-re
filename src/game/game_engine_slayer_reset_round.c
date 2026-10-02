@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast); // 0x46be40, blam-cc: ESI sound, EDI player, stack broadcast
 extern game_engine_definition *current_game_engine;
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc

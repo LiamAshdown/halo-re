@@ -27,10 +27,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0

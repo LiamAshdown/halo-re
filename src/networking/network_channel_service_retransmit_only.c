@@ -14,11 +14,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern void network_channel_scan_retransmit_timeouts(network_channel *channel); // 0x4dd9d0, this batch
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60, this batch
 

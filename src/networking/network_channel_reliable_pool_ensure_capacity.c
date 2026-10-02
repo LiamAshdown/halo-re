@@ -27,15 +27,15 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Scans the pool for a free (pending == 0) slot already large enough for both requested
 // capacities; if one exists, returns its index without doing anything else. Otherwise grows the
 // pool by 10 slots (reallocating and copying the existing array), initializes each new slot with
 // max(requested, 100)-byte header/body allocations, and returns the index of the first new slot.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t network_channel_reliable_pool_ensure_capacity(network_channel *channel, int32_t body_capacity_needed,
     int32_t header_capacity_needed)
 {

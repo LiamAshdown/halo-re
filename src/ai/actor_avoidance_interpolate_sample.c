@@ -28,11 +28,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// blam-cc: ECX -> direction, EBX -> samples, stack -> count, values, out_index, out_value
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> direction, EBX -> samples, stack -> count, values, out_index, out_value
 uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction,
                                            const real_vector3d *samples, int16_t count,
                                            const float *values, float *out_index,

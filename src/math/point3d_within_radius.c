@@ -15,12 +15,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns whether point `a` is within `radius` of point `b` (squared-distance comparison, no
 // sqrt).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int point3d_within_radius(const real_point3d *a, const real_point3d *b, real radius)
 {
     real dx = a->x - b->x;

@@ -20,10 +20,10 @@
 
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void input_get_keyboard_key_name(int16_t key_index, uint16_t *out_name); // this module, 0x490e30
 
 // Resolves a keyboard key display name string (ASCII, case-insensitive) back to its numeric key

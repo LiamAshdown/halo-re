@@ -48,10 +48,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x28 off it is the hash -> datum_index array
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination); // 0x4ec590, EAX context, ECX destination

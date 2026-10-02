@@ -11,13 +11,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> value, stack -> target, max_step
 // Moves *value toward target by at most max_step (in either direction) and writes the result
 // back through value.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void value_step_toward_target(float *value, float target, float max_step)
 {
     float delta = target - *value;

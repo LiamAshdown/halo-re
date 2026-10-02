@@ -11,12 +11,12 @@
 #include "win32.h"
 #include "tags.h"
 #include "cseries.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Thin wrapper allocating a fixed (GMEM_FIXED, flags=0) block of `size` bytes via GlobalAlloc.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void *memory_global_alloc(uint32_t size)
     // blam-cc: EAX -> size
 {

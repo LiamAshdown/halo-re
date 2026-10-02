@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, blam-cc: AL
 

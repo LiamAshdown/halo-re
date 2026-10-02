@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// blam-cc: EAX -> context, ECX -> position, stack -> goal_vertex_id, goal_cost
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> context, ECX -> position, stack -> goal_vertex_id, goal_cost
 void path_find_set_goal(path_find_context *context, const real_point3d *position,
                         uint32_t goal_vertex_id, float goal_cost)
 {

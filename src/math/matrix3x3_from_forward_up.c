@@ -10,11 +10,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Builds a 3x3 basis matrix from two vectors and their cross product.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Builds a 3x3 basis matrix from two vectors and their cross product.
 void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out)
 {
     out->forward = *forward;

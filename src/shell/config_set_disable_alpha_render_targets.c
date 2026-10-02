@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_disable_alpha_render_targets; // 0x00722b74
 
 // config.txt "DisableAlphaRenderTargets" setter: presence alone sets the flag.

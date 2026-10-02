@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *hs_syntax_data;                          // 0x0087a474
 extern Scenario *global_scenario;                            // 0x00746f8c
 extern char *hs_compiled_source;                              // 0x006b14c0

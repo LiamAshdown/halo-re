@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *data_iterator_next(data_iterator *iterator);        // memory module, 0x4d05d0
 extern char hs_object_hierarchy_test(datum_index object_index);  // this module, 0x487c10
 extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,

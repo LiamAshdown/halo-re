@@ -15,9 +15,6 @@
 #include "tags.h"
 #include "cseries.h"
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Creates `path` and every missing parent directory along it. If `path` already exists (per
@@ -34,6 +31,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // skipped; if either is missing the function fails (returns 0) without creating anything.
 // The final CreateDirectoryA uses the caller's `path`, not the scratch copy (0x449340 push ebx,
 // EBX reloaded from the argument slot at 0x4492ee on every iteration).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char directory_create_recursive(char *path)
     // blam-cc: stack -> path
 {

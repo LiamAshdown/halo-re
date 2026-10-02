@@ -28,12 +28,12 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TYPES-GAP: not established anywhere else in this module; a 2-field caller-owned record
 // (EDI) naming the scripted condition to test and, optionally, which platoon it applies to.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern data_array *encounter_data;  // 0x008802c8
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 

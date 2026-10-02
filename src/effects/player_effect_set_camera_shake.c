@@ -17,10 +17,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void player_effect_set_camera_shake(player_effect *self, player_camera_shake *descriptor,
     float intensity_falloff, float duration_scale) // blam-cc: unaff_EBX, in_EAX, stack, stack
 {

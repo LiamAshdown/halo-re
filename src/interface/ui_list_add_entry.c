@@ -20,10 +20,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_list_has_default;  // 0x007192f8
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern uint32_t growable_array_add_element(growable_array *array); // 0x4cf810, established in src/memory/

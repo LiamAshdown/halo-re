@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t game_engine_unknown_aa00; // 0x0087aa00
 extern int16_t light_count_enabled;               // 0x0068944c, UNSURE: not owned by this module (a WORD: 2 bytes at 0x68944c)
 extern data_array *player_data;          // 0x0087a480

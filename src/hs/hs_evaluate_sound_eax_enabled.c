@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint8_t *global_sound_effect_object; // 0x00721f24
 

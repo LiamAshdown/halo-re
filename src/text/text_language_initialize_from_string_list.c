@@ -21,13 +21,13 @@
 #include "cache.h"
 #include "text.h"
 #include <stdlib.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // text_encoding, text_justification and text_flags are already the names of this
 // module's enum typedefs (types/text.h), so the file-scope globals that hold their
 // current values are named with a "_state" suffix instead to avoid redeclaring them.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern Globals *global_globals;                     // 0x00746fa0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 

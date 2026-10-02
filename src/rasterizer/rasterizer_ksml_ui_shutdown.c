@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
 extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8: "find document"
 extern void (*unknown_00721ec8)(int32_t document); // 0x00721ec8: "release document"

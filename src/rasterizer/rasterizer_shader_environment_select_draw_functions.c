@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps;            // 0x007c10c0
 extern void *shader_environment_draw_simple; // 0x007c0470 procedure for shader_type 3
 extern void *shader_environment_draw;        // 0x007c0474 procedure for the other types

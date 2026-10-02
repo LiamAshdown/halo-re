@@ -11,12 +11,12 @@
 #include "tags.h"
 #include "memory.h"
 #include <ctype.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns 1 if `string` is NULL, empty, or consists solely of digits and/or minus signs;
 // returns 0 as soon as any other character is found.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t string_is_numeric(char *string) // blam-cc: EAX -> string
 {
     while (1) {

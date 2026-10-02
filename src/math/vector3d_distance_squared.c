@@ -11,12 +11,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns the squared Euclidean distance between two 3D points (no sqrt). Used where callers
 // only need to compare distances (e.g. against a squared threshold).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real vector3d_distance_squared(real_point3d *a, real_point3d *b)
 {
     return (a->z - b->z) * (a->z - b->z) +

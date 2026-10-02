@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern uint8_t network_stats_enabled_gate; // 0x006894a8 (UNSURE name)

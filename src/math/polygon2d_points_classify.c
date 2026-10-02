@@ -39,12 +39,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // 0x44d950, out of this module and still unnamed in symbols/functions.txt; ECX = out plane,
 // EAX = first point, EDX = second point. Returns out_plane, or NULL if the points coincide.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_point2d *a, const real_point2d *b);
 
 // fabs is a single x87 FABS instruction in the original code (Ghidra's ABS() pseudo-function);

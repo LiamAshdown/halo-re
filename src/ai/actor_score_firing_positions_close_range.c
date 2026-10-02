@@ -9,10 +9,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void actor_score_firing_positions_close_range(datum_index actor_index, actor_firing_position_query *query,
     uint16_t count, actor_firing_position_candidate *candidates)
 {

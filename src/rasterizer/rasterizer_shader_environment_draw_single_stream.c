@@ -19,10 +19,10 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t console_debug_toggle_6893ec;         // 0x006893ec
 extern uint8_t *rasterizer_active_model_context;    // 0x0071d1f0

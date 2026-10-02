@@ -25,10 +25,10 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_id_table *machine_table;
 extern player_globals *local_player_globals; // 0x0087a478
 

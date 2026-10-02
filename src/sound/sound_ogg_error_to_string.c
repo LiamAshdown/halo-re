@@ -21,12 +21,12 @@
 #include "memory.h"
 #include "sound.h"
 #include <stdio.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> vorbis_error_code
 // Formats a libvorbisfile/Ogg Vorbis OV_* error code into its human-readable description.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void sound_ogg_error_to_string(int32_t vorbis_error_code)
 {
     char buffer[4092];

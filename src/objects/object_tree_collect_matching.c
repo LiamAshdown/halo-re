@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 int32_t object_tree_collect_matching(uint32_t object_index, uint8_t (*filter)(uint32_t, void *),

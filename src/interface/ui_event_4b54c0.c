@@ -16,10 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern int32_t controls_selected_device; // 0x006953ec
 extern uint8_t controls_device_sensitivity_a[]; // 0x007157d4, indexed by device; UNSURE name

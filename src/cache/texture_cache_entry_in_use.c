@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *texture_cache_entries; // 0x006ac538
 
 uint8_t texture_cache_entry_in_use(datum_index handle)

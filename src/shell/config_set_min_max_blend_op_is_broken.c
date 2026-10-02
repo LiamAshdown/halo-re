@@ -16,10 +16,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c
 
 // config.txt "MinMaxBlendOpIsBroken" setter: presence alone sets the flag.

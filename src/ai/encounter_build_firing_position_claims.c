@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario;  // 0x00746f8c
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8

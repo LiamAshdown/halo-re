@@ -22,10 +22,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char *data_packet_group_error; // 0x006b7f00
 
 // blam-cc (0x4d0bc0): see data_packet_group_encode_packet_body.c for the full parameter

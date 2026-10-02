@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t sound_initialized;   // 0x00725200
 extern uint8_t sound_enabled;       // 0x00725201
 extern uint8_t sound_disabled;      // 0x007252b6

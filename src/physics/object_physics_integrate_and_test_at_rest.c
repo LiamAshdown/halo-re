@@ -71,10 +71,10 @@
 #include "units.h"
 #include "projectiles.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern uint8_t physics_disable_integration; // 0x0071cfbc
 extern double fabs(double x); // ABS is a single x87 FABS instruction

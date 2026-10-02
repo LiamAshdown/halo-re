@@ -19,13 +19,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> slot_index, ECX -> type_nibble, DL -> flag_bit_30, stack -> flag_bit_31
 // Packs a 12-bit slot index, a 4-bit type nibble and two boolean flags into one 32-bit handle:
 // bits 16..27 = slot_index, bits 0..3 = type_nibble, bit 30 = flag_bit_30, bit 31 = flag_bit_31.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nibble, uint8_t flag_bit_30,
     uint8_t flag_bit_31)
 {

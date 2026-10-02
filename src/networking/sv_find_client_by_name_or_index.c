@@ -18,10 +18,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 
 extern uint8_t string_is_numeric(char *string); // this batch, 0x4e3f30

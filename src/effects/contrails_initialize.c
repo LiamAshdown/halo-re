@@ -14,10 +14,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *contrail_data;       // 0x0087abec
 extern data_array *contrail_point_data; // 0x0087abe8
 

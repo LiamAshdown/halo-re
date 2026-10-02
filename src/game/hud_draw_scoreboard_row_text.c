@@ -27,10 +27,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
     uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text); // 0x514ab0, EAX clip, ECX dest rect, stack (0, 0, text)
     // 0x514ab0; blam-cc: EAX -> unknown (0 here), ECX -> bounds (hud_text_bounds *),

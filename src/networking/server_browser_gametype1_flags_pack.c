@@ -14,14 +14,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ECX -> options
 // Encodes 4 boolean flags plus a time-limit enumeration into a compact code tagged with type id
 // 1 (the low 3 bits).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t server_browser_gametype1_flags_pack(server_browser_gametype1_options *options)
 {
     uint8_t *flags = options->flags;

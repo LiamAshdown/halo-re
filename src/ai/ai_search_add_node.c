@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, ECX
 extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index); // 0x43b450, EDX context, CX index
 

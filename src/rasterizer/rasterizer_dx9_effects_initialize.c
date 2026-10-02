@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void rasterizer_dx9_vertex_declarations_release(void);        // 0x530540
 extern int32_t rasterizer_dx9_vertex_declarations_create(void);      // 0x5301b0
 extern uint8_t rasterizer_dx9_vertex_shaders_reload(void);           // 0x530800

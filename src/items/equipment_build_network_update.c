@@ -28,10 +28,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x0c off it is the hash_table this function hashes
     // an object datum_index through (objdump 0x4bbcb9: mov esi,ds:0x687130 / add esi,0xc)

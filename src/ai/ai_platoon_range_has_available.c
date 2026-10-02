@@ -16,11 +16,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// TYPES-GAP: mirrors ai_reference_expand_to_platoon_range.c's local struct of the same name.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// TYPES-GAP: mirrors ai_reference_expand_to_platoon_range.c's local struct of the same name.
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 
 extern void ai_reference_expand_to_platoon_range(uint32_t packed_reference, ai_reference_platoon_range *out_range); // 0x432420, this batch

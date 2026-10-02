@@ -36,10 +36,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0

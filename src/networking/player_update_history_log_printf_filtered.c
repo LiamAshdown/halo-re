@@ -35,10 +35,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t local_player_name_filter[0x400]; // this module, 0x0071c420
 
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,

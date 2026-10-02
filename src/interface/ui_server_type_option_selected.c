@@ -22,10 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t autopatch_status_state_00719234;   // 0x00719234
 extern uint8_t autopatch_status_active_00719235;  // 0x00719235
 extern uint8_t ui_server_option_flag_00692b10;    // 0x00692b10

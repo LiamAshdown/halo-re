@@ -30,10 +30,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                             // 0x0087a480
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
 extern player_globals *local_player_globals;                // 0x0087a478

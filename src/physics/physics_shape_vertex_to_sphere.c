@@ -18,13 +18,13 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> model, ESI -> vertex, DI -> material_type,
 //          stack -> height_offset, radius, object_index, surface_index, surface_flags,
 //          breakable_surface_index
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
                                      int16_t material_type, float height_offset, float radius,
                                      uint32_t object_index, int32_t surface_index,

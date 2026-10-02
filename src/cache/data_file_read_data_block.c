@@ -10,10 +10,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t printf(const char *format, ...); // 0x62427c _printf
 
 // blam-cc: data_file pointer in ESI (unaff_ESI)

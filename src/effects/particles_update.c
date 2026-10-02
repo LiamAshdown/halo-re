@@ -18,10 +18,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t render_frame_index; // 0x007c3100, UNSURE: foreign module (render globals)

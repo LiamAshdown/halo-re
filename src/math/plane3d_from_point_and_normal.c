@@ -15,11 +15,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// blam-cc: ECX -> normal, EDX -> point, stack -> out
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> normal, EDX -> point, stack -> out
 void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point)
 {
     out->normal.i = normal->i;

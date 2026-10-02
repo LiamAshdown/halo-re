@@ -26,10 +26,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern char cache_file_request_map(int32_t unknown); // 0x442640, UNSURE argument
 extern char network_build_string[]; // 0x00719879

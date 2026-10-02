@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t text_encoding_state;      // 0x006e4800
 extern char text_markup_codes[11]; // 0x00671fa0, "ibukprlctn"
 

@@ -18,10 +18,10 @@
 #include "memory.h"
 #include <ctype.h>
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t default_time_unit_table[]; // 0x00699568, used when unit_table is NULL
 
 // Parses a leading unsigned integer from `string`, then an optional one-character unit suffix

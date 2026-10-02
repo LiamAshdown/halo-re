@@ -18,10 +18,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
 extern uint8_t decals_for_all_responses;                         // 0x006893f5

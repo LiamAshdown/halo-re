@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *update_server_queues; // 0x006f1d90
 
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle,

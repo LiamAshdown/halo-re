@@ -18,9 +18,6 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: (definition, data, codes, out_size, out_record_count) -- see file header
 // Recursively interprets a byte_swap_definition code table (types/memory.h byte_swap_code) to
@@ -30,6 +27,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // size of the record(s) processed and *out_record_count (if non-NULL) holds the number of int32
 // code-table entries consumed, so a caller iterating a table with more than one record (e.g. a
 // nested _struct_field_struct_array element) knows where the next record starts.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void struct_definition_byte_swap(byte_swap_definition *definition, int32_t data,
     int32_t *codes, int32_t *out_size, int32_t *out_record_count)
 {

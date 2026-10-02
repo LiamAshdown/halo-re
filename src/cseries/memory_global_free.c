@@ -10,12 +10,12 @@
 #include "win32.h"
 #include "tags.h"
 #include "cseries.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Thin wrapper freeing a block previously returned by memory_global_alloc via GlobalFree.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void *memory_global_free(void *handle)
     // blam-cc: EAX -> handle
 {

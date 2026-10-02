@@ -11,10 +11,10 @@
 #include "math.h"
 #include "cseries.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern actor_firing_position_candidate *qsort_candidate_base; // 0x006f0c94
 
 uint8_t actor_firing_position_compare(int32_t element, int32_t other)

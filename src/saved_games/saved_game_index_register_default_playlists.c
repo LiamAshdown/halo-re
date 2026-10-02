@@ -31,10 +31,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t default_game_variant_count; // 0x00721328
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, the characters of L"<missing string>" (an array, not a pointer: mov reg,0x671fac; src/game uses the same name)

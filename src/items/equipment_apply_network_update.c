@@ -47,10 +47,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real equipment_network_update_position_tolerance; // 0x00695e18, 2.0f; UNSURE name, by
     // analogy with weapon_network_update_position_tolerance (0x696550) and
     // projectile_network_update_position_tolerance (0x696140)

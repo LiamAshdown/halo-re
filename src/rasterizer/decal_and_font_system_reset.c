@@ -16,10 +16,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals; // 0x00746fa0
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
 extern lens_flare_object_visibility lens_flare_object_visibility_table[k_lens_flare_object_visibility_slots]; // 0x006bc510

@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t loading_thread_result;                    // 0x00718fc0
 extern uint8_t playlist_profiles_need_defaults;    // 0x0069e8d0, TYPES-GAP
 extern char last_profile_name[];                          // 0x00718e80

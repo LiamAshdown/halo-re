@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t directsound_initialized; // 0x007252e0, TYPES-GAP
 extern uint8_t directsound_eax_available; // 0x00746120, TYPES-GAP
 

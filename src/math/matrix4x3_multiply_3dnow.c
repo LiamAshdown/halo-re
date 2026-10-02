@@ -21,12 +21,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // SSE-optimized implementation of matrix4x3 multiplication, selected at startup when the CPU
 // supports the required feature. (Actually AMD 3DNow!; see header.)
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out)
 {
     real_matrix4x3 scratch;

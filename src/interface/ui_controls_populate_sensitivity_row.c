@@ -19,14 +19,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> widget, ESI -> profile_record
 // Finds the first spinner_list among each of widget's first three child "rows" and sets each
 // one's selection_index from a byte in the raw saved-profile record: rows 0/1 from a 1..10
 // sensitivity index (clamped to 0 when out of range, else index-1), row 2 from a plain boolean.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void ui_controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record)
 {
     widget_instance *row = widget->first_child;

@@ -26,10 +26,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 static float sound_channel_set_spatial_fabsf(float x) { return (x < 0.0f) ? -x : x; }
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430

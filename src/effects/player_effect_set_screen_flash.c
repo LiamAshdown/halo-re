@@ -23,10 +23,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t screen_flash_pass[8]; // 0x00687218
 
 // VERIFIED against disassembly 0x4578a0..0x4579a7 (2026-09-30): the update condition, the 14-dword copy, the ticks __ftol

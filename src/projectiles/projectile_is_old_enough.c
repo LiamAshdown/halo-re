@@ -21,10 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern void *game_time; // 0x006f1d6c, +0x0c the game tick
 extern int32_t k_projectile_minimum_age_ticks; // 0x006894c8

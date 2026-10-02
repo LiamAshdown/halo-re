@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 
 // Re-clamps the control, then reports its selection as an ordered [start, end) pair (start is

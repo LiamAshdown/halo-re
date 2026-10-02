@@ -20,10 +20,10 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void recorded_animation_apply_short_difference(recorded_animation_angles *angles,
     recorded_animation_short_difference *delta); // 0x44a150, this batch
 extern void recorded_animation_angle_to_vector(real_vector3d *out,

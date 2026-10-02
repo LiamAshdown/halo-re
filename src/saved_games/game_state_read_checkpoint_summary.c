@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t saved_game_validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_buffer,
     uint32_t *expected_crc, uint8_t *corrupt_flag); // 0x539570
 extern char *strcpy(char *dest, const char *source);

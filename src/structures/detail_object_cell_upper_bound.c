@@ -10,12 +10,12 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns the first cell in [begin, end) greater than `key`, comparing (cell_x, cell_y, cell_z)
 // lexicographically.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 ScenarioStructureBSPGlobalDetailObjectCell *detail_object_cell_upper_bound(
     ScenarioStructureBSPGlobalDetailObjectCell *begin, ScenarioStructureBSPGlobalDetailObjectCell *end,
     detail_object_cell_key *key)

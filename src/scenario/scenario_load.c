@@ -20,10 +20,10 @@
 #include "cache.h"
 #include "scenario.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index cache_file_load(char *path);            // 0x442290, cache module, blam-cc: EAX -> path
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, cache module, blam-cc: EDI -> group
 extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); // 0x53eeb0, this module, out of this batch's range

@@ -19,10 +19,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals; // 0x00746fa0
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590

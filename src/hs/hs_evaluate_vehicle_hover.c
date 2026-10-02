@@ -14,10 +14,10 @@
 #include "math.h"
 #include "objects.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern data_array *object_data; // 0x008603b0
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,

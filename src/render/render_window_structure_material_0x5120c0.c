@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void rasterizer_water_ripple_draw(void *vertex_buffer, void *shader, int32_t dynamic_index_slot, int32_t first_primitive,
     int32_t primitive_count); // 0x51ee60, EAX, stack
 

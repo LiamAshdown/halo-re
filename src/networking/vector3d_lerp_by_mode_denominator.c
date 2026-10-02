@@ -15,10 +15,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t message_delta_vector3d_mode; // 0x0069b350, see message_delta_encode_vector3d.c
 
 

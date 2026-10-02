@@ -6,10 +6,10 @@
 // blam-cc: ECX -> out, EDX -> code
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x);
 
 void digital_throttle_decode_vector(real *out, uint32_t code)

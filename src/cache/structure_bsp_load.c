@@ -24,10 +24,10 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
     uint8_t data_file_index); // this module, 0x442b20

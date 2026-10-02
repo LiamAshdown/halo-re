@@ -13,11 +13,11 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
+// Clamps a floating-point input value to the 0..1 range.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Clamps a floating-point input value to the 0..1 range.
 float input_clamp_unit_float(float value)
 {
     if (value < 0.0f) {

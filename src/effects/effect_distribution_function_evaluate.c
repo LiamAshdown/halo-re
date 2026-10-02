@@ -11,14 +11,14 @@
 // register convention: none -- both arguments are Ghidra-recognized stack parameters.
 
 #include "tags.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Evaluates the cumulative distribution function of an EffectDistributionFunction at `fraction`
 // (0..1, or -1.0 as a sentinel that always yields 0). effect_spawn_particles takes the difference
 // of two evaluations (this tick's event fraction minus last tick's) to get a per-tick spawn
 // weight, which is why "end" must be a hard step and "start" must be flat at 1.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction)
 {
     if (fraction == -1.0f) {

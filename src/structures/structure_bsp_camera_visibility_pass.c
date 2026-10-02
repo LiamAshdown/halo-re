@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t render_cluster_index; // 0x007c3348
 extern uint32_t *flood_recursion_bits; // 0x006e3af8
 extern int16_t visible_cluster_count; // 0x007d0390

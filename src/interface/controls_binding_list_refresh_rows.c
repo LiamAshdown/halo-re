@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern controls_device_label controls_device_labels[0x10]; // 0x006932e8
 
 extern void controls_binding_row_widget_update(int32_t action_index, widget_instance *row, int32_t device); // 0x4b4520, blam-cc: EAX action_index

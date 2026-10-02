@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_build_string[]; // 0x00719879
 
 // Sets k_network_machine_version_mismatch on `machine` when `remote_version` matches this

@@ -30,10 +30,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors
 extern int16_t sphere_point_table_count;  // 0x006b7af8, 1026
 

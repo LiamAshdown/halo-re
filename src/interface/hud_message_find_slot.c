@@ -17,11 +17,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+// blam-cc: source -> ESI
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: source -> ESI
 hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record, uint8_t source_kind)
 {
     hud_message_slot *candidate = 0;

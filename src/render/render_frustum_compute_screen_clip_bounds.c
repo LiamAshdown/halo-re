@@ -17,13 +17,13 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Computes the normalized (-1..1) screen-space clip rectangle (left, right, bottom, top) implied
 // by the frustum's current projection matrix, from its two diagonal scale terms and its
 // (asymmetric) perspective shear terms.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void render_frustum_compute_screen_clip_bounds(float out[4], render_frustum *frustum) // blam-cc: EAX=out, ECX=frustum
 {
     float shear_x = frustum->projection[2][0];

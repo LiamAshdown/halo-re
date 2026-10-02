@@ -14,13 +14,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Parses consecutive lowercase hex digits ('0'-'9', 'a'-'f') from the given string into an
 // unsigned integer, stopping at the first non-hex-digit character. Returns 0 for an empty or
 // all-non-hex string.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t hex_string_to_uint(char *string)
 {
     char c;

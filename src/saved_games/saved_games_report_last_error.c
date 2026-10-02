@@ -18,15 +18,15 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: no arguments
 // Formats the current Win32 last-error code into a discarded 0x800-byte scratch buffer (the
 // message text is never read back -- only the FormatMessageA call itself matters, presumably
 // for its side effect of validating/consuming the error), then clears the last-error code.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void saved_games_report_last_error(void)
 {
     uint32_t message_id;

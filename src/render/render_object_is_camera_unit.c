@@ -25,10 +25,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals; // 0x0087a478, game module
 extern data_array *player_data;              // 0x0087a480, game module
 extern int16_t current_local_player_index;    // 0x007c3108, this module

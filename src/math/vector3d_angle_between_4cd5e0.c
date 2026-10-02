@@ -15,10 +15,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double acos(double x); // 0x00628140, CRT/compiler helper
 
 real vector3d_angle_between_4cd5e0(real_vector3d *a, real_vector3d *b)

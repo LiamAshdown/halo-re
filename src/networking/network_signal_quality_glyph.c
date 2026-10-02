@@ -16,11 +16,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+// blam-cc: lookup code in EAX (in_EAX)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: lookup code in EAX (in_EAX)
 uint8_t network_signal_quality_glyph(uint32_t code)
 {
     switch (code) {

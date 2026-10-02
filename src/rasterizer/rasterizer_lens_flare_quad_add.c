@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots]; // 0x00746fc0
 extern uint32_t lens_flare_vertex_specular; // 0x0069e708
 

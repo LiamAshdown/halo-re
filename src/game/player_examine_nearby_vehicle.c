@@ -25,10 +25,10 @@
 #include "objects.h"
 #include "hs.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,

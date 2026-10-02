@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern wchar_t empty_string; // 0x00660c34, the built-in fallback string
 extern void *tag_instances;      // 0x0087bc14, UNSURE type: raw tag_instance array, see header
 extern random_seed effect_random_seed; // 0x00719cd4, types/math.h

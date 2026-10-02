@@ -12,10 +12,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void plane3d_negate(real_plane3d *out, const real_plane3d *in)
 {
     out->normal.i = -in->normal.i;

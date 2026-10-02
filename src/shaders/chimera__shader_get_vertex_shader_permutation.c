@@ -21,12 +21,12 @@
 
 #include "tags.h"
 #include "shaders.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Picks the vertex shader permutation index the rasterizer selects for one shader tag
 // instance, per shader_vertex_permutation (types/shaders.h).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t chimera__shader_get_vertex_shader_permutation(Shader *shader)
 {
     if (shader == (Shader *)-1) {

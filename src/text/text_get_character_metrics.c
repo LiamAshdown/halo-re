@@ -13,14 +13,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EDX=character, EDI=font
 // Resolves the glyph-metrics record for character within font, or (void *)0 if font has no
 // glyph mapped to it (either its page is unused, or the page has no entry -- or an
 // entry of -1 -- for that character's low byte).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 FontCharacter *text_get_character_metrics(uint16_t character, Font *font)
 {
     FontCharacterTables *page;

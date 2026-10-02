@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
     const real_point3d *segment_end, real_point3d *out); // 0x43b2f0, EAX point, ECX start, EDX end, ESI out

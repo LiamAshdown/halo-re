@@ -17,10 +17,10 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0, UNSURE identity (see game_types_notes.md)
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0

@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "game.h"
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -27,9 +30,6 @@ extern tag_instance *tag_instances; // 0x0087bc14
 #define F(o) (*(float *)(actor + (o)))
 
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index,
     int16_t kind); // 0x412960, EDX actor, stack

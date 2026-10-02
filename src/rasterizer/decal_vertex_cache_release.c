@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void decal_delete(datum_index decal_index); // 0x44e3c0, blam-cc: EDX -> decal_index
 
 void decal_vertex_cache_release(datum_index handle)

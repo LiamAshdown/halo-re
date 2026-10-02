@@ -20,10 +20,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t directsound_first_channel_of_type[4]; // 0x00746028
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 

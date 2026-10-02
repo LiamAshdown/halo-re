@@ -23,10 +23,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char profile_directory[0x105]; // 0x006ac900 (cache module)
 extern file_reference_record savegame_index_file; // 0x00721330
 extern char saved_game_root_directory[0x100]; // 0x00721449

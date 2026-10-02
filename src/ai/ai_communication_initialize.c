@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t communication_line_count;    // 0x006f0c98, UNSURE name
 extern int32_t communication_line_base;     // 0x006f0c9c, UNSURE name
 extern int16_t conversation_line_count;     // 0x006f0ca0, UNSURE name

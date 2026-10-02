@@ -26,10 +26,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern Globals *global_globals;               // 0x00746fa0
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c

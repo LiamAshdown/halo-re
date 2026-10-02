@@ -13,10 +13,10 @@
 #include "math.h"
 #include "objects.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *effect_marker_callback_context; // 0x006b0adc
 
 extern void effect_marker_from_node_table(int16_t entry_index, uint8_t *context, object_marker *out); // 0x451930, AX, EBX, stack

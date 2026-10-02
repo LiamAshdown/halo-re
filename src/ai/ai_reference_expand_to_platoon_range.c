@@ -22,12 +22,12 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TYPES-GAP: the 3-dword out-parameter of ai_reference_expand_to_platoon_range. No existing
 // header struct matches; only this function and its callers use it.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_globals_ptr; // 0x00880354
 

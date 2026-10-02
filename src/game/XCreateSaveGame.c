@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI dest, EDI source, stack capacity
     // UNSURE: EAX -> out_name, stack -> max_length (guessed -- builds the checkpoint/save name)
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); // 0x557990, blam-cc: EAX dst, EDI capacity_bytes, EBX source

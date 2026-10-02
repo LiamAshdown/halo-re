@@ -20,10 +20,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t hwreq_token_parse_number(hwreq_parser *parser); // 0x00578b20
 extern uint32_t hwreq_token_parse_hex_id(hwreq_parser *parser); // 0x00578ef0
 extern int32_t hwreq_token_parse_hex_id_byteswap(hwreq_parser *parser); // 0x00578f80

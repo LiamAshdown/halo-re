@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); // 0x4cbf80, ECX, EDX, ESI
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX

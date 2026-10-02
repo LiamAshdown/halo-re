@@ -15,10 +15,10 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t hash_table_get(hash_table *table, uint32_t key); // 0x4f05e0, memory module
 
 // Returns hash_table_get(table, key), or 0 if key is -1 (no entry).

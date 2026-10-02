@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_bandwidth_graph network_bandwidth_graph_globals; // 0x00719ce0
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, tick counter, outside this batch
 

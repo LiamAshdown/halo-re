@@ -13,12 +13,12 @@
 #include "memory.h"
 #include "text.h"
 #include <stdarg.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: 0x627c73, Ghidra's fid-conflict placeholder name for the CRT bounded wide
 // vswprintf (_vsnwprintf): dest, count, format, forwarded va_list, all cdecl stack args
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int _vsnwprintf(uint16_t *buffer, uint32_t count, const uint16_t *format, va_list args); // CRT _vsnwprintf (0x627c73: count in characters, doubled to bytes)
 
 // blam-cc: EDX=count, stack=(dest, format, ...)

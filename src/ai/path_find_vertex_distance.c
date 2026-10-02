@@ -19,10 +19,10 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index,
     uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);

@@ -25,14 +25,14 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // UNSURE: every field of vehicle_update_body is inferred from this function's own use of it
 // (tick, sequence, 16-dword body), with this function's own view of the body's fields.
 // vehicle_update_body / vehicle_update_record are types/game.h's (0x40 / 0x48).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int32_t vehicle_wait_tick_counter;   // 0x007102e0, UNSURE name
 extern uint16_t local_player_name_filter[]; // 0x0071c420, UNSURE name/purpose
 

@@ -38,10 +38,10 @@
 #include "rasterizer.h"
 #include "main.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data;              // 0x00719700
 extern timedemo_globals timedemo_globals_data;      // 0x00719afc
 extern int32_t game_time_force_single_tick;         // 0x007196d8, -timedemo frame counter

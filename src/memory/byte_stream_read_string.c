@@ -7,14 +7,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stream in ECX
 // Reads a NUL-terminated string out of `stream` starting at the current cursor, returning its
 // address in the stream's own buffer (not copied) and advancing the cursor past the terminating
 // NUL. Flags overflow and returns NULL if no NUL is found before the stream's size limit.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char *byte_stream_read_string(byte_stream *stream)
 {
     int32_t start;

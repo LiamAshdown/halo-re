@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern long lrintf(float x); // fist in the default round-to-nearest mode
 
 int32_t ui_real_to_int_truncate(float value)

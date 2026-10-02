@@ -20,12 +20,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // hwreq_parser_vtable slot 0x28. Returns a pointer to hwreq_parser->graphics_device_name's
 // character data, following the string's own inline-vs-heap-buffer rule.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char *hwreq_parser_get_graphics_device_name(hwreq_parser *parser)
 {
     if (parser->graphics_device_name.capacity > 0xf) {

@@ -35,10 +35,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820, v in EAX, axis in ECX
 

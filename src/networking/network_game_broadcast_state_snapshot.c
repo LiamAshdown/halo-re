@@ -29,10 +29,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t network_challenge_packet_block[]; // 0x006b7f98, the reused message block
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version); // 0x4d0ae0
 extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length); // 0x440350, this module

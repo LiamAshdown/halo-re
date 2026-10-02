@@ -35,10 +35,10 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_initialized;      // 0x00719470
 extern void *master_server_query_engine;        // 0x0071946c
 extern uint8_t network_session_start_host_name[];                  // ServerBrowserNew argument, see UNSURE

@@ -23,11 +23,11 @@
 #include "units.h"
 #include <string.h>
 #include "game.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern double fcos(double x); // FCOS
 extern double fsin(double x); // FSIN
 

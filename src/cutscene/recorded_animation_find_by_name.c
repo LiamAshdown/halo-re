@@ -15,14 +15,14 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: EBX -> name, ESI -> scenario
 // Case-insensitively searches scenario->recorded_animations for an entry whose name matches,
 // returning its index or -1 if none matches.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario)
 {
     int16_t index;

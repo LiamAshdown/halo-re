@@ -29,11 +29,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern uint8_t server_browser_server_passes_filter(void *server_record); // 0x4b7080, this module
 
 

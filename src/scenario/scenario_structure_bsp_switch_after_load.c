@@ -25,10 +25,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "scenario.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t global_structure_bsp_index;                  // 0x0069e8d8
 extern scenario_game_globals *global_scenario_game_globals; // 0x00746f94
 extern Scenario *global_scenario;                            // 0x00746f8c

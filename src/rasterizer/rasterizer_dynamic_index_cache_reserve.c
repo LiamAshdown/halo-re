@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t rasterizer_dynamic_index_count;                                          // 0x006e09e4
 extern int32_t rasterizer_dynamic_index_slot_count;                                     // 0x006e09e0
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[k_rasterizer_dynamic_vertex_slots]; // 0x006dd9e0

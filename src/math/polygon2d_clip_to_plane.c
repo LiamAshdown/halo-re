@@ -18,12 +18,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // fabs is a single x87 FABS instruction in the original code (Ghidra's ABS() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double fabs(double x);
 
 // Clips a 2D polygon against a single line/plane, emitting the clipped vertex list.

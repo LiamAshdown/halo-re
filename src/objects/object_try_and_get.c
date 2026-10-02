@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 object *object_try_and_get(datum_index object_index, uint32_t type_mask) // blam-cc: ECX -> object_index, stack -> type_mask

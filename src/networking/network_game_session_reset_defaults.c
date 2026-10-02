@@ -16,10 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_pending_variant; // 0x0087aa80
 extern char variant_defaults_source[]; // 0x0087aa40 (UNSURE name)
 

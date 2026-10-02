@@ -34,10 +34,10 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern void *network_object_index_cache; // 0x006870d8, the object hash/pooled-node
     // globals block; same global src/objects/object_delete_by_pooled_node_id.c uses

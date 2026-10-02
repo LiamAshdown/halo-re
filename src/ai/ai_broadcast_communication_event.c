@@ -24,10 +24,10 @@
 #include "physics.h"
 #include <stdint.h>
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90

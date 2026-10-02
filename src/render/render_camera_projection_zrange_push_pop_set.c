@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float render_saved_projection_z[4]; // 0x006b8d84, this module
 
 // Three-way depth-range helper for the projection matrix's z column (projection[0..3][2]):

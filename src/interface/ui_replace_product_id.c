@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t ui_product_id_text[]; // 0x00719368
 extern uint16_t ui_format_narrow_string[]; // 0x0066a888, L"%S"
 extern void *registry_get_product_id(void); // 0x4a8790

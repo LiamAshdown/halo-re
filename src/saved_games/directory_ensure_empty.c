@@ -17,10 +17,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
 extern uint8_t file_reference_exists(file_reference_record *ref); // 0x555720, this module
 extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, this module

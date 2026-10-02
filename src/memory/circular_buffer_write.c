@@ -12,14 +12,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: byte count in EAX, stream in EDX, source buffer as the recognized parameter
 // Writes byte_count bytes from source into the circular buffer, wrapping at capacity and
 // advancing the write cursor. Fails without writing anything if there isn't enough free space
 // for the whole write. Returns 1 on success, 0 on failure.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t circular_buffer_write(uint32_t byte_count, circular_buffer *stream, uint8_t *source)
 {
     int32_t write_cursor;

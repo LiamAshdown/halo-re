@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t quit_confirm_error_string_index; // 0x00718fac
 extern int16_t quit_confirm_error_unknown_ae;   // 0x00718fae
 extern uint8_t quit_confirm_error_modal;        // 0x00718fb0

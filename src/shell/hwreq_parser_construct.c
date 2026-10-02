@@ -18,10 +18,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hwreq_parser_vtable hwreq_parser_vtable_instance; // 0x006721e8
 
 extern hwreq_map_node *tree_head_node_allocate(void); // 0x57cbf0, allocates a 0x30 byte sentinel node (left/parent/right zeroed, color = black, is_nil = 0)

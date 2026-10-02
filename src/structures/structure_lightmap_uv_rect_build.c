@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent,

@@ -9,10 +9,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index *object_name_list; // 0x006b8cb8
 extern char hs_object_hierarchy_test(datum_index object_index); // 0x487c10
 extern void object_delete(datum_index object_index); // 0x4f5bd0, blam-cc: EAX

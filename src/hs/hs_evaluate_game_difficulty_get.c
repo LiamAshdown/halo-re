@@ -11,10 +11,10 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern game_main_globals *main_game_globals; // 0x006b0b80
 

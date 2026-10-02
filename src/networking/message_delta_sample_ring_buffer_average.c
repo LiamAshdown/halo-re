@@ -17,9 +17,6 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 
@@ -28,6 +25,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // accumulator (summed as raw 32-bit patterns with carry, matching the original's unsigned
 // add-with-carry then signed-divide) so up to 30 samples cannot lose precision. Returns 0 if the
 // buffer is empty.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring)
 {
     int32_t count;

@@ -22,10 +22,10 @@
 #include "objects.h"
 #include "game.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_state game_engine_state_value;    // 0x0087aa10
 extern float game_engine_end_game_timer;             // 0x0087aa08
 extern float game_engine_post_game_fade;             // 0x0087aa0c

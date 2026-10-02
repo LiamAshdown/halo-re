@@ -19,11 +19,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern message_delta_field_type_vtable message_delta_field_type_table[]; // 0x0069a2f0
 
 // blam-cc: EBX -> list

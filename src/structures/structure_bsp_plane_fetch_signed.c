@@ -20,10 +20,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index)
 {
     real_plane3d *plane = (real_plane3d *)((uint8_t *)*(void **)((uint8_t *)planes_owner + 0x10) +

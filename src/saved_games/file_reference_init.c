@@ -22,10 +22,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
 extern void path_remove_last_component(char *path); // 0x555f80, this module
 

@@ -34,10 +34,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern void vector2d_normalize(real_vector2d *v); // 0x4cd2e0
 extern uint8_t ray_intersects_sphere(real_point3d *origin, real_vector3d *normal_out, real_vector3d *direction, real *t_out, real_point3d *center, real radius); // 0x4ce3a0

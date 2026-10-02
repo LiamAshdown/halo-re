@@ -19,10 +19,10 @@
 #include "cache.h"
 #include "interface.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_flag_007196d2; // 0x007196d2, UNSURE (only ever set to 1 here)
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself

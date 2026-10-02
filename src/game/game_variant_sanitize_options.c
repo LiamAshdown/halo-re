@@ -14,14 +14,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> variant
 // Clamps and normalizes every numeric/boolean field of a game-variant options block in place,
 // then re-normalizes the CTF-specific fields (0x7c..0x80) if the engine is CTF, or a subset of
 // them if it is Slayer.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void game_variant_sanitize_options(game_variant *variant)
 {
     int32_t engine_index;

@@ -13,10 +13,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t chat_dialog_open;  // 0x006b3858
 extern int32_t chat_scope_active; // 0x006b385c
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)

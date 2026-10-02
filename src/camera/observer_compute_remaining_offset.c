@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x);   // FSQRT
 extern double fabs(double x);   // FABS
 extern double atan2(double y, double x);

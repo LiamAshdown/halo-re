@@ -19,10 +19,10 @@
 #include "objects.h"
 #include "units.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void first_person_camera_for_unit_and_vector(observer_command *command, Vector3D *vector,

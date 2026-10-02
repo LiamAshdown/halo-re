@@ -22,10 +22,10 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 
 extern update_record *update_client_queue_get_slot(int32_t tick); // this batch, 0x473500

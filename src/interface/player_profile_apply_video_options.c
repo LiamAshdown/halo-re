@@ -33,10 +33,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t safe_mode;   // 0x007196f4
 extern int16_t renderer_texture_quality;      // 0x0068944e
 extern int16_t unknown_00689450;             // 0x00689450, always set to 2 here

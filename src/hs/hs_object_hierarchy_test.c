@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t player_index_from_unit_index(datum_index object_index); // game module, 0x474db0; UNSURE semantics
 
 extern data_array *object_data; // 0x008603b0, stride 0x0c, object data pointer at +0x08

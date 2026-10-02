@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern struct cache *sound_cache; // 0x006ac530
 
 extern void cache_evict_entry(datum_index handle, struct cache *self); // 0x4d1c20

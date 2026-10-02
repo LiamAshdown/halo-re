@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                                      // 0x0071d174
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
 extern d3dx_macro rasterizer_effect_defines[2]; // 0x007c0460

@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void ui_tab_group_sync_7wide(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;

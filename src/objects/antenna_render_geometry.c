@@ -18,10 +18,10 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> 0x0065c230 {0,0,0}
 extern uint8_t antenna_sprite_shader[];            // 0x0069e9f8
 

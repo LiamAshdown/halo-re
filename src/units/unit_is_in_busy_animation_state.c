@@ -12,10 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 uint8_t unit_is_in_busy_animation_state(uint32_t unit_index) // blam-cc: in_ECX

@@ -17,10 +17,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t display_adapter_count;                                         // 0x00722bb4
 extern shell_display_adapter display_adapters[k_shell_maximum_display_adapters]; // 0x006efdc0
 

@@ -28,12 +28,12 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Writes the same RGB triple into all four of `placement`'s change-color slots, so the object
 // player_respawn is about to create is tinted entirely in that player's colour.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void object_placement_data_set_change_colors(real *color, object_placement_data *placement)
 {
     int32_t i;

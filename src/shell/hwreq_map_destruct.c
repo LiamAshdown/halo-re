@@ -14,10 +14,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hwreq_map_node **tree_erase_range(hwreq_map_node **out, hwreq_map_node *first,
     hwreq_map_node *last, msvc_std_map *tree); // 0x57c310, same pass
 

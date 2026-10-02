@@ -27,10 +27,10 @@
 #include "networking.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_sort_ascending; // 0x006953f8, see UNSURE
 
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library

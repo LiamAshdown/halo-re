@@ -19,11 +19,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
+// blam-cc: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
 extern void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
                                                    rasterizer_index_buffer *index_buffer); // 0x51c5f0
 extern void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffer, int32_t primitive_count,

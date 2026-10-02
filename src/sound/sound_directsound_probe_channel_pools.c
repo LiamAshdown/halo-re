@@ -44,10 +44,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *directsound;      // 0x0074610c, IDirectSound*
 extern uint8_t iid_directsound_3d_buffer[16]; // 0x0064e21c, IID_IDirectSound3DBuffer
 

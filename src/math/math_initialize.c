@@ -12,10 +12,10 @@
 #include "crt.h"
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sphere_point_table_init(void); // 0x4cd0e0
 extern void periodic_function_tables_init(void); // 0x4cc8d0
 extern int cpu_get_type(int feature); // 0x5402a0, system module

@@ -20,15 +20,15 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Projects a view-space axis-aligned box (as seen at both its nearest and farthest z) onto the
 // screen and returns the area of its clamped (-1..1) NDC bounding rectangle as a fraction of the
 // full 2x2 NDC area (0 when the box's projected x or y range does not overlap the screen at all).
 // If the box straddles or is behind the camera (z.lower < 0 <= z.upper) it is treated as fully
 // covering the view and this returns 1.0.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real render_frustum_compute_box_overlap_area(real_rectangle3d *box, render_frustum *frustum) // blam-cc: ECX=box, EDX=frustum
 {
     float inverse_z_near, inverse_z_far;

@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828
 
 // Invalidates every occupied font glyph cache slot (only while the cache is initialized).

@@ -16,10 +16,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char pov_direction_names[8][10]; // 0x0065b938, "north" .. "northwest"
 
 extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc

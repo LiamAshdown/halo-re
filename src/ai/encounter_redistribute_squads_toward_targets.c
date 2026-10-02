@@ -39,10 +39,10 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *encounter_data;  // 0x008802c8
 extern data_array *actor_data;      // 0x00880360
 extern data_array *player_data;     // 0x0087a480, stride 0x200 (no types/players.h yet)

@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t game_engine_ensure_variant_history_has_entry(void); // 0x463b20
 extern void game_engine_apply_current_custom_variant(void); // 0x463b90
 extern uint8_t network_server_host_valid; // 0x0071c2dd, UNSURE identity

@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint32_t lens_flare_object_visibility_table[0x8c0]; // 0x006bc510
 extern uint32_t lens_flare_marker_visibility[0x4002]; // 0x006be810

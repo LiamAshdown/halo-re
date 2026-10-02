@@ -19,10 +19,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t mouse_button_map[k_input_mouse_button_count]; // 0x0068e534
 extern void *direct_input;      // 0x006b15fc, IDirectInput8A*
 extern void *mouse_device;      // 0x006b1804, IDirectInputDevice8A*

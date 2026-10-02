@@ -12,10 +12,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 // For every type-3 (CTF flag stand) ScenarioNetgameFlags entry whose usage_id is already in

@@ -25,10 +25,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern render_camera render_camera_global;     // 0x007c3114, this module (named
                                                // render_camera_global; a variable cannot share
                                                // the render_camera typedef's own name in C)

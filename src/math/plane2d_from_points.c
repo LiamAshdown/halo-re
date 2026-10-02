@@ -13,10 +13,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // x87 FSQRT
 
 real_plane2d *plane2d_from_points(real_plane2d *out_plane, const real_point2d *a, const real_point2d *b)

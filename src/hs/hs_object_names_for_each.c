@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t strstr(ScenarioObjectName *entry, uint32_t predicate_arg); // UNSURE: predicate, module unknown, 0x625430
 
 extern Scenario *global_scenario; // 0x00746f8c

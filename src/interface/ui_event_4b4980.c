@@ -18,10 +18,10 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
 extern uint8_t controls_menu_list_mode; // 0x00719445, UNSURE name
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant

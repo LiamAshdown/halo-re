@@ -36,10 +36,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t default_game_variant_count; // 0x00721328
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern char default_playlists_directory[0x100]; // 0x00721a49

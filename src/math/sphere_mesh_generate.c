@@ -36,10 +36,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sphere_mesh_build_face(int16_t *next_point_index, sphere_mesh *mesh, int16_t vertex_a,
                                     int16_t vertex_b, int16_t apex, int16_t *strip_cursor,
                                     sphere_mesh_edge_cache *edge_cache); // 0x4ca5f0

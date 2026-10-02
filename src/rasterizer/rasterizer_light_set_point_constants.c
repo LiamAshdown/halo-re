@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_light rasterizer_lights[k_rasterizer_maximum_lights]; // 0x007c1484
 
 // blam-cc: EAX -> light_index, CX -> slot, EDX -> dest_base

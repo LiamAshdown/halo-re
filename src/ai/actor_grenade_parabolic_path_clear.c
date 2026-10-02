@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
                                                      ai_grenade_avoidance_entry *out_entries); // 0x0042afc0
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,

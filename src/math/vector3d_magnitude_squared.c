@@ -11,12 +11,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns the squared Euclidean length of a 3D vector (no sqrt), i.e. the dot product of the
 // vector with itself. Used where callers only need to compare magnitudes.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real vector3d_magnitude_squared(real_vector3d *v)
 {
     return v->i * v->i + v->j * v->j + v->k * v->k;

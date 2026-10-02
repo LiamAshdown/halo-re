@@ -24,10 +24,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t error_file_logging_enabled; // 0x007196d3
 extern ColorARGB *console_message_default_color; // 0x00685218, UNSURE: unnamed shared default
 

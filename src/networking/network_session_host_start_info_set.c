@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_session_start_host_name[];    // 0x00722798
 extern char network_session_start_map_name[];      // 0x007227a0
 extern char network_session_start_variant_name[];  // 0x007227a8

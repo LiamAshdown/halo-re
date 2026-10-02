@@ -10,12 +10,12 @@
 
 #include "tags.h"
 #include "shaders.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns whether a transparent generic/chicago/chicago_extended shader draws before the
 // water plane. NULL and every other shader_type return false.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t shader_draw_before_water(Shader *shader)
 {
     ShaderTransparentGeneric *transparent;

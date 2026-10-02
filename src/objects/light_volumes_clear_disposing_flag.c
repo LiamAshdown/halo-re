@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *light_volume_instances; // 0x006b8d70
 
 void light_volumes_clear_disposing_flag(void)

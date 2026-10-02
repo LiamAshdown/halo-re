@@ -14,11 +14,11 @@
 #include "hs.h"
 #include <stdio.h>
 #include <string.h>
+
+// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x00624186, lib:crt (_fsopen wrapper), not this module
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x00624186, lib:crt (_fsopen wrapper), not this module
 extern void hs_format_function_signature(int16_t function_index, char *out); // 0x00484300, this batch
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58

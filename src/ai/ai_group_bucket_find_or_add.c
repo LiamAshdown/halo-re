@@ -23,9 +23,6 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // ai_group_bucket_entry now lives in types/ai.h (folded from this file).
 
@@ -35,6 +32,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // Finds or allocates a small fixed-capacity aggregation-bucket slot keyed by an id, used by the
 // nearby-actor scanning helpers to group results per actor type. Returns the slot index, or -1
 // if the key was not found and the bucket array is already full.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t ai_group_bucket_find_or_add(ai_group_bucket_entry *buckets, int32_t key, int16_t *count, int16_t capacity)
 {
     int16_t live_count;

@@ -26,10 +26,10 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct rendered_particle_range { // std::pair<iterator, iterator>, returned through a hidden pointer
     rendered_particle_datum *first;
     rendered_particle_datum *second;

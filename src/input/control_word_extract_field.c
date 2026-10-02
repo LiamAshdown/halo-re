@@ -32,10 +32,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t control_word_secondary; // 0x006f1cec, UNSURE: not independently named/typed
 extern uint32_t control_word_primary;   // 0x006f1ce8, UNSURE: not independently named/typed
 extern uint32_t game_variant_option_default_by_index(uint32_t selector); // 0x465380, src/game; UNSURE: real purpose unresolved there too

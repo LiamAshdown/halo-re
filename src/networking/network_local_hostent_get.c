@@ -16,10 +16,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_local_hostname_buffer[0x100]; // 0x006a4040
 extern uint8_t network_hostname_ready;             // 0x006f14cc
 

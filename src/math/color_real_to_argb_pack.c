@@ -11,10 +11,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
 uint32_t color_real_to_argb_pack(float alpha, float *rgb)

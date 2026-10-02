@@ -27,10 +27,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, cseries: current time in milliseconds (QPC-based)
 extern int32_t network_connect_timeout_ms; // 0x006894ac
 

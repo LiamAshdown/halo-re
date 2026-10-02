@@ -16,10 +16,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_abstraction_globals input_globals; // 0x00710328
 
 // Clears the local player's current-frame input accumulator (action state 0) and the cached

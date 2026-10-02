@@ -15,10 +15,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern glow_particle *glow_particle_new(glow *entry, int16_t index, int16_t count); // this module, 0x4fd8e0

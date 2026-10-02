@@ -21,10 +21,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data;    // 0x006b7020
 extern uint8_t terminal_initialized;       // 0x006b2efc
 extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"

@@ -13,10 +13,10 @@
 // global at a different address, so the link bound it there).
 
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct server_list_globals server_list_globals;
 extern uint8_t server_browser_initialized;       // 0x00719470
 extern uint8_t DAT_00719488;     // 0x00719488, UNSURE name

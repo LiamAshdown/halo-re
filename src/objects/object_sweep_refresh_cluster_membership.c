@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); // 0x4f5de0
 extern void object_type_definitions_notify_0x54(uint32_t object_index); // 0x4f43a0, outside this batch

@@ -13,10 +13,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t hud_chat_message_count;     // 0x00719424
 extern int32_t hud_chat_message_expiry[8]; // 0x006b3a20
 

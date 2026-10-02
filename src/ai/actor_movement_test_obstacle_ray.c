@@ -38,10 +38,10 @@
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,

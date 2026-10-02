@@ -18,10 +18,10 @@
 #include "objects.h"
 #include "units.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which Ghidra

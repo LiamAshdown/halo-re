@@ -28,10 +28,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern int32_t map_list_find_known_map_index(char *map_path); // 0x494ff0
 extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index); // 0x5578c0; blam-cc: ECX -> tag, DX -> index

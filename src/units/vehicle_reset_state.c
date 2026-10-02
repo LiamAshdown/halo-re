@@ -14,10 +14,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 // Clears the live part of a vehicle's vehicle_data extension (0x4cc..0x520) to zero, e.g. on

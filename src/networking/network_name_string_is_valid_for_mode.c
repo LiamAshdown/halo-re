@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *tag_lookup(const char *tag_path); // foreign, UNSURE shape
 extern int32_t text_get_character_metrics(uint8_t ch); // foreign, UNSURE shape: this call site
     // passes only the character in Ghidra's own decompile; a font handle almost certainly also

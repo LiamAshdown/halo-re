@@ -38,13 +38,13 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TYPES-GAP: one entry of the campaign level path table at 0x00692acc (stride 8, second dword
 // always read as part of the (&table)[i*2] indexing but never itself examined here).
 // TYPES-GAP: one entry of the per-level flag table at 0x0071901c (stride 8).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int16_t local_player_count;                        // 0x006894b8, TYPES-GAP
 extern char level_select_current_path_00719068[0x106];            // 0x00719068, TYPES-GAP
 extern level_select_entry level_select_entries[10];  // 0x00719018

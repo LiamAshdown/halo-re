@@ -17,10 +17,10 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t random_seed_global; // 0x00719cd0

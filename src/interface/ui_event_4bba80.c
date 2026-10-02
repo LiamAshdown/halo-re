@@ -13,10 +13,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_flag_007196d2; // 0x007196d2, UNSURE (only ever set to 1 here)
 
 uint8_t ui_event_4bba80(widget_instance *widget, int16_t *event, uint8_t *out_handled)

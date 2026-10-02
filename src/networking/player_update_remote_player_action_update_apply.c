@@ -37,10 +37,10 @@
 #include <string.h>
 #include <stdint.h>
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern network_id_table *machine_table;
 

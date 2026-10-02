@@ -24,11 +24,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern network_channel_list *network_channel_list_new(int16_t requested_capacity); // 0x441960, this module
 extern int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list); // 0x441a40, this module
 extern network_receive_queue *network_receive_queue_new(void); // 0x441bf0, this module

@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_event_queue input_event_queue_active; // 0x00712cc0
 
 // Pops the newest queued event of queue_index (0..3), or the newest across all four queues when

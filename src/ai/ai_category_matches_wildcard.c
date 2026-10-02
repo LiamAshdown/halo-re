@@ -12,10 +12,10 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09,

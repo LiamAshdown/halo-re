@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0,
                                                                                   // math module
 extern double sqrt(double x); // x87 FSQRT

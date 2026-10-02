@@ -12,10 +12,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int __cdecl video_resolution_compare(const video_resolution *a, const video_resolution *b)
 {
     uint32_t aw = (uint32_t)a->width, bw = (uint32_t)b->width;

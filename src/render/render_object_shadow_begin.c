@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "units.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0, objects module
 
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);

@@ -25,10 +25,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hwreq_string_pair *uninit_copy_string_pair(hwreq_string_pair *source_begin, hwreq_string_pair *source_end,
     hwreq_string_pair *dest); // 0x57cf50, blam-cc: ECX -> source_begin, stack -> source_end, dest
 extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80

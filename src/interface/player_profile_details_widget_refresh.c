@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t hud_text_unknown[]; // 0x0066a750
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550

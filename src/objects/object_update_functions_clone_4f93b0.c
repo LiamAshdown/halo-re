@@ -1,6 +1,3 @@
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // object_update_functions_clone_4f93b0   (renamed by the phase-4 review pass; Ghidra/PDB name was `object_delete_to_network`,
 //    which this file's own header shows does not describe the code)
 // address 0x4f93b0, size 314 bytes
@@ -136,6 +133,10 @@ void object_delete_to_network(void)
   }
   return;
 }
+#endif
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
 #endif
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */

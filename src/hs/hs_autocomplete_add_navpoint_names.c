@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "hs.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride); // 0x483770
 extern Globals *global_globals; // 0x00746fa0
 extern tag_instance *tag_instances; // 0x0087bc14

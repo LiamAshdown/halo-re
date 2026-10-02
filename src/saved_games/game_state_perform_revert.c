@@ -20,10 +20,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t game_state_revert_available; // 0x006e2dd9
 extern uint8_t unknown_00746fa4; // 0x00746fa4, UNSURE
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, UNSURE (low word of a dword)

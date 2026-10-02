@@ -36,10 +36,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char profile_directory[0x105];                              // 0x006ac900
 extern int32_t os_platform;                                        // 0x00721ef0

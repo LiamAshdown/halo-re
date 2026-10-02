@@ -23,10 +23,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t console_debug_toggle_6893e0; // 0x006893e0 UNSURE: frame statistics enabled flag
 extern uint16_t unknown_006893e2;           // 0x006893e2 UNSURE: paired with the above
 

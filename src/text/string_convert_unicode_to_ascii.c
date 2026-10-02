@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen (wcslen), not this module
 
 // blam-cc: ESI=dest, EDI=source, stack=capacity

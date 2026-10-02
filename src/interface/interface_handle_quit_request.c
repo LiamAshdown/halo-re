@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_force_quit;   // 0x00718fca
 extern uint8_t ui_split_screen; // 0x00718fc9
 extern int16_t network_join_error_code; // 0x00718fa4, reset to -1

@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_high_res_clock_ms;    // 0x006a6144, UNSURE: exact unit/consumer
 extern uint8_t network_update_unknown_869bf; // 0x006869bf, UNSURE
 extern int32_t network_game_socket;          // 0x006f14c4

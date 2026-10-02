@@ -29,10 +29,10 @@
 #include "networking.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern uint8_t console_debug_flag_0;    // 0x0087ac00, TYPES-GAP, UNSURE identity
 extern int16_t console_debug_word_8;    // 0x0087ac08, TYPES-GAP, UNSURE identity (WORD store)

@@ -10,10 +10,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // Returns the magnitude of the cross product of two 3D vectors.

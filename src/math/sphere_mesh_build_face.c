@@ -33,10 +33,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t sphere_mesh_get_face_point(sphere_mesh *mesh, int16_t *next_point_index, int16_t apex,
                                            int16_t vertex_a, int16_t vertex_b, int16_t row, int16_t col,
                                            sphere_mesh_edge_cache *edge_cache,

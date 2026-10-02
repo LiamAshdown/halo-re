@@ -12,11 +12,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this batch
 
 // blam-cc: EAX -> timer, EDI -> decrement

@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_filter_panel_mode; // 0x007196b4
 
 static void widget_show(widget_instance *widget, uint8_t shown)

@@ -11,13 +11,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // text_encoding, text_justification and text_flags are already the names of this
 // module's enum typedefs (types/text.h); the file-scope globals use a "_state" suffix
 // instead (see text_language_initialize_from_string_list.c).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern datum_index hud_text_draw_font_tag_id;                        // 0x006e472c
 extern ColorARGB hud_text_draw_color_a;                          // 0x006e4738
 extern int16_t hud_text_draw_color_or_flags;                     // 0x006e4734

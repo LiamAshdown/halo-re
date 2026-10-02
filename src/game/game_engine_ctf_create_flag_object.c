@@ -29,10 +29,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals;                                 // 0x00746fa0
 extern int16_t network_game_mode;                                // 0x00719720
 extern tag_instance *tag_instances;                              // 0x0087bc14

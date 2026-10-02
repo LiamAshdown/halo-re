@@ -26,10 +26,10 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern observer observers[1];                // 0x006ac65c
 extern random_seed effect_random_seed;        // 0x00719cd4, UNSURE: distinct from math's random_seed_global (0x00719cd0)
 extern player_globals *local_player_globals; // 0x0087a478

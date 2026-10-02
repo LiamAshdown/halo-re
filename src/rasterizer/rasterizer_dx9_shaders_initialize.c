@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3dx_macro rasterizer_effect_defines[2];                      // 0x007c0460, NULL-terminated
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
 extern int32_t config_force_shader; // 0x00722b64 config pixel shader version (0x270e selects ps_2_a)

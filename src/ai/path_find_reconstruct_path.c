@@ -20,10 +20,10 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX a, ECX b
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
 extern void path_find_simplify_waypoints(path_find_context *context, int16_t count, path_find_waypoint *waypoints,

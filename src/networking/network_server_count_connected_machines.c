@@ -12,11 +12,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+// Counts machine-table slots that have both a live channel and a connected (non -1) id.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Counts machine-table slots that have both a live channel and a connected (non -1) id.
 int32_t network_server_count_connected_machines(network_server_globals *server)
 {
     int32_t count;

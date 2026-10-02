@@ -14,12 +14,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> this, stack -> channel_index
 // No-op: EAX1 has no per-channel EAX state to reapply.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void __thiscall sound_eax1_effect_apply_channel(sound_effect_object *this_object, int32_t channel_index)
 {
 }

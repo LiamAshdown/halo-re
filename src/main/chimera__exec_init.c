@@ -26,10 +26,10 @@
 #include "saved_games.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t rasterizer_window_requested; // 0x0071d1a8, see src/rasterizer/rasterizer_initialize_direct3d.c
 
 extern uint8_t command_line_check_flag(const char *flag_name, const char **out_value); // 0x542760, blam-cc: EDI -> out_value (2nd parameter)

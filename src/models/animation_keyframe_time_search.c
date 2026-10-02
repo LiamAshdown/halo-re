@@ -22,13 +22,13 @@
 //   // blam-cc: EAX -> count, BX -> frame, stack -> times
 
 #include "tags.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Finds the index of the last keyframe time at or before `frame`, using a binary search that
 // narrows [lo, mid] or [mid, hi] one step at a time (see the file header for why this mirrors
 // the original control flow exactly instead of a textbook binary search).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t animation_keyframe_time_search(uint16_t *times, int16_t count, int16_t frame)
 {
     int16_t lo, hi, mid, saved_lo;

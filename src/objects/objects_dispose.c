@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
 extern object_type_definition *object_type_definition_list; // 0x008603dc
 extern datum_index *light_cluster_first; // 0x00860b20

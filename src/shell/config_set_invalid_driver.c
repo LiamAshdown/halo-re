@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_invalid_driver; // 0x00722b4c
 
 // config.txt "InvalidDriver" setter: presence alone sets the flag.

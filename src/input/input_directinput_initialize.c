@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *shell_instance;         // 0x007461c0, HINSTANCE
 extern void *direct_input8_create;   // 0x00746268, FARPROC (shell module)
 extern input_guid iid_directinput8a; // 0x0064e2ac, IID_IDirectInput8A

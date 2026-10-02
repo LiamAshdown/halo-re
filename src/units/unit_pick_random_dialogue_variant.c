@@ -20,10 +20,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed random_seed_global; // 0x00719cd0
 
 TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number) // blam-cc: see file header

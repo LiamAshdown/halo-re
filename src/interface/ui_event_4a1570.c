@@ -19,10 +19,10 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client;
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
 extern int32_t network_staged_message_commit(void *client, int16_t value); // 0x4da250, blam-cc: ECX client,

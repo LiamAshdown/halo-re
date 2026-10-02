@@ -31,10 +31,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, UNSURE argument; not in this batch
 extern int32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0

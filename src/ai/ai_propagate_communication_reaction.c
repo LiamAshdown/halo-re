@@ -38,10 +38,10 @@
 #include <stdint.h>
 #include <string.h>
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;    // 0x008603b0
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *prop_data;      // 0x008802c0

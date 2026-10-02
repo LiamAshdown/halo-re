@@ -17,10 +17,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
 extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8

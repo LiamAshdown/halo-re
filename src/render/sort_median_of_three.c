@@ -25,11 +25,11 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+
+// The inlined comparison of every function in this instantiation (see the file header).
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// The inlined comparison of every function in this instantiation (see the file header).
 static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
 {
     int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;

@@ -19,13 +19,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Linear search for `value` in `array`, returning its index or -1 if it is not present (or the
 // array is empty, or value is NULL).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t dynamic_pointer_array_find_index(server_list_globals *array, void *value)
 {
     int32_t index = -1;

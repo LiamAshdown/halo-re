@@ -32,10 +32,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_status,
     real_vector3d *out_direction, real_point3d *out_origin); // 0x55a390, units module
 extern void vector3d_clamp_length(real_vector3d *v, real max_length); // this batch, 0x459300

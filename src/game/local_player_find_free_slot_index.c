@@ -26,10 +26,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device index, -1 none)
 
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index); // this batch,

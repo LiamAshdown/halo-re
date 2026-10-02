@@ -9,11 +9,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// *out = clamp(lerp(a, b, t), 0, 1)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// *out = clamp(lerp(a, b, t), 0, 1)
 void real_lerp_clamped(real *out, real a, real b, real t)
 {
     real value;

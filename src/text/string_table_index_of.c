@@ -16,10 +16,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int16_t string_table_index_of(const char *search, int16_t count, const char **table)
 {
     int16_t index;

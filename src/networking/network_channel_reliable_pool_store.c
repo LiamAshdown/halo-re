@@ -15,10 +15,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *channel,
     int32_t body_capacity_needed, int32_t header_capacity_needed); // 0x4dcc30, this batch
 

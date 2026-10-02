@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 uint32_t object_get_root_object_index(uint32_t object_index) // blam-cc: ECX -> object_index

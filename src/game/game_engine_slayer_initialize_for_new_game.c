@@ -12,10 +12,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
 extern int32_t slayer_unknown_0087a4a0[16]; // 0x0087a4a0, UNSURE

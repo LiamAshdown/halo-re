@@ -20,10 +20,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char message_delta_metrics_filename_suffix[]; // 0x0069b24c, UNSURE: e.g. a map/scenario name
 
 extern int32_t snprintf(char *dest, uint32_t count, const char *format, ...);

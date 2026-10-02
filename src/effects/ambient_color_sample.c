@@ -27,10 +27,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t weather_frame_counter;      // 0x00746f88
 extern ambient_noise_grid ambient_noise;   // 0x00746284
 extern const real_point3d *global_origin3d_pointer; // 0x00696714 -> 0x0065c230, math module

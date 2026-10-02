@@ -11,10 +11,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 // Writes a weapon's ready_timer directly. UNSURE: called by unit_update when the holder Object

@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4, -1 == not yet built
 extern uint32_t profile_globals_block[0x7ff]; // 0x00712dd8
 

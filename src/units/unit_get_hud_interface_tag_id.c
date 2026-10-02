@@ -18,10 +18,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second) // blam-cc: in_EDX -> unit_tag, in_AL -> use_second
 {
     int32_t index = (int32_t)unit_tag->new_hud_interfaces.count - 1;

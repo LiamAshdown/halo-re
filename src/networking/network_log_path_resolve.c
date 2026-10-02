@@ -27,10 +27,10 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_log_path_buffer[0x104]; // 0x006b85b8
 extern char network_log_path_format[];         // 0x0065efec, UNSURE: assumed to be "%s"
 

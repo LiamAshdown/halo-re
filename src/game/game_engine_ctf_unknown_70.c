@@ -13,10 +13,10 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c
 extern game_variant game_engine_variant; // 0x006f1c88

@@ -20,10 +20,10 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals;  // 0x0087a478
 extern data_array *player_data;               // 0x0087a480
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c

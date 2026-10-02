@@ -15,10 +15,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
     int16_t change_color_index, int16_t u, int16_t v); // 0x4506d0, EAX, EDX, CX, stack

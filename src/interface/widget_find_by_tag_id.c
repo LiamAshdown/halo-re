@@ -12,12 +12,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Recursively searches a widget tree for a node whose tag/definition matches `tag_id`, returning
 // it, or NULL if none of the subtree matches.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id)
 {
     widget_instance *found;

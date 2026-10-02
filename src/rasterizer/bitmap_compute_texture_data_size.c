@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int8_t bitmap_format_bits_per_pixel[];            // 0x006571f4 indexed by BitmapDataFormat
 // blam-cc: ESI -> bitmap, ECX -> mip_level
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level); // 0x43fc10

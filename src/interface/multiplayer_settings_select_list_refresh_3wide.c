@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern variant_carousel_slot variant_carousel_slots[3]; // 0x00879d60
 extern uint8_t profile_globals_block[0x60a4];           // 0x00712dd8
 

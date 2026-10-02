@@ -16,10 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;

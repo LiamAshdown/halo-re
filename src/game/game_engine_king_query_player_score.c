@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
 extern uint32_t players_get_active_by_index(int32_t index); // 0x45c6f0, blam-cc: EAX

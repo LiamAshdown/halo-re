@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_channel_table_default_flag; // 0x0071c2c1, UNSURE name; copied into
     // session->unknown_3ac by this function, matching the header's own note on that field
 

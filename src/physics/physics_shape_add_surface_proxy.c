@@ -30,10 +30,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp,
                                                     int32_t surface_index,
                                                     real_point3d *out_vertices); // 0x501400, this batch

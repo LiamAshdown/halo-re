@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
 extern void sound_channel_fill_pcm_data(int16_t channel_index, uint8_t *destination, int32_t base_position,

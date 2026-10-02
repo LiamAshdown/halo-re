@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern team_pair_globals *team_pair_data; // 0x006b0b84
 
 // Tests the secondary per-pair flag bit (distinct from the enemy_bits bitmask) for a pair of

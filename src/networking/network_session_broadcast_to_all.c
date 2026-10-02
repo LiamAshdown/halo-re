@@ -16,10 +16,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_3,
     uint32_t param_4, uint32_t param_6); // 0x4dce40, other module (UNSURE)
 

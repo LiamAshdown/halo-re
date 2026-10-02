@@ -16,10 +16,10 @@
 #include "crt.h"
 #include "tags.h"
 #include "cseries.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void qsort_dword_array_shortsort(int32_t *last, int32_t *first, qsort_dword_compare_proc compare);
 
 // blam-cc: count in EAX, elements in ECX, compare on the stack

@@ -20,10 +20,10 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_id_table *machine_table;
 
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values); // 0x4ec590, blam-cc: EAX -> event,

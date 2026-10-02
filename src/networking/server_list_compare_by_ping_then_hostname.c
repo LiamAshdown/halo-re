@@ -24,10 +24,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern char DAT_0066b090[]; // see UNSURE, presumably "ping"
 

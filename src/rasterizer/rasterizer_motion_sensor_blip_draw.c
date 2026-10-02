@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                    // 0x0071d174
 extern uint8_t console_debug_toggle_689403;        // 0x00689403 motion sensor rendering enabled
 extern uint8_t rasterizer_motion_sensor_ready;     // 0x0071d205 set by rasterizer_motion_sensor_begin

@@ -16,10 +16,10 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0

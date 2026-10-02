@@ -14,12 +14,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Classifies a world-space point against the camera frustum's four side planes (not near/far),
 // returning a 4-bit outcode: one bit per plane the point is in front of (outside).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t render_frustum_classify_point_side_planes(render_frustum *frustum, real_point3d *point) // blam-cc: ECX=frustum, EDX=point
 {
     uint8_t flags = 0;

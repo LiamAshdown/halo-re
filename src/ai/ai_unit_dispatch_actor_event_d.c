@@ -13,10 +13,10 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, void *context); // 0x4142d0, EAX, stack

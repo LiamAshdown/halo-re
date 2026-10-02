@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 
 extern uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_vector3d *out,

@@ -31,10 +31,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
 extern uint32_t cpu_speed; // machine class threshold, matches player_profile_set_default_video_options
 extern uint32_t physical_memory; // machine class threshold

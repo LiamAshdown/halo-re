@@ -18,10 +18,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_server_globals *network_server; // 0x0071c2d4

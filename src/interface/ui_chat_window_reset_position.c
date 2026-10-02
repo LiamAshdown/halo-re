@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t chat_window_default_x; // 0x00692d80, UNSURE name
 extern int32_t chat_window_default_y; // 0x00692d84, UNSURE name
 extern int32_t chat_window_default_width;  // 0x00692d88, UNSURE name

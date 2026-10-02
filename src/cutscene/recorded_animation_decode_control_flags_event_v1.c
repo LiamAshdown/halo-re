@@ -15,13 +15,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event type 4: copies event->control_flags into control->control_flags and
 // advances *cursor by the record's fixed size (6 bytes).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_decode_control_flags_event_v1(unit_control_data *control,
     recorded_animation_event_v1 *event, uint8_t **cursor)
 {

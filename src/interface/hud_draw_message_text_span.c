@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t ui_prompt_clip_x;                 // 0x006e476e
 extern int16_t ui_prompt_clip_y;                 // 0x006e4770
 extern game_engine_definition *current_game_engine; // 0x006f1d20

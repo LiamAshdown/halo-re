@@ -14,10 +14,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void tree_iterator_decrement(hwreq_map_node **iterator)
 {
     hwreq_map_node *node = *iterator;

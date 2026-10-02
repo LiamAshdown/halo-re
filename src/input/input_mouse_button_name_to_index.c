@@ -18,10 +18,10 @@
 
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name); // this module, 0x490f20
 
 // Resolves a mouse button display name string (ASCII, case-insensitive) back to its numeric

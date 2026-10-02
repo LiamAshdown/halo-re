@@ -16,10 +16,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 
 typedef int32_t (__stdcall *d3dx_effect_settexture_fn)(void *effect, uint32_t handle, void *texture);

@@ -11,12 +11,12 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // qsort-style comparator over two int32_t* carousel-slot ids: entries that are not -1 sort
 // before entries that are -1; two entries of the same "validity" compare equal.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t ui_carousel_slot_compare_valid_first(const int32_t *a, const int32_t *b)
 {
     if (*a == -1) {

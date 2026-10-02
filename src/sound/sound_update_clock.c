@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency;   // 0x006ac8f8/0x006ac8fc
 extern int32_t sound_time;              // 0x0072520c, ms
 extern float sound_time_delta;          // 0x00725210, (new - old) * 0.03

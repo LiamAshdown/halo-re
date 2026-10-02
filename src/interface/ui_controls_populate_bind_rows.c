@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint64_t game_variant_option_default_by_index(void); // 0x465380, UNSURE signature
 
 static widget_instance *find_row_control_until(widget_instance *row, widget_instance *stop)

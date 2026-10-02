@@ -30,10 +30,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "scenario.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float sqrtf(float x);
 
 extern void value_step_toward_target(float *value, float target, float max_step); // 0x470d40, game module, blam-cc: ECX->value, stack->target,max_step

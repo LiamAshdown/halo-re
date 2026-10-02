@@ -18,10 +18,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t DAT_00000050; // UNSURE: see header note; likely a decompilation artifact
 
 // Finds the machines[] slot whose machine_id equals machine_id and clears its unknown_50

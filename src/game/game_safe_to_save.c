@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t debug_print_safety_checks; // 0x00719aa9, TYPES-GAP
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module

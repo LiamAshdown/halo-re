@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height);
     // 0x523f10, blam-cc: EAX, EBX, stack
 extern void dxt1_decode_block_texel(void *out, void *block, int32_t x, int32_t y); // 0x43ffe0, EAX, stack

@@ -12,14 +12,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: size code in EAX, array in ECX, count in EDX
 // In-place byte-swaps `count` elements of size 8, 4, or 2 bytes (selected by `size_code`, one of
 // _byte_swap_int64/_byte_swap_int32/_byte_swap_int16) starting at `array`, for endian conversion.
 // Any other size_code is a no-op.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void byte_swap_array(int32_t size_code, uint32_t *array, int32_t count)
 {
     uint32_t low;

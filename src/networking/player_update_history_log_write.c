@@ -26,10 +26,10 @@
 #include "memory.h"
 #include <stdio.h>
 #include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t player_update_log_categories_default;  // 0x00710314
 extern uint32_t player_update_log_categories_filtered;  // 0x00710318
 extern uint8_t player_update_log_flags;                 // 0x00710310, bit1 = write to the log file

@@ -21,10 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *effect_location_data; // 0x0087abe0
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, memory module; blam-cc: array in EDX

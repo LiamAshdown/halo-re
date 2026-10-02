@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char *hs_source_buffer_append(char *text, uint32_t length); // 0x004856f0, this batch
 extern void skip_whitespace(char **cursor); // 0x00486350, this batch
 extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch

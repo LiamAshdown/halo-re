@@ -18,10 +18,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data;           // 0x00880360
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358

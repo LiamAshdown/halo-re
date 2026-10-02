@@ -18,10 +18,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double fmod(double x, double y); // CRT fmod (0x628cca: _CIfmod, x87 fprem; name entry "fmod" at 0x006844f0)
 
 void vector3d_positive_modulo(const real_vector3d *v, real_vector3d *out, float period)

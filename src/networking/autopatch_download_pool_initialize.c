@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];   // 0x006f0db0
 extern int32_t network_mutex_name_counter;                                      // 0x006f0cac

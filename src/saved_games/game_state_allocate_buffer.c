@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *map_memory; // 0x006ac548
 extern uint8_t *game_state_snapshot_source; // 0x006e2dec
 extern uint8_t game_state_write_buffer_allocated; // 0x006e2de8

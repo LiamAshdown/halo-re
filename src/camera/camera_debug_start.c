@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario;                    // 0x00746f8c
 extern camera_script_globals camera_script;   // 0x006869d0
 extern player_globals *local_player_globals;          // 0x0087a478

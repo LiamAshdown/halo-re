@@ -14,13 +14,13 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Copies up to 8 wide characters from `source` into `server`'s password field and forces a
 // NUL terminator.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void network_server_password_set(const wchar_t *source, network_server_globals *server)
 {
     wcsncpy((wchar_t *)server->password, source, 8);

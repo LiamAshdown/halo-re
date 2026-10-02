@@ -9,11 +9,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern periodic_function_table *periodic_function_tables[12]; // 0x006b7aa8
 extern periodic_function_table *transition_function_tables[6]; // 0x006b7ad8
 extern uint8_t periodic_functions_initialized; // 0x006b7af0

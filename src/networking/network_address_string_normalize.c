@@ -15,10 +15,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_address_parse_port(char *address_string, int32_t *port_out); // 0x4dc560, this module
 
 // VERIFIED against disassembly 0x4dc5e0..0x4dc726 (2026-09-30): sscanf argument order, the four range checks, the is-any

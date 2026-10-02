@@ -18,10 +18,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 
 typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, const char *name);

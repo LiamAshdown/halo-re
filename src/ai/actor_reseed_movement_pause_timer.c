@@ -17,10 +17,10 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern uint32_t random_seed_global; // 0x00719cd0
 

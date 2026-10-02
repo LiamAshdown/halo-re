@@ -22,14 +22,14 @@
 #include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // The two subclass procs are referenced only as values (push 0x57e350 at 0x57e526,
 // push 0x57e2a0 at 0x57e4f8, cmp eax,0x57e2a0 at 0x57e4e8), declared here so their addresses
 // can be passed to SetWindowLongA without raw immediates.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int32_t __stdcall dialog_static_hyperlink_subclass_proc(void *window, uint32_t message, uint32_t wparam,
                                                                  int32_t lparam); // 0x57e350, this module
 // Not a Ghidra function (out/phase4/dialogs_types_notes.md); rewritten in dialog_static_hyperlink_parent_proc.c. Its address is

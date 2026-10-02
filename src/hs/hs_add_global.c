@@ -46,10 +46,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t string_table_index_of(const char *search, int16_t count, const char **table); // 0x004875c0, library-ish (cseries/text), not this module; blam-cc: search_text in EAX
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch

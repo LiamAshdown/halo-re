@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern terminal_console *console_active; // 0x006b2f0c
 extern console_globals console_globals_data;  // 0x006b7020 (0x006b7024 is &console_globals_data.terminal)
 

@@ -24,10 +24,10 @@
 #include "input.h"
 
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
 extern uint16_t missing_string_text[];                  // 0x00671fac, L"<missing string>" (the string itself, not a pointer)

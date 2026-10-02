@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern double fabs(double x);
 extern uint8_t physics_shape_pill_sweep_test_point(real_point3d *near_vertex, real_vector3d *delta,

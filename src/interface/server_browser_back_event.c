@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_filter_panel_mode; // 0x007196b4
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, AX
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, EAX

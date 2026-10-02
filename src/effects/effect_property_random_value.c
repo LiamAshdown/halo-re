@@ -18,13 +18,13 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns a random value in [base_min, base_max), where base_min and (base_max - base_min) are
 // each independently multiplied by self->a_scale when their bit_index bit is set in a_bitset,
 // and by self->b_scale when it is set in b_bitset (both bit_index and bit_index + 1 are tested).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset,
     uint32_t b_bitset, random_seed *seed, real base_min, real base_max)
 {

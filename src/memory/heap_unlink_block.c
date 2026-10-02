@@ -8,10 +8,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void heap_unlink_block(heap_block *block, heap *self)
 {
     uint32_t slot = block->slot;

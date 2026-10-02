@@ -28,10 +28,10 @@
 #include "objects.h"
 #include "items.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 // 0x549af0, sound module; see src/items/equipment_pickup_play_sound.c for the parameter block

@@ -1,6 +1,3 @@
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // object_recalculate_bounding_radius_clone_4f8834   (renamed by the phase-4 review pass; Ghidra/PDB name was `objects_update__object_in_player_pvs_nop1`,
 //    which this file's own header shows does not describe the code)
 // address 0x4f8834, size 553 bytes
@@ -220,6 +217,10 @@ void objects_update__object_in_player_pvs_nop1(void)
     *(undefined4 *)(unaff_EBP + -0x7c) = uVar4;
   } while( true );
 }
+#endif
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
 #endif
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */

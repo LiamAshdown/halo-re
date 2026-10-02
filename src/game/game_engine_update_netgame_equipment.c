@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario;    // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time; // 0x006f1d6c

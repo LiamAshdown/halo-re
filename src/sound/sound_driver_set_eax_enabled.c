@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t directsound_initialized;   // 0x007252e0
 extern uint8_t directsound_eax_enabled;   // 0x00746121
 extern sound_driver_parameters driver_parameters; // 0x0069f514

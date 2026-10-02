@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern heap *widget_memory_pool; // 0x006926c4, 0x20000 byte GlobalAlloc arena
 extern void *widget_memory_pool_name; // 0x0068e690, the literal "widget_memory_pool"
 extern uint8_t widget_memory_pool_valid; // 0x00718fc2

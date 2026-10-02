@@ -14,10 +14,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98

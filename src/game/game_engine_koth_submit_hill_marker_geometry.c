@@ -25,10 +25,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, rasterizer.h; WORD stores (0x46b306, 0x46b6c2, 0x46b6d2)
 extern void **rasterizer_dynamic_index_buffer;                // 0x006e09e8, UNSURE identity (vtable object, +0x30 called)
 extern int16_t rasterizer_dynamic_vertex_slots[];      // 0x006d99d8, UNSURE identity

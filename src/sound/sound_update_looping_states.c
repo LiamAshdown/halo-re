@@ -22,10 +22,10 @@
 #include "cache.h"
 #include "math.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
 extern uint8_t sound_update_toggle;    // 0x00725214

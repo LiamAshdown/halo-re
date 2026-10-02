@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x);
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718

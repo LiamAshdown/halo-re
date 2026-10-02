@@ -13,13 +13,13 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: profile in EDI, gamepad_index in EBX
 // True if the gamepad slot is in use (a nonzero first name word) and any of its button, action,
 // axis or pov bindings differs from the unbound default.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t control_profile_is_customized(saved_player_profile *profile, int32_t gamepad_index)
 {
     int32_t i, j;

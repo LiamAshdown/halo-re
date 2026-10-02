@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_channel_key_resolve_target(network_player_entry *entry); // 0x4ddcc0, this batch
 extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index,
     int16_t local_player_index, uint16_t *identifier_record); // 0x473940, src/game/player_new_local.c

@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 // blam-cc: EAX -> target_prop_index

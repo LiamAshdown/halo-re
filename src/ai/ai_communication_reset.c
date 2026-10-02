@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern int16_t communication_line_count; // 0x006f0c98
 extern int32_t communication_line_base;  // 0x006f0c9c

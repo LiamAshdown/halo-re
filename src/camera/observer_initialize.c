@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern observer observers[1]; // 0x006ac65c
 
 // blam-cc: EDX -> self

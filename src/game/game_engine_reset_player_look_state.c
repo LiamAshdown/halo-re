@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern Globals *global_globals;                             // 0x00746fa0
 extern real look_pitch_rate_setting[k_maximum_local_players]; // 0x006f1d78, degrees per second

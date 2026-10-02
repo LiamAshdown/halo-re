@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_capture_surfaces[4]; // 0x0069c66c
 
 // blam-cc: EAX -> object, ECX -> fallback

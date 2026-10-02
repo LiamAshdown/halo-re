@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t console_rcon_handle; // 0x006b2f1c
 
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags

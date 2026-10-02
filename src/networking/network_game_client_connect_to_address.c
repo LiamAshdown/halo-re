@@ -26,10 +26,10 @@
 #include "networking.h"
 #include <stdlib.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t network_game_socket_port; // 0x00698208
 extern int32_t progress_screen_text; // 0x006b2f28, UNSURE identity/type; see
     // network_join_request_resolve_host.c for the same global under this name

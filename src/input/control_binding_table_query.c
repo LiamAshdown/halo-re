@@ -27,10 +27,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t current_game_engine; // 0x006f1d20, same global as control_binding_table_initialize.c
 
 extern uint8_t g_control_binding_region_ec[0x3c0]; // base 0x008603ec, same region as control_binding_table_register_single.c

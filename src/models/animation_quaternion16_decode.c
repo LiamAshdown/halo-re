@@ -14,12 +14,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Decodes the four int16 components of an uncompressed animation rotation (i, j, k, w, in
 // that struct order) into a real_quaternion, each scaled by 1/32767. Does not normalize.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void animation_quaternion16_decode(int16_t *source, real_quaternion *out)
 {
     out->i = (real)source[0] * 3.051851e-05f;

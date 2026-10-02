@@ -30,10 +30,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream,
     const uint32_t *sender); // 0x4db870, stack
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream); // 0x4de420, EDI, stack, EBX

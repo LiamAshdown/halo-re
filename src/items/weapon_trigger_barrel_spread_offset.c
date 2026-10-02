@@ -16,13 +16,13 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // cos/sin are single x87 FCOS/FSIN instructions in the original code (Ghidra's fcos()/fsin()
 // pseudo-calls); declared locally instead of via <math.h> because -I types shadows that header
 // name with types/math.h.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double cos(double x);
 extern double sin(double x);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); // 0x4cd820

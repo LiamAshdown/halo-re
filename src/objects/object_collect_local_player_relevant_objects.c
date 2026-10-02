@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern ScenarioStructureBSP *global_structure_bsp;
 extern object_globals *object_globals_pointer; // 0x006b8cbc

@@ -22,10 +22,10 @@
 #include "input.h"
 
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern di_object_data_format joystick_objects[k_input_joystick_object_count]; // 0x00879f60
 extern input_device input_devices[8];       // 0x006b1868
 extern int32_t nojoystick;                  // 0x00712c2c, shell module

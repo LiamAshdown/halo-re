@@ -15,12 +15,12 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: destination in ESI, suffix in EBX
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void path_append_extension(char *destination, const char *suffix)
 {
     char *end;

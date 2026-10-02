@@ -18,10 +18,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 
 // Computes a new sphere-mesh vertex by lerping between two existing vertices and re-projecting

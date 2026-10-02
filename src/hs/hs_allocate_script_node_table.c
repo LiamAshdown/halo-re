@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x004d0370
 extern void data_delete_all(data_array *array); // 0x004d0580
 

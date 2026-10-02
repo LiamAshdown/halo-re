@@ -18,11 +18,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// blam-cc: EAX -> context, ECX -> position, stack -> avoid_radius, avoid_object_index, avoid_weight
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> context, ECX -> position, stack -> avoid_radius, avoid_object_index, avoid_weight
 void path_find_set_avoid_sphere(path_find_context *context, const real_point3d *position,
                                 float avoid_radius, datum_index avoid_object_index, float avoid_weight)
 {

@@ -22,10 +22,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 extern ctf_globals ctf_globals_live; // 0x006b1290
 extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4, this batch

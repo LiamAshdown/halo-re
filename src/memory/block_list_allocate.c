@@ -13,10 +13,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner)
 {
     int32_t block_size = requested_size + 0x18;

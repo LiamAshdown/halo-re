@@ -14,15 +14,15 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: AX -> pitch_range_index, ECX -> tag, stack -> target_pitch
 // Returns `pitch_range_index` unchanged if it still has loaded permutations and its bend_bounds
 // still cover `target_pitch`; otherwise returns the loaded pitch range whose bend_bounds contain
 // `target_pitch`, or (failing that) the one whose bounds are numerically closest to it. -1 if no
 // pitch range has loaded permutations at all.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t sound_permutation_pick_for_pitch(int16_t pitch_range_index, Sound *tag, float target_pitch)
 {
     int32_t count = (int32_t)tag->pitch_ranges.count;

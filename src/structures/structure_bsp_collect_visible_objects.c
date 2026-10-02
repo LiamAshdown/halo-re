@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t visible_cluster_count; // 0x007d0390
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters]; // 0x007c3390
 extern int32_t render_cluster_index;  // 0x007c3348

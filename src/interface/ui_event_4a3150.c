@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void game_engine_send_team_allegiance_message(char broadcast); // 0x4704d0
 
 uint8_t ui_event_4a3150(widget_instance *widget, int16_t *event, uint8_t *out_handled)

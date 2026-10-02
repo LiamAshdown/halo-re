@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_syntax_node_garbage_collect(void); // 0x00483310, this batch
 extern void hs_dispose_dynamic_globals(void); // 0x0048a130, outside this batch's assigned range
 

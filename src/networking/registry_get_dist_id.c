@@ -11,13 +11,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Reads the installed game's "DistID" (distribution/channel id) DWORD value from the registry.
 // Returns 0 if the key or value could not be read.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t registry_get_dist_id(void)
 {
     uint32_t dist_id = 0;

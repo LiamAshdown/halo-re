@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t empty_string[]; // 0x00660c34
 
 void *ui_replace_empty(widget_instance *widget)

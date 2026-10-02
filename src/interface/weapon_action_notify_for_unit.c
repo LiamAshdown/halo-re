@@ -19,10 +19,10 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0, "objects"
 
 extern int32_t local_player_index_for_unit(datum_index unit_index); // 0x4940a0, this module

@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_cache_entries; // 0x006ac528
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, blam-cc: EAX -> array, EDX -> handle
 

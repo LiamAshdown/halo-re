@@ -19,14 +19,14 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: profile in EDX, key in EBX
 // Searches the profile's four gamepad slots for one whose device_key matches key's device_key
 // (the extra dword at [4] first, then the 16-byte guid at [0..3]). Returns the matching slot
 // index (0..3), or -1 if none match.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t control_profile_gamepad_slot_find(saved_player_profile *profile, controls_gamepad_record *key)
 {
     int32_t i;

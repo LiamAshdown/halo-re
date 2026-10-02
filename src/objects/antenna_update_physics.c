@@ -30,10 +30,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
 extern double sqrt(double x); // a single x87 FSQRT instruction in the original (Ghidra's SQRT())

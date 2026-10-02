@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t hs_find_function_by_name(char *name); // 0x00483520, this batch
 extern void hs_format_function_signature(int16_t function_index, char *out); // 0x00484300, this batch
 extern void chimera__console_out(char *text); // 0x00496b50

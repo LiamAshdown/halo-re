@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sv_timelimit_minutes; // 0x00699608
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 

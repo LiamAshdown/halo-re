@@ -9,10 +9,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t rasterizer_lens_flare_occlusion_test_issue(int32_t slot_index, const real_point3d *position,
     float radius); // 0x537800, EDI slot, stack (position, radius)
 

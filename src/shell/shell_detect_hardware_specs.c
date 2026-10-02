@@ -48,12 +48,12 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include <string.h>
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 extern int32_t hex_string_to_uint(char *string);                               // 0x57d7f0, string in EDX
 extern void hex_string_to_bytes(uint8_t *dest, const char *source);            // 0x57d830, dest in ECX, source in EDX
 extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal); // 0x57ea70

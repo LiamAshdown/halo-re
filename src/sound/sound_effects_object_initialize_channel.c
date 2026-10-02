@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24
 
 // blam-cc: EDX -> channel_index

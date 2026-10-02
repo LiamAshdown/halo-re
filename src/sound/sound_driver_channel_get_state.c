@@ -19,10 +19,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
 extern directsound_channel_state sound_channel_check_loop_boundary(int16_t channel_index); // 0x548050, blam-cc: AX

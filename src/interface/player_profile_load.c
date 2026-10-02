@@ -28,10 +28,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t saved_player_profile_slots_handle;               // 0x00714dd4, record 0 field +0x1ffc
 extern uint8_t profile_globals_block[];             // 0x00712dd8, stride 0x2004 per player
 extern game_engine_definition *current_game_engine; // 0x006f1d20 (current_game_engine, opaque here)

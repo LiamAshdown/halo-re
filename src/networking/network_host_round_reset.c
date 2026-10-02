@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_game_session_reset_defaults(void); // 0x4e1820, outside this batch, elided args
 
 // blam-cc: EAX -> host

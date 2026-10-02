@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ai_globals *ai_globals_ptr; // 0x00880354
 
 extern void ai_process_vehicle_entry_queue(void); // 0x42bf90

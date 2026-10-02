@@ -21,10 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;              // 0x008603b0
 extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, row stride 0x1ea0; UNSURE of the
                                     // element type, declared as a byte base so the byte offset

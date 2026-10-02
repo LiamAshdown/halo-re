@@ -28,10 +28,10 @@
 #include "cache.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
 extern uint8_t controls_input_capture_flags; // 0x00712542, bit 2 set while a keyboard owns input

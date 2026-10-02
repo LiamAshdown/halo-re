@@ -17,9 +17,6 @@
 #include "memory.h"
 #include <stdio.h>
 #include <time.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // VERIFIED against disassembly 0x4e5320..0x4e5381 (2026-09-30); fixed: the original calls the CRT _snprintf (0x623a2d),
 //   which writes count characters and does NOT NUL-terminate on truncation (the C99 snprintf the draft used writes a
@@ -27,6 +24,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // Formats time_value's hour:min:sec into time_dest and its year-mon-mday into date_dest, each
 // truncated to at most max_len-1 characters with a forced NUL. Either destination may be NULL
 // (skipped), and nothing is written if max_len is 0.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
     char *time_dest) // blam-cc: EBX -> date_dest, ESI -> time_value, EDI -> max_len, stack -> time_dest
 {

@@ -29,10 +29,10 @@
 #include "ai.h"
 #include <stdint.h> // uintptr_t
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70, EAX, DX
 extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010, EAX, ECX
 extern uint8_t path_find_push_start_node(path_find_context *context);            // 0x43a760, ESI

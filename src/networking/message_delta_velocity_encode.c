@@ -8,10 +8,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t message_delta_vector3d_mode; // 0x0069b350, nonzero picks the first bit widths
 
 extern void vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point); // 0x4eb4a0

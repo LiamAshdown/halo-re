@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_time_globals *game_time;         // 0x006f1d6c
 extern int32_t ctf_notify_throttle_tick;     // 0x006b0eb4
 

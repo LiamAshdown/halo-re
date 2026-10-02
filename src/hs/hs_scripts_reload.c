@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_allocate_script_node_table(void); // 0x00483100, this batch
 extern char hs_scripts_compile_and_link(char restore_previous); // 0x00483190, this batch
 extern void data_delete_all(data_array *array); // 0x004d0580

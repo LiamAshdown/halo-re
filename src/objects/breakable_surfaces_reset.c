@@ -13,10 +13,10 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, types/physics.h breakable_surface_globals
 
 void breakable_surfaces_reset(void)

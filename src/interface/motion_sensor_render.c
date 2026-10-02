@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern motion_sensor_globals *motion_sensor;   // 0x00719438
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern game_engine_definition *current_game_engine; // 0x006f1d20

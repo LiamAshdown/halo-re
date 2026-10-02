@@ -37,10 +37,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b, real radius, real max_distance, real sin_max_angle, real cos_max_angle)
 {
     real dx = point_b->x - point_a->x;

@@ -10,13 +10,13 @@
 
 #include "tags.h"
 #include "shaders.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns the decal flag of a shader tag instance: whether it is drawn as a decal over the
 // surface underneath it rather than blended into it. NULL and any shader_type this function
 // does not recognize return false.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t shader_is_decal(Shader *shader)
 {
     if (shader == (Shader *)0) {

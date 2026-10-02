@@ -14,10 +14,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group

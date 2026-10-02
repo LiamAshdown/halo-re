@@ -19,10 +19,10 @@
 #include "memory.h"
 #include <string.h>
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, below this batch's
     // assigned range
 

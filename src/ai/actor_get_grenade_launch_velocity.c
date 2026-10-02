@@ -22,10 +22,10 @@
 #include "objects.h"
 #include "projectiles.h" // Projectile
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *global_globals;
 extern float k_physics_gravity;   // 0x0069c52c

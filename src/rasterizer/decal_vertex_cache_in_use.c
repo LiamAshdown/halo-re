@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *decal_data; // 0x0087abe4
 extern datum_index decal_vertex_cache_last_queried; // 0x0069c6b0
 

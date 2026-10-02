@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern int32_t object_cluster_stamp; // 0x008603cc
 extern datum_index *collideable_cluster_first; // 0x008603d0, UNSURE: see file header (Ghidra's DAT_008603d0)

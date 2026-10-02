@@ -12,15 +12,15 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> actor_index, query, candidate
 // Turns the perception result code the movement request came back with into a desirability
 // term. Code 0 is the best outcome and scores 15.0, code 1 scores 5.0, and anything else
 // scores nothing and is rejected unless the target is large. A large target roughly halves
 // both bonuses. The probe call with no candidate gives the baseline the code 0 value.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t actor_reject_firing_position_by_request_result(datum_index actor_index,
                                                        actor_firing_position_query *query,
                                                        actor_firing_position_candidate *candidate)

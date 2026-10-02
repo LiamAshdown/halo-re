@@ -40,9 +40,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // FIXED 2026-09-28 (retail-independence loop): rewritten from objdump 0x483e20..0x484087 with the file helpers'
 //   register arguments restored (path_append_component ESI/EBX, path_remove_last_component EBX, path_build_full
@@ -50,6 +47,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 //   named the qsort comparator file_reference_compare_by_name, which bound to nothing -- it is
 //   file_reference_compare_full_path (0x483d20).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 typedef struct rebuild_file_reference {
     uint32_t signature; // 0x000 'filo'
     uint8_t flags;      // 0x004

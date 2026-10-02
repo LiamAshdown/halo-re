@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode;              // 0x00719720, 0 local, 1 client, 2 host
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE name: shared encode buffer

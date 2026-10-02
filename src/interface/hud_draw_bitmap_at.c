@@ -21,10 +21,10 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap, const float *uv,
                                       float *out_extents, int16_t anchor); // 0x4acc50, blam-cc: CL, ESI, EDX, EAX
 extern void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float *scale,

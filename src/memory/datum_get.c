@@ -7,14 +7,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: handle in EDX, array in ESI
 // Resolves `handle` (index in the low 16 bits, salt in the high 16, zero salt acting as a
 // wildcard) to its element pointer if the index and salt are valid and the slot is in use,
 // otherwise returns NULL.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void *datum_get(datum_index handle, data_array *array)
 {
     void *result;

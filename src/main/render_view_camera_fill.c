@@ -38,10 +38,10 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_time_globals *game_time;         // 0x006f1d6c, foreign (game module)
 extern console_globals console_globals_data; // 0x006b7020, this module's own header type
 extern float rasterizer_default_z_near;              // 0x0069c65c, foreign (rasterizer module); rasterizer.h (R11)

@@ -20,12 +20,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // win32_find_dataa is types/game.h's (the Win32 WIN32_FIND_DATAA layout, 0x140 bytes).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, ESI dest, EDI source, stack capacity
 
 // blam-cc: EAX -> save_game_name, ECX -> root_path

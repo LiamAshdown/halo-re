@@ -22,12 +22,12 @@
 #include "tags.h"
 #include "cseries.h"
 #include <time.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Globals this module reads but does not own (see types/cseries.h "Globals this module reads
 // but does not own"): the shell zeroes both at startup.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern uint8_t debug_log_level;  // 0x0087ac06; every access in the image is byte-wide. R01
                                   // merged interface.h / networking.h onto this name and type.
 extern uint8_t error_file_enabled; // 0x0087ac01, set to 1 by the shell startup; write_to_error_file

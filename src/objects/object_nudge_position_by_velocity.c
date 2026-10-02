@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, current time in milliseconds

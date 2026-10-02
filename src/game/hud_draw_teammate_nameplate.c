@@ -19,11 +19,11 @@
 #include "game.h"
 #include <string.h>
 #include <wchar.h>
+
+// wcsncpy (0x00627a94 wcsncpy) comes from <wchar.h>; memset is inlined by the compiler.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// wcsncpy (0x00627a94 wcsncpy) comes from <wchar.h>; memset is inlined by the compiler.
 extern data_array *player_data; // 0x0087a480
 
 extern datum_index hud_find_nearby_teammate_for_nameplate(datum_index player_handle); // 0x45e340, this batch

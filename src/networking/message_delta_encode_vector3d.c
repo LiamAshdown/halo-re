@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
 extern real message_delta_vector3d_delta_epsilon; // 0x0069a2d8

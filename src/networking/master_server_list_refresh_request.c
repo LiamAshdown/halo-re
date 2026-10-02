@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t master_server_request_flags; // 0x0071969c
 extern int32_t DAT_006953fc; // see UNSURE, a millisecond deadline
 extern uint8_t DAT_00719488; // see UNSURE

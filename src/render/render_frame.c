@@ -24,10 +24,10 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t render_frame_index;      // 0x007c3100, this module
 extern float render_time_since_tick;    // 0x007c310c, this module
 extern float render_time_since_frame;   // 0x007c3110, this module

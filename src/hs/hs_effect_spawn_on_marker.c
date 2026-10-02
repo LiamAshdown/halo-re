@@ -14,10 +14,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
     uint32_t maximum); // 0x4f6080
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index,

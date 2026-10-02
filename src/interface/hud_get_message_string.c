@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint16_t *empty_wide_string_pointer; // 0x00692d7c, UNSURE: fallback value

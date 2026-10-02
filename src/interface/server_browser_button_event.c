@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void master_server_list_refresh_request(void);      // 0x4b6660
 extern void master_server_ensure_list_connection(void);    // 0x4b66c0
 extern void server_browser_filter_panel_set_mode(void *panel, uint8_t internet_mode); // 0x4b61c0, EAX panel

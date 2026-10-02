@@ -11,10 +11,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
 // Packs a ColorARGB (float a,r,g,b) into a 0xAARRGGBB uint32_t, rounding each channel to 0..255.

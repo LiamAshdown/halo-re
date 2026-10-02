@@ -17,10 +17,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, blam-cc: EAX -> entry
     // blam-cc: EAX -> entry; 0x4de9f0, other module. The EAX convention is pinned by
     // network_server_check_machine_timeout (0x4e0f80 `mov eax,esi` / 0x4e102b

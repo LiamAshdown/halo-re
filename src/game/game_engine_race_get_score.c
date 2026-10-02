@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern int32_t game_engine_bucket_scores[16]; // 0x006b1318
 extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4

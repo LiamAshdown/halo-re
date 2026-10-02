@@ -34,10 +34,10 @@
 #include "effects.h"
 #include "game.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_effect_globals *player_effect_globals_pointer; // 0x006f1884
 extern game_time_globals *game_time; // 0x006f1d6c
 extern real_matrix4x3 *k_render_identity_matrix_ptr;           // 0x0069673c, UNSURE identity

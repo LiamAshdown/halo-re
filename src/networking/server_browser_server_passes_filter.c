@@ -35,10 +35,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_require_valid_entry; // 0x006953f0
 extern uint8_t server_browser_filter_dedicated_only; // 0x0071948b
 extern uint8_t server_browser_allow_password;        // 0x006953f9

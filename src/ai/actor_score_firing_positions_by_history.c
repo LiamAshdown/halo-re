@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void * actor_get_actor_definition(datum_index actor_index); // 0x40fa70, this module
 extern int16_t actor_evaluate_flank_offset(real_vector3d *cover_direction, real_vector3d *out_offset,
     real_point3d *threat_position, real_point3d *candidate_position); // 0x420b10, ECX, EBX, ESI, EDI

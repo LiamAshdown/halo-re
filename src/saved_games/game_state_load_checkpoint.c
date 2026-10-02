@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t game_time_force_single_tick; // 0x007196d8, UNSURE: guards this whole path
 extern int16_t pending_difficulty; // 0x00696564
 extern uint8_t *game_state_base; // 0x006e2dc8

@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
 // blam-cc: AX -> channel_index

@@ -31,10 +31,10 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 
 extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); // 0x518180, foreign (rasterizer module)

@@ -35,10 +35,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_initialized;   // 0x00719470
 extern void *master_server_query_engine;     // 0x0071946c, GameSpy query object handle
 extern uint8_t server_browser_query_pending;  // 0x0071948a, cleared once ingested

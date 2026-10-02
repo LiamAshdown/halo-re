@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4, UNSURE
 extern uint8_t network_server_host_valid;  // 0x0071c2dd, UNSURE
 extern int16_t network_game_mode; // 0x00719720, types/game.h: 0 local, 1 client, 2 host (word access)

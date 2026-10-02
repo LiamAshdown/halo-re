@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 
 extern datum_index datum_new(data_array *array); // memory module, 0x4d0480

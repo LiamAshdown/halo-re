@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern char actor_evaluate_combat_state_transition(uint32_t actor_index); // 0x40c620, other half of this session
 

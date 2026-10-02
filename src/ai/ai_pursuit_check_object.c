@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *ai_pursuit_data; // 0x008802d0
 
 extern datum_index squad_recent_object_get_or_create(datum_index encounter_index, int16_t type,

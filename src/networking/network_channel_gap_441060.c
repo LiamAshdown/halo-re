@@ -8,10 +8,10 @@
 // blam-cc: cdecl (a GT2 socket error callback)
 
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_join_error_code;            // 0x00718fa4
 extern uint8_t network_host_handoff_requested;     // 0x0071c2de
 extern int32_t network_game_socket;                // 0x006f14c4

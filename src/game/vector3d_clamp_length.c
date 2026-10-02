@@ -15,10 +15,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // 0x628140 area, x87 FSQRT
 
 // Scales `v` down so its length does not exceed `max_length`; leaves `v` unchanged when it is

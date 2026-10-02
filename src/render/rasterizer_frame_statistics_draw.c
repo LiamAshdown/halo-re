@@ -42,10 +42,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t console_debug_toggle_6893e0;       // 0x006893e0 frame statistics enabled
 extern int32_t frame_statistics_key_a_latch;      // 0x0071d120, this module
 extern int32_t frame_statistics_key_b_latch;      // 0x0071d124, this module

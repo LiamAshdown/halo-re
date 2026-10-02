@@ -29,12 +29,12 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // The Win32 ReadFileEx signature, as this function calls it through the pointer it is handed.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read,
     cache_io_request *overlapped, void *completion_routine);
 

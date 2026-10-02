@@ -20,10 +20,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream);
 
 // (superseded, see FIXED below) total bit count as the recognized parameter, value in EDX, stream in ESI (both

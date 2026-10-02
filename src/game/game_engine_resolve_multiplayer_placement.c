@@ -23,10 +23,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Globals *global_globals;     // 0x00746fa0
 extern game_variant game_engine_variant; // 0x006f1c88 (flags aliased 0x006f1cc0,

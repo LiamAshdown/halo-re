@@ -15,10 +15,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_flag_007196d1; // 0x007196d1, UNSURE (cleared by 0x4bb290, gates the gamma apply in 0x4bb300)
 extern uint8_t ui_flag_007196d2; // 0x007196d2, UNSURE (only ever set to 1 here)
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant

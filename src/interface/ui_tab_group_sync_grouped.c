@@ -16,10 +16,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source); // 0x49c710

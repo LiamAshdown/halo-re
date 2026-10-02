@@ -36,10 +36,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
     // PHASE-4 REVIEW: this file used to call the same global `matrix4x3_multiply_dispatch`
     // and document its parameters as (dest, a, b). src/math/math_initialize.c, which assigns

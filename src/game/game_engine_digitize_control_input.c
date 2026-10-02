@@ -28,10 +28,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern uint8_t game_engine_input_source_flag; // 0x006887a8, UNSURE exact meaning (gates two
                                                // near-identical branches below)

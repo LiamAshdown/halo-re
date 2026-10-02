@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
 extern int16_t hs_autocomplete_count;         // 0x006b14b0

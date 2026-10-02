@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const char *network_bandwidth_direction_label_table[2]; // 0x0065d430
 
 int32_t network_bandwidth_direction_name_to_index(const char *name) // blam-cc: EDI -> name

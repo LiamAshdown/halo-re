@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t controls_row_device_mask_table[]; // 0x00692ffc, stride 0x18
 
 // blam-cc: ECX -> slot, EDX -> action_index

@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void build_sprites_end(void); // 0x511620, unexamined, called once at the end unconditionally
 extern void build_sprite(int32_t, uint8_t *, real_vector3d *, int32_t, void *, ColorARGB *, float, int32_t); // 0x511700, eight stack arguments. CXX: arg types taken from the one call site below, real prototype unknown
     // The two call sites in this module disagree on the types of arguments 3 and 7

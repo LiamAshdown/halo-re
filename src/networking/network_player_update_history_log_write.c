@@ -13,10 +13,10 @@
 #include "memory.h"
 #include <stdio.h>
 #include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_player_update_log_enabled; // 0x00710320
 extern char *network_player_update_history_log_path; // 0x0069a2c8, "ServerPlayerUpdateHistory.log"
 extern char player_update_log_file_mode_string[]; // 0x0066b87c, "a"

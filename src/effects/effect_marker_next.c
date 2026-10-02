@@ -17,10 +17,10 @@
 #include "objects.h"
 #include "effects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *effect_location_data;      // 0x0087abe0
 extern player_globals *local_player_globals;  // 0x0087a478
 

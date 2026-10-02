@@ -17,10 +17,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern char savegames_directory[0x100]; // 0x00721549
 extern int32_t cached_saved_game_something; // 0x00692af8, UNSURE name/purpose (unrelated cache reset)

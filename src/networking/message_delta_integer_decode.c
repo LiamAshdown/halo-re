@@ -6,10 +6,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t message_delta_integer_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     (void)previous;

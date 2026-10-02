@@ -9,12 +9,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Parses a single hexadecimal digit at the cursor, advancing past it and returning its value,
 // or -1 if the character is not a hex digit.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t hwreq_token_parse_hex_digit(hwreq_parser *parser)
 {
     char *cursor = (char *)parser->cursor;

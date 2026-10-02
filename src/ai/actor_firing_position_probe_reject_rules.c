@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern actor_firing_position_rule actor_firing_position_reject_rules[6]; // 0x006555f8
 
 // blam-cc: EDI -> query, EBX -> actor_index

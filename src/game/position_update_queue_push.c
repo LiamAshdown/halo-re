@@ -22,12 +22,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // position_update_record is types/game.h's (0x14, tick / sequence / position).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern uint8_t circular_queue_push(circular_queue *queue, void *source); // this batch, 0x47a1a0
 
 // blam-cc: EBX -> queue, stack -> tick, sequence, x, y, z

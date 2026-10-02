@@ -27,10 +27,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double fsin(double x); // FSIN
 extern double fcos(double x); // FCOS
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, uint8_t *vertices); // 0x51c9a0, blam-cc: EAX state, stack vertices

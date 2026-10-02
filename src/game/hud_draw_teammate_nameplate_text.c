@@ -29,10 +29,10 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals; // 0x00746fa0
 
 extern int32_t hud_text_draw_font_tag_id;     // 0x006e472c

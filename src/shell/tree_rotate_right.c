@@ -12,10 +12,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void tree_rotate_right(hwreq_map_node *x, msvc_std_map *tree)
 {
     hwreq_map_node *y = (hwreq_map_node *)x->left;

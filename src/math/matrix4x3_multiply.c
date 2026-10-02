@@ -9,11 +9,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Multiplies two matrix4x3 matrices (param_1 * param_2) into a third.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Multiplies two matrix4x3 matrices (param_1 * param_2) into a third.
 void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out)
 {
     real_matrix4x3 scratch;

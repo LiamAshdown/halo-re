@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t safe_mode; // 0x007196f4
 
 extern uint8_t directsound_initialized; // 0x007252e0, UNSURE

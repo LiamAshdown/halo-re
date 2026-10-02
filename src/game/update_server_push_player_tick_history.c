@@ -18,10 +18,10 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t update_server_tick;              // 0x006f1d8c
 extern uint32_t update_server_history[32 * (0x308 / 4)]; // 0x006f1d94, raw dword view of
                                                               // update_server_history

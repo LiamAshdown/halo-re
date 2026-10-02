@@ -24,11 +24,11 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
 // blam-cc: EAX -> dest, EDI -> dest capacity in BYTES, EBX -> ASCII source.

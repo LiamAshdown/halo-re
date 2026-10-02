@@ -52,10 +52,10 @@
 #include <stdint.h> // uintptr_t
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
 extern timedemo_globals timedemo_globals_data;              // 0x00719afc

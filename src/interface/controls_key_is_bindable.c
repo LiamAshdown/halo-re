@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t controls_reserved_action_table[9]; // 0x0065c15c .. 0x0065c180
 
 // blam-cc: action -> EDX

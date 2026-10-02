@@ -14,10 +14,10 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
 extern game_engine_definition *current_game_engine;

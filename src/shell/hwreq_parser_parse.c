@@ -29,10 +29,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
 extern uint8_t hwreq_parser_find_requirements_section(hwreq_parser *parser); // 0x57ae50, blam-cc: ESI -> parser

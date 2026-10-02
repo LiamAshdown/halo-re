@@ -40,10 +40,10 @@
 #include "game.h"
 #include "units.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
 extern data_array *object_data; // 0x008603b0

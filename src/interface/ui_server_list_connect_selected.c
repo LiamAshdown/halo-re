@@ -22,10 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int16_t network_game_mode;               // 0x00719720
 extern uint8_t network_host_handoff_requested;                 // 0x0071c2de

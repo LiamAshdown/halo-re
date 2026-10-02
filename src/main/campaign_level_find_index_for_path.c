@@ -24,10 +24,10 @@
 #include "main.h"
 #include <string.h>
 #include <ctype.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char campaign_level_short_names[k_main_campaign_level_count][4]; // .rdata 0x00669a38,
     // d40 first, a10 last (types/main.h)
 

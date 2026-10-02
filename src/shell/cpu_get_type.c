@@ -16,11 +16,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t cpu_identification_state; // 0x00721e88
 extern char cpu_vendor_string[0x10];     // 0x006e35ac
 extern char cpu_brand_string[0x30];      // 0x006e357c

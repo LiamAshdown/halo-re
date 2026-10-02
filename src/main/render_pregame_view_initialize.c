@@ -22,10 +22,10 @@
 #include "render.h"
 #include "interface.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern render_view pregame_render_view; // 0x006b79e8
 
 // cos/sin/tan/atan2 are single x87 instructions in the original code; declared locally instead

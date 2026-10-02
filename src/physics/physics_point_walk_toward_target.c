@@ -21,12 +21,12 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // physics_point_walk_state now lives in types/physics.h.
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index); // 0x505490, EDI position, stack
 
 // Tests state->position (initially the desired target) against nearby objects via

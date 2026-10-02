@@ -17,10 +17,10 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
 extern void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release); // 0x4289c0, AL, stack; outside this

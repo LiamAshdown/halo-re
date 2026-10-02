@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;              // 0x0087a480
 extern int32_t multikill_medal_threshold;    // 0x006894a4
 extern int32_t sv_tk_grace_ticks; // 0x0069956c

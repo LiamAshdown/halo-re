@@ -21,12 +21,12 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Spawns the particle at the marker's world position with an initial "unknown_28" vector copied
 // straight from the system's own velocity (world units per second).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void particle_creation_physics_default(particle_system *system, int32_t type_index,
     particle_system_particle *particle, object_marker *marker)
 {

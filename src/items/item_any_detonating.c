@@ -12,10 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
 
 // Reports whether any live item object currently has a positive detonation_countdown.

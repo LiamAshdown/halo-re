@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sound_cache_dispose(void); // this module, 0x443f30
 extern void cache_flush(cache *self); // blam-cc: self in ESI; 0x4d17f0 memory module
 extern void cache_io_wait_all_requests(void); // this module, 0x4432b0

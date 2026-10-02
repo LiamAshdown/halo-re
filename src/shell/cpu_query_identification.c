@@ -24,10 +24,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char cpu_vendor_string[0x10];      // 0x006e35ac EBX/EDX/ECX of leaf 0, 12 bytes
 extern char cpu_brand_string[0x30];       // 0x006e357c EAX/EBX/ECX/EDX of leaves 0x80000002..4
 extern uint32_t cpu_signature;            // 0x00721e64 leaf 1 EAX

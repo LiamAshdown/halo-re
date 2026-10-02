@@ -18,14 +18,14 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Accumulates a digitally-pressed control's contribution into the corresponding movement/look
 // axis of *state (throttle_x for forward/backward, throttle_y for left/right, look_x for
 // look_left/look_right, look_y for look_up/look_down), scaled by the matching per-tick rate in
 // *settings, clamped to [-1, 1]. Does nothing for any other action id.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void input_accumulate_axis_value(player_control_settings *settings, local_player_input_state *state, int16_t action)
 {
     const float *rates = &settings->forward_rate; // [0] forward, [1] strafe, [2] look_x, [3] look_y

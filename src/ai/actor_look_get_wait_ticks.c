@@ -25,10 +25,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t random_seed_global; // 0x00719cd0
 
 extern data_array *object_data;     // 0x008603b0

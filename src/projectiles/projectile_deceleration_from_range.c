@@ -16,13 +16,13 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns the constant deceleration that would take a projectile from initial_velocity to
 // final_velocity over the world-unit span [r0, r1], or 0 when either velocity pair or range
 // pair is degenerate.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real projectile_deceleration_from_range(Projectile *tag, real r0, real r1) // blam-cc: ECX -> tag
 {
     real result = 0.0f;

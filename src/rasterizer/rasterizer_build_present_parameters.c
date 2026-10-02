@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t config_disable_buffering; // 0x00722b54 UNSURE: debug/flags toggle
 extern uint8_t unknown_0071d18d;  // 0x0071d18d UNSURE: debug/flags toggle
 extern uint32_t screenshots; // 0x007196e0 UNSURE: debug/flags toggle

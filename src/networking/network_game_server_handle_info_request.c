@@ -28,10 +28,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_packet_group network_game_messages_group; // 0x006994f8
 extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group,
     void *decoded_body, const uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used,

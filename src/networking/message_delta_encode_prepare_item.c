@@ -18,10 +18,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 
 // Initializes per-item bit-offset state within the message-delta encode context before encoding

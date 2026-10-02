@@ -19,10 +19,10 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index machine_to_player[16]; // 0x006b1460
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, memory module

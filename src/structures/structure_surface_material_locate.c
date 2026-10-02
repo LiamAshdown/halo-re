@@ -24,14 +24,14 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Given a global surface index, finds which lightmap and which material within it owns that
 // surface (materials own a contiguous, monotonically increasing run of surface indices via
 // their `surfaces` / `surface_count` fields) via two nested binary searches: lightmaps first,
 // then materials within the winning lightmap.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void structure_surface_material_locate(ScenarioStructureBSP *structure_bsp, int32_t surface_index,
     int16_t *out_material_index, int16_t *out_lightmap_index)
     // blam-cc: EAX -> out_lightmap_index

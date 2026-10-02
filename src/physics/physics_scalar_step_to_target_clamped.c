@@ -24,10 +24,10 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); // 0x50b370
 
 // Steps *value one spring tick toward target (up by step if below, down by step if above), then

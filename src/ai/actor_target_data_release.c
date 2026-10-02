@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 extern uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_index target_prop_index); // 0x41f410, EAX, stack

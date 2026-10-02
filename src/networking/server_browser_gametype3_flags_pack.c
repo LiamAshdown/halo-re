@@ -11,14 +11,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ECX -> options
 // Encodes two booleans and five small numeric options into a compact code tagged with type id 3
 // (the low 3 bits).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t server_browser_gametype3_flags_pack(server_browser_gametype3_options *options)
 {
     return (((((((((uint32_t)options->value_14 & 0x1f) << 2 | ((uint32_t)options->value_10 & 3)) << 2 |

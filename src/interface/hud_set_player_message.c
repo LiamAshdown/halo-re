@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hud_globals_flags *hud_flags;          // 0x00719420
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern hud_messaging_globals *hud_messaging;  // 0x006b3a40

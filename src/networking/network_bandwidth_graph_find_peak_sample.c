@@ -27,11 +27,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+// blam-cc: EBX -> out_peak_countdown, stack -> graph
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EBX -> out_peak_countdown, stack -> graph
 int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown, network_bandwidth_graph *graph)
 {
     int32_t peak_value = 1;   // sentinel: stays 1 if every sample is <= 0

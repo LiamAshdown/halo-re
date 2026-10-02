@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern uint8_t ui_event_byte_0071975b; // 0x0071975b
 extern int32_t movie_playback_abort; // 0x007196d4

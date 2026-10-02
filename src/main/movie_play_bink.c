@@ -29,10 +29,10 @@
 #include "shell.h"
 #include "main.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t movie_playback_abort;       // 0x007196d4, UNSURE owner (see header)
 extern void *rasterizer_device;            // 0x0071d174, IDirect3DDevice9
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0

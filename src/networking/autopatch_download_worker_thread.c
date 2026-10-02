@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t autopatch_download_active_count; // 0x007227c8, UNSURE: per types/networking.h's
                                                  // name, but used here as a 0/nonzero stop signal
                                                  // (autopatch_download_pool_shutdown sets it to 1

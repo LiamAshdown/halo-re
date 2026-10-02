@@ -13,12 +13,12 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Copies `server`'s password (up to 8 wide characters) into `dest` and NUL-terminates it.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void network_server_password_get(network_server_globals *server, wchar_t *dest)
 {
     wcsncpy(dest, (wchar_t *)server->password, 8);

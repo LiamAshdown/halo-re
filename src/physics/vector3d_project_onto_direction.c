@@ -8,12 +8,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> out, EAX -> axis, EDX -> v
 // Projects v onto the (not necessarily unit) axis.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *axis, const real_vector3d *v)
 {
     float scale = (v->k * axis->k + v->j * axis->j + v->i * axis->i) /

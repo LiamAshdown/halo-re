@@ -31,10 +31,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t hs_global_get_value(hs_global_reference reference);
     // blam-cc: EAX -> reference; this module, 0x48a720
 extern int32_t hs_coerce_value(int32_t value, hs_type_t dest_type, hs_type_t source_type);

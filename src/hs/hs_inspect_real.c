@@ -9,11 +9,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 void hs_inspect_real(int16_t type, int32_t value, char *buffer)
 {
     union { int32_t i; float f; } bits;

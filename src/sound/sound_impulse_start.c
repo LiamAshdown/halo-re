@@ -24,10 +24,10 @@
 #include "objects.h"
 #include "game.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
 extern const real_point3d *global_origin3d_pointer;   // 0x00696714 (the copy read here is 0x006966f8, same target 0x0065c230)

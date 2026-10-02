@@ -36,10 +36,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown,
     network_bandwidth_graph *graph); // 0x4d8140, this batch
 

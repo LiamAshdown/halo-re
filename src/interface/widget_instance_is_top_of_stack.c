@@ -14,14 +14,14 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> widget
 // True if `widget` is reachable from the root purely by following focused_child (i.e. it is the
 // widget actually on top / receiving input), or if any ancestor along the way is a list type
 // (spinner_list/column_list), which counts as "focused" regardless of the exact child.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t widget_instance_is_top_of_stack(widget_instance *widget)
 {
     widget_instance *cursor = widget->parent; // Ghidra's iVar3

@@ -26,10 +26,10 @@
 #include "networking.h"
 #include "saved_games.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8,
     // foreign (saved_games); slot 0 handle at 0x00714dd4 (+0x1ffc)
 extern int32_t hud_text_message_cycle_state_00719230; // 0x00719230, foreign, TYPES-GAP (interface module); DWORD store

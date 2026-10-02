@@ -24,10 +24,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;             // 0x0087bc14
 extern float text_color_scale;                  // 0x00672b60, == k_text_color_channel_scale
 

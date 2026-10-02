@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *hs_camera_control_pointer;                 // 0x0087bc0c, hs module
 extern camera_script_globals camera_script;                // 0x006869d0
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c

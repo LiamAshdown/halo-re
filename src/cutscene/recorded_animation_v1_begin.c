@@ -20,10 +20,10 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void unit_control_data_unpack(unit_control_data *control, uint8_t **cursor,
     uint8_t version); // 0x449fd0, this module
 

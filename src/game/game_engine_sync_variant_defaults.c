@@ -18,10 +18,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_pending_variant; // 0x0087aa80
 extern game_variant game_engine_active_variant;  // 0x0087ab20
 extern int32_t cached_network_engine_index;      // 0x0087aab0, UNSURE identity

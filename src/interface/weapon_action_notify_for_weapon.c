@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t local_player_index_for_weapon(datum_index weapon_index); // 0x494010, this module
 extern void first_person_weapon_process_action(int32_t local_player_index, int32_t action_code); // 0x4940f0, this module
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code); // 0x492990, this module

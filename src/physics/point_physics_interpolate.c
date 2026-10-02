@@ -13,12 +13,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> out, ECX -> from, EDX -> to, stack -> fraction
 // Linearly interpolates the tunable fields of two point_physics definitions.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void point_physics_interpolate(PointPhysics *out, const PointPhysics *from, const PointPhysics *to, float fraction)
 {
     float inverse = 1.0f - fraction;

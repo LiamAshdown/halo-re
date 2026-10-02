@@ -42,10 +42,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals;      // 0x00746fa0, foreign (game module)
 extern tag_instance *tag_instances;  // 0x0087bc14, foreign (cache module)
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632, foreign (rasterizer module)

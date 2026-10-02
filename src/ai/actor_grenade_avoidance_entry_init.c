@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
     float *pill_radius_out); // 0x55a2e0, EAX position out, ECX object, stack height, EBX radius
     // 0x0055a2e0, not yet rewritten (units module). blam-cc: out_offset on the stack,

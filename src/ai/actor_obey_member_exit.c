@@ -15,10 +15,10 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;  // 0x008603b0
 extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state,
     int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out); // 0x406c50, EAX, ECX, EBX, stack

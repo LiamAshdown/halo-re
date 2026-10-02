@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t random_seed_global; // 0x00719cd0
 
 // blam-cc: EDX -> weight_offset, stack -> base, stride, count, exclude_mask

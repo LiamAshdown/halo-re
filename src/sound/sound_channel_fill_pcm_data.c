@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
 extern void sound_stream_decoder_close_slot(sound_stream_decoder *decoder, uint8_t crosslap); // 0x545760, blam-cc: ESI, AL

@@ -11,11 +11,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Unpacks two rotation-basis vectors and the translation out of a matrix4x3 structure.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Unpacks two rotation-basis vectors and the translation out of a matrix4x3 structure.
 void matrix4x3_extract_forward_up_position(real_vector3d *out_up, real_vector3d *out_forward,
                                             real_matrix4x3 *m, real_point3d *out_position)
 {

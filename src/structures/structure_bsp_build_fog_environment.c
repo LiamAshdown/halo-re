@@ -18,10 +18,10 @@
 #include "math.h"
 #include "cache.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;         // 0x0087bc14
 extern Scenario *global_scenario;           // 0x00746f8c

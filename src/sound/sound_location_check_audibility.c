@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern sound_listener sound_listeners[1]; // 0x00725218
 
 extern float sound_location_distance_squared(int16_t listener_index, sound_location *location); // this module, 0x54bbd0

@@ -13,13 +13,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Opens (creating if necessary) HKLM\Software\Microsoft\Microsoft Games\Halo and writes its
 // ExitFlag REG_SZ value to "clean", recording that this run did not crash.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void shell_registry_set_exit_flag_clean(void)
 {
     void *key;

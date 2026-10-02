@@ -9,12 +9,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Returns whether value is a valid (non-NaN) float.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t real_is_valid(float value)
 {
     return (uint8_t)(_isnan((double)value) == 0);

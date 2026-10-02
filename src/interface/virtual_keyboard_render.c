@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
 extern uint16_t missing_string_text[]; // 0x00671fac, L"<missing string>"

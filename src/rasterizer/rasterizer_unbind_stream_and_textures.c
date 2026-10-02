@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device; // 0x0071d174
 
 typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, int32_t stage, void *texture);

@@ -23,10 +23,10 @@
 #include "rasterizer.h"
 #include <wchar.h>
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
 extern void *(*unknown_00721ea0)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e); // 0x00721ea0 UNSURE: engine factory
 extern uint32_t keystone_current_directory; // 0x00721ea8 UNSURE: engine factory argument

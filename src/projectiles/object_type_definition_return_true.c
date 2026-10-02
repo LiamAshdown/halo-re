@@ -16,13 +16,13 @@
 // blam-cc: (none) -> returns AL = 1
 
 #include "tags.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Shared "always true" filler used in several object_type_definition rows for a query-style
 // vtable column that this build never actually wires to type-specific behaviour. Touches
 // nothing but AL.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t object_type_definition_return_true(void)
 {
     return 1;

@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *game_looping_sound_data;  // 0x007461a0
 extern game_sound_globals *game_sound_globals_ptr; // 0x007461a4
 

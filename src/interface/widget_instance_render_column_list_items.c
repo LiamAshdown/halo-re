@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy,
                                     uint32_t flag1, int32_t flag2); // 0x49a8c0
 

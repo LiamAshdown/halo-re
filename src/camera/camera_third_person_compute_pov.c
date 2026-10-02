@@ -30,10 +30,10 @@
 #include "units.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;                             // 0x008603b0
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
 

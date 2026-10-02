@@ -28,10 +28,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90 (R05; ScenarioStructureBSP +0xb4)
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, scenario.h (formerly global_matg_multiplayer)
 extern data_array *object_data;       // 0x008603b0

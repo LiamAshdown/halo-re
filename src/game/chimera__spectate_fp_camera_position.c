@@ -35,13 +35,13 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // camera_basis_out now lives in types/game.h (folded there by the phase-4 review; this file
 // and game_engine_update_local_player_look.c are its two users).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern data_array *object_data;                          // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14

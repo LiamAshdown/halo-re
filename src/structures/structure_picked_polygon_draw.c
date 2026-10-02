@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern uint8_t picked_surfaces_valid;    // 0x006e3ad8, this module
 extern int32_t picked_surfaces_geometry; // 0x006e3adc, this module

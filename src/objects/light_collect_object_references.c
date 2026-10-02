@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *light_data;              // 0x00860b14
 extern data_array *light_object_references; // 0x00860b28
 

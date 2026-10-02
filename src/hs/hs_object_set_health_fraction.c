@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0, stride 0x0c, object data pointer at +0x08
 
 // hs_object_record: defined in types/hs.h (foreign-module slice; was a local TYPES-GAP copy)

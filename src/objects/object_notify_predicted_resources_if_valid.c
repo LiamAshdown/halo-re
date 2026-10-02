@@ -17,10 +17,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern void predicted_resource_list_touch(uint8_t *predicted_resources_field); // 0x4449f0, foreign module, UNSURE: signature guessed; ESI -> the argument

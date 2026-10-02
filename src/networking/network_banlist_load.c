@@ -57,10 +57,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_banlist_full_path[0x104];        // 0x0071c308, see sv_banlist_file.c
 extern char network_ban_file_read_mode_string[];      // 0x0066d81c, "rt"
 extern char network_ban_indefinite_marker[];          // 0x0066b038, "--"

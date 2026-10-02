@@ -13,12 +13,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Destructs a heap-embedded pair of strings, releasing any out-of-line buffers each string owns.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void hwreq_string_pair_destruct(hwreq_string_pair *pair)
 {
     if (pair->second.capacity > k_msvc_string_inline_capacity) {

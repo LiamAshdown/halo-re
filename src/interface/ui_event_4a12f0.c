@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern char pending_delete_saved_game_name_00718fd0[]; // 0x00718fd0, UNSURE name
 

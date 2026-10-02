@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps;              // 0x007c10c0
 extern void *rasterizer_device;                // 0x0071d174
 extern uint8_t rasterizer_default_material[0x44]; // 0x0069c708 D3DMATERIAL9

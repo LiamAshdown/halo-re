@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void collision_bsp_query_sphere_node_recursive(collision_bsp_sphere_query *query,
                                                         uint32_t node_index); // 0x501a10, this batch
 

@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern team_pair_globals *team_pair_data; // 0x006b0b84
 extern void ai_notify_actors_of_encounter_state_change(int16_t team_a, int16_t team_b,
     uint8_t active, uint8_t clear_secondary); // 0x42b940

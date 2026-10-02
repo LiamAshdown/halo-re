@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float ui_saved_color[3]; // 0x006927b8
 
 // blam-cc: EAX -> out

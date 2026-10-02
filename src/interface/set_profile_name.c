@@ -22,10 +22,10 @@
 #include "interface.h"
 #include <wchar.h>
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern heap *widget_memory_pool;    // 0x006926c4
 extern uint16_t missing_string_text[]; // 0x00671fac, UNSURE name

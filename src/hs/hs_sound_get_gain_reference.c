@@ -14,10 +14,10 @@
 #include "cache.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, AL clear_first
 

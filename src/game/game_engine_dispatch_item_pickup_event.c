@@ -17,10 +17,10 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern network_id_table *object_network_id_table; // 0x00687130
 extern uint8_t network_object_index_cache[]; // 0x006870d8

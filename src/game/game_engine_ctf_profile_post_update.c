@@ -18,10 +18,10 @@
 #include <wchar.h>
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, blam-cc: EAX context, ECX destination

@@ -17,10 +17,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *joystick_devices[8];             // 0x006b1848, IDirectInputDevice8A*
 extern void input_error_log_once(int32_t error_code, char *description, ...); // 0x492150
 

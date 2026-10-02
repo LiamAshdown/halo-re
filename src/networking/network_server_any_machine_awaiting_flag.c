@@ -14,13 +14,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns 1 if no machine slot is both connected (id 0..15) and free of
 // k_network_machine_version_mismatch; returns 0 as soon as one is found.
 // FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t network_server_any_machine_awaiting_flag(network_server_globals *server)
 {
     int32_t i;

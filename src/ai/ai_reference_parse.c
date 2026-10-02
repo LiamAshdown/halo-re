@@ -23,11 +23,11 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name); // 0x432200, this batch
 extern int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name); // 0x432260, this batch
 extern int32_t encounter_definition_find_platoon_index_by_name(ScenarioEncounter *encounter_definition, char *name); // 0x4322c0, this batch

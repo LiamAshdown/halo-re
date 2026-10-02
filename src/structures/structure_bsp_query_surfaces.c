@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp;         // 0x00746f9c
 extern float k_cluster_query_radius_threshold;      // 0x0069fa4c
 // 0x00746f90 is a ModelCollisionGeometryBSP pointer, proved twice in this module: it is the ECX

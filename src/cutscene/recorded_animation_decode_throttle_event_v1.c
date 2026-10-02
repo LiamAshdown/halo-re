@@ -15,13 +15,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event type 6: copies event->throttle.i / .j into control->throttle.i / .j,
 // zeroes control->throttle.k, and advances *cursor by the record's fixed size (0x0c bytes).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_decode_throttle_event_v1(unit_control_data *control,
     recorded_animation_event_v1 *event, uint8_t **cursor)
 {

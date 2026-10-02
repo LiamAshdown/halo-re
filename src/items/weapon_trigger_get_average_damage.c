@@ -22,10 +22,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 // Averages the impact/attached-detonation damage of a weapon's first trigger's projectile, and

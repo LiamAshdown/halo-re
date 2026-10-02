@@ -11,10 +11,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 int32_t unit_find_next_grenade_type_with_count(uint32_t unit_index, int32_t start_index, int16_t direction) // blam-cc: in_EAX, in_ECX, stack

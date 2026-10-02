@@ -14,10 +14,10 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_variant; // 0x006f1c88 (game_engine_index aliased 0x006f1cb8)
 extern data_array *object_data;       // 0x008603b0
 

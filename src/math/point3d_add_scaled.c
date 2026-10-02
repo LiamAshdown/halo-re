@@ -9,12 +9,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Computes out = base + scale*direction for a 3-component vector (a point offset along a
 // direction by a scalar distance).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale)
 {
     out->x = scale * direction->i + base->x;

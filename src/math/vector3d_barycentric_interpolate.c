@@ -24,10 +24,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void vector3d_barycentric_interpolate(real_vector3d *out, real_vector3d *v1, real_vector3d *v2,
                                        real_vector3d *v0, float w2, float w1)
 {

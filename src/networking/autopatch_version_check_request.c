@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t autopatch_proxy_ready;       // 0x007228d0
 extern int32_t autopatch_update_check_state; // 0x0069fe04, -1 not started, 0 no update thread failed, 1 running
 

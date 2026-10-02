@@ -21,13 +21,13 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // REWRITTEN 2026-09-28 against objdump 0x4f2df0..0x4f2fe6: the own-object exclusion reads the light
 //   tag's flags byte (+0x00, bit 2 "don't light own object"); the draft cast it to Object and tested
 //   Object.flags (+0x02). Distance and luma sums follow the original order (z, x, y / b, g, r).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern datum_index *light_cluster_first; // 0x00860b20
 extern data_array *light_cluster_references; // 0x00860b24
 extern data_array *light_data; // 0x00860b14

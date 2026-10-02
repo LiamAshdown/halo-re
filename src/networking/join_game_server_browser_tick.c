@@ -38,10 +38,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *server_browser_join_target;        // 0x00719450
 extern uint8_t server_browser_join_target_has_password; // 0x00719454
 extern uint16_t network_join_target_address[128];   // 0x00719458 (hostname buffer; the tick tests/clears its first WORD)

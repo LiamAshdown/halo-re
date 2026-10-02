@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *texture_cache_entries; // 0x006ac538
 extern struct cache *texture_cache;       // 0x006ac540
 extern void *texture_cache_base;          // 0x006ac53c

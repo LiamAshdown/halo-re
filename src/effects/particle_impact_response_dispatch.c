@@ -21,10 +21,10 @@
 #include "cache.h"
 #include "effects.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity,
     int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale,
     int32_t color, int32_t tint, int32_t force); // 0x450980, this call site's shape

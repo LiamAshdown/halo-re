@@ -6,10 +6,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t message_delta_vector3d_mode; // 0x0069b350, nonzero picks the first bit widths
 
 extern void vector3d_from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch); // 0x4ea7d0, ECX out

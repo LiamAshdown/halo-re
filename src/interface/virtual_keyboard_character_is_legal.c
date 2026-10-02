@@ -24,10 +24,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *virtual_keyboard_blacklist_charset; // 0x00692d78, UNSURE: passed to strchr
 
 // blam-cc: validation_mode -> EAX, character -> CL

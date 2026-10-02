@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t local_player_count; // 0x006894b8
 extern uint8_t save_in_progress_00719010; // 0x00719010
 extern void network_dispatch_initialize(void); // 0x4414c0

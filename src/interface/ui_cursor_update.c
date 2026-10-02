@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_use_os_cursor;      // 0x00718f81
 extern int32_t previous_mouse_x;      // 0x006b2f24, last frame's OS cursor x
 extern int32_t previous_mouse_y;      // 0x006b2f20, last frame's OS cursor y

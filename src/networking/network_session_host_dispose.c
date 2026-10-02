@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *network_session_host_object; // 0x00722a20
 extern int32_t network_session_host_state; // 0x00722a18, UNSURE
 extern int32_t network_console_connection_id; // 0x0069fdfc

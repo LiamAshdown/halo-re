@@ -25,12 +25,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // billboard_basis: folded into types/render.h (phase-4 review).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern real_vector3d build_sprite_view_up;   // 0x007c30d0
 extern real_vector3d build_sprite_view_left; // 0x007c30dc
 extern float unknown_00672f20;               // 0x00672f20 = 0.99f, parallel-axis threshold

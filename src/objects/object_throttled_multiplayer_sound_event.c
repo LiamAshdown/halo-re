@@ -20,10 +20,10 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t g_00689481; // 0x00689481, UNSURE: mode/gametype flag, not owned by this module
 extern int32_t object_sound_event_last_tick; // 0x006b8a00, UNSURE: last-played-tick counter, not owned by this module
 extern game_time_globals *game_time; // 0x006f1d6c, game time globals; +0x0c is the current tick

@@ -32,10 +32,10 @@
 #include "cache.h"
 #include "text.h"
 #include <ctype.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern datum_index text_localization_strings;       // 0x006e4728
 

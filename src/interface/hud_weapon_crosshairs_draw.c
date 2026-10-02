@@ -41,10 +41,10 @@
 #include "items.h"
 #include "interface.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern data_array *object_data; // 0x008603b0
 extern player_globals *local_player_globals;         // 0x0087a478

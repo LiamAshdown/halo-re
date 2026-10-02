@@ -14,14 +14,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns 0 on success, -19 (0xffffffed) if the list is empty (last_index < 0) or `entry` is
 // not present in list->entries.
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: ECX -> list, stack -> entry
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list)
 {
     int32_t found_index;

@@ -25,10 +25,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
     char **name_end_out, char **ext_start_out, uint8_t split_extension); // 0x556000, this module

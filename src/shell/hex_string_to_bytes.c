@@ -14,13 +14,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Decodes consecutive lowercase hex digit pairs ('0'-'9', 'a'-'f') from source into raw bytes at
 // dest, stopping at the first character that is not a hex digit (so an odd trailing digit, or a
 // non-hex character, ends the string without writing a partial byte).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void hex_string_to_bytes(uint8_t *dest, const char *source)
 {
     char c;

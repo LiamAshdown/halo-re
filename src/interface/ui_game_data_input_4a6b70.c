@@ -20,10 +20,10 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
 extern char *strstr(const char *haystack, const char *needle); // 0x625430

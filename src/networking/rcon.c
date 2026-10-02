@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 1 == client
 
 extern void rcon_send_request(char *command, char *password); // this batch, 0x4e4dc0

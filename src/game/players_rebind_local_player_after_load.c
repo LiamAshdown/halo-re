@@ -19,10 +19,10 @@
 #include "objects.h"
 #include "game.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals;      // 0x0087a478
 extern data_array *player_data;                   // 0x0087a480
 extern int16_t profile_slot_id[];                 // 0x00714dde

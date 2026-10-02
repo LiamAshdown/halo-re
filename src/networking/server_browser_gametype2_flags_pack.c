@@ -11,12 +11,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> flags
 // Encodes 3 boolean flags into a compact code tagged with type id 2 (the low 3 bits).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t server_browser_gametype2_flags_pack(uint8_t *flags)
 {
     return (((uint32_t)(flags[2] != 0) << 1 | (uint32_t)(flags[1] != 0)) << 1 |

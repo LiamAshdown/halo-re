@@ -26,14 +26,14 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Releases the SID, ACL/security-descriptor buffer, and token handles allocated inside
 // security_check_write_access, each compared against `sentinel` (always NULL on the known path)
 // rather than a hardcoded 0.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void security_check_cleanup(void *descriptor, void *acl, void *sid, void *thread_token,
                              void *impersonation_token, void *sentinel)
 {

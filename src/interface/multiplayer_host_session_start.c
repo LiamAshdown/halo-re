@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc, TYPES-GAP
 extern int32_t game_variant_history_current;      // 0x00687b18, TYPES-GAP

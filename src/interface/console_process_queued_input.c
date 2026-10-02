@@ -25,10 +25,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern terminal_console *console_active; // 0x006b2f0c
 extern uint8_t console_caret_visible;    // 0x006b2f10
 extern int32_t console_caret_blink_time; // 0x006b2f14

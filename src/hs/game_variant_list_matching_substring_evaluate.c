@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value,
     uint32_t *out_count, int32_t **out_values); // this module, 0x0048ad60
 extern void hs_thread_return(int32_t value, uint32_t thread_index);

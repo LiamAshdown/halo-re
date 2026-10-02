@@ -10,11 +10,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 
 // Walks the whole cache_io_requests queue in slot order and, for each entry, spins on Sleep(0)

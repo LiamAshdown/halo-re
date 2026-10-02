@@ -18,10 +18,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t config_enable_stop_start; // 0x00722b58, UNSURE, see file header
 extern uint8_t sound_stopping_all; // 0x007252b7
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430

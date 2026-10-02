@@ -7,15 +7,15 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 #define CRC32_POLYNOMIAL 0xedb88320u
 
 // blam-cc: table in EDX
 // Generates the standard 256-entry reversed CRC-32 lookup table (polynomial 0xedb88320) into
 // `table`.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void crc32_build_table(crc32_table *table)
 {
     uint32_t seed;

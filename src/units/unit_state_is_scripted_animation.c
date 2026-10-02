@@ -14,10 +14,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 uint8_t unit_state_is_scripted_animation(unit_data *unit) // blam-cc: in_ECX -> unit
 {
     switch (unit->animation_state) {

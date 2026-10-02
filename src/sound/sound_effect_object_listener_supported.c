@@ -16,13 +16,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> this
 // Returns whether QuerySupport found the listener properties supported (set by
 // sound_eax1_effect_initialize / sound_eax20_effect_initialize / sound_eax30_effect_initialize).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t __thiscall sound_effect_object_listener_supported(sound_effect_object *this_object)
 {
     return this_object->listener_supported;

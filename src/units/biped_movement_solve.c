@@ -18,10 +18,10 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
 extern float k_physics_gravity;                     // 0x0069c52c

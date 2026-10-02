@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t ctf_globals_live; // 0x006b1290 (ctf_globals, first dword: the team flag mask)
 extern uint8_t game_engine_ctf_is_flag_eligible_for_capture(uint32_t team, int32_t flag_id); // 0x46df30, blam-cc: ECX team, EDI flag_id
 

@@ -16,11 +16,11 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern void *shell_window;            // 0x007461c4
 extern uint32_t rasterizer_window_style; // 0x0069c6a4
 extern uint32_t game_window_top_left;    // 0x0069c634

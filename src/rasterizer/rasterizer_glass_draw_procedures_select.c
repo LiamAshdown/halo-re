@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
 extern void *rasterizer_glass_draw_procedures[3];                // 0x007c0480

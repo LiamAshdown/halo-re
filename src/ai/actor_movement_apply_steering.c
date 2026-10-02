@@ -22,11 +22,11 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp;

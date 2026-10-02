@@ -27,10 +27,10 @@
 #include "cache.h"
 #include "interface.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 extern float fabsf(float x); // x87 FABS
 

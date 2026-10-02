@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t hill_pulse_fade_done;  // 0x006f1d05, UNSURE exact meaning ("done fading down" latch)
 extern uint8_t hill_pulse_grow_done;   // 0x006f1d04, UNSURE exact meaning ("done growing up" latch)
 extern data_array *player_data;         // 0x0087a480

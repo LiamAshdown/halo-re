@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474
 extern data_array *object_data;    // 0x008603b0

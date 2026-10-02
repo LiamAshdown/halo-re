@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern void message_delta_field_bindings_teardown(message_delta_static_fields *list); // 0x4ec900, this module
 

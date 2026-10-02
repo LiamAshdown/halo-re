@@ -26,12 +26,12 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // The element type is types/interface.h map_list_entry (0x0c), the table interface.h calls map_list.
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int32_t map_list_count; // 0x00712dd0
 extern map_list_entry *map_list; // 0x00712dcc, stride 0xc
 

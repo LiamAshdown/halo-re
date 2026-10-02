@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 extern char sv_ban_penalty_arg_buffer[]; // 0x0066d6a4, UNSURE: scratch buffer reused by 0x4e51c0
 

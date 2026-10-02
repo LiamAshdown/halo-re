@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88

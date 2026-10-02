@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const uint8_t sound_eax_property_set_guid[16];      // 0x0064e20c, IID for QueryInterface
 extern const uint8_t sound_eax20_listener_property_guid[16]; // 0x0064e2f0
 extern const uint8_t sound_eax20_buffer_property_guid[16];   // 0x0064e300

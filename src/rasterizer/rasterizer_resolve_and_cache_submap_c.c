@@ -19,10 +19,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
 extern uint8_t console_debug_toggle_689409;                         // 0x00689409

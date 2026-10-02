@@ -28,13 +28,13 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Projects `point` onto the segment [segment_start, segment_end]; if the projection parameter
 // falls inside [0,1] the lerped point is written to `out`, otherwise `out` is set to
 // segment_end unconditionally (this routine does not clamp to segment_start on the other side).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
                                          const real_point3d *segment_end, real_point3d *out)
 {

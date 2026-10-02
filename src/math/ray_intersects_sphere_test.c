@@ -30,10 +30,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // FIXED (call sites 0x50562f, 0x4ce6c0 callers): EAX (first parameter) is the SPHERE CENTRE and ECX the ray/segment

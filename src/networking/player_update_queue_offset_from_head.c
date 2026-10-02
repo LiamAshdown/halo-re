@@ -19,13 +19,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns how many steps ahead new_update_id is of the sequence id at the head of plr's
 // player_update_queue (wrapping modulo 64), or -1 if the queue currently holds nothing to
 // compare against.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t player_update_queue_offset_from_head(player *plr, int32_t new_update_id)
     // blam-cc: EDI -> plr, EDX -> new_update_id
 {

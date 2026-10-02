@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count]; // 0x006f0db0
 
 // Finds the first free slot in the static mutex-record table, marks it in use, clears its

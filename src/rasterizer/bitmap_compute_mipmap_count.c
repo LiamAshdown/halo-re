@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740; ECX -> value
 
 // blam-cc: unaff_EBX -> bitmap

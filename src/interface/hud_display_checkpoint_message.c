@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern hud_messaging_globals *hud_messaging; // 0x006b3a40

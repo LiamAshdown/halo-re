@@ -15,10 +15,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals;          // 0x0087a478
 extern data_array *player_data;                       // 0x0087a480, "players"
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98

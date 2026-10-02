@@ -31,13 +31,13 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which
 // Ghidra renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via
 // <math.h> because -I types shadows that header name with types/math.h.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double sqrt(double x); // FSQRT
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 

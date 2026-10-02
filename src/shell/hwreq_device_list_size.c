@@ -13,10 +13,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t hwreq_device_list_size(const msvc_std_vector *self)
 {
     if (self->first == 0) {

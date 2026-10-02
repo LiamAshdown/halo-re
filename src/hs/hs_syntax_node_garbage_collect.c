@@ -15,10 +15,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x004d0630
 extern void datum_delete(data_array *array, datum_index handle); // 0x004d0510
 

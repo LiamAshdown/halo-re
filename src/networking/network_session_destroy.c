@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void message_delta_parameters_protocol_dump_to_config_file(void); // 0x4ec330
 extern void player_update_history_destroy(player_update_history *history); // 0x4e6b10, blam-cc: EBX -> history
 extern void network_channel_delete(network_channel *channel); // 0x4dcae0

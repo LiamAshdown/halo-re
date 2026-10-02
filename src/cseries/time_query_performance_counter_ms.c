@@ -22,10 +22,10 @@
 #include "tags.h"
 #include "math.h"
 #include "cseries.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency()
                                        // result, owned by this module (see types/cseries.h)
 

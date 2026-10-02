@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void object_color_clamp_to_intensity(float intensity, ColorRGB *color) // blam-cc: stack -> intensity, ECX -> color
 {
     float max_channel = color->green <= color->blue ? color->blue : color->green;

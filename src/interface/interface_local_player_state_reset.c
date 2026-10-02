@@ -18,10 +18,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern Globals *global_globals;                    // 0x00746fa0
 extern const ColorARGB *global_white_argb;               // 0x006851fc, opaque white

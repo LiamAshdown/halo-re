@@ -25,10 +25,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t controls_selected_device;        // 0x006953ec
 extern int32_t selected_saved_item;             // 0x00714e7c
 extern uint8_t controls_menu_list_mode;         // 0x00719445 (see controls_apply_preset.c)

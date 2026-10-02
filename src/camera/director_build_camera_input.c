@@ -29,10 +29,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *mouse_device;                          // 0x006b1804, input module
 extern uint8_t input_suppressed;                    // 0x006b15f9, input module
 extern mouse_state live_mouse_state;                // 0x006b180c, input module

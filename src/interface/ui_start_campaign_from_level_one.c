@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t local_player_count;                 // 0x006894b8, TYPES-GAP
 extern int32_t joystick_slot_devices[4];                   // 0x006b2ce8, input.h (DWORD cmp at 0x49cff3)
 extern char known_campaign_levels_00692acc[];        // 0x00692acc ("levels\\a10\\a10")

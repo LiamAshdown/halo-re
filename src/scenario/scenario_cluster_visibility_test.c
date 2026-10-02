@@ -14,10 +14,10 @@
 
 #include "tags.h"
 #include "scenario.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
 // blam-cc: CX -> column_cluster, stack -> row_cluster

@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,

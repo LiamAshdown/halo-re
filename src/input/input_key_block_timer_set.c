@@ -16,10 +16,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern key_block_timer key_block_timers[k_input_key_block_timer_count]; // 0x006b1600
 extern int16_t system_keys[k_input_system_key_count];                   // 0x0068e40c
 extern input_abstraction_globals input_globals;                         // 0x00710328

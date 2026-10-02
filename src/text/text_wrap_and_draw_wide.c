@@ -31,10 +31,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern datum_index hud_text_draw_font_tag_id;                         // 0x006e472c
 extern ColorARGB hud_text_draw_color_a;                           // 0x006e4738

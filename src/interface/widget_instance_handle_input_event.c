@@ -29,10 +29,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern widget_instance *ui_root_widget[1]; // 0x00718f94

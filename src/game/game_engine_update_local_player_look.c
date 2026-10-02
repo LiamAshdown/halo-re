@@ -26,10 +26,10 @@
 #include "cache.h"
 #include "game.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern Globals *global_globals;                              // 0x00746fa0
 extern data_array *object_data;                            // 0x008603b0

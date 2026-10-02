@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario;                           // 0x00746f8c, cache module
 extern uint8_t flying_camera_home_initialized;              // 0x006f17ff
 extern flying_camera_home flying_camera_home_location;      // 0x006f1800

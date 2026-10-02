@@ -21,10 +21,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t light_transient_count;        // 0x00860b0c
 extern light_transient light_transient_table[k_maximum_transient_lights]; // 0x008609cc
 extern tag_instance *tag_instances;           // 0x0087bc14

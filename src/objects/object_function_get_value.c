@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value)

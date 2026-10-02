@@ -12,11 +12,11 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+
+// FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
 game_variant * game_engine_variant_defaults_classic_slayer_pro(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));

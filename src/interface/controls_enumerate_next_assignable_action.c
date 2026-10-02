@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t controls_reserved_action_table[9]; // 0x0065c15c .. 0x0065c180
 
 extern uint8_t control_profile_find_binding_for_action(const char *action_name, const int16_t *binding); // 0x53aa20, is the control bound to the action, blam-cc: ECX action_name, ESI binding

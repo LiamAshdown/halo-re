@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag)
 {
     uint32_t *words = (uint32_t *)dd;

@@ -20,10 +20,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, math module
 
 // Builds a decal_projection: copies the placement matrix and box verbatim, derives the dominant

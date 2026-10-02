@@ -16,10 +16,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_pending_connection_count; // 0x006f16d0
 
 // blam-cc: list pointer in EDI (unaff_EDI)

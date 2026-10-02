@@ -15,12 +15,12 @@
 #include "tags.h"
 #include "cseries.h"
 #include <ctype.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Lowercases a null-terminated string in place (ASCII, via the CRT tolower()) and returns the
 // same pointer.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char *string_to_lowercase(char *string)
     // blam-cc: EDI -> string
 {

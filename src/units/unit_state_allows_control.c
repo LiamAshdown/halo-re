@@ -16,10 +16,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 uint8_t unit_state_allows_control(const uint8_t *animation_block) // blam-cc: ECX -> animation_block
 {
     switch ((int8_t)animation_block[0xb]) {       // 0x565ca0: movsx ecx,BYTE PTR [ecx+0xb]

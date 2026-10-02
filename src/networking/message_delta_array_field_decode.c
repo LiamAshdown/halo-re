@@ -33,10 +33,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream); // 0x4cfb80, memory module
 
 // Decodes an array-of-structures field. field_type->array_descriptor holds {count, element_size,

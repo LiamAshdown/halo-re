@@ -20,10 +20,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rcon_out_channel_key; // 0x00871de0, UNSURE: passed to network_session_send_to_machine as the target key
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0

@@ -26,11 +26,11 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+
+// Rotates [first, last) so that *mid becomes the first element.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Rotates [first, last) so that *mid becomes the first element.
 void sort_rotate(rendered_particle_datum *first, rendered_particle_datum *mid, rendered_particle_datum *last)
 {
     int32_t shift = (int32_t)(mid - first);

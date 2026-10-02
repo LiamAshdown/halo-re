@@ -11,12 +11,12 @@
 
 #include "tags.h"
 #include "bitmaps.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> bitmap, EDX (DL) -> level
 // Computes bitmap's depth (volume slice count) at mip level `level`, clamped to a minimum of 1.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t level)
 {
     int32_t depth;

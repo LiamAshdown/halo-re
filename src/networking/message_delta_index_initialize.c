@@ -8,10 +8,10 @@
 
 #include "win32.h"
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hash_table_initialize(hash_table *table, int32_t bucket_count); // 0x4f0470, ESI table, EAX buckets
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530
 

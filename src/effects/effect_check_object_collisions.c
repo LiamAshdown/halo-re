@@ -39,10 +39,10 @@
 #include "effects.h"
 #include "game.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *effect_data;              // 0x0087abdc
 extern data_array *effect_location_data;     // 0x0087abe0
 extern data_array *object_data;              // 0x008603b0

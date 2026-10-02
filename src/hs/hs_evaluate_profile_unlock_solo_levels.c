@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4

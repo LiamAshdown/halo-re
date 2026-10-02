@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 
 void actor_score_firing_positions_by_standoff(datum_index actor_index, actor_firing_position_query *query,

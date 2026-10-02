@@ -19,10 +19,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char message_delta_config_text_buffer[]; // 0x00860b40
 extern char message_delta_config_value_delimiters[]; // 0x00660788, UNSURE
 

@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
 extern void real_matrix4x3_rotation_from_forward(const real_vector3d *axis, real_vector3d *out_axis2,
                          real_vector3d *out_axis3); // 0x55eed0, ECX -> axis, EBX -> out_axis2, EDI -> out_axis3

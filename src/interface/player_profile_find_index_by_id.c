@@ -14,10 +14,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t profile_slot_id[]; // 0x00714dde
 
 // Returns 0 if `id` matches the (sole, retail-PC) profile slot's stored id, else -1.

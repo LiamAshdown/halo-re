@@ -25,10 +25,10 @@
 #include "objects.h"
 #include "game.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *object_data;      // 0x008603b0
 

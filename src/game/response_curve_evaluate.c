@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double response_curve_scale_limit; // 0x00672c08, the double 0.0: a floor on the scaled position
 
 extern double fabs(double x);

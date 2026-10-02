@@ -19,10 +19,10 @@
 #include "cache.h"
 #include "interface.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void saved_game_allocate_new_slot(uint16_t *out_name); // 0x53ca80, blam-cc: EBX out_name
 extern uint32_t saved_game_create_default_profile(uint16_t *name); // 0x539ab0, blam-cc: ECX name (the pushed slot is not read)
 extern void saved_item_select(int32_t item); // 0x495be0, blam-cc: EBX -> item

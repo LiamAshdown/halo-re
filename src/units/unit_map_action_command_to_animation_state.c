@@ -12,10 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority) // blam-cc: in_CX, in_EDX
 {
     int32_t state = -1;

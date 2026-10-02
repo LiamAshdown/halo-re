@@ -22,10 +22,10 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0, "objects"
 extern data_array *player_data;      // 0x0087a480, "players"
 extern int16_t current_local_player_index; // 0x007c3108

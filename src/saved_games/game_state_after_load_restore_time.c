@@ -21,10 +21,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t game_state_revert_time; // 0x006e2ddc
 

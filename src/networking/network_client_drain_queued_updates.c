@@ -39,10 +39,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream); // 0x4ec490, EAX, EDI
 extern int32_t message_delta_decode_array_field(void **context); // 0x4ec510, EAX
 extern void network_game_client_apply_received_update(network_machine *machine, uint32_t server, void **message); // 0x4e0280

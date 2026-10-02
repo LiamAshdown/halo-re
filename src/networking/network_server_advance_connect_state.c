@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1,
     void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);

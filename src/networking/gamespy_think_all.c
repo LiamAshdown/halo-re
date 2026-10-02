@@ -8,10 +8,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *negotiatorList; // 0x006a26c8
 extern int32_t gamespy_array_length(void *array); // 0x6175f0
 extern void *gamespy_array_nth(void *array, int32_t index); // 0x61dc00

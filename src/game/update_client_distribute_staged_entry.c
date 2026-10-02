@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t update_client_staged[8];   // 0x006f7ea4, see update_client_stage_entry.c
 extern uint32_t update_client_unknown_ec8;  // 0x006f7ec8, UNSURE
 extern int32_t update_client_unknown_ec4;    // 0x006f7ec4, UNSURE

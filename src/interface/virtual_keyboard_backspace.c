@@ -15,10 +15,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 

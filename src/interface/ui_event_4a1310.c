@@ -24,10 +24,10 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void saved_game_allocate_new_slot(uint16_t *out_name); // 0x53ca80, blam-cc: EBX out_name
 extern uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name); // 0x53bb50, blam-cc: ECX name too
 extern void saved_item_select(int32_t item); // 0x495be0, blam-cc: EBX -> item

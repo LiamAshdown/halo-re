@@ -16,10 +16,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x5785b0, UNSURE: not this pass
 
 void destroy_range_string_pair(hwreq_string_pair *first, hwreq_string_pair *last)

@@ -24,10 +24,10 @@
 #include "input.h"
 
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char joystick_axis_prefix[0x18]; // 0x0065b908, "axis"
 extern char decimal_suffixes[0x20][3];  // 0x0065b988, "0" .. "31"
 

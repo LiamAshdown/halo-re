@@ -34,10 +34,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern heap *widget_memory_pool;                          // 0x006926c4
 extern int32_t controls_capture_row; // 0x006953e8, -1 when no binding is being captured
 extern int32_t controls_selected_device;                  // 0x006953ec

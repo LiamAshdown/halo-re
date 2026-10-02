@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index,
     uint8_t is_dead); // 0x42ab00, EAX, EDI, stack, BL
 

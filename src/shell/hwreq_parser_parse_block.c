@@ -44,10 +44,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hwreq_parser_report_error(hwreq_parser *self, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
 extern int32_t hwreq_token_parse_number(hwreq_parser *self); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
 extern char *hwreq_token_parse_quoted_string(hwreq_parser *self); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error

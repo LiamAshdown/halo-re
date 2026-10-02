@@ -11,10 +11,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 real ray_intersect_sphere_distance(real_point3d *origin, real_point3d *center, real_vector3d *direction, real radius)

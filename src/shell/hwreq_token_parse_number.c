@@ -15,10 +15,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hwreq_token_skip_whitespace(hwreq_parser *parser); // 0x00578a00
 extern void hwreq_parser_report_error(hwreq_parser *parser, const char *message); // 0x00578a20
 extern int32_t hwreq_token_parse_hex_digit(hwreq_parser *parser); // 0x00578ad0

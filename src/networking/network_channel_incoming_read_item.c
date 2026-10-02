@@ -21,10 +21,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
 extern uint32_t circular_buffer_read(uint8_t *destination, uint32_t byte_count, char consume,
     circular_buffer *stream); // 0x4d0240, memory module

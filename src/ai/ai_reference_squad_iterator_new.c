@@ -18,12 +18,12 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TYPES-GAP: the 5-dword state ai_reference_squad_iterator_new/_next (0x4324f0/0x4325b0)
 // share. No existing header struct matches.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_globals_ptr; // 0x00880354
 

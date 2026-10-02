@@ -28,10 +28,10 @@
 #include "interface.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern uint16_t progress_screen_subtext[0x20]; // 0x006b2f68, foreign (types/interface.h); the level name is
     // written with capacity 0x40 (ESI) as the caller passes it

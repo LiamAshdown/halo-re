@@ -27,11 +27,11 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern data_array *player_data;         // 0x0087a480, players module (not owned here)
 extern void *network_object_index_cache;                // 0x006870d8, UNSURE
 extern uint8_t network_message_scratch[0x7ff8];                // 0x00871de0, UNSURE

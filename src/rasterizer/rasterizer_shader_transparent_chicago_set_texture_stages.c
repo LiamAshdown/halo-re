@@ -21,10 +21,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device; // 0x0071d174
 // three dwords per ShaderColorFunctionType: D3DTOP op, arg1, arg2
 extern uint32_t rasterizer_chicago_color_function_stage_states[][3]; // 0x0069e710

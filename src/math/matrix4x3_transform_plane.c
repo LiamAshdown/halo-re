@@ -11,11 +11,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// Transforms a plane equation (normal+distance) by a matrix4x3.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Transforms a plane equation (normal+distance) by a matrix4x3.
 void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane)
 {
     real i, j, k;

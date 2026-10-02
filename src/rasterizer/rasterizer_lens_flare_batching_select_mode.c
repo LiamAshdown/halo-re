@@ -24,10 +24,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device; // 0x0071d174
 extern uint8_t console_debug_toggle_689425; // 0x00689425
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0

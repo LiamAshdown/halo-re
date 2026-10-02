@@ -19,10 +19,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, see
                                     // breakable_surface_apply_damage.c
 extern int16_t global_structure_bsp_index;      // 0x0069e8d8

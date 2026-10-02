@@ -18,10 +18,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *cache_io_event;                    // 0x006ac498
 extern cache_io_request *cache_io_requests;      // 0x006ac4a0, 0x200 entries
 extern int16_t cache_file_index;                 // 0x006ac494, active slot, -1 when none

@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_id_table *object_network_id_table; // 0x00687130
 extern void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument,
     uint32_t stack_argument); // this module, 0x4f4620; UNSURE: none of the three are visible here // 0x4f4620

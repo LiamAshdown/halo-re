@@ -13,15 +13,15 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: requested capacity in AX (in_AX, low 16 bits of EAX)
 // Allocates a network_channel_list and its parallel dedup array (GMEM_ZEROINIT, requested
 // capacity * 4 bytes); frees the outer allocation and returns NULL if the capacity is 0x41 or
 // higher or the inner allocation fails.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 network_channel_list *network_channel_list_new(int16_t requested_capacity)
 {
     network_channel_list *list;

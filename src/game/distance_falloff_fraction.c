@@ -11,13 +11,13 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns 1.0 while `value` is at or below half of `max_range`, 0.0 once it reaches or exceeds
 // `max_range`, and linearly interpolates between those two bounds in between. Used to turn a
 // raw distance or angle into a falloff weight for the camera-observer target scoring.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real distance_falloff_fraction(real value, real max_range)
 {
     real half_range;

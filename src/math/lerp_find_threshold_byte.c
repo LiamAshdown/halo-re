@@ -25,10 +25,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int __ftol(double value); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 
 uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold)

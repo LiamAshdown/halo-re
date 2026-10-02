@@ -25,10 +25,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int16_t network_game_mode;   // 0x00719720, 0 local, 1 client, 2 host

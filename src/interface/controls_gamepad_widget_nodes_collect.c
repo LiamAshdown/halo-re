@@ -22,11 +22,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+// blam-cc: out -> EAX, screen -> ECX
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: out -> EAX, screen -> ECX
 void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen)
 {
     widget_instance *w;

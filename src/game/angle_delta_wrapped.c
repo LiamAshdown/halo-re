@@ -13,11 +13,11 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
+// Returns (to - from), wrapped into (-pi, pi].
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Returns (to - from), wrapped into (-pi, pi].
 float angle_delta_wrapped(float from, float to)
 {
     float delta = to - from;

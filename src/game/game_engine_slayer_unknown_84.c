@@ -10,12 +10,12 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 uint8_t game_engine_slayer_unknown_84(int32_t kind)
 {
     return (uint8_t)(kind == 1);

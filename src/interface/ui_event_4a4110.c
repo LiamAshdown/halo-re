@@ -16,10 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t pending_difficulty; // 0x00696564
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern uint32_t ui_restart_saved_game(void); // 0x4a1110

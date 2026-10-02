@@ -15,10 +15,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern frame_graph frame_graphs[1]; // 0x006b9260
 
 // Pushes a new sample into frame_graphs[index]'s 4 entry recent-sample ring, recomputes the

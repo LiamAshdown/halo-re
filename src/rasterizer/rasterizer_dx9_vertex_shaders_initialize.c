@@ -10,10 +10,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h> // memset
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 extern const char *rasterizer_shader_file_name; // 0x00722bbc
 

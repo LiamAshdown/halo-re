@@ -13,10 +13,10 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c

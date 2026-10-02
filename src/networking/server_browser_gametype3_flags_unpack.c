@@ -12,14 +12,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: EAX -> code, ECX -> out
 // Decodes the compact type-3 code produced by server_browser_gametype3_flags_pack back into its
 // two booleans and five numeric fields.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void server_browser_gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out)
 {
     out->flag0 = (uint8_t)(code >> 3) & 1;

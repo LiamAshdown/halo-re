@@ -28,10 +28,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x);
 extern real vector2d_normalize_with_length(real_vector2d *v); // 0x4018e0, vector in ECX

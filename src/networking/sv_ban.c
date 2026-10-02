@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 2 == host
 extern char sv_ban_penalty_arg_buffer[]; // 0x0066d6a4, UNSURE: scratch buffer reused by 0x4e51c0
 extern network_server_globals *network_server; // 0x0071c2d4

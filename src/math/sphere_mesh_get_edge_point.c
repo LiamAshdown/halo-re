@@ -18,10 +18,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sphere_mesh_interpolate_vertex(int16_t position, int16_t total, sphere_mesh *mesh,
                                             int16_t new_index, int16_t vertex_lo, int16_t vertex_hi); // 0x4ca9a0
 

@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern widget_instance *ui_root_widget[1];        // 0x00718f94
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern int16_t ui_pause_depth; // 0x00718fa6

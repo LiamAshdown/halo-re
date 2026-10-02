@@ -14,12 +14,12 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Converts a raw sensitivity value (clamped to 0.001 .. 100.0) into a radians-per-unit turn-rate
 // scale factor by multiplying it by 2*pi/1000.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 float input_sensitivity_to_turn_rate(float sensitivity)
 {
     if (sensitivity < 0.001f) {

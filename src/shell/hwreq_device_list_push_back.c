@@ -22,10 +22,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80, same pass
 extern hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *self, hwreq_string_pair **result,
     hwreq_string_pair *where, const hwreq_string_pair *value); // 0x57b920, blam-cc: EDI -> this, stack -> result, where, value

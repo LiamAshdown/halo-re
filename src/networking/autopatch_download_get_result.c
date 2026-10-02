@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
 // blam-cc: ECX -> slot_index, stack -> out_data, out_size

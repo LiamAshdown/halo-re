@@ -27,10 +27,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t main_menu_music_pending; // 0x00718fc6
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, foreign (cache module)

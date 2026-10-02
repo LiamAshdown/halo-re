@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
 extern uint8_t *global_scenario; // 0x00746f8c, UNSURE: see file header, stride 0x68

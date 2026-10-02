@@ -28,10 +28,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll); // 0x4cba10
 
 void euler_angles_to_basis_vectors(real_euler_angles3d *angles, real_vector3d *up_out, real_vector3d *forward_out)

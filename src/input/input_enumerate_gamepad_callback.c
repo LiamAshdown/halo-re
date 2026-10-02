@@ -25,10 +25,10 @@
 #include "input.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *direct_input;                    // 0x006b15fc, IDirectInput8A*
 extern int32_t input_device_count;            // 0x006b1844
 extern void *joystick_devices[8];             // 0x006b1848, IDirectInputDevice8A*

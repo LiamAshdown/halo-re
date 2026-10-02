@@ -20,10 +20,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t time_query_performance_counter_ms(void); // 0x449210, cseries: current time in milliseconds (QPC-based)
 extern void message_delta_sample_record_and_append(int32_t a, int32_t c, int32_t b,
     message_delta_sample_ring_buffer *ring); // 0x4ed310, blam-cc: EAX a, ECX c, EDX b, stack ring

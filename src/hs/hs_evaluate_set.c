@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern int32_t hs_global_get_value(hs_global_reference reference); // 0x48a720

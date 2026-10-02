@@ -26,10 +26,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t rasterizer_caps_flag_689;                 // 0x0069c689
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe (also gates 0x534f80)
 extern uint8_t unknown_0071d275;                 // 0x0071d275, "refresh the water ripple texture"

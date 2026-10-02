@@ -22,10 +22,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;          // 0x0087a480
 extern game_variant game_engine_variant;  // 0x006f1c88 (lives_per_round aliased 0x006f1cd8)
 

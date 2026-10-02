@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *rasterizer_decal_vertex_cache_handle; // 0x0071d1c0
 
 extern void decal_vertex_cache_release(void); // 0x51a660

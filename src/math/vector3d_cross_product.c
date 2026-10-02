@@ -23,9 +23,6 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Writes out = the cross product built from a (ECX) and b (stack), component order taken
 // directly from the FPU trace: out.i = a.k*b.j - b.k*a.j, out.j = b.k*a.i - b.i*a.k,
@@ -34,6 +31,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // per the house rule against inventing behaviour. Every existing caller already treats the
 // first vector argument as `a` and the second as `b` with this exact result, so the sign is
 // not a bug to fix here -- it is simply this function's convention.)
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b)
 {
     out->i = a->k * b->j - b->k * a->j;

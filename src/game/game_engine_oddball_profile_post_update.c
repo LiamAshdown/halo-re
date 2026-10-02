@@ -18,10 +18,10 @@
 #include <wchar.h>
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int32_t king_alt_team_score[16]; // 0x006b114c (oddball team score)
 extern int32_t king_alt_player_score[]; // 0x006b118c (oddball player score)

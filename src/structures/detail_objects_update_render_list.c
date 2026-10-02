@@ -25,10 +25,10 @@
 #include "math.h"
 #include "game.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals; // 0x0087a478, game.h
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern detail_object_globals *detail_objects; // 0x0072277c, this module

@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t hud_message_compare(const void *a, const void *b)
 {
     const hud_message_slot *left = (const hud_message_slot *)a;

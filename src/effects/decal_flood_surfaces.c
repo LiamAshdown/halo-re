@@ -33,10 +33,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98, same declaration as
     // src/physics/collision_test_movement_segment.c
 

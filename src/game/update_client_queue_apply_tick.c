@@ -17,10 +17,10 @@
 #include <stdint.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t update_client_base_tick; // 0x006f7e9c
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 extern data_array *update_client_queues;  // 0x006f7ed0

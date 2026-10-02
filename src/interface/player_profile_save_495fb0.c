@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t unknown_00712f07;         // 0x00712f07, UNSURE
 extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
 extern tag_instance *tag_instances;      // 0x0087bc14

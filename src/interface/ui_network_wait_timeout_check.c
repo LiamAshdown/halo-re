@@ -15,10 +15,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t ui_network_wait_active;      // 0x00718fcd
 extern int32_t ui_network_wait_start_time;  // 0x006927c4, -1 when no wait is running
 extern uint8_t ui_network_wait_timed_out;   // 0x00718fcc

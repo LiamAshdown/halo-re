@@ -30,10 +30,10 @@
 #include "tags.h"
 #include "math.h"
 #include "shaders.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, blam-cc: AX = type
 
 // Evaluates the ShaderEnvironment's animated base-map u/v scroll (diffuse map texture

@@ -10,11 +10,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// out = t*a + (1-t)*b
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// out = t*a + (1-t)*b
 void vector3d_lerp(real_vector3d *out, real_vector3d *a, real_vector3d *b, real t)
 {
     real one_minus_t;

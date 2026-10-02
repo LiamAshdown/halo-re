@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t collision_bsp_query_segment_node_recursive(collision_bsp_segment_query *query,
                                                             uint32_t node_index, float t_min,
                                                             float t_max); // 0x502140, this batch

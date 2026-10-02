@@ -16,10 +16,10 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480, "players"
 extern data_array *object_data; // 0x008603b0, "objects"

@@ -15,10 +15,10 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
     // 0x46fe10, blam-cc: stack -> zoom_table_index, CX -> magnification (every caller passes the difficulty)
 extern game_main_globals *main_game_globals; // 0x006b0b80

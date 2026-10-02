@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *encounter_data; // 0x008802c8
 
 // blam-cc: EAX -> encounter_index, SI -> zone_id

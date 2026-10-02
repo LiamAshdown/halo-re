@@ -40,14 +40,14 @@
 #include "game.h"
 #include <stdint.h>
 #ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
-#ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
 #else
 #define CTF_CUSTOM_WAYPOINT_ZERO (custom_waypoint){0}
 #endif
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int16_t network_game_mode;               // 0x00719720
 extern game_variant game_engine_variant;        // 0x006f1c88 (ctf_value_80 aliased 0x006f1d08,
     // the per-map configured auto-return duration in ticks)

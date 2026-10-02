@@ -22,10 +22,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t input_parse_device_binding_string(const char *device_class_name, const char *input_name,
                                                   control_binding_descriptor *out_binding);
     // 0x0048fea0, blam-cc: EDI -> device_class_name, stack -> input_name, ESI -> out_binding

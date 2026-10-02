@@ -15,14 +15,14 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: EAX -> code, ECX -> out
 // Decodes the compact type-1 code produced by server_browser_gametype1_flags_pack back into
 // booleans and a low/high value pair.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void server_browser_gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out)
 {
     out->flags[0] = (uint8_t)(code >> 3) & 1;

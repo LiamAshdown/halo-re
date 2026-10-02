@@ -14,10 +14,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void controls_binding_rows_toggle_device_mode(widget_instance *widget, uint8_t mode); // 0x4b53a0, blam-cc: ESI widget
 
 uint8_t ui_event_4b54a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)

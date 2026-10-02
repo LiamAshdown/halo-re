@@ -28,14 +28,14 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // qsort comparator: records with is_type_9 clear sort before records with it set; within
 // each group, ascending distance_squared. The flag test is a raw byte compare (any nonzero
 // byte counts as set, and two different nonzero bytes are treated as unequal flags, exactly
 // as the `cmp al,[edx+8]` / `setne` sequence does).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int object_sort_by_flag_then_distance(const void *a_record, const void *b_record)
 {
     const ai_nearby_actor_candidate *a = (const ai_nearby_actor_candidate *)a_record;

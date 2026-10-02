@@ -12,11 +12,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// blam-cc: ESI -> list, EDX -> position, EBX -> exclude_index, stack -> extra_radius
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ESI -> list, EDX -> position, EBX -> exclude_index, stack -> extra_radius
 int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,
                                       int16_t exclude_index, float extra_radius)
 {

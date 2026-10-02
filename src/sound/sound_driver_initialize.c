@@ -29,10 +29,10 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t shell_nosound;                 // 0x007196e4, foreign (shell)
 extern void *shell_window;                    // 0x007461c4, HWND, foreign (shell)
 extern void *direct_sound_create8;            // 0x00746270, FARPROC DirectSoundCreate8, foreign (shell)

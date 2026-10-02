@@ -15,12 +15,12 @@
 #include "crt.h"
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Three-way float comparator in qsort() order: -1 if *a < *b, 1 if *b < *a, 0 otherwise
 // (including when either is NaN, since neither x87 comparison then succeeds).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t float_compare_ascending(const void *a_value, const void *b_value)
 {
     const real *a = (const real *)a_value;

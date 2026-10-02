@@ -17,10 +17,10 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_list_current;      // 0x00692c04
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0

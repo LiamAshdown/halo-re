@@ -26,10 +26,10 @@
 #include "cseries.h"
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char profile_directory[k_profile_directory_storage_size]; // 0x006ac900
 
 // SHGetFolderPathA, resolved once by the shell startup code and cached as a raw FARPROC; see

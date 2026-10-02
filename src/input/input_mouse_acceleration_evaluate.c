@@ -21,10 +21,10 @@
 #include "input.h"
 
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float mouse_acceleration;                                  // 0x006894d0
 extern float mouse_acceleration_cached;                            // 0x0068e418
 extern mouse_acceleration_point mouse_acceleration_defaults[k_input_mouse_acceleration_point_count]; // 0x0068e41c

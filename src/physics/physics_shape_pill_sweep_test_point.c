@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern uint8_t physics_shape_sphere_sweep_test_ray(real_point3d *point, real_point3d *origin,
                                                     real_vector3d *delta, float *out_t,

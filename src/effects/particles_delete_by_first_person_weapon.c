@@ -15,10 +15,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *particle_data; // 0x0087abd0
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, memory module

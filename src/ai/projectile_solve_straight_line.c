@@ -30,10 +30,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
 
 // VERIFIED against disassembly 0x4bee20..0x4beeb2 (2026-09-30): delta, in-place normalisation (ECX), time, stores and the

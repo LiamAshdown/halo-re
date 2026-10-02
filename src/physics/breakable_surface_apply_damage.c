@@ -25,10 +25,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
                                     // UNSURE name: an earlier objects-module pass named this
                                     // global object_zone_light_table_pointer; the field-by-field

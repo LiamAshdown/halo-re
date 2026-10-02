@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
 extern uint8_t sound_channel_lock_and_fill(int16_t channel_index, uint32_t fill_size); // 0x547a00, blam-cc: BX, stack

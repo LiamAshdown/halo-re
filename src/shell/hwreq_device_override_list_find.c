@@ -14,13 +14,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Looks up a key in the device-override list and, if found, copies its associated value string
 // into the caller-supplied buffer.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t hwreq_device_override_list_find(hwreq_property_set *property_set, const char *key,
                                           char *out_value, uint32_t capacity)
 {

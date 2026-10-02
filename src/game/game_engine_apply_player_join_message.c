@@ -36,10 +36,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;         // 0x0087a480
 extern uint8_t *network_server;        // 0x0071c2d4
 extern uint8_t *network_client;         // 0x0071c2d8

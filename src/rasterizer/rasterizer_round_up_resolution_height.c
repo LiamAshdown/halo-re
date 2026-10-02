@@ -10,13 +10,13 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> height
 // Rounds an input vertical screen resolution up to the nearest value in a table of common
 // display heights.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t rasterizer_round_up_resolution_height(int32_t height)
 {
     if (height < 0x240) return 0x1e0;

@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern sound_class_gain *sound_class_gains; // 0x00746140 holds a pointer to the 51-entry table (mov eax, [0x746140])
 
 // blam-cc: stack -> ticks

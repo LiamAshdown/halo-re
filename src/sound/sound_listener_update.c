@@ -18,10 +18,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 static float sound_listener_update_fabsf(float x) { return (x < 0.0f) ? -x : x; }
 
 extern void *directsound_listener; // 0x00746114

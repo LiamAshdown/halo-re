@@ -7,12 +7,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: ECX -> v, EDX -> out, stack -> q
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void quaternion_rotate_vector(real_quaternion *q, real_vector3d *v, real_vector3d *out)
 {
     real a; // 2*w^2 - 1

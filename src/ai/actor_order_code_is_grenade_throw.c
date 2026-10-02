@@ -9,11 +9,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// Returns whether order_code falls in the grenade-throw range 9..12 inclusive.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Returns whether order_code falls in the grenade-throw range 9..12 inclusive.
 int32_t actor_order_code_is_grenade_throw(int16_t order_code)
 {
     if (order_code > _actor_order_code_grenade_first - 1 && order_code < _actor_order_code_grenade_last + 1) {

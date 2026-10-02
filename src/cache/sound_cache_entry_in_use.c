@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_cache_entries; // 0x006ac528
 
 uint8_t sound_cache_entry_in_use(datum_index handle)

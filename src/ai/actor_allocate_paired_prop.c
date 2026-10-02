@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,

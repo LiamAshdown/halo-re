@@ -39,10 +39,10 @@
 #include "networking.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern Scenario *global_scenario;      // 0x00746f8c, foreign (game module)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, foreign (ai/camera modules)

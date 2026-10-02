@@ -12,13 +12,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EDX -> values
 // Encodes two small (0..2) numeric fields into a compact code tagged with type id 5 (the low 3
 // bits); a field outside 0..2 is simply omitted from the code.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t server_browser_gametype5_flags_pack(int32_t *values)
 {
     uint32_t code = 5;

@@ -40,10 +40,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                    // 0x0087a480
 extern network_server_globals *network_server;      // 0x0071c2d4
 

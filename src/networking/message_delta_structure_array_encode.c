@@ -8,10 +8,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t message_delta_structure_array_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     message_delta_array_descriptor *descriptor = (message_delta_array_descriptor *)field_type->array_descriptor;

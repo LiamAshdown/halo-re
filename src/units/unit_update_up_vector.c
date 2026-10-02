@@ -21,10 +21,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_vector3d *global_forward3d_pointer; // 0x00696718 (1, 0, 0)
 extern real_vector3d *global_left3d_pointer;    // 0x0069671c (0, 1, 0)
 extern real_vector3d *global_up3d_pointer;      // 0x00696720 (0, 0, 1)

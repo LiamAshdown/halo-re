@@ -17,11 +17,11 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+
+// blam-cc: EDX -> bounds_xy, EDI -> polygon
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EDX -> bounds_xy, EDI -> polygon
 void polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *polygon)
 {
     for (int16_t i = 0; i < polygon->point_count; i++) {

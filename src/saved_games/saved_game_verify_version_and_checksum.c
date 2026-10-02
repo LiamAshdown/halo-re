@@ -21,10 +21,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t game_state_crc; // 0x006e2dd4
 extern int16_t local_player_count; // 0x006894b8
 extern uint32_t cache_file_current_header_crc32; // 0x006a81b8

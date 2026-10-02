@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0, types/math.h
 

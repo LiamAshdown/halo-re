@@ -22,10 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client; // 0x0071c2d8, as network_game_host_start.c (dword pointer)
 extern network_server_globals *network_server; // 0x0071c2d4, as network_game_host_start.c (dword pointer)
 extern int16_t profile_slot_id[];          // 0x00714dde (per player_profile_find_index_by_id.c)

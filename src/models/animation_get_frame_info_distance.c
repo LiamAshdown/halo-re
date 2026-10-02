@@ -14,15 +14,15 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Sums the leading dx component of every frame_info entry (stride depends on frame_info_type)
 // and writes the running total through *dx_total; *dx_to_key_frame receives the same running
 // total as it stood right after the entry at key_frame_index was folded in. Either output
 // pointer may be NULL. The float literal 0.0 below is the shared .rdata constant at 0x00672ac0
 // (see src/input/input_clamp_unit_float.c).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total)
 {
     int16_t frame_info_type;

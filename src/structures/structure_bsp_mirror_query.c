@@ -34,10 +34,10 @@
 #include "cache.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
 extern int32_t render_cluster_index;          // 0x007c3348
 extern tag_instance *tag_instances;           // 0x0087bc14, stride 0x20, tag data at +0x14

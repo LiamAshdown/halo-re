@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern uint8_t *global_scenario; // 0x00746f8c, see objects_set_ambient_cluster_override.c
 extern datum_index *object_name_list; // 0x006b8cb8

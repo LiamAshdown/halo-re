@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id); // 0x499950

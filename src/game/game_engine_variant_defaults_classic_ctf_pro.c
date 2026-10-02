@@ -11,14 +11,14 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Fills a game-variant options block with this built-in multiplayer game type's
 // hardcoded default settings. The block is zeroed first (which is also the default
 // for every field not listed below) and then copied out whole.
 // FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 game_variant * game_engine_variant_defaults_classic_ctf_pro(game_variant *variant_options)
 {
     game_variant defaults;

@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t ov_tell_thunk(sound_ogg_memory_file *file)
 {
     if (file == 0) {

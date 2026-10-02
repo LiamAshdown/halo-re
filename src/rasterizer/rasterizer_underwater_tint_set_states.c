@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
 extern uint8_t console_debug_toggle_6893f1; // 0x006893f1, gates this whole function

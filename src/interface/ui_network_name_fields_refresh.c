@@ -18,10 +18,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t network_host_name_field_00719238[32]; // 0x00719238
 extern uint16_t network_host_subname_007191f0[9];       // 0x007191f0
 extern uint8_t profile_globals_block[0x60a4];             // 0x00712dd8

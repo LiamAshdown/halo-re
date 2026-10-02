@@ -31,10 +31,10 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *encounter_data;  // 0x008802c8
 extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14

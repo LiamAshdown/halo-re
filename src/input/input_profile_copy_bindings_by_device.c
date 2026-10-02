@@ -27,9 +27,6 @@
 #include "input.h"
 
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: category in EAX, destination in EDX, source in EBX
 // Copies a category of binding/settings fields from src to dst:
@@ -40,6 +37,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 //   any other value -- nothing category-specific
 // Every category except -1 additionally copies the four digital movement/look rates and the
 // look-inversion bytes. Returns 0 immediately for category -1, 1 otherwise.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_profile *dst,
                                                saved_player_profile *src)
 {

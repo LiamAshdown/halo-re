@@ -21,10 +21,10 @@
 #include "objects.h"
 #include "units.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed effect_random_seed; // 0x00719cd4, passed in EDI

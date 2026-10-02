@@ -22,10 +22,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const uint8_t sound_eax_listener_property_guid[16]; // 0x0064e2d0, EAX 1.0 listener property set
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
 

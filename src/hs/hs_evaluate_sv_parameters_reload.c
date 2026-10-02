@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 extern void message_delta_parameters_protocol_reload_from_config_file(void); // 0x4ebda0

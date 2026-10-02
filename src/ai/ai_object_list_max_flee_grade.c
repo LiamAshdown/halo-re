@@ -28,10 +28,10 @@
 #include "game.h"
 #include "hs.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_time_globals *game_time;           // 0x006f1d6c
 extern data_array *object_list_header_data;    // 0x0087a464
 extern data_array *object_list_reference_data; // 0x0087a468

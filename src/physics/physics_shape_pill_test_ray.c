@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base,
                                 float scale); // 0x401930
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990

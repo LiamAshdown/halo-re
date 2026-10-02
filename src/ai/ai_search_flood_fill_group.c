@@ -17,11 +17,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// blam-cc: EDX -> start_index, stack -> list, radius, out_bitmask
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EDX -> start_index, stack -> list, radius, out_bitmask
 void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask, int16_t start_index)
 {
     int16_t worklist[128];

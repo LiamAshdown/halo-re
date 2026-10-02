@@ -33,10 +33,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
 extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
 extern int16_t hud_text_draw_column;         // 0x006e4736

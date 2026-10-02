@@ -20,10 +20,10 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
 
 // Walks the object's own per-cluster reference chain (headed by `*link`), and for each cluster it

@@ -19,12 +19,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 extern char server_browser_custom_options_text[]; // 0x006ef91c, shared "%d,%d" scratch buffer
 extern int32_t sprintf(char *buffer, const char *format, ...);
 

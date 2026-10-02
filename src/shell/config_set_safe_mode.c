@@ -15,10 +15,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_safe_mode; // 0x00722b60
 
 // config.txt "SafeMode" setter: presence alone sets the flag.

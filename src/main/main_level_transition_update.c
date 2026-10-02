@@ -35,10 +35,10 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern char map_path_prefix[];         // 0x006f16d8, foreign (cache module)
 extern uint8_t main_menu_music_pending; // 0x00718fc6, foreign (interface module)

@@ -25,10 +25,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0
 extern uint16_t *network_message_block_build(uint32_t size); // 0x440350, this module (UNSURE)
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode); // 0x4ddb60

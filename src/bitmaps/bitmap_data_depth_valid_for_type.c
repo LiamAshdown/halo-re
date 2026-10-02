@@ -14,13 +14,13 @@
 
 #include "tags.h"
 #include "bitmaps.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX (AX) -> depth, stack -> type
 // Validates a BitmapData's depth against its type: depth must be in (0, k_bitmap_maximum_depth],
 // and any depth greater than 1 is only legal for a 3D texture.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type)
 {
     if (depth > 0 && depth <= k_bitmap_maximum_depth &&

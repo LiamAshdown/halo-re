@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 // blam-cc: EAX -> bitmap_tag_index, EDI -> frame_index, stack -> sequence_index

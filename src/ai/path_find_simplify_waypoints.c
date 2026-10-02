@@ -21,10 +21,10 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
     int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
     path_find_boundary_crossing *out_result); // 0x43de90, EBX map, EAX point A, stack

@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_server_status_last_print_ms; // 0x0071c2f0 (UNSURE name)
 extern void sv_status(void); // 0x4e2e50, this batch

@@ -31,10 +31,10 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4

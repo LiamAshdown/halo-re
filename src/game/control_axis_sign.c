@@ -8,11 +8,11 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
+// Returns 1.0 if value > 0.05, -1.0 if value < -0.05, otherwise 0.0.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// Returns 1.0 if value > 0.05, -1.0 if value < -0.05, otherwise 0.0.
 real control_axis_sign(real value)
 {
     real result = 0.0f;

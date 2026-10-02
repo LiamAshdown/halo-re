@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t update_client_initialized;      // 0x006f7e98
 extern int32_t update_client_base_tick;         // 0x006f7e9c
 extern int32_t update_client_unknown_ea0;        // 0x006f7ea0

@@ -20,14 +20,14 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ESI -> scenario, stack -> name
 // Linear-searches Scenario.encounters for one whose name matches (case-insensitively, up to
 // 32 characters), returning its index or -1 if there are no encounters or none match.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name)
 {
     int32_t index;

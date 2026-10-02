@@ -18,9 +18,6 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // VERIFIED against disassembly 0x4705f0..0x470623 (2026-09-30); fixed: key is the full ESI (zero-extended by the callers) and
 //   the two byte comparisons sign-extend the stored bytes, so a stored byte >= 0x80 never matches / always reports changed.
@@ -28,6 +25,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // Scans the 16-entry, 0x20-stride table at base+0x1a2 for the entry whose key byte (+0x1f)
 // equals `key`; if found, stores `new_value` at that entry's value byte (+0x1e) and returns
 // whether it actually changed. Returns 0 if no entry matches.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key)
 {
     uint8_t *entry = base + 0x1a2;

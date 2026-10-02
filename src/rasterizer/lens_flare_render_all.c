@@ -37,10 +37,10 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t unknown_006893ff;    // 0x006893ff lens flares enabled
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220

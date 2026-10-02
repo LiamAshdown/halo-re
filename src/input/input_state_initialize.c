@@ -18,10 +18,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_abstraction_globals input_globals; // 0x00710328
 extern int32_t last_input_device;                            // 0x0087a460
 extern int64_t performance_frequency;                         // 0x006ac8f8/0x006ac8fc

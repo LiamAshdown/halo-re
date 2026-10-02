@@ -15,10 +15,10 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t level_select_entries[0x50]; // 0x00719018
 extern void ui_list_free_all(void); // 0x4a7b20
 

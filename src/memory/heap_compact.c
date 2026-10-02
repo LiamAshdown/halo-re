@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void heap_compact(heap *self)
 {
     heap_block *src = self->first_block;

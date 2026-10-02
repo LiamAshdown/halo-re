@@ -16,10 +16,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *mouse_device;             // 0x006b1804, IDirectInputDevice8A
 extern uint8_t input_suppressed;       // 0x006b15f9
 extern mouse_state live_mouse_state;        // 0x006b180c

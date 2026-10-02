@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t server_browser_selected_index;             // 0x006953f4
 extern int32_t server_list_scroll_offset;                 // 0x00719478
 extern int32_t server_browser_last_click_ms;              // 0x0071947c

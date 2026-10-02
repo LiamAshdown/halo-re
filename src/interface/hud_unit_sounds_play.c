@@ -23,10 +23,10 @@
 #include "objects.h"
 #include "units.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *game_looping_sound_data; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array

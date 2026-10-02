@@ -28,10 +28,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, uint8_t *vertices); // 0x51c9a0, blam-cc: EAX state, stack vertices
 
 // blam-cc: EAX -> source_rect, ECX -> dest_rect, stack -> bitmap_data/clip_rect/vertex_color

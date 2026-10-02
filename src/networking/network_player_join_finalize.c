@@ -31,10 +31,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, EAX -> entry
 extern char network_player_entry_add(network_player_entry *entry, network_game_session *session); // 0x4de4e0, EAX -> entry, stack -> session

@@ -14,10 +14,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t king_alt_score_target; // 0x006b1148, the first of 0x51 dwords up to 0x006b128c

@@ -29,10 +29,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern network_client_globals *network_client; // 0x0071c2d8, UNSURE: pointer to a session struct, offset 0xadc read from it
 

@@ -22,10 +22,10 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
 

@@ -14,13 +14,13 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> entry
 // True when entry is non-NULL, its machine_player_index is 0, its machine_index is 0..15, and
 // its name field contains a NUL within its first 12 UTF-16 code units.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char network_player_entry_validate(network_player_entry *entry)
 {
     int32_t i;

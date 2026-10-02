@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
+// blam-cc: EAX -> context, EDX -> index
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> context, EDX -> index
 void path_find_heap_sift_up(path_find_context *context, int16_t index)
 {
     int16_t node = context->heap[index].node;

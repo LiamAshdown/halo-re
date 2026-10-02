@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign,
     int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
     // 0x44d860, src/math; blam-cc: stack out, AL component_sign, SI dominant_axis, EBX plane, EDI known

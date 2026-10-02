@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // ABS
 extern void vector2d_tangent_edge_directions(const real_vector2d *direction, real_vector2d *edge_pos,

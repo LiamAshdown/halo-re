@@ -25,10 +25,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // a single x87 FSQRT instruction, see src/math/quaternion_normalize.c
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 

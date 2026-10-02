@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t network_host_name_field_00719238[32]; // 0x00719238
 extern uint16_t network_host_subname_007191f0[9];  // 0x007191f0
 extern int32_t saved_player_profile_slots_handle;                   // 0x00714dd4

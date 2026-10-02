@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c
 extern void *rasterizer_device;   // 0x0071d174
 extern uint32_t rasterizer_blend_src_table[16];  // 0x0065dfbc UNSURE: element count

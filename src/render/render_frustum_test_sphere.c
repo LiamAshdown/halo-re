@@ -17,9 +17,6 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Classifies a world-space sphere against the camera frustum: outside, partially inside (straddles
 // at least one plane) or fully inside. First rejects spheres that do not even overlap the
@@ -27,6 +24,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // frustum planes by more than the radius; a sphere that passes is then fully inside only if it
 // also sits more than a radius on the inside of five of those six planes (see the UNSURE note
 // above for the sixth).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t render_frustum_test_sphere(render_frustum *frustum, real_point3d *center,
                                      float radius) // blam-cc: ECX=frustum, EDX=center, stack=radius
 {

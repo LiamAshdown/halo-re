@@ -29,10 +29,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t render_cluster_index;        // 0x007c3348
 extern uint32_t *flood_recursion_bits;      // 0x006e3af8

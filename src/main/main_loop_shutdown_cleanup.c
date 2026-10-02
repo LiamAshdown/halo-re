@@ -18,10 +18,10 @@
 #include "game.h"
 #include "networking.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern growable_array ban_list;              // 0x006b859c, foreign (networking module)
 extern network_server_globals *network_server; // 0x0071c2d4, foreign (networking module)

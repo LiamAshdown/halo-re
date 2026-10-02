@@ -26,10 +26,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t server_browser_selected_index; // 0x006953f4, -1 when nothing is selected
 extern uint8_t server_browser_skip_reselect;  // 0x00719480, nonzero suppresses the reselect pass
 extern int32_t server_list_scroll_offset;  // 0x00719478, visible-page window start, 16 rows

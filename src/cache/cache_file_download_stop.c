@@ -13,11 +13,11 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern map_download_state *map_download; // 0x006869c0
 
 // Asks the background map-download thread to stop, unless it has already finished. A

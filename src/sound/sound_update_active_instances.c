@@ -26,10 +26,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t sound_channel_count;   // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_data;        // 0x007252c0, "sounds" 0x200 x 0xb0

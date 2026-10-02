@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call
 
 // Converts a linear gain to a millibel level: 2000*log10(gain) + maximum, clamped to

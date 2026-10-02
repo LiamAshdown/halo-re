@@ -18,10 +18,10 @@
 
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); // this module, 0x491180
 
 // Resolves an axis-direction display name string (ASCII, case-insensitive) back to its numeric

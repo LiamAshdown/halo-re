@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_allow_empty;               // 0x006953fa
 extern uint8_t server_browser_allow_full;                // 0x006953fb
 extern uint8_t server_browser_filter_ping_limit_index;   // 0x00719490

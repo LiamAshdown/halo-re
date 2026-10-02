@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
 extern int32_t king_bucket_last_credit_tick[16]; // 0x006b0f00

@@ -13,10 +13,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t byte_stream_read_long(byte_stream *stream); // blam-cc: stream in ESI
 
 // blam-cc: maximum in EAX, stream in ECX

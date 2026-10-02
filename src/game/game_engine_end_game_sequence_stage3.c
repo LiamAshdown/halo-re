@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_state game_engine_state_value;      // 0x0087aa10
 extern uint8_t game_engine_dedicated_idle;             // 0x0087aa18
 extern float game_engine_dedicated_idle_timer;         // 0x0087aa1c

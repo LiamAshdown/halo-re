@@ -19,10 +19,10 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void object_list_membership_set(uint32_t object_index, char add); // 0x4f7450, objects module

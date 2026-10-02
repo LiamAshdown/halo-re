@@ -19,12 +19,12 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // VERIFIED against disassembly 0x4f8d80..0x4f8dc6 (2026-09-30); fixed: signed 16-bit permutation number compares and the 32-bit
 //   count bound (see the loop).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t object_permutation_find_matching_group(ModelRegion *region, int16_t group, int16_t *out)
     // blam-cc: ESI -> region, DI -> group, stack -> out
 {

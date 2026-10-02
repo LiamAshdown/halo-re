@@ -26,10 +26,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t network_host_name_00719170[144];  // 0x00719170
 extern uint16_t network_host_subname_007191f0[9]; // 0x007191f0
 extern int32_t quality_selection_00692b04;         // 0x00692b04

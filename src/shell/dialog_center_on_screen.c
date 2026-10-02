@@ -13,12 +13,12 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // WM_INITDIALOG handler snippet that centers the given dialog/window over the desktop.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t __stdcall dialog_center_on_screen(void *hwnd, uint32_t message, uint32_t wparam, int32_t lparam)
 {
     win32_rect window_rect;

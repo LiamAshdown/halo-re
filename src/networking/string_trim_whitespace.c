@@ -15,14 +15,14 @@
 #include "tags.h"
 #include "memory.h"
 #include <ctype.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Trims *string_ptr in place: walks back from the end, replacing trailing
 // whitespace/'\n'/'\r' with NUL, then walks forward from the start, replacing each leading
 // whitespace/'\n'/'\r' with NUL and advancing *string_ptr to the first character that is none of
 // those.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void string_trim_whitespace(char **string_ptr) // blam-cc: EDI -> string_ptr
 {
     char *end = *string_ptr;

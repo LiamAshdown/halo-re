@@ -25,10 +25,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t physics_shape_sphere_test_ray(real_point3d *origin, real_vector3d *delta,
                                                physics_model_sphere *sphere, real_plane3d *out_plane,
                                                float *out_t); // 0x504430, this batch

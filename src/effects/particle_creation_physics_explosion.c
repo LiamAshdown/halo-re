@@ -34,10 +34,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
 

@@ -8,10 +8,10 @@
 // blam-cc: cdecl (the qr2 natneg callback)
 
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_game_socket; // 0x006f14c4 (GT2Socket)
 extern void function_do_nothing(void); // 0x44ad80
 extern void network_session_host_natneg_completed(int32_t result, uint32_t socket, const uint8_t *remote_address,

@@ -22,10 +22,10 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 extern int32_t game_time_force_single_tick; // 0x007196d8, foreign (main-owned global per main.h)
 extern uint8_t unknown_006894ba;       // 0x006894ba, foreign (interface module)

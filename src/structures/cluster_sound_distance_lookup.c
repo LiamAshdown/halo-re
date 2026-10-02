@@ -15,13 +15,13 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Looks up the cached one-byte sound-propagation distance between two clusters from the
 // triangular distance matrix in the BSP tag's sound_pas_data block, or returns 0 when the two
 // cluster indices are the same (no self-distance is stored).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b, ScenarioStructureBSP *structure_bsp)
     // blam-cc: EAX -> cluster_a, ECX -> cluster_b, EDI -> structure_bsp
 {

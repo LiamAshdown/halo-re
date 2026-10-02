@@ -8,10 +8,10 @@
 
 #include "crt.h"
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
 extern int32_t SBServerGetIntValue(void *server, const char *key, int32_t default_value); // 0x617c10 SBServerGetIntValue

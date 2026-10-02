@@ -22,10 +22,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t video_force_mode_flag;    // 0x0071d170, UNSURE name (distinct byte from 0x0071d16c below)
 extern int32_t os_platform;     // 0x00721ef0, UNSURE name, set by os_platform_identify
 extern int32_t os_platform_refresh_default; // 0x007c11f8, UNSURE name

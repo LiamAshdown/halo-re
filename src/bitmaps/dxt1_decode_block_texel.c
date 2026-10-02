@@ -27,10 +27,10 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void color_565_unpack_to_rgb888(uint16_t *packed, ColorARGBInt *out); // 0x43ff80, this module
 
 // (2*near + far + 1) / 3, i.e. a color 2/3 of the way from far to near. See the file header for

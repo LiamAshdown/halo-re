@@ -15,10 +15,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array hud_text_message_queue; // 0x006b37e8, element size 0x14 (hud_text_message)
 extern int64_t performance_frequency;          // 0x006ac8f8/0x006ac8fc
 extern int32_t hud_text_message_time_base;      // 0x0071922c

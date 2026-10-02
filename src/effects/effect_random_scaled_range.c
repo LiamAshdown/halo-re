@@ -21,10 +21,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed effect_random_seed; // 0x00719cd4
 
 // Returns a random value in [base_min, base_max), where base_min and (base_max - base_min) are

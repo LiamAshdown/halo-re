@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_frame_rate_average frame_rate_average_data; // 0x00719ab0
 
 extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)

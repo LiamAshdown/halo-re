@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_abstraction_globals input_globals; // 0x00710328
 
 // Sets input_abstraction_globals.settings[slot]'s gamepad X-axis sensitivity/deadzone scale

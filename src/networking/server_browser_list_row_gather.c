@@ -26,10 +26,10 @@
 #include "networking.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy bool accessor // foreign, GameSpy library, bool accessor
 extern char *SBServerGetStringValue(void *entry, const char *key, const char *default_value); // foreign, GameSpy library, string accessor
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value); // foreign, GameSpy int accessor // foreign, GameSpy library, int accessor

@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 
 extern void player_effect_set_screen_flash_for_player(datum_index player_index, void *descriptor, float intensity_falloff); // 0x456980, EAX player, stack (descriptor, intensity_falloff)

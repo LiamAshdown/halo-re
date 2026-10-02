@@ -26,10 +26,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end); // 0x44c5e0, this module
 extern void text_find_character_boundary(char *string, int16_t *offset_in_out); // 0x5576d0, module text (foreign): walks from byte 0, stepping one full (possibly double-byte) character at a time, until the running offset would reach *offset_in_out, then writes back the last complete boundary <= the original value.

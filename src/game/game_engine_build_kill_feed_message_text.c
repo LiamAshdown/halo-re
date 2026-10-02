@@ -33,10 +33,10 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
 extern wchar_t empty_string;                          // 0x00660c34

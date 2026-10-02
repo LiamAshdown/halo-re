@@ -1,6 +1,3 @@
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // object_update_functions_clone_4f9540   (renamed by the phase-4 review pass; Ghidra/PDB name was `object_reconnect_to_map`,
 //    which this file's own header shows does not describe the code)
 // address 0x4f9540, size 337 bytes
@@ -137,6 +134,10 @@ void object_reconnect_to_map(void)
   }
   return;
 }
+#endif
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
 #endif
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */

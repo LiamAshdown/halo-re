@@ -15,11 +15,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+
+// blam-cc: EDI -> hsv, ESI -> color; returns color in EAX (mov eax,esi at every exit)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EDI -> hsv, ESI -> color; returns color in EAX (mov eax,esi at every exit)
 ColorRGB *color_hsv_to_rgb(real_hsv_color *hsv, ColorRGB *color)
 {
     if (hsv->saturation != 0.0f) {

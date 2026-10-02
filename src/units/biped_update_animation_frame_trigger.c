@@ -16,9 +16,6 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // REWRITTEN from objdump 0x55eaa0..0x55eb87. Stack: threshold (seconds); ECX: the Biped tag; ESI: the biped object.
 //   With t0 / t1 / t2 = tag +0x3dc / +0x3e0 / +0x3e4 in ticks / 30: nothing before t0. Before t1 the fraction is
@@ -26,6 +23,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 //   (phase 1 -- the binary does not subtract t1 there). With a positive span: +0x508 = phase, +0x4d0 = 0 and
 //   +0x4d1 = trunc(value * 30 * clamp(fraction, 0, 1)). The draft stored trunc(span) and ignored +0x3d4 / +0x3d8.
 // blam-cc: stack -> threshold, ECX -> timing_table (Biped tag), ESI -> object_base
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
 {
     uint8_t *biped = (uint8_t *)object_base;

@@ -9,10 +9,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t fistp_round(float x); // harness/x87_shims.c: FISTP in the current (round-to-nearest-even) mode
 
 // VERIFIED against disassembly 0x5132b0..0x5132ca (2026-09-30): the original is fmul 255.0, fstp dword, fld, FISTP

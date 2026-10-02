@@ -12,10 +12,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *heap_resize_block(uint32_t new_size, heap_block *old_block, heap *self); // this batch
 
 void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self)

@@ -16,10 +16,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char joystick_button_prefix[0x18]; // 0x0065b8f0, "button"
 extern char decimal_suffixes[0x20][3];    // 0x0065b988, "0" .. "31"
 

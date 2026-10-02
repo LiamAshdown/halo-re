@@ -12,10 +12,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index) // blam-cc: in_EAX, in_ECX

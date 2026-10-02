@@ -22,10 +22,10 @@
 #include "objects.h"
 #include "game.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
 extern observer observers[1]; // 0x006ac65c, camera.h; observers[i].camera is the 0x006ac6d0 row (R17), an array, not a pointer

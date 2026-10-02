@@ -18,12 +18,12 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // FIXED 2026-09-28 (retail-independence loop): the session's message callback is the C
 // network_session_reject_pending_connection_callback, not the literal retail address 0x4e1410.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int32_t network_session_reject_pending_connection_callback(void *unused, int32_t reject_code); // 0x4e1410
 
 extern network_server_globals network_server_storage; // 0x00861340

@@ -21,10 +21,10 @@
 #include "cache.h"
 #include "effects.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t decals_enabled;             // 0x00687004
 extern uint8_t decals_for_all_responses;   // 0x006893f5
 extern tag_instance *tag_instances;        // 0x0087bc14

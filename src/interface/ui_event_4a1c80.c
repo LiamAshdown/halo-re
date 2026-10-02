@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t split_screen_quit_prompt_armed;  // 0x00719757
 extern uint8_t ui_event_byte_0071975b;  // 0x0071975b
 extern int32_t movie_playback_abort; // 0x007196d4

@@ -15,10 +15,10 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern wchar_t empty_string; // 0x00660c34
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550

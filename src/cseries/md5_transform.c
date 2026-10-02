@@ -11,12 +11,12 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // RSA reference MD5_CTX (layout from 0x61a5a0/0x61a660: state +0x00, bit count +0x10, buffer +0x18; 0x58 bytes, which
 // md5_final zeroes as 0x16 dwords)
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 typedef struct md5_context {
     uint32_t state[4];
     uint32_t count[2];

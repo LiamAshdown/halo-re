@@ -37,10 +37,10 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 
 extern int32_t dialog_static_hyperlink_install(void *control); // 0x57e4c0, this module; blam-cc: ESI -> control

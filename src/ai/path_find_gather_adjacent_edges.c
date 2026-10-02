@@ -29,9 +29,6 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TYPES-GAP: the caller-owned output record this function fills, one per adjacent edge.
 // Ghidra shows every field written via `(int)float_value` (a truncating cast, not a
@@ -42,6 +39,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // rewrite) reads the result as an edge count (`if (0 < (short)result)`); the natural trip
 // count `count` this function computes is left in AX at both exit points and is returned
 // explicitly here instead.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t path_find_gather_adjacent_edges(void *context, int32_t vertex_id, path_find_adjacent_edge *out_edges)
 {
     uint8_t *base = (uint8_t *)context;

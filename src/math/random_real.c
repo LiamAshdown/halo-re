@@ -6,10 +6,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed random_seed_global; // 0x00719cd0
 
 // Returns a pseudo-random float in the range [0,1) using the engine's global LCG seed.

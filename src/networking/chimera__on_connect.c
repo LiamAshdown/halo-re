@@ -31,10 +31,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconnect error
                                         // string index; -1 means none. WORD-sized everywhere

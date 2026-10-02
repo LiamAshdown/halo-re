@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module
 
 extern double cos(double x);

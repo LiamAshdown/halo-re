@@ -37,10 +37,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8
 extern data_array *object_data;                   // 0x008603b0

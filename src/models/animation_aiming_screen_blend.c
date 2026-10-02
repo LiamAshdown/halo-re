@@ -43,10 +43,10 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
 extern int __ftol(double value); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation

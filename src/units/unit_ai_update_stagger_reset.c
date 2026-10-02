@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 extern ai_update_stagger_state *ai_update_stagger; // 0x006ef910
 

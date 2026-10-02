@@ -21,10 +21,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern int32_t join_ui_state; // 0x00718f8c
 extern int32_t interface_loading_screen_request_id; // 0x0068e688, UNSURE name; see network_game_settings_packet_send.c

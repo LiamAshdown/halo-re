@@ -22,10 +22,10 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t text_rendering_enabled;   // 0x00689402
 extern rasterizer_window_parameters rasterizer_window; // 0x007c1220
 extern void *rasterizer_device;               // 0x0071d174

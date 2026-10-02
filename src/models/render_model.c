@@ -27,10 +27,10 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario; // 0x00746f8c
 extern uint8_t model_render_first_person; // 0x007c0478, this module

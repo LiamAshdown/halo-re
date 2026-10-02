@@ -21,10 +21,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void item_set_holder(uint32_t item_index, datum_index holder_index); // 0x4bcfc0, ECX item, EDX holder

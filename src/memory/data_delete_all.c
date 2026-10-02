@@ -9,15 +9,15 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: array in ESI
 // Resets an entire data_array to empty: clears last_index/actual_count, reseeds next_identifier
 // from the first two bytes of the array's own name (then forces the top bit so it is never
 // k_datum_identifier_none), and zero-fills every element's identifier.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void data_delete_all(data_array *array)
 {
     int16_t index;

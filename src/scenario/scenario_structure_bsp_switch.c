@@ -29,10 +29,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "scenario.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t global_structure_bsp_index;              // 0x0069e8d8
 extern Scenario *global_scenario;                        // 0x00746f8c
 extern uint8_t unknown_00719769;                          // 0x00719769, UNSURE: main-loop latch,

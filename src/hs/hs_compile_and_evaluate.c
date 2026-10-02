@@ -24,10 +24,10 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern datum_index hs_compile_expression(char *text, uint32_t length, char **error_message, char **error_offset); // 0x00485540, this batch
 extern void hs_evaluate_expression(datum_index node_index); // 0x0048a250, outside this batch's assigned range

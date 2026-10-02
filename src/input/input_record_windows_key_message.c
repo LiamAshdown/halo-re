@@ -18,10 +18,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t input_acquired;                    // 0x006b15f8
 extern int16_t virtual_key_to_key[0x100];         // 0x0065ba58
 extern int16_t character_to_key[0x80];            // 0x0065bc58

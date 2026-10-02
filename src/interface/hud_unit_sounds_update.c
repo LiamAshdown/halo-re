@@ -27,10 +27,10 @@
 #include "interface.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances;            // 0x0087bc14
 extern player_globals *local_player_globals;   // 0x0087a478
 extern hud_unit_meter_globals *hud_unit_meters; // 0x0071942c

@@ -13,11 +13,11 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern circular_buffer *circular_buffer_new(char *name, int32_t requested_size); // 0x4d0170, memory
     // module; redeclared returning a pointer, see network_channel_new.c's UNSURE note
 extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch

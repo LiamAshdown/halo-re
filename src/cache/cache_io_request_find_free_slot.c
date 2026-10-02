@@ -13,10 +13,10 @@
 
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 
 // Busy-scans the fixed 0x200-entry cache_io_requests queue, in slot order, for the first entry

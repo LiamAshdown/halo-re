@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern uint8_t object_type_definitions_query_0x44(uint32_t object_index); // this module, 0x4f41d0

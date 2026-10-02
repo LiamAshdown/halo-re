@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
 // blam-cc: EAX -> point, ECX -> origin, EDX -> delta, ESI -> out_t, stack -> radius

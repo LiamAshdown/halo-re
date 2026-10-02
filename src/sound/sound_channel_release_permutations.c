@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_cache_entries; // 0x006ac528
 extern sound_driver *current_sound_driver; // 0x00725208, header calls this "sound_driver"

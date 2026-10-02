@@ -13,10 +13,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_maximum_resolution;                 // 0x0069fe3c
 extern int32_t config_linear_texture_addressing;           // 0x00722b28
 extern int32_t config_linear_texture_addressing_zoom;      // 0x00722b2c

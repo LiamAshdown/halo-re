@@ -23,10 +23,10 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *object_data;     // 0x008603b0

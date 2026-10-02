@@ -11,14 +11,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Maps SoundEnvironment +0x34 onto the value written to EAX 3.0 listener property 0x16
 // (HF reference): 1000 at or below 20, 20000 at or above 20000, 5000 kept exactly, otherwise
 // value * 5.005005e-05 * 19000 (constants at 0x00672aec..0x00672ad8, checked in the phase-4
 // review).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 float sound_reverb_size_scale(float value)
 {
     if (value <= 20.0f) {

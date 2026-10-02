@@ -32,10 +32,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern void *hud_globals_tag_data;                      // 0x0071941c, the hud_globals tag data
 extern uint32_t hud_text_draw_font_tag_id;                // 0x006e472c

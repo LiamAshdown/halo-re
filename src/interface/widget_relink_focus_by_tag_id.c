@@ -21,10 +21,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id); // 0x499950
 extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child); // 0x49bba0
 

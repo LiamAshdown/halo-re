@@ -24,10 +24,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void effect_new_on_object_with_node_table(); // effects module, 0x450870
     // The convention of this foreign callee is not established: different call sites in this
     // module pass different numbers of visible arguments, and it also takes values in EAX

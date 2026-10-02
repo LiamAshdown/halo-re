@@ -12,11 +12,11 @@
 
 #include "tags.h"
 #include "math.h"
+
+// out = b * a  (quaternion Hamilton product, b outer/left, a inner/right)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// out = b * a  (quaternion Hamilton product, b outer/left, a inner/right)
 void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out)
 {
     real_quaternion local;

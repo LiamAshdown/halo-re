@@ -28,10 +28,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT
 extern int32_t __ftol(double x); // FISTP-based float-to-int truncation
 extern void path_find_heap_push(path_find_context *context, int16_t node, int16_t key); // 0x43b0f0

@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern map_list_entry *map_list;  // 0x00712dcc
 extern int32_t map_list_count;    // 0x00712dd0
 extern int32_t map_list_capacity; // 0x00712dd4

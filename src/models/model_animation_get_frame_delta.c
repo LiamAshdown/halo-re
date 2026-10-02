@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
                                               int16_t frame, real_orientation *out_orientations); // 0x4d4a80
 

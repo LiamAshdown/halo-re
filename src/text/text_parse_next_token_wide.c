@@ -17,14 +17,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX=state, no other arguments
 // Reads the next 16-bit code unit from state->string at state->position, stores it in
 // state->character, advances state->position by one code unit (two for the "|n" escape),
 // classifies it into state->token and returns that token.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t text_parse_next_token_wide(text_parse_state *state)
 {
     uint16_t *string;

@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hs_object_hierarchy_test(datum_index object_index); // this module, 0x487c10
 extern void object_delete(datum_index object_index); // 0x4f5bd0, blam-cc: EAX (0x487d56: mov eax,edi = the cached object)
 extern void object_new_from_scenario_name(int16_t object_name_index); // objects module, 0x4f7370, UNSURE args

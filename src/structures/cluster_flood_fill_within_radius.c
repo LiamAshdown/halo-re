@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t cluster_flood_stamp;         // 0x006e3f04
 extern int32_t cluster_visit_stamp[0x200]; // 0x006e3f08

@@ -17,12 +17,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 extern void message_delta_sample_ring_buffer_append(message_delta_sample_ring_buffer *ring, const int32_t *entry); // 0x4ed390, this module
 
 // blam-cc: EAX -> a, ECX -> c, EDX -> b, stack -> ring

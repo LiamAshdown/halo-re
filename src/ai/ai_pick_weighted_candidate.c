@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float k_random_scale_65536; // 0x00672b84, 1.5259022e-05 = 1/65536
 extern uint32_t random_seed_global; // 0x00719cd0
 

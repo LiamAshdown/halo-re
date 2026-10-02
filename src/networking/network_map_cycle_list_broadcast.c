@@ -25,11 +25,11 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
 extern int32_t message_delta_encode_message(int32_t a, int32_t type, int32_t b, void **entries,

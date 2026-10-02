@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern widget_instance *widget_list_get_child_by_index(widget_instance *list, int32_t index); // 0x498630, blam-cc: EAX -> list, EDX -> index

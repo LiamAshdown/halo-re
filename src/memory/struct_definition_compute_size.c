@@ -13,14 +13,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // FIXED (objdump 0x4d0d6c..0x4d0e0e): the per-field size lives in EAX across iterations and is only assigned
 // inside the type switch. A field skipped by the version test, or whose type is out of range, therefore records
 // (and adds to the total) the PREVIOUS field's size -- for the very first field, the low 16 bits of the `fields`
 // pointer that EAX was loaded with at 0x4d0d63. Only the low 16 bits of the total are ever stored.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
     struct_definition_field *fields, int16_t *out_field_count)
 {

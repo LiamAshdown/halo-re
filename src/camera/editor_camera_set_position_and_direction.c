@@ -16,12 +16,12 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // cos/sin/atan2/sqrt are single x87 instructions in the original code; declared locally instead
 // of via <math.h> because -I types shadows that header name with types/math.h.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 

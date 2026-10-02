@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const uint8_t sound_eax30_buffer_property_guid[16]; // 0x0064e320
 extern float sound_underwater_direct_gain; // 0x0069ff28
 extern uint8_t directsound_deferred_dirty; // 0x00746132

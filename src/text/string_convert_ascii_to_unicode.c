@@ -14,9 +14,6 @@
 #include "memory.h"
 #include "text.h"
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX=dst, EBX=source, EDI=capacity_bytes
 // Widens source (narrow, byte-per-character) into dst (UTF-16), NUL-terminated, copied
@@ -29,6 +26,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // FIXED (objdump 0x557990..0x5579d1): returns EAX -- dst, or 0 when even a truncated copy does not fit (0x5579cf);
 // the terminator is written before the copy runs backwards. Parameters ordered as every caller declares them (the
 // registers are bound by name: EAX dst, EDI capacity in bytes, EBX source).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source)
 {
     int32_t count;

@@ -21,10 +21,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 
 extern int32_t server_list_compare_by_mapname(void **a, void **b); // 0x4b6c20, this module

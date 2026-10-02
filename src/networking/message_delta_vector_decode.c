@@ -5,10 +5,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t message_delta_dword_array_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream); // 0x4ea040
 
 int32_t message_delta_vector_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)

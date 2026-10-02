@@ -9,10 +9,10 @@
 
 #include "tags.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest)
 {
     int32_t total_seconds = (int32_t)ticks / 30;

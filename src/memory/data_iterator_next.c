@@ -9,15 +9,15 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: iterator in EDI
 // Advances `iterator` to the next in-use element at or after its resume index, returning that
 // element's address (or NULL once the array is exhausted). On a real element, iterator->index is
 // updated to that element's handle; either way iterator->next_index is updated so a later call
 // resumes from where this one left off.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void *data_iterator_next(data_iterator *iterator)
 {
     int16_t resume;

@@ -16,15 +16,15 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> (compressed_requested, stereo_requested, sample_rate_44khz_requested), DX ->
 // flags, stack -> requested_3d
 // True if `flags` (a directsound_channel.type_flags value) has its 44kHz, stereo, and compressed
 // bits set exactly as requested, and -- for a non-stereo (mono) channel only -- its 3D bit also
 // matches `requested_3d`.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t sound_channel_type_flags_match(int16_t compressed_requested, int16_t stereo_requested,
     uint16_t sample_rate_44khz_requested, uint16_t flags, int16_t requested_3d)
 {

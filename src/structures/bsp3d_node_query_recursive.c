@@ -40,10 +40,10 @@
 #include "math.h"
 #include "physics.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
 // blam-cc: ECX -> parent_bounds, EDX -> compressed_bounds, ESI -> out

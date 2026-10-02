@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t text_char_is_double_byte(uint8_t *string); // 0x557750
 
 // blam-cc: EBX=string, EDI=length_inout

@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;    // 0x0071d174
 extern d3d_caps9 rasterizer_caps;  // 0x007c10c0
 extern uint32_t config_decal_z_bias;  // 0x00722b80 UNSURE: depth-bias value

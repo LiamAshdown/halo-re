@@ -22,10 +22,10 @@
 #include "networking.h"
 #include <stdint.h>
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern uint8_t network_client_vehicle_ack_enabled; // 0x006894a1
 extern network_id_table *machine_table;

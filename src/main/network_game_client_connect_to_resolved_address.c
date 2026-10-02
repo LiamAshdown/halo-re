@@ -31,10 +31,10 @@
 #include "interface.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern main_globals main_globals_data; // 0x00719700
 
 // Foreign interface-module "loading screen" globals; see file header evidence.

@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *glow_data; // 0x008603a0
 extern data_array *glow_particle_data; // 0x008603a4
 

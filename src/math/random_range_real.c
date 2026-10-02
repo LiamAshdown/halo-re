@@ -17,10 +17,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed effect_random_seed; // 0x00719cd4, the non-deterministic LCG stream (types/math.h)
 
 // Returns a pseudo-random float linearly interpolated between minimum and maximum using the

@@ -23,11 +23,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 extern uint32_t render_viewport_top; // 0x007c3140, UNSURE name: packed {int16 x, int16 y}
 

@@ -29,10 +29,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d9_interface *rasterizer_direct3d;       // 0x0071d178
 extern uint32_t d3d_adapter;                // 0x0071d180, UNSURE name
 extern uint32_t config_maximum_resolution;            // 0x0069fe3c, 0x1000 by default; UNSURE name

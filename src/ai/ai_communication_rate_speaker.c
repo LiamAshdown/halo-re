@@ -42,10 +42,10 @@
 #include "ai.h"
 #include <stdint.h>
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
 extern data_array *prop_data;   // 0x008802c0

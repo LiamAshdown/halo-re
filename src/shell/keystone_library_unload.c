@@ -12,10 +12,10 @@
 #include "rasterizer.h"
 #include "interface.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *keystone_module;                 // 0x00721e9c
 extern keystone_translate_accelerator_fn keystone_translate_accelerator;  // 0x00721eb0
 extern keystone_create_window_fn keystone_create_window;                  // 0x00721eb4

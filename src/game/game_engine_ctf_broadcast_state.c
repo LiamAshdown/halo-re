@@ -19,10 +19,10 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ctf_globals ctf_globals_live;    // 0x006b1290
 extern ctf_globals ctf_globals_network; // 0x0087a520
 extern int32_t ctf_neutral_flag_id;     // 0x006b1314

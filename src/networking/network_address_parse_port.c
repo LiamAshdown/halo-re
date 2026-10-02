@@ -16,15 +16,15 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> address_string
 // Finds the first ':' in address_string; with none present, succeeds trivially (port_out
 // untouched). Otherwise every character after the ':' must be a digit and atol() of that
 // substring must fall in 1..0xffff; on success (with no ':' or with a valid in-range number)
 // writes the parsed value through port_out when it is non-NULL.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 char network_address_parse_port(char *address_string, int32_t *port_out)
 {
     int all_digits;

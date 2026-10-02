@@ -17,10 +17,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint16_t object_find_in_sphere(int32_t unknown_0, int32_t unknown_1, int32_t *location_leaf_index,

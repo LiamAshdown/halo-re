@@ -16,11 +16,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern double log(double x);                    // inline fldln2 / fyl2x
 extern double pow(double base, double exponent); // 0x6283c0 CRT _CIpow, x87 operands
 

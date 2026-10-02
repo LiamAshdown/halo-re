@@ -17,10 +17,10 @@
 #include <stdio.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern uint8_t saved_game_load_checkpoint_by_name(char *name); // 0x5391a0

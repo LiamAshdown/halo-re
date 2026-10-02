@@ -16,15 +16,15 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 #define WCTYPE_SPACE 0x0008
 
 // blam-cc: EAX -> text
 // Returns true as soon as a non-whitespace wide character is found, or false if the string is
 // all whitespace (or empty).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text)
 {
     uint16_t ch = *text;

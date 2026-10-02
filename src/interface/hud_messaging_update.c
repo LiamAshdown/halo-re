@@ -37,10 +37,10 @@
 #include "interface.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern player_globals *local_player_globals;   // 0x0087a478
 extern HUDGlobals *hud_messaging_parameters; // 0x00873d40, pointer to the HUDGlobals messaging block

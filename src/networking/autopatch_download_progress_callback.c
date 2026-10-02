@@ -12,10 +12,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 extern void ghttpCancelRequest(int32_t request); // 0x61c030
 

@@ -15,13 +15,13 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // floor is a single x87/SSE instruction sequence in the original code (Ghidra's ROUND());
 // declared locally instead of via <math.h> because -I types shadows that header name with
 // types/math.h.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double floor(double x);
 
 extern data_array *object_data;     // 0x008603b0

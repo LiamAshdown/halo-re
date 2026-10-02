@@ -25,10 +25,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *dest, const char *s, uint32_t count); // 0x57bc90, blam-cc: ECX dest, stack (s, count)
 
 msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *s)

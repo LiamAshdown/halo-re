@@ -28,10 +28,10 @@
 #include "networking.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void message_delta_decode_compound_field_staged(void *decode_context);
     // blam-cc: EAX -> decode_context; 0x4ec670, the message-delta skip/drop path
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);

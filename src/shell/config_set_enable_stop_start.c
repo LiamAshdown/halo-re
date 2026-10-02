@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_enable_stop_start; // 0x00722b58
 
 // config.txt "EnableStopStart" setter: presence alone sets the flag.

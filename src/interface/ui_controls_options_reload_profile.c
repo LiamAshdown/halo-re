@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t selected_saved_item;             // 0x00714e7c
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern int32_t saved_player_profile_slots_handle;            // 0x00714dd4

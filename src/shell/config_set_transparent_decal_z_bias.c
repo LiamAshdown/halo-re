@@ -14,10 +14,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t sscanf(const char *buffer, const char *format, ...); // 0x626572 CRT
 extern float config_transparent_decal_z_bias; // 0x00722b84
 

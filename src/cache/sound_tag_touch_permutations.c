@@ -16,10 +16,10 @@
 
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock,

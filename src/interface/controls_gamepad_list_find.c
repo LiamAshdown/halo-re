@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern controls_gamepad_record controls_available_gamepads[8]; // 0x006b42d8
 extern controls_gamepad_record controls_assigned_gamepads[4];   // 0x006b53d8
 extern int32_t controls_assigned_gamepad_count;             // 0x00719448

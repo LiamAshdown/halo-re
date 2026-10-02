@@ -15,13 +15,13 @@
 #include "tags.h"
 #include "scenario.h"
 #include <string.h> // strcmp: an inlined byte-compare loop in the original
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> scenario, stack -> name
 // Linear-scans scenario->object_names for an entry whose name exactly matches `name`,
 // returning its index, or -1 if none does.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int16_t scenario_object_name_find_index(Scenario *scenario, char *name)
 {
     ScenarioObjectName *names = (ScenarioObjectName *)scenario->object_names.pointer;

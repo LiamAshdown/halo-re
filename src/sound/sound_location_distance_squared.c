@@ -17,10 +17,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern sound_listener sound_listeners[1]; // 0x00725218
 
 // blam-cc: ECX -> location, stack -> listener_index

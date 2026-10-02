@@ -22,10 +22,10 @@
 #include "game.h"
 #include "objects.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern game_time_globals *game_time;               // 0x006f1d6c
 extern game_engine_definition *current_game_engine;                  // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)

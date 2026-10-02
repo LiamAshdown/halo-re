@@ -7,10 +7,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value); // 0x4ebe00, EAX scope
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
 

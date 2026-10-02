@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *gt2GetConnectionData(void *gamespy_connection); // foreign, GameSpy library; -> network_receive_queue*
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; address byte source
 extern uint16_t gt2GetRemotePort(int32_t object); // 0x6147d0: returns the uint16 at object+0x04 in AX // foreign, GameSpy library; port

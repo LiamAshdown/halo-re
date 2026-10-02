@@ -13,14 +13,14 @@
 
 #include "tags.h"
 #include <wchar.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // FIXED 2026-09-28 (retail-independence loop), from objdump 0x466530..0x4665f5: every string_format_wide_va_bounded
 //   call passes its character count in EDX (0x40 for the two parts, the caller's second argument -- 0x100 at every
 //   call site -- for the result), which the earlier version dropped; the tick count is signed (idiv by 30 and 60);
 //   the formats are L" " (0x006607a8), L"%d" (0x006607a0), L"0%d" (0x00660798) and L"%s:%s" (0x0066078c).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); // 0x557910, blam-cc: EDX count
 
 void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest)

@@ -40,13 +40,13 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // sin/pow are the C-library spellings of the x87 FSIN instruction and the CRT _CIpow this code
 // calls (Ghidra's fsin() pseudo-call and FUN_006283c0); declared locally instead of via
 // <math.h> because -I types shadows that header name with types/math.h.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double sin(double x);
 extern double pow(double base, double exponent);
 extern int __ftol(double value); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation

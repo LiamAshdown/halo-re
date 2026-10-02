@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
 extern uint8_t video_force_mode_flag;      // 0x0071d170 UNSURE

@@ -15,10 +15,10 @@
 #include "game.h"
 #include "ai.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sound_set_music_gain(float gain); // 0x548680
 extern void game_engine_cleanup_stray_projectiles(void); // 0x467f70, this build's tail call target
 

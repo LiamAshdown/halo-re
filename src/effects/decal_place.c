@@ -34,10 +34,10 @@
 #include "effects.h"
 #include "projectiles.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern data_array *decal_data;                       // 0x0087abe4

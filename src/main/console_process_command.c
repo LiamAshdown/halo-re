@@ -28,10 +28,10 @@
 #include "hs.h"
 #include "main.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t hs_preserve_token_case;  // 0x007102fd
 

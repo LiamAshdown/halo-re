@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
 extern void *rasterizer_device;     // 0x0071d174
 extern uint8_t rasterizer_in_scene;                                 // 0x0071d16f set after BeginScene, cleared after EndScene

@@ -20,10 +20,10 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, see object_new_with_datum_role_control.c
 

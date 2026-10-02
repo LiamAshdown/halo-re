@@ -16,12 +16,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Frees every node of history's linked list and then the history container itself.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void player_update_history_destroy(player_update_history *history)
     // blam-cc: EBX -> history
 {

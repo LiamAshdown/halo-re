@@ -14,14 +14,14 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Computes the four asymmetric-projection skew terms for a camera whose viewport is a sub-
 // rectangle of its window (e.g. a split-screen pane): bounds_out[0..1] are the left/right terms
 // (scaled by the viewport's aspect ratio against its own width), and bounds_out[2..3] are the
 // (negated) bottom/top terms, all normalized by the window's height.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void render_camera_compute_projection_skew(render_camera *camera, float bounds_out[4]) // blam-cc: EAX=camera, ECX=bounds_out
 {
     float aspect = (float)(camera->viewport_bounds.bottom - camera->viewport_bounds.top) /

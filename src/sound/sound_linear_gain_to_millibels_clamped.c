@@ -16,10 +16,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call
 
 // blam-cc: stack -> (gain, bias_and_maximum), ESI -> minimum

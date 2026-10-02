@@ -20,11 +20,11 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern data_array *actor_data;       // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int16_t order_code_mode_data_expect[12]; // 0x00655590: request code -> default order kind

@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 // Real signature (src/units/unit_predict_aim_target_position.c): takes a unit index in ESI and

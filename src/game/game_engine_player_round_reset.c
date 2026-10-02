@@ -25,10 +25,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
 extern void player_kill_and_release_unit(int32_t respawn_time); // 0x476250, not in this batch;

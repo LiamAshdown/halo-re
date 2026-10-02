@@ -44,9 +44,6 @@
 #include "shell.h"
 #include <string.h>
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 #if defined(_MSC_VER)
 #define CRASH_TRY __try
@@ -58,6 +55,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 
 
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern void chimera__registry_check_3(void);                                   // 0x5226c0 (rasterizer), restores the gamma ramp
 extern void rasterizer_service_deferred_windowed_ops(void);                    // 0x5180d0 (rasterizer)
 extern void sound_stop_all(void);                                              // 0x54adb0 (sound)

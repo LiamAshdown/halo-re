@@ -15,10 +15,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *joystick_devices[8]; // 0x006b1848
 extern void *mouse_device;        // 0x006b1804
 extern void *keyboard_device;     // 0x006b1800

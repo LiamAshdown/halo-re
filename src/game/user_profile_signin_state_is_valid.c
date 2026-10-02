@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *global_sound_effect_object; // 0x00721f24, UNSURE identity, see header note
 
 // Returns 1 if global_sound_effect_object is non-NULL and its dword at +4 is 0, 1, or 2.

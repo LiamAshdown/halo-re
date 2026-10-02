@@ -8,14 +8,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: array in EDX
 // Allocates the next free slot in `array` (scanning forward from next_index), zero-initializing
 // it and assigning it a fresh generation salt. Returns the new handle (salt<<16 | index), or
 // k_datum_index_none if the array is full.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 datum_index datum_new(data_array *array)
 {
     int16_t element_size;

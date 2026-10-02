@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern observer observers[1];       // 0x006ac65c
 extern float observer_dt;           // 0x006ac658
 extern int16_t observer_derivative_float_counts[5]; // 0x00686aec, {3,3,1,1,3}

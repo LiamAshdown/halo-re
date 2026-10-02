@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t hs_find_function_by_name(char *name); // 0x00483520, this batch
 extern int16_t hs_script_find_by_name(char *name); // 0x004833a0, this batch
 

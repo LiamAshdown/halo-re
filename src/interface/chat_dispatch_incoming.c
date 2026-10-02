@@ -28,10 +28,10 @@
 #include "interface.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;          // 0x0087a480
 extern void *shell_module_handle;        // 0x00722bb8, UNSURE: passed in ECX to the string loader
 extern wchar_t empty_string;             // 0x00660c34

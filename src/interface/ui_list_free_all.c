@@ -15,10 +15,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 
 // Frees every GlobalAlloc'd name and data blob across all three UI selection lists, then frees

@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 
 // Zeroes the caller's actor_order (all 0x5c bytes) and fills in a default/idle order: no

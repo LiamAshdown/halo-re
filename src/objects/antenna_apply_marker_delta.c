@@ -34,10 +34,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,

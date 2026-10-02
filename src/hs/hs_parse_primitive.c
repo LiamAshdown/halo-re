@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char hs_parse_variable(datum_index node_index); // 0x00486560, this batch
 
 extern data_array *hs_syntax_data;           // 0x0087a474

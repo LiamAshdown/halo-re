@@ -8,10 +8,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void heap_advance_free_slot(heap *self)
 {
     int32_t slot;

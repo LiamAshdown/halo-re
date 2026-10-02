@@ -29,10 +29,10 @@
 #include "cache.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
 extern game_time_globals *game_time; // 0x006f1d6c (types/game.h)

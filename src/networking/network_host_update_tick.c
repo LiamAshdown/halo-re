@@ -26,10 +26,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t time_query_performance_counter_ms(void); // outside this batch, tick/ms counter
 extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child); // 0x4dd110
 extern int32_t network_channel_remove_child(network_channel *parent, network_channel *child); // 0x4dd090, this batch

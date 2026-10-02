@@ -13,10 +13,10 @@
 #include <stdlib.h>
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *std_exception_vtable; // 0x0064ef90
 
 void exception_destruct(void *self_)

@@ -36,10 +36,10 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c, UNSURE: foreign module, +0xc is the current tick

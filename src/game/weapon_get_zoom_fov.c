@@ -24,10 +24,10 @@
 #include "cache.h"
 #include "game.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Globals *global_globals; // 0x00746fa0
 
 // blam-cc: CX -> magnification, stack -> zoom_table_index

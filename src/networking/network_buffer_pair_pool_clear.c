@@ -19,12 +19,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // network_buffer_pair is types/networking.h (0x08; folded out of this file by the review pass).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern int32_t network_buffer_pair_pool; // 0x006b85a8, set to -1 here, UNSURE meaning
 extern int32_t network_buffer_pair_pool_count; // 0x006b85ac
 extern network_buffer_pair *network_buffer_pair_pool_data; // 0x006b85b0

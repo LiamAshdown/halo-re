@@ -19,11 +19,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+// blam-cc: state -> EAX
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: state -> EAX
 uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state)
 {
     const weapon_hud_magazine_state *magazine = &state->magazines[0];

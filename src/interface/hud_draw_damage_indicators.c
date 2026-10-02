@@ -34,10 +34,10 @@
 #include "objects.h"
 #include "effects.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern player_globals *local_player_globals;       // 0x0087a478
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c

@@ -38,14 +38,14 @@
 #include "game.h"
 #include <string.h>
 #include "units.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TYPES (folded into types/ai.h by the review pass): local model of the 0x38-byte result record actor_consider_combat_mode and its
 // siblings (0x402f80, 0x403180, 0x403630, 0x40c620...) build and pass around. Only the
 // offsets this function touches are named; the rest is exactly as much as size 0x38 needs.
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern data_array *actor_data;    // 0x00880360
 extern data_array *prop_data;     // 0x008802c0
 extern data_array *object_data;   // 0x008603b0

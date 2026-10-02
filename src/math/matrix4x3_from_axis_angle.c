@@ -11,12 +11,12 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Builds a matrix4x3 rotation from a rotation axis and precomputed sin/cos of the angle
 // (Rodrigues' formula).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle)
 {
     real one_minus_cos;

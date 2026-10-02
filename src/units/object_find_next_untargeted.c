@@ -11,10 +11,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object * object_iterator_next(object_iterator *iterator); // 0x4f6f20
 
 int32_t object_find_next_untargeted(int32_t starting_object_index) // blam-cc: unaff_ESI

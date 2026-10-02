@@ -8,10 +8,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t heap_get_free_bytes(heap *self)
 {
     int32_t free_bytes = self->size;

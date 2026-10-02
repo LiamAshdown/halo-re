@@ -10,12 +10,12 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Tokenizer helper that advances the parser's cursor to the start of the next line, updating
 // the cached line-start pointer and line-number counter.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void hwreq_token_skip_line(hwreq_parser *parser)
 {
     char *p;

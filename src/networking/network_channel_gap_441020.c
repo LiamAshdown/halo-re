@@ -8,10 +8,10 @@
 
 #include "tags.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void network_connection_stats_record_packet(void *gamespy_connection, int32_t payload_length, uint8_t is_sent,
     uint8_t is_reliable, uint8_t is_resend); // 0x440b20, blam-cc: EAX connection, ECX length
 

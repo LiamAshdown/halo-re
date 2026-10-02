@@ -18,10 +18,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern int16_t cache_file_index;                                  // 0x006ac494, -1 when none open
 

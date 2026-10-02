@@ -18,11 +18,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
+// blam-cc: profile in EDX
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: profile in EDX
 void control_profile_reset_digital_bindings(saved_player_profile *profile)
 {
     int32_t i;

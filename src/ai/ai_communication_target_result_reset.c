@@ -10,13 +10,13 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> record
 // Clears an ai-communication target/result record: zeroes the whole 0x20-byte record, then
 // stamps its target handle and two leading fields to "none" (-1).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void ai_communication_target_result_reset(ai_communication_target_result *record)
 {
     uint8_t *bytes = (uint8_t *)record;

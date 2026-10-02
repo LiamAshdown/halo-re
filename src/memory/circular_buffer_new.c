@@ -15,15 +15,15 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: name as the recognized parameter, requested size in EAX
 // Allocates and initializes a new circular_buffer with capacity requested_size + 1 (one slot is
 // always kept empty so the read/write cursors can be told apart). `name` is stored as-is, never
 // copied. Does nothing observable if the allocation fails.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void circular_buffer_new(char *name, int32_t requested_size)
 {
     circular_buffer *buf;

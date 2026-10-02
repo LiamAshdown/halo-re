@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *texture_cache_entries; // 0x006ac538
 extern void *texture_cache; // 0x006ac540
 extern void cache_evict_entry(datum_index handle, void *self); // 0x4d1c20, blam-cc: EBX -> handle, EDI -> self

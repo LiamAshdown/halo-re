@@ -15,11 +15,11 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
+// blam-cc: profile in ESI, gamepad_index in EDX
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: profile in ESI, gamepad_index in EDX
 void control_profile_reset_slot(saved_player_profile *profile, int32_t gamepad_index)
 {
     uint32_t *zero;

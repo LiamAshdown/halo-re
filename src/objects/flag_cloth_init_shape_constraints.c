@@ -14,10 +14,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void flag_cloth_stamp_region_split_flags(int16_t outer_start, Flag *tag, flag *entry,
                                                  int16_t inner_start, int16_t size, uint16_t split_code); // this module, 0x4fb840
 

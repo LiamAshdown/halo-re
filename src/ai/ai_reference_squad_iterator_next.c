@@ -16,11 +16,11 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+
+// TYPES-GAP: see ai_reference_squad_iterator_new.c.
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// TYPES-GAP: see ai_reference_squad_iterator_new.c.
 extern data_array *encounter_data;                             // 0x008802c8
 extern Scenario *global_scenario;                               // 0x00746f8c
 extern encounter_squad_state *encounter_squad_states;           // 0x008802cc

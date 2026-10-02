@@ -12,12 +12,12 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 extern uint8_t rasterizer_gamma_disabled;             // 0x0071d1e8
 extern int32_t rasterizer_gamma_captured;             // 0x0071d1ec
 extern uint8_t rasterizer_gamma_high_bit_17;          // 0x006e1718

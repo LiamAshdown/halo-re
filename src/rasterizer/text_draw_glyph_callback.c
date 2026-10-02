@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t text_shadow_color_argb; // 0x0071d144
 extern uint8_t font_glyph_cache_slots[]; // 0x006d8838, 8 bytes per slot: +4 u, +6 v
 extern uint8_t text_rendering_enabled; // 0x00689402

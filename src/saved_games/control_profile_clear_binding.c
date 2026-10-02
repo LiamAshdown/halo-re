@@ -24,10 +24,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 
 extern int16_t control_keyboard_scan_table[k_control_keyboard_key_count]; // 0x00714fb4

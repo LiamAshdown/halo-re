@@ -13,10 +13,10 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t update_server_initialized;    // 0x006f1d88
 extern int32_t update_server_tick;            // 0x006f1d8c
 extern data_array *update_server_queues;      // 0x006f1d90

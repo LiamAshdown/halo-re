@@ -19,10 +19,10 @@
 #include "networking.h"
 #include <stdint.h>
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t network_console_connection_id;   // 0x0069fdfc, the rcon/console connection id per header
 extern uint8_t network_session_active2; // 0x0071c2ec, UNSURE name

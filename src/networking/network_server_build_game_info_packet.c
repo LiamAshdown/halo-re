@@ -38,10 +38,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char *autopatch_temp_name_generate(void); // other module (UNSURE): source string for the machine's short name
 extern uint8_t network_game_info_packet_flag; // 0x006894a2 (UNSURE name)
 extern char data_packet_group_encode_packet(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type); // 0x4d0ae0, this module family

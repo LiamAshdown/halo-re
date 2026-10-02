@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern director directors[1]; // 0x006ac560
 
 extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // 0x446d60, this module

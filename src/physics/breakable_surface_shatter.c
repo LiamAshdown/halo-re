@@ -28,10 +28,10 @@
 #include "bitmaps.h"
 #include "physics.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t breakable_surfaces_enabled;                          // 0x00689470, the breakable_surfaces global
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;   // 0x00746f98
 extern uint8_t *global_structure_bsp;                           // 0x00746f9c

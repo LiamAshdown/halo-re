@@ -31,10 +31,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand,
                                     real_vector3d *stack_operand); // 0x4052c0, UNSURE args here
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index,

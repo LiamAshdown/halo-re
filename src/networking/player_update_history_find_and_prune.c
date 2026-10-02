@@ -12,15 +12,15 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Walks history's linked list looking for the node whose update_id equals target_id. If prune
 // is set and a match is found, frees every node from the head through the match (inclusive) and
 // makes the following node the new head (clearing tail too if the list becomes empty). Always
 // returns the node that followed the match, or NULL if no match was found.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 player_update_history_node *player_update_history_find_and_prune(player_update_history *history,
     int32_t target_id, uint8_t prune)
 {

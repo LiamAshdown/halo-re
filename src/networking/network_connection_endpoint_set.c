@@ -24,12 +24,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 int32_t network_connection_endpoint_set(const uint32_t *source, network_client_globals *connection)
     // blam-cc: ESI -> source, EDI -> connection
 {

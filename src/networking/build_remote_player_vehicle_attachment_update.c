@@ -21,10 +21,10 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
 

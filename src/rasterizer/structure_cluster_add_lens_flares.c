@@ -22,10 +22,10 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t unknown_006893ff;                                    // 0x006893ff UNSURE: lens flares enable toggle
 extern int16_t unknown_00719aac;                                    // 0x00719aac UNSURE: at most 1 allowed
 extern int16_t screenshot_scale;                                    // 0x00696568 UNSURE: at most 1 when the above is 1

@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_linear_texture_addressing_sun; // 0x00722b30
 
 // config.txt "LinearTextureAddressingSun" setter: presence alone sets the flag.

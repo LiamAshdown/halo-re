@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count); // 0x4f6b70, this batch, UNSURE: see file header

@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void KeyValCompareKeyA(const void *a, const void *b); // 0x00617340, lib:gamespy, not this module
 extern void hs_enumerate_special_form_names(void); // 0x00483840, this batch (table entry only)
 extern void hs_autocomplete_add_startup(void); // 0x00483860, this batch (table entry only)

@@ -23,10 +23,10 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern heap *widget_memory_pool; //  0x006926c4, "widget_memory_pool" (built by 0x4979b0) -- the global holds a POINTER to the heap (mov esi,[0x6926c4] at every call site)
 
 extern void heap_unlink_block(heap_block *block, heap *self); // 0x4d20a0

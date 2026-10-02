@@ -20,10 +20,10 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t local_team_00714dd8; // 0x00714dd8, TYPES-GAP
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
 extern void network_game_setup_teardown(void); // 0x495520

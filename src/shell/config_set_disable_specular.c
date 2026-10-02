@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t config_disable_specular; // 0x00722b6c
 
 // config.txt "DisableSpecular" setter: presence alone sets the flag.

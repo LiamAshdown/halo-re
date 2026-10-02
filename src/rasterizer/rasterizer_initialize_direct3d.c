@@ -28,10 +28,10 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                          // 0x0071d174
 extern void *rasterizer_direct3d;                        // 0x0071d178
 extern d3d_caps9 rasterizer_caps;                        // 0x007c10c0

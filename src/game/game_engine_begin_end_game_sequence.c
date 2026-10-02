@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t network_game_mode;   // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10, renamed to avoid the enum tag
 extern uint8_t *network_server;       // 0x0071c2d4

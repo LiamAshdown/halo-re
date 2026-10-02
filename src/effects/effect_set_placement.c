@@ -15,10 +15,10 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const ColorRGB *global_white_color;  // 0x00686b04, UNSURE, see
     // effect_new_at_texture_coordinate.c
 

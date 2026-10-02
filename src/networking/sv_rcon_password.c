@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char sv_rcon_password_value[9]; // 0x0071c410, 8 chars + forced NUL
 
 extern void *global_white_argb; // 0x006851fc, a ColorARGB * the original loads into EAX

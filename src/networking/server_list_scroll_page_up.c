@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t server_list_scroll_offset; // 0x00719478
 extern int32_t server_browser_selected_index; // 0x006953f4
 extern int32_t DAT_00719484; // see UNSURE

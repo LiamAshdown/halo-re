@@ -16,10 +16,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t ui_button_prompt_index_from_string(uint16_t *text); // 0x49ac30, blam-cc: EBX -> text; -1 when no token matches
 
 // blam-cc: EAX -> text

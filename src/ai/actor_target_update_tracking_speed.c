@@ -81,10 +81,10 @@
 #include "units.h"
 #include "game.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // FSQRT; declared locally because -I types shadows <math.h>
 static float sqrtf_(float x) { return (float)sqrt((double)x); }
 

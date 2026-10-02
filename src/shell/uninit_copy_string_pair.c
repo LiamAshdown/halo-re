@@ -19,10 +19,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern hwreq_string_pair *string_pair_construct_empty(hwreq_string_pair *dest, const hwreq_string_pair *source); // 0x57c640, same pass
 
 hwreq_string_pair *uninit_copy_string_pair(hwreq_string_pair *source_begin, hwreq_string_pair *source_end, hwreq_string_pair *dest)

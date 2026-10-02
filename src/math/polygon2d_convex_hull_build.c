@@ -24,13 +24,13 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // atan2/fabs are the C-library spellings of the x87 FPATAN/FABS instructions the original code
 // uses directly (Ghidra's fpatan()/ABS() pseudo-calls); declared locally instead of via
 // <math.h> because -I types shadows that header name with types/math.h.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern double atan2(double y, double x);
 extern double fabs(double x);
 

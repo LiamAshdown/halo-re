@@ -39,10 +39,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
 extern uint8_t ui_split_screen;            // 0x00718fc9

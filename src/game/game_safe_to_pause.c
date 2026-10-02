@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, objects module
 
 extern uint8_t item_any_detonating(void); // UNSURE module: "dangerous_items_near_player"

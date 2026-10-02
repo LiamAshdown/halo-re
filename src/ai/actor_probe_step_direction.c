@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t random_seed_global; // 0x00719cd0
 
 extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up,

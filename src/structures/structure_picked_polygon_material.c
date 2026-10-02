@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *unknown_007c048c; // 0x007c048c
 
 void structure_picked_polygon_material(void *shader_data, int16_t shader_permutation, int32_t render_context,

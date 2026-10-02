@@ -14,9 +14,6 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // VERIFIED against disassembly 0x54e8c0..0x54e91a (2026-09-30) (the rcl/sbb bit selects were emulated against this formula
 //   for 100000 random inputs with no difference); the add is now a wrapping unsigned add so the clamp tests see the
@@ -24,6 +21,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // Decodes one ADPCM sample: forms a signed delta from `step` gated by the low 3 bits of
 // `selector` (bit2 adds step, bit1 adds step/2, bit0 adds step/4, always adds step/8, negated
 // when bit3 of `selector` is set), adds it to `prediction`, and clamps to a signed 16-bit range.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t sound_adpcm_decode_sample(uint8_t selector, int32_t prediction, uint32_t step)
 {
     uint32_t negate;

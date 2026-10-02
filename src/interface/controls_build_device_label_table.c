@@ -27,10 +27,10 @@
 #include "networking.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t selected_saved_item;      // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80; see UNSURE note above
 extern controls_device_label controls_device_labels[0x10]; // 0x006932e8

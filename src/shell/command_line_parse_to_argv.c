@@ -16,10 +16,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char k_empty_string; // 0x0065512c, the shared MSVC empty std::string/char literal
 
 // Tokenizes the raw Halo command line into a GlobalAlloc'd argv-style array of substring

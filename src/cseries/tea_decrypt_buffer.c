@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void tea_decrypt_block(uint32_t *block, const uint32_t *key); // 0x6182b0
 
 void tea_decrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key)

@@ -36,10 +36,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias); // 0x524590, UNSURE cdecl signature, see bsp_lightmap_sample_vertex_color.c
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed); // 0x43f630, EAX out, ECX packed (src/bitmaps)
 

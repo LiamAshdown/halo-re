@@ -23,10 +23,10 @@
 #include "rasterizer.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;                                  // 0x008603b0
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern int32_t unknown_00689450;      // 0x00689450 UNSURE: video detail setting, forced to 2 (high)

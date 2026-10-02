@@ -8,10 +8,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void block_list_compact(memory_pool *arena)
 {
     memory_pool_block *src = arena->first_block;

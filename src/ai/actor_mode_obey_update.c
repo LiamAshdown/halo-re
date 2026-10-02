@@ -28,10 +28,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data;                 // 0x00880360
 extern real_vector2d *global_forward2d_pointer; // 0x006966e8
 

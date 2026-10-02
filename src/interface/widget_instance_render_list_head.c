@@ -33,10 +33,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double cos(double x);
 extern double sin(double x);
 extern tag_instance *tag_instances; // 0x0087bc14

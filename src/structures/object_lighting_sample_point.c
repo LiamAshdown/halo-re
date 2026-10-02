@@ -52,10 +52,10 @@
 #include "rasterizer.h"
 #include "structures.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
 extern tag_instance *tag_instances;                      // 0x0087bc14
 extern render_lighting object_lighting_default;          // 0x0065dd20, UNSURE name

@@ -29,10 +29,10 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;        // 0x00746f9c
 extern data_array *collideable_object_references;           // 0x008603d4, objects module

@@ -16,11 +16,11 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+
+// blam-cc: EAX -> bitmap
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> bitmap
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
 
 typedef int32_t (__stdcall *d3dx_set_texture_fn)(void *effect, uint32_t handle, void *texture);

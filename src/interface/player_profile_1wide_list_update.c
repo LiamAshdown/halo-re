@@ -26,10 +26,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60
 extern char joystick_set_separator_0065f010[];           // 0x0065f010, CR LF (8-bit, for %hs)
 extern uint16_t empty_string[];            // 0x00660c34

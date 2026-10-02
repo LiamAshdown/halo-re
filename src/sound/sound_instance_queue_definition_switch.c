@@ -10,10 +10,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_data; // 0x007252c0, "sounds" 0x200 x 0xb0
 
 // blam-cc: EAX -> sound_handle, ECX -> new_definition_index

@@ -16,10 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array hud_text_message_queue; // 0x006b37e8
 extern int32_t hud_text_message_cycle_state_00719230; // 0x00719230, compared as a dword
 extern void chimera__main_menu_music(uint8_t finalize_render_frame); // 0x4921a0, blam-cc: BL

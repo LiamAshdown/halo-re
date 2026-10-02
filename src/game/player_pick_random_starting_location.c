@@ -37,10 +37,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario;      // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern random_seed random_seed_global;    // 0x00719cd0

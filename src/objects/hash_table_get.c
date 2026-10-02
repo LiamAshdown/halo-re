@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t hash_table_get(hash_table *table, int32_t key)
 {
     hash_bucket *bucket;

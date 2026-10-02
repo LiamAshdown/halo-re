@@ -16,10 +16,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t shell_application_inactive;   // 0x00721e8c
 extern uint8_t shell_window_proc_bypass;     // 0x00721e8d
 extern uint8_t rasterizer_fullscreen;        // 0x0071d16c

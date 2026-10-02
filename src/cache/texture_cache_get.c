@@ -39,10 +39,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *texture_cache_entries;  // 0x006ac538
 extern struct cache *texture_cache;        // 0x006ac540
 extern uint8_t debug_texture_cache_prints; // 0x006f17f6, console toggle, read but not owned here

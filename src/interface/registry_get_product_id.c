@@ -12,9 +12,6 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 #define HKEY_LOCAL_MACHINE ((HKEY)0x80000002)
 #define KEY_QUERY_VALUE 0x0001
@@ -22,6 +19,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 #define KEY_READ_32 0x00020019 // matches the literal 0x20019 used here
 
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern uint8_t product_id_read;      // 0x00719340, set once the registry lookup has run
 extern uint32_t cached_product_id;   // 0x00719344, the 4 byte "PID" value
 

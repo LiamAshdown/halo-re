@@ -8,10 +8,10 @@
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct ColorARGB ColorARGB;
 extern void *console_message_default_color; // 0x00685218
 extern void console_printf_verbose(ColorARGB *color, char *format, ...); // 0x496a80, blam-cc: EAX color

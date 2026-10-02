@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *screen_flash_techniques[6]; // 0x0071d23c, FlashLighten .. FlashTint
 extern void *rasterizer_screen_flash_effect; // 0x0069e270
 

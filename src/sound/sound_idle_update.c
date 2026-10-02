@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t sound_initialized;    // 0x00725200
 extern uint8_t sound_idle_update_active; // 0x00725203
 extern uint8_t sound_enabled;        // 0x00725201

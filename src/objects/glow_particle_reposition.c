@@ -28,10 +28,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void vector3d_cubic_interpolate(real_point3d *out, real_point3d *control_points /*4 elements*/,
                           float t0, float t1, float t2, float t3, float t); // 0x4fcb00, out of
     // module scope by design (see out/phase4/objects_types_notes.md's "not objects-module code"

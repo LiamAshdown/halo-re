@@ -22,11 +22,11 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern char *shell_module_path; // 0x006a32e8, UNSURE: see file header
 
 // Byte-for-byte equality over `length` bytes (the original computes a full 3-way lexicographic

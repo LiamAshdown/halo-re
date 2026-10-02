@@ -15,12 +15,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
-
 extern int32_t sscanf(const char *buffer, const char *format, ...);
 
 // VERIFIED against disassembly 0x5764a0..0x576747 (2026-09-30): all seven jump tables (0x576748..0x5767b0), the flag bit

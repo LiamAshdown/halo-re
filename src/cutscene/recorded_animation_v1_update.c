@@ -29,10 +29,10 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern recorded_animation_v1_event_proc
     recorded_animation_v1_event_handlers[k_recorded_animation_event_type_count]; // 0x00686ea8
 

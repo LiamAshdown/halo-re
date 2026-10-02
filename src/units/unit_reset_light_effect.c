@@ -32,10 +32,10 @@
 #include "math.h"
 #include "models.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *global_zero_vector3d_pointer;               // 0x006966f8, types/devices.h
 extern real_vector3d *global_forward3d_pointer;   // 0x00696718, types/math.h
 

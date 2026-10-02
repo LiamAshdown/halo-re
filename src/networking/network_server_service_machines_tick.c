@@ -17,10 +17,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char network_channel_service(int32_t mode); // 0x4dd110, other module (UNSURE args beyond this site)
 extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, other module
 extern char network_server_check_machine_timeout(network_server_globals *server, network_machine *machine); // 0x4e0ef0, this batch

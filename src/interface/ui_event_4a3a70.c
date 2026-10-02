@@ -16,10 +16,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t network_game_option_a_00719210; // 0x00719210, TYPES-GAP
 extern uint32_t network_game_option_b_00719214; // 0x00719214, TYPES-GAP
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); // 0x557930, blam-cc: EDX dest

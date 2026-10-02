@@ -21,10 +21,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;                             // 0x008603b0
 extern tag_instance *tag_instances;                          // 0x0087bc14
 extern real_point3d unit_ground_adjust_node_positions[64];   // 0x006e4a08

@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,

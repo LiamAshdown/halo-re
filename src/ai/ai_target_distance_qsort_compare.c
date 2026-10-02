@@ -14,13 +14,13 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: cdecl(record_a, record_b)
 // qsort comparator that orders two candidate-target sort records ascending by the float
 // distance field at +8.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int ai_target_distance_qsort_compare(void *record_a, void *record_b)
 {
     if (*(float *)((uint8_t *)record_a + 8) < *(float *)((uint8_t *)record_b + 8)) {

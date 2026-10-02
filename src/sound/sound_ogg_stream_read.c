@@ -23,10 +23,10 @@
 #include "memory.h"
 #include "sound.h"
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void sound_ogg_error_to_string(int32_t vorbis_error_code); // 0x544f70
 
 

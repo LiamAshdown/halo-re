@@ -11,10 +11,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char registry_halo_version_buffer[0x40]; // 0x006ef968
 
 

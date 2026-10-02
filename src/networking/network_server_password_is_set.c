@@ -14,12 +14,12 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // True if `server`'s join password is not the empty string.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t network_server_password_is_set(network_server_globals *server)
 {
     return wcsncmp((wchar_t *)server->password, L"", 8) != 0;

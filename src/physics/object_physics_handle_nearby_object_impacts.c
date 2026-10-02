@@ -25,10 +25,10 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern uint16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,

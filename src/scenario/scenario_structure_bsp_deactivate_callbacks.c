@@ -11,10 +11,10 @@
 
 #include "tags.h"
 #include "scenario.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern structure_bsp_procedure structure_bsp_deactivate_procedures[k_structure_bsp_deactivate_procedure_count]; // 0x0069e910
 
 // Runs every registered structure-bsp deactivate procedure in table order, ignoring their

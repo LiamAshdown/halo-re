@@ -27,10 +27,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8, 3 x 0x2004 byte profile records + tail
 extern int32_t saved_player_profile_slots_handle;         // 0x00714dd4
 extern int16_t profile_slot_id[];             // 0x00714dde

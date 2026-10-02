@@ -19,10 +19,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ui_cursor_x;      // 0x00718f84, clamped into 0 .. 0x280
 extern int32_t ui_cursor_y;      // 0x00718f88, clamped into 0 .. 0x1e0
 extern uint8_t ui_cursor_changed; // 0x00718f82

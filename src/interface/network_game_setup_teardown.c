@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t game_variant_saved_default_valid;      // 0x00714e78
 extern int16_t network_game_mode; // 0x00719720, types/game.h: 0 local, 1 client, 2 host (word access)
 extern game_engine_definition *current_game_engine; // 0x006f1d20

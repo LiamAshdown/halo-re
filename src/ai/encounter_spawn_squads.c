@@ -29,10 +29,10 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
 extern game_main_globals *main_game_globals; // 0x006b0b80

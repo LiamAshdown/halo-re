@@ -26,10 +26,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t network_disconnect_notice_shown; // 0x00697e78, UNSURE name
 extern uint8_t local_player_globals[8]; // 0x0087a478, UNSURE name/size; only +4 is read here
 extern void display_error(int32_t code, int32_t player_index, uint8_t flag_a, uint8_t flag_b); // 0x498f20, UNSURE signature

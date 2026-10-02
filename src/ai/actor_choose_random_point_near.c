@@ -18,6 +18,9 @@
 #include "math.h"
 #include "ai.h"
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern const real_vector3d *global_up3d_pointer; // 0x00696720, UNSURE identity
 extern uint32_t random_seed_global; // 0x00719cd0, types/math.h
 extern double fcos(double x); // FCOS
@@ -25,9 +28,6 @@ extern double fsin(double x); // FSIN
 #include "cache.h"
 #include "objects.h"
 #include "projectiles.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
 

@@ -29,10 +29,10 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t *lightning_instances; // 0x006b8d74, UNSURE: raw table, see light_volume_render.c
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern uint32_t effect_random_seed;  // 0x00719cd4

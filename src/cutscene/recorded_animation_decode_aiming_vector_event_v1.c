@@ -16,13 +16,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event type 10: copies event->vector into control->aiming_vector and
 // advances *cursor by the record's fixed size (0x10 bytes).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_decode_aiming_vector_event_v1(unit_control_data *control,
     recorded_animation_event_v1 *event, uint8_t **cursor)
 {

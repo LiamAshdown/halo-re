@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern random_seed random_seed_global;      // 0x00719cd0
 extern real_point3d *sphere_point_table; // 0x006b7af4, a POINTER (0x473590 loads it, then indexes)
 extern int16_t sphere_point_table_count;   // 0x006b7af8 (read with movsx from a word)

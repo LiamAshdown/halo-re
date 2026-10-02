@@ -11,11 +11,11 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size); // 0x519980 (this session)
 
 // blam-cc: ECX -> path, stack -> (out_buffer, out_size)

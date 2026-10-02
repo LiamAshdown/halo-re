@@ -25,10 +25,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario;                  // 0x00746f8c
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern int16_t network_game_mode;                   // 0x00719720

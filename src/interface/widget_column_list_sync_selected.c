@@ -16,11 +16,11 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
+// blam-cc: ECX -> widget
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> widget
 void widget_column_list_sync_selected(widget_instance *widget)
 {
     widget_instance *child;

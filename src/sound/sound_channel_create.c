@@ -27,10 +27,10 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 extern void *directsound;                    // 0x0074610c, IDirectSound*
 extern uint8_t directsound_eax_available;    // 0x00746120

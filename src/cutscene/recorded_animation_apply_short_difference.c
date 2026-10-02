@@ -13,13 +13,13 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EAX -> angles, EDX -> delta
 // Identical to recorded_animation_apply_char_difference, but the delta is a full 16 bit
 // yaw/pitch pair (the "large delta" compressed format) instead of a signed byte pair.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void recorded_animation_apply_short_difference(recorded_animation_angles *angles,
     recorded_animation_short_difference *delta)
 {

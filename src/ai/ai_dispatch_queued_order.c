@@ -20,10 +20,10 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *prop_data; // 0x008802c0
 
 extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index,

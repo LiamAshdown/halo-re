@@ -7,10 +7,10 @@
 // blam-cc: cdecl
 
 #include "tags.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void tea_encrypt_block(uint32_t *block, const uint32_t *key)
 {
     uint32_t v0 = block[0];

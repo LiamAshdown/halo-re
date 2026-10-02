@@ -11,11 +11,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
+// blam-cc: ECX -> this_object
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: ECX -> this_object
 void sound_eax1_effect_shutdown(sound_effect_object *this_object)
 {
     void *property_set = this_object->property_set;

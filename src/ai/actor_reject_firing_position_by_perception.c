@@ -12,10 +12,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 static void reject(actor_firing_position_query *query, actor_firing_position_candidate *candidate)
 {
     candidate->rejected = 1;

@@ -15,10 +15,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right, uint32_t pos,
     uint32_t count); // 0x57b830, blam-cc: ECX -> this, stack -> right, pos, count
 extern void string_throw_length_error(void); // 0x638eb4, _Xlen: throws length_error("string too long")

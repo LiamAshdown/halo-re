@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp;
 
 extern void decal_evict_object_decals(int16_t cluster_index); // 0x44e310

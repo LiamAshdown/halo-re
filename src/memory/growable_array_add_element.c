@@ -11,9 +11,6 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 #define GMEM_MOVEABLE 0x0002
@@ -21,6 +18,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // blam-cc: array in ESI
 // Appends one zero-initialized element, growing the GlobalAlloc-backed storage as needed.
 // Returns the new element's index, or -1 (k_datum_index_none) on allocation failure.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t growable_array_add_element(growable_array *array)
 {
     uint32_t new_count;

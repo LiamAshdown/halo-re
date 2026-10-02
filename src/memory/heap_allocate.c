@@ -16,10 +16,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t heap_allocate_raw(uint32_t size, heap *self); // this batch
 
 void *heap_allocate(uint32_t size, heap *self)

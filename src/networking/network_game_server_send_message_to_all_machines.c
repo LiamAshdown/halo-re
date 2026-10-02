@@ -1,6 +1,3 @@
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // network_game_server_send_message_to_all_machines  (Ghidra: already named)
 // address 0x4e4e30, size 192 bytes
 // name confidence: 0.7   rewrite confidence: n/a (FRAGMENT)
@@ -73,6 +70,10 @@ void network_game_server_send_message_to_all_machines(void)
   }
   return;
 }
+#endif
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
 #endif
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */

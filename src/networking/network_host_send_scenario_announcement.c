@@ -14,10 +14,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *message_delta_definition_table; // 0x00871de0, UNSURE identity, see
     // update_server_send_update.c
 extern network_server_globals *network_server; // 0x0071c2d4

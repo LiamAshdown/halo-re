@@ -14,13 +14,13 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX -> animation_block
 // True when the third animation overlay is unused, unknown_2a4 is clear and the current
 // animation state is not one of the states 0x10..0x13, 0x17..0x23 and 0x27..0x29.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block)
 {
     uint8_t result = *(int16_t *)(animation_block + 0x1a) == -1;   // overlays[2].index

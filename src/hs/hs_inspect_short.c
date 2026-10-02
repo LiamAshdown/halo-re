@@ -9,11 +9,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 void hs_inspect_short(int16_t type, int32_t value, char *buffer)
 {
     sprintf(buffer, "%d", (int32_t)(int16_t)value);

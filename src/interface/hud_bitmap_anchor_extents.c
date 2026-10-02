@@ -22,15 +22,15 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: CL -> pixel_uvs, ESI -> bitmap, EDX -> uv, EAX -> out_extents, stack -> anchor
 // Size of one HUD bitmap quad in screen pixels, laid out around its anchor point. uv is the
 // {u0, u1, v0, v1} source rectangle: already in pixels for an interface bitmap (pixel_uvs), or
 // normalized, in which case the span is multiplied by the bitmap width and height.
 // out_extents is {x0, x1, y0, y1} relative to the anchor point.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap, const float *uv,
                                float *out_extents, int16_t anchor)
 {

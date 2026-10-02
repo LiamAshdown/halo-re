@@ -16,10 +16,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern char game_state_persistent_storage_path[0x100]; // 0x006e2dfc
 extern void *game_state_persistent_storage; // 0x006e2df8
 extern uint8_t game_state_persistent_storage_created; // 0x006e2df4

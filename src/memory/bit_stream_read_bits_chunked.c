@@ -13,10 +13,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t bit_stream_read_bits(uint32_t bit_count, uint32_t *out_value, bit_stream *stream);
 
 // blam-cc: total bit count in EAX, destination buffer in ECX, stream forwarded (EDX)

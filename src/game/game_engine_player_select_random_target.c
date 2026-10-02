@@ -44,10 +44,10 @@
 #include "math.h"
 #include <stdint.h>
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data;        // 0x0087a480
 extern random_seed random_seed_global;    // 0x00719cd0
 

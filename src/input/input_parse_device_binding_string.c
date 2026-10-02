@@ -21,10 +21,10 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
 extern uint32_t input_keyboard_key_name_to_index(char *name);                     // this module, 0x490ea0

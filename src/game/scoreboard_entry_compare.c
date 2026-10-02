@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 int32_t scoreboard_entry_compare(const scoreboard_entry *a, const scoreboard_entry *b)
 {
     if (b->key_0 < a->key_0) {

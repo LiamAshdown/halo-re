@@ -13,10 +13,10 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern Scenario *global_scenario; // 0x00746f8c
 
 extern void game_engine_scan_netgame_flags_noop(int16_t needle); // 0x4637c0, this batch

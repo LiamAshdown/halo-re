@@ -29,10 +29,10 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern float k_physics_gravity;           // 0x0069c52c
 extern float k_physics_collision_damping; // 0x0069c538, UNSURE, see types/physics.h

@@ -12,12 +12,12 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // Frees every node of a player_update_history's linked list and clears its head/tail.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 void player_update_history_free_all(player_update_history *history)
 {
     player_update_history_node *node;

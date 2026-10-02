@@ -15,10 +15,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, this module
 extern void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index actor_index); // ECX prop, ESI actor

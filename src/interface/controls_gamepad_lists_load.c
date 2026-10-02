@@ -33,10 +33,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t selected_saved_item;                // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80
 extern controls_gamepad_record controls_available_gamepads[8];   // 0x006b42d8

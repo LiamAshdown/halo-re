@@ -27,10 +27,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, data_packet_group *group, void *payload,
     int32_t *capacity, int32_t message_type, int32_t flag); // 0x4d0ae0; blam-cc: EAX -> buffer, EBX -> group, stack -> payload, capacity, message_type, flag
 extern data_packet_group network_game_messages_group; // 0x006994f8

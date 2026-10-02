@@ -13,12 +13,12 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Orders candidates by weight_primary (descending), then weight_secondary (descending), then
 // distance (ascending), then angle (ascending), then object index (ascending).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t camera_observer_target_compare(const observer_target_candidate *a, const observer_target_candidate *b)
 {
     if (b->weight_primary < a->weight_primary) {

@@ -8,10 +8,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint32_t message_delta_vector3d_absolute_bits_mode1; // 0x0069a2cc
 extern uint32_t message_delta_vector3d_delta_bits;          // 0x0069a2d0
 extern real message_delta_vector3d_delta_range;             // 0x0069a2d4

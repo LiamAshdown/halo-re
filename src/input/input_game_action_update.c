@@ -54,10 +54,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_abstraction_globals input_globals;                  // 0x00710328
 extern int16_t keyboard_bindings[k_control_keyboard_key_count];  // 0x00710330
 extern int16_t mouse_button_bindings[k_control_mouse_button_count]; // 0x0071040a

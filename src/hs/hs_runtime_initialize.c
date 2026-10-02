@@ -12,10 +12,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
 extern void data_delete_all(data_array *array); // blam-cc: ESI; memory module, 0x4d0580
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);

@@ -35,10 +35,10 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index,

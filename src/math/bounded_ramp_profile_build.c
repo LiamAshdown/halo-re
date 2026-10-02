@@ -25,10 +25,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double sqrt(double x); // x87 FSQRT, declared locally as elsewhere in this module
 extern double fabs(double x); // x87 FABS
 

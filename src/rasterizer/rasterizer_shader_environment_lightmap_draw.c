@@ -24,10 +24,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *rasterizer_device;                   // 0x0071d174
 extern uint8_t console_debug_toggle_6893f4;       // 0x006893f4
 extern rasterizer_effect_slot rasterizer_effects[]; // 0x0069d410

@@ -18,10 +18,10 @@
 #include "input.h"
 
 #include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t input_last_error; // 0x0068e544
 
 // Formats description (printf-style, with any varargs) into a scratch buffer, but only the

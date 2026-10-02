@@ -20,10 +20,10 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *bitmap_data_get_row_address(BitmapData *bitmap_data, int16_t mip_level, int16_t x, int16_t y); // 0x43f8e0, this module
 extern void *bitmap_data_get_volume_pixel_address(BitmapData *bitmap_data, int16_t x, int16_t y, int16_t z, int16_t mip_level); // 0x43f990, this module
 extern void *bitmap_data_get_cube_map_pixel_address(BitmapData *bitmap, int32_t mip_level, int16_t x, int16_t y, int16_t face); // 0x43fa90, this module

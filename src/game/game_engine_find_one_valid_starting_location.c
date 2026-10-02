@@ -18,10 +18,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results); // 0x461080, this batch

@@ -24,10 +24,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 typedef struct biped_network_update_header {
     int32_t network_key;            // +0x00 hash_table_get result, 0 when unknown
     uint8_t update_sequence;        // +0x04 biped_data.network_update_sequence (0x527)

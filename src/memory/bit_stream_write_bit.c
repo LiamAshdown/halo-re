@@ -11,9 +11,6 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Writes a single bit (0 or 1) into a bounds-checked bit stream and advances its one-bit cursor.
 // Returns nonzero (with garbage high bits, only the low byte is meaningful to callers) on
@@ -22,6 +19,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: EDX -> stream, stack -> bit_value
 // FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream)
 {
     int32_t byte_cursor;

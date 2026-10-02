@@ -37,10 +37,10 @@
 #include "shaders.h"
 #include "render.h"
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, math
     // module; blam-cc: AX (low half of EAX) -> type, stack -> time
 extern double cos(double x); // FCOS

@@ -26,10 +26,10 @@
 #include "physics.h"
 #include "cache.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern tag_instance *tag_instances; // 0x0087bc14, cache.h
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, physics.h

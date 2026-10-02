@@ -11,11 +11,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+
+// blam-cc: EAX -> out, ECX -> packed color
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: EAX -> out, ECX -> packed color
 void color_rgb_int_to_real(ColorRGB *out, uint32_t packed)
 {
     out->red   = (float)((packed >> 16) & 0xff) * 0.003921569f; // 1/255

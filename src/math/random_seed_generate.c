@@ -10,10 +10,10 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency() result, owned by the timing/system module
 
 extern int rand(void); // 0x006240cf _rand

@@ -49,15 +49,15 @@
 #include "effects.h"
 #include "units.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // TagID {index;id} is bit-identical in memory to a datum_index (low 16 bits index, high 16
 // bits salt/identifier), so a TagID is reinterpreted in place wherever the object header wants
 // a plain datum_index.
 #define TAG_ID_AS_DATUM_INDEX(field) (*(datum_index *)&(field))
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc

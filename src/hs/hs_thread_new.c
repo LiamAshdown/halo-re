@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
 
 extern data_array *hs_thread_data; // 0x0087a470

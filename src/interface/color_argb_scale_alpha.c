@@ -13,10 +13,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
 // blam-cc: EAX -> packed_color, stack -> scale

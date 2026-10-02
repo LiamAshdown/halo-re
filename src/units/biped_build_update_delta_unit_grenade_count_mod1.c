@@ -23,10 +23,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double fcos(double x);
 extern double fsin(double x);
 extern real random_real_range(real min, real max); // 0x401050

@@ -31,10 +31,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_list_current;     // 0x00692c04
 extern growable_array ui_lists[3];  // 0x006b3830, element size 0x10 (ui_list_item)

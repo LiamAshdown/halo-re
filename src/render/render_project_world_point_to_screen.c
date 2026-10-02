@@ -21,13 +21,13 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Projects a world-space point into the camera's normalized device coordinates and then into
 // screen pixel coordinates, returning whether it lies within the view (in front of the camera,
 // i.e. negative view-space z, and inside the -1..1 clip range on both axes).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t render_project_world_point_to_screen(real_point2d *screen_out, real_point3d *world_point,
                                                render_frustum *frustum, render_camera *camera)
     // blam-cc: ECX=screen_out, EDX=world_point, ESI=frustum, EDI=camera

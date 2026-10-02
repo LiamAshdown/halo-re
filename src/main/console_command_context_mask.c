@@ -25,10 +25,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern main_globals main_globals_data;                    // 0x00719700
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8

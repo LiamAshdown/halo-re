@@ -29,10 +29,10 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t cluster_flood_in_progress; // 0x006e3f01, this module (types/structures.h)
 extern int32_t cluster_flood_stamp;       // 0x006e3f04, this module (types/structures.h)
 

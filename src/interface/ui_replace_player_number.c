@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint16_t ui_player_number_text[2]; // 0x006b3854
 
 void *ui_replace_player_number(widget_instance *widget)

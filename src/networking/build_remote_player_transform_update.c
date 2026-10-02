@@ -31,10 +31,10 @@
 #include "networking.h"
 #include <stdint.h>
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
 extern int32_t network_transform_resend_interval_ms; // 0x00689494, shared by both builders' gates

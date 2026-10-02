@@ -8,15 +8,15 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: stream in EDX; destination, count, consume flag are the recognized parameters
 // Reads byte_count bytes from stream into destination, with wraparound. Advances the read
 // cursor only when `consume` is nonzero; a zero `consume` leaves the cursor untouched, i.e. this
 // call is a non-consuming peek. Fails without reading anything if fewer than byte_count bytes
 // are available. Returns 1 on success, 0 on failure.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t circular_buffer_read(uint8_t *destination, uint32_t byte_count, char consume,
     circular_buffer *stream)
 {

@@ -10,13 +10,13 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: EAX -> v
 // Returns whether v is approximately unit length (|v|^2 - 1, within 0.001), guarding against NaN.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t vector3d_is_unit_length(Vector3D *v)
 {
     float length_squared_minus_one;

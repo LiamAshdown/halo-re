@@ -9,14 +9,14 @@
 
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Clamps `gain` against `compare` scaled or divided by `ratio`: if compare < gain, clamps gain
 // down to whichever of gain/(compare*ratio) is smaller; if compare > gain, clamps gain up to
 // compare/ratio (if that is still >= gain). A zero ratio or compare == gain leaves gain
 // unchanged.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 float sound_clamp_gain_by_ratio(float gain, float compare, float ratio)
 {
     float scaled;

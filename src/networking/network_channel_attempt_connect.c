@@ -29,10 +29,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t network_query_socket; // 0x006f14c8
 extern int32_t network_game_socket;  // 0x006f14c4
 extern int16_t network_join_error_code; // 0x00718fa4, WORD-sized (see note above)

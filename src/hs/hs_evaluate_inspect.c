@@ -13,10 +13,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern void chimera__console_out(void *color, const char *format, ...); // 0x496b50, EAX color

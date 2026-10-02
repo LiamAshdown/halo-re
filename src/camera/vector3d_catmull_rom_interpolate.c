@@ -14,11 +14,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+
+// blam-cc: __cdecl, all parameters on the stack (0x447000, this module)
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-// blam-cc: __cdecl, all parameters on the stack (0x447000, this module)
 extern double scalar_catmull_rom_interpolate(float value0, float value1, float value2,
     float value3, float time0, float dt, float time);
 

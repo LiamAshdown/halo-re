@@ -19,10 +19,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern map_list_entry *map_list;                 // 0x00712dcc
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item); // 0x4a7db0

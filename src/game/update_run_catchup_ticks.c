@@ -16,10 +16,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t update_client_unknown_102d4; // 0x007102d4, UNSURE raw counter
 extern uint32_t update_client_staged[8];     // 0x006f7ea4
 

@@ -23,10 +23,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t input_device_count; // 0x006b1844, input.h (0..8 connected input devices)
 extern int32_t input_device_to_slot[]; // 0x006b1a98, stride 0x90 dwords (0x240 bytes) per device
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h

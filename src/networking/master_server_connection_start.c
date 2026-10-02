@@ -23,10 +23,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_mutex_record *server_list_mutex; // 0x007196a8
 extern network_thread_record *server_list_thread; // 0x007196ac, see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c

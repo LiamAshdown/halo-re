@@ -17,10 +17,10 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *particle_data;                       // 0x0087abd0
 extern uint8_t *first_person_weapon_interfaces;            // 0x006b2d98, stride 0x1ea0
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90

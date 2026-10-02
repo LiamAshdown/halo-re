@@ -38,10 +38,10 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current;      // 0x00692c04
 extern map_list_entry *map_list;     // 0x00712dcc

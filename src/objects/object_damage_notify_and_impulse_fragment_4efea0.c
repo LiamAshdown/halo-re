@@ -1,6 +1,3 @@
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 // object_damage_notify_and_impulse_fragment_4efea0   (renamed by the phase-4 review pass; Ghidra/PDB name was `mdp_decode_stateless_iterated`,
 //    which this file's own header shows does not describe the code)
 // address 0x4efea0, size 8 bytes
@@ -17,6 +14,11 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // unit-type-mask dispatch to FUN_005674a0. See object_damage_notify_and_impulse.c for the full,
 // correctly-parameterized rewrite of that logic; nothing here is translated independently to
 // avoid a second, inconsistent copy of the same code.
+
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */
 #endif

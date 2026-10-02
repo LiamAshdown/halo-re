@@ -30,10 +30,10 @@
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *sound_cache_entries;  // 0x006ac528
 extern struct cache *sound_cache;        // 0x006ac530
 extern cache_io_request *cache_io_requests; // 0x006ac4a0

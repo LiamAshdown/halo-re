@@ -28,13 +28,13 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // FIXED 2026-09-28 (retail-independence loop): the second fopen argument is the mode "a+b" (0x00660144, pushed at
 //   0x4fa66d); the earlier 0 would crash in the CRT, and fopen_00624186 bound to nothing (a direct trap).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void objects_get_statistics(void *out); // 0x4f7950, this batch (object_statistics)
 extern void object_dump_accumulate_stats(uint32_t object_index, object_memory_dump_record *record); // 0x4fa3d0, this batch

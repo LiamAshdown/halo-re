@@ -21,10 +21,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/math.h (const to
                                                         // match src/math/*.c own declaration)
 extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin,

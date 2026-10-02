@@ -29,10 +29,10 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern level_select_entry level_select_entries[10];  // 0x00719018
 extern uint8_t profile_globals_block[0x60a4];                     // 0x00712dd8
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];       // 0x00714ddc, TYPES-GAP

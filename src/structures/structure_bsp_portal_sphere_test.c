@@ -23,15 +23,15 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // 0x00746f90 is a ModelCollisionGeometryBSP pointer, proved twice in this module: it is the ECX
 // argument of bsp3d_node_find_leaf at 0x553e4a / 0x549a6a, and 0x554b9f reads its +0x10 as
 // planes.pointer and indexes it with plane_index * 0x10. It is global_collision_bsp
 // (types/scenario.h): ScenarioStructureBSP +0xb4, stored together with 0x00746f98 on every bsp
 // switch (0x53ef68..0x53ef78), so 0x00746f98 always holds the same pointer.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90 (types/scenario.h)
 extern int16_t vector3d_major_axis_index(real_vector3d *v); // 0x44d820, math module
 extern const projection_axis_pair k_projection_axes[6];     // 0x0065c29c, math module

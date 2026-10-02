@@ -14,10 +14,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data;  // 0x008603b0

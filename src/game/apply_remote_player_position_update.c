@@ -25,10 +25,10 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t wait_tick_counter;           // 0x007102dc, UNSURE name
 extern uint16_t local_player_name_filter[]; // 0x0071c420, UNSURE name/purpose
 

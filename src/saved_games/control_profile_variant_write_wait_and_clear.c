@@ -19,10 +19,10 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_thread_record *variant_write_thread; // 0x00721324
 extern variant_write_request variant_write_request_state; // 0x00721288 (0x29-dword zeroed block
                                                             // reaches through variant_write_thread

@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
 // Advances *value one spring step in the direction of step's sign (using the matching

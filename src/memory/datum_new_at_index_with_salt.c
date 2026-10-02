@@ -10,10 +10,10 @@
 
 #include "tags.h"
 #include "memory.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void datum_element_initialize(data_array *array, void *element); // blam-cc: array in EDX, element in ESI
 
 // blam-cc: requested handle (index | salt<<16) in EAX, array in EDX

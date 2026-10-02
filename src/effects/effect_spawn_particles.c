@@ -83,10 +83,10 @@
 #include "cache.h"
 #include "effects.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t particle_spawn_debug_mode;   // 0x0069c565, UNSURE name: nonzero enables this
                                             // function at all; ==1 additionally forces a debug
                                             // spawn-count override (see note 1)

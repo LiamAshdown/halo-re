@@ -12,14 +12,14 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Preserved exactly as decompiled: the loop does not stop after inserting at slot 0, so if
 // slot 1's score (which may just have been overwritten by the shift) is *also* less than
 // `score`, the same value gets inserted again at slot 1. Not simplified away, since it is
 // not clear whether this is intentional or a genuine quirk of the original code.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t ai_insert_scored_candidate_pair(ai_scored_candidate *list, datum_index handle,
                                         float score, datum_index payload, datum_index key)
 {

@@ -13,13 +13,13 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: EBX -> queue, stack -> source
 // Copies record_size bytes from `source` into the queue's next free slot and advances
 // write_index, unless the queue is full (used >= capacity - 1). Returns 1 on success, 0 if full.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t circular_queue_push(circular_queue *queue, void *source)
 {
     int32_t write_index = queue->write_index;

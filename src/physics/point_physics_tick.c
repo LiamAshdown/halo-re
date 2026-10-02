@@ -45,10 +45,10 @@
 #include "objects.h"
 #include "projectiles.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern float k_physics_gravity; // 0x0069c52c
 extern float k_water_density;   // 0x006b8d7c
 extern float k_air_density;     // 0x006b8d80

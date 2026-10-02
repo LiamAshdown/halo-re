@@ -27,10 +27,10 @@
 #include "game.h"
 #include "main.h"
 #include <wchar.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern HUDGlobals *hud_globals_tag_data;   // 0x0071941c, foreign (the hud globals tag)
 extern uint8_t *hud_messaging;             // 0x006b3a40, foreign (interface module), TYPES-GAP
 extern main_globals main_globals_data;     // 0x00719700

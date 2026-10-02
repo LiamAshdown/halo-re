@@ -27,10 +27,10 @@
 #include "rasterizer.h"
 #include <string.h> // memcpy
 #include <stdint.h> // uintptr_t
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t rasterizer_device_lost;                  // 0x007c10b0
 extern void *rasterizer_device;                         // 0x0071d174
 extern uint32_t config_disable_buffering;                       // 0x00722b54 config: flush the back buffer before present

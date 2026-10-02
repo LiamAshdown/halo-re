@@ -18,10 +18,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void particle_system_update_physics_default(particle_system *system, real dt); // 0x4552a0, this batch
 
 // ParticleSystem.system_update_physics dispatch table entry 1, "explosion". Identical to the

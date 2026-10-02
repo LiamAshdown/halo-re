@@ -23,10 +23,10 @@
 #include "sound.h"
 #include <string.h>
 #include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void *sound_cache_memory;            // 0x006ac554
 extern int32_t sound_cache_size_megabytes;  // 0x006869c4
 extern char error_text_buffer[];            // 0x006e35c8

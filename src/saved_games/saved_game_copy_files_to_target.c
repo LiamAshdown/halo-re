@@ -23,9 +23,6 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: source_directory in ESI, source_name in EDI, then the recognized stack parameter
@@ -34,6 +31,9 @@ extern "C" { /* HALO_CXX_LINKAGE */
 // source_name onto target_name (both within source_directory). Used for autosave rotation
 // (copy the previous newest autosave to autosave1, then copy the just-written save onto the
 // newest autosave slot) and for checkpoint loading.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name)
 {
     char check_path[256];

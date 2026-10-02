@@ -22,11 +22,11 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern uint32_t global_structure_bsp; // 0x00746f9c

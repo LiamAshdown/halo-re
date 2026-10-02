@@ -11,10 +11,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call
 
 // Converts a linear gain/occlusion factor (1.0 = fully open, 0.0 = fully closed) to a millibel

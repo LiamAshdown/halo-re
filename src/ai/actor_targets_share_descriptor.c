@@ -17,10 +17,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0, UNSURE guess at which array datum_get checks here
 extern void * datum_get(datum_index handle, data_array *array); // 0x4d0680

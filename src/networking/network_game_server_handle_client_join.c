@@ -35,10 +35,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_client_globals *network_client; // 0x0071c2d8
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern player_profile player_profile_cache[16]; // 0x006b0b88

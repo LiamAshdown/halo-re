@@ -15,10 +15,10 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void dxt1_decode_block_texel(ColorARGBInt *out, dxt_color_block *block, int32_t x, int32_t y); // 0x43ffe0, this module
 
 // blam-cc: EBX -> block, stack -> texel_out, x, y

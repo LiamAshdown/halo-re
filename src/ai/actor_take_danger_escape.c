@@ -16,10 +16,10 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *actor_data; // 0x00880360
 
 extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,

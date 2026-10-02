@@ -21,11 +21,11 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
-
 static void sound_stream_decoder_clear_ogg_vorbis_file(void *vorbis_file)
 {
     uint32_t *words = (uint32_t *)vorbis_file;

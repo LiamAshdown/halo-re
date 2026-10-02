@@ -47,10 +47,10 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "render.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t render_cluster_has_sky;               // 0x007c334d, structures module
 extern int16_t render_cluster_sky_index;             // 0x007c334e, structures module
 extern Scenario *global_scenario;                    // 0x00746f8c

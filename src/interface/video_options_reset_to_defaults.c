@@ -17,10 +17,10 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t video_gamma_current; // 0x0071d1e4, UNSURE name
 
 extern uint8_t player_profile_set_default_video_options(uint8_t *profile, int32_t flag); // 0x53b000, cdecl

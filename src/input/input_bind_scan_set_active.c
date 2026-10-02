@@ -25,10 +25,10 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern input_abstraction_globals input_globals; // 0x00710328
 extern uint8_t input_suppressed;                               // 0x006b15f9
 extern joystick_state joystick_states[4];                      // 0x006b2a68

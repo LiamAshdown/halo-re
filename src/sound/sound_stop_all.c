@@ -20,10 +20,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t sound_initialized;               // 0x00725200
 extern data_array *sound_data;                   // 0x007252c0, "sounds" 0x200 x 0xb0
 extern data_array *looping_sound_data;           // 0x00724a50, "looping sounds" 0x80 x 0xe4

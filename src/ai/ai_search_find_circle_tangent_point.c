@@ -11,10 +11,10 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern real_point2d *ai_default_2d_direction; // 0x006966ec, UNSURE: fallback direction constant
 
 extern double sqrt(double x); // FSQRT

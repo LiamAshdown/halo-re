@@ -21,14 +21,14 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // Returns how far value sits from ref_k0 towards ref_k1, as a fraction clamped to [0, 1].
 // ref_k0 and ref_k1 may be given in either order; the "near" end (ref_k0) maps to 0 and the
 // "far" end (ref_k1) maps to 1, with values beyond ref_k1 clamped to 1 and values on the
 // ref_k0 side of ref_k0 clamped to 0.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 real real_inverse_lerp_clamped(real value, real ref_k0, real ref_k1)
 {
     if (ref_k1 <= ref_k0) {

@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void object_type_definitions_notify_0x3c(uint32_t object_index, uint32_t dying_object_index);
     // 0x4f40f0, outside this batch; see UNSURE above about the second, stack-passed argument

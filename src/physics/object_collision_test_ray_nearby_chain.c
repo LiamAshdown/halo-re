@@ -49,10 +49,10 @@
 #include "objects.h"
 #include "physics.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m,

@@ -37,10 +37,10 @@
 #include "units.h"
 #include "physics.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
 extern physics_model ground_adjust_physics_model; // 0x006e4d08

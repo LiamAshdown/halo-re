@@ -63,10 +63,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double acos(double x);  // 0x628140, MSVC 7.1 CRT; see vector3d_rotate_toward_with_acceleration.c
 extern double cos(double x);   // x87 FCOS
 extern double sin(double x);   // x87 FSIN

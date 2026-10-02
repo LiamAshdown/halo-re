@@ -14,10 +14,10 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void struct_definition_byte_swap(byte_swap_definition *definition, int32_t data,
     int32_t *codes, int32_t *out_size, int32_t *out_record_count); // 0x4cfee0
 extern byte_swap_definition hs_syntax_data_header_byte_swap_definition; // 0x0068e39c

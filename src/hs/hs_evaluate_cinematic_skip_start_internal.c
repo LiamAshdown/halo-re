@@ -12,10 +12,10 @@
 #include "hs.h"
 #include "units.h"
 #include "cutscene.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 

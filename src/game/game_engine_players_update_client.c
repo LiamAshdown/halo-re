@@ -34,13 +34,13 @@
 #include "game.h"
 #include <string.h>
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // player_update_record is types/game.h's (0x2c: field0, references_remaining,
 // reference_count, player_action action).
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;              // 0x008603b0

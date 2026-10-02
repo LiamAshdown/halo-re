@@ -20,10 +20,10 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;                    // 0x008603b0
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX index
 extern uint8_t message_delta_decode_compound_field_forced(void **context, void *destination, int32_t changed_offset,

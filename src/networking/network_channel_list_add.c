@@ -15,15 +15,15 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: entry pointer in EAX (in_EAX), list pointer in ECX (in_ECX)
 // Appends `entry` to the write-cursor slot of `list->entries`, then adds its socket_key to the
 // 64-entry dedup array if not already present and there is room. Always advances last_index
 // and marks the entry as "in a list" (flags bit3). Returns 0 on success, -20 (0xffffffec) if
 // the list's write cursor has reached capacity or would overflow.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list)
 {
     int32_t new_index;

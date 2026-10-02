@@ -28,10 +28,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "bitmaps.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count]; // 0x006571f4 (types/bitmaps.h)
 extern uint8_t bitmap_group_debug_dump; // 0x006f1874, .bss, always 0 in the retail image

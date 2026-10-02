@@ -21,10 +21,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data;                     // 0x008603b0
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c

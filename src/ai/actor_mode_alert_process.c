@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "objects.h"
 
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -38,9 +41,6 @@ extern int32_t actor_select_move_position(uint32_t actor_index, int16_t select_m
 extern real random_real_range(real min, real max); // 0x401050
 extern uint8_t actor_movement_set_destination_move_position(datum_index actor_index, int16_t move_position_index); // 0x417750, EDI, stack
 #include <string.h>
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 uint8_t actor_mode_alert_process(uint32_t actor_index)
 {

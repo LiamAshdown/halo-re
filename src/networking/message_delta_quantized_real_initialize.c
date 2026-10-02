@@ -5,10 +5,10 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 uint8_t message_delta_quantized_real_initialize(message_delta_field_type *field_type)
 {
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;

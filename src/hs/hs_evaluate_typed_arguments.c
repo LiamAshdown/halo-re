@@ -21,10 +21,10 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
     // this module, 0x48a560; UNSURE, see header note
 

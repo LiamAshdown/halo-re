@@ -9,10 +9,10 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out) // blam-cc: in_ECX, in_EAX

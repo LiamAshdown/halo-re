@@ -20,10 +20,10 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void physics_shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uint32_t vertex_index,
     uint32_t object_index, real_matrix4x3 *matrix, float height_offset, float radius,
     physics_model *model); // 0x503a60, blam-cc: ECX bsp, EAX vertex_index, EBX object_index

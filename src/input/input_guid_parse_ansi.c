@@ -17,15 +17,15 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: ansi string in ESI
 // Widens ansi (up to 0x26 characters; longer strings are truncated to 0x26, matching the
 // original bounds check) into a stack buffer and parses it with CLSIDFromString. Returns
 // nonzero on success.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi)
 {
     int32_t length;

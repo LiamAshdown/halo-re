@@ -10,15 +10,15 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: __cdecl, all parameters on the stack
 // Evaluates the cubic that passes through value0, value1, value2 and value3 at times time0,
 // time0+dt, time0+2*dt and time0+3*dt (a Catmull-Rom style stencil), at the given time. Callers
 // use it to interpolate between value0 and value1, with value2 and value3 shaping the curve's
 // tangent.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 double scalar_catmull_rom_interpolate(float value0, float value1, float value2, float value3,
     float time0, float dt, float time)
 {

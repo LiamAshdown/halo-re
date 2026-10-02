@@ -29,10 +29,10 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream); // 0x4cfa20
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
 extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0, memory module;

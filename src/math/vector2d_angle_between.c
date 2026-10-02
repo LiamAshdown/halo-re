@@ -10,10 +10,10 @@
 
 #include "tags.h"
 #include "math.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern double acos(double x); // 0x00628140, CRT/compiler helper
 
 // Returns the signed angle in radians between two 2D vectors: the magnitude is acos of the

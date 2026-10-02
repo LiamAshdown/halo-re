@@ -19,14 +19,14 @@
 
 #include "tags.h"
 #include "bitmaps.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // blam-cc: ECX (CL) -> level, ESI -> bitmap
 // Computes the total texel count of bitmap at mip level `level`: width * height * depth (width
 // and height rounded up to a multiple of 4 when the bitmap is block compressed), times
 // k_cube_map_face_count for cube maps.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t level)
 {
     int32_t width;

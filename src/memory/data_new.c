@@ -12,15 +12,15 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)
 // Allocates and initializes a Blam data_array: header with name (copied, truncated to 31 chars
 // plus NUL), maximum element count, element size, and a data pointer to its packed element
 // storage immediately following the header. Returns NULL if the allocation fails.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 data_array *data_new(int16_t element_size, char *name, int16_t maximum_count)
 {
     data_array *array;

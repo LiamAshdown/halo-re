@@ -28,10 +28,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern network_server_globals *network_server; // 0x0071c2d4
 extern game_time_globals *game_time; // 0x006f1d6c
 extern random_seed random_seed_global; // 0x00719cd0

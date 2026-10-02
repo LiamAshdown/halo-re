@@ -15,13 +15,13 @@
 
 #include "tags.h"
 #include "math.h"
-#ifdef __cplusplus
-extern "C" { /* HALO_CXX_LINKAGE */
-#endif
 
 // VERIFIED against disassembly 0x48ab80..0x48ab88 and 0x6391b4 (2026-09-30): `fld [esp+4]; jmp 0x6391b4` tail-jumps into the
 // CRT __ftol (_ftol2: fistp, then a correction step), which TRUNCATES toward zero. The draft called ROUND (fistp,
 // round-to-nearest-even), which returns -3 for -2.7 where the original returns -2. The C cast truncates the same way.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 int32_t hs_object_orient(float x)
 {
     return (int32_t)x;

@@ -18,10 +18,10 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t message_delta_decode_message_header(bit_stream *stream, message_delta_decode_state *state); // 0x4ece70, this module
 
 // blam-cc: EAX -> state, EDI -> stream

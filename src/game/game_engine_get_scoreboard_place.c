@@ -19,10 +19,10 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
     scoreboard_entry entries[16], int32_t mode); // 0x45cc90; invert_low_stat travels in AL
 

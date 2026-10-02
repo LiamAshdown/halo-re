@@ -22,10 +22,10 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 
 // The projectile row's notify_3c hook (object_type_definition +0x3c), run for every object when

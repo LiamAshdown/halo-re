@@ -15,10 +15,10 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second) // blam-cc: see file header
 {
     UnitSeat *seat = (UnitSeat *)((uint8_t *)unit_tag->seats.pointer + seat_index * 0x11c);

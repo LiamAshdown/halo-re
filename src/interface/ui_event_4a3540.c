@@ -24,10 +24,10 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id

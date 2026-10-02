@@ -13,10 +13,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void network_game_setup_teardown(void); // 0x495520
 
 uint8_t ui_event_49d1a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)

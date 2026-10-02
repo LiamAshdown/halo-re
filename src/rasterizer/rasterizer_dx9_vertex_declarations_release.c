@@ -11,10 +11,10 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h> // memset
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
 
 // Releases every vertex declaration created by rasterizer_dx9_vertex_declarations_create and

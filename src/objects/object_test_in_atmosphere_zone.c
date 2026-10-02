@@ -35,10 +35,10 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern data_array *object_data; // 0x008603b0
 extern uint8_t *local_player_globals; // 0x0087a478, same declaration as objects_update.c and
     // object_set_cluster_and_parent.c: the PVS dwords start at +0x18, not at the base

@@ -10,10 +10,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern void rasterizer_underwater_tint_jitter_update(BitmapData *lightmap); // 0x51f310, blam-cc: EAX
 
 void structure_picked_polygon_lightmap_begin(void *bitmap_data)

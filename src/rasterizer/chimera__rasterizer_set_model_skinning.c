@@ -13,10 +13,10 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 extern int16_t rasterizer_maximum_skinning_nodes; // 0x0069c67e (usually 0x3f)
 extern rasterizer_skinning_matrix rasterizer_skinning_palette[63]; // 0x007c04e0
 extern void *rasterizer_device; // 0x0071d174

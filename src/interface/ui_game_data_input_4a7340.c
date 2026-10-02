@@ -13,10 +13,10 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
-
 void ui_game_data_input_4a7340(widget_instance *widget)
 {
     widget->first_child->next_sibling->state = 0;
