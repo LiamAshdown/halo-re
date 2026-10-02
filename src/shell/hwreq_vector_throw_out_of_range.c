@@ -26,7 +26,7 @@ typedef struct hwreq_parse_exception {
 
 extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
-extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
+/* _CxxThrowException(void *, _ThrowInfo *) is declared by the C++ runtime headers (CRT: 0x639177) */
 
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 extern void *out_of_range_vtable; // 0x00655098
@@ -44,7 +44,7 @@ void hwreq_vector_throw_out_of_range(void)
     msvc_string_assign_n(&message, string_invalid_vector_subscript, 0x1b);
     hwreq_parse_exception_construct(&exception, &message);
     exception.vtable = (uint32_t)&out_of_range_vtable;
-    _CxxThrowException(&exception, out_of_range_throw_info);
+    _CxxThrowException(&exception, (_ThrowInfo *)out_of_range_throw_info);
 }
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */

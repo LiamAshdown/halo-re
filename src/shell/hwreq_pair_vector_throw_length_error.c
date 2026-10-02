@@ -25,7 +25,7 @@ typedef struct hwreq_parse_exception {
 
 extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
-extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
+/* _CxxThrowException(void *, _ThrowInfo *) is declared by the C++ runtime headers (CRT: 0x639177) */
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 extern void *length_error_vtable; // 0x0065508c
 extern const char string_vector_too_long[]; // 0x00672258 "vector<T> too long"
@@ -42,7 +42,7 @@ void hwreq_pair_vector_throw_length_error(void)
     msvc_string_assign_n(&message, string_vector_too_long, 0x12);
     hwreq_parse_exception_construct(&exception, &message);
     exception.vtable = (uint32_t)&length_error_vtable;
-    _CxxThrowException(&exception, length_error_throw_info);
+    _CxxThrowException(&exception, (_ThrowInfo *)length_error_throw_info);
 }
 #ifdef __cplusplus
 } /* HALO_CXX_LINKAGE */

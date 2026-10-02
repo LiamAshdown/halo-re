@@ -28,7 +28,7 @@ typedef struct hwreq_parse_exception {
 
 extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
-extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
+/* _CxxThrowException(void *, _ThrowInfo *) is declared by the C++ runtime headers (CRT: 0x639177) */
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
 extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, blam-cc: EDX
@@ -58,7 +58,7 @@ hwreq_map_node **tree_erase_one(msvc_std_map *tree, hwreq_map_node **result_hold
         msvc_string_assign_n(&message, "invalid map/set<T> iterator", 0x1b); // 0x00672228
         hwreq_parse_exception_construct(&exception, &message);
         exception.vtable = (uint32_t)&out_of_range_vtable;
-        _CxxThrowException(&exception, out_of_range_throw_info);
+        _CxxThrowException(&exception, (_ThrowInfo *)out_of_range_throw_info);
     }
     tree_iterator_increment(&successor);
     head = NODE(tree->head);

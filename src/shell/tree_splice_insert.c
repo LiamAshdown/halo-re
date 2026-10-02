@@ -35,7 +35,7 @@ typedef struct hwreq_parse_exception {
 
 extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
-extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
+/* _CxxThrowException(void *, _ThrowInfo *) is declared by the C++ runtime headers (CRT: 0x639177) */
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
 extern hwreq_map_node *tree_node_allocate(uint32_t left, uint32_t parent, uint32_t right, uint8_t color,
@@ -64,7 +64,7 @@ hwreq_map_node **tree_splice_insert(msvc_std_map *tree, hwreq_map_node *parent, 
         msvc_string_assign_n(&message, "map/set<T> too long", 0x13); // 0x00672244
         hwreq_parse_exception_construct(&exception, &message);
         exception.vtable = (uint32_t)&length_error_vtable;
-        _CxxThrowException(&exception, length_error_throw_info);
+        _CxxThrowException(&exception, (_ThrowInfo *)length_error_throw_info);
     }
     node = tree_node_allocate((uint32_t)head, (uint32_t)parent, (uint32_t)head, 0, value);
     tree->size++;
