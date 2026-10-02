@@ -40,7 +40,7 @@ void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_
         if (self->capacity == 0) {
             self->capacity = 0x20;
         }
-        self->text = (wchar_t *)heap_reallocate(0, (uint16_t)((int16_t)self->capacity) << 1,
+        self->text = (uint16_t *)heap_reallocate(0, (uint16_t)((int16_t)self->capacity) << 1,
             widget_memory_pool);
         self->length = 0;
         self->start_column = reset_column;
@@ -54,12 +54,12 @@ void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_
                 } else {
                     self->capacity = self->capacity * 2;
                 }
-                self->text = (wchar_t *)heap_reallocate(self->text,
+                self->text = (uint16_t *)heap_reallocate(self->text,
                     (uint16_t)((int16_t)self->capacity) << 1, widget_memory_pool);
             } while (self->capacity <= self->length + 1 + text_length);
         }
         if (self->text != 0) {
-            wcscpy(self->text + self->length, text);
+            wcscpy((wchar_t *)self->text + self->length, (const wchar_t *)text);
             self->length = self->length + text_length;
         }
     }

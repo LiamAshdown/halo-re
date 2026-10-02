@@ -48,7 +48,7 @@ network_receive_queue *network_receive_queue_new(void)
             buffer->write_cursor = 0;
             buffer->capacity = 0;
             buffer->data = 0;
-            buffer->name = "received_data_queue";
+            buffer->name = (char *)"received_data_queue";
             buffer->signature = 0x63697263; // 'circ'
             buffer->capacity = 0x10001;
             buffer->data = (uint8_t *)buffer + 0x18;

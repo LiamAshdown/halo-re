@@ -30,12 +30,12 @@ void message_delta_parameters_protocol_reload_from_config_file(void)
     if (message_delta_parameters_enabled == 1) {
         file = fopen("parameters.cfg", message_delta_config_mode_string);
         if (file != 0) {
-            fseek(file, 0, 2);
-            length = ftell(file);
-            fseek(file, 0, 0);
-            fread(message_delta_config_text_buffer, 1, length, file);
+            fseek((FILE *)file, 0, 2);
+            length = ftell((FILE *)file);
+            fseek((FILE *)file, 0, 0);
+            fread(message_delta_config_text_buffer, 1, length, (FILE *)file);
             message_delta_config_text_buffer[length] = 0;
-            fclose(file);
+            fclose((FILE *)file);
         }
     }
 }

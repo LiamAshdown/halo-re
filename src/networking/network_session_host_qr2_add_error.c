@@ -17,5 +17,5 @@ void network_session_host_qr2_add_error(int32_t error, char *message, void *user
 {
     (void)error;
     (void)user_data;
-    console_printf_verbose((ColorARGB *)console_message_default_color, "qr2_adderror_callback - %s", message);
+    console_printf_verbose((ColorARGB *)console_message_default_color, (char *)"qr2_adderror_callback - %s", message);
 }

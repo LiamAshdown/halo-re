@@ -37,8 +37,8 @@ void message_delta_parameters_protocol_dump_to_config_file(void)
     if (message_delta_parameters_enabled == 1) {
         file = fopen("parameters.cfg", message_delta_config_write_mode_string);
         if (file != 0) {
-            fprintf(file, message_delta_config_text_buffer);
-            fclose(file);
+            fprintf((FILE *)file, message_delta_config_text_buffer);
+            fclose((FILE *)file);
         }
         message_delta_parameters_protocol_free_registered();
     }

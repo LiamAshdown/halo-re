@@ -39,7 +39,7 @@ network_player_entry *sv_find_client_by_name_or_index(char *name_or_index) // bl
         string_convert_ascii_to_unicode(wide_name, 0x1a, name_or_index); // 0x4e3f8d: EDI = 0x1a bytes (13 characters)
         for (i = 0; i < 0x10; i = i + 1) {
             network_player_entry *entry = &session->players[i];
-            if (network_player_entry_validate(entry) != 0 && wcscmp(wide_name, (uint16_t *)entry->name) == 0) {
+            if (network_player_entry_validate(entry) != 0 && wcscmp((const wchar_t *)wide_name, (const wchar_t *)entry->name) == 0) {
                 return entry;
             }
         }

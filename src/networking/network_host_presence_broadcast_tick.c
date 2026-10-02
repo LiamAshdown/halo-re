@@ -52,7 +52,7 @@ void network_host_presence_broadcast_tick(network_client_globals *client)
         client->last_presence_broadcast_ms = now_ms;
         if (cache_file_request_map(1) != 0) { // UNSURE argument
             memset(buffer, 0, sizeof(buffer));
-            strncpy(buffer, network_build_string, 0x100);
+            strncpy((char *)buffer, network_build_string, 0x100);
 
             // 0x4dae54: eax = 0x15; 0x4dae50: edx = the staged announcement scratch.
             challenge = (int32_t *)network_prepare_challenge_packet(0x15, buffer);

@@ -56,7 +56,7 @@ int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *uni
         if (*p != 0) {
             int32_t lowered = tolower((uint8_t)*p);
             unit_from_table = (char)lowered;
-            if (strchr(unit_table, lowered) == 0) {
+            if (strchr((char *)unit_table, lowered) == 0) {
                 unit_from_table = resolved_unit;
             }
         }

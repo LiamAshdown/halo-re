@@ -99,7 +99,7 @@ char *autopatch_get_proxy_settings(void)
 
     // 1. the WinInet proxy setting
     query_length = 0x3ff;
-    if (InternetQueryOptionA(0, 0x26, query_buffer, &query_length) && query_length > 1 &&
+    if (InternetQueryOptionA(0, 0x26, query_buffer, (LPDWORD)&query_length) && query_length > 1 &&
         ((internet_proxy_info *)query_buffer)->proxy != 0) {
         strncpy(proxy_list, ((internet_proxy_info *)query_buffer)->proxy, 0x400);
         proxy_list[0x3ff] = 0;
@@ -109,9 +109,9 @@ char *autopatch_get_proxy_settings(void)
     if (proxy_list[0] == 0) {
         winhttp = LoadLibraryA("winhttp.dll");
         if (winhttp != 0) {
-            get_proxy_for_url = (winhttp_get_proxy_for_url_proc)GetProcAddress(winhttp, "WinHttpGetProxyForUrl");
-            open = (winhttp_open_proc)GetProcAddress(winhttp, "WinHttpOpen");
-            close_handle = (winhttp_close_handle_proc)GetProcAddress(winhttp, "WinHttpCloseHandle");
+            get_proxy_for_url = (winhttp_get_proxy_for_url_proc)GetProcAddress((HMODULE)winhttp, "WinHttpGetProxyForUrl");
+            open = (winhttp_open_proc)GetProcAddress((HMODULE)winhttp, "WinHttpOpen");
+            close_handle = (winhttp_close_handle_proc)GetProcAddress((HMODULE)winhttp, "WinHttpCloseHandle");
             if (get_proxy_for_url != 0 && open != 0 && close_handle != 0) {
                 session = open(k_agent_halopc, 0, 0, 0, 0);
                 if (session != 0) {
@@ -124,7 +124,7 @@ char *autopatch_get_proxy_settings(void)
                     if (get_proxy_for_url(session, k_bungie_url, &options, &proxy_info)) {
                         if (proxy_info.proxy != 0) {
                             if (proxy_info.proxy[0] != 0) {
-                                WideCharToMultiByte(0, 0, proxy_info.proxy, -1, proxy_list, 0x400, 0, 0);
+                                WideCharToMultiByte(0, 0, (LPCWCH)proxy_info.proxy, -1, proxy_list, 0x400, 0, 0);
                                 proxy_list[0x3ff] = 0;
                             }
                             if (proxy_info.proxy != 0) {
@@ -138,7 +138,7 @@ char *autopatch_get_proxy_settings(void)
                     close_handle(session);
                 }
             }
-            FreeLibrary(winhttp);
+            FreeLibrary((HMODULE)winhttp);
         }
         if (proxy_list[0] == 0) {
             return autopatch_proxy_server;

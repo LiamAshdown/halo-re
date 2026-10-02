@@ -21,12 +21,12 @@ uint32_t registry_get_dist_id(void)
     uint32_t size = 4;
     void *key;
 
-    if (RegOpenKeyExA((void *)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0x20019,
+    if (RegOpenKeyExA((HKEY)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0x20019,
                        (PHKEY)&key) == 0) {
-        if (RegQueryValueExA(key, "DistID", 0, 0, (uint8_t *)&dist_id, &size) != 0) {
+        if (RegQueryValueExA((HKEY)key, "DistID", 0, 0, (uint8_t *)&dist_id, (LPDWORD)&size) != 0) {
             dist_id = 0;
         }
-        RegCloseKey(key);
+        RegCloseKey((HKEY)key);
     }
     return dist_id;
 }

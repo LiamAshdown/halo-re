@@ -16,8 +16,8 @@ uint8_t message_delta_normal_initialize(message_delta_field_type *field_type)
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
 
     if (message_delta_parameters_enabled == 1) {
-        message_delta_parameters_protocol_register(field_type->name, "bits_theta_internet", 1, descriptor);
-        message_delta_parameters_protocol_register(field_type->name, "bits_phi_internet", 1, descriptor + 1);
+        message_delta_parameters_protocol_register(field_type->name, (char *)"bits_theta_internet", 1, descriptor);
+        message_delta_parameters_protocol_register(field_type->name, (char *)"bits_phi_internet", 1, descriptor + 1);
     }
     return descriptor[0] > 0 && descriptor[1] > 0 && descriptor[2] > 0 && descriptor[3] > 0;
 }

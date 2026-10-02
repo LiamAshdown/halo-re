@@ -52,7 +52,7 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments) // b
             *p = (char)tolower((uint8_t)*p);
         }
     }
-    chimera__console_out((ColorARGB *)console_color_00685214, "Maps matching substring \"%s\" :", filter);
+    chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Maps matching substring \"%s\" :", filter);
     i = 0;
     while (i < map_list_count) {
         char line[256];

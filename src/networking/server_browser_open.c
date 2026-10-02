@@ -123,7 +123,7 @@ int32_t server_browser_open(network_ui_widget *root)
         if (motd_available != 0) {
             DAT_00695420 = autopatch_download_start(motd_string);
             DAT_00719698 = 1;
-            join_game_ticker_string_copy(DAT_00719498, 0x100, 4);
+            join_game_ticker_string_copy((uint16_t *)DAT_00719498, 0x100, 4);
         }
     }
     if (DAT_00719498[0] == 0) {
@@ -132,7 +132,7 @@ int32_t server_browser_open(network_ui_widget *root)
             "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
             source = text_string_list_get_string(tag_index, 0);
-            wcsncpy(DAT_00719498, source, 0xff);
+            wcsncpy(DAT_00719498, (const wchar_t *)source, 0xff);
             DAT_00719696 = 0;
         }
     }

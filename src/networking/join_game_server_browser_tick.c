@@ -326,27 +326,27 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
         w_iter = browser_widget->status_root->first_child;
         if (bVar11) {
             label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
-            w_iter->label_text = (wchar_t *)label;
+            w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
-                join_game_ticker_string_copy(scratch_80, 0x40, 6);
-                string_format_wide_va_bounded(0x1f, w_iter->label_text, L"%s %d", scratch_80, player_count);
+                join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 6);
+                string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, player_count);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
             label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
-            w_iter->label_text = (wchar_t *)label;
+            w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
-                join_game_ticker_string_copy(scratch_80, 0x40, 7);
-                string_format_wide_va_bounded(0x1f, w_iter->label_text, L"%s %d", scratch_80, server_browser_total_players);
+                join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 7);
+                string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, server_browser_total_players);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
             label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
-            w_iter->label_text = (wchar_t *)label;
+            w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 if (player_count < 1) {
                     w_iter->visible = 0;
@@ -358,8 +358,8 @@ int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
                     } else if (page_count < current_page) {
                         current_page = page_count;
                     }
-                    join_game_ticker_string_copy(scratch_80, 0x40, 8);
-                    string_format_wide_va_bounded(0x1f, w_iter->label_text, L"%s %d/%d", scratch_80, current_page, page_count);
+                    join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 8);
+                    string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d/%d", scratch_80, current_page, page_count);
                     *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
                     w_iter->visible = 1;
                 }
@@ -460,7 +460,7 @@ scroll_fade_settled:
                 got_result = autopatch_download_get_result((void **)&result_a, &result_b, autopatch_slot);
                 if (got_result != 0) {
                     if (result_a == 0 || result_b == 0) {
-                        join_game_ticker_string_copy(DAT_00719498, 0x100, 5);
+                        join_game_ticker_string_copy((uint16_t *)DAT_00719498, 0x100, 5);
                         autopatch_slot = DAT_00695420;
                     } else {
                         // 0x4b88bc: mov edi,0x200 / mov eax,0x719498, with ebx = result_a
@@ -489,10 +489,10 @@ scroll_fade_settled:
                 DAT_00695420 = -1;
                 DAT_00719698 = 2;
                 DAT_00719498[0] = 0;
-                tag_idx = tag_lookup(0x75737472, "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels"); // 'ustr'
+                tag_idx = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels"); // 'ustr'
                 if (tag_idx != -1) {
                     src = text_string_list_get_string(tag_idx, 5);
-                    wcsncpy(DAT_00719498, src, 0xff);
+                    wcsncpy(DAT_00719498, (const wchar_t *)src, 0xff);
                     DAT_00719696 = 0;
                 }
                 if (server_browser_selected_index == -1) {

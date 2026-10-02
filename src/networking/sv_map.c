@@ -45,7 +45,7 @@ extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b
 void sv_map(uint32_t argument_count, uint16_t **arguments)
 {
     if (argument_count == 0 || arguments == 0 || game_engine_is_map_and_variant_valid() == 0) {
-        chimera__console_out((ColorARGB *)global_white_argb, "sv_map specified invalid map or game variant");
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_map specified invalid map or game variant");
         return;
     }
 
@@ -73,7 +73,7 @@ void sv_map(uint32_t argument_count, uint16_t **arguments)
         return;
     }
 
-    chimera__console_out((ColorARGB *)console_message_default_color, "sv_map is a server-only function!");
+    chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_map is a server-only function!");
 }
 
 #if 0

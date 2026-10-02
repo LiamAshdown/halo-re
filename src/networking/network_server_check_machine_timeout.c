@@ -156,7 +156,7 @@ not_timed_out:
                         int32_t encoded;
 
                         session_ptr = &server->session;
-                        encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &session_ptr, 0, 1, 0);
+                        encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, (void **)&session_ptr, 0, 1, 0);
                         if (encoded > 0) {
                             network_session_broadcast_to_all(network_server, 1, network_message_scratch,
                                 1, 0, 1, 3);

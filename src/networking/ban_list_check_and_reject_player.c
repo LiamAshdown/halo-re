@@ -40,7 +40,7 @@ uint8_t ban_list_check_and_reject_player(char *key) // blam-cc: EDI -> key
                 return 0;
             }
         }
-        chimera__console_out((ColorARGB *)0, "Rejecting banned player %s (%s).", entry, key);
+        chimera__console_out((ColorARGB *)0, (char *)"Rejecting banned player %s (%s).", entry, key);
         return 1;
     }
     return 0;

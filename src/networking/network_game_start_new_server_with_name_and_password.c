@@ -131,9 +131,9 @@ uint8_t network_game_start_new_server_with_name_and_password(uint32_t unused, ui
         // UNSURE: server+0x9d5 (inside network_server_globals::unknown_9bc); cleared here.
         *((uint8_t *)network_server + 0x9d5) = 0;
         // UNSURE: writes a wide name across server+0x008..+0x086 -- see this file's header note.
-        wcsncpy((uint16_t *)((uint8_t *)network_server + 8), name, 0x3f);
+        wcsncpy((wchar_t *)((uint8_t *)network_server + 8), (const wchar_t *)name, 0x3f);
         *(uint16_t *)((uint8_t *)network_server + 0x86) = 0;
-        wcsncpy(network_server->password, password, 8);
+        wcsncpy((wchar_t *)network_server->password, (const wchar_t *)password, 8);
         network_server->password[8] = 0;
         {
             int32_t max_players = sv_maxplayers_value;

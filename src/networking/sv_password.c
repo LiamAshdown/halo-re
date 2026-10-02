@@ -40,7 +40,7 @@ void sv_password(uint32_t argument_count, char **arguments)
 
     if (argument_count == 0) {
     report:
-        chimera__console_out((ColorARGB *)0, "sv_password: %ls", network_server_password);
+        chimera__console_out((ColorARGB *)0, (char *)"sv_password: %ls", network_server_password);
         return;
     }
     if (argument_count == 1) {
@@ -56,7 +56,7 @@ void sv_password(uint32_t argument_count, char **arguments)
                 }
                 if (ok != 0) {
                     network_server_globals *server = network_server;
-                    wcsncpy(network_server_password, scratch, 8);
+                    wcsncpy((wchar_t *)network_server_password, (const wchar_t *)scratch, 8);
                     network_server_password_is_default = 0;
                     if (server != 0) {
                         network_server_password_set(scratch, server);
@@ -64,12 +64,12 @@ void sv_password(uint32_t argument_count, char **arguments)
                     goto report;
                 }
             }
-            chimera__console_out((ColorARGB *)0, "Server passwords must only contain printable ASCII characters supported by the Halo UI.");
+            chimera__console_out((ColorARGB *)0, (char *)"Server passwords must only contain printable ASCII characters supported by the Halo UI.");
         } else {
-            chimera__console_out((ColorARGB *)0, "Server passwords must be no more than %d characters.", 8);
+            chimera__console_out((ColorARGB *)0, (char *)"Server passwords must be no more than %d characters.", 8);
         }
     }
-    chimera__console_out((ColorARGB *)0, "Incorrect usage. Type help sv_password for more information.");
+    chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_password for more information.");
 }
 
 #if 0

@@ -37,7 +37,7 @@ uint32_t autopatch_download_pool_shutdown(void)
 
     autopatch_download_active_count = 1;
     do {
-        while (GetExitCodeThread(autopatch_download_thread->handle, &exit_code) == 0) {
+        while (GetExitCodeThread(autopatch_download_thread->handle, (LPDWORD)&exit_code) == 0) {
         }
     } while (exit_code == 0x103);
 

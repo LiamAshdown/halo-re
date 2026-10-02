@@ -52,36 +52,36 @@ void network_server_handle_rcon_request(network_player_entry *client, void *mess
 
     if (*(int32_t *)*(int32_t *)message != 0) {
         message_delta_decode_compound_field_staged(message);
-        chimera__console_out((ColorARGB *)global_white_argb, "Ignoring meaningless rcon_request message from client #%d", machine_id);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring meaningless rcon_request message from client #%d", machine_id);
         return;
     }
     memset(&decode, 0, sizeof(decode));
     if (message_delta_decode_compound_field(message, &decode) == 0) {
-        chimera__console_out((ColorARGB *)global_white_argb, "Could not decode rcon message from client #%d", machine_id);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Could not decode rcon message from client #%d", machine_id);
         return;
     }
     if (sv_rcon_password_value[0] == 0) {
-        chimera__rcon_out("rcon command ignored (rcon is disabled)", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, "Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
+        chimera__rcon_out((char *)"rcon command ignored (rcon is disabled)", machine_id);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
         return;
     }
     if (strcmp(sv_rcon_password_value, decode.password) != 0) {
-        chimera__rcon_out("rcon command ignored (bad password)", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, "Ignoring rcon request from client #%d (bad password)", machine_id);
+        chimera__rcon_out((char *)"rcon command ignored (bad password)", machine_id);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (bad password)", machine_id);
         return;
     }
     if (decode.command[0] == 0) {
-        chimera__rcon_out("rcon command ignored (empty)", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, "Ignoring rcon request from client #%d (empty command)", machine_id);
+        chimera__rcon_out((char *)"rcon command ignored (empty)", machine_id);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
         return;
     }
     if (console_process_rcon_command(decode.command) != 0) {
-        chimera__rcon_out("rcon command finished", machine_id);
-        chimera__console_out((ColorARGB *)global_white_argb, "Successfully executed rcon command from client #%d.", machine_id + 1);
+        chimera__rcon_out((char *)"rcon command finished", machine_id);
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
         return;
     }
-    chimera__rcon_out("rcon command failed", machine_id);
-    chimera__console_out((ColorARGB *)global_white_argb, "Failure executing rcon command from client #%d.", machine_id);
+    chimera__rcon_out((char *)"rcon command failed", machine_id);
+    chimera__console_out((ColorARGB *)global_white_argb, (char *)"Failure executing rcon command from client #%d.", machine_id);
 }
 
 #if 0

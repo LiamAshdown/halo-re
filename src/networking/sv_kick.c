@@ -44,14 +44,14 @@ void sv_kick(char *name_or_index) // blam-cc: EAX -> name_or_index
     network_machine *machine;
 
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)console_message_default_color, "sv_kick is a server-only function!");
+        chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_kick is a server-only function!");
         return;
     }
     player = sv_find_client_by_name_or_index(name_or_index);
     if (player != 0) {
         machine = network_machine_find_by_id(network_server, player->machine_index);
         if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-            chimera__console_out((ColorARGB *)global_white_argb, "sv_kick:  Can't kick a local client!");
+            chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_kick:  Can't kick a local client!");
             return;
         }
         network_server_notify_or_resend_challenge(7, machine, network_server);

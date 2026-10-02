@@ -35,7 +35,7 @@ int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, 
     int32_t field_count;
     int32_t i;
 
-    stream = state->stream;
+    stream = (bit_stream *)state->stream;
     position = stream->bit_cursor + stream->byte_cursor * 8;
     total_bits = 0;
     if (stream->first_bit <= position && position <= stream->last_bit) {

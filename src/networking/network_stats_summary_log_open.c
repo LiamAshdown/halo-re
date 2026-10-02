@@ -66,7 +66,7 @@ void network_stats_summary_log_open(void)
             tm_now = localtime(&now);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = network_log_path_resolve("Gamespy Metrics"); // FIXED: was join_game_server_browser_tick (a different function); ESI = the "Gamespy Metrics" text (0x4406f4..0x4406f8)
+            base_path = network_log_path_resolve((char *)"Gamespy Metrics"); // FIXED: was join_game_server_browser_tick (a different function); ESI = the "Gamespy Metrics" text (0x4406f4..0x4406f8)
             strcpy(path_buf, base_path);
             directory_create_recursive(path_buf);
 

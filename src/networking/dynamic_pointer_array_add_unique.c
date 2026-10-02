@@ -72,7 +72,7 @@ int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array
             new_data = GlobalReAlloc(new_data, new_bytes, 2);
         }
         array->capacity = new_capacity;
-        array->list = new_data;
+        array->list = (void **)new_data;
     }
 
     array->list[array->result_count] = value;

@@ -87,8 +87,8 @@ uint8_t autopatch_download_pool_initialize(void)
                 thread_slot = &network_thread_table[i];
                 thread_slot->handle = 0;
                 network_thread_table[i].in_use = 1;
-                thread_slot->handle = CreateThread(0, 0x4000, (void *)autopatch_download_worker_thread,
-                                                    0, 4, &thread_id);
+                thread_slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)autopatch_download_worker_thread,
+                                                    0, 4, (LPDWORD)&thread_id);
                 autopatch_download_thread = thread_slot;
                 if (thread_slot->handle != 0) {
                     if (SetThreadPriority(thread_slot->handle, 0) != 0 &&

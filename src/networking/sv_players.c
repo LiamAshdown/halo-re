@@ -78,7 +78,7 @@ void sv_players(void)
     int32_t remaining;
 
     if (network_game_mode != 2) {
-        chimera__console_out((ColorARGB *)global_white_argb, "sv_players is a server-only function!");
+        chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_players is a server-only function!");
         return;
     }
 
