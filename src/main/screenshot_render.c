@@ -140,7 +140,7 @@ void screenshot_render(render_view *views)
                 request.signature = 0x66696c6f; // 'filo'
                 request.location = -1;
                 if ((request.flags & 1) != 0) {
-                    path_remove_last_component((uint8_t *)&request.path); // see file header UNSURE
+                    path_remove_last_component((uint8_t *)&request.path); // dead: request is freshly zeroed (see VERIFIED note in file header)
                 }
                 if (filename[0] != 0) {
                     strncpy(request.path, filename, 0xff);   // path is empty: no separator added
