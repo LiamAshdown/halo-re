@@ -31,12 +31,12 @@ int16_t ai_conversation_get_unknown_48(int16_t conversation_definition_index)
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = data_iterator_next(&iterator);
+    instance = (ai_conversation *)data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             return instance->line_index;
         }
-        instance = data_iterator_next(&iterator);
+        instance = (ai_conversation *)data_iterator_next(&iterator);
     }
     return 999;
 }

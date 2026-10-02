@@ -71,7 +71,7 @@ void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint3
         return;
     }
 
-    found = object_get_node_local_transform(unit_index, "melee", &melee_marker, 1);
+    found = object_get_node_local_transform(unit_index, (char *)"melee", &melee_marker, 1);
     if (found == 1) {
         real_vector3d delta;
         uint8_t scratch[0x54]; // UNSURE: raw scratch buffer for collision_test_movement_segment

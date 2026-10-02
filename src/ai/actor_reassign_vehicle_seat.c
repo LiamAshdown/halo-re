@@ -56,7 +56,7 @@ int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_inde
 
     occupant = (datum_index)k_datum_index_none;
     if (vehicle_object_index != (datum_index)k_datum_index_none) {
-        vehicle_obj = object_try_and_get(vehicle_object_index, 3);
+        vehicle_obj = (object *)object_try_and_get(vehicle_object_index, 3);
         if (vehicle_obj != 0) {
             vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
             occupant = (datum_index)k_datum_index_none;

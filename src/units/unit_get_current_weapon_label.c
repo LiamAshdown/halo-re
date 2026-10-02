@@ -29,7 +29,7 @@ char *unit_get_current_weapon_label(uint32_t unit_index) // blam-cc: in_EAX
             return (char *)(tag_instances[weapon_obj->definition_tag & 0xffff].data) + 0x30c;
         }
     }
-    return "unarmed";
+    return (char *)"unarmed";
 }
 
 #if 0

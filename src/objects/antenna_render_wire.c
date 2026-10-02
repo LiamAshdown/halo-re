@@ -29,7 +29,7 @@
 #include "objects.h"
 
 extern void build_sprites_end(void); // 0x511620, unexamined, called once at the end unconditionally
-extern void build_sprite(); // 0x511700, eight stack arguments.
+extern void build_sprite(int32_t, uint8_t *, real_vector3d *, int32_t, void *, ColorARGB *, float, int32_t); // 0x511700, eight stack arguments. CXX: arg types taken from the one call site below, real prototype unknown
     // The two call sites in this module disagree on the types of arguments 3 and 7
     // (a vector versus a marker record, a float versus a pointer), so no prototype is
     // asserted -- see the FUN_00450870 convention used elsewhere in this module.

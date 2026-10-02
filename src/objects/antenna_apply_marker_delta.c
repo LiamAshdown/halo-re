@@ -42,7 +42,7 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
     // 0x5013a0; globals in ECX, point in EDX, index in EAX (established by
     // object_light_recompute_transform.c's identical call site)
-extern int32_t __ftol(); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
+extern int32_t __ftol(double); // 0x006391b4, MSVC 7.1 CRT x87 float-to-int truncation
     // (verified by disassembling 0x006391b4: fld st(0) / fst [esp+0x18] / fistp qword /
     // fild qword ... , the classic _ftol2 body). The value arrives on the x87 stack, so
     // some call sites show a visible float argument and others show none; the empty

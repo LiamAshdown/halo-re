@@ -93,7 +93,7 @@ uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float 
             scaled.j = direction.j * 3.0f;
             scaled.k = direction.k * 3.0f;
             // collision_test_movement_segment returns nonzero when the trace is obstructed; 0 (clear) accepts.
-            if (!collision_test_movement_segment(0x21, origin, &scaled, (uint32_t)k_datum_index_none, trace_buffer)) {
+            if (!collision_test_movement_segment(0x21, (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, trace_buffer)) {
                 break;
             }
         }

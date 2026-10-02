@@ -43,7 +43,7 @@ int32_t ai_conversation_get_status(int16_t conversation_definition_index)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    instance = data_iterator_next(&iterator);
+    instance = (ai_conversation *)data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             if (instance->active == 0) {
@@ -57,7 +57,7 @@ int32_t ai_conversation_get_status(int16_t conversation_definition_index)
                 best = status;
             }
         }
-        instance = data_iterator_next(&iterator);
+        instance = (ai_conversation *)data_iterator_next(&iterator);
     }
     if ((int16_t)best != 0) {
         return best;

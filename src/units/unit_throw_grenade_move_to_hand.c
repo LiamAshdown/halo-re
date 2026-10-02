@@ -64,7 +64,7 @@ void unit_throw_grenade_move_to_hand(uint32_t unit_index)
     //   (+0x23c) and up = normalize(perpendicular(forward)). The draft wrote a perpendicular into +0x20 and
     //   left the position at the unit origin.
     object_marker hand_marker;
-    object_get_node_local_transform(unit_index, "left hand", &hand_marker, 1);
+    object_get_node_local_transform(unit_index, (char *)"left hand", &hand_marker, 1);
 
     object_placement_data placement;
     object_placement_data_initialize(&placement, *(datum_index *)(grenade_table + grenade_type * 0x44 + 0x40),

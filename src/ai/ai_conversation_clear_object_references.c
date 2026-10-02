@@ -48,7 +48,7 @@ void ai_conversation_clear_object_references(datum_index object_index, uint8_t f
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = data_iterator_next(&iterator);
+    instance = (ai_conversation *)data_iterator_next(&iterator);
     while (instance != 0) {
         definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
         referenced = 0;
@@ -91,7 +91,7 @@ void ai_conversation_clear_object_references(datum_index object_index, uint8_t f
                 return;
             }
         }
-        instance = data_iterator_next(&iterator);
+        instance = (ai_conversation *)data_iterator_next(&iterator);
     }
 }
 

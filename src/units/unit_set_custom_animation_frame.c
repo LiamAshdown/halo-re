@@ -53,7 +53,7 @@ uint8_t unit_set_custom_animation_frame(uint32_t unit_index, uint8_t warn_if_mis
         return 0;
     }
 
-    graph_tag = tag_instances[obj->animation_graph & 0xffff].data;
+    graph_tag = (uint8_t *)tag_instances[obj->animation_graph & 0xffff].data;
     {
         uint8_t *anim_block = *(uint8_t **)(graph_tag + 0x78);
         int16_t frame_count = *(int16_t *)(anim_block + obj->animation_index * 0xb4 + 0x22);

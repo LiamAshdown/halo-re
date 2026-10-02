@@ -50,12 +50,12 @@ void vehicle_create_hover_thruster_midpoint_effects(uint32_t unit_index)
     uint8_t markers[15 * 0x6c];
     int16_t count;
     int16_t i;
-    static char *names[4] = { "incident", "normal", "reflected", "midpoint" };
+    static char *names[4] = { (char *)"incident", (char *)"normal", (char *)"reflected", (char *)"midpoint" };
 
     if (*(int32_t *)(tag + 0x3ec) == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
         return;
     }
-    count = (int16_t)object_get_node_local_transform(unit_index, "hover thrusters", markers, 0xf);
+    count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
     for (i = 0; i < count; i++) {
         uint8_t *marker = markers + (int32_t)i * 0x6c;
         real_point3d *marker_position = (real_point3d *)(marker + 0x60);

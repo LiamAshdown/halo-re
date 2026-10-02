@@ -36,12 +36,12 @@ void ai_conversation_stop_all(int16_t conversation_definition_index)
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = data_iterator_next(&iterator);
+    instance = (ai_conversation *)data_iterator_next(&iterator);
     while (instance != 0) {
         if (instance->definition_index == conversation_definition_index) {
             ai_conversation_stop(iterator.index, 0, 0);
         }
-        instance = data_iterator_next(&iterator);
+        instance = (ai_conversation *)data_iterator_next(&iterator);
     }
 }
 

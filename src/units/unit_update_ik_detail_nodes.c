@@ -74,7 +74,7 @@ void unit_update_ik_detail_nodes(uint32_t object_index, void *node_base)
             for (i = 0; i < count; i++) {
                 uint8_t *entry = table + i * 0x40;
                 object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
-                    obj->parent_object, (char *)(entry + 0x20), node_base);
+                    obj->parent_object, (char *)(entry + 0x20), (uint8_t *)node_base);
             }
         }
 
@@ -92,7 +92,7 @@ void unit_update_ik_detail_nodes(uint32_t object_index, void *node_base)
                     weapon_handle = fresh_unit->weapons[current_weapon];
                 }
                 object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
-                    weapon_handle, (char *)(entry + 0x20), node_base);
+                    weapon_handle, (char *)(entry + 0x20), (uint8_t *)node_base);
             }
             unit->animation_state_flags &= 0xfffe;
         }

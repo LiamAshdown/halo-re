@@ -21,7 +21,7 @@ void widgets_initialize(void)
 {
     int32_t i;
 
-    widget_data = game_state_new("widget", k_maximum_widgets, 0xc /* EBX at the original call */);
+    widget_data = game_state_new((char *)"widget", k_maximum_widgets, 0xc /* EBX at the original call */);
     for (i = 0; i < k_maximum_widget_types; i++) {
         if (widget_type_definitions[i].initialize != 0) {
             ((void (*)(void))widget_type_definitions[i].initialize)();

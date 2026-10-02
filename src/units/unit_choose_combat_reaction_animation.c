@@ -87,12 +87,15 @@ uint8_t unit_choose_combat_reaction_animation(uint32_t unit_index, const datum_i
             reaction_id = 7;
         }
     } else {
-        datum_index actor = unit->swarm_actor_index;
+        datum_index actor;
+        actor = unit->swarm_actor_index;
         if (actor == (datum_index)-1) {
             actor = unit->actor_index;
         }
-        uint8_t near_tag_detection = 0;
-        uint8_t past_distance_bias = 0;
+        uint8_t near_tag_detection;
+        uint8_t past_distance_bias;
+        near_tag_detection = 0;
+        past_distance_bias = 0;
 
         if (reaction_source != 0 && *reaction_source != (datum_index)-1) {
             near_tag_detection = *(float *)((uint8_t *)tag_instances[*reaction_source & 0xffff].data + 500) >= 2.0f; // UNSURE

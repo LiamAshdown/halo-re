@@ -36,7 +36,7 @@ void unit_ai_update_stagger_allocate(void)
 
     game_state_cursor = game_state_cursor + 8;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    ai_update_stagger = (void *)block;
+    ai_update_stagger = (ai_update_stagger_state *)block;
 }
 
 #if 0

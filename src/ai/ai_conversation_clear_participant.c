@@ -39,7 +39,7 @@ void ai_conversation_clear_participant(datum_index actor_index)
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    instance = data_iterator_next(&iterator);
+    instance = (ai_conversation *)data_iterator_next(&iterator);
     while (instance != 0) {
         definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
         participant_count = definition->participants.count;
@@ -57,7 +57,7 @@ void ai_conversation_clear_participant(datum_index actor_index)
                 }
             }
         }
-        instance = data_iterator_next(&iterator);
+        instance = (ai_conversation *)data_iterator_next(&iterator);
     }
 }
 

@@ -35,10 +35,10 @@ void ai_reference_respawn_all_players(uint32_t packed_reference)
         iterator.index = (datum_index)k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        p = data_iterator_next(&iterator);
+        p = (player *)data_iterator_next(&iterator);
         while (p != 0) {
             ai_reference_respawn_member(packed_reference, p->unit);
-            p = data_iterator_next(&iterator);
+            p = (player *)data_iterator_next(&iterator);
         }
     }
 }

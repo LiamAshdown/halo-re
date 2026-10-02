@@ -81,7 +81,7 @@ void lights_apply_spot_falloff(void)
                         position.z = radius * l->direction.k + l->position.z;
                     }
 
-                    structure_debug_draw_surfaces_in_box_alt(queue_slot, &position, radius, marker_count,
+                    structure_debug_draw_surfaces_in_box_alt((void *)queue_slot, &position, radius, marker_count,
                         is_cone ? (int16_t *)0 : references);
                         // FIXED (0x4f1905..0x4f1913): the buffer's address, or NULL for a cone light
                 }

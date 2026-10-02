@@ -71,7 +71,7 @@ void ai_clear_object_references(datum_index object_index)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = data_iterator_next(&iterator);
+    p = (prop *)data_iterator_next(&iterator);
     while (p != 0) {
         if (p->object_index == object_index) {
             // 0x42c1ec: stack the prop's actor, ESI -1, EDI the prop; then EAX actor, EDI prop
@@ -83,7 +83,7 @@ void ai_clear_object_references(datum_index object_index)
             p->is_vehicle_driver = 0;
             p->is_vehicle_gunner = 0;
         }
-        p = data_iterator_next(&iterator);
+        p = (prop *)data_iterator_next(&iterator);
     }
 
     ai_conversation_clear_object_references(object_index, 1);

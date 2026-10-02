@@ -17,7 +17,7 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 
 void antennas_initialize(void)
 {
-    antenna_data = game_state_new("antenna", k_maximum_antennas, 0x2bc /* EBX at the original call */);
+    antenna_data = game_state_new((char *)"antenna", k_maximum_antennas, 0x2bc /* EBX at the original call */);
 }
 
 #if 0

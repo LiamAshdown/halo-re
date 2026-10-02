@@ -30,7 +30,7 @@ extern cluster_reference_group light_cluster_first; // 0x00860b20 (light_cluster
 
 void lights_initialize(void)
 {
-    data_array *new_light_data = game_state_new("lights", k_maximum_lights, 0x7c /* EBX at the original call */);
+    data_array *new_light_data = game_state_new((char *)"lights", k_maximum_lights, 0x7c /* EBX at the original call */);
     uint8_t *checksum_slot = game_state_base + game_state_cursor;
     uint32_t size_marker = 4;
 
@@ -41,7 +41,7 @@ void lights_initialize(void)
     *checksum_slot = 1;
 
     if (new_light_data != 0) {
-        cluster_partition_new(&light_cluster_first, "light"); // 0x4f0a7f: EDI "light" 0x0066e6bc, ESI 0x00860b20
+        cluster_partition_new(&light_cluster_first, (char *)"light"); // 0x4f0a7f: EDI "light" 0x0066e6bc, ESI 0x00860b20
     }
 }
 

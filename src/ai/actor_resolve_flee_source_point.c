@@ -120,7 +120,7 @@ uint8_t actor_resolve_flee_source_point(actor_flee_source_reason *reason, real_v
     case 6: {
         real_point3d source_position;
 
-        target_object = object_try_and_get(reason->payload.handle, 0xffffffff);
+        target_object = (object *)object_try_and_get(reason->payload.handle, 0xffffffff);
         if (target_object == 0) {
             return 0;
         }
