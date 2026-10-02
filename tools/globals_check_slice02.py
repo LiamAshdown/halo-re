@@ -125,11 +125,9 @@ def main():
                 bad += 1
                 break
             kind, v = mem[w]
-            if (addr + off) % 4 == 0 and (off + 4 <= size) and (kind == "s" or 0x400000 <= v < 0x8a0000):
+            if kind == "s" or (0x400000 <= v < 0x8a0000 and addr % 4 == 0 and size % 4 == 0):
                 if off % 4 == 0:
                     retarget += 1
-                continue
-            if kind == "s":
                 continue
             exp = (v >> (8 * ((addr + off) & 3))) & 255
             if got[off] != exp:
