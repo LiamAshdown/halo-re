@@ -16,9 +16,9 @@
 
 extern void *std_exception_vtable; // 0x0064ef90
 
-void exception_destruct(void *this)
+void exception_destruct(void *self_)
 {
-    std_exception *self = (std_exception *)this;
+    std_exception *self = (std_exception *)self_;
 
     self->vftable = &std_exception_vtable;
     if (self->do_free != 0) {

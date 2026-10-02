@@ -14,7 +14,7 @@
 #include "shell.h"
 
 extern hwreq_map_node *tree_lower_bound(msvc_std_map *tree, const msvc_std_string *search_key); // 0x57c530, blam-cc: EAX tree, ECX key
-extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos, const char *s, uint32_t n2); // 0x57ce10
+extern int32_t string_compare(const msvc_std_string *self, uint32_t n1, uint32_t pos, const char *s, uint32_t n2); // 0x57ce10
 
 hwreq_map_node *hwreq_map_find(msvc_std_map *map, msvc_std_string *key)
 {

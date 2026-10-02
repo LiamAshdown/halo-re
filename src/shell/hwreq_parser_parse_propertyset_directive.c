@@ -30,12 +30,12 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
-extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
+extern void hwreq_parser_report_error(hwreq_parser *self, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
+extern char *hwreq_token_parse_quoted_string(hwreq_parser *self); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 extern hwreq_property_set **hwreq_property_set_map_index(msvc_std_string *key, msvc_std_map *map); // 0x57b6e0, blam-cc: key in EDI, map on the stack; library code, not in the function list; map::operator[], returns the (possibly freshly inserted) value slot
 extern void hwreq_property_set_flags_destruct(hwreq_property_set *set); // 0x57b990, blam-cc: set in EBX; library code, not in the function list
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
+extern uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for "propertyset" directives, parsing each one's
 // "= \"name\" { ... }" form into a freshly allocated property set that is registered in
@@ -43,7 +43,7 @@ extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *
 // unconsumed, returning true) at the first line starting with "vendor" or "applytoall", or once
 // the end of the file is reached. Returns false on a malformed directive or a failed nested
 // block parse.
-uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
+uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *self)
 {
     char *cursor;
     char *line;
@@ -56,21 +56,21 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
     hwreq_property_set **slot;
 
     for (;;) {
-        if (_strnicmp((char *)this->cursor, "propertyset", 11) == 0) {
-            cursor = (char *)this->cursor + 11;
+        if (_strnicmp((char *)self->cursor, "propertyset", 11) == 0) {
+            cursor = (char *)self->cursor + 11;
             c = *cursor;
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 while (*cursor == ' ' || *cursor == '\t') {
                     cursor++;
                 }
-                this->cursor = (uint32_t)cursor;
+                self->cursor = (uint32_t)cursor;
                 if (*cursor != '=') {
-                    hwreq_parser_report_error(this, "Missing =");
+                    hwreq_parser_report_error(self, "Missing =");
                     return 0;
                 }
-                this->cursor = this->cursor + 1;
+                self->cursor = self->cursor + 1;
 
-                quoted = hwreq_token_parse_quoted_string(this);
+                quoted = hwreq_token_parse_quoted_string(self);
                 if (quoted == 0) {
                     return 0;
                 }
@@ -86,25 +86,25 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
 
                 // consume the rest of the "propertyset = ..." line
                 do {
-                    line = (char *)this->cursor;
-                    this->cursor = (uint32_t)(line + 1);
+                    line = (char *)self->cursor;
+                    self->cursor = (uint32_t)(line + 1);
                     if (*line == '\r') break;
-                } while ((char *)this->cursor < (char *)this->end);
-                if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-                    this->cursor = (uint32_t)(line + 2);
+                } while ((char *)self->cursor < (char *)self->end);
+                if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+                    self->cursor = (uint32_t)(line + 2);
                 }
-                this->line_start = this->cursor;
-                this->line_number = this->line_number + 1;
+                self->line_start = self->cursor;
+                self->line_number = self->line_number + 1;
 
                 set = (hwreq_property_set *)malloc(k_hwreq_property_set_size);
                 if (set != 0) {
                     set->flags.first = 0;
                     set->flags.last = 0;
                     set->flags.end = 0;
-                    set->owner = (uint32_t)this;
+                    set->owner = (uint32_t)self;
                 }
 
-                result = hwreq_parser_parse_block(this, set);
+                result = hwreq_parser_parse_block(self, set);
                 if (result == 0) {
                     if (set != 0) {
                         hwreq_property_set_flags_destruct(set);
@@ -116,7 +116,7 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
                     return 0;
                 }
 
-                slot = hwreq_property_set_map_index(&name, &this->property_sets);
+                slot = hwreq_property_set_map_index(&name, &self->property_sets);
                 *slot = set;
 
                 if (name.capacity > k_msvc_string_inline_capacity) {
@@ -128,15 +128,15 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
 
                 goto skip_line_and_continue;
             }
-        } else if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
-            c = ((char *)this->cursor)[6];
+        } else if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
+            c = ((char *)self->cursor)[6];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break;
             }
         }
 
-        if (_strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
-            c = ((char *)this->cursor)[10];
+        if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
+            c = ((char *)self->cursor)[10];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break;
             }
@@ -144,17 +144,17 @@ uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *this)
 
     skip_line_and_continue:
         do {
-            line = (char *)this->cursor;
-            this->cursor = (uint32_t)(line + 1);
+            line = (char *)self->cursor;
+            self->cursor = (uint32_t)(line + 1);
             if (*line == '\r') break;
-        } while ((char *)this->cursor < (char *)this->end);
-        if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-            this->cursor = (uint32_t)(line + 2);
+        } while ((char *)self->cursor < (char *)self->end);
+        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+            self->cursor = (uint32_t)(line + 2);
         }
-        line = (char *)this->cursor;
-        this->line_start = this->cursor;
-        this->line_number = this->line_number + 1;
-        if ((char *)this->end <= line) {
+        line = (char *)self->cursor;
+        self->line_start = self->cursor;
+        self->line_number = self->line_number + 1;
+        if ((char *)self->end <= line) {
             return 1;
         }
     }

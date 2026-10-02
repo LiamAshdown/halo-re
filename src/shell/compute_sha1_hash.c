@@ -29,10 +29,10 @@ uint8_t compute_sha1_hash(const uint8_t *data, uint32_t length, uint8_t *digest_
 
     hash = 0;
     ok = 0;
-    if (CryptCreateHash(crypt_provider, 0x8004 /* CALG_SHA1 */, 0, 0, &hash) != 0) {
+    if (CryptCreateHash(crypt_provider, 0x8004 /* CALG_SHA1 */, 0, 0, (HCRYPTHASH *)&hash) != 0) {
         if (CryptHashData(hash, data, length, 0) != 0) {
             digest_length = 0x14;
-            ok = CryptGetHashParam(hash, 2 /* HP_HASHVAL */, digest_out, &digest_length, 0) != 0;
+            ok = CryptGetHashParam(hash, 2 /* HP_HASHVAL */, digest_out, (DWORD *)&digest_length, 0) != 0;
         }
     }
     if (hash != 0) {

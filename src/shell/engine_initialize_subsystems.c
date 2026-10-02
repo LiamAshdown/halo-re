@@ -76,21 +76,21 @@ uint8_t engine_initialize_subsystems(void)
 
     if (direct3d_create9 == 0) {
         d3d9_module = LoadLibraryA("d3d9.dll");
-        direct3d_create9 = GetProcAddress(d3d9_module, "Direct3DCreate9");
+        direct3d_create9 = GetProcAddress((HMODULE)d3d9_module, "Direct3DCreate9");
 
         if (shell_nosound == 0) {
             dsound_module = LoadLibraryA("dsound.dll");
-            direct_sound_create8 = GetProcAddress(dsound_module, "DirectSoundCreate8");
+            direct_sound_create8 = GetProcAddress((HMODULE)dsound_module, "DirectSoundCreate8");
         } else {
             dsound_module = 0;
             direct_sound_create8 = 0;
         }
 
         dinput8_module = LoadLibraryA("dinput8.dll");
-        direct_input8_create = GetProcAddress(dinput8_module, "DirectInput8Create");
+        direct_input8_create = GetProcAddress((HMODULE)dinput8_module, "DirectInput8Create");
 
         shfolder_module = LoadLibraryA("shfolder.dll");
-        sh_get_folder_path = GetProcAddress(shfolder_module, "SHGetFolderPathA");
+        sh_get_folder_path = GetProcAddress((HMODULE)shfolder_module, "SHGetFolderPathA");
     }
 
     directory_create_recursive(profile_directory);

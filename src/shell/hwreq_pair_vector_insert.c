@@ -15,18 +15,18 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void hwreq_pair_vector_insert_n(msvc_std_vector *this, hwreq_string_pair *where, uint32_t count,
+extern void hwreq_pair_vector_insert_n(msvc_std_vector *self, hwreq_string_pair *where, uint32_t count,
     const hwreq_string_pair *value); // 0x57be20, blam-cc: ECX -> value, stack -> this, where, count
 
-hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *this, hwreq_string_pair **result, hwreq_string_pair *where,
+hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *self, hwreq_string_pair **result, hwreq_string_pair *where,
     const hwreq_string_pair *value)
 {
     int32_t offset = 0;
 
-    if (this->first != 0 && (int32_t)(this->last - this->first) / (int32_t)sizeof(hwreq_string_pair) != 0) {
-        offset = ((int32_t)where - (int32_t)this->first) / (int32_t)sizeof(hwreq_string_pair);
+    if (self->first != 0 && (int32_t)(self->last - self->first) / (int32_t)sizeof(hwreq_string_pair) != 0) {
+        offset = ((int32_t)where - (int32_t)self->first) / (int32_t)sizeof(hwreq_string_pair);
     }
-    hwreq_pair_vector_insert_n(this, where, 1, value);
-    *result = (hwreq_string_pair *)this->first + offset;
+    hwreq_pair_vector_insert_n(self, where, 1, value);
+    *result = (hwreq_string_pair *)self->first + offset;
     return result;
 }

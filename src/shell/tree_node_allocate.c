@@ -32,7 +32,7 @@ typedef struct hwreq_map_value_type {
     uint32_t value;       // 0x1c hwreq_property_set *
 } hwreq_map_value_type; // size 0x20
 
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
+extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
 // blam-cc: ECX -> source, stack -> left, parent, right, color

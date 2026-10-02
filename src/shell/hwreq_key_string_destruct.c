@@ -13,12 +13,12 @@
 
 extern void free(void *block); // CRT: 0x6277e8
 
-void hwreq_key_string_destruct(msvc_std_string *this)
+void hwreq_key_string_destruct(msvc_std_string *self)
 {
-    if (this->capacity >= 0x10) {
-        free((void *)this->buffer.heap_buffer);
+    if (self->capacity >= 0x10) {
+        free((void *)self->buffer.heap_buffer);
     }
-    this->capacity = 0xf;
-    this->size = 0;
-    this->buffer.inline_buffer[0] = 0;
+    self->capacity = 0xf;
+    self->size = 0;
+    self->buffer.inline_buffer[0] = 0;
 }

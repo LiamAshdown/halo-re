@@ -88,10 +88,10 @@ find_running_instance:
         window = FindWindowA("Halo", "Halo");
         if (window != 0) {
             placement.length = 0x2c;
-            GetWindowPlacement(window, (WINDOWPLACEMENT *)&placement);
-            SetForegroundWindow(window);
+            GetWindowPlacement((HWND)window, (WINDOWPLACEMENT *)&placement);
+            SetForegroundWindow((HWND)window);
             if (placement.show_command == 2 /* SW_SHOWMINIMIZED */) {
-                ShowWindow(window, 9 /* SW_RESTORE */);
+                ShowWindow((HWND)window, 9 /* SW_RESTORE */);
             }
             _exit(1);
         }

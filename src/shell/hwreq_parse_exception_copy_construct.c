@@ -31,19 +31,19 @@ typedef struct hwreq_parse_exception {
 } hwreq_parse_exception; // size 0x28, see hwreq_parse_exception_construct.c
 
 extern void *logic_error_vtable; // 0x00655080
-extern void exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other); // 0x627dd2, UNSURE: opaque Dinkumware `exception::exception(const exception&)`
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
+extern void exception_copy_construct(hwreq_parse_exception *self, const hwreq_parse_exception *other); // 0x627dd2, UNSURE: opaque Dinkumware `exception::exception(const exception&)`
+extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
-hwreq_parse_exception *hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other)
+hwreq_parse_exception *hwreq_parse_exception_copy_construct(hwreq_parse_exception *self, const hwreq_parse_exception *other)
 {
-    exception_copy_construct(this, other); // UNSURE: opaque base-class copy constructor
-    this->vtable = (uint32_t)&logic_error_vtable;
-    this->message.capacity = 0xf;
-    this->message.size = 0;
-    this->message.buffer.inline_buffer[0] = 0;
-    string_assign_substr(&this->message, &other->message, 0, 0xffffffff);
-    return this;
+    exception_copy_construct(self, other); // UNSURE: opaque base-class copy constructor
+    self->vtable = (uint32_t)&logic_error_vtable;
+    self->message.capacity = 0xf;
+    self->message.size = 0;
+    self->message.buffer.inline_buffer[0] = 0;
+    string_assign_substr(&self->message, &other->message, 0, 0xffffffff);
+    return self;
 }
 
 #if 0

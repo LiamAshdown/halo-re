@@ -16,7 +16,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos,
+extern int32_t string_compare(const msvc_std_string *self, uint32_t n1, uint32_t pos,
     const char *s, uint32_t n2); // 0x57ce10, same pass
 
 // blam-cc: EAX -> tree, ECX -> search_key

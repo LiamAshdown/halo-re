@@ -14,8 +14,8 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-const char *__fastcall std_exception_what(uint8_t *this, void *unused_edx)
+const char *__fastcall std_exception_what(uint8_t *self, void *unused_edx)
 {
     (void)unused_edx;
-    return ((std_runtime_error *)this)->message.capacity >= 0x10 ? ((std_runtime_error *)this)->message.bx.pointer : ((std_runtime_error *)this)->message.bx.buffer;
+    return ((std_runtime_error *)self)->message.capacity >= 0x10 ? ((std_runtime_error *)self)->message.bx.pointer : ((std_runtime_error *)self)->message.bx.buffer;
 }

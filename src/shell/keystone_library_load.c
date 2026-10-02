@@ -81,7 +81,7 @@ void keystone_library_load(void)
 
     wide_length = mbstowcs(0, current_directory, 0);
     keystone_current_directory = (uint16_t *)GlobalAlloc(0, (wide_length + 1) * 2);
-    mbstowcs(keystone_current_directory, current_directory, wide_length + 1);
+    mbstowcs((wchar_t *)keystone_current_directory, current_directory, wide_length + 1);
     GlobalFree(current_directory);
 
     if (safe_mode != 0) {
@@ -91,31 +91,31 @@ void keystone_library_load(void)
 
     keystone_module = LoadLibraryA("keystone.dll");
     if (keystone_module != 0) {
-        keystone_create = (keystone_create_fn)GetProcAddress(keystone_module, "KeystoneCreate");
+        keystone_create = (keystone_create_fn)GetProcAddress((HMODULE)keystone_module, "KeystoneCreate");
         keystone_translate_accelerator = (keystone_translate_accelerator_fn)GetProcAddress(
-            keystone_module, "Call_KsTranslateAccelerator");
-        keystone_create_window = (keystone_create_window_fn)GetProcAddress(keystone_module, "Call_KsCreateWindow");
-        chat_gui_find_object = (chat_gui_find_object_fn)GetProcAddress(keystone_module, "Call_KsGetWindow");
-        keystone_update = (keystone_update_fn)GetProcAddress(keystone_module, "Call_KsUpdate");
-        keystone_dispatch_message = (keystone_dispatch_message_fn)GetProcAddress(keystone_module,
+            (HMODULE)keystone_module, "Call_KsTranslateAccelerator");
+        keystone_create_window = (keystone_create_window_fn)GetProcAddress((HMODULE)keystone_module, "Call_KsCreateWindow");
+        chat_gui_find_object = (chat_gui_find_object_fn)GetProcAddress((HMODULE)keystone_module, "Call_KsGetWindow");
+        keystone_update = (keystone_update_fn)GetProcAddress((HMODULE)keystone_module, "Call_KsUpdate");
+        keystone_dispatch_message = (keystone_dispatch_message_fn)GetProcAddress((HMODULE)keystone_module,
                                                                                   "Call_KsDispatchMessage");
-        chat_gui_release = (chat_gui_release_fn)GetProcAddress(keystone_module, "Call_KW_Release");
-        keystone_set_focus_window = (keystone_unknown_fn)GetProcAddress(keystone_module, "Call_KsSetFocusWindow");
-        chat_gui_find_child = (chat_gui_find_child_fn)GetProcAddress(keystone_module,
+        chat_gui_release = (chat_gui_release_fn)GetProcAddress((HMODULE)keystone_module, "Call_KW_Release");
+        keystone_set_focus_window = (keystone_unknown_fn)GetProcAddress((HMODULE)keystone_module, "Call_KsSetFocusWindow");
+        chat_gui_find_child = (chat_gui_find_child_fn)GetProcAddress((HMODULE)keystone_module,
                                                                               "Call_KW_GetControlByID");
-        keystone_control_get_attribute = (chat_gui_get_property_string_fn)GetProcAddress(keystone_module,
+        keystone_control_get_attribute = (chat_gui_get_property_string_fn)GetProcAddress((HMODULE)keystone_module,
                                                                                            "Call_KC_GetAttribute");
-        keystone_control_set_attribute = (chat_gui_set_property_string_fn)GetProcAddress(keystone_module,
+        keystone_control_set_attribute = (chat_gui_set_property_string_fn)GetProcAddress((HMODULE)keystone_module,
                                                                                            "Call_KC_SetAttribute");
-        chat_gui_set_property_int = (chat_gui_set_property_int_fn)GetProcAddress(keystone_module,
+        chat_gui_set_property_int = (chat_gui_set_property_int_fn)GetProcAddress((HMODULE)keystone_module,
                                                                                        "Call_KC_SendMessage");
-        chat_gui_finalize = (chat_gui_finalize_fn)GetProcAddress(keystone_module, "Call_KW_ReLayout");
-        chat_gui_set_focus = (chat_gui_set_focus_fn)GetProcAddress(keystone_module,
+        chat_gui_finalize = (chat_gui_finalize_fn)GetProcAddress((HMODULE)keystone_module, "Call_KW_ReLayout");
+        chat_gui_set_focus = (chat_gui_set_focus_fn)GetProcAddress((HMODULE)keystone_module,
                                                                                     "Call_KW_SetFocusControl");
-        keystone_window_add_dirty_control = (keystone_unknown_fn)GetProcAddress(keystone_module,
+        keystone_window_add_dirty_control = (keystone_unknown_fn)GetProcAddress((HMODULE)keystone_module,
                                                                                   "Call_KW_AddDirtyControl");
-        keystone_release = (keystone_release_fn)GetProcAddress(keystone_module, "Call_KsRelease");
-        chat_gui_set_state = (chat_gui_set_state_fn)GetProcAddress(keystone_module, "Call_KW_ShowWindow");
+        keystone_release = (keystone_release_fn)GetProcAddress((HMODULE)keystone_module, "Call_KsRelease");
+        chat_gui_set_state = (chat_gui_set_state_fn)GetProcAddress((HMODULE)keystone_module, "Call_KW_ShowWindow");
     }
 }
 

@@ -53,12 +53,12 @@ int32_t shell_check_previous_run_crash(void)
     char *end;
     uint32_t length;
 
-    RegOpenKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+    RegOpenKeyExA((HKEY)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                   0x20019, (PHKEY)&key);
     exit_flag_size = 0x10;
     exit_flag[0] = 0;
-    RegQueryValueExA(key, "ExitFlag", 0, 0, exit_flag, &exit_flag_size);
-    RegCloseKey(key);
+    RegQueryValueExA((HKEY)key, "ExitFlag", 0, 0, exit_flag, (LPDWORD)&exit_flag_size);
+    RegCloseKey((HKEY)key);
 
     length = 0;
     while (shell_module_path[length] != 0) {
@@ -82,14 +82,14 @@ int32_t shell_check_previous_run_crash(void)
         return 1;
     }
 
-    RegCreateKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0,
+    RegCreateKeyExA((HKEY)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0,
                      0x20006, 0, 0, (PHKEY)&key, 0);
     if (bytes_equal(exit_flag, (const uint8_t *)"bad 1", 6)) {
-        RegSetValueExA(key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"bad 2", 6);
+        RegSetValueExA((HKEY)key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"bad 2", 6);
     } else {
-        RegSetValueExA(key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"bad 1", 6);
+        RegSetValueExA((HKEY)key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"bad 1", 6);
     }
-    RegCloseKey(key);
+    RegCloseKey((HKEY)key);
 
     return 0;
 }

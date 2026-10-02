@@ -36,7 +36,7 @@ extern chat_gui_set_state_fn chat_gui_set_state;                           // 0x
 void keystone_library_unload(void)
 {
     if (keystone_module != 0) {
-        FreeLibrary(keystone_module);
+        FreeLibrary((HMODULE)keystone_module);
         keystone_module = 0;
     }
     keystone_translate_accelerator = 0;

@@ -12,18 +12,18 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
+extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
-msvc_std_string *hwreq_key_string_construct_cstr(msvc_std_string *this, const char *source)
+msvc_std_string *hwreq_key_string_construct_cstr(msvc_std_string *self, const char *source)
 {
     const char *end = source;
 
-    this->capacity = 0xf;
-    this->size = 0;
-    this->buffer.inline_buffer[0] = 0;
+    self->capacity = 0xf;
+    self->size = 0;
+    self->buffer.inline_buffer[0] = 0;
     while (*end) {
         end++;
     }
-    msvc_string_assign_n(this, source, (uint32_t)(end - source));
-    return this;
+    msvc_string_assign_n(self, source, (uint32_t)(end - source));
+    return self;
 }

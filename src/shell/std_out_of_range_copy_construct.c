@@ -21,17 +21,17 @@ typedef struct hwreq_parse_exception {
     msvc_std_string message; // 0x0c
 } hwreq_parse_exception; // size 0x28
 
-extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this,
+extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
 
-extern hwreq_parse_exception *hwreq_parse_exception_copy_construct(hwreq_parse_exception *this, const hwreq_parse_exception *other); // 0x57bc20
+extern hwreq_parse_exception *hwreq_parse_exception_copy_construct(hwreq_parse_exception *self, const hwreq_parse_exception *other); // 0x57bc20
 extern void *out_of_range_vtable; // 0x00655098
 
-hwreq_parse_exception *__fastcall std_out_of_range_copy_construct(hwreq_parse_exception *this, void *unused_edx,
+hwreq_parse_exception *__fastcall std_out_of_range_copy_construct(hwreq_parse_exception *self, void *unused_edx,
     const hwreq_parse_exception *other)
 {
     (void)unused_edx;
-    hwreq_parse_exception_copy_construct(this, other);
-    this->vtable = (uint32_t)&out_of_range_vtable;
-    return this;
+    hwreq_parse_exception_copy_construct(self, other);
+    self->vtable = (uint32_t)&out_of_range_vtable;
+    return self;
 }

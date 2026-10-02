@@ -45,13 +45,13 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
-extern int32_t hwreq_token_parse_number(hwreq_parser *this); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
-extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
-extern void hwreq_token_skip_whitespace(hwreq_parser *this); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
-extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *this); // 0x578fa0, blam-cc: keyword in EDX, this in EDI; below this module's rewrite range; does not advance the cursor
-extern const char *hwreq_d3dcaps_field_resolve(hwreq_parser *this); // 0x578ff0, blam-cc: this in EAX; below this module's rewrite range; (const char*)0 false, (const char*)1 true, else a real error message string (see UNSURE above)
-extern const char *hwreq_parser_parse_flag_assignment(hwreq_parser *this, hwreq_property_set *target); // 0x578cf0, blam-cc: this in ECX, target on the stack; below this module's rewrite range; 0 success, else an error message string (see UNSURE above)
+extern void hwreq_parser_report_error(hwreq_parser *self, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
+extern int32_t hwreq_token_parse_number(hwreq_parser *self); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
+extern char *hwreq_token_parse_quoted_string(hwreq_parser *self); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
+extern void hwreq_token_skip_whitespace(hwreq_parser *self); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
+extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *self); // 0x578fa0, blam-cc: keyword in EDX, this in EDI; below this module's rewrite range; does not advance the cursor
+extern const char *hwreq_d3dcaps_field_resolve(hwreq_parser *self); // 0x578ff0, blam-cc: this in EAX; below this module's rewrite range; (const char*)0 false, (const char*)1 true, else a real error message string (see UNSURE above)
+extern const char *hwreq_parser_parse_flag_assignment(hwreq_parser *self, hwreq_property_set *target); // 0x578cf0, blam-cc: this in ECX, target on the stack; below this module's rewrite range; 0 success, else an error message string (see UNSURE above)
 extern uint32_t hwreq_device_override_list_find(hwreq_property_set *set, const char *key, char *dest_buffer, uint32_t capacity); // 0x578630, blam-cc: set in EAX, key in EBX, dest_buffer/capacity on the stack; below this module's rewrite range
 extern void hwreq_key_string_construct_cstr(msvc_std_string *dest, const char *source); // 0x57b520, blam-cc: dest in ECX, source on the stack; library code (map neighbour), not in the function list; constructs dest fresh from source
 extern void hwreq_key_string_destruct(msvc_std_string *key); // 0x57b560, blam-cc: key in ECX (thiscall); library code, not in the function list
@@ -67,7 +67,7 @@ extern void hwreq_property_set_apply(hwreq_property_set *source, hwreq_property_
 // "vendor", "audiovendor" or "Requirements" ends the block immediately (cursor left there,
 // returns true) regardless of unclosed ifs; reaching the end of the file or a "break" keyword
 // ends it too, but only succeeds if every "if" was matched by an "endif" first.
-uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
+uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target)
 {
     int32_t if_state;        // 0 active, 1 active (inside a true if), 2 skipping
     int32_t if_stack[17];    // Ghidra sized this aiStack_410[257]; only indices 0..16 are ever addressed (max nesting 16)
@@ -96,68 +96,68 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
             is_first_line = 0;
         } else {
             do {
-                line = (char *)this->cursor;
-                this->cursor = (uint32_t)(line + 1);
+                line = (char *)self->cursor;
+                self->cursor = (uint32_t)(line + 1);
                 if (*line == '\r') break;
-            } while ((char *)this->cursor < (char *)this->end);
-            if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-                this->cursor = (uint32_t)(line + 2);
+            } while ((char *)self->cursor < (char *)self->end);
+            if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+                self->cursor = (uint32_t)(line + 2);
             }
-            this->line_start = this->cursor;
-            this->line_number = this->line_number + 1;
+            self->line_start = self->cursor;
+            self->line_number = self->line_number + 1;
         }
 
-        if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
-            c = ((char *)this->cursor)[6];
+        if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
+            c = ((char *)self->cursor)[6];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
             }
         }
-        if (_strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
-            c = ((char *)this->cursor)[11];
+        if (_strnicmp((char *)self->cursor, "audiovendor", 11) == 0) {
+            c = ((char *)self->cursor)[11];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
             }
         }
-        if (_strnicmp((char *)this->cursor, "Requirements", 12) == 0) {
-            c = ((char *)this->cursor)[12];
+        if (_strnicmp((char *)self->cursor, "Requirements", 12) == 0) {
+            c = ((char *)self->cursor)[12];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
             }
         }
 
-        cursor = (char *)this->cursor;
+        cursor = (char *)self->cursor;
         while (*cursor == ' ' || *cursor == '\t') {
             cursor++;
         }
-        this->cursor = (uint32_t)cursor;
+        self->cursor = (uint32_t)cursor;
 
         c = *cursor;
         if (c == '\r' || *(uint16_t *)cursor == 0x2f2f || (c >= '0' && c <= '9') ||
             (_strnicmp(cursor, "unknown", 7) == 0 &&
              (c = cursor[7], c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t'))) {
             // blank line, "//" comment, a bare number, or "unknown": nothing to do this line
-        } else if (hwreq_token_match_keyword("break", this)) {
+        } else if (hwreq_token_match_keyword("break", self)) {
             break;
-        } else if (hwreq_token_match_keyword("MaxOverallGraphicDetail", this)) {
-            this->cursor = this->cursor + 23;
-            cursor = (char *)this->cursor;
+        } else if (hwreq_token_match_keyword("MaxOverallGraphicDetail", self)) {
+            self->cursor = self->cursor + 23;
+            cursor = (char *)self->cursor;
             while (*cursor == ' ' || *cursor == '\t') {
                 cursor++;
             }
-            this->cursor = (uint32_t)cursor;
+            self->cursor = (uint32_t)cursor;
             if (*cursor != '=') {
-                hwreq_parser_report_error(this, "Expecting '=', didn't get it");
+                hwreq_parser_report_error(self, "Expecting '=', didn't get it");
                 return 0;
             }
             do {
                 cursor++;
-                this->cursor = (uint32_t)cursor;
+                self->cursor = (uint32_t)cursor;
             } while (*cursor == ' ' || *cursor == '\t');
 
-            parsed_number = hwreq_token_parse_number(this);
+            parsed_number = hwreq_token_parse_number(self);
             if (parsed_number == -1) {
-                hwreq_parser_report_error(this, "MaxOverallGraphicDetail did not specify a number!");
+                hwreq_parser_report_error(self, "MaxOverallGraphicDetail did not specify a number!");
                 return 0;
             }
 
@@ -168,7 +168,7 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
             }
             sprintf(number_text, "%d", parsed_number);
 
-            if (hwreq_device_override_list_find((hwreq_property_set *)this->flags, "OverallGraphicDetail",
+            if (hwreq_device_override_list_find((hwreq_property_set *)self->flags, "OverallGraphicDetail",
                                                  override_text, 0x10) != 0 &&
                 (uint32_t)parsed_number < (uint32_t)atol(override_text)) {
                 key.capacity = k_msvc_string_inline_capacity;
@@ -176,24 +176,24 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
                 key.buffer.inline_buffer[0] = 0;
                 hwreq_key_string_construct_cstr(&key, number_text);
 
-                node = hwreq_map_find(&this->graphic_detail_sets, &key);
-                if (node == (hwreq_map_node *)this->graphic_detail_sets.head) {
-                    hwreq_parser_report_error(this, "Unrecognized graphic detail");
+                node = hwreq_map_find(&self->graphic_detail_sets, &key);
+                if (node == (hwreq_map_node *)self->graphic_detail_sets.head) {
+                    hwreq_parser_report_error(self, "Unrecognized graphic detail");
                     hwreq_key_string_destruct(&key);
                     return 0;
                 }
                 source_set = (hwreq_property_set *)node->value;
-                hwreq_property_set_apply(source_set, (hwreq_property_set *)this->flags);
+                hwreq_property_set_apply(source_set, (hwreq_property_set *)self->flags);
                 hwreq_key_string_destruct(&key);
             }
-        } else if (hwreq_token_match_keyword("if", this)) {
-            this->cursor = this->cursor + 2;
-            resolve_result = hwreq_d3dcaps_field_resolve(this);
+        } else if (hwreq_token_match_keyword("if", self)) {
+            self->cursor = self->cursor + 2;
+            resolve_result = hwreq_d3dcaps_field_resolve(self);
 
             if_stack[if_depth + 1] = if_state;
             if_depth = if_depth + 1;
             if (if_depth == 0x10) {
-                hwreq_parser_report_error(this, "IF's nested too deep");
+                hwreq_parser_report_error(self, "IF's nested too deep");
                 return 0;
             }
 
@@ -203,29 +203,29 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
                 }
             } else {
                 if (resolve_result != 0) {
-                    hwreq_parser_report_error(this, resolve_result);
+                    hwreq_parser_report_error(self, resolve_result);
                     return 0;
                 }
                 if_state = 2;
             }
-        } else if (hwreq_token_match_keyword("endif", this)) {
+        } else if (hwreq_token_match_keyword("endif", self)) {
             if (if_depth == 0) {
-                hwreq_parser_report_error(this, "Unexpected ENDIF");
+                hwreq_parser_report_error(self, "Unexpected ENDIF");
                 return 0;
             }
             if_state = if_stack[if_depth];
             if_depth = if_depth - 1;
         } else if (if_state == 0 || if_state == 1) {
-            if (hwreq_token_match_keyword("propertyset", this)) {
-                this->cursor = this->cursor + 11;
-                hwreq_token_skip_whitespace(this);
-                if (*(char *)this->cursor != '=') {
-                    hwreq_parser_report_error(this, "Missing =");
+            if (hwreq_token_match_keyword("propertyset", self)) {
+                self->cursor = self->cursor + 11;
+                hwreq_token_skip_whitespace(self);
+                if (*(char *)self->cursor != '=') {
+                    hwreq_parser_report_error(self, "Missing =");
                     return 0;
                 }
-                this->cursor = this->cursor + 1;
+                self->cursor = self->cursor + 1;
 
-                name = hwreq_token_parse_quoted_string(this);
+                name = hwreq_token_parse_quoted_string(self);
                 if (name == 0) {
                     return 0;
                 }
@@ -235,9 +235,9 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
                 key.buffer.inline_buffer[0] = 0;
                 hwreq_key_string_construct_cstr(&key, name);
 
-                node = hwreq_map_find(&this->property_sets, &key);
-                if (node == (hwreq_map_node *)this->property_sets.head) {
-                    hwreq_parser_report_error(this, "Unrecognized property set");
+                node = hwreq_map_find(&self->property_sets, &key);
+                if (node == (hwreq_map_node *)self->property_sets.head) {
+                    hwreq_parser_report_error(self, "Unrecognized property set");
                     hwreq_key_string_destruct(&key);
                     return 0;
                 }
@@ -245,16 +245,16 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
                 hwreq_property_set_apply(source_set, target);
                 hwreq_key_string_destruct(&key);
             } else {
-                flag_result = hwreq_parser_parse_flag_assignment(this, target);
+                flag_result = hwreq_parser_parse_flag_assignment(self, target);
                 if (flag_result != 0) {
-                    hwreq_parser_report_error(this, flag_result);
+                    hwreq_parser_report_error(self, flag_result);
                     return 0;
                 }
             }
         }
         // if_state == 2 (skipping a false "if"): nothing to do for this line
 
-        if (!((char *)this->cursor < (char *)this->end)) {
+        if (!((char *)self->cursor < (char *)self->end)) {
             break;
         }
     }
@@ -262,7 +262,7 @@ uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target)
     if (if_state == 0 && if_depth == 0) {
         return 1;
     }
-    hwreq_parser_report_error(this, "Bad IF/ENDIF");
+    hwreq_parser_report_error(self, "Bad IF/ENDIF");
     return 0;
 }
 

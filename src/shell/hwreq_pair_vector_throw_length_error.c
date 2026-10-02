@@ -20,10 +20,10 @@ typedef struct hwreq_parse_exception {
     msvc_std_string message; // 0x0c
 } hwreq_parse_exception; // size 0x28
 
-extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this,
+extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
 extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
-extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
+extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 extern void *length_error_vtable; // 0x0065508c
 extern const char string_vector_too_long[]; // 0x00672258 "vector<T> too long"
 extern uint8_t length_error_throw_info[]; // 0x00673524, _ThrowInfo for std::length_error

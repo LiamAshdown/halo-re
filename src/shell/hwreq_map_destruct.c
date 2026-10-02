@@ -18,16 +18,16 @@
 extern hwreq_map_node **tree_erase_range(hwreq_map_node **out, hwreq_map_node *first,
     hwreq_map_node *last, msvc_std_map *tree); // 0x57c310, same pass
 
-void hwreq_map_destruct(msvc_std_map *this)
+void hwreq_map_destruct(msvc_std_map *self)
 {
     hwreq_map_node *dummy_out;
-    hwreq_map_node *head = (hwreq_map_node *)this->head;
+    hwreq_map_node *head = (hwreq_map_node *)self->head;
 
-    tree_erase_range(&dummy_out, (hwreq_map_node *)head->left, head, this);
+    tree_erase_range(&dummy_out, (hwreq_map_node *)head->left, head, self);
 
-    free((void *)this->head);
-    this->head = 0;
-    this->size = 0;
+    free((void *)self->head);
+    self->head = 0;
+    self->size = 0;
 }
 
 #if 0

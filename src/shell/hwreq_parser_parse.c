@@ -30,7 +30,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
+extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
 extern uint8_t hwreq_parser_find_requirements_section(hwreq_parser *parser); // 0x57ae50, blam-cc: ESI -> parser
 extern uint8_t hwreq_parser_parse_propertyset_directive(hwreq_parser *parser); // 0x57a3e0, blam-cc: ECX -> parser
@@ -94,7 +94,7 @@ uint8_t hwreq_parser_parse(hwreq_parser *parser, const char *path, const shell_s
 
     if ((driver_version[0] | driver_version[1]) == 0) {
         uint32_t handle;
-        uint32_t info_size = GetFileVersionInfoSizeA((const char *)&parser->adapter, &handle);
+        uint32_t info_size = GetFileVersionInfoSizeA((const char *)&parser->adapter, (LPDWORD)&handle);
 
         if (info_size != 0) {
             void *info = malloc(info_size);
@@ -134,7 +134,7 @@ uint8_t hwreq_parser_parse(hwreq_parser *parser, const char *path, const shell_s
     size = GetFileSize(file, 0);
     buffer = (char *)malloc(size + 0x10);
     parser->file_buffer = (uint32_t)buffer;
-    ReadFile(file, buffer, size, &bytes_read, 0);
+    ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0);
     CloseHandle(file);
     buffer[size] = '\r';
     parser->cursor = (uint32_t)buffer;

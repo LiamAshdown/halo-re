@@ -143,7 +143,7 @@ static void shell_window_suspend_focus(void)
         input_directinput_unacquire_devices();
         input_reset_state_and_axis_configs();
         if (shell_window != 0 && rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-            ShowWindow(shell_window, 6 /* SW_MINIMIZE */);
+            ShowWindow((HWND)shell_window, 6 /* SW_MINIMIZE */);
         }
         chat_close();
     }
@@ -198,7 +198,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                     input_directinput_acquire_devices();
                     input_reset_state_and_axis_configs();
                     if (shell_window != 0) {
-                        ShowWindow(shell_window, 9 /* SW_RESTORE */);
+                        ShowWindow((HWND)shell_window, 9 /* SW_RESTORE */);
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
@@ -233,7 +233,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                     input_directinput_acquire_devices();
                     input_reset_state_and_axis_configs();
                     if (shell_window != 0) {
-                        ShowWindow(shell_window, 9 /* SW_RESTORE */);
+                        ShowWindow((HWND)shell_window, 9 /* SW_RESTORE */);
                     }
                     if (shell_window_proc_bypass == 0) {
                         if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
@@ -268,7 +268,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                 input_directinput_acquire_devices();
                 input_reset_state_and_axis_configs();
                 if (shell_window != 0) {
-                    ShowWindow(shell_window, 9 /* SW_RESTORE */);
+                    ShowWindow((HWND)shell_window, 9 /* SW_RESTORE */);
                 }
                 if (shell_window_proc_bypass == 0) {
                     if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
@@ -303,7 +303,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
                         GetObjectA(rasterizer_window_icon_bitmap, 0x18, &splash_bitmap_info);
                         StretchBlt(dc, 0, 0, client_rect.right - client_rect.left,
                                    client_rect.bottom - client_rect.top,
-                                   rasterizer_window_icon_dc, 0, 0,
+                                   (HDC)rasterizer_window_icon_dc, 0, 0,
                                    splash_bitmap_info.width, splash_bitmap_info.height,
                                    0xcc0020 /* SRCCOPY */);
                         ReleaseDC(hwnd, dc);
@@ -334,10 +334,10 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
         case 0x20: // WM_SETCURSOR
             if (render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
                 if ((int16_t)lparam == 1 && GetForegroundWindow() == hwnd) {
-                    SetCursor((void *)0);
+                    SetCursor((HCURSOR)0);
                     return 1;
                 }
-                SetCursor(shell_arrow_cursor);
+                SetCursor((HCURSOR)shell_arrow_cursor);
             }
             return 1;
 
@@ -347,7 +347,7 @@ int32_t __stdcall shell_window_procedure(HWND hwnd, uint32_t message, uint32_t w
         case 0x7e: // WM_DISPLAYCHANGE (wparam = bits per pixel; 32 is left alone)
             if (shell_window != 0 && wparam != 0x20) {
                 shell_window_suspend_focus();
-                ShowWindow(shell_window, 6 /* SW_MINIMIZE */);
+                ShowWindow((HWND)shell_window, 6 /* SW_MINIMIZE */);
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;

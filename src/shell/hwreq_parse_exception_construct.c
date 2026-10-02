@@ -48,24 +48,24 @@ typedef struct hwreq_parse_exception {
 } hwreq_parse_exception; // size 0x28
 
 extern void *logic_error_vtable; // 0x00655080
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
+extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
-hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this, const msvc_std_string *message)
+hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self, const msvc_std_string *message)
 {
     // std::exception::exception() (0x627dc1, inlined here): clears the two base fields and stores the
     // std::exception vtable 0x0064ef90, which the next line replaces
-    this->dofree = 0;
-    this->legacy_what = 0;
+    self->dofree = 0;
+    self->legacy_what = 0;
 
-    this->vtable = (uint32_t)&logic_error_vtable;
-    this->message.size = 0;
-    this->message.capacity = 0xf;
-    this->message.buffer.inline_buffer[0] = 0;
+    self->vtable = (uint32_t)&logic_error_vtable;
+    self->message.size = 0;
+    self->message.capacity = 0xf;
+    self->message.buffer.inline_buffer[0] = 0;
 
-    string_assign_substr(&this->message, message, 0, 0xffffffff);
+    string_assign_substr(&self->message, message, 0, 0xffffffff);
 
-    return this;
+    return self;
 }
 
 #if 0

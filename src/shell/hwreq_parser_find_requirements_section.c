@@ -18,55 +18,55 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
+extern uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for a line beginning "Requirements" followed by a
 // delimiter; once found, skips that line and parses the remainder of the file as a block into
 // this->requirements. Returns true (with nothing parsed) if the end of the file is reached
 // first in either scan.
-uint8_t hwreq_parser_find_requirements_section(hwreq_parser *this)
+uint8_t hwreq_parser_find_requirements_section(hwreq_parser *self)
 {
     char *line;
     char c;
 
     for (;;) {
-        if (_strnicmp((char *)this->cursor, "Requirements", 12) == 0) {
-            c = ((char *)this->cursor)[12];
+        if (_strnicmp((char *)self->cursor, "Requirements", 12) == 0) {
+            c = ((char *)self->cursor)[12];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break;
             }
         }
         do {
-            line = (char *)this->cursor;
-            this->cursor = (uint32_t)(line + 1);
+            line = (char *)self->cursor;
+            self->cursor = (uint32_t)(line + 1);
             if (*line == '\r') break;
-        } while ((char *)this->cursor < (char *)this->end);
-        if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-            this->cursor = (uint32_t)(line + 2);
+        } while ((char *)self->cursor < (char *)self->end);
+        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+            self->cursor = (uint32_t)(line + 2);
         }
-        this->line_start = this->cursor;
-        this->line_number = this->line_number + 1;
-        if (!((char *)this->cursor < (char *)this->end)) {
+        self->line_start = self->cursor;
+        self->line_number = self->line_number + 1;
+        if (!((char *)self->cursor < (char *)self->end)) {
             break;
         }
     }
 
-    if ((char *)this->end <= (char *)this->cursor) {
+    if ((char *)self->end <= (char *)self->cursor) {
         return 1;
     }
 
     do {
-        line = (char *)this->cursor;
-        this->cursor = (uint32_t)(line + 1);
+        line = (char *)self->cursor;
+        self->cursor = (uint32_t)(line + 1);
         if (*line == '\r') break;
-    } while ((char *)this->cursor < (char *)this->end);
-    if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-        this->cursor = (uint32_t)(line + 2);
+    } while ((char *)self->cursor < (char *)self->end);
+    if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+        self->cursor = (uint32_t)(line + 2);
     }
-    this->line_number = this->line_number + 1;
-    this->line_start = this->cursor;
+    self->line_number = self->line_number + 1;
+    self->line_start = self->cursor;
 
-    return hwreq_parser_parse_block(this, (hwreq_property_set *)this->requirements) != 0;
+    return hwreq_parser_parse_block(self, (hwreq_property_set *)self->requirements) != 0;
 }
 
 #if 0

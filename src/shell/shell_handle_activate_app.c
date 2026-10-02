@@ -65,9 +65,9 @@ void shell_handle_activate_app(uint8_t inactive)
     if (shell_window != 0) {
         fullscreen_device = rasterizer_fullscreen != 0 && rasterizer_device != 0;
         if (fullscreen_device) {
-            ShowWindow(shell_window, inactive != 0 ? 6 : 9); // SW_MINIMIZE / SW_RESTORE
+            ShowWindow((HWND)shell_window, inactive != 0 ? 6 : 9); // SW_MINIMIZE / SW_RESTORE
         } else if (inactive == 0) {
-            ShowWindow(shell_window, 9); // SW_RESTORE
+            ShowWindow((HWND)shell_window, 9); // SW_RESTORE
         }
     }
     if (inactive != 0) {

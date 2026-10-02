@@ -44,7 +44,7 @@ extern void free(void *block); // 0x6277e8, CRT free
 // property sets, walks both maps freeing every value (property set) they own, discards both
 // maps' node storage, and empties the five embedded strings -- everything
 // hwreq_parser_construct 0x579ef0 set up.
-void hwreq_parser_destruct(hwreq_parser *this)
+void hwreq_parser_destruct(hwreq_parser *self)
 {
     hwreq_map_node *head;
     hwreq_map_node *node;
@@ -52,18 +52,18 @@ void hwreq_parser_destruct(hwreq_parser *this)
     hwreq_string_pair *pair;
     hwreq_string_pair *pair_end;
 
-    this->vtable = (uint32_t)&hwreq_parser_vtable_instance;
+    self->vtable = (uint32_t)&hwreq_parser_vtable_instance;
 
-    if (this->flags != 0) {
-        hwreq_property_set_flags_destruct((hwreq_property_set *)this->flags);
-        free((void *)this->flags);
+    if (self->flags != 0) {
+        hwreq_property_set_flags_destruct((hwreq_property_set *)self->flags);
+        free((void *)self->flags);
     }
-    if (this->requirements != 0) {
-        hwreq_property_set_flags_destruct((hwreq_property_set *)this->requirements);
-        free((void *)this->requirements);
+    if (self->requirements != 0) {
+        hwreq_property_set_flags_destruct((hwreq_property_set *)self->requirements);
+        free((void *)self->requirements);
     }
 
-    head = (hwreq_map_node *)this->property_sets.head;
+    head = (hwreq_map_node *)self->property_sets.head;
     for (node = (hwreq_map_node *)head->left; node != head; ) {
         set = (hwreq_property_set *)node->value;
         if (set != 0) {
@@ -83,52 +83,52 @@ void hwreq_parser_destruct(hwreq_parser *this)
         tree_iterator_increment(&node);
     }
 
-    head = (hwreq_map_node *)this->graphic_detail_sets.head;
-    tree_erase_range(&node, (hwreq_map_node *)head->left, head, &this->graphic_detail_sets);
-    free((void *)this->graphic_detail_sets.head);
-    this->graphic_detail_sets.head = 0;
-    this->graphic_detail_sets.size = 0;
+    head = (hwreq_map_node *)self->graphic_detail_sets.head;
+    tree_erase_range(&node, (hwreq_map_node *)head->left, head, &self->graphic_detail_sets);
+    free((void *)self->graphic_detail_sets.head);
+    self->graphic_detail_sets.head = 0;
+    self->graphic_detail_sets.size = 0;
 
-    head = (hwreq_map_node *)this->property_sets.head;
-    tree_erase_range(&node, (hwreq_map_node *)head->left, head, &this->property_sets);
-    free((void *)this->property_sets.head);
-    this->property_sets.head = 0;
-    this->property_sets.size = 0;
+    head = (hwreq_map_node *)self->property_sets.head;
+    tree_erase_range(&node, (hwreq_map_node *)head->left, head, &self->property_sets);
+    free((void *)self->property_sets.head);
+    self->property_sets.head = 0;
+    self->property_sets.size = 0;
 
-    if (this->sound_vendor_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)this->sound_vendor_name.buffer.heap_buffer);
+    if (self->sound_vendor_name.capacity > k_msvc_string_inline_capacity) {
+        free((void *)self->sound_vendor_name.buffer.heap_buffer);
     }
-    this->sound_vendor_name.capacity = k_msvc_string_inline_capacity;
-    this->sound_vendor_name.size = 0;
-    this->sound_vendor_name.buffer.inline_buffer[0] = 0;
+    self->sound_vendor_name.capacity = k_msvc_string_inline_capacity;
+    self->sound_vendor_name.size = 0;
+    self->sound_vendor_name.buffer.inline_buffer[0] = 0;
 
-    if (this->sound_device_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)this->sound_device_name.buffer.heap_buffer);
+    if (self->sound_device_name.capacity > k_msvc_string_inline_capacity) {
+        free((void *)self->sound_device_name.buffer.heap_buffer);
     }
-    this->sound_device_name.capacity = k_msvc_string_inline_capacity;
-    this->sound_device_name.size = 0;
-    this->sound_device_name.buffer.inline_buffer[0] = 0;
+    self->sound_device_name.capacity = k_msvc_string_inline_capacity;
+    self->sound_device_name.size = 0;
+    self->sound_device_name.buffer.inline_buffer[0] = 0;
 
-    if (this->graphics_vendor_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)this->graphics_vendor_name.buffer.heap_buffer);
+    if (self->graphics_vendor_name.capacity > k_msvc_string_inline_capacity) {
+        free((void *)self->graphics_vendor_name.buffer.heap_buffer);
     }
-    this->graphics_vendor_name.capacity = k_msvc_string_inline_capacity;
-    this->graphics_vendor_name.size = 0;
-    this->graphics_vendor_name.buffer.inline_buffer[0] = 0;
+    self->graphics_vendor_name.capacity = k_msvc_string_inline_capacity;
+    self->graphics_vendor_name.size = 0;
+    self->graphics_vendor_name.buffer.inline_buffer[0] = 0;
 
-    if (this->graphics_device_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)this->graphics_device_name.buffer.heap_buffer);
+    if (self->graphics_device_name.capacity > k_msvc_string_inline_capacity) {
+        free((void *)self->graphics_device_name.buffer.heap_buffer);
     }
-    this->graphics_device_name.capacity = k_msvc_string_inline_capacity;
-    this->graphics_device_name.size = 0;
-    this->graphics_device_name.buffer.inline_buffer[0] = 0;
+    self->graphics_device_name.capacity = k_msvc_string_inline_capacity;
+    self->graphics_device_name.size = 0;
+    self->graphics_device_name.buffer.inline_buffer[0] = 0;
 
-    if (this->error_message.capacity > k_msvc_string_inline_capacity) {
-        free((void *)this->error_message.buffer.heap_buffer);
+    if (self->error_message.capacity > k_msvc_string_inline_capacity) {
+        free((void *)self->error_message.buffer.heap_buffer);
     }
-    this->error_message.capacity = k_msvc_string_inline_capacity;
-    this->error_message.size = 0;
-    this->error_message.buffer.inline_buffer[0] = 0;
+    self->error_message.capacity = k_msvc_string_inline_capacity;
+    self->error_message.size = 0;
+    self->error_message.buffer.inline_buffer[0] = 0;
 }
 
 #if 0

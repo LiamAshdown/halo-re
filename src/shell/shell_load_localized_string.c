@@ -43,7 +43,7 @@ int32_t shell_load_localized_string(uint32_t buffer_capacity, void *module, char
             return loaded;
         }
     }
-    return LoadStringA(module, id, buffer, buffer_capacity);
+    return LoadStringA((HINSTANCE)module, id, buffer, buffer_capacity);
 }
 
 #if 0

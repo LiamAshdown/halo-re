@@ -17,34 +17,34 @@
 
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 
-msvc_std_string *string_erase(msvc_std_string *this, uint32_t pos, uint32_t count)
+msvc_std_string *string_erase(msvc_std_string *self, uint32_t pos, uint32_t count)
 {
     uint32_t remaining;
     char *buffer;
     uint32_t new_size;
 
-    if (this->size < pos) {
+    if (self->size < pos) {
         string_throw_out_of_range();
     }
 
-    remaining = this->size - pos;
+    remaining = self->size - pos;
     if (remaining < count) {
         count = remaining;
     }
 
     if (count == 0) {
-        return this;
+        return self;
     }
 
-    buffer = (this->capacity > 0xf) ? (char *)this->buffer.heap_buffer : this->buffer.inline_buffer;
+    buffer = (self->capacity > 0xf) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
     memmove(buffer + pos, buffer + pos + count, remaining - count);
 
-    new_size = this->size - count;
-    this->size = new_size;
+    new_size = self->size - count;
+    self->size = new_size;
 
-    buffer = (this->capacity > 0xf) ? (char *)this->buffer.heap_buffer : this->buffer.inline_buffer;
+    buffer = (self->capacity > 0xf) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
     buffer[new_size] = 0;
-    return this;
+    return self;
 }
 
 #if 0

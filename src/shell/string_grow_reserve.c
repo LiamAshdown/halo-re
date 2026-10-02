@@ -33,14 +33,14 @@
 
 
 // blam-cc: ECX -> this, stack -> new_capacity, preserve_count
-void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t preserve_count)
+void string_grow_reserve(msvc_std_string *self, uint32_t new_capacity, uint32_t preserve_count)
 {
     uint32_t capacity = new_capacity | 0xf;
     char *new_buffer;
     char *terminator;
 
     if (capacity != 0xffffffff) {
-        uint32_t current_capacity = this->capacity;
+        uint32_t current_capacity = self->capacity;
         uint32_t half = current_capacity >> 1;
         if (capacity / 3 < half && current_capacity <= (0xfffffffe - half)) {
             capacity = half + current_capacity;
@@ -52,23 +52,23 @@ void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t 
     new_buffer = (char *)malloc(capacity + 1);
 
     if (preserve_count != 0) {
-        const char *old_buffer = (this->capacity < 0x10) ? this->buffer.inline_buffer : (const char *)this->buffer.heap_buffer;
+        const char *old_buffer = (self->capacity < 0x10) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
         uint32_t i;
         for (i = 0; i < preserve_count; i++) {
             new_buffer[i] = old_buffer[i];
         }
     }
 
-    if (this->capacity > 0xf) {
-        free((void *)this->buffer.heap_buffer);
+    if (self->capacity > 0xf) {
+        free((void *)self->buffer.heap_buffer);
     }
 
-    this->buffer.inline_buffer[0] = 0;
-    this->buffer.heap_buffer = (uint32_t)new_buffer;
-    this->capacity = capacity;
-    this->size = preserve_count;
+    self->buffer.inline_buffer[0] = 0;
+    self->buffer.heap_buffer = (uint32_t)new_buffer;
+    self->capacity = capacity;
+    self->size = preserve_count;
 
-    terminator = (capacity >= 0x10) ? new_buffer : this->buffer.inline_buffer;
+    terminator = (capacity >= 0x10) ? new_buffer : self->buffer.inline_buffer;
     terminator[preserve_count] = 0;
 }
 

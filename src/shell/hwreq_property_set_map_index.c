@@ -19,8 +19,8 @@ typedef struct hwreq_map_value_type {
 } hwreq_map_value_type; // size 0x20, see tree_node_allocate.c
 
 extern hwreq_map_node *tree_lower_bound(msvc_std_map *tree, const msvc_std_string *search_key); // 0x57c530, blam-cc: EAX tree, ECX key
-extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos, const char *s, uint32_t n2); // 0x57ce10
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right, uint32_t pos,
+extern int32_t string_compare(const msvc_std_string *self, uint32_t n1, uint32_t pos, const char *s, uint32_t n2); // 0x57ce10
+extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right, uint32_t pos,
     uint32_t count); // 0x57b830, blam-cc: ECX this, stack right, pos, count
 extern hwreq_map_node *tree_hint_insert_unique(msvc_std_map *tree, hwreq_map_node **result_holder,
     hwreq_map_node *hint, const hwreq_map_value_type *value); // 0x57ba50

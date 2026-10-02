@@ -16,12 +16,12 @@
 typedef struct hwreq_parse_exception hwreq_parse_exception; // opaque here; see hwreq_parse_exception_construct.c
 
 extern void *out_of_range_vtable; // 0x00655098
-extern void hwreq_parse_exception_destruct(hwreq_parse_exception *this); // 0x578310, same pass
+extern void hwreq_parse_exception_destruct(hwreq_parse_exception *self); // 0x578310, same pass
 
-void hwreq_out_of_range_destruct(hwreq_parse_exception *this)
+void hwreq_out_of_range_destruct(hwreq_parse_exception *self)
 {
-    *(void **)this = &out_of_range_vtable;
-    hwreq_parse_exception_destruct(this);
+    *(void **)self = &out_of_range_vtable;
+    hwreq_parse_exception_destruct(self);
 }
 
 #if 0

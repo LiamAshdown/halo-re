@@ -29,14 +29,14 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern void hwreq_parser_report_error(hwreq_parser *this, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
-extern int32_t hwreq_token_parse_number(hwreq_parser *this); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
-extern char *hwreq_token_parse_quoted_string(hwreq_parser *this); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
-extern void hwreq_token_skip_whitespace(hwreq_parser *this); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
-extern void hwreq_token_skip_line(hwreq_parser *this); // 0x5789d0, blam-cc: this in EAX; below this module's rewrite range
+extern void hwreq_parser_report_error(hwreq_parser *self, const char *message); // 0x578a20, blam-cc: this in ESI (live-in), message on the stack; below this module's rewrite range
+extern int32_t hwreq_token_parse_number(hwreq_parser *self); // 0x578b20, blam-cc: this in EAX; below this module's rewrite range; -1 on error
+extern char *hwreq_token_parse_quoted_string(hwreq_parser *self); // 0x578c60, blam-cc: this in EAX; below this module's rewrite range; NULL on error
+extern void hwreq_token_skip_whitespace(hwreq_parser *self); // 0x578a00, blam-cc: this in EDX; below this module's rewrite range
+extern void hwreq_token_skip_line(hwreq_parser *self); // 0x5789d0, blam-cc: this in EAX; below this module's rewrite range
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 extern msvc_std_string *hwreq_string_assign_cstr(msvc_std_string *dest, const char *source); // 0x57b590, blam-cc: source in EDX, dest on the stack; library code, not in the function list
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
+extern uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's cursor for an "audiovendor[=id] = \"name\" { ... }" directive
 // whose id matches the detected sound device vendor (or the literal keyword "unknown", which
@@ -46,7 +46,7 @@ extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *
 // nested line is parsed directly as a flags block. A non-matching "audiovendor" line at the top
 // level is skipped for its single line only; reaching "applytoall", or the end of the file,
 // without ever entering a matching audiovendor block returns true with the cursor left there.
-uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
+uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *self)
 {
     char *cursor;
     char *line;
@@ -58,25 +58,25 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
     uint8_t ok;
 
     for (;;) {
-        if (_strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
-            c = ((char *)this->cursor)[11];
+        if (_strnicmp((char *)self->cursor, "audiovendor", 11) == 0) {
+            c = ((char *)self->cursor)[11];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
-                cursor = (char *)this->cursor + 11;
+                cursor = (char *)self->cursor + 11;
                 while (*cursor == ' ' || *cursor == '\t') {
                     cursor++;
                 }
-                this->cursor = (uint32_t)cursor;
+                self->cursor = (uint32_t)cursor;
 
                 if (*cursor == '=') {
                     cursor++;
-                    this->cursor = (uint32_t)cursor;
+                    self->cursor = (uint32_t)cursor;
 
                     if (_strnicmp(cursor, "unknown", 7) == 0 &&
                         (c = cursor[7], c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t')) {
-                        vendor_id = (int32_t)this->sound_device.vendor_id;
+                        vendor_id = (int32_t)self->sound_device.vendor_id;
                     } else {
-                        vendor_id = hwreq_token_parse_number(this);
-                        if (vendor_id != (int32_t)this->sound_device.vendor_id) {
+                        vendor_id = hwreq_token_parse_number(self);
+                        if (vendor_id != (int32_t)self->sound_device.vendor_id) {
                             goto skip_line_and_rescan;
                         }
                     }
@@ -84,7 +84,7 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                         return 1;
                     }
 
-                    name = hwreq_token_parse_quoted_string(this);
+                    name = hwreq_token_parse_quoted_string(self);
                     if (name == 0) {
                         return 0;
                     }
@@ -92,33 +92,33 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                     while (name[length] != 0) {
                         length++;
                     }
-                    msvc_string_assign_n(&this->sound_vendor_name, name, length);
+                    msvc_string_assign_n(&self->sound_vendor_name, name, length);
 
                     for (;;) {
                         // consume the rest of the current line
                         do {
-                            line = (char *)this->cursor;
-                            this->cursor = (uint32_t)(line + 1);
+                            line = (char *)self->cursor;
+                            self->cursor = (uint32_t)(line + 1);
                             if (*line == '\r') break;
-                        } while ((char *)this->cursor < (char *)this->end);
-                        if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-                            this->cursor = (uint32_t)(line + 2);
+                        } while ((char *)self->cursor < (char *)self->end);
+                        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+                            self->cursor = (uint32_t)(line + 2);
                         }
-                        this->line_start = this->cursor;
-                        this->line_number = this->line_number + 1;
+                        self->line_start = self->cursor;
+                        self->line_number = self->line_number + 1;
 
-                        if (!(_strnicmp((char *)this->cursor, "audiovendor", 11) == 0 &&
-                              (c = ((char *)this->cursor)[11],
+                        if (!(_strnicmp((char *)self->cursor, "audiovendor", 11) == 0 &&
+                              (c = ((char *)self->cursor)[11],
                                c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t'))) {
-                            cursor = (char *)this->cursor;
+                            cursor = (char *)self->cursor;
                             while (*cursor == ' ' || *cursor == '\t') {
                                 cursor++;
                             }
-                            this->cursor = (uint32_t)cursor;
+                            self->cursor = (uint32_t)cursor;
                             c = *cursor;
                             if (c < '0' || c > '9') {
                                 if (c != '\r' && *(uint16_t *)cursor != 0x2f2f /* "//" */) {
-                                    ok = hwreq_parser_parse_block(this, (hwreq_property_set *)this->flags);
+                                    ok = hwreq_parser_parse_block(self, (hwreq_property_set *)self->flags);
                                     if (ok == 0) {
                                         return 0;
                                     }
@@ -129,56 +129,56 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                             break;
                         }
                     after_nested_line:
-                        if (!((char *)this->cursor < (char *)this->end)) {
+                        if (!((char *)self->cursor < (char *)self->end)) {
                             break;
                         }
                     }
 
                     for (;;) {
-                        if (_strnicmp((char *)this->cursor, "audiovendor", 11) == 0) {
-                            c = ((char *)this->cursor)[11];
+                        if (_strnicmp((char *)self->cursor, "audiovendor", 11) == 0) {
+                            c = ((char *)self->cursor)[11];
                             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                                 return 1;
                             }
                         }
-                        if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
-                            c = ((char *)this->cursor)[6];
+                        if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
+                            c = ((char *)self->cursor)[6];
                             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                                 return 1;
                             }
                         }
-                        if (_strnicmp((char *)this->cursor, "unknown", 7) == 0) {
-                            c = ((char *)this->cursor)[7];
+                        if (_strnicmp((char *)self->cursor, "unknown", 7) == 0) {
+                            c = ((char *)self->cursor)[7];
                             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
-                                device_id = (int32_t)this->sound_device.device_id;
-                                this->cursor = this->cursor + 7;
-                                hwreq_token_skip_whitespace(this);
+                                device_id = (int32_t)self->sound_device.device_id;
+                                self->cursor = self->cursor + 7;
+                                hwreq_token_skip_whitespace(self);
                                 goto check_device_id;
                             }
                         }
-                        cursor = (char *)this->cursor;
+                        cursor = (char *)self->cursor;
                         while (*cursor == ' ' || *cursor == '\t') {
                             cursor++;
                         }
-                        this->cursor = (uint32_t)cursor;
+                        self->cursor = (uint32_t)cursor;
                         if (*cursor >= '0' && *cursor <= '9') {
-                            device_id = hwreq_token_parse_number(this);
-                            if (device_id == (int32_t)this->sound_device.device_id) {
+                            device_id = hwreq_token_parse_number(self);
+                            if (device_id == (int32_t)self->sound_device.device_id) {
                                 goto check_device_id;
                             }
                         }
 
                         do {
-                            line = (char *)this->cursor;
-                            this->cursor = (uint32_t)(line + 1);
+                            line = (char *)self->cursor;
+                            self->cursor = (uint32_t)(line + 1);
                             if (*line == '\r') break;
-                        } while ((char *)this->cursor < (char *)this->end);
-                        if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-                            this->cursor = (uint32_t)(line + 2);
+                        } while ((char *)self->cursor < (char *)self->end);
+                        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+                            self->cursor = (uint32_t)(line + 2);
                         }
-                        this->line_start = this->cursor;
-                        this->line_number = this->line_number + 1;
-                        if ((char *)this->end <= (char *)this->cursor) {
+                        self->line_start = self->cursor;
+                        self->line_number = self->line_number + 1;
+                        if ((char *)self->end <= (char *)self->cursor) {
                             return 1;
                         }
                         continue;
@@ -187,24 +187,24 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
                         if (device_id == -1) {
                             return 1;
                         }
-                        if (*(char *)this->cursor == '=') {
-                            this->cursor = this->cursor + 1;
-                            name = hwreq_token_parse_quoted_string(this);
+                        if (*(char *)self->cursor == '=') {
+                            self->cursor = self->cursor + 1;
+                            name = hwreq_token_parse_quoted_string(self);
                             if (name != 0) {
-                                hwreq_string_assign_cstr(&this->sound_device_name, name);
-                                hwreq_token_skip_line(this);
-                                ok = hwreq_parser_parse_block(this, (hwreq_property_set *)this->flags);
+                                hwreq_string_assign_cstr(&self->sound_device_name, name);
+                                hwreq_token_skip_line(self);
+                                ok = hwreq_parser_parse_block(self, (hwreq_property_set *)self->flags);
                                 return ok != 0;
                             }
                         } else {
-                            hwreq_parser_report_error(this, "xxx = Device Name expected");
+                            hwreq_parser_report_error(self, "xxx = Device Name expected");
                         }
                         return 0;
                     }
                 }
             }
-        } else if (_strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
-            c = ((char *)this->cursor)[10];
+        } else if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
+            c = ((char *)self->cursor)[10];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 return 1;
             }
@@ -212,16 +212,16 @@ uint8_t hwreq_parser_parse_audiovendor_block(hwreq_parser *this)
 
     skip_line_and_rescan:
         do {
-            line = (char *)this->cursor;
-            this->cursor = (uint32_t)(line + 1);
+            line = (char *)self->cursor;
+            self->cursor = (uint32_t)(line + 1);
             if (*line == '\r') break;
-        } while ((char *)this->cursor < (char *)this->end);
-        if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-            this->cursor = (uint32_t)(line + 2);
+        } while ((char *)self->cursor < (char *)self->end);
+        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+            self->cursor = (uint32_t)(line + 2);
         }
-        this->line_start = this->cursor;
-        this->line_number = this->line_number + 1;
-        if ((char *)this->end <= (char *)this->cursor) {
+        self->line_start = self->cursor;
+        self->line_number = self->line_number + 1;
+        if ((char *)self->end <= (char *)self->cursor) {
             return 1;
         }
     }
