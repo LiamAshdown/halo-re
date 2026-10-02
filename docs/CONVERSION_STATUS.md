@@ -16,7 +16,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 | a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | running | no |
 | a30d258f6c14fe84c | input, main, physics | running | no |
 | a48cce8b581c8e3c3 | items, effects | running | no |
-| (see below) | saved_games, render | relaunched | no |
+| a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | running | no |
 | a828a5b449c367e7c | units | running | no |
 | a8e2e4a6addbda413 | objects | running | no |
 | a9d9f7699c4305c1b | sound | running | no |
