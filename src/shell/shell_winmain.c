@@ -179,7 +179,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
             stack_guard_buffer[i] = 0xeeeeeeee;
         }
         shell_stack_guard_page = (uint8_t *)stack_guard_buffer + 0x1000;
-        VirtualProtect(shell_stack_guard_page, 1, 1 /* PAGE_NOACCESS */, &shell_stack_guard_old_protect);
+        VirtualProtect(shell_stack_guard_page, 1, 1 /* PAGE_NOACCESS */, (PDWORD)&shell_stack_guard_old_protect);
         integrity_ok = 1;
 
         command_line_length = 0;
@@ -212,19 +212,19 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         // first run: the EULA
         firstrun = 0;
         firstrun_size = 4;
-        RegOpenKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+        RegOpenKeyExA((HKEY)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                       0x20019 /* KEY_READ */, (PHKEY)&hkey);
-        RegQueryValueExA(hkey, "FIRSTRUN", 0, 0, (uint8_t *)&firstrun, &firstrun_size);
-        RegCloseKey(hkey);
+        RegQueryValueExA((HKEY)hkey, "FIRSTRUN", 0, 0, (uint8_t *)&firstrun, (LPDWORD)&firstrun_size);
+        RegCloseKey((HKEY)hkey);
         if (firstrun == 0) {
             eula_accepted = 0;
             eula_module = LoadLibraryA("eula.dll");
             if (eula_module != 0) {
-                eula_show = (eula_show_fn)GetProcAddress(eula_module, "EBUEula");
+                eula_show = (eula_show_fn)GetProcAddress((HMODULE)eula_module, "EBUEula");
                 if (eula_show != 0) {
                     eula_accepted = eula_show("Software\\Microsoft\\Microsoft Games\\Halo", eula_file_name, 0, 1);
                 }
-                FreeLibrary(eula_module);
+                FreeLibrary((HMODULE)eula_module);
             }
             if (eula_accepted == 0) {
                 ExitProcess(1);
@@ -272,7 +272,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         // Direct3D and config.txt
         cache_reserve_map_memory();
         d3d9_module = LoadLibraryA("d3d9.dll");
-        direct3d_create9 = GetProcAddress(d3d9_module, "Direct3DCreate9");
+        direct3d_create9 = GetProcAddress((HMODULE)d3d9_module, "Direct3DCreate9");
         if (d3d9_module == 0 || direct3d_create9 == 0) {
             shell_display_fatal_error_dialog(0x6b, (uint32_t)((const char *)0x7a), 1);
         }
@@ -290,7 +290,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         if (GetAsyncKeyState(0x11 /* VK_CONTROL */) < 0) {
             shell_display_fatal_error_dialog(0x87, (uint32_t)((const char *)0x7e), 0);
         }
-        disable_d3dspy = (void (*)(void))GetProcAddress(d3d9_module, "DisableD3DSpy");
+        disable_d3dspy = (void (*)(void))GetProcAddress((HMODULE)d3d9_module, "DisableD3DSpy");
         if (disable_d3dspy != 0) {
             disable_d3dspy();
         }
@@ -301,18 +301,18 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
             direct_sound_create8 = 0;
         } else {
             dsound_module = LoadLibraryA("dsound.dll");
-            direct_sound_create8 = GetProcAddress(dsound_module, "DirectSoundCreate8");
+            direct_sound_create8 = GetProcAddress((HMODULE)dsound_module, "DirectSoundCreate8");
             if (dsound_module == 0 || direct_sound_create8 == 0) {
                 shell_display_fatal_error_dialog(0x7b, (uint32_t)((const char *)0x7a), 1);
             }
         }
         dinput8_module = LoadLibraryA("dinput8.dll");
-        direct_input8_create = GetProcAddress(dinput8_module, "DirectInput8Create");
+        direct_input8_create = GetProcAddress((HMODULE)dinput8_module, "DirectInput8Create");
         if (dinput8_module == 0 || direct_input8_create == 0) {
             shell_display_fatal_error_dialog(0x7c, (uint32_t)((const char *)0x7a), 1);
         }
         shfolder_module = LoadLibraryA("shfolder.dll");
-        sh_get_folder_path = GetProcAddress(shfolder_module, "SHGetFolderPathA");
+        sh_get_folder_path = GetProcAddress((HMODULE)shfolder_module, "SHGetFolderPathA");
         if (shfolder_module == 0 || sh_get_folder_path == 0) {
             shell_display_fatal_error_dialog(0x7d, (uint32_t)((const char *)0x7e), 1);
         }
@@ -380,7 +380,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
             }
             memset(secret_key, 0, sizeof(secret_key));
             memcpy(secret_key, "e4Rd9J", 7);
-            network_session_host_start_info_set("halor", secret_key, (char *)ip_value, (int32_t)network_game_socket_port);
+            network_session_host_start_info_set((char *)"halor", secret_key, (char *)ip_value, (int32_t)network_game_socket_port);
             main_loop();
             engine_shutdown_subsystems();
         }
@@ -389,7 +389,7 @@ int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCm
         memory_global_free(shell_argv);
         keystone_library_unload();
         if (shell_stack_guard_page != 0) {
-            VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, &shell_stack_guard_old_protect);
+            VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, (PDWORD)&shell_stack_guard_old_protect);
             shell_stack_guard_page = 0;
         }
     } WINMAIN_EXCEPT {

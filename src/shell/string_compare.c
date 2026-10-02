@@ -26,17 +26,17 @@
 
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 
-int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos, const char *s, uint32_t n2)
+int32_t string_compare(const msvc_std_string *self, uint32_t n1, uint32_t pos, const char *s, uint32_t n2)
 {
     uint32_t remaining;
     uint32_t compare_count;
     int32_t result = 0;
 
-    if (this->size < pos) {
+    if (self->size < pos) {
         string_throw_out_of_range();
     }
 
-    remaining = this->size - pos;
+    remaining = self->size - pos;
     if (remaining < n1) {
         n1 = remaining;
     }
@@ -45,7 +45,7 @@ int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos, c
         const char *lhs;
         compare_count = (n2 <= n1) ? n2 : n1;
 
-        lhs = (this->capacity < 0x10) ? this->buffer.inline_buffer : (const char *)this->buffer.heap_buffer;
+        lhs = (self->capacity < 0x10) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
         lhs += pos;
 
         {

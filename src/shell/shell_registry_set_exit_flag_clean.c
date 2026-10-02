@@ -21,10 +21,10 @@ void shell_registry_set_exit_flag_clean(void)
 {
     void *key;
 
-    RegCreateKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0,
+    RegCreateKeyExA((HKEY)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0,
                      0x20006, 0, 0, (PHKEY)&key, 0);
-    RegSetValueExA(key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"clean", 6);
-    RegCloseKey(key);
+    RegSetValueExA((HKEY)key, "ExitFlag", 0, 1 /* REG_SZ */, (const uint8_t *)"clean", 6);
+    RegCloseKey((HKEY)key);
 }
 
 #if 0

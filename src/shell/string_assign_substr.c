@@ -18,15 +18,15 @@
 
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 extern void string_throw_length_error(void); // 0x638eb4, _Xlen: throws length_error("string too long")
-extern msvc_std_string *string_erase(msvc_std_string *this, uint32_t pos, uint32_t count); // 0x57bd80
-extern void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t preserve_count); // 0x57c6d0
+extern msvc_std_string *string_erase(msvc_std_string *this_, uint32_t pos, uint32_t count); // 0x57bd80
+extern void string_grow_reserve(msvc_std_string *this_, uint32_t new_capacity, uint32_t preserve_count); // 0x57c6d0
 
 static char *string_data(const msvc_std_string *s)
 {
     return s->capacity >= 0x10 ? (char *)s->buffer.heap_buffer : (char *)s->buffer.inline_buffer;
 }
 
-msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right, uint32_t pos,
+msvc_std_string *string_assign_substr(msvc_std_string *this_, const msvc_std_string *right, uint32_t pos,
     uint32_t count)
 {
     uint32_t available;
@@ -41,30 +41,30 @@ msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_stri
     if (count < available) {
         available = count;
     }
-    if (this == right) {
-        string_erase(this, pos + available, 0xffffffff);
-        string_erase(this, 0, pos);
-        return this;
+    if (this_ == right) {
+        string_erase(this_, pos + available, 0xffffffff);
+        string_erase(this_, 0, pos);
+        return this_;
     }
     if (available > 0xfffffffe) {
         string_throw_length_error();
     }
-    if (this->capacity < available) {
-        string_grow_reserve(this, available, this->size);
+    if (this_->capacity < available) {
+        string_grow_reserve(this_, available, this_->size);
         if (available == 0) {
-            return this;
+            return this_;
         }
     } else if (available == 0) {
-        this->size = 0;
-        string_data(this)[0] = 0;
-        return this;
+        this_->size = 0;
+        string_data(this_)[0] = 0;
+        return this_;
     }
     source = string_data(right) + pos;
-    data = string_data(this);
+    data = string_data(this_);
     for (i = 0; i < available; i++) {
         data[i] = source[i];
     }
-    this->size = available;
-    string_data(this)[available] = 0;
-    return this;
+    this_->size = available;
+    string_data(this_)[available] = 0;
+    return this_;
 }

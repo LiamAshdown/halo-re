@@ -33,7 +33,7 @@ extern void destroy_range_string_pair(hwreq_string_pair *first, hwreq_string_pai
 extern void fill_string_pair_range(hwreq_string_pair *first, hwreq_string_pair *last, const hwreq_string_pair *value); // 0x57cda0
 extern hwreq_string_pair *string_pair_construct_empty(hwreq_string_pair *dest, const hwreq_string_pair *source); // 0x57c640 (a copy constructor)
 extern void hwreq_string_pair_destruct(hwreq_string_pair *pair); // 0x5785b0
-extern int32_t hwreq_device_list_size(const msvc_std_vector *this); // 0x57b5b0
+extern int32_t hwreq_device_list_size(const msvc_std_vector *self); // 0x57b5b0
 extern hwreq_string_pair *copy_backward_string_pair(hwreq_string_pair *first, hwreq_string_pair *last,
     hwreq_string_pair *dest_end); // 0x57cf10, blam-cc: EBX -> first, ECX -> last, EAX -> dest_end
 extern void hwreq_pair_vector_throw_length_error(void); // 0x57c130, throws length_error("vector<T> too long")
@@ -43,7 +43,7 @@ static uint32_t pair_count(uint32_t from, uint32_t to)
     return (uint32_t)(((int32_t)to - (int32_t)from) / (int32_t)sizeof(hwreq_string_pair));
 }
 
-void hwreq_pair_vector_insert_n(msvc_std_vector *this, hwreq_string_pair *where, uint32_t count,
+void hwreq_pair_vector_insert_n(msvc_std_vector *self, hwreq_string_pair *where, uint32_t count,
     const hwreq_string_pair *value)
 {
     hwreq_string_pair temporary;
@@ -51,47 +51,47 @@ void hwreq_pair_vector_insert_n(msvc_std_vector *this, hwreq_string_pair *where,
     uint32_t size;
 
     string_pair_construct_empty(&temporary, value);
-    if (this->first != 0) {
-        capacity = pair_count(this->first, this->end);
+    if (self->first != 0) {
+        capacity = pair_count(self->first, self->end);
     }
     if (count != 0) {
-        size = this->first != 0 ? pair_count(this->first, this->last) : 0;
+        size = self->first != 0 ? pair_count(self->first, self->last) : 0;
         if (0x4924924 - size < count) {
             hwreq_pair_vector_throw_length_error();
         }
-        size = this->first != 0 ? pair_count(this->first, this->last) : 0;
+        size = self->first != 0 ? pair_count(self->first, self->last) : 0;
         if (capacity < size + count) {
             hwreq_string_pair *new_first;
             hwreq_string_pair *cursor;
             uint32_t half = capacity >> 1;
 
             capacity = 0x4924924 - half < capacity ? 0 : capacity + half;
-            size = this->first != 0 ? pair_count(this->first, this->last) : 0;
+            size = self->first != 0 ? pair_count(self->first, self->last) : 0;
             if (capacity < size + count) {
-                capacity = (uint32_t)hwreq_device_list_size(this) + count;
+                capacity = (uint32_t)hwreq_device_list_size(self) + count;
             }
             new_first = (hwreq_string_pair *)malloc(capacity * sizeof(hwreq_string_pair));
-            cursor = uninit_copy_string_pair((hwreq_string_pair *)this->first, where, new_first);
+            cursor = uninit_copy_string_pair((hwreq_string_pair *)self->first, where, new_first);
             uninit_fill_n_string_pair(cursor, count, &temporary);
-            uninit_copy_string_pair(where, (hwreq_string_pair *)this->last, cursor + count);
-            if (this->first != 0) {
-                count += pair_count(this->first, this->last);
-                destroy_range_string_pair((hwreq_string_pair *)this->first, (hwreq_string_pair *)this->last);
-                free((void *)this->first);
+            uninit_copy_string_pair(where, (hwreq_string_pair *)self->last, cursor + count);
+            if (self->first != 0) {
+                count += pair_count(self->first, self->last);
+                destroy_range_string_pair((hwreq_string_pair *)self->first, (hwreq_string_pair *)self->last);
+                free((void *)self->first);
             }
-            this->end = (uint32_t)(new_first + capacity);
-            this->last = (uint32_t)(new_first + count);
-            this->first = (uint32_t)new_first;
-        } else if (pair_count((uint32_t)where, this->last) < count) {
-            uninit_copy_string_pair(where, (hwreq_string_pair *)this->last, where + count);
-            uninit_fill_n_string_pair((hwreq_string_pair *)this->last, count - pair_count((uint32_t)where, this->last),
+            self->end = (uint32_t)(new_first + capacity);
+            self->last = (uint32_t)(new_first + count);
+            self->first = (uint32_t)new_first;
+        } else if (pair_count((uint32_t)where, self->last) < count) {
+            uninit_copy_string_pair(where, (hwreq_string_pair *)self->last, where + count);
+            uninit_fill_n_string_pair((hwreq_string_pair *)self->last, count - pair_count((uint32_t)where, self->last),
                                       &temporary);
-            this->last = (uint32_t)((hwreq_string_pair *)this->last + count);
-            fill_string_pair_range(where, (hwreq_string_pair *)this->last - count, &temporary);
+            self->last = (uint32_t)((hwreq_string_pair *)self->last + count);
+            fill_string_pair_range(where, (hwreq_string_pair *)self->last - count, &temporary);
         } else {
-            hwreq_string_pair *old_last = (hwreq_string_pair *)this->last;
+            hwreq_string_pair *old_last = (hwreq_string_pair *)self->last;
 
-            this->last = (uint32_t)uninit_copy_string_pair(old_last - count, old_last, old_last);
+            self->last = (uint32_t)uninit_copy_string_pair(old_last - count, old_last, old_last);
             copy_backward_string_pair(where, old_last - count, old_last);
             fill_string_pair_range(where, where + count, &temporary);
         }

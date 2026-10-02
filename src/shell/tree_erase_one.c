@@ -23,10 +23,10 @@ typedef struct hwreq_parse_exception {
     msvc_std_string message; // 0x0c
 } hwreq_parse_exception; // size 0x28
 
-extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *this,
+extern hwreq_parse_exception *hwreq_parse_exception_construct(hwreq_parse_exception *self,
     const msvc_std_string *message); // 0x5782b0, blam-cc: ECX -> this, stack -> message
 extern __declspec(noreturn) void __stdcall _CxxThrowException(void *object, void *throw_info); // CRT: 0x639177
-extern msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count); // 0x57bc90
+extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
 extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, blam-cc: EDX
 extern hwreq_map_node *tree_find_min(hwreq_map_node **subtree_root_left_field); // 0x57cb70, blam-cc: EAX

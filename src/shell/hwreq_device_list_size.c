@@ -14,12 +14,12 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-int32_t hwreq_device_list_size(const msvc_std_vector *this)
+int32_t hwreq_device_list_size(const msvc_std_vector *self)
 {
-    if (this->first == 0) {
+    if (self->first == 0) {
         return 0;
     }
-    return ((int32_t)this->last - (int32_t)this->first) / 0x38;
+    return ((int32_t)self->last - (int32_t)self->first) / 0x38;
 }
 
 #if 0

@@ -215,11 +215,11 @@ void shell_detect_hardware_specs(void)
 
     // DirectDraw adapters and their video memory
     ddraw_module = LoadLibraryA("ddraw.dll");
-    direct_draw_create_ex = (direct_draw_create_ex_fn)GetProcAddress(ddraw_module, "DirectDrawCreateEx");
+    direct_draw_create_ex = (direct_draw_create_ex_fn)GetProcAddress((HMODULE)ddraw_module, "DirectDrawCreateEx");
     if (direct_draw_create_ex == 0) {
         shell_display_fatal_error_dialog(0x79, (uint32_t)((const char *)0x7a), 1);
     }
-    direct_draw_enumerate_ex = (direct_draw_enumerate_ex_fn)GetProcAddress(ddraw_module, "DirectDrawEnumerateExA");
+    direct_draw_enumerate_ex = (direct_draw_enumerate_ex_fn)GetProcAddress((HMODULE)ddraw_module, "DirectDrawEnumerateExA");
     if (direct_draw_enumerate_ex == 0) {
         shell_display_fatal_error_dialog(0x79, (uint32_t)((const char *)0x7a), 1);
     }
@@ -262,7 +262,7 @@ void shell_detect_hardware_specs(void)
         display_adapters[adapter_index].video_memory = shell_round_video_memory(smallest);
         direct_draw->vtable->release(direct_draw);
     }
-    FreeLibrary(ddraw_module);
+    FreeLibrary((HMODULE)ddraw_module);
 
     // DxDiag sound devices
     memset(sound_devices, 0, sizeof(sound_devices));
@@ -306,7 +306,7 @@ void shell_detect_hardware_specs(void)
                     // szGuidDeviceID "{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"
                     device->vtable->get_prop(device, (const uint16_t *)L"szGuidDeviceID", &variant);
                     if (variant.type == 8 /* VT_BSTR */) {
-                        WideCharToMultiByte(0, 0, (const uint16_t *)variant.value, -1, text, sizeof(text), 0, 0);
+                        WideCharToMultiByte(0, 0, (LPCWCH)variant.value, -1, text, sizeof(text), 0, 0);
                         _strlwr(text);
                         record->guid[0] = (uint32_t)hex_string_to_uint(text + 1);
                         ((uint16_t *)record->guid)[2] = (uint16_t)hex_string_to_uint(text + 10);
@@ -321,7 +321,7 @@ void shell_detect_hardware_specs(void)
 
                     device->vtable->get_prop(device, (const uint16_t *)L"szDescription", &variant);
                     if (variant.type == 8) {
-                        WideCharToMultiByte(0, 0, (const uint16_t *)variant.value, -1, text, sizeof(text), 0, 0);
+                        WideCharToMultiByte(0, 0, (LPCWCH)variant.value, -1, text, sizeof(text), 0, 0);
                         strncpy(record->description, text, 0x1f);
                         record->description[0x1f] = 0;
                         VariantClear((VARIANTARG *)&variant);
@@ -330,7 +330,7 @@ void shell_detect_hardware_specs(void)
                     // szHardwareID "pci\ven_xxxx&dev_xxxx&subsys_xxxxxxxx&rev_xx..."
                     device->vtable->get_prop(device, (const uint16_t *)L"szHardwareID", &variant);
                     if (variant.type == 8) {
-                        WideCharToMultiByte(0, 0, (const uint16_t *)variant.value, -1, text, sizeof(text), 0, 0);
+                        WideCharToMultiByte(0, 0, (LPCWCH)variant.value, -1, text, sizeof(text), 0, 0);
                         _strlwr(text);
                         if (memcmp(text, "*nforce", 8) == 0) {
                             memcpy(text, SOUND_DEVICE_HARDWARE_ID_NFORCE, 0x3b);
@@ -349,7 +349,7 @@ void shell_detect_hardware_specs(void)
                     // szDriverVersion "a.b.c.d"
                     device->vtable->get_prop(device, (const uint16_t *)L"szDriverVersion", &variant);
                     if (variant.type == 8) {
-                        WideCharToMultiByte(0, 0, (const uint16_t *)variant.value, -1, text, sizeof(text), 0, 0);
+                        WideCharToMultiByte(0, 0, (LPCWCH)variant.value, -1, text, sizeof(text), 0, 0);
                         version_d = 0;
                         sscanf(text, "%d.%d.%d.%d", &version_a, &version_b, &version_c, &version_d);
                         record->driver_version.parts.high_part = (version_a << 16) + version_b;

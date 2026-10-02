@@ -25,13 +25,13 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern int32_t string_compare(const msvc_std_string *this, uint32_t n1, uint32_t pos,
+extern int32_t string_compare(const msvc_std_string *self, uint32_t n1, uint32_t pos,
     const char *s, uint32_t n2); // 0x57ce10, same pass
 
-uint8_t hwreq_map_key_less_than(const msvc_std_string *this, const msvc_std_string *other)
+uint8_t hwreq_map_key_less_than(const msvc_std_string *self, const msvc_std_string *other)
 {
     const char *other_data = (other->capacity < 0x10) ? other->buffer.inline_buffer : (const char *)other->buffer.heap_buffer;
-    return string_compare(this, this->size, 0, other_data, other->size) < 0;
+    return string_compare(self, self->size, 0, other_data, other->size) < 0;
 }
 
 #if 0

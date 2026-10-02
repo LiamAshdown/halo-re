@@ -19,59 +19,59 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern uint8_t hwreq_parser_parse_block(hwreq_parser *this, hwreq_property_set *target); // 0x57af10
+extern uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target); // 0x57af10
 
 // Scans forward from the parser's current cursor, parsing every "applytoall { ... }" block it
 // finds into this->flags, until either a line beginning with "vendor" (followed by a delimiter)
 // is reached -- left unconsumed, for the caller to handle -- or the end of the file is reached.
 // Returns false only if a matched applytoall block fails to parse.
-uint8_t hwreq_parser_scan_for_applytoall_or_vendor(hwreq_parser *this)
+uint8_t hwreq_parser_scan_for_applytoall_or_vendor(hwreq_parser *self)
 {
     char *line;
     char c;
     uint8_t result;
 
     for (;;) {
-        if (_strnicmp((char *)this->cursor, "applytoall", 10) == 0) {
-            c = ((char *)this->cursor)[10];
+        if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
+            c = ((char *)self->cursor)[10];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 // consume the "applytoall" line
                 do {
-                    line = (char *)this->cursor;
-                    this->cursor = (uint32_t)(line + 1);
+                    line = (char *)self->cursor;
+                    self->cursor = (uint32_t)(line + 1);
                     if (*line == '\r') break;
-                } while ((char *)this->cursor < (char *)this->end);
-                if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-                    this->cursor = (uint32_t)(line + 2);
+                } while ((char *)self->cursor < (char *)self->end);
+                if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+                    self->cursor = (uint32_t)(line + 2);
                 }
-                this->line_start = this->cursor;
-                this->line_number = this->line_number + 1;
+                self->line_start = self->cursor;
+                self->line_number = self->line_number + 1;
 
-                result = hwreq_parser_parse_block(this, (hwreq_property_set *)this->flags);
+                result = hwreq_parser_parse_block(self, (hwreq_property_set *)self->flags);
                 if (result == 0) {
                     return result;
                 }
                 // fall through: skip the rest of the block's closing line and keep scanning
             }
-        } else if (_strnicmp((char *)this->cursor, "vendor", 6) == 0) {
-            c = ((char *)this->cursor)[6];
+        } else if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
+            c = ((char *)self->cursor)[6];
             if (c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t') {
                 break; // leave the cursor at the start of the "vendor" line
             }
         }
 
         do {
-            line = (char *)this->cursor;
-            this->cursor = (uint32_t)(line + 1);
+            line = (char *)self->cursor;
+            self->cursor = (uint32_t)(line + 1);
             if (*line == '\r') break;
-        } while ((char *)this->cursor < (char *)this->end);
-        if ((char *)this->cursor < (char *)this->end && *(char *)this->cursor == '\n') {
-            this->cursor = (uint32_t)(line + 2);
+        } while ((char *)self->cursor < (char *)self->end);
+        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+            self->cursor = (uint32_t)(line + 2);
         }
-        line = (char *)this->cursor;
-        this->line_start = this->cursor;
-        this->line_number = this->line_number + 1;
-        if ((char *)this->end <= line) {
+        line = (char *)self->cursor;
+        self->line_start = self->cursor;
+        self->line_number = self->line_number + 1;
+        if ((char *)self->end <= line) {
             return 1;
         }
     }

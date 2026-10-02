@@ -26,52 +26,52 @@ extern hwreq_map_node *tree_head_node_allocate(void); // 0x57cbf0, allocates a 0
 // Default-constructs the hardware-requirements parser object in place: installs the vtable,
 // empties the five embedded strings, and allocates and self-links the head sentinel node of
 // each of the two maps (property_sets, graphic_detail_sets), marking each head is_nil.
-hwreq_parser *hwreq_parser_construct(hwreq_parser *this)
+hwreq_parser *hwreq_parser_construct(hwreq_parser *this_)
 {
     hwreq_map_node *head;
 
-    this->vtable = (uint32_t)&hwreq_parser_vtable_instance;
+    this_->vtable = (uint32_t)&hwreq_parser_vtable_instance;
 
-    this->error_message.capacity = k_msvc_string_inline_capacity;
-    this->error_message.size = 0;
-    this->error_message.buffer.inline_buffer[0] = 0;
+    this_->error_message.capacity = k_msvc_string_inline_capacity;
+    this_->error_message.size = 0;
+    this_->error_message.buffer.inline_buffer[0] = 0;
 
-    this->graphics_device_name.capacity = k_msvc_string_inline_capacity;
-    this->graphics_device_name.size = 0;
-    this->graphics_device_name.buffer.inline_buffer[0] = 0;
+    this_->graphics_device_name.capacity = k_msvc_string_inline_capacity;
+    this_->graphics_device_name.size = 0;
+    this_->graphics_device_name.buffer.inline_buffer[0] = 0;
 
-    this->graphics_vendor_name.capacity = k_msvc_string_inline_capacity;
-    this->graphics_vendor_name.size = 0;
-    this->graphics_vendor_name.buffer.inline_buffer[0] = 0;
+    this_->graphics_vendor_name.capacity = k_msvc_string_inline_capacity;
+    this_->graphics_vendor_name.size = 0;
+    this_->graphics_vendor_name.buffer.inline_buffer[0] = 0;
 
-    this->sound_device_name.capacity = k_msvc_string_inline_capacity;
-    this->sound_device_name.size = 0;
-    this->sound_device_name.buffer.inline_buffer[0] = 0;
+    this_->sound_device_name.capacity = k_msvc_string_inline_capacity;
+    this_->sound_device_name.size = 0;
+    this_->sound_device_name.buffer.inline_buffer[0] = 0;
 
-    this->sound_vendor_name.capacity = k_msvc_string_inline_capacity;
-    this->sound_vendor_name.size = 0;
-    this->sound_vendor_name.buffer.inline_buffer[0] = 0;
+    this_->sound_vendor_name.capacity = k_msvc_string_inline_capacity;
+    this_->sound_vendor_name.size = 0;
+    this_->sound_vendor_name.buffer.inline_buffer[0] = 0;
 
     head = tree_head_node_allocate();
-    this->property_sets.head = (uint32_t)head;
+    this_->property_sets.head = (uint32_t)head;
     head->is_nil = 1;
     head->parent = (uint32_t)head;
     head->left = (uint32_t)head;
     head->right = (uint32_t)head;
-    this->property_sets.size = 0;
+    this_->property_sets.size = 0;
 
     head = tree_head_node_allocate();
-    this->graphic_detail_sets.head = (uint32_t)head;
+    this_->graphic_detail_sets.head = (uint32_t)head;
     head->is_nil = 1;
     head->parent = (uint32_t)head;
     head->left = (uint32_t)head;
     head->right = (uint32_t)head;
-    this->graphic_detail_sets.size = 0;
+    this_->graphic_detail_sets.size = 0;
 
-    this->flags = 0;
-    this->requirements = 0;
+    this_->flags = 0;
+    this_->requirements = 0;
 
-    return this;
+    return this_;
 }
 
 #if 0

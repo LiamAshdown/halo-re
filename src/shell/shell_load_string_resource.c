@@ -34,12 +34,12 @@ int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buff
     int32_t converted;
     int32_t terminator_index;
 
-    resource_info = FindResourceExA(module, (const char *)6 /* RT_STRING */,
+    resource_info = FindResourceExA((HMODULE)module, (const char *)6 /* RT_STRING */,
                                      (const char *)(uint32_t)((id >> 4) + 1), language);
     if (resource_info == 0) {
         return 0;
     }
-    resource_data = LoadResource(module, resource_info);
+    resource_data = LoadResource((HMODULE)module, (HRSRC)resource_info);
     if (resource_data == 0) {
         return 0;
     }
@@ -53,7 +53,7 @@ int32_t shell_load_string_resource(uint32_t id, uint16_t language, uint32_t buff
         entry_length = *entry;
         entry++;
         if (entry_length != 0 && index == (id & 0xf)) {
-            converted = WideCharToMultiByte(0, 0, entry, entry_length, buffer, buffer_capacity, 0, 0);
+            converted = WideCharToMultiByte(0, 0, (LPCWCH)entry, entry_length, buffer, buffer_capacity, 0, 0);
             if (converted == 0) {
                 return 0;
             }

@@ -26,7 +26,7 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right,
+extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
 
 // blam-cc: EAX -> first, EBX -> value, stack -> last

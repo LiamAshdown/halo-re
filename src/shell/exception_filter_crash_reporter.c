@@ -139,7 +139,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
     crash_reset_fpu();
 
     if (shell_stack_guard_page != 0) {
-        VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, &shell_stack_guard_old_protect);
+        VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, (PDWORD)&shell_stack_guard_old_protect);
         shell_stack_guard_page = 0;
     }
     if (crash_in_progress != 0) {
@@ -154,7 +154,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
 
     faultrep_module = LoadLibraryA("faultrep.dll");
     if (faultrep_module != 0) {
-        report_fault = (report_fault_fn)GetProcAddress(faultrep_module, "ReportFault");
+        report_fault = (report_fault_fn)GetProcAddress((HMODULE)faultrep_module, "ReportFault");
     }
 
     CRASH_TRY {
@@ -176,7 +176,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
             chat_gui_root_handle = 0;
         }
         if (shell_window != 0) {
-            ShowWindow(shell_window, 6 /* SW_MINIMIZE */);
+            ShowWindow((HWND)shell_window, 6 /* SW_MINIMIZE */);
         }
     } CRASH_EXCEPT {
     }
@@ -194,10 +194,10 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
         cursor = &dialog_template->menu;
         *cursor++ = 0;                              // no menu
         *cursor++ = 0;                              // default dialog class
-        count = MultiByteToWideChar(0, 0, exception_title, -1, cursor, k_crash_dialog_text_characters);
+        count = MultiByteToWideChar(0, 0, exception_title, -1, (LPWSTR)cursor, k_crash_dialog_text_characters);
         cursor = cursor + count;
         *cursor++ = k_crash_dialog_font_size;
-        count = MultiByteToWideChar(0, 0, "MS Sans Serif", -1, cursor, k_crash_dialog_text_characters);
+        count = MultiByteToWideChar(0, 0, "MS Sans Serif", -1, (LPWSTR)cursor, k_crash_dialog_text_characters);
         cursor = cursor + count;
 
         item = (crash_dialog_item_template *)((((uint32_t)cursor + 3) >> 2) << 2);
@@ -210,15 +210,15 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
         cursor = &item->class_ordinal_marker;
         *cursor++ = 0xffff;
         *cursor++ = 0x82;                           // STATIC
-        count = MultiByteToWideChar(0, 0, exception_gathering_text, -1, cursor, k_crash_dialog_text_characters);
+        count = MultiByteToWideChar(0, 0, exception_gathering_text, -1, (LPWSTR)cursor, k_crash_dialog_text_characters);
         cursor = cursor + count + 1;                // the creation data word, left zero
         GlobalUnlock(template_memory);
 
-        dialog = CreateDialogIndirectParamA(GetModuleHandleA(0), template_memory, 0,
+        dialog = CreateDialogIndirectParamA(GetModuleHandleA(0), (LPCDLGTEMPLATEA)template_memory, 0,
                                             (DLGPROC)((void *)dialog_center_on_screen), 0);
-        ShowWindow(dialog, 5 /* SW_SHOW */);
-        SetWindowPos(dialog, (void *)-1 /* HWND_TOPMOST */, 0, 0, 0, 0, 3 /* SWP_NOSIZE | SWP_NOMOVE */);
-        while (PeekMessageA((LPMSG)&message, dialog, 0, 0, 1 /* PM_REMOVE */)) {
+        ShowWindow((HWND)dialog, 5 /* SW_SHOW */);
+        SetWindowPos((HWND)dialog, (HWND)-1 /* HWND_TOPMOST */, 0, 0, 0, 0, 3 /* SWP_NOSIZE | SWP_NOMOVE */);
+        while (PeekMessageA((LPMSG)&message, (HWND)dialog, 0, 0, 1 /* PM_REMOVE */)) {
             DispatchMessageA((const MSG *)&message);
         }
     } CRASH_EXCEPT {
@@ -260,9 +260,9 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
     shared->exception_address = record->address;
     shared->offer_flags = k_dw_offer_flags;
     shared->behavior_flags = k_dw_behavior_flags;
-    wcscpy(shared->application_name, (const uint16_t *)L"Halo");
+    wcscpy((wchar_t *)shared->application_name, L"Halo");
     GetModuleFileNameA(0, module_file_name, sizeof(module_file_name));
-    mbstowcs(shared->module_file_name, module_file_name, strlen(module_file_name));
+    mbstowcs((wchar_t *)shared->module_file_name, module_file_name, strlen(module_file_name));
     memcpy(shared->registry_subpath, "Microsoft\\PCHealth\\ErrorReporting\\DW", 37);
     shared->let_run_flags = k_dw_let_run_flags;
     memcpy(shared->server, "watson.microsoft.com", 21);
@@ -293,7 +293,7 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
                     }
                     strcpy(file_list, temp_path);   // overwrites the "|", see the header
                 }
-                while (PeekMessageA((LPMSG)&wait_message, dialog, 0, 0, 1)) {
+                while (PeekMessageA((LPMSG)&wait_message, (HWND)dialog, 0, 0, 1)) {
                     if (wait_message.message == 0x111 /* WM_COMMAND */) {
                         wait_result = 0x102;        // WAIT_TIMEOUT: stop waiting
                     }
@@ -321,12 +321,12 @@ int32_t __stdcall exception_filter_crash_reporter(win32_exception_pointers *exce
     strcat(file_list, "\\network.log");
     if (file_list[0] != 0) {
         _strlwr(file_list);
-        MultiByteToWideChar(0, 0, file_list, -1, shared->additional_files, 0x400);
+        MultiByteToWideChar(0, 0, file_list, -1, (LPWSTR)shared->additional_files, 0x400);
     }
 
     CRASH_TRY {
         if (dialog != 0) {
-            DestroyWindow(dialog);
+            DestroyWindow((HWND)dialog);
         }
         if (template_memory != 0) {
             GlobalFree(template_memory);

@@ -16,42 +16,42 @@
 #include "rasterizer.h"
 #include "shell.h"
 
-extern msvc_std_string *string_assign_substr(msvc_std_string *this, const msvc_std_string *right, uint32_t pos,
+extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right, uint32_t pos,
     uint32_t count); // 0x57b830, blam-cc: ECX -> this, stack -> right, pos, count
 extern void string_throw_length_error(void); // 0x638eb4, _Xlen: throws length_error("string too long")
-extern void string_grow_reserve(msvc_std_string *this, uint32_t new_capacity, uint32_t preserve_count); // 0x57c6d0
+extern void string_grow_reserve(msvc_std_string *self, uint32_t new_capacity, uint32_t preserve_count); // 0x57c6d0
 
 static char *string_data(msvc_std_string *s)
 {
     return s->capacity >= 0x10 ? (char *)s->buffer.heap_buffer : s->buffer.inline_buffer;
 }
 
-msvc_std_string *msvc_string_assign_n(msvc_std_string *this, const char *source, uint32_t count)
+msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count)
 {
-    char *data = string_data(this);
+    char *data = string_data(self);
     uint32_t i;
 
-    if (source >= data && data + this->size > source) {
-        return string_assign_substr(this, this, (uint32_t)(source - data), count);
+    if (source >= data && data + self->size > source) {
+        return string_assign_substr(self, self, (uint32_t)(source - data), count);
     }
     if (count > 0xfffffffe) {
         string_throw_length_error();
     }
-    if (this->capacity < count) {
-        string_grow_reserve(this, count, this->size);
+    if (self->capacity < count) {
+        string_grow_reserve(self, count, self->size);
         if (count == 0) {
-            return this;
+            return self;
         }
     } else if (count == 0) {
-        this->size = 0;
-        string_data(this)[0] = 0;
-        return this;
+        self->size = 0;
+        string_data(self)[0] = 0;
+        return self;
     }
-    data = string_data(this);
+    data = string_data(self);
     for (i = 0; i < count; i++) {
         data[i] = source[i];
     }
-    this->size = count;
-    string_data(this)[count] = 0;
-    return this;
+    self->size = count;
+    string_data(self)[count] = 0;
+    return self;
 }

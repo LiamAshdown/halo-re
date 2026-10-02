@@ -27,7 +27,7 @@ extern void free(void *block); // 0x6277e8 CRT
 
 // Looks name up in the parser's property_sets map ("propertyset" definitions) and returns the
 // registered set, or NULL when there is no set of that name.
-hwreq_property_set *hwreq_parser_find_property_set(hwreq_parser *this, const char *name)
+hwreq_property_set *hwreq_parser_find_property_set(hwreq_parser *self, const char *name)
 {
     msvc_std_string key;
     hwreq_map_node *node;
@@ -42,8 +42,8 @@ hwreq_property_set *hwreq_parser_find_property_set(hwreq_parser *this, const cha
     }
     msvc_string_assign_n(&key, name, length);
 
-    node = hwreq_map_find(&this->property_sets, &key);
-    if (node == (hwreq_map_node *)this->property_sets.head) {
+    node = hwreq_map_find(&self->property_sets, &key);
+    if (node == (hwreq_map_node *)self->property_sets.head) {
         result = 0;
     } else {
         result = (hwreq_property_set *)node->value;

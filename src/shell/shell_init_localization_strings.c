@@ -55,18 +55,18 @@ void shell_init_localization_strings(void)
     }
 
     shell_language_id = k_shell_language_default;
-    if (RegOpenKeyExA((void *)0x80000002 /* HKEY_LOCAL_MACHINE */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+    if (RegOpenKeyExA((HKEY)0x80000002 /* HKEY_LOCAL_MACHINE */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                       0x20019, (PHKEY)&key) == 0) {
         value_type = 4;
         value_size = 4;
-        if (RegQueryValueExA(key, "LangID", 0, &value_type, (uint8_t *)&language_id, &value_size) == 0) {
+        if (RegQueryValueExA((HKEY)key, "LangID", 0, (LPDWORD)&value_type, (uint8_t *)&language_id, (LPDWORD)&value_size) == 0) {
             if ((language_id & 0xfc00) == 0) {
                 shell_language_id = (language_id & 0xffff) | 0x400;
             } else {
                 shell_language_id = language_id;
             }
         }
-        RegCloseKey(key);
+        RegCloseKey((HKEY)key);
     }
 
     loaded = shell_load_string_resource(0x77, (uint16_t)shell_language_id, 0x100, shell_module_handle, exception_title);
@@ -75,7 +75,7 @@ void shell_init_localization_strings(void)
          (loaded = shell_load_string_resource(0x77, k_shell_language_default, 0x100, shell_module_handle,
                                                exception_title),
           loaded == 0)) &&
-        (loaded = LoadStringA(shell_module_handle, 0x77, exception_title, 0x100), loaded == 0)) {
+        (loaded = LoadStringA((HINSTANCE)shell_module_handle, 0x77, exception_title, 0x100), loaded == 0)) {
         exception_title[0] = 0;
         strcat(exception_title, "Exception!");
     }
@@ -87,7 +87,7 @@ void shell_init_localization_strings(void)
          (loaded = shell_load_string_resource(0x78, k_shell_language_default, 0x100, shell_module_handle,
                                                exception_gathering_text),
           loaded == 0)) &&
-        (loaded = LoadStringA(shell_module_handle, 0x78, exception_gathering_text, 0x100), loaded == 0)) {
+        (loaded = LoadStringA((HINSTANCE)shell_module_handle, 0x78, exception_gathering_text, 0x100), loaded == 0)) {
         exception_gathering_text[0] = 0;
         strcat(exception_gathering_text, "Gathering Exception Data...");
     }
@@ -99,7 +99,7 @@ void shell_init_localization_strings(void)
          (loaded = shell_load_string_resource(0x84, k_shell_language_default, k_shell_eula_name_length,
                                                shell_module_handle, eula_file_name),
           loaded == 0)) &&
-        (loaded = LoadStringA(shell_module_handle, 0x84, eula_file_name, k_shell_eula_name_length), loaded == 0)) {
+        (loaded = LoadStringA((HINSTANCE)shell_module_handle, 0x84, eula_file_name, k_shell_eula_name_length), loaded == 0)) {
         eula_file_name[0] = 0;
         strcat(eula_file_name, "eula.rtf");
     }
@@ -111,7 +111,7 @@ void shell_init_localization_strings(void)
          (loaded = shell_load_string_resource(0x88, k_shell_language_default, k_shell_strings_dll_error_length,
                                                shell_module_handle, strings_dll_invalid_text),
           loaded == 0))) {
-        loaded = LoadStringA(shell_module_handle, 0x88, strings_dll_invalid_text, k_shell_strings_dll_error_length);
+        loaded = LoadStringA((HINSTANCE)shell_module_handle, 0x88, strings_dll_invalid_text, k_shell_strings_dll_error_length);
     }
     if (loaded == 0) {
         strings_dll_invalid_text[0] = 0;

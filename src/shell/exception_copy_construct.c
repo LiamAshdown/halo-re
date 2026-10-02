@@ -17,9 +17,9 @@
 
 extern void *std_exception_vtable; // 0x0064ef90
 
-void *exception_copy_construct(void *this, const void *other)
+void *exception_copy_construct(void *self_, const void *other)
 {
-    std_exception *self = (std_exception *)this;
+    std_exception *self = (std_exception *)self_;
     const std_exception *source = (const std_exception *)other;
 
     self->vftable = &std_exception_vtable;
@@ -35,5 +35,5 @@ void *exception_copy_construct(void *this, const void *other)
     } else {
         self->what = source->what;
     }
-    return this;
+    return self_;
 }

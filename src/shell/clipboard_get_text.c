@@ -26,7 +26,7 @@ uint32_t clipboard_get_text(char *buffer, uint32_t capacity)
     char *locked_text;
 
     if (IsClipboardFormatAvailable(1 /* CF_TEXT */) != 0) {
-        OpenClipboard(shell_window);
+        OpenClipboard((HWND)shell_window);
     }
 
     clipboard_handle = GetClipboardData(1 /* CF_TEXT */);

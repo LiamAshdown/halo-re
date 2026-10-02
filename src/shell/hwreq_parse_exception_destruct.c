@@ -28,20 +28,20 @@ typedef struct hwreq_parse_exception {
 } hwreq_parse_exception; // size 0x28, see hwreq_parse_exception_construct.c
 
 extern void *logic_error_vtable; // 0x00655080
-extern void exception_destruct(hwreq_parse_exception *this); // 0x627e1c, UNSURE: opaque Dinkumware `exception::~exception`
+extern void exception_destruct(hwreq_parse_exception *self); // 0x627e1c, UNSURE: opaque Dinkumware `exception::~exception`
 
-void hwreq_parse_exception_destruct(hwreq_parse_exception *this)
+void hwreq_parse_exception_destruct(hwreq_parse_exception *self)
 {
-    this->vtable = (uint32_t)&logic_error_vtable;
+    self->vtable = (uint32_t)&logic_error_vtable;
 
-    if (this->message.capacity > 0xf) {
-        free((void *)this->message.buffer.heap_buffer);
+    if (self->message.capacity > 0xf) {
+        free((void *)self->message.buffer.heap_buffer);
     }
-    this->message.capacity = 0xf;
-    this->message.size = 0;
-    this->message.buffer.inline_buffer[0] = 0;
+    self->message.capacity = 0xf;
+    self->message.size = 0;
+    self->message.buffer.inline_buffer[0] = 0;
 
-    exception_destruct(this);
+    exception_destruct(self);
 }
 
 #if 0

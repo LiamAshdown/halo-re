@@ -17,14 +17,14 @@
 #include "shell.h"
 
 
-void hwreq_string_destruct(msvc_std_string *this)
+void hwreq_string_destruct(msvc_std_string *self)
 {
-    if (this->capacity > 0xf) {
-        free((void *)this->buffer.heap_buffer);
+    if (self->capacity > 0xf) {
+        free((void *)self->buffer.heap_buffer);
     }
-    this->capacity = 0xf;
-    this->size = 0;
-    this->buffer.inline_buffer[0] = 0;
+    self->capacity = 0xf;
+    self->size = 0;
+    self->buffer.inline_buffer[0] = 0;
 }
 
 #if 0

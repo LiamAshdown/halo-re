@@ -58,15 +58,15 @@ char *shell_build_product_id_string(void)
     product_id_string[0] = 0;
     data_size = 0x400; // see UNSURE above: larger than sizeof(digital_product_id)
 
-    if (RegOpenKeyExA((void *)0x80000002 /* HKEY_LOCAL_MACHINE */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+    if (RegOpenKeyExA((HKEY)0x80000002 /* HKEY_LOCAL_MACHINE */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                       0x20019, (PHKEY)&key) != 0) {
         return &k_empty_string;
     }
-    if (RegQueryValueExA(key, "DigitalProductID", 0, 0, (uint8_t *)&data, &data_size) != 0) {
-        RegCloseKey(key);
+    if (RegQueryValueExA((HKEY)key, "DigitalProductID", 0, 0, (uint8_t *)&data, (LPDWORD)&data_size) != 0) {
+        RegCloseKey((HKEY)key);
         return &k_empty_string;
     }
-    RegCloseKey(key);
+    RegCloseKey((HKEY)key);
 
     if (data.size != k_digital_product_id_size || data.major_version != k_digital_product_id_major_version ||
         data.minor_version != 0) {
@@ -75,7 +75,7 @@ char *shell_build_product_id_string(void)
 
     product_id_digits = extract_product_id_digits(data.product_id);
 
-    if (CryptAcquireContextA(&crypt_provider, 0, 0, 1 /* PROV_RSA_FULL */, 0xf0000000 /* CRYPT_VERIFYCONTEXT */) ==
+    if (CryptAcquireContextA((HCRYPTPROV *)&crypt_provider, 0, 0, 1 /* PROV_RSA_FULL */, 0xf0000000 /* CRYPT_VERIFYCONTEXT */) ==
         0) {
         return &k_empty_string;
     }

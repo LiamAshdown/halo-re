@@ -18,13 +18,13 @@
 
 typedef struct hwreq_parse_exception hwreq_parse_exception; // opaque here; see hwreq_parse_exception_construct.c
 
-extern void hwreq_length_error_destruct(hwreq_parse_exception *this); // 0x5783b0, same pass
+extern void hwreq_length_error_destruct(hwreq_parse_exception *self); // 0x5783b0, same pass
 
-void hwreq_length_error_scalar_deleting_destruct(hwreq_parse_exception *this, uint8_t free_flag)
+void hwreq_length_error_scalar_deleting_destruct(hwreq_parse_exception *self, uint8_t free_flag)
 {
-    hwreq_length_error_destruct(this);
+    hwreq_length_error_destruct(self);
     if (free_flag & 1) {
-        free(this);
+        free(self);
     }
 }
 

@@ -24,25 +24,25 @@
 #include "shell.h"
 
 extern void uninit_fill_n_string_pair(hwreq_string_pair *dest, uint32_t count, const hwreq_string_pair *value); // 0x57ce80, same pass
-extern hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *this, hwreq_string_pair **result,
+extern hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *self, hwreq_string_pair **result,
     hwreq_string_pair *where, const hwreq_string_pair *value); // 0x57b920, blam-cc: EDI -> this, stack -> result, where, value
 
 // blam-cc: EAX -> this, stack -> value
 // FIXED (first-boot track, objdump 0x57b651..0x57b65b): the grow path calls insert(result, where, value) with a
 // hidden result pointer (lea ecx,[esp+0x1c]; push ecx); the old extern dropped it and shifted the arguments.
-void hwreq_device_list_push_back(msvc_std_vector *this, const hwreq_string_pair *value)
+void hwreq_device_list_push_back(msvc_std_vector *self, const hwreq_string_pair *value)
 {
-    if (this->first != 0 &&
-        (uint32_t)(((int32_t)this->last - (int32_t)this->first) / 0x38) <
-        (uint32_t)(((int32_t)this->end - (int32_t)this->first) / 0x38)) {
-        void *dest = (void *)this->last;
+    if (self->first != 0 &&
+        (uint32_t)(((int32_t)self->last - (int32_t)self->first) / 0x38) <
+        (uint32_t)(((int32_t)self->end - (int32_t)self->first) / 0x38)) {
+        void *dest = (void *)self->last;
         uninit_fill_n_string_pair((hwreq_string_pair *)dest, 1, value);
-        this->last = (uint32_t)((uint8_t *)dest + 0x38);
+        self->last = (uint32_t)((uint8_t *)dest + 0x38);
         return;
     }
     {
         hwreq_string_pair *result; // the original passes its own dead argument slot as the result pointer
-        hwreq_pair_vector_insert(this, &result, (hwreq_string_pair *)this->last, value);
+        hwreq_pair_vector_insert(self, &result, (hwreq_string_pair *)self->last, value);
     }
 }
 

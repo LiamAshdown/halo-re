@@ -19,12 +19,12 @@
 typedef struct hwreq_parse_exception hwreq_parse_exception; // opaque here; see hwreq_parse_exception_construct.c
 
 extern void *length_error_vtable; // 0x0065508c
-extern void hwreq_parse_exception_destruct(hwreq_parse_exception *this); // 0x578310, same pass
+extern void hwreq_parse_exception_destruct(hwreq_parse_exception *self); // 0x578310, same pass
 
-void hwreq_length_error_destruct(hwreq_parse_exception *this)
+void hwreq_length_error_destruct(hwreq_parse_exception *self)
 {
-    *(void **)this = &length_error_vtable;
-    hwreq_parse_exception_destruct(this);
+    *(void **)self = &length_error_vtable;
+    hwreq_parse_exception_destruct(self);
 }
 
 #if 0

@@ -86,7 +86,7 @@ int32_t security_check_write_access(void)
     }
 
     if (ok != 0) {
-        ok = DuplicateToken(thread_token, 2 /* SecurityImpersonation */, &impersonation_token);
+        ok = DuplicateToken(thread_token, (SECURITY_IMPERSONATION_LEVEL)2 /* SecurityImpersonation */, &impersonation_token);
         if (ok != 0 &&
             (ok = AllocateAndInitializeSid((PSID_IDENTIFIER_AUTHORITY)&nt_authority, 2, 0x20, 0x220, 0, 0, 0, 0, 0, 0, &sid), ok != 0) &&
             (descriptor = LocalAlloc(0x40, 0x14), descriptor != 0) &&
@@ -94,10 +94,10 @@ int32_t security_check_write_access(void)
             sid_length = GetLengthSid(sid);
             acl_length = sid_length + 0x10;
             acl = LocalAlloc(0x40, acl_length);
-            if (acl != 0 && (ok = InitializeAcl(acl, acl_length, 2), ok != 0)) {
+            if (acl != 0 && (ok = InitializeAcl((PACL)acl, acl_length, 2), ok != 0)) {
                 unused_local_2 = 3;
-                ok = AddAccessAllowedAce(acl, 2, 3, sid);
-                if (ok != 0 && (ok = SetSecurityDescriptorDacl(descriptor, 1, acl, 0), ok != 0)) {
+                ok = AddAccessAllowedAce((PACL)acl, 2, 3, sid);
+                if (ok != 0 && (ok = SetSecurityDescriptorDacl(descriptor, 1, (PACL)acl, 0), ok != 0)) {
                     SetSecurityDescriptorGroup(descriptor, sid, 0);
                     SetSecurityDescriptorOwner(descriptor, sid, 0);
                     ok = IsValidSecurityDescriptor(descriptor);
@@ -108,7 +108,7 @@ int32_t security_check_write_access(void)
                         mapping.generic_execute = 0;
                         mapping.generic_all = 3;
                         ok = AccessCheck(descriptor, impersonation_token, 1, (PGENERIC_MAPPING)&mapping, (PPRIVILEGE_SET)privilege_set,
-                                          &privilege_set_length, &granted_access, &access_granted);
+                                          (LPDWORD)&privilege_set_length, (LPDWORD)&granted_access, &access_granted);
                         if (ok == 0) {
                             access_granted = 0;
                         }

@@ -25,9 +25,9 @@ int32_t __stdcall dialog_center_on_screen(void *hwnd, uint32_t message, uint32_t
         return 0;
     }
 
-    GetWindowRect(hwnd, &window_rect);
+    GetWindowRect((HWND)hwnd, &window_rect);
     GetClientRect(GetDesktopWindow(), &desktop_rect);
-    MoveWindow(hwnd,
+    MoveWindow((HWND)hwnd,
                (desktop_rect.right - desktop_rect.left) / 2 - (window_rect.right - window_rect.left) / 2,
                (desktop_rect.bottom - desktop_rect.top) / 2 - (window_rect.bottom - window_rect.top) / 2,
                window_rect.right - window_rect.left,

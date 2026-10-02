@@ -116,7 +116,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
              (loaded = shell_load_string_resource(resource_id, k_shell_language_default,
                                                    k_shell_fatal_error_text_length, module, fatal_error_text),
               loaded == 0)) &&
-            (loaded = LoadStringA(module, resource_id, fatal_error_text, k_shell_fatal_error_text_length),
+            (loaded = LoadStringA((HINSTANCE)module, resource_id, fatal_error_text, k_shell_fatal_error_text_length),
              loaded == 0)) {
             sprintf(fatal_error_text, "Missing error string %d", resource_id);
         }
@@ -129,7 +129,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
              (loaded = shell_load_string_resource((uint32_t)help_text, k_shell_language_default,
                                                    k_shell_fatal_error_readme_length, module, fatal_error_help_file),
               loaded == 0)) &&
-            (loaded = LoadStringA(module, (uint32_t)help_text, fatal_error_help_file,
+            (loaded = LoadStringA((HINSTANCE)module, (uint32_t)help_text, fatal_error_help_file,
                                    k_shell_fatal_error_readme_length),
              loaded == 0)) {
             sprintf(fatal_error_help_file, "readme.rtf");
@@ -144,7 +144,7 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
          (loaded = shell_load_string_resource(0x7f + (is_fatal != 0), k_shell_language_default,
                                                k_shell_fatal_error_title_length, module, fatal_error_title),
           loaded == 0)) &&
-        (loaded = LoadStringA(module, 0x7f + (is_fatal != 0), fatal_error_title, k_shell_fatal_error_title_length),
+        (loaded = LoadStringA((HINSTANCE)module, 0x7f + (is_fatal != 0), fatal_error_title, k_shell_fatal_error_title_length),
          loaded == 0)) {
         sprintf(fatal_error_title, "Halo - Error");
     }
@@ -161,12 +161,12 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
     if (is_fatal == 0) {
         sprintf(registry_value_name, "%s %s (0x%04x):%d", graphics_vendor_name, graphics_device_name,
                 graphics_device_id, resource_id);
-        RegOpenKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+        RegOpenKeyExA((HKEY)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                       0x20019, (PHKEY)&key);
         data_size = 0x10;
         remembered[0] = 0;
-        RegQueryValueExA(key, registry_value_name, 0, 0, remembered, &data_size);
-        RegCloseKey(key);
+        RegQueryValueExA((HKEY)key, registry_value_name, 0, 0, remembered, (LPDWORD)&data_size);
+        RegCloseKey((HKEY)key);
         if (remembered[0] == 'y') {
             result = remembered[1] - '0';
             safe_mode = result;
@@ -191,13 +191,13 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         wndclass.size = 0x30;
         wndclass.window_procedure = (uint32_t)DefWindowProcA;
         wndclass.instance = (uint32_t)shell_instance;
-        wndclass.icon = (uint32_t)LoadIconA(shell_instance, (const char *)0x66);
+        wndclass.icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)0x66);
         wndclass.cursor = (uint32_t)LoadCursorA(0, (const char *)0x7f00);
         wndclass.class_name = (uint32_t)"Halo";
         RegisterClassExA((const WNDCLASSEXA *)&wndclass);
         window = CreateWindowExA(0, "Halo", "Halo", 0x80000000, -0x80000000, -0x80000000, -0x80000000, -0x80000000,
-                                  0, 0, shell_instance, 0);
-        ShowWindow(window, 5);
+                                  0, 0, (HINSTANCE)shell_instance, 0);
+        ShowWindow((HWND)window, 5);
     }
 
     ShowCursor(1);
@@ -222,16 +222,16 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
     }
 
     if (shell_window == 0) {
-        DestroyWindow(window);
-        UnregisterClassA("Halo", shell_instance);
+        DestroyWindow((HWND)window);
+        UnregisterClassA("Halo", (HINSTANCE)shell_instance);
     } else {
-        ShowWindow(shell_window, 5);
+        ShowWindow((HWND)shell_window, 5);
     }
 
     if (fatal_error_remember_choice != 0) {
         sprintf(registry_value_name, "%s %s (0x%04x):%d", graphics_vendor_name, graphics_device_name,
                 graphics_device_id, resource_id);
-        RegCreateKeyExA((void *)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+        RegCreateKeyExA((HKEY)0x80000001 /* HKEY_CURRENT_USER */, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                          0, 0x20006, 0, 0, (PHKEY)&key, 0);
         digit_text[0] = 'y';
         digit_text[1] = (char)(result + '0');
@@ -240,8 +240,8 @@ int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_tex
         while (digit_text[digit_length] != 0) {
             digit_length++;
         }
-        RegSetValueExA(key, registry_value_name, 0, 1 /* REG_SZ */, (const uint8_t *)digit_text, digit_length + 1);
-        RegCloseKey(key);
+        RegSetValueExA((HKEY)key, registry_value_name, 0, 1 /* REG_SZ */, (const uint8_t *)digit_text, digit_length + 1);
+        RegCloseKey((HKEY)key);
         if (digit_text[0] != 0) {
             result = digit_text[1] - '0';
             safe_mode = result;
