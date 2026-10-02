@@ -65,7 +65,7 @@ void chimera__chat_open(int32_t chat_scope)
     if (chat_scope == 0) {
 all_scope:
         {
-            datum_index tag_id = tag_lookup(0x75737472 /* ustr */, "ui\\multiplayer_game_text");
+            datum_index tag_id = tag_lookup(0x75737472 /* ustr */, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             chat_scope_active = 0;
@@ -83,7 +83,7 @@ all_scope:
             int32_t unit_index = chat_default_team_channel();
             int32_t player_index = player_get_vehicle((datum_index)unit_index);
             if (player_index != -1) {
-                datum_index tag_id = tag_lookup(0x75737472 /* ustr */, "ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472 /* ustr */, (char *)"ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                            : (const void *)text_string_list_get_string();
                 chat_scope_active = 2;
@@ -94,7 +94,7 @@ team_scope:
         {
             datum_index tag_id;
             chat_scope_active = 1;
-            tag_id = tag_lookup(0x75737472 /* ustr */, "ui\\multiplayer_game_text");
+            tag_id = tag_lookup(0x75737472 /* ustr */, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             if (chat_scope_active == -1) {
@@ -110,15 +110,15 @@ gui_setup: // LAB_004aa826
     chat_gui_active = 1;
     gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
     if (gui_object != 0) {
-        child = chat_gui_find_child(gui_object, L"oPrompt");
+        child = chat_gui_find_child(gui_object, (const uint16_t *)L"oPrompt");
         if (child != 0) {
-            keystone_control_set_attribute(child, L"text", prompt_text);
+            keystone_control_set_attribute(child, (const uint16_t *)L"text", prompt_text);
         }
-        child = chat_gui_find_child(gui_object, L"oEditbox");
+        child = chat_gui_find_child(gui_object, (const uint16_t *)L"oEditbox");
         if (child != 0) {
             int32_t zero[2] = {0, 0};
             chat_gui_set_focus(gui_object, child);
-            keystone_control_set_attribute(child, L"text", &empty_string);
+            keystone_control_set_attribute(child, (const uint16_t *)L"text", &empty_string);
             chat_gui_set_property_int(child, 0x201, 0, zero);
         }
         chat_gui_set_state(gui_object, 5);

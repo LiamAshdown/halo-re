@@ -56,14 +56,14 @@ uint8_t network_autojoin_from_command_line(void)
         int16_t count = 100;
 
         string_convert_ascii_to_unicode(wide_name, 0x80, name);
-        saved_game_enumerate_by_type(0, slots, 0, &count);
+        saved_game_enumerate_by_type(0, slots, 0, (uint16_t *)&count);
         while (count > 0) {
             int32_t slot = slots[count - 1];
 
             if (slot == -1) {
                 memcpy(profile, default_profile_data, sizeof(profile));
             } else if (player_profile_get(slot, profile) != 0 &&
-                       wcscmp(wide_name, (const uint16_t *)(profile + 2)) == 0) {
+                       wcscmp((const wchar_t *)wide_name, (const wchar_t *)((const uint16_t *)(profile + 2))) == 0) {
                 player_profile_load(0, profile, slot);
                 break;
             }

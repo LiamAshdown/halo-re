@@ -40,8 +40,8 @@ uint8_t ui_network_client_connect_and_save(void)
     char port[0xc];
     uint8_t result;
 
-    string_convert_unicode_to_ascii(name, network_host_name_field_00719238, 0x20);
-    string_convert_unicode_to_ascii(port, network_host_subname_007191f0, 9);
+    string_convert_unicode_to_ascii((uint8_t *)name, network_host_name_field_00719238, 0x20);
+    string_convert_unicode_to_ascii((uint8_t *)port, network_host_subname_007191f0, 9);
     result = network_game_client_connect_to_address_async(name, port);
     if (result == 0 || saved_player_profile_slots_handle == -1) {
         return result;
@@ -50,8 +50,8 @@ uint8_t ui_network_client_connect_and_save(void)
     saved_item_select(saved_player_profile_slots_handle);
     {
         uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : (uint8_t *)0;
-        wcslen(network_host_name_field_00719238);
-        wcscpy((uint16_t *)(record + 0xfc2), network_host_name_field_00719238);
+        wcslen((const wchar_t *)network_host_name_field_00719238);
+        wcscpy((wchar_t *)((uint16_t *)(record + 0xfc2)), (const wchar_t *)network_host_name_field_00719238);
     }
     if (saved_item_has_unsaved_changes() != 0) {
         player_profile_save();

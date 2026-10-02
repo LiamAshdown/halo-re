@@ -76,14 +76,14 @@ void player_profile_details_widget_refresh(widget_instance *widget, const uint8_
 
         if ((flags & 1) != 0) {
             datum_index names_tag =
-                tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\strings\\default_player_profile_names");
+                tag_lookup(0x75737472 /* 'ustr' */, (char *)"ui\\shell\\strings\\default_player_profile_names");
             const uint16_t *source = names_tag != (datum_index)-1
                 ? text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;
 
-            wcsncpy((uint16_t *)a->text, source, 0xb);
+            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)source, 0xb);
         } else {
-            wcsncpy((uint16_t *)a->text, (const uint16_t *)(profile_record + 2), 0xb);
+            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)((const uint16_t *)(profile_record + 2)), 0xb);
         }
         ((uint16_t *)a->text)[0xb] = 0;
     }

@@ -35,19 +35,19 @@ void widget_play_sound_effect(int16_t effect_id)
 
     switch (effect_id) {
     case 1:
-        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, "sound\\sfx\\ui\\cursor");
+        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, (char *)"sound\\sfx\\ui\\cursor");
         widget_play_sound_effect_tag(sound_tag);
         return;
     case 2:
-        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, "sound\\sfx\\ui\\forward");
+        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, (char *)"sound\\sfx\\ui\\forward");
         widget_play_sound_effect_tag(sound_tag);
         return;
     case 3:
-        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, "sound\\sfx\\ui\\back");
+        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, (char *)"sound\\sfx\\ui\\back");
         widget_play_sound_effect_tag(sound_tag);
         return;
     case 4:
-        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, "sound\\sfx\\ui\\flag_failure");
+        sound_tag = tag_lookup(0x736e6421 /* 'snd!' */, (char *)"sound\\sfx\\ui\\flag_failure");
         widget_play_sound_effect_tag(sound_tag);
         return;
     default:

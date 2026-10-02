@@ -122,7 +122,7 @@ void interface_tick(void)
 
     if (loading_thread != (loading_thread_record *)0) {
         uint32_t exit_code;
-        int32_t got_exit_code = GetExitCodeThread(loading_thread->handle, &exit_code);
+        int32_t got_exit_code = GetExitCodeThread(loading_thread->handle, (LPDWORD)&exit_code);
 
         root = ui_root_widget[0];
         if (got_exit_code != 0 && exit_code != 0x103 /* STILL_ACTIVE */) {

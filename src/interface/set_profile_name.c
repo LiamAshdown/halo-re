@@ -38,7 +38,7 @@ extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const 
 // non-empty, else a compiled-in default suffix string.
 void set_profile_name(widget_instance *widget, const uint16_t *name_source)
 {
-    datum_index tag_id = tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\strings\\common_button_captions");
+    datum_index tag_id = tag_lookup(0x75737472 /* 'ustr' */, (char *)"ui\\shell\\strings\\common_button_captions");
     uint16_t *suffix = missing_string_text;
     void *buffer = heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
@@ -58,7 +58,7 @@ void set_profile_name(widget_instance *widget, const uint16_t *name_source)
                 }
             }
         }
-        string_format_wide_va_bounded(0x3f, (wchar_t *)buffer, L"%s %s", suffix, name_source);
+        string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), (const uint16_t *)L"%s %s", suffix, name_source);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }
 }

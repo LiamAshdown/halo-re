@@ -29,7 +29,7 @@ void controls_device_label_add(const uint16_t *name, int32_t device_type)
     int i;
     for (i = 0; i < 0x10; i++) {
         if (controls_device_labels[i].name[0] == 0) {
-            wcsncpy(controls_device_labels[i].name, name, 0x104);
+            wcsncpy((wchar_t *)controls_device_labels[i].name, (const wchar_t *)name, 0x104);
             controls_device_labels[i].name[0x104] = 0; // objdump 0x4b4876: word store at +0x208
             controls_device_labels[i].device_type = device_type;
             controls_device_label_count++;

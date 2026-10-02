@@ -61,10 +61,10 @@ uint8_t ui_network_host_setup_defaults_init(widget_instance *widget)
         player_profile_set_default_server_options(profile);
     }
 
-    wcslen((const uint16_t *)(profile + 0xd8c));
-    wcscpy(network_host_name_00719170, (const uint16_t *)(profile + 0xd8c));
-    wcslen((const uint16_t *)(profile + 0xeac));
-    wcscpy(network_host_subname_007191f0, (const uint16_t *)(profile + 0xeac));
+    wcslen((const wchar_t *)((const uint16_t *)(profile + 0xd8c)));
+    wcscpy((wchar_t *)network_host_name_00719170, (const wchar_t *)((const uint16_t *)(profile + 0xd8c)));
+    wcslen((const wchar_t *)((const uint16_t *)(profile + 0xeac)));
+    wcscpy((wchar_t *)network_host_subname_007191f0, (const wchar_t *)((const uint16_t *)(profile + 0xeac)));
 
     choice = (profile[0xfc0] > 4) ? 4 : profile[0xfc0];
     last_row = resolution_row_count_table_0065bfb4[choice] - 1;

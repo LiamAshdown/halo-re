@@ -44,7 +44,7 @@ void player_profile_select_list_widget_build(widget_instance *widget)
     widget_instance *target;
     int32_t depth;
 
-    ui_list_widget_rebuild_rows(widget, (void *)ui_list_default_item_format);
+    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
     set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));

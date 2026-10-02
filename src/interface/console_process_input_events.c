@@ -37,14 +37,14 @@ void console_process_input_events(void)
     if (console_win32_attached == 0) {
         return;
     }
-    if (GetNumberOfConsoleInputEvents(console_input_handle, &event_count) == 0) {
+    if (GetNumberOfConsoleInputEvents(console_input_handle, (LPDWORD)&event_count) == 0) {
         return;
     }
     if (event_count == 0) {
         return;
     }
     for (i = 0; i < event_count; i++) {
-        if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, &events_read) != 0 &&
+        if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, (LPDWORD)&events_read) != 0 &&
             record.EventType == 1) {
             if (record.KeyEvent.bKeyDown != 0) {
                 input_record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);

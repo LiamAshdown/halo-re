@@ -39,7 +39,7 @@ extern uint16_t *text_string_list_get_string(void); // 0x5578c0, UNSURE args
 void multiplayer_settings_select_list_update_item(widget_instance *widget, const uint16_t *record)
 {
     datum_index variant_strings_tag =
-        tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\strings\\game_variant_descriptions");
+        tag_lookup(0x75737472 /* 'ustr' */, (char *)"ui\\shell\\strings\\game_variant_descriptions");
     widget_instance *name_widget = widget->first_child;
     widget_instance *desc_widget = name_widget->next_sibling;
     widget_instance *icon_widget = desc_widget->next_sibling;
@@ -62,7 +62,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
             if (desc_buf != (uint16_t *)0) {
                 datum_index labels_tag = tag_lookup(
                     0x75737472 /* 'ustr' */,
-                    "ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
+                    (char *)"ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {
@@ -82,7 +82,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
                             *(uint16_t *)((uint8_t *)source + ((size & 0xfffffffe) - 2)) = 0;
                         }
                     }
-                    wcsncpy(desc_buf, source, 0xff);
+                    wcsncpy((wchar_t *)desc_buf, (const wchar_t *)source, 0xff);
                     desc_buf[0xff] = 0;
                 }
             }
@@ -95,7 +95,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
 
         name_widget->text = name_buf;
         if (name_buf != (uint16_t *)0) {
-            wcsncpy(name_buf, record, 0x7f);
+            wcsncpy((wchar_t *)name_buf, (const wchar_t *)record, 0x7f);
             name_buf[0x7f] = 0;
         }
     }
@@ -121,7 +121,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
         if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
             uint16_t *text = text_string_list_get_string();
 
-            wcsncpy((uint16_t *)desc_widget->text, text, 0xff);
+            wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
             ((uint16_t *)desc_widget->text)[0xff] = 0;
         }
         icon_widget->hidden = 1;
@@ -140,7 +140,7 @@ void multiplayer_settings_select_list_update_item(widget_instance *widget, const
     if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
         uint16_t *text = text_string_list_get_string();
 
-        wcsncpy((uint16_t *)desc_widget->text, text, 0xff);
+        wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
         ((uint16_t *)desc_widget->text)[0xff] = 0;
     }
 }

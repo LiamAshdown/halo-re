@@ -35,7 +35,7 @@ void ui_game_variant_flag_list_widget_build(widget_instance *widget)
     widget_instance *target;
     int32_t depth;
 
-    ui_list_widget_rebuild_rows(widget, (void *)ui_list_default_item_format);
+    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
 
     combo_index = *(int16_t *)&((struct widget_instance *)widget)->text; // UNSURE offset, see ui_list_widget_rebuild_rows.c
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {

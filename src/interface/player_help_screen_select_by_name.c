@@ -64,25 +64,25 @@ void player_help_screen_select_by_name(int16_t value)
     }
 
     if (strstr(name, player_help_name_a10) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
     } else if (strstr(name, player_help_name_a30) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
     } else if (strstr(name, player_help_name_a50) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
     } else if (strstr(name, player_help_name_b30) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
     } else if (strstr(name, player_help_name_b40) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
     } else if (strstr(name, player_help_name_c10) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
     } else if (strstr(name, player_help_name_c20) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
     } else if (strstr(name, player_help_name_c40) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
     } else if (strstr(name, player_help_name_d20) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
     } else if (strstr(name, player_help_name_d40) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
+        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
     } else {
         return;
     }

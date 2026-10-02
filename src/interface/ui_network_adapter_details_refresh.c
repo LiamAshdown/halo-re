@@ -38,7 +38,7 @@ void ui_network_adapter_details_refresh(widget_instance *widget)
     widget_instance *c1, *c2, *c3, *c4, *c5, *c6;
     ui_list_item *entry = (ui_list_item *)0;
 
-    ui_list_widget_rebuild_rows(widget, (void *)ui_list_default_item_format);
+    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
 
     {
         uint8_t profile_copy[0x2000];
@@ -84,7 +84,7 @@ void ui_network_adapter_details_refresh(widget_instance *widget)
 
         c3->text = heap_reallocate(c3->text, 0x40, widget_memory_pool);
         if (c3->text != (void *)0) {
-            wcsncpy((uint16_t *)c3->text, blob + 4, 0x1f);
+            wcsncpy((wchar_t *)((uint16_t *)c3->text), (const wchar_t *)(blob + 4), 0x1f);
             ((uint16_t *)c3->text)[0x1f] = 0;
         }
     }

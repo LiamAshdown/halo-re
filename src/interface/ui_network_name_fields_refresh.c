@@ -38,7 +38,7 @@ void ui_network_name_fields_refresh(widget_instance *widget)
     buffer = (uint16_t *)heap_reallocate(control->text, 0x40, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
-        wcsncpy(buffer, network_host_name_field_00719238, 0x1f);
+        wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_field_00719238, 0x1f);
         ((uint16_t *)control->text)[0x1f] = 0;
     }
     if (row->parent->focused_child == row) {
@@ -50,7 +50,7 @@ void ui_network_name_fields_refresh(widget_instance *widget)
     buffer = (uint16_t *)heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
-        wcsncpy(buffer, network_host_subname_007191f0, 8);
+        wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
         ((uint16_t *)control->text)[8] = 0;
     }
 

@@ -26,9 +26,9 @@ int16_t ui_button_prompt_index_from_string(uint16_t *text)
     uint16_t index = 0;
 
     do {
-        uint32_t token_length = wcslen(ui_button_caption[index]);
+        uint32_t token_length = wcslen((const wchar_t *)ui_button_caption[index]);
 
-        if (_wcsnicmp(text, ui_button_caption[index], token_length) == 0) {
+        if (_wcsnicmp((const wchar_t *)text, (const wchar_t *)ui_button_caption[index], token_length) == 0) {
             break;
         }
         index = index + 1;

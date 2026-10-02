@@ -16,5 +16,5 @@ extern uint8_t saved_game_load_checkpoint_by_name(char *name); // 0x5391a0
 
 uint8_t ui_event_4a4270(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    return saved_game_load_checkpoint_by_name("savegame");
+    return saved_game_load_checkpoint_by_name((char *)"savegame");
 }

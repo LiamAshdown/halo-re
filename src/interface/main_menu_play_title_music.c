@@ -34,7 +34,7 @@ void main_menu_play_title_music(void)
     datum_index sound_tag;
 
     if (main_menu_music_pending == 0 && main_menu_music_datum == 0) {
-        sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, "sound\\music\\title1\\title1");
+        sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_start(sound_tag, -1, 1.0f);
             main_menu_music_pending = 1;

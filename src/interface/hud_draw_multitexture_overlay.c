@@ -223,7 +223,7 @@ void hud_draw_multitexture_overlay(const float *scale, const HUDInterfaceMultite
             }
             output = (1.0f - t) * effector->out_bounds[0] + t * effector->out_bounds[1];
             // 0x4ad638: EAX = upper bound (+0xa4) = color1, ECX = lower bound (+0x98) = color0
-            color_interpolate(&effector->tint_color_upper_bound, &effector->tint_color_lower_bound, &tint, 0, t);
+            color_interpolate((ColorRGB *)&effector->tint_color_upper_bound, (ColorRGB *)&effector->tint_color_lower_bound, &tint, 0, t);
         } else {
             output = effector->out_bounds[0];
             tint = effector->tint_color_lower_bound;

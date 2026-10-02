@@ -86,9 +86,9 @@ void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_tex
     Rectangle2D cursor_rect = *bounds;
     uint16_t *cursor = formatted_prompt_scratch;
 
-    wcscpy(formatted_prompt_scratch, text);
+    wcscpy((wchar_t *)formatted_prompt_scratch, (const wchar_t *)text);
     for (;;) {
-        uint16_t *percent = wcschr(cursor, 0x25);
+        uint16_t *percent = (uint16_t *)(wcschr((const wchar_t *)cursor, 0x25));
         uint16_t *next;
         int16_t token;
 
@@ -109,7 +109,7 @@ void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_tex
         if (token == -1) {
             draw_span_inline(bounds, &cursor_rect, prompt_percent_text);
         } else {
-            cursor = next + wcslen(ui_button_caption[token]);
+            cursor = next + wcslen((const wchar_t *)ui_button_caption[token]);
             if (token > 0x11) {
                 if (token > 0x1f) {
                     goto next_span;

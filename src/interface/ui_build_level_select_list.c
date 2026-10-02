@@ -92,7 +92,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
         return 1;
     }
 
-    string_list_tag = tag_lookup(0x75737472 /* 'ustr' */, "ui\\shell\\main_menu\\map_list_oneline");
+    string_list_tag = tag_lookup(0x75737472 /* 'ustr' */, (char *)"ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
     if (saved_player_profile_slots_handle != cached_saved_game_something) {
@@ -168,7 +168,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
         element_index = growable_array_add_element(&ui_lists[1]); // DAT_006b3838-backed array
         if (element_index != -1) {
             ui_list_item *item = (ui_list_item *)ui_lists[1].data + element_index;
-            uint32_t name_length = wcslen(entry_name);
+            uint32_t name_length = wcslen((const wchar_t *)entry_name);
 
             item->data = (void *)0;
             item->name = (uint16_t *)GlobalAlloc(0, name_length * 2 + 2);
@@ -177,7 +177,7 @@ uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void
             if (is_selected) {
                 ui_list_has_default = 1;
             }
-            wcscpy(item->name, entry_name);
+            wcscpy((wchar_t *)item->name, (const wchar_t *)entry_name);
         }
         i = i + 1;
     } while (i < 10);

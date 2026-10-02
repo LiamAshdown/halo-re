@@ -105,26 +105,26 @@ void display_error(int16_t error_string_index, int32_t player_index, uint8_t mod
     switch (player_count) {
     case 0:
     case 1:
-        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_fullscreen"
-                                 : "ui\\shell\\error\\error_modal_fullscreen";
+        tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_fullscreen"
+                                 : (char *)"ui\\shell\\error\\error_modal_fullscreen";
         break;
     case 2:
-        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_halfscreen"
-                                 : "ui\\shell\\error\\error_modal_halfscreen";
+        tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_halfscreen"
+                                 : (char *)"ui\\shell\\error\\error_modal_halfscreen";
         break;
     case 3:
         if (!half_screen) {
-            tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
-                                     : "ui\\shell\\error\\error_modal_qtrscreen";
+            tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_qtrscreen"
+                                     : (char *)"ui\\shell\\error\\error_modal_qtrscreen";
         } else if (modal == 0) {
-            tag_path = "ui\\shell\\error\\error_nonmodal_halfscreen";
+            tag_path = (char *)"ui\\shell\\error\\error_nonmodal_halfscreen";
         } else {
-            tag_path = "ui\\shell\\error\\error_modal_halfscreen";
+            tag_path = (char *)"ui\\shell\\error\\error_modal_halfscreen";
         }
         break;
     case 4:
-        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
-                                 : "ui\\shell\\error\\error_modal_qtrscreen";
+        tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_qtrscreen"
+                                 : (char *)"ui\\shell\\error\\error_modal_qtrscreen";
         break;
     default:
         return;

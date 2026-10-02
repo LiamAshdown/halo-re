@@ -50,7 +50,7 @@ void map_list_get_friendly_level_name(wchar_t *destination, char *map_path,
     wchar_t *source;
     char *filename;
 
-    map_list_tag = tag_lookup(0x75737472, "ui\\shell\\main_menu\\mp_map_list"); // 'ustr'
+    map_list_tag = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\mp_map_list"); // 'ustr'
     index = map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
         // objdump 0x494f82..0x494f91: the string index is map_list[index].map_id, not index

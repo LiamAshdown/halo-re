@@ -75,7 +75,7 @@ uint8_t ui_server_list_connect_selected(widget_instance *widget, int16_t *event,
                     widget_instance *opened;
 
                     opened = chimera__load_ui_widget(
-                        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+                        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
                         (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {

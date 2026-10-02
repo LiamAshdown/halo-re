@@ -32,7 +32,7 @@ uint8_t ui_new_profile_name_entry_open(void *widget, int16_t *event, uint8_t *ou
     (void)widget;
     (void)out_handled;
     saved_game_allocate_new_slot(default_name);
-    wcsncpy(new_profile_name_buffer_006b37f4, default_name, 0xb);
+    wcsncpy((wchar_t *)new_profile_name_buffer_006b37f4, (const wchar_t *)default_name, 0xb);
     new_profile_name_buffer_006b37f4[0xb] = 0; // word store at 0x006b380a
     new_profile_name_entry_player_00692b00 = event[1]; // offset +2
     new_profile_name_flag_0071916e = 0;

@@ -29,7 +29,7 @@ extern void data_delete_all(data_array *array);
 // developer console/terminal globals to their empty state.
 void terminal_initialize(void)
 {
-    terminal_messages = data_new(sizeof(console_message), "terminal output", 0x20);
+    terminal_messages = data_new(sizeof(console_message), (char *)"terminal output", 0x20);
     terminal_initialized = 1;
     terminal_messages->valid = 1;
     data_delete_all(terminal_messages);

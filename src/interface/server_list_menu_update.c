@@ -113,10 +113,10 @@ void server_list_menu_update(widget_instance *widget)
         row->text = buf;
         if (buf != (uint16_t *)0) {
             if (entry[300] == 1) {
-                wcsncpy(buf, (const uint16_t *)(entry + 0x1c), 0xf);
+                wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
-                datum_index tag = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                datum_index tag = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text; // L"<missing string>"
 
                 if (tag != (datum_index)-1) {

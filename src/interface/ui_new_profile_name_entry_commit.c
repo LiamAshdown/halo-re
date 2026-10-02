@@ -60,7 +60,7 @@ uint32_t ui_new_profile_name_entry_commit(void)
         profile_id = saved_game_create_default_profile(new_profile_name_entry_player_00692b00);
         if (profile_id == -1) {
             saved_game_allocate_new_slot(default_name);
-            wcsncpy(new_profile_name_buffer_006b37f4, default_name, 0xb);
+            wcsncpy((wchar_t *)new_profile_name_buffer_006b37f4, (const wchar_t *)default_name, 0xb);
             new_profile_name_terminator_006b380a = 0;
             profile_id = saved_game_create_default_profile(new_profile_name_entry_player_00692b00);
             if (profile_id == -1) {

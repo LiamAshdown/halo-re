@@ -64,7 +64,7 @@ uint8_t ui_event_4a0860(widget_instance *widget, int16_t *event, uint8_t *out_ha
     if (indices == 0) {
         return 1;
     }
-    strings = tag_lookup(0x75737472, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list"); // 'ustr', 0x0066a578
+    strings = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list"); // 'ustr', 0x0066a578
     for (i = 0; i < 0x12; i++) {
         uint16_t *text = missing_string_text;
         uint8_t is_default;

@@ -38,7 +38,7 @@ void ui_widget_text_from_hud_objective(widget_instance *widget)
     if (text == 0 || *text == 0) {
         return;
     }
-    length = wcslen(text);
+    length = wcslen((const wchar_t *)text);
     if (length <= 0) {
         return;
     }

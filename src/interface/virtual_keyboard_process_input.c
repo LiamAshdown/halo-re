@@ -65,7 +65,7 @@ static void vk_clear_text(void)
 // Trims trailing whitespace. Returns 0 when nothing but whitespace was left.
 static uint8_t vk_trim_trailing_whitespace(void)
 {
-    int32_t i = wcslen(virtual_keyboard.destination) - 1;
+    int32_t i = wcslen((const wchar_t *)virtual_keyboard.destination) - 1;
     while (i >= 0) {
         if (iswctype(virtual_keyboard.destination[i], WCTYPE_SPACE) == 0) {
             return 1;
@@ -137,7 +137,7 @@ void virtual_keyboard_process_input(void)
                 if (virtual_keyboard.destination[0] != 0) {
                     goto commit_ok;
                 }
-                wcslen(virtual_keyboard.text);
+                wcslen((const wchar_t *)virtual_keyboard.text);
                 wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
                 virtual_keyboard_close();
                 goto finish;
@@ -189,7 +189,7 @@ finish:
 
         case 0x55: // end
             virtual_keyboard.destination_end =
-                virtual_keyboard.destination + wcslen(virtual_keyboard.destination);
+                virtual_keyboard.destination + wcslen((const wchar_t *)virtual_keyboard.destination);
             break;
 
         case 0x54: // delete
@@ -238,7 +238,7 @@ finish:
                 virtual_keyboard.opened = 0;
             }
             if ((int32_t)(uint16_t)virtual_keyboard.maximum_length -
-                    (wcslen(virtual_keyboard.destination) * 2 + 2) < 2) {
+                    (wcslen((const wchar_t *)virtual_keyboard.destination) * 2 + 2) < 2) {
                 goto rejected;
             }
             memmove(virtual_keyboard.destination_end + 1, virtual_keyboard.destination_end,
@@ -260,10 +260,10 @@ finish:
                 virtual_keyboard.field_kind = (int16_t)(pick + 0xb);
             }
             if (virtual_keyboard.text[0] != 0) {
-                wcslen(virtual_keyboard.text);
+                wcslen((const wchar_t *)virtual_keyboard.text);
                 wcscpy((wchar_t *)virtual_keyboard.destination, (const wchar_t *)virtual_keyboard.text);
                 virtual_keyboard.destination_end =
-                    virtual_keyboard.destination + wcslen(virtual_keyboard.destination);
+                    virtual_keyboard.destination + wcslen((const wchar_t *)virtual_keyboard.destination);
             } else {
                 vk_clear_text();
             }

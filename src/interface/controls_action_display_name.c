@@ -37,7 +37,7 @@ uint16_t *controls_action_display_name(int32_t device, const char *action_name)
         input_get_binding_display_name((uint8_t *)record, controls_action_name_buffer);
     }
     if (controls_action_name_buffer[0] == 0) {
-        wcscpy(controls_action_name_buffer, hud_text_unbound); // 0x625bba ignores the third (length) push
+        wcscpy((wchar_t *)controls_action_name_buffer, (const wchar_t *)hud_text_unbound); // 0x625bba ignores the third (length) push
     }
     return controls_action_name_buffer;
 }

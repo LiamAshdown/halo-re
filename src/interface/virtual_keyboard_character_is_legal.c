@@ -37,7 +37,7 @@ uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t cha
     if (validation_mode != 3) {
         if (validation_mode != 4) {
             if (validation_mode != 5) {
-                const char *blocked = strchr(virtual_keyboard_blacklist_charset, character);
+                const char *blocked = strchr((const char *)virtual_keyboard_blacklist_charset, character);
                 return (uint8_t)(1 - (blocked != 0));
             }
             return (uint8_t)isdigit(character); // the caller tests AL of the CRT result

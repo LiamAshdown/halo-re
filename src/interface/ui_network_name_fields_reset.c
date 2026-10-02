@@ -37,7 +37,7 @@ uint32_t ui_network_name_fields_reset(void)
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
     }
 
-    wcsncpy(network_host_name_field_00719238, unused_name_source, 0x1f);
+    wcsncpy((wchar_t *)network_host_name_field_00719238, (const wchar_t *)unused_name_source, 0x1f);
     network_host_name_flag_00719276 = 0;
     network_host_subname_007191f0[0] = 0;
     return 1;

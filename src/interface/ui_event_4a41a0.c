@@ -40,7 +40,7 @@ static void show(widget_instance *child, uint8_t visible)
 
 uint8_t ui_event_4a41a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t has_save = saved_game_file_exists("savegame");
+    uint8_t has_save = saved_game_file_exists((char *)"savegame");
     uint8_t has_checkpoints = (uint8_t)(game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
     widget_instance *child = widget->first_child;
 

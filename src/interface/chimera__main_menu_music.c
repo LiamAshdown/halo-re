@@ -46,7 +46,7 @@ extern void main_menu_play_title_music(void);              // 0x4993e0
 void chimera__main_menu_music(uint8_t finalize_render_frame)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, "sound\\music\\title1\\title1");
+        datum_index sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
         }

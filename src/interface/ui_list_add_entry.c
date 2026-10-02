@@ -40,16 +40,16 @@ void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, co
         return;
     }
 
-    length = wcslen(name);
+    length = wcslen((const wchar_t *)name);
     entry = (ui_list_item *)ui_lists[group_index].data + index;
     entry->data = 0;
-    entry->name = GlobalAlloc(0, length * 2 + 2);
+    entry->name = (uint16_t *)(GlobalAlloc(0, length * 2 + 2));
     entry->id = id;
     entry->is_default = is_default;
     if (is_default != 0) {
         ui_list_has_default = 1;
     }
-    wcslen(name);
+    wcslen((const wchar_t *)name);
     wcscpy((wchar_t *)entry->name, (const wchar_t *)name);
 
     if (data_blob != 0 && data_size != 0) {

@@ -91,20 +91,20 @@ uint32_t ui_check_for_pause_game(void)
         }
         switch (player_count) {
         case 1:
-            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\1p_pause_game";
+            tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\1p_pause_game";
             break;
         case 2:
-            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
+            tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
             break;
         case 3:
             if (!single_player_at_start) {
-                tag_path = "ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
+                tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
             } else {
-                tag_path = "ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
+                tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
             }
             break;
         case 4:
-            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
+            tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
             break;
         default:
             goto decrement_and_return;
@@ -117,25 +117,25 @@ uint32_t ui_check_for_pause_game(void)
             if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                 goto decrement_and_return;
             }
-            tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
+            tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game";
         } else if (player_count > 1) {
             if (player_count == 2) {
                 if (ui_root_widget[0] != (widget_instance *)0 ||
                     game_time->paused != 0) {
                     goto decrement_and_return;
                 }
-                tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game_split_screen";
+                tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game_split_screen";
             } else {
                 if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                     goto decrement_and_return;
                 }
-                tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
+                tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game";
             }
         } else {
             if (ui_root_widget[0] != (widget_instance *)0) {
                 goto decrement_and_return;
             }
-            tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
+            tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game";
         }
     }
 

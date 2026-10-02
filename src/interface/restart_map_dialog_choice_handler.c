@@ -44,7 +44,7 @@ uint32_t restart_map_dialog_choice_handler(widget_instance *widget)
                 game_engine_send_round_reset_message();
                 game_engine_player_profile_cache_sync_all(-1);
             } else {
-                chimera__console_out((ColorARGB *)0, "Cannot restart the map when the game is over.");
+                chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
             }
         }
         handled = 1;

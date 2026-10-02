@@ -45,7 +45,7 @@ extern void chimera__multiplayer_message(const wchar_t *text); // 0x4ab4b0
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = tag_lookup(0x75737472 /* ustr */, "ui\\multiplayer_game_text"); // 'ustr'
+    datum_index tag = tag_lookup(0x75737472 /* ustr */, (char *)"ui\\multiplayer_game_text"); // 'ustr'
     if (tag == (datum_index)-1) {
         return &empty_string;
     }
@@ -68,7 +68,7 @@ void chat_dispatch_incoming(void *event)
 
     record.kind = 0;
     record.player_index = 0xff;
-    record.text = text;
+    record.text = (uint16_t *)text;
     if (!message_delta_decode_compound_field(event, &record)) {
         return;
     }
@@ -93,12 +93,12 @@ void chat_dispatch_incoming(void *event)
 
     if (record.kind == 4) {
         char localized[0x400];  // the buffer at +0x118 reused as 8-bit text
-        int32_t string_id = (int32_t)_wtol(record.text);
+        int32_t string_id = (int32_t)_wtol((const wchar_t *)record.text);
         memset(short_line, 0, sizeof(short_line));
         if (shell_load_localized_string(string_id, localized) == 0) {
             return;
         }
-        string_format_wide_va_bounded(0x7f, short_line, L"%S", localized); // EDX 0x7f
+        string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized); // EDX 0x7f
         short_line[0x7f] = 0;
         chimera__multiplayer_message(short_line);
         return;

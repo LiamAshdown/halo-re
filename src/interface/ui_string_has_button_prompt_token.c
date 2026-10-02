@@ -26,7 +26,7 @@ uint8_t ui_string_has_button_prompt_token(uint16_t *text)
 {
     uint16_t *percent;
 
-    while (text != (uint16_t *)0 && (percent = wcschr(text, L'%')) != (uint16_t *)0) {
+    while (text != (uint16_t *)0 && (percent = (uint16_t *)wcschr((const wchar_t *)text, L'%')) != (uint16_t *)0) {
         text = percent + 1;
         if (ui_button_prompt_index_from_string(text) != 0xffff) {
             return 1;

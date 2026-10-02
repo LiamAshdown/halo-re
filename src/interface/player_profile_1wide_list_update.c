@@ -64,14 +64,14 @@ void player_profile_1wide_list_update(widget_instance *widget)
                     return;
                 }
                 if (flags & 1) {
-                    datum_index names = tag_lookup(0x75737472, "ui\\shell\\strings\\default_player_profile_names");
+                    datum_index names = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
                     const uint16_t *source = empty_string;
                     if (names != (datum_index)-1) {
                         source = text_string_list_get_string(names, (int16_t)(flags >> 8));
                     }
-                    wcsncpy(name, source, 0xb);
+                    wcsncpy((wchar_t *)name, (const wchar_t *)source, 0xb);
                 } else {
-                    wcsncpy(name, (const uint16_t *)(profile + 2), 0xb);
+                    wcsncpy((wchar_t *)name, (const wchar_t *)((const uint16_t *)(profile + 2)), 0xb);
                 }
                 name[0xb] = 0;
 
@@ -85,16 +85,16 @@ void player_profile_1wide_list_update(widget_instance *widget)
                     datum_index joysticks;
                     datum_index buttons;
                     if (*(const uint8_t *)(profile + 0x11c) & 1) {
-                        joysticks = tag_lookup(0x75737472, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
-                        buttons = tag_lookup(0x75737472, "ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
+                        joysticks = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
+                        buttons = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0] = 0;
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
                         }
                     } else {
-                        joysticks = tag_lookup(0x75737472, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
-                        buttons = tag_lookup(0x75737472, "ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
+                        joysticks = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
+                        buttons = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;

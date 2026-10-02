@@ -44,9 +44,9 @@ int32_t ui_string_replace_all(wchar_t *search, uint16_t *replacement, wchar_t **
         return 0;
     }
 
-    search_length = (int32_t)wcslen((const uint16_t *)search);
-    replacement_length = wcslen(replacement);
-    total_length = (int32_t)wcslen((const uint16_t *)original) + 1;
+    search_length = (int32_t)wcslen((const wchar_t *)((const uint16_t *)search));
+    replacement_length = wcslen((const wchar_t *)replacement);
+    total_length = (int32_t)wcslen((const wchar_t *)((const uint16_t *)original)) + 1;
 
     if (search_length < (int32_t)replacement_length) {
         // Replacement grows the string: count occurrences first, then reallocate and copy.

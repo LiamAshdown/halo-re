@@ -42,15 +42,15 @@ void chat_submit_input(void)
             const wchar_t *text = 0;
             void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
             if (gui_object != 0) {
-                void *editbox = chat_gui_find_child(gui_object, L"oEditbox");
+                void *editbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oEditbox");
                 if (editbox != 0) {
-                    text = keystone_control_get_attribute(editbox, L"text");
+                    text = (const wchar_t *)(keystone_control_get_attribute(editbox, (const uint16_t *)L"text"));
                 }
                 chat_gui_release(gui_object);
 
                 if (text != 0 && *text != 0) {
                     wchar_t buffer[256];
-                    uint32_t length = wcslen((const uint16_t *)text);
+                    uint32_t length = wcslen((const wchar_t *)((const uint16_t *)text));
                     size_t count = (length < 0xff) ? length : 0xfe;
                     wcsncpy(buffer, text, count);
                     buffer[count] = 0;

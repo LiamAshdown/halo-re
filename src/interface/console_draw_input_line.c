@@ -47,10 +47,10 @@ void console_draw_input_line(void)
             bottom_left.X = 0;
             bottom_left.Y = (int16_t)(info.dwSize.Y - 1);
             if (FillConsoleOutputCharacterA(console_output_handle, ' ', info.dwSize.X,
-                                             bottom_left, &written) != 0) {
+                                             bottom_left, (LPDWORD)&written) != 0) {
                 length = strlen(line);
                 WriteConsoleOutputCharacterA(console_output_handle, line, length, bottom_left,
-                                              &written);
+                                              (LPDWORD)&written);
             }
             console_position_cursor();
         }

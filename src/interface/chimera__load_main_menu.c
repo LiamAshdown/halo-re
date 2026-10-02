@@ -62,7 +62,7 @@ void chimera__load_main_menu(void)
     }
     input_queue_sample_time_update();
     widget_close_all();
-    chimera__load_ui_widget("ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
+    chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
                             (datum_index)-1, (datum_index)-1, -1);
     if (network_join_error_code != -1) {
         display_error(network_join_error_code, -1, 1, 0);

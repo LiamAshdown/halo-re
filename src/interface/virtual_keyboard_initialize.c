@@ -30,7 +30,7 @@ int32_t virtual_keyboard_initialize(void)
     virtual_keyboard.unknown_02 = 0;
     virtual_keyboard.unknown_03 = 0;
 
-    strings_tag = tag_lookup(0x76636b79 /* vcky */, "ui\\english");
+    strings_tag = tag_lookup(0x76636b79 /* vcky */, (char *)"ui\\english");
     if (strings_tag != 0xffffffff) {
         virtual_keyboard.strings_tag_data = tag_instances[strings_tag & 0xffff].data;
         virtual_keyboard.caret = 0;
@@ -44,7 +44,7 @@ int32_t virtual_keyboard_initialize(void)
         virtual_keyboard.open_time = 0;
     }
 
-    virtual_keyboard.white_bitmap = tag_lookup(0x6269746d /* bitm */, "ui\\shell\\bitmaps\\white");
+    virtual_keyboard.white_bitmap = tag_lookup(0x6269746d /* bitm */, (char *)"ui\\shell\\bitmaps\\white");
     return virtual_keyboard.strings_tag_data != 0;
 }
 

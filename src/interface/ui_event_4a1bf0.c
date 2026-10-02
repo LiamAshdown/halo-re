@@ -23,7 +23,7 @@ extern void sound_looping_stop(datum_index looping_definition); // 0x544120, bla
 uint8_t ui_event_4a1bf0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (main_menu_music_pending == 1) {
-        datum_index music = tag_lookup(0x6c736e64, "sound\\music\\title1\\title1"); // 'lsnd', string at 0x0066a044
+        datum_index music = tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1"); // 'lsnd', string at 0x0066a044
 
         if (music != 0xffffffff) {
             sound_looping_stop(music);

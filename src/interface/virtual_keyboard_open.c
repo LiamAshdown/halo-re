@@ -55,7 +55,7 @@ uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, in
     virtual_keyboard.unknown_0a = 0;
     virtual_keyboard.active = 1;
     virtual_keyboard.destination = destination;
-    virtual_keyboard.destination_end = destination + wcslen(destination);
+    virtual_keyboard.destination_end = destination + wcslen((const wchar_t *)destination);
     virtual_keyboard.maximum_length = (maximum_length > 0x3f) ? 0x40 : (int16_t)maximum_length;
     virtual_keyboard.selection_start = -1;
     virtual_keyboard.open_time = time_query_performance_counter_ms();
@@ -68,8 +68,8 @@ uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, in
     wcsncpy((wchar_t *)virtual_keyboard.text, (const wchar_t *)destination, 0x20);
     virtual_keyboard.text[31] = 0; // DAT_0071940e, null-terminate the last text slot
     virtual_keyboard.committed = 0;
-    virtual_keyboard.large_ui_tag = tag_lookup(0x666f6e74 /* font */, "ui\\large_ui");
-    virtual_keyboard.small_ui_tag = tag_lookup(0x666f6e74 /* font */, (maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui");
+    virtual_keyboard.large_ui_tag = tag_lookup(0x666f6e74 /* font */, (char *)"ui\\large_ui");
+    virtual_keyboard.small_ui_tag = tag_lookup(0x666f6e74 /* font */, (char *)((maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui"));
     widget_play_sound_effect(2);
 
     // UNSURE: unrelated flag bit raised alongside opening the keyboard; not part of this module.

@@ -43,7 +43,7 @@ void ui_draw_trouble_brewing_indicator(void)
         rect.bottom = 0x1d6;
         rect.right = 0x276;
         trouble_brewing_bitmap_tag = tag_lookup(0x6269746d /* 'bitm' */,
-                                                 "ui\\shell\\bitmaps\\trouble_brewing");
+                                                 (char *)"ui\\shell\\bitmaps\\trouble_brewing");
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
             BitmapData *bitmap_data = bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 

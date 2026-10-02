@@ -31,10 +31,10 @@ void console_clear_screen(void)
         GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
         if (FillConsoleOutputCharacterA(console_output_handle, ' ',
                                          (int32_t)info.dwSize.Y * (int32_t)info.dwSize.X,
-                                         origin, &written) != 0) {
+                                         origin, (LPDWORD)&written) != 0) {
             FillConsoleOutputAttribute(console_output_handle, info.wAttributes,
                                         (int32_t)info.dwSize.Y * (int32_t)info.dwSize.X,
-                                        origin, &written);
+                                        origin, (LPDWORD)&written);
         }
     }
 }

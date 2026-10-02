@@ -26,7 +26,7 @@ uint8_t ui_variant_name_is_available(const uint16_t *name)
 {
     char narrow[0x24];
 
-    string_convert_unicode_to_ascii(narrow, name, 0x20);
+    string_convert_unicode_to_ascii((uint8_t *)narrow, (uint16_t *)name, 0x20);
     return game_engine_get_variant_by_name(narrow, (game_variant *)0) == 0;
 }
 

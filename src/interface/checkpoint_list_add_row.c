@@ -44,7 +44,7 @@ static void widen(uint16_t *out, const char *in)
 uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time,
     const void *time, void *user_data)
 {
-    datum_index strings = tag_lookup(0x75737472, "ui\\shell\\main_menu\\map_list_short"); // 'ustr', 0x0066a51c
+    datum_index strings = tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\map_list_short"); // 'ustr', 0x0066a51c
     uint8_t record[0x68];
     char text[0x10];
     uint16_t wide[0x100];
@@ -58,12 +58,12 @@ uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_i
     *(int32_t *)(record + 0x04) = difficulty;
     strcpy((char *)(record + 0x48), name);
 
-    GetTimeFormatA(0x400, 0xc, time, 0, text, 0x10);
+    GetTimeFormatA(0x400, 0xc, (const SYSTEMTIME *)time, 0, text, 0x10);
     widen(wide, text);
     wide[12] = 0;
     wcscpy((wchar_t *)(record + 0x08), (const wchar_t *)wide);
     wcscat((wchar_t *)(record + 0x08), L"|n"); // 0x0066a514
-    GetDateFormatA(0x400, 1, time, 0, text, 0x10);
+    GetDateFormatA(0x400, 1, (const SYSTEMTIME *)time, 0, text, 0x10);
     widen(wide, text);
     wide[12] = 0;
     wcscat((wchar_t *)(record + 0x08), (const wchar_t *)wide);

@@ -66,7 +66,7 @@ void network_game_host_start(char *map_name, char *variant_name, uint8_t disconn
     widget_close_all();
     if (network_server != (void *)0) {
         network_game_server_host_dispose(network_server);
-        network_server = (void *)0;
+        network_server = (network_server_globals *)((void *)0);
         network_server_host_valid = 0;
     }
     network_client_globals_dispose();
@@ -78,14 +78,14 @@ void network_game_host_start(char *map_name, char *variant_name, uint8_t disconn
     game_variant_saved_default_valid = 1;
 
     widget = chimera__load_ui_widget(
-        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
         (datum_index)0xffffffff, (widget_instance *)0, 0xffff, (datum_index)0xffffffff,
         (datum_index)0xffffffff, -1);
     if (widget != (widget_instance *)0) {
         game_engine_ensure_variant_history_has_entry();
         network_disconnect_timeout_flag = disconnect_timeout_flag;
         if (network_game_server_host_create() != 0) {
-            network_client = network_session_create();
+            network_client = (network_client_globals *)(network_session_create());
             if (network_client != (void *)0) {
                 network_host_handoff_requested = 0;
                 game_variant_history_current = -1;
@@ -97,7 +97,7 @@ void network_game_host_start(char *map_name, char *variant_name, uint8_t disconn
         }
         if (network_server != (void *)0) {
             network_game_server_host_dispose(network_server);
-            network_server = (void *)0;
+            network_server = (network_server_globals *)((void *)0);
             network_server_host_valid = 0;
         }
         network_client_globals_dispose();

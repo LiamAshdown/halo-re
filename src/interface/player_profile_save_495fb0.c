@@ -49,7 +49,7 @@ void player_profile_save_495fb0(uint8_t flag)
 
     unknown_00712f07 = flag;
     if (saved_player_profile_slots_handle != -1) {
-        string_list_tag = tag_lookup(0x75737472, "ui\\shell\\strings\\temp_strings"); // 'ustr'
+        string_list_tag = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings"); // 'ustr'
         // s2 part 2 review: the broadcast text (EDX -> ESI of 0x495f50) is string 1 of the list,
         // L"<missing string>" (0x00671fac) when the list is too short or the string empty, and
         // L"" (0x00660c34) when the tag is missing (objdump 0x495fd9..0x49601a).

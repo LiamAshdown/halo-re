@@ -94,7 +94,7 @@ void chimera__do_show_loading_screen(void)
             interface_loading_screen_address_a = 0xffffffffu;
             interface_loading_screen_address_b = -1;
             interface_loading_screen_request_id = (datum_index)-1;
-            join_ui_state = 0;
+            join_ui_state = (progress_screen_state)0;
             interface_loading_screen_progress = 0;
             progress_screen_text[0] = 0;
             progress_screen_subtext[0] = 0;
@@ -137,9 +137,9 @@ void chimera__do_show_loading_screen(void)
         }
     }
 
-    font = tag_lookup(0x666f6e74, "ui\\large_ui");                       // 'font'
-    background = tag_lookup(0x6269746d, "ui\\shell\\bitmaps\\background");  // 'bitm'
-    strings = tag_lookup(0x75737472, "ui\\shell\\strings\\loading");      // 'ustr'
+    font = tag_lookup(0x666f6e74, (char *)"ui\\large_ui");                       // 'font'
+    background = tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\background");  // 'bitm'
+    strings = tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\loading");      // 'ustr'
     if (font == (datum_index)-1 || background == (datum_index)-1 || strings == (datum_index)-1) {
         return;
     }

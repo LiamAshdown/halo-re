@@ -25,7 +25,7 @@ void interface_loading_screen_reset(void)
 {
     interface_loading_screen_address_a = -1;
     interface_loading_screen_address_b = -1;
-    join_ui_state = 0;
+    join_ui_state = (progress_screen_state)0;
     interface_loading_screen_progress = 0;
     progress_screen_text[0] = 0;
     progress_screen_subtext[0] = 0;

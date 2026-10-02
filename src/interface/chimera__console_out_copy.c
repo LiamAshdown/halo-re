@@ -55,8 +55,8 @@ void chimera__console_out_copy(char *text)
         string_replace_all_in_place(line, DAT_00669ae0, DAT_0065fb14);
         length = strlen(line);
         console_clear_bottom_line(1);
-        WriteConsoleA(console_output_handle, line, length, &chars_written, (void *)0);
-        WriteConsoleA(console_output_handle, DAT_0065fb14, 1, &chars_written, (void *)0);
+        WriteConsoleA(console_output_handle, line, length, (LPDWORD)&chars_written, (void *)0);
+        WriteConsoleA(console_output_handle, DAT_0065fb14, 1, (LPDWORD)&chars_written, (void *)0);
         console_draw_input_line();
     }
 }

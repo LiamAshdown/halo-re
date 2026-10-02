@@ -33,9 +33,9 @@ void console_clear_bottom_line(uint8_t clear_text)
         SetConsoleCursorPosition(console_output_handle, bottom_left);
         if (clear_text != 0) {
             if (FillConsoleOutputCharacterA(console_output_handle, ' ', info.dwSize.X,
-                                             bottom_left, &written) != 0) {
+                                             bottom_left, (LPDWORD)&written) != 0) {
                 FillConsoleOutputAttribute(console_output_handle, info.wAttributes, info.dwSize.X,
-                                            bottom_left, &written);
+                                            bottom_left, (LPDWORD)&written);
             }
         }
     }

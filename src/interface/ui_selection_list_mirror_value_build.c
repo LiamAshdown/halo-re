@@ -48,7 +48,7 @@ void ui_selection_list_mirror_value_build(widget_instance *widget)
     target->selection_index = selected_value;
     target->next_sibling->background_bitmap_frame = selected_value;
 
-    ui_list_widget_rebuild_rows(widget, (void *)ui_list_default_item_format);
+    ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)ui_list_default_item_format));
 }
 
 #if 0

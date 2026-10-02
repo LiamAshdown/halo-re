@@ -55,7 +55,7 @@ widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     int16_t slot = (controller_index == 0xffff) ? 0 : (int16_t)controller_index;
     UIWidgetDefinition *tag;
 
-    ui_cursor_bitmap = tag_lookup(0x6269746d /* 'bitm' */, "ui\\shell\\bitmaps\\cursor");
+    ui_cursor_bitmap = tag_lookup(0x6269746d /* 'bitm' */, (char *)"ui\\shell\\bitmaps\\cursor");
     ui_widget_opened = 1;
 
     if (tag_index == (datum_index)-1) {

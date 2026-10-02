@@ -33,7 +33,7 @@ int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t t
     uint16_t *body;
     int32_t index;
 
-    if (wcslen(text) == 0) {
+    if (wcslen((const wchar_t *)text) == 0) {
         return 0;
     }
 
@@ -47,7 +47,7 @@ int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t t
     if (text[0] == '\\') {
         body = text + 1;
         if (text[1] == 's') {
-            int32_t delay = _wtol(text + 2);
+            int32_t delay = _wtol((const wchar_t *)(text + 2));
 
             message->text = empty_string;
             message->end_time = delay * 0x10 + start_time;

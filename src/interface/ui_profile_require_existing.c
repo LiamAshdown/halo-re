@@ -25,7 +25,7 @@ uint8_t ui_profile_require_existing(void *widget, int16_t *event, uint8_t *out_h
     int16_t count = 1;
     int32_t slot;
 
-    saved_game_enumerate_by_type(0, &slot, 0, &count);
+    saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count);
     if (count > 0) {
         return 1;
     }

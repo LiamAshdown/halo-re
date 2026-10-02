@@ -39,7 +39,7 @@ extern void widget_pool_list_free_all(widget_history_node **head); // 0x4994b0
 void main_menu_on_shown(int32_t fade_milliseconds)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, "sound\\music\\title1\\title1");
+        datum_index sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, (char *)"sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);

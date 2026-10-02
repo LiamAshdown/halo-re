@@ -35,7 +35,7 @@ void ui_widget_text_ensure_and_refresh(widget_instance *widget)
         }
     }
     if (widget->text != (void *)0) {
-        wcsncpy((uint16_t *)widget->text, global_text_field_00719278, 0x3f);
+        wcsncpy((wchar_t *)((uint16_t *)widget->text), (const wchar_t *)global_text_field_00719278, 0x3f);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }
 }

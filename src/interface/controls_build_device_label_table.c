@@ -45,7 +45,7 @@ void __cdecl controls_build_device_label_table(void)
     uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
     // s2 part 2 review: EDI is 0x75737472 'ustr' (a unicode_string_list), not 'DeLa' (objdump 0x4b48ae)
     datum_index tag_id = tag_lookup(0x75737472 /* 'ustr' */,
-        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
+        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)0x671fac; // UNSURE: default fallback pointer
 
