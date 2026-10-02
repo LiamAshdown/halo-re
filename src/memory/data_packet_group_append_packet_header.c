@@ -43,7 +43,7 @@ int32_t data_packet_group_append_packet_header(uint8_t *buffer, data_packet_grou
         data_packet_group_error = 0;
         return 1;
     }
-    data_packet_group_error = "couldn't append header to encoded packet";
+    data_packet_group_error = (char *)"couldn't append header to encoded packet";
     return 0;
 }
 

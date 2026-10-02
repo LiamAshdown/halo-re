@@ -39,14 +39,14 @@ void sound_cache_new(void)
     int32_t scaled_megabytes;
     void *cache_memory;
 
-    sound_cache_entries = data_new(sizeof(sound_cache_entry), "pc sound", k_sound_cache_maximum_entries);
+    sound_cache_entries = data_new(sizeof(sound_cache_entry), (char *)"pc sound", k_sound_cache_maximum_entries);
 
     scaled_megabytes = (int32_t)*(int16_t *)&sound_cache_size_megabytes * 0x100000; // movsx WORD 0x006869c4 (0x443cbc), shl 0x14
     sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);
     if (cache_memory != (void *)0) {
-        cache_new("pc sound cache", (struct cache *)cache_memory, sound_cache_page_count,
+        cache_new((char *)"pc sound cache", (struct cache *)cache_memory, sound_cache_page_count,
             k_sound_cache_page_shift, k_sound_cache_maximum_entries,
             (void *)sound_cache_entry_release, (void *)sound_cache_entry_in_use);
     }

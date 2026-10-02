@@ -134,7 +134,7 @@ void screenshot_render(render_view *views)
                 sprintf(filename, "%s\\%dscreenshot%d%d.tga", "screenshots",
                         (uint32_t)main_globals_data.screenshot_index, (int32_t)page_row,
                         (int32_t)page_col);
-                directory_create_recursive("screenshots");
+                directory_create_recursive((char *)"screenshots");
 
                 memset(&request, 0, sizeof(request));
                 request.signature = 0x66696c6f; // 'filo'

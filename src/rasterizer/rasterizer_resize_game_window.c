@@ -39,7 +39,7 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
     win32_rect current;
     win32_rect target;
 
-    GetWindowRect(shell_window, &current);
+    GetWindowRect((HWND)shell_window, &current);
     GetWindowRect(GetDesktopWindow(), &target);
 
     target.left = (uint32_t)((target.right - target.left) - width) >> 1;
@@ -50,9 +50,9 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
 
     if (current.top != target.top || current.bottom != target.bottom ||
         current.left != target.left || current.right != target.right) {
-        MoveWindow(shell_window, target.left, target.top, target.right - target.left,
+        MoveWindow((HWND)shell_window, target.left, target.top, target.right - target.left,
                    target.bottom - target.top, 1);
-        ShowWindow(shell_window, 5); // SW_SHOW
+        ShowWindow((HWND)shell_window, 5); // SW_SHOW
     }
 
     game_window_bottom_right = (uint16_t)(int16_t)height | ((uint32_t)(uint16_t)(int16_t)width << 16);

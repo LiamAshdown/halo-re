@@ -52,8 +52,8 @@ void credits_load_directly_for_endgame(void)
         player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
     }
     main_menu_return_and_reset();
-    main_menu_tag = tag_lookup(0x44654c61 /* 'DeLa' */, "ui\\shell\\main_menu\\main_menu");
-    chimera__load_ui_widget("ui\\shell\\main_menu\\credits_screen", (datum_index)-1,
+    main_menu_tag = tag_lookup(0x44654c61 /* 'DeLa' */, (char *)"ui\\shell\\main_menu\\main_menu");
+    chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", (datum_index)-1,
                              (widget_instance *)0, (uint16_t)-1, main_menu_tag, (datum_index)-1,
                              -1);
     hud_text_message_cycle_state_00719230 = 1;

@@ -86,15 +86,15 @@ void write_to_error_file(char *message, uint8_t with_timestamp)
                 _time32(&time_value);
                 local_time = _localtime32(&time_value); // 32-bit time, as _time32 wrote it
                 if (local_time == 0) {
-                    fprintf(file, error_file_no_timestamp);
+                    fprintf((FILE *)file, error_file_no_timestamp);
                 } else {
-                    fprintf(file, error_file_timestamp_format, local_time->tm_mon + 1,
+                    fprintf((FILE *)file, error_file_timestamp_format, local_time->tm_mon + 1,
                              local_time->tm_mday, local_time->tm_year % 100,
                              local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
                 }
             }
-            fprintf(file, "%s", message);
-            fclose(file);
+            fprintf((FILE *)file, "%s", message);
+            fclose((FILE *)file);
         }
     }
 }

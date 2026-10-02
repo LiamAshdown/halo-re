@@ -79,15 +79,15 @@ void __cdecl rasterizer_shutdown(void)
     chimera__registry_check_3();
 
     if (rasterizer_window_icon_dc != (void *)0) {
-        ReleaseDC(shell_window, rasterizer_window_icon_dc);
+        ReleaseDC((HWND)shell_window, (HDC)rasterizer_window_icon_dc);
         rasterizer_window_icon_dc = (void *)0;
     }
     if (rasterizer_window_icon_bitmap != (void *)0) {
         DeleteObject(rasterizer_window_icon_bitmap);
         rasterizer_window_icon_bitmap = (void *)0;
     }
-    ShowWindow(shell_window, 0); // SW_HIDE
-    DestroyWindow(shell_window);
+    ShowWindow((HWND)shell_window, 0); // SW_HIDE
+    DestroyWindow((HWND)shell_window);
     shell_window = (void *)0;
 
     for (i = 0; i < 4; i++) {

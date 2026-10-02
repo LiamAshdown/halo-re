@@ -70,7 +70,7 @@ uint8_t scenario_load(char *path)
     }
 
     global_globals = (Globals *)tag_instances[
-        tag_lookup(0x6d617467 /* 'matg' */, "globals\\globals") & 0xffff].data;
+        tag_lookup(0x6d617467 /* 'matg' */, (char *)"globals\\globals") & 0xffff].data;
 
     if (scenario_structure_bsp_switch(0) == 0) {
         return 0;

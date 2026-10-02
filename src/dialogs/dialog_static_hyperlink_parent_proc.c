@@ -43,25 +43,25 @@ int32_t __stdcall dialog_static_hyperlink_parent_proc(void *hwnd, uint32_t messa
     void *static_marker;
     int32_t forwarded_result;
 
-    old_wnd_proc = GetPropA(hwnd, "Old_Proc");
+    old_wnd_proc = GetPropA((HWND)hwnd, "Old_Proc");
 
     if (message == k_dialog_message_destroy) {
-        SetWindowLongA(hwnd, k_dialog_window_long_wndproc, (int32_t)old_wnd_proc);
-        RemovePropA(hwnd, "Old_Proc");
+        SetWindowLongA((HWND)hwnd, k_dialog_window_long_wndproc, (int32_t)old_wnd_proc);
+        RemovePropA((HWND)hwnd, "Old_Proc");
     } else if (message == k_dialog_message_ctl_color_static) {
-        static_marker = GetPropA((void *)lparam, "Static");
+        static_marker = GetPropA((HWND)((void *)lparam), "Static");
         if (static_marker != (void *)0) {
-            forwarded_result = CallWindowProcA(old_wnd_proc, hwnd, message, wparam, lparam);
+            forwarded_result = CallWindowProcA((WNDPROC)old_wnd_proc, (HWND)hwnd, message, wparam, lparam);
             if (dialog_hyperlink_hovered != 0) {
-                SetTextColor((void *)wparam, k_dialog_hyperlink_color_hover);
+                SetTextColor((HDC)((void *)wparam), k_dialog_hyperlink_color_hover);
             } else {
-                SetTextColor((void *)wparam, k_dialog_hyperlink_color_normal);
+                SetTextColor((HDC)((void *)wparam), k_dialog_hyperlink_color_normal);
             }
             return forwarded_result;
         }
     }
 
-    return CallWindowProcA(old_wnd_proc, hwnd, message, wparam, lparam);
+    return CallWindowProcA((WNDPROC)old_wnd_proc, (HWND)hwnd, message, wparam, lparam);
 }
 
 #if 0

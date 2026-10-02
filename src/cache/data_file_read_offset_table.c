@@ -23,11 +23,11 @@ uint8_t data_file_read_offset_table(data_file *file)
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(file->file, file->table_offset, (void *)0, 0) != 0xffffffff) {
+    if (SetFilePointer(file->file, file->table_offset, (PLONG)((void *)0), 0) != 0xffffffff) {
         table_size = file->entry_count * 0xc;
         buffer = GlobalAlloc(0, table_size);
         file->references = (data_file_reference *)buffer;
-        if (ReadFile(file->file, buffer, table_size, &bytes_read, (void *)0) != 0 && bytes_read == table_size) {
+        if (ReadFile(file->file, buffer, table_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == table_size) {
             file->reference_count = file->entry_count;
             return 1;
         }

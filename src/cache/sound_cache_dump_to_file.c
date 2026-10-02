@@ -123,14 +123,14 @@ void sound_cache_dump_to_file(void)
 
         for (scan = line; *scan != '\0'; scan++) {
         }
-        fwrite(line, 1, (uint32_t)(scan - (line + 1)), file);
+        fwrite(line, 1, (uint32_t)(scan - (line + 1)), (FILE *)file);
 
         entry_number = 1;
         for (scan = line, bit = 0x100; bit != 0; bit--) {
             scan[0] = 0; scan[1] = 0; scan[2] = 0; scan[3] = 0;
             scan += 4;
         }
-        fwrite("[sounds in cache]\n\n", 1, 0x12, file);
+        fwrite("[sounds in cache]\n\n", 1, 0x12, (FILE *)file);
 
         iterator.data = sound_cache_entries;
         iterator.next_index = 0;
@@ -145,13 +145,13 @@ void sound_cache_dump_to_file(void)
                     permutation->samples.size, permutation->buffer_size);
                 for (scan = line; *scan != '\0'; scan++) {
                 }
-                fwrite(line, 1, (uint32_t)(scan - (line + 1)), file);
+                fwrite(line, 1, (uint32_t)(scan - (line + 1)), (FILE *)file);
                 entry_number++;
             }
             entry = (sound_cache_entry *)data_iterator_next(&iterator);
         }
 
-        fclose(file);
+        fclose((FILE *)file);
     }
 
     GlobalFree(bitmap);

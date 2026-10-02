@@ -114,10 +114,10 @@ void model_load_vertex_buffers(cache_file_tag_header *header)
                     (shared_normals_model_shader ||
                      shader->shader.tag_fourcc == _tag_group_shader_transparent_water)) {
                     success = rasterizer_vertex_buffer_create(&part->base.vertex_type, 0xe,
-                        vertex_count, vertex_data, 0, vertex_count << 5);
+                        vertex_count, (uint32_t *)vertex_data, 0, vertex_count << 5);
                 } else {
                     success = rasterizer_vertex_buffer_create(&part->base.vertex_type,
-                        part->base.vertex_type, vertex_count, vertex_data, 0,
+                        part->base.vertex_type, vertex_count, (uint32_t *)vertex_data, 0,
                         rasterizer_vertex_sizes[part->base.vertex_type] * vertex_count);
                 }
 

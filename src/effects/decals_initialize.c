@@ -38,7 +38,7 @@ void decals_initialize(void)
 {
     uint32_t block_size = sizeof(decal_grid);
 
-    decal_data = (data_array *)game_state_new("decals", k_maximum_decals, sizeof(decal));
+    decal_data = (data_array *)game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
     ((uint8_t *)decal_data)[0x25] = 1; // see UNSURE above: the pad byte after `valid`, not `valid` itself
 
     decal_grid_block = (decal_grid *)(game_state_base + game_state_cursor);

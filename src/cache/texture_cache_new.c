@@ -38,11 +38,11 @@ void texture_cache_new(void)
 {
     void *cache_memory;
 
-    texture_cache_entries = data_new(sizeof(texture_cache_entry), "pc texture", k_texture_cache_maximum_entries);
+    texture_cache_entries = data_new(sizeof(texture_cache_entry), (char *)"pc texture", k_texture_cache_maximum_entries);
 
     cache_memory = GlobalAlloc(0, 0x1c07c);
     if (cache_memory != (void *)0) {
-        cache_new("pc texture cache", (struct cache *)cache_memory, k_texture_cache_maximum_entries,
+        cache_new((char *)"pc texture cache", (struct cache *)cache_memory, k_texture_cache_maximum_entries,
             k_texture_cache_block_shift, k_texture_cache_maximum_entries,
             (void *)texture_cache_entry_release, (void *)texture_cache_entry_in_use);
     }

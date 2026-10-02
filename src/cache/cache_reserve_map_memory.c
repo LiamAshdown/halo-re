@@ -60,18 +60,18 @@ void cache_reserve_map_memory(void)
 
         psapi_module = LoadLibraryA("Psapi.dll");
         if (psapi_module != (void *)0) {
-            get_mapped_file_name_a = (get_mapped_file_name_a_t)GetProcAddress(psapi_module, "GetMappedFileNameA");
+            get_mapped_file_name_a = (get_mapped_file_name_a_t)GetProcAddress((HMODULE)psapi_module, "GetMappedFileNameA");
             if (get_mapped_file_name_a != (get_mapped_file_name_a_t)0) {
                 get_mapped_file_name_a(GetCurrentProcess(), (void *)k_map_memory_base, path_buffer, 0x104);
             }
-            FreeLibrary(psapi_module);
+            FreeLibrary((HMODULE)psapi_module);
         }
 
         caption = path_buffer;
         if (path_buffer[0] == '\0') {
             caption = "Error";
         }
-        MessageBoxA((void *)0,
+        MessageBoxA((HWND)((void *)0),
             "Cannot allocate required memory. Some other application has loaded where Halo needs to be located.",
             caption, 0);
         ExitProcess(1); // does not return

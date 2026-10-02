@@ -26,18 +26,18 @@ void cache_io_thread_start(void)
 {
     uint32_t thread_id;
 
-    cache_io_event = CreateEventA((void *)0, 0, 0, (char *)0);
+    cache_io_event = CreateEventA((LPSECURITY_ATTRIBUTES)((void *)0), 0, 0, (char *)0);
 
     if (os_platform == 0) {
         os_platform_identify();
     }
 
     if (os_platform < 3) {
-        cache_io_thread = CreateThread((void *)0, 0x4000, (void *)cache_io_thread_proc_sync, (void *)0, 0, &thread_id);
+        cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)cache_io_thread_proc_sync), (void *)0, 0, (LPDWORD)(&thread_id));
         return;
     }
 
-    cache_io_thread = CreateThread((void *)0, 0x4000, (void *)cache_io_thread_proc_async, (void *)0, 0, (uint32_t *)0);
+    cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)cache_io_thread_proc_async), (void *)0, 0, (LPDWORD)((uint32_t *)0));
     return;
 }
 

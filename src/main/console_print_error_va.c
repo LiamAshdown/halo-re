@@ -55,7 +55,7 @@ void console_print_error_va(uint8_t clear_first, const char *format, ...)
     vsprintf(formatted, format, args);
     va_end(args);
 
-    console_printf_verbose(0, "%s", formatted); // EAX = 0 (default color); 0x0065efec == "%s"
+    console_printf_verbose(0, (char *)"%s", formatted); // EAX = 0 (default color); 0x0065efec == "%s"
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400); // 0x0065f010 == "\r\n"
         write_to_error_file(formatted, 1);

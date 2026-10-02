@@ -14,8 +14,8 @@
 
 extern observer observers[1]; // 0x006ac65c
 
-// blam-cc: EDX -> this
-extern void observer_new(observer *this); // 0x447740, this module
+// blam-cc: EDX -> self
+extern void observer_new(observer *self); // 0x447740, this module
 
 void observer_initialize(void)
 {

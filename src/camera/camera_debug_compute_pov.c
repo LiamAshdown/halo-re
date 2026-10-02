@@ -39,7 +39,7 @@ extern tag_instance *tag_instances;                 // 0x0087bc14
 extern real_point3d *global_zero_vector3d_pointer;  // 0x006966f8 -> 0x0065c230 {0,0,0}, math module
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, objects module
-extern dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_index, datum_index unit); // this module
+extern dead_camera_data *dead_camera_new(dead_camera_data *self, int16_t local_player_index, datum_index unit); // this module
 extern void camera_track_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); // this module
 extern void first_person_camera_command_for_unit(datum_index unit, observer_command *command); // 0x446d30, this module
 extern void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model); // 0x4d49b0, model animation module, not yet rewritten;

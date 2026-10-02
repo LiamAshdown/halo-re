@@ -40,9 +40,9 @@ uint8_t cache_file_exists(char *name, cache_file_header *header_out)
 
     valid = 0;
     sprintf(path, "%s%s%s.map", map_path_prefix, "maps\\", name);
-    file = CreateFileA(path, 0x80000000, 1, (void *)0, 3, 0, (void *)0);
+    file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 3, 0, (void *)0);
     if (file != (void *)0xffffffff) {
-        if (ReadFile(file, header_out, k_cache_file_header_size, &bytes_read, (void *)0) != 0 &&
+        if (ReadFile(file, header_out, k_cache_file_header_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 &&
             bytes_read == k_cache_file_header_size &&
             header_out->head == k_cache_file_head_signature &&
             header_out->foot == k_cache_file_foot_signature &&

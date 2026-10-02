@@ -31,7 +31,7 @@ uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_
 
     length = wcslen(source);
     if (length > (uint32_t)(capacity - 1)) {
-        return (void *)0;
+        return (uint8_t *)((void *)0);
     }
     for (i = 0; i < length; i++) {
         if ((source[i] & 0xff00) != 0) {

@@ -66,8 +66,8 @@ uint32_t cache_io_thread_proc_sync(void *parameter)
                 file_handle = source->file;
             }
 
-            if (SetFilePointer(file_handle, (int32_t)best->offset, (void *)0, 0) != 0xffffffff) {
-                ReadFile(file_handle, best->destination, best->size, &bytes_read, (void *)0);
+            if (SetFilePointer(file_handle, (int32_t)best->offset, (PLONG)((void *)0), 0) != 0xffffffff) {
+                ReadFile(file_handle, best->destination, best->size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0));
             }
 
             *best->completion.flag = 1;

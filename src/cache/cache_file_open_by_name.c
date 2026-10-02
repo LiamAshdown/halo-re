@@ -123,7 +123,7 @@ uint8_t cache_file_open_by_name(char *name, uint8_t report_fatal_error)
         flags_and_attributes = 0x8000080;
     }
 
-    file = CreateFileA(path, 0x80000000, 1, (void *)0, 4, flags_and_attributes, (void *)0);
+    file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags_and_attributes, (void *)0);
     cache_file_slots[slot_index].file = file;
     cache_file_slot_read_header(slot_index);
     return 1;

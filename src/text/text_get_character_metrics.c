@@ -34,7 +34,7 @@ FontCharacter *text_get_character_metrics(uint16_t character, Font *font)
             return (FontCharacter *)font->characters.pointer + hardware_index;
         }
     }
-    return (void *)0;
+    return (FontCharacter *)((void *)0);
 }
 
 #if 0

@@ -18,7 +18,7 @@
 //   stack parameter. The function never touches EAX again after loading it, so it returns the
 //   same this-pointer it was given (its only caller, camera_debug_compute_pov case 3, chains
 //   the return value straight into camera_track_compute_pov).
-//   // blam-cc: EAX -> this, DX -> local_player_index, stack -> unit
+//   // blam-cc: EAX -> self, DX -> local_player_index, stack -> unit
 // reconciled: R04 0x006f1d20 void * current_game_engine -> game.h game_engine_definition *current_game_engine (all accesses are DWORD; non-NULL = multiplayer engine loaded)
 
 #include "tags.h"
@@ -33,38 +33,38 @@ extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern game_engine_definition *current_game_engine; // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
 
-// blam-cc: EAX -> this, DX -> local_player_index, stack -> unit
+// blam-cc: EAX -> self, DX -> local_player_index, stack -> unit
 // Seeds a new dead (orbiting) camera target: starts the focus point at the current published
 // camera position of `local_player_index` (or a null read if that index is invalid -- the
 // compiled code does not guard against DX == -1 here), rolls a fresh random orbit distance,
 // yaw and pitch, gives it a 3 second transition, and either follows `unit` directly (retargeting
 // disabled, retarget_time = FLT_MAX) or, when unit == -1, follows the local player's own current
 // unit with the normal 3/15 second retarget timer.
-dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_index, datum_index unit)
+dead_camera_data *dead_camera_new(dead_camera_data *self, int16_t local_player_index, datum_index unit)
 {
     observer_camera *source;
     datum_index local_player;
 
     source = (local_player_index != -1) ? &observers[local_player_index].camera : (observer_camera *)0;
-    this->focus = *(Point3D *)&source->position; // UNSURE: null-dereferenced when local_player_index == -1
+    self->focus = *(Point3D *)&source->position; // UNSURE: null-dereferenced when local_player_index == -1
 
-    this->field_of_view = 1.2217305f; // 70 degrees
-
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    this->distance = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
+    self->field_of_view = 1.2217305f; // 70 degrees
 
     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    this->yaw = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
-
-    this->transition_time = 3.0f;
+    self->distance = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
 
     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    this->pitch = -((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
+    self->yaw = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+
+    self->transition_time = 3.0f;
+
+    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
+    self->pitch = -((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
 
     if (unit != k_datum_index_none) {
-        this->retarget_time = 3.4028235e38f; // FLT_MAX: an explicit target never auto-retargets
+        self->retarget_time = 3.4028235e38f; // FLT_MAX: an explicit target never auto-retargets
     } else {
-        this->retarget_time = (current_game_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
+        self->retarget_time = (current_game_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
     }
 
     if (local_player_index == -1 || local_player_index > 0) {
@@ -72,17 +72,17 @@ dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_i
     } else {
         local_player = local_player_globals->local_players[local_player_index];
     }
-    this->local_player = local_player;
+    self->local_player = local_player;
 
     if (unit == k_datum_index_none) {
         player *p = (player *)((uint8_t *)player_data->data + (local_player & 0xffff) * sizeof(player));
-        this->target_unit = p->previous_unit; // player +0x38 (0x445226), the body just left behind
+        self->target_unit = p->previous_unit; // player +0x38 (0x445226), the body just left behind
     } else {
-        this->target_unit = unit;
+        self->target_unit = unit;
     }
-    this->target_player = local_player;
+    self->target_player = local_player;
 
-    return this;
+    return self;
 }
 
 #if 0

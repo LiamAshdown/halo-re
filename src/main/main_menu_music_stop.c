@@ -39,7 +39,7 @@ extern void sound_looping_stop(datum_index sound_tag); // 0x544120, foreign (sou
 void main_menu_music_stop(void)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, "sound\\music\\title1\\title1");
+        datum_index sound_tag = tag_lookup(0x6c736e64 /* 'lsnd' */, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
         }

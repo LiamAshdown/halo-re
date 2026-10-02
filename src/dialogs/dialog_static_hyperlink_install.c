@@ -53,30 +53,30 @@ int32_t dialog_static_hyperlink_install(void *control)
     void *underlined_font;
     win32_logfonta logfont;
 
-    parent = GetParent(control);
+    parent = GetParent((HWND)control);
     if (parent != 0) {
-        previous_wnd_proc = (void *)GetWindowLongA(parent, k_dialog_window_long_wndproc);
+        previous_wnd_proc = (void *)GetWindowLongA((HWND)parent, k_dialog_window_long_wndproc);
         if (previous_wnd_proc != (void *)dialog_static_hyperlink_parent_proc) {
-            SetPropA(parent, "Old_Proc", previous_wnd_proc);
-            SetWindowLongA(parent, k_dialog_window_long_wndproc, (int32_t)dialog_static_hyperlink_parent_proc);
+            SetPropA((HWND)parent, "Old_Proc", previous_wnd_proc);
+            SetWindowLongA((HWND)parent, k_dialog_window_long_wndproc, (int32_t)dialog_static_hyperlink_parent_proc);
         }
     }
 
-    style = GetWindowLongA(control, k_dialog_window_long_style);
-    SetWindowLongA(control, k_dialog_window_long_style, style | k_dialog_static_style_notify);
+    style = GetWindowLongA((HWND)control, k_dialog_window_long_style);
+    SetWindowLongA((HWND)control, k_dialog_window_long_style, style | k_dialog_static_style_notify);
 
-    previous_wnd_proc = (void *)GetWindowLongA(control, k_dialog_window_long_wndproc);
-    SetPropA(control, "Old_Proc", previous_wnd_proc);
-    SetWindowLongA(control, k_dialog_window_long_wndproc, (int32_t)dialog_static_hyperlink_subclass_proc);
+    previous_wnd_proc = (void *)GetWindowLongA((HWND)control, k_dialog_window_long_wndproc);
+    SetPropA((HWND)control, "Old_Proc", previous_wnd_proc);
+    SetWindowLongA((HWND)control, k_dialog_window_long_wndproc, (int32_t)dialog_static_hyperlink_subclass_proc);
 
-    previous_font = (void *)SendMessageA(control, k_dialog_message_get_font, 0, 0);
-    SetPropA(control, "Old_Font", previous_font);
+    previous_font = (void *)SendMessageA((HWND)control, k_dialog_message_get_font, 0, 0);
+    SetPropA((HWND)control, "Old_Font", previous_font);
     GetObjectA(previous_font, k_dialog_logfont_size, &logfont);
     logfont.underline = 1;
     underlined_font = CreateFontIndirectA((const LOGFONTA *)&logfont);
-    SetPropA(control, "Font", underlined_font);
-    SendMessageA(control, k_dialog_message_set_font, (uint32_t)underlined_font, 0);
-    SetPropA(control, "Static", (void *)1);
+    SetPropA((HWND)control, "Font", underlined_font);
+    SendMessageA((HWND)control, k_dialog_message_set_font, (uint32_t)underlined_font, 0);
+    SetPropA((HWND)control, "Static", (void *)1);
 
     return 1;
 }

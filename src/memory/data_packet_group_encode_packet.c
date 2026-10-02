@@ -44,7 +44,7 @@ int32_t data_packet_group_encode_packet(int16_t version, struct_definition *defi
     ok = data_packet_group_encode_packet_body(version, definition, version_byte_dest, output,
         source, out_wrote_version_byte, (int16_t)group->maximum_encoded_size);
     if (ok == 0) {
-        error = "couldn't encode packet";
+        error = (char *)"couldn't encode packet";
     } else {
         ok = data_packet_group_append_packet_header(buffer, group, cursor, packet_type);
         if (ok == 0) {

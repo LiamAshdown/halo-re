@@ -24,13 +24,13 @@ void camera_debug_save_to_file(void)
     observer_camera *camera = &observers[0].camera;
 
     if (file != 0) {
-        fprintf(file, "%f %f %f\n", (double)camera->position.x, (double)camera->position.y,
+        fprintf((FILE *)file, "%f %f %f\n", (double)camera->position.x, (double)camera->position.y,
             (double)camera->position.z);
-        fprintf(file, "%f %f %f\n", (double)camera->forward.i, (double)camera->forward.j,
+        fprintf((FILE *)file, "%f %f %f\n", (double)camera->forward.i, (double)camera->forward.j,
             (double)camera->forward.k);
-        fprintf(file, "%f %f %f\n", (double)camera->up.i, (double)camera->up.j, (double)camera->up.k);
-        fprintf(file, "%f\n", (double)camera->field_of_view);
-        fclose(file);
+        fprintf((FILE *)file, "%f %f %f\n", (double)camera->up.i, (double)camera->up.j, (double)camera->up.k);
+        fprintf((FILE *)file, "%f\n", (double)camera->field_of_view);
+        fclose((FILE *)file);
     }
 }
 

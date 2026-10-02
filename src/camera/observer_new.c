@@ -24,31 +24,31 @@ extern const real_vector3d *global_up3d_pointer;         // 0x00696720 -> (0, 0,
 extern const real_point3d *global_origin3d_pointer;      // 0x00696714 -> (0, 0, 0)
 extern real_point3d *global_zero_vector3d_pointer;       // 0x006966f8 -> (0, 0, 0)
 
-// blam-cc: EDX -> this
-void observer_new(observer *this)
+// blam-cc: EDX -> self
+void observer_new(observer *self)
 {
-    this->parameters.forward = *(const Vector3D *)global_forward3d_pointer;
-    this->parameters.up = *(const Vector3D *)global_up3d_pointer;
-    this->parameters.field_of_view = 0.8726646f; // 50 degrees
+    self->parameters.forward = *(const Vector3D *)global_forward3d_pointer;
+    self->parameters.up = *(const Vector3D *)global_up3d_pointer;
+    self->parameters.field_of_view = 0.8726646f; // 50 degrees
 
-    this->camera.position = *(const Point3D *)global_zero_vector3d_pointer;
-    this->camera.leaf_index = -1;
-    this->camera.cluster_index = -1;
-    this->camera.velocity = *(const Vector3D *)global_origin3d_pointer;
-    this->camera.forward = *(const Vector3D *)global_forward3d_pointer;
-    this->camera.up = *(const Vector3D *)global_up3d_pointer;
-    this->camera.field_of_view = 0.8726646f; // 50 degrees
+    self->camera.position = *(const Point3D *)global_zero_vector3d_pointer;
+    self->camera.leaf_index = -1;
+    self->camera.cluster_index = -1;
+    self->camera.velocity = *(const Vector3D *)global_origin3d_pointer;
+    self->camera.forward = *(const Vector3D *)global_forward3d_pointer;
+    self->camera.up = *(const Vector3D *)global_up3d_pointer;
+    self->camera.field_of_view = 0.8726646f; // 50 degrees
 
-    memset(&this->current_command, 0, sizeof(this->current_command));
+    memset(&self->current_command, 0, sizeof(self->current_command));
 
-    this->current_command.parameters.forward = this->parameters.forward;
-    this->current_command.parameters.up = this->parameters.up;
-    this->current_command.parameters.field_of_view = this->parameters.field_of_view;
+    self->current_command.parameters.forward = self->parameters.forward;
+    self->current_command.parameters.up = self->parameters.up;
+    self->current_command.parameters.field_of_view = self->parameters.field_of_view;
 
-    this->trailer_signature = k_observer_signature;
-    this->header_signature = k_observer_signature;
-    this->updated = 1;
-    this->has_command = 0;
+    self->trailer_signature = k_observer_signature;
+    self->header_signature = k_observer_signature;
+    self->updated = 1;
+    self->has_command = 0;
 }
 
 #if 0

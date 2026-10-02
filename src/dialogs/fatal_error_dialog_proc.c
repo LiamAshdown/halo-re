@@ -78,27 +78,27 @@ int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32
     if (message < 0x111 /* WM_COMMAND */) {
         if (message == 0x10 /* WM_CLOSE */) {
             if (shell_window != 0) {
-                DestroyWindow(shell_window);
+                DestroyWindow((HWND)shell_window);
             }
-            EndDialog(dialog, 2);
+            EndDialog((HWND)dialog, 2);
             return 1;
         }
         if (message == 0x110 /* WM_INITDIALOG */) {
-            GetWindowRect(dialog, &dialog_rect);
+            GetWindowRect((HWND)dialog, &dialog_rect);
             desktop_window = GetDesktopWindow();
-            GetClientRect(desktop_window, &desktop_rect);
-            MoveWindow(dialog,
+            GetClientRect((HWND)desktop_window, &desktop_rect);
+            MoveWindow((HWND)dialog,
                        (desktop_rect.right - desktop_rect.left) / 2 - (dialog_rect.right - dialog_rect.left) / 2,
                        (desktop_rect.bottom - desktop_rect.top) / 2 - (dialog_rect.bottom - dialog_rect.top) / 2,
                        dialog_rect.right - dialog_rect.left, dialog_rect.bottom - dialog_rect.top, 1);
-            SetWindowTextA(dialog, fatal_error_title);
-            SetDlgItemTextA(dialog, 0x3ee /* message static */, fatal_error_text);
+            SetWindowTextA((HWND)dialog, fatal_error_title);
+            SetDlgItemTextA((HWND)dialog, 0x3ee /* message static */, fatal_error_text);
             if (fatal_error_is_fatal != 0) {
-                EnableWindow(GetDlgItem(dialog, 0x3e9 /* "remember my choice" checkbox */), 0);
-                EnableWindow(GetDlgItem(dialog, 0x3ec /* "done" button, result 0 */), 0);
-                EnableWindow(GetDlgItem(dialog, 3 /* "done" button, result 1 */), 0);
+                EnableWindow(GetDlgItem((HWND)dialog, 0x3e9 /* "remember my choice" checkbox */), 0);
+                EnableWindow(GetDlgItem((HWND)dialog, 0x3ec /* "done" button, result 0 */), 0);
+                EnableWindow(GetDlgItem((HWND)dialog, 3 /* "done" button, result 1 */), 0);
             }
-            hyperlink_control = GetDlgItem(dialog, 0x3ef /* help-file hyperlink static */);
+            hyperlink_control = GetDlgItem((HWND)dialog, 0x3ef /* help-file hyperlink static */);
             dialog_static_hyperlink_install(hyperlink_control);
             if (graphics_device_id == 0) {
                 if (cpu_speed == 0 || physical_memory == 0) {
@@ -110,7 +110,7 @@ int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32
                 sprintf(fatal_error_system_specs, "%dMHz, %dMB, %dM %s %s (0x%04x)", cpu_speed, physical_memory,
                         video_memory >> 0x14, graphics_vendor_name, graphics_device_name, graphics_device_id);
             }
-            SetDlgItemTextA(dialog, 0x3f1 /* system specs static */, fatal_error_system_specs);
+            SetDlgItemTextA((HWND)dialog, 0x3f1 /* system specs static */, fatal_error_system_specs);
             return 1;
         }
         return 0;
@@ -121,34 +121,34 @@ int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32
 
         if (control_id <= 0x3ec) {
             if (control_id == 0x3ec) {
-                checked = IsDlgButtonChecked(dialog, 0x3e9);
+                checked = IsDlgButtonChecked((HWND)dialog, 0x3e9);
                 fatal_error_remember_choice = (checked != 0);
-                EndDialog(dialog, 0);
+                EndDialog((HWND)dialog, 0);
                 return 1;
             }
             if (control_id == 2) {
                 if (shell_window != 0) {
-                    DestroyWindow(shell_window);
+                    DestroyWindow((HWND)shell_window);
                 }
-                EndDialog(dialog, 2);
+                EndDialog((HWND)dialog, 2);
                 return 1;
             }
             if (control_id == 3) {
-                checked = IsDlgButtonChecked(dialog, 0x3e9);
+                checked = IsDlgButtonChecked((HWND)dialog, 0x3e9);
                 fatal_error_remember_choice = (checked != 0);
-                EndDialog(dialog, 1);
+                EndDialog((HWND)dialog, 1);
                 return 1;
             }
         } else {
             if (control_id == 0x3ed) {
                 if (shell_window != 0) {
-                    DestroyWindow(shell_window);
+                    DestroyWindow((HWND)shell_window);
                 }
-                EndDialog(dialog, 2);
+                EndDialog((HWND)dialog, 2);
                 return 1;
             }
             if (control_id == 0x3ef /* hyperlink button */) {
-                ShellExecuteA(dialog, "open", fatal_error_help_file, (const char *)0, (const char *)0, 1);
+                ShellExecuteA((HWND)dialog, "open", fatal_error_help_file, (const char *)0, (const char *)0, 1);
                 return 1;
             }
         }
@@ -157,9 +157,9 @@ int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32
 
     if (message > 0x111 && message == 0x3ed) {
         if (shell_window != 0) {
-            DestroyWindow(shell_window);
+            DestroyWindow((HWND)shell_window);
         }
-        EndDialog(dialog, 2);
+        EndDialog((HWND)dialog, 2);
         return 1;
     }
 

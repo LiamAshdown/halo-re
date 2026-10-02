@@ -79,7 +79,7 @@ void cache_file_slot_read_header(int32_t slot_index)
     slot = &cache_file_slots[slot_index];
     sprintf(path, "%s\\cache%03d.map", profile_directory, slot_index);
 
-    GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, (void *)0, (void *)0);
+    GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, (LPFILETIME)((void *)0), (LPFILETIME)((void *)0));
 
     header_read_ok = 0;
     request.completion.flag = &header_read_ok;
@@ -91,8 +91,8 @@ void cache_file_slot_read_header(int32_t slot_index)
     }
 
     if (os_platform < 3) {
-        if (SetFilePointer(slot->file, 0, (void *)0, 0) != 0xffffffff) {
-            if (ReadFile(slot->file, &slot->header, k_cache_file_header_size, &bytes_read, (void *)0) != 0 &&
+        if (SetFilePointer(slot->file, 0, (PLONG)((void *)0), 0) != 0xffffffff) {
+            if (ReadFile(slot->file, &slot->header, k_cache_file_header_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 &&
                 bytes_read == k_cache_file_header_size) {
                 goto validate_header;
             }

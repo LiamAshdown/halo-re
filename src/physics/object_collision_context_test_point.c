@@ -41,7 +41,7 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 // blam-cc: EBX -> context, stack -> point (0x504f1b `mov esi,[esp+0x24]`)
 uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point)
 {
-    ModelCollisionGeometry *definition = context->definition;
+    ModelCollisionGeometry *definition = (ModelCollisionGeometry *)context->definition;
     ModelCollisionGeometryNode *nodes = (ModelCollisionGeometryNode *)definition->nodes.pointer;
     int32_t node_index;
 

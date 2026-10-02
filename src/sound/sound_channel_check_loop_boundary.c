@@ -43,7 +43,7 @@ directsound_channel_state sound_channel_check_loop_boundary(int16_t channel_inde
             if (channel->state == _directsound_channel_queued) {
                 channel->state = _directsound_channel_playing;
                 channel->source_end_cursor = -1;
-                return channel->state;
+                return (directsound_channel_state)channel->state;
             }
             if (channel->state == _directsound_channel_playing) {
                 channel->state = _directsound_channel_idle;
@@ -52,7 +52,7 @@ directsound_channel_state sound_channel_check_loop_boundary(int16_t channel_inde
         }
     }
 
-    return channel->state;
+    return (directsound_channel_state)channel->state;
 }
 
 #if 0

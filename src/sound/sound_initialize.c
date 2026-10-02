@@ -79,10 +79,10 @@ void sound_initialize(void)
 
             if (driver != (sound_driver *)0 && driver->type == driver_parameters.driver_index) {
                 current_sound_driver = driver;
-                sound_data = data_new(sizeof(sound), "sounds", k_maximum_sounds); // EBX = 0xb0
+                sound_data = data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds); // EBX = 0xb0
 
                 if (sound_data != (data_array *)0) {
-                    looping_sound_data = data_new(sizeof(looping_sound), "looping sounds", k_maximum_looping_sounds); // EBX = 0xe4
+                    looping_sound_data = data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds); // EBX = 0xe4
                 }
 
                 if (sound_data != (data_array *)0 && looping_sound_data != (data_array *)0) {

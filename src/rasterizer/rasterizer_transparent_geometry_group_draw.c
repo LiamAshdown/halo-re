@@ -623,7 +623,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         set_render_state(0x07, 1);
         set_render_state(0x0e, 0);    // ZWRITEENABLE off
         set_render_state(0x17, 4);    // ZFUNC LESSEQUAL
-        if (shader_is_decal((void *)(uintptr_t)group->shader)) {
+        if (shader_is_decal((const Shader *)((void *)(uintptr_t)group->shader))) {
             chimera__transparent_decal_zbias();
         } else {
             rasterizer_clear_decal_zbias();

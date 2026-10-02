@@ -44,7 +44,7 @@ int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_g
     int8_t type;
 
     if ((uint16_t)*remaining_length < 1) {
-        data_packet_group_error = "got packet with no header";
+        data_packet_group_error = (char *)"got packet with no header";
         return 0;
     }
 
@@ -56,20 +56,20 @@ int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_g
     type = (int8_t)*header_byte;
 
     if (type < 0 || type >= group->type_count) {
-        data_packet_group_error = "got packet with bad type";
+        data_packet_group_error = (char *)"got packet with bad type";
         return 0;
     }
     {
         data_packet_type *entry = &group->types[(int)type];
         if (entry->packet_class != expected_class) {
-            data_packet_group_error = "got packet with mismatched class";
+            data_packet_group_error = (char *)"got packet with mismatched class";
             return 0;
         }
         *remaining_length = *remaining_length - 1;
         if (entry->definition != 0 &&
             data_packet_group_decode_packet_body(buffer, entry->definition, *remaining_length, decoded_body,
                                                  out_version_used, 0) == 0) {
-            data_packet_group_error = "got packet which wouldn't decode";
+            data_packet_group_error = (char *)"got packet which wouldn't decode";
             return 0;
         }
         *out_type = (int16_t)(int8_t)*header_byte;

@@ -25,7 +25,7 @@ int32_t data_file_read_header(data_file *file, int32_t expected_file_id)
 {
     uint32_t bytes_read;
 
-    if (ReadFile(file->file, file, 0x10, &bytes_read, (void *)0) != 0 && bytes_read == 0x10) {
+    if (ReadFile(file->file, file, 0x10, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == 0x10) {
         if (file->file_id != expected_file_id) {
             file->file_id = 0;
             file->data_offset = 0;
