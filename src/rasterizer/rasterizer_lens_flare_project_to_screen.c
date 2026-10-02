@@ -38,7 +38,7 @@ uint8_t rasterizer_lens_flare_project_to_screen(const real_point3d *position, fl
     width = (int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
     height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
 
-    matrix4x3_transform_point(&view_point, position, &rasterizer_window.frustum.world_to_view);
+    matrix4x3_transform_point(&view_point, (real_point3d *)position, &rasterizer_window.frustum.world_to_view);
 
     projected_x = proj[0][1] * view_point.x + proj[1][1] * view_point.y + proj[2][1] * view_point.z + proj[3][1];
     clip_w = proj[0][2] * view_point.x + proj[1][2] * view_point.y + proj[2][2] * view_point.z + proj[3][2];

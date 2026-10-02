@@ -43,7 +43,7 @@ void console_print_va(const char *format, ...)
     vsprintf(formatted, format, args);
     va_end(args);
 
-    console_printf_verbose(console_message_default_color, "%s", formatted); // EAX -> console_message_default_color; 0x0065efec == "%s"
+    console_printf_verbose(console_message_default_color, (char *)"%s", formatted); // EAX -> console_message_default_color; 0x0065efec == "%s"
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400); // 0x0065f010 == "\r\n"
         write_to_error_file(formatted, 1);

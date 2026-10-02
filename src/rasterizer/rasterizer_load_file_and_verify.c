@@ -28,12 +28,12 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     *out_buffer = (void *)0;
     *out_size = 0;
 
-    file = CreateFileA(path, 0x80000000, 0, (void *)0, 3, 0x8000000, (void *)0);
+    file = CreateFileA(path, 0x80000000, 0, (LPSECURITY_ATTRIBUTES)((void *)0), 3, 0x8000000, (void *)0);
     if (file == (void *)0xffffffff) {
         return 0;
     }
 
-    size = GetFileSize(file, (uint32_t *)0);
+    size = GetFileSize(file, (LPDWORD)((uint32_t *)0));
     if (size == 0xffffffff) {
         CloseHandle(file);
         return 0;
@@ -42,7 +42,7 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     buffer = GlobalAlloc(0, size);
     if (buffer != (void *)0) {
         uint32_t bytes_read;
-        int32_t ok = ReadFile(file, buffer, size, &bytes_read, (void *)0);
+        int32_t ok = ReadFile(file, buffer, size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0));
         if (ok != 0) {
             CloseHandle(file);
             if (rasterizer_resource_file_verify_signature((uint8_t *)buffer, size) == 0) {

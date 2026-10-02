@@ -23,11 +23,11 @@ uint8_t data_file_read_data_block(data_file *file)
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(file->file, file->data_offset, (void *)0, 0) != 0xffffffff) {
+    if (SetFilePointer(file->file, file->data_offset, (PLONG)((void *)0), 0) != 0xffffffff) {
         block_size = file->table_offset - file->data_offset;
         buffer = GlobalAlloc(0, block_size);
         file->data = buffer;
-        if (ReadFile(file->file, buffer, block_size, &bytes_read, (void *)0) != 0 && bytes_read == block_size) {
+        if (ReadFile(file->file, buffer, block_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == block_size) {
             file->data_capacity = block_size;
             file->data_size = block_size;
             return 1;

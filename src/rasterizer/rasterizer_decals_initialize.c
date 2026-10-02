@@ -57,7 +57,7 @@ void __cdecl rasterizer_decals_initialize(void)
     game_state_cursor = game_state_cursor + 0xe07c;
     crc32_update(&game_state_crc, &region_size, 4);
     // 0x51a73a..0x51a756: EBX "decal vertex cache", stack (block, 0xa00, 6, 0x800, release 0x51a660, in use 0x51a670)
-    cache_new("decal vertex cache", block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
+    cache_new((char *)"decal vertex cache", block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
               (void *)decal_vertex_cache_in_use);
     rasterizer_decal_vertex_cache_handle = block;
 }

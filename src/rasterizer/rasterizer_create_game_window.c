@@ -53,9 +53,9 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
     wc.class_extra = 0;
     wc.window_extra = 0;
     wc.instance = (uint32_t)shell_instance;
-    wc.icon = (uint32_t)LoadIconA(shell_instance, (const char *)0x66);
-    wc.small_icon = (uint32_t)LoadIconA(shell_instance, (const char *)0x66);
-    wc.cursor = (uint32_t)LoadCursorA((void *)0, (const char *)0x7f00); // IDC_ARROW
+    wc.icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)0x66);
+    wc.small_icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)0x66);
+    wc.cursor = (uint32_t)LoadCursorA((HINSTANCE)((void *)0), (const char *)0x7f00); // IDC_ARROW
     wc.background_brush = 0;
     wc.menu_name = 0;
     wc.class_name = (uint32_t)shell_window_class_name;
@@ -70,29 +70,29 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 
     hwnd = CreateWindowExA(0, shell_window_class_name, shell_window_title,
                             rasterizer_window_style, rect.left, rect.top, rect.right - rect.left,
-                            rect.bottom - rect.top, GetDesktopWindow(), (void *)0, (void *)wc.instance, (void *)0);
+                            rect.bottom - rect.top, GetDesktopWindow(), (HMENU)((void *)0), (HINSTANCE)((void *)wc.instance), (void *)0);
     if (hwnd == (void *)0) {
         char *message_buffer = (char *)0;
         uint32_t message_id = GetLastError();
-        FormatMessageA(0x1300, (const void *)0, message_id, 0x400, (LPSTR)&message_buffer, 0, (void *)0);
-        MessageBoxA((void *)0, message_buffer, "ERROR - failed to create window", 0x40);
-        UnregisterClassA(shell_window_class_name, shell_instance);
+        FormatMessageA(0x1300, (const void *)0, message_id, 0x400, (LPSTR)&message_buffer, 0, (va_list *)((void *)0));
+        MessageBoxA((HWND)((void *)0), message_buffer, "ERROR - failed to create window", 0x40);
+        UnregisterClassA(shell_window_class_name, (HINSTANCE)shell_instance);
         LocalFree(message_buffer);
         return 0;
     }
 
     shell_window = hwnd;
-    rasterizer_window_icon_bitmap = LoadBitmapA((void *)shell_module_handle, (const char *)0x86);
+    rasterizer_window_icon_bitmap = LoadBitmapA((HINSTANCE)((void *)shell_module_handle), (const char *)0x86);
     if (rasterizer_window_icon_bitmap != (void *)0) {
-        void *hdc = GetDC(hwnd);
-        rasterizer_window_icon_dc = CreateCompatibleDC(hdc);
-        SelectObject(rasterizer_window_icon_dc, rasterizer_window_icon_bitmap);
+        void *hdc = GetDC((HWND)hwnd);
+        rasterizer_window_icon_dc = CreateCompatibleDC((HDC)hdc);
+        SelectObject((HDC)rasterizer_window_icon_dc, rasterizer_window_icon_bitmap);
     }
 
-    SetForegroundWindow(hwnd);
-    SetActiveWindow(hwnd);
-    SetFocus(hwnd);
-    ShowWindow(hwnd, 5); // SW_SHOW
+    SetForegroundWindow((HWND)hwnd);
+    SetActiveWindow((HWND)hwnd);
+    SetFocus((HWND)hwnd);
+    ShowWindow((HWND)hwnd, 5); // SW_SHOW
     return 1;
 }
 

@@ -221,10 +221,10 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
          (hit->type != _collision_result_type_object || object_try_and_get(hit->object_index, _object_mask_unit) == 0)) ||
         ((real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
              1.5259022e-05f < response->potential_skip_fraction)) {
-        response_type = response->default_response;
+        response_type = (ProjectileResponse)response->default_response;
         response_effect_tag = *(uint32_t *)&response->default_effect.tag_id;
     } else {
-        response_type = response->potential_response;
+        response_type = (ProjectileResponse)response->potential_response;
         response_effect_tag = *(uint32_t *)&response->potential_effect.tag_id;
     }
 

@@ -25,8 +25,8 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 // succeeds, that handle is cleared too, so the module is left fully enabled or fully disabled.
 void contrails_initialize(void)
 {
-    contrail_data = (data_array *)game_state_new("contrail", k_maximum_contrails, sizeof(contrail));
-    contrail_point_data = (data_array *)game_state_new("contrail point", k_maximum_contrail_points, sizeof(contrail_point));
+    contrail_data = (data_array *)game_state_new((char *)"contrail", k_maximum_contrails, sizeof(contrail));
+    contrail_point_data = (data_array *)game_state_new((char *)"contrail point", k_maximum_contrail_points, sizeof(contrail_point));
 
     if (contrail_data == 0) {
         if (contrail_point_data != 0) {

@@ -350,7 +350,7 @@ void main_loop(void)
             main_globals_data.reset_map = 0;
         }
         if (main_globals_data.save_core != 0) {
-            if (game_state_write_profile_file(0x440000, "core.bin", game_state_base) != 0) {
+            if (game_state_write_profile_file(0x440000, (char *)"core.bin", game_state_base) != 0) {
                 console_print_error_va(0, "saved '%s'", "core.bin");
             } else {
                 console_print_error_va(0, "error writing '%s'", "core.bin");
@@ -358,7 +358,7 @@ void main_loop(void)
             main_globals_data.save_core = 0;
         }
         if (main_globals_data.load_core != 0) {
-            game_state_load_core("core.bin");
+            game_state_load_core((char *)"core.bin");
             main_globals_data.load_core = 0;
         }
         if (main_globals_data.return_to_main_menu != 0) {

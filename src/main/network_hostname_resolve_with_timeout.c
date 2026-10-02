@@ -34,7 +34,7 @@ char network_hostname_resolve_with_timeout(char *hostname)
     hostname_resolve_complete = 0;
     thread_handle = CreateThread(0, k_main_hostname_thread_stack_size,
                                   (LPTHREAD_START_ROUTINE)network_hostname_resolve_thread_proc, hostname, 0,
-                                  &thread_id); // the routine ends in ExitThread (never returns)
+                                  (LPDWORD)(&thread_id)); // the routine ends in ExitThread (never returns)
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, k_main_hostname_resolve_timeout_ms);
         if (wait_result == 0x102) {

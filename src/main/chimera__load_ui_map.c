@@ -72,7 +72,7 @@ void chimera__load_ui_map(char play_title_music)
 {
     network_scenario_load_request request;
 
-    cache_file_switch_map_by_path("levels\\ui\\ui", 1);
+    cache_file_switch_map_by_path((char *)"levels\\ui\\ui", 1);
 
     memset(&request, 0, sizeof(request));
     request.difficulty = 1;

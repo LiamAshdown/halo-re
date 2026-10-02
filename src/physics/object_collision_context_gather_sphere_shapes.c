@@ -61,7 +61,7 @@ uint8_t object_collision_context_gather_sphere_shapes(object_collision_context *
                                                         float margin, float thickness,
                                                         physics_model *model)
 {
-    ModelCollisionGeometry *definition = context->definition;
+    ModelCollisionGeometry *definition = (ModelCollisionGeometry *)context->definition;
     ModelCollisionGeometryNode *nodes = (ModelCollisionGeometryNode *)definition->nodes.pointer;
     int32_t node_index;
     uint8_t hit = 0;

@@ -52,7 +52,7 @@ void chimera__exec_init(void)
     }
     ran_script = console_exec_file_run(exec_file_name); // EAX -> exec_file_name
     if (!ran_script && rasterizer_window_requested != 0) {
-        console_process_command("map_name b30", 0); // EDI -> "map_name b30"
+        console_process_command((char *)"map_name b30", 0); // EDI -> "map_name b30"
     }
 }
 

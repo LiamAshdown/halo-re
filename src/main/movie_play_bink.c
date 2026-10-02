@@ -93,7 +93,7 @@ void movie_play_bink(const char *movie_path)
     }
 
     BinkSetSoundSystem((void *)BinkOpenDirectSound, 0);
-    bink = BinkOpen(movie_path, 0);
+    bink = (bink_movie_prefix *)(BinkOpen(movie_path, 0));
     if (bink != 0) {
         do {
             if (PeekMessageA((LPMSG)&message, 0, 0, 0, 1 /* PM_REMOVE */) != 0) {

@@ -80,7 +80,7 @@ uint8_t network_game_client_connect_to_address_async(char *address, char *passwo
             goto fail;
         }
         length = strlen(address) + 1;
-        host_copy = GlobalAlloc(0, length);
+        host_copy = (char *)(GlobalAlloc(0, length));
         strcpy(host_copy, address);
 
         widget_close_all();
@@ -92,8 +92,8 @@ uint8_t network_game_client_connect_to_address_async(char *address, char *passwo
             Sleep(0);
         }
         connect_thread = CreateThread(0, k_main_connect_thread_stack_size,
-                                      (void *)network_game_client_connect_by_hostname, host_copy, 0,
-                                      &thread_id);
+                                      (LPTHREAD_START_ROUTINE)((void *)network_game_client_connect_by_hostname), host_copy, 0,
+                                      (LPDWORD)(&thread_id));
         return 1;
     }
 

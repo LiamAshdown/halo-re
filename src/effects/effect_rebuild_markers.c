@@ -46,7 +46,7 @@ void effect_rebuild_markers(effect *self, effect_marker_resolver resolve_marker)
 
     for (location_index = 0; (int32_t)location_index < (int32_t)tag->locations.count; location_index++) {
         object_marker markers[16];
-        int16_t count = resolve_marker(self->object_index, locations + location_index * 0x20,
+        int16_t count = resolve_marker(self->object_index, (const char *)(locations + location_index * 0x20),
             markers, 0x10);
         int16_t i;
         // 0x45176e: cmp [resolver],0x492ad0 -- the ORIGINAL's address; original callers pass that, C callers the

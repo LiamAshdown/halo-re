@@ -57,7 +57,7 @@ uint8_t object_collision_context_test_segment(object_collision_context *context,
                                                real_point3d *origin, real_vector3d *delta,
                                                object_node_collision_result *out_result)
 {
-    ModelCollisionGeometry *definition = context->definition;
+    ModelCollisionGeometry *definition = (ModelCollisionGeometry *)context->definition;
     ModelCollisionGeometryNode *nodes = (ModelCollisionGeometryNode *)definition->nodes.pointer;
     int32_t node_index;
     uint8_t hit = 0;

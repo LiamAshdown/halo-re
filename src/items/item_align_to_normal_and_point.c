@@ -63,7 +63,7 @@ void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_in
                           // in the original; out_position's is only ever read back from there
                           // when the caller passed NULL, so a scratch local is equivalent
 
-    if (object_get_node_local_transform(item_index, "ground point", &marker, 1) == 0) {
+    if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) == 0) {
         return;
     }
 

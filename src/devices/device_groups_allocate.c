@@ -14,5 +14,5 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 
 void device_groups_allocate(void)
 {
-    device_groups = game_state_new("device groups", 0x400, 0x8);
+    device_groups = game_state_new((char *)"device groups", 0x400, 0x8);
 }

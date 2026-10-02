@@ -63,7 +63,7 @@ char *targa_export(BitmapData *bitmap, file_reference_record *destination)
 
         error = 0;
         if (file_reference_write(destination, &header, sizeof(header)) == 0) {
-            error = "couldn't write header";
+            error = (char *)"couldn't write header";
         } else if (0 < (int16_t)bitmap->height) {
             row_byte_size = (int32_t)(int16_t)bitmap->width * 4;
             row = 0;
@@ -71,7 +71,7 @@ char *targa_export(BitmapData *bitmap, file_reference_record *destination)
                 row_pixels = bitmap_data_get_row_address(bitmap, 0, 0, (int16_t)row);
                 if (file_reference_write(destination, row_pixels, row_byte_size) == 0) {
                     file_reference_close(destination);
-                    return "couldn't write row";
+                    return (char *)"couldn't write row";
                 }
                 row = row + 1;
             } while (row < (int16_t)bitmap->height);
@@ -81,7 +81,7 @@ char *targa_export(BitmapData *bitmap, file_reference_record *destination)
         file_reference_close(destination);
         return error;
     }
-    return "couldn't open file";
+    return (char *)"couldn't open file";
 }
 
 #if 0

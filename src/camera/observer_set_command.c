@@ -24,8 +24,8 @@ extern observer observers[1]; // 0x006ac65c
 // -- copies the whole (now-normalised) command into the observer's current_command.
 void observer_set_command(int16_t local_player_index)
 {
-    observer *this = &observers[local_player_index];
-    observer_command *command = this->command;
+    observer *self = &observers[local_player_index];
+    observer_command *command = self->command;
     int32_t i;
 
     if ((command->flags & _observer_command_valid_bit) == 0) {
@@ -37,16 +37,16 @@ void observer_set_command(int16_t local_player_index)
         uint8_t use_clamp = 0;
 
         if ((command->interpolation_flags[i] & _observer_interpolation_own_time_bit) == 0) {
-            if (command->timer < this->current_command.channel_times[i] &&
+            if (command->timer < self->current_command.channel_times[i] &&
                 (command->flags & _observer_command_snap_bit) == 0) {
-                clamp_source = this->current_command.channel_times[i];
+                clamp_source = self->current_command.channel_times[i];
                 use_clamp = 1;
             } else {
                 command->channel_times[i] = command->timer;
             }
         } else if ((command->interpolation_flags[i] & _observer_interpolation_exact_bit) == 0 &&
-            command->channel_times[i] < this->current_command.channel_times[i]) {
-            clamp_source = this->current_command.channel_times[i];
+            command->channel_times[i] < self->current_command.channel_times[i]) {
+            clamp_source = self->current_command.channel_times[i];
             use_clamp = 1;
         }
 
@@ -55,7 +55,7 @@ void observer_set_command(int16_t local_player_index)
         }
     }
 
-    this->current_command = *command;
+    self->current_command = *command;
 }
 
 #if 0

@@ -36,9 +36,9 @@ void decal_and_font_system_reset(void)
     int32_t i;
 
     if (*(int32_t *)(globals + 0x134) == 0) {
-        rasterizer_globals_data = (void *)0;
+        rasterizer_globals_data = (GlobalsRasterizerData *)((void *)0);
     } else {
-        rasterizer_globals_data = *(void **)(globals + 0x138);
+        rasterizer_globals_data = (GlobalsRasterizerData *)(*(void **)(globals + 0x138));
     }
 
     for (i = 0; i < 0x8c0; i++) {

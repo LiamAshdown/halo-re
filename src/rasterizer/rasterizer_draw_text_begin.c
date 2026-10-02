@@ -77,7 +77,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
 
     part0 = *(void **)(context + 0xc);
     if (part0 != 0) {
-        texture_cache_get(part0, 1, 1);
+        texture_cache_get((BitmapData *)part0, 1, 1);
         set_texture(0, *(uint32_t *)((uint8_t *)part0 + 0x28));
     }
 
@@ -111,7 +111,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
             set_texture(part, 0);
             break;
         }
-        texture_cache_get(part_texture, 1, 1);
+        texture_cache_get((BitmapData *)part_texture, 1, 1);
         set_texture(part, *(uint32_t *)((uint8_t *)part_texture + 0x28));
 
         address_mode = (context[0x18 + part] == 0) ? 3u : 1u; // CLAMP unless the per-stage flag is set (WRAP)

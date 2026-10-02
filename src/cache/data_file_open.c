@@ -59,7 +59,7 @@ void data_file_open(void)
 
     zero_data_file(&bitmaps_data_file);
     cache_file_index = (int16_t)0xffff;
-    bitmaps_data_file.name = "bitmaps";
+    bitmaps_data_file.name = (char *)"bitmaps";
     bitmaps_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "bitmaps");
 
@@ -70,7 +70,7 @@ void data_file_open(void)
     if (os_platform < 3) {
         flags = 0x8000080;
     }
-    bitmaps_data_file.file = CreateFileA(path, 0x80000000, 1, (void *)0, 4, flags, (void *)0);
+    bitmaps_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
     if (bitmaps_data_file.file == (void *)0xffffffff) {
         printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
     } else {
@@ -89,12 +89,12 @@ void data_file_open(void)
             }
             printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
         } else {
-            SetFilePointer(bitmaps_data_file.file, bitmaps_data_file.data_offset, (void *)0, 0);
+            SetFilePointer(bitmaps_data_file.file, bitmaps_data_file.data_offset, (PLONG)((void *)0), 0);
         }
     }
 
     zero_data_file(&sounds_data_file);
-    sounds_data_file.name = "sounds";
+    sounds_data_file.name = (char *)"sounds";
     sounds_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "sounds");
 
@@ -105,12 +105,12 @@ void data_file_open(void)
     if (os_platform < 3) {
         flags = 0x8000080;
     }
-    sounds_data_file.file = CreateFileA(path, 0x80000000, 1, (void *)0, 4, flags, (void *)0);
+    sounds_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
     if (sounds_data_file.file != (void *)0xffffffff) {
         if (data_file_read_header(&sounds_data_file, 2) != 0 &&
             data_file_read_data_block(&sounds_data_file) != 0 &&
             data_file_read_offset_table(&sounds_data_file) != 0) {
-            SetFilePointer(sounds_data_file.file, sounds_data_file.data_offset, (void *)0, 0);
+            SetFilePointer(sounds_data_file.file, sounds_data_file.data_offset, (PLONG)((void *)0), 0);
             goto allocate_io_queue;
         }
         if (sounds_data_file.data != 0) {

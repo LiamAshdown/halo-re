@@ -31,8 +31,8 @@ extern director directors[1];                              // 0x006ac560
 extern void director_update_seat_camera(int16_t local_player_index, uint8_t force); // 0x445c00, this module
 // blam-cc: ECX -> unit, stack -> out_state; result in AX
 extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);  // 0x445b20, this module
-// blam-cc: EAX -> this, DX -> local_player_index, stack -> unit
-extern dead_camera_data *dead_camera_new(dead_camera_data *this, int16_t local_player_index,
+// blam-cc: EAX -> self, DX -> local_player_index, stack -> unit
+extern dead_camera_data *dead_camera_new(dead_camera_data *self, int16_t local_player_index,
     datum_index unit);                                                              // 0x4450e0, this module
 extern void camera_track_compute_pov(director_camera_data *data, camera_input *input,
     observer_command *command); // 0x445380, this module (the dead camera pov)

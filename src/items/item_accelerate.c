@@ -91,7 +91,7 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
         obj->flags &= ~(uint32_t)_object_at_rest_bit;
     } else if (0.0001f <= delta->i * delta->i + delta->j * delta->j + delta->k * delta->k) {
         object_marker marker;
-        if (object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
+        if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
             // UNSURE: structure_bsp_plane_fetch_signed's exact signature; see file header
             real_plane3d plane;
             // 0x4bd155..0x4bd16f: surfaces pointer at bsp+0x40, 0xc stride, the index sign-extended
@@ -151,7 +151,7 @@ void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_de
         real_vector3d axis;
         real angle;
 
-        if (object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
+        if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
             axis = marker.node_transform.up;
         } else {
             axis = *global_up3d_pointer;

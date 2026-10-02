@@ -39,14 +39,14 @@ int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *modul
     const void *dialog_template;
     int32_t result;
 
-    resource_info = FindResourceExA(module, (const char *)k_dialog_resource_type_dialog, template_name,
+    resource_info = FindResourceExA((HMODULE)module, (const char *)k_dialog_resource_type_dialog, template_name,
                                      (uint16_t)shell_language_id);
     if (resource_info != 0) {
-        resource_data = LoadResource(module, resource_info);
+        resource_data = LoadResource((HMODULE)module, (HRSRC)resource_info);
         if (resource_data != 0) {
             dialog_template = LockResource(resource_data);
             if (dialog_template != 0) {
-                result = DialogBoxIndirectParamA(module, dialog_template, parent_window, (DLGPROC)dialog_proc, 0);
+                result = DialogBoxIndirectParamA((HINSTANCE)module, (LPCDLGTEMPLATEA)dialog_template, (HWND)parent_window, (DLGPROC)dialog_proc, 0);
                 if (result != k_dialog_box_failed) {
                     return result;
                 }
@@ -55,14 +55,14 @@ int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *modul
     }
 
     if (shell_language_id != k_dialog_language_english) {
-        resource_info = FindResourceExA(module, (const char *)k_dialog_resource_type_dialog, template_name,
+        resource_info = FindResourceExA((HMODULE)module, (const char *)k_dialog_resource_type_dialog, template_name,
                                          k_dialog_language_english);
         if (resource_info != 0) {
-            resource_data = LoadResource(module, resource_info);
+            resource_data = LoadResource((HMODULE)module, (HRSRC)resource_info);
             if (resource_data != 0) {
                 dialog_template = LockResource(resource_data);
                 if (dialog_template != 0) {
-                    result = DialogBoxIndirectParamA(module, dialog_template, parent_window, (DLGPROC)dialog_proc, 0);
+                    result = DialogBoxIndirectParamA((HINSTANCE)module, (LPCDLGTEMPLATEA)dialog_template, (HWND)parent_window, (DLGPROC)dialog_proc, 0);
                     if (result != k_dialog_box_failed) {
                         return result;
                     }
@@ -71,7 +71,7 @@ int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *modul
         }
     }
 
-    result = DialogBoxParamA(module, template_name, parent_window, (DLGPROC)dialog_proc, 0);
+    result = DialogBoxParamA((HINSTANCE)module, template_name, (HWND)parent_window, (DLGPROC)dialog_proc, 0);
     return result;
 }
 

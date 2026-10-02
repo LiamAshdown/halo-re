@@ -120,7 +120,7 @@ void projectile_detonate(uint32_t object_index, char first_collision, real remai
                                        // effect_names[2] = {"", "gravity"}, see file header
 
     effect_names[0] = k_empty_string;
-    effect_names[1] = "gravity";
+    effect_names[1] = (char *)"gravity";
     effect_tag_id = *(datum_index *)&tag->effect.tag_id;
 
     if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0 &&

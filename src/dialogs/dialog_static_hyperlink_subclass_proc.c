@@ -50,45 +50,45 @@ int32_t __stdcall dialog_static_hyperlink_subclass_proc(void *hwnd, uint32_t mes
     win32_rect window_rect;
     win32_point cursor_point;
 
-    old_wnd_proc = GetPropA(hwnd, "Old_Proc");
+    old_wnd_proc = GetPropA((HWND)hwnd, "Old_Proc");
 
     if (message == k_dialog_message_destroy) {
-        SetWindowLongA(hwnd, k_dialog_window_long_wndproc, (int32_t)old_wnd_proc);
-        RemovePropA(hwnd, "Old_Proc");
-        saved_value = GetPropA(hwnd, "Old_Font");
-        SendMessageA(hwnd, k_dialog_message_set_font, (uint32_t)saved_value, 0);
-        RemovePropA(hwnd, "Old_Font");
-        saved_value = GetPropA(hwnd, "Font");
+        SetWindowLongA((HWND)hwnd, k_dialog_window_long_wndproc, (int32_t)old_wnd_proc);
+        RemovePropA((HWND)hwnd, "Old_Proc");
+        saved_value = GetPropA((HWND)hwnd, "Old_Font");
+        SendMessageA((HWND)hwnd, k_dialog_message_set_font, (uint32_t)saved_value, 0);
+        RemovePropA((HWND)hwnd, "Old_Font");
+        saved_value = GetPropA((HWND)hwnd, "Font");
         DeleteObject(saved_value);
-        RemovePropA(hwnd, "Font");
-        RemovePropA(hwnd, "Static");
+        RemovePropA((HWND)hwnd, "Font");
+        RemovePropA((HWND)hwnd, "Static");
     } else if (message == k_dialog_message_set_cursor) {
         cursor = LoadCursorA(0, (const char *)k_dialog_cursor_hand);
         if (cursor == 0) {
             cursor = LoadCursorA(0, (const char *)k_dialog_cursor_arrow);
         }
-        SetCursor(cursor);
+        SetCursor((HCURSOR)cursor);
         return 1;
     } else if (message == k_dialog_message_mouse_move) {
         capture_window = GetCapture();
         if (capture_window == hwnd) {
-            GetWindowRect(hwnd, &window_rect);
+            GetWindowRect((HWND)hwnd, &window_rect);
             cursor_point.x = (int32_t)(lparam & 0xffff);
             cursor_point.y = (int32_t)((uint32_t)lparam >> 0x10);
-            ClientToScreen(hwnd, &cursor_point);
+            ClientToScreen((HWND)hwnd, &cursor_point);
             if (!PtInRect(&window_rect, cursor_point)) {
                 dialog_hyperlink_hovered = 0;
-                InvalidateRect(hwnd, (win32_rect *)0, 0);
+                InvalidateRect((HWND)hwnd, (win32_rect *)0, 0);
                 ReleaseCapture();
             }
         } else {
             dialog_hyperlink_hovered = 1;
-            InvalidateRect(hwnd, (win32_rect *)0, 0);
-            SetCapture(hwnd);
+            InvalidateRect((HWND)hwnd, (win32_rect *)0, 0);
+            SetCapture((HWND)hwnd);
         }
     }
 
-    return CallWindowProcA(old_wnd_proc, hwnd, message, wparam, lparam);
+    return CallWindowProcA((WNDPROC)old_wnd_proc, (HWND)hwnd, message, wparam, lparam);
 }
 
 #if 0

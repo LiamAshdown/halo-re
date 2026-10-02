@@ -50,11 +50,11 @@ void camera_debug_load_from_file(void)
     if (file == 0) {
         return;
     }
-    fscanf(file, "%f %f %f\n", &position.x, &position.y, &position.z);
-    fscanf(file, "%f %f %f\n", &forward.i, &forward.j, &forward.k);
-    fscanf(file, "%f %f %f\n", &saved_up.i, &saved_up.j, &saved_up.k);
-    fscanf(file, "%f\n", &field_of_view);
-    fclose(file);
+    fscanf((FILE *)file, "%f %f %f\n", &position.x, &position.y, &position.z);
+    fscanf((FILE *)file, "%f %f %f\n", &forward.i, &forward.j, &forward.k);
+    fscanf((FILE *)file, "%f %f %f\n", &saved_up.i, &saved_up.j, &saved_up.k);
+    fscanf((FILE *)file, "%f\n", &field_of_view);
+    fclose((FILE *)file);
 
     editor_camera_set_position_and_direction(&directors[0].data.editor, &forward, &position);
     vector3d_compute_up_from_forward(&forward, &computed_up);

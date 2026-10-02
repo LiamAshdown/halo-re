@@ -214,7 +214,7 @@ void timedemo_benchmark_update(void)
         }
 
         fprintf(file, "%s %s", module_path, shell_command_line);
-        version_size = GetFileVersionInfoSizeA(module_path, &version_handle);
+        version_size = GetFileVersionInfoSizeA(module_path, (LPDWORD)(&version_handle));
         version_data = GlobalAlloc(0, version_size);
         GetFileVersionInfoA(module_path, 0, version_size, version_data);
         VerQueryValueA(version_data, "\\", (void **)&fixed_file_info, &version_handle);

@@ -335,7 +335,7 @@ uint8_t rasterizer_initialize_direct3d(void)
             void *library = LoadLibraryA("NVCPL.dll");
 
             if (library != 0) {
-                nvcpl_get_data_int_fn get_data_int = (nvcpl_get_data_int_fn)GetProcAddress(library, "NvCplGetDataInt");
+                nvcpl_get_data_int_fn get_data_int = (nvcpl_get_data_int_fn)GetProcAddress((HMODULE)library, "NvCplGetDataInt");
 
                 if (get_data_int != 0) {
                     int32_t value = 0;
@@ -345,7 +345,7 @@ uint8_t rasterizer_initialize_direct3d(void)
                         shell_display_fatal_error_dialog(0x8d, 0x7e, 0);
                     }
                 }
-                FreeLibrary(library);
+                FreeLibrary((HMODULE)library);
             }
         }
 
@@ -354,11 +354,11 @@ uint8_t rasterizer_initialize_direct3d(void)
         }
 
         desktop = GetDesktopWindow();
-        hdc = GetDC(desktop);
-        if (rasterizer_fullscreen == 0 && GetDeviceCaps(hdc, 0xc) != 32) {     // BITSPIXEL
+        hdc = GetDC((HWND)desktop);
+        if (rasterizer_fullscreen == 0 && GetDeviceCaps((HDC)hdc, 0xc) != 32) {     // BITSPIXEL
             shell_display_fatal_error_dialog(0x83, 0x7e, 1);
         }
-        ReleaseDC(GetDesktopWindow(), hdc);
+        ReleaseDC(GetDesktopWindow(), (HDC)hdc);
 
         if (((d3d_get_adapter_display_mode_fn)direct3d_vtable()[0x20 / 4])(rasterizer_direct3d, adapter,
                                                                             &desktop_mode) < 0) {
@@ -366,7 +366,7 @@ uint8_t rasterizer_initialize_direct3d(void)
             goto finish;
         }
         if (rasterizer_fullscreen != 0) {
-            SetWindowLongA(hwnd, -0x10, (int32_t)0x90080000);    // GWL_STYLE: WS_POPUP|WS_VISIBLE|WS_SYSMENU
+            SetWindowLongA((HWND)hwnd, -0x10, (int32_t)0x90080000);    // GWL_STYLE: WS_POPUP|WS_VISIBLE|WS_SYSMENU
         }
         if (rasterizer_fullscreen == 0) {
             // the requested size must fit the desktop, and the desktop must be 32 bit
