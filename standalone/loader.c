@@ -304,14 +304,16 @@ static void hook_own_create_file_a(void)
 
 /* The original CRT startup (mainCRTStartup) set some of its own globals before WinMain; the rewritten C reads
    a few of them, so the loader does the same work:
-     __setargv 0x631e08: GetModuleFileNameA(NULL, _pgmname 0x006a3738, 0x104), _pgmname[0x104] = 0,
-                         _pgmptr 0x006a32e8 = _pgmname (shell_check_previous_run_crash reads it) */
+     __setargv 0x631e08: GetModuleFileNameA(NULL, _pgmname, 0x104), _pgmname[0x104] = 0,
+                         _pgmptr = _pgmname (shell_check_previous_run_crash reads it as shell_module_path) */
+extern char *shell_module_path;
+static char g_pgmname[0x105];
+
 static void emulate_crt_startup(void)
 {
-    char *pgmname = (char *)0x006a3738;
-    GetModuleFileNameA(NULL, pgmname, 0x104);
-    pgmname[0x104] = 0;
-    *(char **)0x006a32e8 = pgmname;
+    GetModuleFileNameA(NULL, g_pgmname, 0x104);
+    g_pgmname[0x104] = 0;
+    shell_module_path = g_pgmname;
 }
 
 /* Test input driver (opt-in, first-boot testing only). Keystrokes injected from another process do not reach the
