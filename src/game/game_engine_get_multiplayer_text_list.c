@@ -46,7 +46,7 @@ wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank)
             index += 0x10;
         }
     }
-    tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+    tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }

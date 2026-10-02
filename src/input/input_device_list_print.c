@@ -45,12 +45,16 @@ void input_device_list_print(void)
     for (index = 0; index < input_device_count; index++) {
         record = input_devices[index].record;
 
+#ifdef __cplusplus
+        hr = StringFromGUID2(*(const GUID *)&record.product_guid, (LPOLESTR)guid_wide, 0x27);
+#else
         hr = StringFromGUID2((REFGUID)&record.product_guid, guid_wide, 0x27);
+#endif
         if (hr < 0) {
             continue;
         }
 
-        length = (uint32_t)wcslen(guid_wide);
+        length = (uint32_t)wcslen((const wchar_t *)guid_wide);
         if (length >= 0x27) {
             continue;
         }
@@ -61,7 +65,7 @@ void input_device_list_print(void)
         strncpy(guid_ascii_trimmed, guid_ascii, 0x26);
         guid_ascii_trimmed[0x26] = '\0'; // 0x49181b: the original terminates the 0x26 byte copy explicitly
 
-        length = (uint32_t)wcslen(record.name);
+        length = (uint32_t)wcslen((const wchar_t *)record.name);
         if (length >= 0x105) {
             continue;
         }
@@ -70,7 +74,7 @@ void input_device_list_print(void)
         }
         name_ascii[i] = '\0';
 
-        console_printf_verbose((ColorARGB *)0, "%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
+        console_printf_verbose((ColorARGB *)0, (char *)"%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
     }
 }
 

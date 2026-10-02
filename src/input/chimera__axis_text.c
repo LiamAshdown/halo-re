@@ -43,7 +43,7 @@ void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_tex
     uint16_t direction_name[9];
 
     tag_id = tag_lookup(0x75737472, // "ustr"
-        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
+        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
     input_get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
 
     source = missing_string_text;
@@ -57,7 +57,7 @@ void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_tex
             }
         }
     }
-    string_format_wide_va_bounded(0x18, out_text, L"%s%d %s", source, axis_index + 1, direction_name);
+    string_format_wide_va_bounded(0x18, out_text, (const uint16_t *)L"%s%d %s", source, axis_index + 1, direction_name);
     out_text[0x18] = 0;
 }
 

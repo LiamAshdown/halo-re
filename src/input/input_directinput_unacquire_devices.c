@@ -39,7 +39,7 @@ void input_directinput_unacquire_devices(void)
             vtable = *(void ***)device;
             hr = ((idirectinputdevice8_unacquire_proc)vtable[8])(device);
             if (hr < 0) {
-                input_error_log_once(hr, "Unacquire (gamepad)");
+                input_error_log_once(hr, (char *)"Unacquire (gamepad)");
             }
         }
     }
@@ -48,7 +48,7 @@ void input_directinput_unacquire_devices(void)
         vtable = *(void ***)mouse_device;
         hr = ((idirectinputdevice8_unacquire_proc)vtable[8])(mouse_device);
         if (hr < 0) {
-            input_error_log_once(hr, "Unacquire (mouse)");
+            input_error_log_once(hr, (char *)"Unacquire (mouse)");
         }
     }
 
@@ -58,7 +58,7 @@ void input_directinput_unacquire_devices(void)
         vtable = *(void ***)keyboard_device;
         hr = ((idirectinputdevice8_unacquire_proc)vtable[8])(keyboard_device);
         if (hr < 0) {
-            input_error_log_once(hr, "Unacquire (keyboard)");
+            input_error_log_once(hr, (char *)"Unacquire (keyboard)");
         }
     }
 }

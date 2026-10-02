@@ -69,7 +69,7 @@ extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); 
 // is game_engine_get_default_multiplayer_string(entry) == get_place_string.)
 static wchar_t *multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text"); // 'ustr'
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -200,7 +200,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
     col_d = multiplayer_game_text_string(0x46);
     col_e = multiplayer_game_text_string(0x47);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(header_names_buf);
-    string_format_wide_va(row_buffer, L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s", col_a, col_b, header_names_buf,
+    string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
                           col_c, col_d, col_e, L"Ping");
     hud_draw_world_relative_text(&params_header, 1, row_buffer, 0);
 
@@ -273,8 +273,8 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
                 }
 
                 place_text = game_engine_get_default_multiplayer_string(&visible[i]);
-                string_format_wide_va(row_buffer, starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
-                                                          : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d",
+                string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
+                                                          : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d"),
                                       place_text, p->name, status_text,
                                       visible[i].key_1, visible[i].key_3, visible[i].key_2,
                                       p->ping);
@@ -312,7 +312,7 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
             } else {
                 word = multiplayer_game_text_string(0xd);
             }
-            string_format_wide_va(row_buffer, L"%s (%s)", prompt, word);
+            string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"%s (%s)"), prompt, word);
 
             prompt_rect.top = 0x1b8;
             prompt_rect.left = 0xa;
@@ -370,9 +370,9 @@ void game_engine_rasterize_in_game_score(datum_index subject_player, float opaci
             address_wide[len] = 0;
 
             if ((uint16_t)port != 0) {
-                string_format_wide_va_bounded(0x200, row_buffer, L"%s%s:%u", label, address_wide, (uint32_t)(uint16_t)port);
+                string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s:%u"), label, address_wide, (uint32_t)(uint16_t)port);
             } else {
-                string_format_wide_va_bounded(0x200, row_buffer, L"%s%s", label, address_wide);
+                string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s"), label, address_wide);
             }
 
             address_rect.top = 0x1cc;

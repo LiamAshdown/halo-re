@@ -20,7 +20,7 @@ extern uint16_t missing_string_text[]; // 0x00671fac
 
 static uint16_t *multiplayer_text(int16_t index)
 {
-    datum_index list = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr', 0x00660c38
+    datum_index list = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text"); // 'ustr', 0x00660c38
 
     if (list == 0xffffffff) {
         return (uint16_t *)L""; // 0x00660c34

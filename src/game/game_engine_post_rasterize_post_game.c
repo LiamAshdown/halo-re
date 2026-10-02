@@ -66,7 +66,7 @@ extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index); 
 // is game_engine_get_default_multiplayer_string(entry) == get_place_string.)
 static wchar_t *multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text"); // 'ustr'
+    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text"); // 'ustr'
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -170,7 +170,7 @@ void game_engine_post_rasterize_post_game(void)
             int32_t team = order[i];
 
             ((void (*)(int32_t, wchar_t *))current_game_engine->build_team_score_text)(team, score_text);
-            string_format_wide_va_bounded(0x100, line, team_name[team], score_text);
+            string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)team_name[team], score_text);
             line[0xff] = 0;
             hud_draw_scoreboard_row_text((int16_t)(i + 4), line, 0);
         }
@@ -182,7 +182,7 @@ void game_engine_post_rasterize_post_game(void)
     col_d = multiplayer_game_text_string(0x46);
     col_e = multiplayer_game_text_string(0x47);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(score_text);
-    string_format_wide_va_bounded(0x100, line, L"\t%s\t%s\t%s\t%s\t%s\t%s", col_a, col_b, score_text, col_c, col_d, col_e);
+    string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, score_text, col_c, col_d, col_e);
     post_game_set_tab_stops(tab_a, tab_b, tab_c);
     line[0xff] = 0;
     hud_draw_scoreboard_row_text(7, line, 0);
@@ -204,7 +204,7 @@ void game_engine_post_rasterize_post_game(void)
             place_index = 0xf;
         }
         place_text = multiplayer_game_text_string((int16_t)(place_index + 0x24));
-        string_format_wide_va_bounded(0x100, line, L" \t%s", place_text);
+        string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t%s"), place_text);
         line[0xff] = 0;
         hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -220,7 +220,7 @@ void game_engine_post_rasterize_post_game(void)
             }
             post_game_set_text_color(color_team[team]);
         }
-        string_format_wide_va_bounded(0x100, line, L" \t \t%s", p->name);
+        string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t%s"), p->name);
         line[0xff] = 0;
         hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -230,7 +230,7 @@ void game_engine_post_rasterize_post_game(void)
             post_game_set_text_color(color_best);
         }
         ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(player_handle, score_text);
-        string_format_wide_va_bounded(0x100, line, L" \t \t \t%s", score_text);
+        string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t%s"), score_text);
         line[0xff] = 0;
         hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -239,7 +239,7 @@ void game_engine_post_rasterize_post_game(void)
         if (game_engine_get_scoreboard_place(player_handle, 2, 0) == 0) {
             post_game_set_text_color(color_best);
         }
-        string_format_wide_va_bounded(0x100, line, L" \t \t \t \t%d", (int32_t)p->kills);
+        string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t \t%d"), (int32_t)p->kills);
         line[0xff] = 0;
         hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -247,7 +247,7 @@ void game_engine_post_rasterize_post_game(void)
         if (game_engine_get_scoreboard_place(player_handle, 3, 0) == 0) {
             post_game_set_text_color(color_best);
         }
-        string_format_wide_va_bounded(0x100, line, L" \t \t \t \t \t%d", (int32_t)p->assists);
+        string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t \t \t%d"), (int32_t)p->assists);
         line[0xff] = 0;
         hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -255,7 +255,7 @@ void game_engine_post_rasterize_post_game(void)
         if (game_engine_get_scoreboard_place(player_handle, 4, 0) == 0) {
             post_game_set_text_color(color_best);
         }
-        string_format_wide_va_bounded(0x100, line, L" \t \t \t \t \t \t%d", (int32_t)p->deaths);
+        string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t \t \t \t%d"), (int32_t)p->deaths);
         line[0xff] = 0;
         hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -284,7 +284,7 @@ void game_engine_post_rasterize_post_game(void)
             rect.right = 0x1a4;
             prompt = multiplayer_game_text_string(0x49);
         }
-        ui_widget_draw_formatted_prompt_string(&rect, 0, prompt);
+        ui_widget_draw_formatted_prompt_string(&rect, 0, (const uint16_t *)prompt);
     }
 }
 

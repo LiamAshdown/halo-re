@@ -61,7 +61,7 @@ void input_apply_named_device_default_profile(uint16_t *device_name)
         defaults = (InputDeviceDefaults *)tag_instances[(uint16_t)tag_id].data;
         tag_profile_name = (uint16_t *)(defaults->profile.pointer + 2); // saved_player_profile::name
         if (defaults->device_type == inputdevicedefaultsdevicetype_full_profile_definition &&
-            _wcsicmp(device_name, tag_profile_name) == 0) {
+            _wcsicmp((const wchar_t *)device_name, (const wchar_t *)tag_profile_name) == 0) {
             break;
         }
         tag_id = tag_iterator_next(&iterator);

@@ -33,7 +33,7 @@ extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank); // 0x4633f
 // A ui\multiplayer_game_text string, or the empty string without the tag.
 static const uint16_t *game_text(int16_t index)
 {
-    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
 }

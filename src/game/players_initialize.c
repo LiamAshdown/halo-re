@@ -44,8 +44,8 @@ void players_initialize(void)
 {
     uint32_t size;
 
-    player_data = (data_array *)game_state_new("players", k_maximum_players, k_player_size);
-    team_data = (data_array *)game_state_new("teams", k_maximum_teams, k_team_size);
+    player_data = (data_array *)game_state_new((char *)"players", k_maximum_players, k_player_size);
+    team_data = (data_array *)game_state_new((char *)"teams", k_maximum_teams, k_team_size);
 
     local_player_globals = (player_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + k_player_globals_size;

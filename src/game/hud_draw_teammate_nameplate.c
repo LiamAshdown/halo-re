@@ -70,7 +70,7 @@ void hud_draw_teammate_nameplate(datum_index player_handle)
                 ((int16_t)((uint32_t)p->nameplate_target_player >> 16) == 0 ||
                  tracked->identifier == (int16_t)((uint32_t)p->nameplate_target_player >> 16))) {
                 memset(name, 0, sizeof(name));
-                wcsncpy(name, tracked->name, 0x0b);
+                wcsncpy(name, (const wchar_t *)tracked->name, 0x0b);
                 name[0x0b] = 0;
                 // FIXED 2026-09-28: 0x45e5e8..0x45e649: the scale is pow(min(+0x80, 10) * 0.1, 1.9) * 0.5
                 //   (0x00672c30 is the double 1.9f).

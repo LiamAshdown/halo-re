@@ -34,7 +34,7 @@ int16_t input_axis_direction_name_to_index(char *name)
     direction_index = 0;
     for (;;) {
         input_get_axis_direction_name((int16_t)direction_index, wide);
-        length = (uint32_t)wcslen(wide);
+        length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 9) {
             for (i = 0; i < length; i++) {
                 ascii[i] = ((uint8_t *)wide)[i * 2 + 1] == 0 ? ((char *)wide)[i * 2] : ' ';

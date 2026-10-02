@@ -41,7 +41,7 @@ void chimera__button_text(int16_t button_index, uint16_t *out_text)
     uint16_t *source;
 
     tag_id = tag_lookup(0x75737472, // "ustr"
-        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
+        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
     source = missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
         list = (UnicodeStringList *)tag_instances[(uint16_t)tag_id].data;
@@ -53,7 +53,7 @@ void chimera__button_text(int16_t button_index, uint16_t *out_text)
             }
         }
     }
-    string_format_wide_va_bounded(0x17, out_text, L"%s%d", source, button_index + 1);
+    string_format_wide_va_bounded(0x17, out_text, (const uint16_t *)L"%s%d", source, button_index + 1);
     out_text[0x17] = 0;
 }
 

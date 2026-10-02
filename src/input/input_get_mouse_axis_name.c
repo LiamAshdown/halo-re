@@ -41,7 +41,7 @@ void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *
     uint16_t direction_name[9];
 
     tag_id = tag_lookup(0x75737472, // "ustr"
-        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
+        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
     lookup_index = axis_index + 8;
     source = missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
@@ -54,10 +54,10 @@ void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *
             }
         }
     }
-    wcsncpy(out_name, source, 0x21);
+    wcsncpy((wchar_t *)out_name, (const wchar_t *)source, 0x21);
     input_get_axis_direction_name(direction != 0, direction_name);
-    wcscat(out_name, L" ");
-    wcscat(out_name, direction_name);
+    wcscat((wchar_t *)out_name, L" ");
+    wcscat((wchar_t *)out_name, (const wchar_t *)direction_name);
     out_name[0x20] = 0;
 }
 

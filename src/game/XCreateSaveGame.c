@@ -131,7 +131,7 @@ uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, 
         while (slot_path[length] != '\0') {
             length = length + 1;
         }
-        WriteFile(file, slot_path, length, &bytes_written, 0);
+        WriteFile(file, slot_path, length, (LPDWORD)(&bytes_written), 0);
         CloseHandle(file);
         if ((uint32_t)length == bytes_written) {
             strncpy(out_path, slot_dir, out_path_size);

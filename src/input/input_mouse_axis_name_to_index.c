@@ -41,7 +41,7 @@ uint32_t input_mouse_axis_name_to_index(char *name, uint8_t *out_direction)
     for (axis_index = 0; axis_index <= (uint32_t)k_control_mouse_axis_count - 1; axis_index++) {
         for (dir = 0; dir < 2; dir++) {
             input_get_mouse_axis_name((int16_t)axis_index, k_directions[dir], wide);
-            length = (uint32_t)wcslen(wide);
+            length = (uint32_t)wcslen((const wchar_t *)wide);
             if (length < 0x21) {
                 for (i = 0; i < length; i++) {
                     ascii[i] = ((uint8_t *)wide)[i * 2 + 1] == 0 ? ((char *)wide)[i * 2] : ' ';

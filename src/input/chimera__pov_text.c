@@ -43,7 +43,7 @@ void chimera__pov_text(int16_t pov_index, int16_t direction_index, uint16_t *out
     int16_t direction_entry_index;
 
     tag_id = tag_lookup(0x75737472, // "ustr"
-        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
+        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
 
     pov_name = missing_string_text;
     if (tag_id != (datum_index)0xffffffff) {
@@ -70,7 +70,7 @@ void chimera__pov_text(int16_t pov_index, int16_t direction_index, uint16_t *out
         }
     }
 
-    string_format_wide_va_bounded(0xe, out_text, L"%s%d %s", pov_name, pov_index + 1, direction_name);
+    string_format_wide_va_bounded(0xe, out_text, (const uint16_t *)L"%s%d %s", pov_name, pov_index + 1, direction_name);
     out_text[0xd] = 0;
 }
 

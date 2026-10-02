@@ -68,7 +68,7 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network
     int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused); // 0x4e1a80, EAX, ECX
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle,
     int32_t value, int32_t machine_index); // 0x477a80, EAX, stack
-extern void observer_new(observer *this); // 0x447740, blam-cc: EDX
+extern void observer_new(observer *observer_this); // 0x447740, blam-cc: EDX
 
 extern double cos(double x);
 extern double sin(double x);

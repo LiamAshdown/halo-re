@@ -88,7 +88,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
                 break;
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type); // UNSURE index
                 string_format_wide_va_bounded(out, fmt, subject); // UNSURE args
@@ -105,7 +105,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
                 break;
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject, subject); // UNSURE args
@@ -115,8 +115,8 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
         case 0x07: case 0x09: case 0x0a: case 0x0b: case 0x0c: {
             // T[7,9,10,11,12]: cases L/K/J/N/M -- no datum_get guard; look up a plain string,
             // copy it verbatim, then queue an announcer sound.
-            datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
-            wchar_t *text = (tag_id == k_datum_index_none) ? L""
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            wchar_t *text = (tag_id == k_datum_index_none) ? (wchar_t *)L""
                 : text_string_list_get_string(tag_id, (int16_t)adjusted_type); // UNSURE index
             wcsncpy(out, text, buffer_size);
             // FIXED 2026-09-28: this group queues no sound -- the only five calls to 0x46be40 in the
@@ -131,7 +131,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
                 break;
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 if (tag_id == k_datum_index_none) {
                     string_format_wide_va_bounded(out, L"%d", subject); // UNSURE fmt/args
                 } else {
@@ -154,7 +154,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
                 ((int32_t (*)(datum_index))current_game_engine->get_score)(subject); // UNSURE args
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject); // UNSURE args
@@ -181,7 +181,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
                 ((int32_t (*)(datum_index))current_game_engine->get_score)(subject);
             }
             {
-                datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                     : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 string_format_wide_va_bounded(out, fmt, subject, subject); // UNSURE args
@@ -190,7 +190,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
         }
         case 0x17: case 0x18: case 0x1a: case 0x1b: {
             // T[23,24,26,27]: cases V/W/Y/Z -- plain lookup-and-copy, empty string on failure.
-            datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {
                 wchar_t *text = text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 wcsncpy(out, text, buffer_size);
@@ -201,7 +201,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
         }
         case 0x19: {
             // T[25]: case X -- format with or without a looked-up prefix, no wcsncpy fallback.
-            datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             if (tag_id == k_datum_index_none) {
                 string_format_wide_va_bounded(out, L"%d", subject); // UNSURE fmt/args
             } else {
@@ -219,7 +219,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
             } else {
                 input_get_binding_display_name();
                 {
-                    datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+                    datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                     wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string
                         : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                     string_format_wide_va_bounded(out, fmt, subject); // UNSURE args
@@ -230,8 +230,8 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
         case 0x1e: {
             // T[30]: case AB -- a "time remaining" style message: looked-up prefix concatenated
             // with a formatted tick count.
-            datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
-            wchar_t *prefix = (tag_id == k_datum_index_none) ? L""
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            wchar_t *prefix = (tag_id == k_datum_index_none) ? (wchar_t *)L""
                 : text_string_list_get_string(tag_id, (int16_t)adjusted_type);
             int32_t formatted_len;
             // objdump 0x45f0fe..0x45f10d: ECX = the function's own `subject` (the tick count
@@ -244,7 +244,7 @@ uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t 
         case 0x1f: {
             // T[31]: case AC -- plain lookup-and-copy, empty string on failure (same shape as
             // the V/W/Y/Z group but its own fallback label in the original).
-            datum_index tag_id = tag_lookup(0x75737472, "ui\\multiplayer_game_text");
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             if (tag_id != k_datum_index_none) {
                 wchar_t *text = text_string_list_get_string(tag_id, (int16_t)adjusted_type);
                 wcsncpy(out, text, buffer_size);

@@ -71,7 +71,7 @@ void game_engine_update_end_game_sequence(float delta_time)
 
         if (game_engine_dedicated_idle == 0) {
             if ((*((uint8_t *)network_server + 6) >> 2 & 1) != 0) {
-                chimera__console_out((ColorARGB *)0, "Game Complete. Dedicated server is now idle.");
+                chimera__console_out((ColorARGB *)0, (char *)"Game Complete. Dedicated server is now idle.");
                 network_host_handoff_requested = 1;
                 chat_close();
             }

@@ -65,17 +65,17 @@ uint8_t input_keyboard_device_create(void)
     hr = ((idirectinput8_createdevice_proc)vtable[3])(direct_input, &guid_sys_keyboard,
         &keyboard_device, (void *)0);
     if (hr < 0) {
-        description = "CreateDevice (keyboard)";
+        description = (char *)"CreateDevice (keyboard)";
     } else {
         vtable = *(void ***)keyboard_device;
         hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(keyboard_device, shell_window, 0x16);
         if (hr < 0) {
-            description = "SetCooperativeLevel (keyboard)";
+            description = (char *)"SetCooperativeLevel (keyboard)";
         } else {
             vtable = *(void ***)keyboard_device;
             hr = ((idirectinputdevice8_setdataformat_proc)vtable[11])(keyboard_device, &c_dfDIKeyboard);
             if (hr < 0) {
-                description = "SetDataFormat (keyboard)";
+                description = (char *)"SetDataFormat (keyboard)";
             } else {
                 buffer_size.header.size = 0x14;
                 buffer_size.header.header_size = 0x10;
@@ -88,7 +88,7 @@ uint8_t input_keyboard_device_create(void)
                 if (hr >= 0) {
                     return 1;
                 }
-                description = "SetProperty (keyboard)";
+                description = (char *)"SetProperty (keyboard)";
             }
         }
     }

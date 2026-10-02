@@ -51,19 +51,19 @@ uint8_t input_mouse_device_create(void)
     hr = ((idirectinput8_createdevice_proc)vtable[3])(direct_input, &guid_sys_mouse,
         &mouse_device, (void *)0);
     if (hr < 0) {
-        description = "CreateDevice (mouse)";
+        description = (char *)"CreateDevice (mouse)";
     } else {
         vtable = *(void ***)mouse_device;
         hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(mouse_device, shell_window, 5);
         if (hr < 0) {
-            description = "SetCooperativeLevel (mouse)";
+            description = (char *)"SetCooperativeLevel (mouse)";
         } else {
             vtable = *(void ***)mouse_device;
             hr = ((idirectinputdevice8_setdataformat_proc)vtable[11])(mouse_device, &c_dfDIMouse2);
             if (hr >= 0) {
                 return 1;
             }
-            description = "SetDataFormat (mouse)";
+            description = (char *)"SetDataFormat (mouse)";
         }
     }
 

@@ -42,7 +42,7 @@ int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object
     range.maximum = 0x1000;
     hr = set_property(device, 4, (di_property_dword *)&range);
     if (hr < 0) {
-        input_error_log_once(hr, "InitializeObject range %d - %s", object->type, object->name);
+        input_error_log_once(hr, (char *)"InitializeObject range %d - %s", object->type, object->name);
         return 1;
     }
     deadzone.header.size = sizeof(deadzone);
@@ -52,7 +52,7 @@ int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object
     deadzone.data = 1000;
     hr = set_property(device, 5, &deadzone);
     if (hr < 0) {
-        input_error_log_once(hr, "InitializeObject deadzone %d - %s", object->type, object->name);
+        input_error_log_once(hr, (char *)"InitializeObject deadzone %d - %s", object->type, object->name);
     }
     return 1;
 }

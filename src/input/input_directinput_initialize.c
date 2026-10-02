@@ -42,7 +42,7 @@ uint8_t input_directinput_initialize(void)
     hr = ((directinput8create_proc)direct_input8_create)(shell_instance, 0x800,
         &iid_directinput8a, &direct_input, (void *)0);
     if (hr < 0) {
-        input_error_log_once(hr, "DirectInputCreate");
+        input_error_log_once(hr, (char *)"DirectInputCreate");
         input_directinput_release_devices();
     } else {
         input_keyboard_device_create();
