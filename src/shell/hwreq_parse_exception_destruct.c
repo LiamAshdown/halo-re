@@ -10,7 +10,7 @@
 //   frame pop is the only tail activity).
 // blam-cc: hwreq_parse_exception_destruct(hwreq_parse_exception *this /*ECX*/)
 // UNSURE: FUN_00627e1c (`exception::~exception`, the Dinkumware base-class destructor) and
-//   `free` are opaque CRT calls, not rewritten here.
+//   `free` are opaque CRT calls defined elsewhere.
 
 // VERIFIED against disassembly 0x578310..0x57837e (2026-09-30): vtable reset, string cleared, base dtor
 #include "crt.h"

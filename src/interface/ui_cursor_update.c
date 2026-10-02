@@ -9,7 +9,7 @@
 // to the tail call entirely and the two bare __ftol() calls hide their FPU-stack operands.
 // register convention: no register-passed arguments; feeds EAX/ECX to the tail call by
 // blam-cc's own convention (first two register slots).
-// The device records / curve coefficients keep placeholder names (their owning module is not established).
+// The device records / curve coefficients keep provisional names (their owning module is not established).
 // Cursor X moves opposite to the raw OS delta while Y moves with it, exactly as disassembled:
 // new_x = x + (prev_x - new_x), new_y = y - (prev_y - new_y) (0x49736e..0x497370).
 

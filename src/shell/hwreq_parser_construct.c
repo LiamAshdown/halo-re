@@ -10,7 +10,7 @@
 //   register this).
 // UNSURE: the compiler-generated x86 SEH frame (ExceptionList / scope-index bookkeeping around
 //   the two tree_head_node_allocate calls) is compiler plumbing, not application logic, and is
-//   omitted here -- the observable calls and their order are preserved exactly.
+//   not part of the C source -- the observable calls and their order are preserved exactly.
 
 // VERIFIED against disassembly 0x579ef0..0x579fdb (2026-09-30): offsets 0x28/0x44/0x60/0x7c/0x98 strings, heads 0x6a4/0x6b0, flags/requirements 0x18/0x1c
 #include "tags.h"

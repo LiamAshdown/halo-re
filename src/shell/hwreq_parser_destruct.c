@@ -17,7 +17,7 @@
 //   (objdump: "lea edx,[esp+0x10]; call 0x57c5e0" then the caller re-reads [esp+0x10]).
 // UNSURE: the compiler-generated x86 SEH frame / scope-index bookkeeping (ExceptionList, the
 //   "local_4" scope index writes between every teardown step in the Ghidra output) is compiler
-//   plumbing, not application logic, and is omitted here -- the observable calls, frees and
+//   plumbing, not application logic, and is not part of the C source -- the observable calls, frees and
 //   field writes are preserved exactly, in the same order.
 
 // VERIFIED against disassembly 0x57a010..0x57a21d (2026-09-30): flags/requirements, both map walks and erase_range arg order, five strings

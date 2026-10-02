@@ -17,7 +17,7 @@
 // register convention: stack arguments (Ghidra recognizes all 4): left (param_1), parent
 //   (param_2), right (param_3), color (param_4, a byte); ECX = const map value_type *source
 //   (key + value to copy into the new node).
-// UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern, not rewritten here.
+// UNSURE: FUN_0057b830 (string::assign) is an opaque lib:crt extern defined elsewhere.
 
 // VERIFIED against disassembly 0x57cc30..0x57ccc4 (2026-09-30): ECX=source, stack left/parent/right/color, ret 0x10; value copied from source+0x1c
 #include "crt.h"

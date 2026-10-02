@@ -1,5 +1,4 @@
-// config_set_safe_mode  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_57d230" from the config-property-table evidence)
+// config_set_safe_mode  (Ghidra: no function created; the phase-4 types agent carved the stub name "missed_57d230" from the config-property-table evidence)
 // address 0x57d230, size 11 bytes
 // name confidence 0.7, rewrite confidence 0.9
 // evidence: out/phase4/shell_types_notes.md: "The remaining 22 setters (0x57d0c0,

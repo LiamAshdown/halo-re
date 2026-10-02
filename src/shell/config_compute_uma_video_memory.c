@@ -1,5 +1,4 @@
-// config_compute_uma_video_memory  (Ghidra: no function created; the phase-4 types agent carved a
-//   placeholder "missed_57d250" from the config-property-table evidence)
+// config_compute_uma_video_memory  (Ghidra: no function created; the phase-4 types agent carved the stub name "missed_57d250" from the config-property-table evidence)
 // address 0x57d250, size 67 bytes
 // name confidence 0.5, rewrite confidence 0.7
 // evidence: out/phase4/shell_types_notes.md: "The remaining 22 setters (0x57d0c0,

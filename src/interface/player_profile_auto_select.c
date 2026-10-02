@@ -12,7 +12,7 @@
 // player_profile_get fills (ECX) and player_profile_load copies (EDX, player index 0 in EAX,
 // slot on the stack). Each enumeration is only trusted when its returned count is positive.
 // Note: player_profile_get / saved_game_enumerate_by_type are owned by the profile module
-// (0x0053a000 region) and not rewritten in this tree.
+// (0x0053a000 region) and defined in other files.
 
 #include "tags.h"
 #include "memory.h"

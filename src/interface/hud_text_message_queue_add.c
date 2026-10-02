@@ -25,7 +25,7 @@ extern int32_t growable_array_add_element(growable_array *array); // 0x4cf810
 // blam-cc: EAX -> text, EBX -> start_time, stack -> tag
 // Appends `text` to the HUD text-message queue with `start_time` as its arrival time, recognizing
 // a leading "\sNNNN" (a sound-delay count in units of 16ms, replacing the text with a blank
-// placeholder) or "\h" (marks the message as "hold", skipping past the marker) escape. Returns the
+// string) or "\h" (marks the message as "hold", skipping past the marker) escape. Returns the
 // message's duration in milliseconds (or 0 if `text` is empty).
 int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag)
 {
