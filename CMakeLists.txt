@@ -71,9 +71,15 @@ set(SUPPORT_SOURCES
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
     "${SA}/image/pieces.c"
     "${SA}/generated/image_bindings.c")
+# ---- engine globals as C definitions (standalone/data/*.c, one file per address slice)
+file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")
+add_library(halo_data OBJECT ${DATA_SOURCES})
+target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_compile_options(halo_data PRIVATE /TC /W3 /Od /GS- /Oy- /Gy /wd4996 "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
+
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
     "${SA}/globals.asm" "${SA}/generated/code_entries.asm" "${SA}/bridges.asm"
-    $<TARGET_OBJECTS:halo_game>)
+    $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
 
 # ---- keep the committed link sources in step with src/ (tools/cmake_regen.py): after the game objects compile and
