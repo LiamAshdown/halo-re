@@ -35,6 +35,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // camera_basis_out now lives in types/game.h (folded there by the phase-4 review; this file
 // and game_engine_update_local_player_look.c are its two users).
@@ -128,4 +131,7 @@ void chimera__spectate_fp_camera_position(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

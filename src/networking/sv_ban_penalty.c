@@ -21,6 +21,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
 extern char sv_ban_penalty_arg_buffer[]; // 0x0066d6a4, UNSURE: scratch buffer reused by 0x4e51c0
@@ -213,4 +216,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) confirms the register convention
   4e3a89: test edi,edi
   4e3ad0: mov ebx,[esp+0x34]    ; ebx = arguments (genuine stack argument: 4 pushes deep, so
                                 ; [esp+0x34] lands exactly on the caller's pushed slot)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

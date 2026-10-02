@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -53,4 +56,7 @@ undefined4 object_function_get_value(void)
   *in_EDX = *(undefined4 *)(iVar1 + 0x134 + in_CX * 4);
   return CONCAT31(uVar2,((byte)(1 << ((byte)in_CX & 0x1f)) & *(byte *)(iVar1 + 0x123)) != 0);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

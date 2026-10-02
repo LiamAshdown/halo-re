@@ -21,6 +21,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -90,4 +93,7 @@ void game_checkpoint_write_stats_file(undefined4 param_1,undefined4 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

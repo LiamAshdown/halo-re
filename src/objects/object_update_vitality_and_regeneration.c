@@ -24,6 +24,9 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -318,4 +321,7 @@ void object_update_vitality_and_regeneration(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

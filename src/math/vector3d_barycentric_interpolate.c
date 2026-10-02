@@ -24,6 +24,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void vector3d_barycentric_interpolate(real_vector3d *out, real_vector3d *v1, real_vector3d *v2,
                                        real_vector3d *v0, float w2, float w1)
@@ -53,4 +56,7 @@ void vector3d_barycentric_interpolate(float param_1,float param_2)
   in_EAX[2] = (in_ECX[2] - fVar1) * param_2 + (in_EDX[2] - fVar1) * param_1 + fVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

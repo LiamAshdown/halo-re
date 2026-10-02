@@ -13,6 +13,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_data; // 0x0087abdc
 
@@ -83,4 +86,7 @@ void FUN_00450cb0(undefined2 param_1,int param_2)
     } while ((short)iVar2 < *(short *)(iVar6 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

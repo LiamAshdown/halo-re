@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: AX -> pitch_range_index, ECX -> tag, stack -> target_pitch
 // Returns `pitch_range_index` unchanged if it still has loaded permutations and its bend_bounds
@@ -205,4 +208,7 @@ Disassembly (0x5454a0..0x545584, capstone; phase-4 review):
 0x545581: pop ebx
 0x545582: pop ecx
 0x545583: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

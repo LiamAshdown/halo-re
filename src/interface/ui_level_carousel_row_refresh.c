@@ -21,6 +21,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern level_select_entry level_select_entries[10]; // 0x00719018
 extern int8_t level_select_flags_0071916a;  // 0x0071916a, compared with movsx
@@ -111,4 +114,7 @@ void FUN_004a4e20(void)
   *(undefined1 *)(iVar6 + 0x10) = *(undefined1 *)((int)&DAT_0071901c + in_EAX * 8 + 3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

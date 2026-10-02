@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> bitmap
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing); // 0x00444550
@@ -54,4 +57,7 @@ undefined4 FUN_005186c0(short param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

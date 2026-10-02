@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;         // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (unknown_40 aliased as 0x006f1cc8)
@@ -110,4 +113,7 @@ undefined1 FUN_00460e40(uint param_1)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

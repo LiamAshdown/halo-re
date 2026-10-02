@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern long lrintf(float x); // fist in the default round-to-nearest mode
 
@@ -61,4 +64,7 @@ int FUN_004ab590(float param_1)
   local_8 = (int)ROUND(param_1) + uVar2;
   return local_8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

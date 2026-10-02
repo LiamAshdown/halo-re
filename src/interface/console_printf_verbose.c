@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t debug_log_level;           // 0x0087ac06, byte-wide (R01)
 extern uint8_t terminal_initialized;       // 0x006b2efc
@@ -104,4 +107,7 @@ void FUN_00496a80(char *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

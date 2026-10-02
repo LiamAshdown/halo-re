@@ -54,6 +54,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals;                  // 0x00710328
 extern int16_t keyboard_bindings[k_control_keyboard_key_count];  // 0x00710330
@@ -1772,4 +1775,7 @@ LAB_0048e988:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

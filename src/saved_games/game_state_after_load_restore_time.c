@@ -21,6 +21,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern int32_t game_state_revert_time; // 0x006e2ddc
@@ -49,4 +52,7 @@ Original disassembly (0x5385d0, no Ghidra export -- not in out/functions.json):
   c6 40 01 01          mov    byte ptr [eax+0x1],0x1
 005385ed:
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

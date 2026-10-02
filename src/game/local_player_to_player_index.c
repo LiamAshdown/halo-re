@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals; // 0x0087a478
 
@@ -37,4 +40,7 @@ undefined4 local_player_to_player_index(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

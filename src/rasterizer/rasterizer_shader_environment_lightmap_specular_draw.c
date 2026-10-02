@@ -22,6 +22,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -192,4 +195,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
 #if 0
 Original Ghidra decompilation (0x521f90) -- see `python tools/pack.py 0x521f90` for the full
 866-byte body; the rewrite above was compared instruction by instruction with the disassembly.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

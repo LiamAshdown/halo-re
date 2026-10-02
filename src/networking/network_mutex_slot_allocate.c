@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count]; // 0x006f0db0
 
@@ -57,4 +60,7 @@ void * __cdecl network_mutex_slot_allocate(void)
   } while ((int)pcVar1 < 0x6f12d4);
   return (void *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

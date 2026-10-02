@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void heap_advance_free_slot(heap *self)
 {
@@ -59,4 +62,7 @@ void FUN_004d2140(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

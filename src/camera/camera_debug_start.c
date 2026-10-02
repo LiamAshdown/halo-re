@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;                    // 0x00746f8c
 extern camera_script_globals camera_script;   // 0x006869d0
@@ -153,4 +156,7 @@ Disassembly (objdump -d -M intel, 0x444c00..0x444d47), confirming the register/s
 0x444d35: call 0x447b50
 0x444d3c: call 0x448900
 0x444d46: ret                              ; bare ret -> caller pops both stack args (cdecl)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -30,6 +30,9 @@
 #include "tags.h"
 #include "math.h"
 #include "shaders.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, blam-cc: AX = type
 
@@ -68,4 +71,7 @@ void FUN_00540060(float *param_1,float *param_2,double param_3)
   *param_2 = (float)(fVar1 * (float10)*(float *)(unaff_ESI + 0x164));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

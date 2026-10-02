@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *memset(void *dst, int32_t value, uint32_t size); // CRT
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX, ECX, EDX
@@ -124,4 +127,7 @@ void FUN_00488960(undefined4 param_1)
   damage_apply_area_effect(local_54,0xffffffff);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

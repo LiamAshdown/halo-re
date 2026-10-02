@@ -16,6 +16,9 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns the constant deceleration that would take a projectile from initial_velocity to
 // final_velocity over the world-unit span [r0, r1], or 0 when either velocity pair or range
@@ -49,4 +52,7 @@ float10 FUN_004c03f0(float param_1,float param_2)
   }
   return fVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

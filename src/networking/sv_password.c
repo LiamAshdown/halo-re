@@ -19,6 +19,9 @@
 #include "networking.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t network_server_password[9]; // 0x0071c2f4 (UNSURE name; distinct storage from
     // network_server_globals::password, mirrored into it by network_server_password_set)
@@ -134,4 +137,7 @@ LAB_004e30a0:
   chimera__console_out("Incorrect usage. Type help sv_password for more information.");
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

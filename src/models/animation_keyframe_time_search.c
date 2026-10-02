@@ -22,6 +22,9 @@
 //   // blam-cc: EAX -> count, BX -> frame, stack -> times
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Finds the index of the last keyframe time at or before `frame`, using a binary search that
 // narrows [lo, mid] or [mid, hi] one step at a time (see the file header for why this mirrors
@@ -77,4 +80,7 @@ LAB_004d6b20:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

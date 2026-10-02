@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *swarm_data;           // 0x0088035c
 extern data_array *swarm_component_data; // 0x00880358
@@ -56,4 +59,7 @@ void swarm_add_component(void)
   FUN_00428130();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

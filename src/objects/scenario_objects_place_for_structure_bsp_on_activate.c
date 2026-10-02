@@ -11,6 +11,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 
@@ -22,3 +25,6 @@ void scenario_objects_place_for_structure_bsp_on_activate(void)
         scenario_objects_place_for_structure_bsp(1);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

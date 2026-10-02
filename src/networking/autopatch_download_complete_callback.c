@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 
@@ -95,4 +98,7 @@ autopatch_download_complete_callback(int param_1,int param_2,undefined4 *param_3
   } while ((int)piVar1 < 0x6ef964);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

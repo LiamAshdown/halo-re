@@ -23,6 +23,9 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x624186, fopen-shaped CRT wrapper
 extern char console_process_command(char *command_line, uint32_t context_flags); // this module, 0x4c6a80, blam-cc: EDI -> command_line, stack -> context_flags
@@ -124,4 +127,7 @@ loop:
 004c64a8:  pop    esi
 004c64a9:  add    esp,0xc8
 004c64af:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

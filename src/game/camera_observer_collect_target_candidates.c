@@ -42,6 +42,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern data_array *player_data;     // 0x0087a480
@@ -173,4 +176,7 @@ uint FUN_0045a0e0(undefined4 param_1,uint param_2,undefined4 param_3,undefined4 
   } while ((param_2 != 0xffffffff) && ((short)uVar5 < (short)param_10));
   return uVar5 & 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

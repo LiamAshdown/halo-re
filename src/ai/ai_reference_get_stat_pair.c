@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;                              // 0x00746f8c
 extern data_array *encounter_data;                             // 0x008802c8
@@ -201,4 +204,7 @@ uint FUN_00432f90(uint param_1,int *param_2,undefined4 *param_3)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

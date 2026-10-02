@@ -15,6 +15,9 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -37,3 +40,6 @@ uint8_t game_engine_ctf_unknown_60(datum_index unit_index, datum_index item_inde
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

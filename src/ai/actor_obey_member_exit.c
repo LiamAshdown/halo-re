@@ -15,6 +15,9 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;  // 0x008603b0
 extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state,
@@ -35,3 +38,6 @@ void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16
     }
     ((unit_object *)unit)->unit.flags &= ~0x1000u;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

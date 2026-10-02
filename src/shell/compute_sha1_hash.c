@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern uint32_t crypt_provider; // 0x00722bcc
@@ -70,4 +73,7 @@ int __cdecl compute_sha1_hash(BYTE *param_1,DWORD param_2,BYTE *param_3)
   }
   return CONCAT31((int3)((uint)BVar1 >> 8),bVar2);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

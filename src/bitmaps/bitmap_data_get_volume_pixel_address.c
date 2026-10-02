@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count]; // 0x006571f4 (types/bitmaps.h)
 
@@ -108,4 +111,7 @@ int FUN_0043f990(short param_1,short param_2,short param_3,ushort param_4)
           (int)(char)(&DAT_006571f4)[*(short *)(in_ECX + 0xc)];
   return ((int)(iVar4 + (iVar4 >> 0x1f & 7U)) >> 3) + *(int *)(in_ECX + 0x2c);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

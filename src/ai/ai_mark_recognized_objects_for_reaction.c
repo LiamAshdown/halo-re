@@ -17,6 +17,9 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
@@ -124,4 +127,7 @@ void FUN_0042ba80(short param_1,short param_2,undefined1 param_3)
   FUN_0045c0f0();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

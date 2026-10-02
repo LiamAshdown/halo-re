@@ -22,6 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_game_socket;    // 0x006f14c4
 extern int32_t network_query_socket;   // 0x006f14c8
@@ -138,4 +141,7 @@ void network_channels_open(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end); // 0x44c5e0, this module
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length); // 0x557720, module text (foreign); see widget_text_edit_clamp_selection.c for the UNSURE note on its register convention.
@@ -153,4 +156,7 @@ void FUN_0044c640(void)
   FUN_00557720();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

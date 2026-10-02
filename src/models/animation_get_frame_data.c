@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -51,4 +54,7 @@ int FUN_004d4810(short param_1)
   }
   return *(int *)(in_ECX + 0xac) + (int)*(short *)(in_ECX + 0x24) * (int)param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -165,4 +168,7 @@ uint FUN_0055ab30(uint param_1,uint *param_2)
   param_2[2] = puVar1[0x13a];
   return puVar1[0x137];
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -27,6 +27,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern player_globals *local_player_globals; // 0x0087a478
@@ -180,4 +183,7 @@ LAB_0049471a:
   *param_1 = local_4;
   return iVar7;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

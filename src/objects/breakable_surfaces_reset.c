@@ -13,6 +13,9 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, types/physics.h breakable_surface_globals
 
@@ -73,4 +76,7 @@ void FUN_004ffd40(void)
   } while (iVar4 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t unit_state_allows_control(const uint8_t *animation_block) // blam-cc: ECX -> animation_block
 {
@@ -59,4 +62,7 @@ undefined1 FUN_00565ca0(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

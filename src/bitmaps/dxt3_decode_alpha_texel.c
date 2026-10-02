@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void dxt1_decode_block_texel(ColorARGBInt *out, dxt_color_block *block, int32_t x, int32_t y); // 0x43ffe0, this module
 
@@ -46,4 +49,7 @@ void dxt3_decode_alpha_texel(int param_1)
   *(byte *)(unaff_EDI + 3) = bVar1 << 4 | bVar1 & 0xf;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

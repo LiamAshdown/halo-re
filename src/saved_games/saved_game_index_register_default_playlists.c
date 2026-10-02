@@ -31,6 +31,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t default_game_variant_count; // 0x00721328
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -289,4 +292,7 @@ short saved_game_index_register_default_playlists(void)
   }
   return sVar8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

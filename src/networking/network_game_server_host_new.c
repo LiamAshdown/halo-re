@@ -18,6 +18,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // FIXED 2026-09-28 (retail-independence loop): the session's message callback is the C
 // network_session_reject_pending_connection_callback, not the literal retail address 0x4e1410.
@@ -179,4 +182,7 @@ LAB_004ded77:
   }
   return puVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

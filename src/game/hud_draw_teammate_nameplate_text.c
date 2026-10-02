@@ -29,6 +29,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals; // 0x00746fa0
 
@@ -111,4 +114,7 @@ void FUN_00461f20(undefined4 param_1,undefined4 param_2)
   DAT_006e4748 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

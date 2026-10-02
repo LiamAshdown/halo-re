@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Orders candidates by weight_primary (descending), then weight_secondary (descending), then
 // distance (ascending), then angle (ascending), then object index (ascending).
@@ -71,4 +74,7 @@ int FUN_0045a4a0(uint *param_1,uint *param_2)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

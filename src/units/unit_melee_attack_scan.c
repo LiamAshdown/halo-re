@@ -27,6 +27,9 @@
 #include "units.h"
 #include "projectiles.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -480,4 +483,7 @@ LAB_0056f8cf:
   *(undefined1 *)((int)puVar9 + 0x289) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

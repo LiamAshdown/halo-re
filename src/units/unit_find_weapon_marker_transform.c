@@ -22,6 +22,9 @@
 #include "units.h"
 #include "models.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -196,4 +199,7 @@ FUN_005640a0(uint param_1,short param_2,undefined4 *param_3,undefined4 *param_4,
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

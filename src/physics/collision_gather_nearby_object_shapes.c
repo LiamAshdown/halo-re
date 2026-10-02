@@ -35,6 +35,9 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -205,4 +208,7 @@ void FUN_005061c0(uint param_1,float param_2,float *param_3,float param_4,float 
   } while (fVar9 != -NAN);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4, -1 == not yet built
 extern uint32_t profile_globals_block[0x7ff]; // 0x00712dd8
@@ -73,4 +76,7 @@ void network_game_start_new_server_from_profile(undefined4 param_1)
   network_game_start_new_server_with_name_and_password(param_1,local_127c,local_115c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

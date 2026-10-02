@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern int16_t sound_supplementary_buffers_00746122; // 0x00746122, UNSURE name
@@ -19,3 +22,6 @@ void hs_evaluate_sound_get_supplementary_buffers(int16_t function_index, uint32_
 {
     hs_thread_return((int32_t)(uint16_t)(sound_supplementary_buffers_00746122), thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

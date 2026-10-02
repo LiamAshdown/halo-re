@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t cluster_flood_in_progress; // 0x006e3f01, foreign module, UNSURE
@@ -156,4 +159,7 @@ short object_find_in_sphere
   }
   return sVar10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

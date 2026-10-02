@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *map_memory; // 0x006ac548
 extern uint8_t *game_state_snapshot_source; // 0x006e2dec
@@ -76,4 +79,7 @@ undefined4 game_state_allocate_buffer(int param_1)
   __beginthread(game_state_save_thread_proc,0x1000,(void *)0x0);
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

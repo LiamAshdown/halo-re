@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
 game_variant * game_engine_variant_defaults_classic_slayer_pro(game_variant *out)
@@ -104,4 +107,7 @@ void __cdecl game_engine_variant_defaults_classic_slayer_pro(void *variant_optio
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

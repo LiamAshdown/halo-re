@@ -24,6 +24,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                   // 0x0071d174
 extern uint8_t console_debug_toggle_6893f4;       // 0x006893f4
@@ -109,3 +112,6 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     }
     ((d3dx_effect_end_fn)(*(void ***)effect)[0x108 / 4])(effect);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

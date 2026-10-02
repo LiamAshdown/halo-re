@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_game_session_reset_defaults(void); // 0x4e1820, outside this batch, elided args
 
@@ -53,4 +56,7 @@ void FUN_004df640(void)
   FUN_004e1820();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

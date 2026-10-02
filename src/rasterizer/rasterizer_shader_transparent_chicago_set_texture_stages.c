@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device; // 0x0071d174
 // three dwords per ShaderColorFunctionType: D3DTOP op, arg1, arg2
@@ -129,4 +132,7 @@ undefined4 FUN_00537bb0(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -223,4 +226,7 @@ objdump -d -M intel excerpt (the two calls Ghidra dropped, plus the hidden scale
 004d4f50:  e8 2b 1f 00 00        call   0x4d6e80                           ; animation_node_get_scale
 004d4f5c:  40                    inc    eax
 004d4f5d:  89 44 24 20           mov    DWORD PTR [esp+0x20],eax           ; scale_index++
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

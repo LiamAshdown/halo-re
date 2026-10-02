@@ -11,6 +11,9 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern int32_t game_state_revert_time; // 0x006e2ddc
@@ -20,3 +23,6 @@ void hs_evaluate_game_reverted(int16_t function_index, uint32_t thread_index, ch
 {
     hs_thread_return((int32_t)(game_state_revert_time == game_time->game_time), thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

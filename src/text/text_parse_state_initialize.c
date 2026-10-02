@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;             // 0x0087bc14
 extern float text_color_scale;                  // 0x00672b60, == k_text_color_channel_scale
@@ -151,4 +154,7 @@ void FUN_00556b00(uint param_1)
   556ba1:	8b 4c 10 14             mov    ecx,DWORD PTR [eax+edx*1+0x14]
   556ba5:	89 4e 04                mov    DWORD PTR [esi+0x4],ecx
   556ba8:	c3                      ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

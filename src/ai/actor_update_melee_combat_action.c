@@ -18,6 +18,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
@@ -571,4 +574,7 @@ LAB_0040d4a6:
   actor_set_mode(param_1,uVar12,puVar13);
   return '\x01';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: requested capacity in AX (in_AX, low 16 bits of EAX)
@@ -71,4 +74,7 @@ undefined4 * FUN_00441960(void)
   GlobalFree(hMem);
   return (undefined4 *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

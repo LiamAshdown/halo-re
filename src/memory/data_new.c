@@ -12,6 +12,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: element size in EBX, then the recognized stack parameters (name, maximum_count)
@@ -77,4 +80,7 @@ char * data_new(char *param_1,short param_2)
   }
   return _Dest;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

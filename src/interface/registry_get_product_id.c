@@ -12,6 +12,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 #define HKEY_LOCAL_MACHINE ((HKEY)0x80000002)
 #define KEY_QUERY_VALUE 0x0001
@@ -71,4 +74,7 @@ void * __cdecl registry_get_product_id(void)
   }
   return &DAT_00719344;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

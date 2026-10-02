@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag)
 {
@@ -59,4 +62,7 @@ void damage_data_initialize(undefined4 param_1)
   in_EDX[0x11] = 0x3f800000;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

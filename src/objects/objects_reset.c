@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t object_unknown_006b8c60; // 0x006b8c60, UNSURE: foreign/undocumented global
 extern int32_t object_sound_event_last_tick; // 0x006b8a00, UNSURE: foreign/undocumented global
@@ -172,4 +175,7 @@ void __cdecl objects_reset(void)
   *(undefined4 *)(iVar1 + 8) = 0xffffffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

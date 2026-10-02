@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_6893e4;                         // 0x006893e4 (some readers compare it as a word)
 extern uint8_t console_debug_toggle_6893f8; // 0x006893f8
@@ -61,4 +64,7 @@ void FUN_00520910(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

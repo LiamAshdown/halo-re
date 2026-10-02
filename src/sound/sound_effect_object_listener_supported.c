@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> this
 // Returns whether QuerySupport found the listener properties supported (set by
@@ -40,4 +43,7 @@ Disassembly (0x54ef10..0x54ef13; phase-4 review):
 
 0x54ef10: mov eax, dword ptr [ecx + 0x10]
 0x54ef13: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

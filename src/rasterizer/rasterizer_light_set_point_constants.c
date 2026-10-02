@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_light rasterizer_lights[k_rasterizer_maximum_lights]; // 0x007c1484
 
@@ -103,4 +106,7 @@ void FUN_00518c10(void)
   puVar3[0xb] = 0x3f800000;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

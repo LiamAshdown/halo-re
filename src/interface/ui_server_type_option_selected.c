@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t autopatch_status_state_00719234;   // 0x00719234
 extern uint8_t autopatch_status_active_00719235;  // 0x00719235
@@ -98,4 +101,7 @@ void FUN_004a47c0(int param_1)
   (*(code *)(&PTR_LAB_004a4850)[iVar2 + -1])();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

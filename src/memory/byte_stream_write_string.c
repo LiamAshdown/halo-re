@@ -9,6 +9,9 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: max_length in CX, stream in ESI, string as the recognized parameter
@@ -81,4 +84,7 @@ bool byte_stream_write_string(char *param_1)
   *(undefined1 *)(unaff_ESI + 3) = 1;
   return (char)unaff_ESI[3] == '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

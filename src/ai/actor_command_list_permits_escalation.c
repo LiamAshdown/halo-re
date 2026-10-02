@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;             // 0x00880360
 extern data_array *ai_conversation_data;   // 0x008802d4
@@ -78,4 +81,7 @@ int FUN_0040d580(void)
   }
   return CONCAT31(uVar4,1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

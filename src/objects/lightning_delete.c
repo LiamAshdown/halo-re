@@ -12,6 +12,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void datum_delete(data_array *array, datum_index index); // 0x4d0510, blam-cc: EAX -> array, EDX -> index
 extern data_array *lightning_instances; // 0x006b8d74
@@ -22,3 +25,6 @@ void lightning_delete(datum_index lightning_index)
         datum_delete(lightning_instances, lightning_index);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

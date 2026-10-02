@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char ai_marker_name_a[]; // 0x0066bfa0, UNSURE exact text
 
@@ -49,4 +52,7 @@ void FUN_00568f50(void)
   unaff_ESI[2] = local_4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

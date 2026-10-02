@@ -24,6 +24,9 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -149,4 +152,7 @@ undefined4 FUN_004045a0(void)
 switchD_0040464c_default:
   return CONCAT31((int3)((uint)iVar3 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

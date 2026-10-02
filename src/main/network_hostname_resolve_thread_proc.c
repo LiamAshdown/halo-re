@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *hostname_resolve_result;      // 0x00719b6c, this module; struct hostent * from gethostbyname
 extern int32_t hostname_resolve_complete;  // 0x00719b68, this module; set once the lookup returns
@@ -41,4 +44,7 @@ DWORD network_hostname_resolve_thread_proc(char *hostname)
                     /* WARNING: Subroutine does not return */
   ExitThread(0);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

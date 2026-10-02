@@ -38,6 +38,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *memcpy(void *dest, const void *src, int32_t count);
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
@@ -532,4 +535,7 @@ player_update_history_play
   iVar10 = player_update_history_log_write("Ignoring update [%d] due to starting_update == NULL");
   return iVar10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

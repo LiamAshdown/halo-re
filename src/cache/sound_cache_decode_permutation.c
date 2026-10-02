@@ -22,6 +22,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sound_decode_buffer_size; // 0x006f17f0
 extern void *sound_decode_buffer;        // 0x006f17ec
@@ -133,4 +136,7 @@ void FUN_00443d60(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

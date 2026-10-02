@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "units.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *game_looping_sound_data; // 0x007461a0, UNSURE name (elsewhere network_predicted_globals)
 
@@ -174,4 +177,7 @@ LAB_004afe61:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

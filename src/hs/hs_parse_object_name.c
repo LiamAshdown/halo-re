@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t scenario_object_name_find_index(Scenario *scenario, char *name);
     // blam-cc: ECX -> scenario, stack -> name; objects module, 0x0053ebb0, not yet rewritten
@@ -93,4 +96,7 @@ undefined4 hs_parse_object_name(uint param_1)
   DAT_006b14d8 = *(undefined4 *)(iVar1 + 0xc);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

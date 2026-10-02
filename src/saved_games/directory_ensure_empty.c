@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
 extern uint8_t file_reference_exists(file_reference_record *ref); // 0x555720, this module
@@ -96,4 +99,7 @@ void FUN_00555520(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

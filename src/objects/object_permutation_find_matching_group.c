@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x4f8d80..0x4f8dc6 (2026-09-30); fixed: signed 16-bit permutation number compares and the 32-bit
 //   count bound (see the loop).
@@ -75,4 +78,7 @@ void FUN_004f8d80(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

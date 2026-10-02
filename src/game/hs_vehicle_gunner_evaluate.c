@@ -23,6 +23,9 @@
 #include "units.h"
 #include "hs.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
@@ -60,4 +63,7 @@ void player_health_pack_screen_effect(void)
   hs_thread_return();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

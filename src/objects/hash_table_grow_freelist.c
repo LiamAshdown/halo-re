@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 void hash_table_grow_freelist(hash_table *table)
@@ -97,4 +100,7 @@ void hash_table_grow_freelist(void)
   } while (iVar6 < 0x27c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

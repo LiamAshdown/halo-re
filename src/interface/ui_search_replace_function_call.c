@@ -18,6 +18,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *ui_replace_function_table[4]; // 0x00692c08, ui_search_replace_function
 extern uint16_t ui_invalid_replacement_text[]; // 0x0066a8a0, L"<invalid>"
@@ -46,4 +49,7 @@ undefined ** FUN_004a8730(void)
   }
   return &PTR_DAT_0066a8a0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

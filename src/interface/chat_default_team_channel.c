@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480, UNSURE: iterated array, see header note
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
@@ -61,4 +64,7 @@ int FUN_004ab1e0(void)
   }
   return (int)*(char *)(iVar1 + 0x67);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

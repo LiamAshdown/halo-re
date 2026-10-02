@@ -27,6 +27,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
@@ -76,4 +79,7 @@ bool FUN_004e1bf0(void *param_1)
   }
   return 0 < iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

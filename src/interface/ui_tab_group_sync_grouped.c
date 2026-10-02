@@ -16,6 +16,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8
 
@@ -148,4 +151,7 @@ switchD_004a4d69_caseD_4:
   set_profile_name((int)&local_2008 + 2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

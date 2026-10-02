@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *message_delta_definition_table; // 0x00871de0, UNSURE identity, see
     // update_server_send_update.c
@@ -102,4 +105,7 @@ bool FUN_004df1c0(void)
   *(undefined4 *)(unaff_ESI + 0x9b8) = 0;
   return bVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

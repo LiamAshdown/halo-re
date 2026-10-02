@@ -33,6 +33,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98, same declaration as
     // src/physics/collision_test_movement_segment.c
@@ -488,4 +491,7 @@ void FUN_0044e730(int param_1,int param_2,int param_3,char param_4,float param_5
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

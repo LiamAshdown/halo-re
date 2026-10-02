@@ -32,6 +32,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern team_pair_globals *team_pair_data;         // 0x006b0b84
@@ -121,4 +124,7 @@ bin/halo.exe:
   46fee7: mov edi,eax                                              ; edi = substituted index
   46fee9: push edi ; mov ecx,esi ; call 0x46fe10                   ; weapon_get_zoom_fov(edi, esi)
   46fef4..46fef7: epilogue, ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

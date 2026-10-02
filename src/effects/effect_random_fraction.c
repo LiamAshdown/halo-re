@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4
 
@@ -26,4 +29,7 @@ float10 effect_random_fraction(void)
   DAT_00719cd4 = DAT_00719cd4 * 0x19660d + 0x3c6ef35f;
   return (float10)(DAT_00719cd4 >> 0x10) * (float10)1.5259022e-05;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hud_globals_flags *hud_flags;          // 0x00719420
 extern hud_messaging_globals *hud_messaging;  // 0x006b3a40
@@ -55,4 +58,7 @@ void FUN_004ae0b0(undefined2 param_1,undefined1 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

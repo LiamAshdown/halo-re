@@ -22,6 +22,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 
@@ -120,4 +123,7 @@ Original disassembly (0x539290, no Ghidra export -- not in out/functions.json):
   5e                   pop    esi
   81 c4 00 02 00 00    add    esp,0x200
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

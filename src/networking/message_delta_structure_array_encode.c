@@ -8,6 +8,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t message_delta_structure_array_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
@@ -46,3 +49,6 @@ int32_t message_delta_structure_array_encode(message_delta_field_type *field_typ
     message_delta_stream_seek(stream, stream->first_bit, block);
     return total;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -17,6 +17,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *data_packet_group_error; // 0x006b7f00
 extern byte_swap_definition packet_header_byte_swap_definition; // 0x00696780
@@ -69,4 +72,7 @@ undefined4 data_packet_group_append_packet_header(undefined1 param_1)
   DAT_006b7f00 = "couldn\'t append header to encoded packet";
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

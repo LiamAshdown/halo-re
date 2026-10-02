@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ESI -> widget
 // Returns widget's 0-based index among its parent's children (first_child, then next_sibling),
@@ -68,4 +71,7 @@ int widget_get_sibling_index(void)
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -34,6 +34,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
@@ -135,4 +138,7 @@ void missed_4554e0(int param_1,short param_2,int param_3,int param_4)
   vector3d_rotate_about_axis(0x3f800000,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

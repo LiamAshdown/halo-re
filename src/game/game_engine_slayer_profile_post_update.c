@@ -18,6 +18,9 @@
 #include <wchar.h>
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
@@ -73,3 +76,6 @@ void game_engine_slayer_profile_post_update(void **context)
         memcpy(slayer_team_score, slayer_unknown_0087a4a0, 0x20 * 4);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

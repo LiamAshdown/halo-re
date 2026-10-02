@@ -25,6 +25,9 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -157,4 +160,7 @@ uint FUN_0040db00(uint param_1,char param_2)
   }
   return uVar6 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

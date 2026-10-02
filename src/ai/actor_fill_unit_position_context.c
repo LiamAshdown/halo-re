@@ -30,6 +30,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern char ai_marker_name_a[]; // 0x0066bfa0
@@ -108,4 +111,7 @@ void FUN_004296c0(undefined4 *param_1)
   param_1[10] = *(undefined4 *)(iVar1 + 0x9c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

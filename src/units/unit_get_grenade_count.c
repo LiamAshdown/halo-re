@@ -10,6 +10,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -39,4 +42,7 @@ uint unit_get_grenade_count(void)
   }
   return in_EAX & 0xffff0000;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

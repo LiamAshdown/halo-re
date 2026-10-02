@@ -26,6 +26,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -74,4 +77,7 @@ void missed_4552a0(int param_1,undefined4 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

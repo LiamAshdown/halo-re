@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_query_receive_buffer[0x2000]; // 0x006a6148
 extern const uint8_t natneg_magic[6];                // 0x00657208
@@ -42,3 +45,6 @@ int32_t network_channel_gap_441200(void *socket, uint32_t ip, uint16_t port, con
     }
     return is_query ? 1 : 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

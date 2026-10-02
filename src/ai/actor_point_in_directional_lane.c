@@ -28,6 +28,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x);
@@ -147,4 +150,7 @@ Disassembly cross-check for the call site (objdump -d -M intel bin/halo.exe, 0x4
 00414c6a: lea edx,[edi+0x5a4]     ; edx = &actor.position_cache_a
 00414c70: push ebp                ; ebp = float min_cos_threshold (param_1, pushed last)
 00414c71: call 0x414990
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

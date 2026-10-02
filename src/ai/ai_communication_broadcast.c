@@ -24,6 +24,9 @@
 #include "game.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time;   // 0x006f1d6c
 extern data_array *object_data;        // 0x008603b0
@@ -1737,4 +1740,7 @@ LAB_0042e8f7:
   ai_communication_record_line_played(local_488,local_49c,0xffffffff);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

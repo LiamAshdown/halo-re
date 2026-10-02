@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "cseries.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: last in EAX, then the stack parameters first, compare (EAX, stack)
 // Selection-sorts the inclusive range [first, last] of 4-byte elements: each pass finds the
@@ -66,4 +69,7 @@ void qsort_dword_array_shortsort(undefined4 *param_1,code *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

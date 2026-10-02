@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
@@ -222,4 +225,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
 #if 0
 Original Ghidra decompilation (0x520e50) -- see `python tools/pack.py 0x520e50` for the full
 1144-byte body; the rewrite above was compared instruction by instruction with the disassembly.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

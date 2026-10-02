@@ -35,6 +35,9 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_initialized;      // 0x00719470
 extern void *master_server_query_engine;        // 0x0071946c
@@ -389,4 +392,7 @@ undefined4 server_browser_open(int param_1)
   DAT_00719488 = 0;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

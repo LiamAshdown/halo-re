@@ -15,6 +15,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index,
@@ -64,4 +67,7 @@ undefined4 FUN_004c48a0(void)
   }
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // hwreq_parser_vtable slot 0x3c. Returns a pointer to hwreq_parser->error_message's character
 // data, following the string's own inline-vs-heap-buffer rule.
@@ -43,4 +46,7 @@ int missed_5788e0(void)
   }
   return in_ECX + 0x28;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -25,6 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // a single x87 FSQRT instruction, see src/math/quaternion_normalize.c
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
@@ -270,4 +273,7 @@ void model_ik_solve_two_bone(undefined4 *param_1,float param_2,int param_3,undef
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

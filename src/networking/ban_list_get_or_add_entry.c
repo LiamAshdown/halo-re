@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern growable_array ban_list; // 0x006b859c, element_size 0x38; see network_banlist_save.c
 
@@ -80,4 +83,7 @@ char * __cdecl ban_list_get_or_add_entry(char *param_1,char *param_2)
   }
   return (char *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

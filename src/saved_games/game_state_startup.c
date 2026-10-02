@@ -14,6 +14,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern int32_t game_state_cursor; // 0x006e2dcc
@@ -58,4 +61,7 @@ void game_state_startup(void)
   DAT_006e2de0 = iVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

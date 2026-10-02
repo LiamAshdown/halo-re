@@ -29,6 +29,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -153,4 +156,7 @@ LAB_00493fca:
   }
   return uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

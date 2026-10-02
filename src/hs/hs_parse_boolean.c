@@ -19,6 +19,9 @@ extern char *hs_compiled_source;         // 0x006b14c0
 extern char *hs_compile_error;           // 0x006b14d4
 extern int32_t hs_compile_error_offset;  // 0x006b14d8
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 char hs_parse_boolean(datum_index node_index)
 {
@@ -38,3 +41,6 @@ char hs_parse_boolean(datum_index node_index)
     node->data.boolean_value = (uint8_t)node_index; // 0x486aaa: cl = the argument's low byte
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

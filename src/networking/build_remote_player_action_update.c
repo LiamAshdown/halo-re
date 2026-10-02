@@ -26,6 +26,9 @@
 #include "objects.h"
 #include "networking.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
@@ -310,4 +313,7 @@ LAB_004e79cd:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

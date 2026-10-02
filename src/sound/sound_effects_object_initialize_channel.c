@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24
 
@@ -51,4 +54,7 @@ Disassembly (0x551460..0x551473, capstone; phase-4 review):
 0x55146e: push edx
 0x55146f: call dword ptr [eax + 8]
 0x551472: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

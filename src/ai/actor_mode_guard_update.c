@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -150,3 +153,6 @@ void actor_mode_guard_update(datum_index actor_index)
     }
     ((struct actor *)act)->look_posture = ((struct actor *)act)->combat_status >= 4 ? 4 : 2;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

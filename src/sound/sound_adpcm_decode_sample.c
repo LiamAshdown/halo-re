@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x54e8c0..0x54e91a (2026-09-30) (the rcl/sbb bit selects were emulated against this formula
 //   for 100000 random inputs with no difference); the add is now a wrapping unsigned add so the clamp tests see the
@@ -111,4 +114,7 @@ Disassembly (0x54e8c0..0x54e91c, capstone; phase-4 review):
 0x54e913: jmp 0x54e909
 0x54e915: mov eax, 0xffff8000
 0x54e91a: jmp 0x54e909
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

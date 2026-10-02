@@ -22,6 +22,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t terminal_initialized;       // 0x006b2efc
 extern data_array *terminal_messages;      // 0x006b2f00, "terminal output"
@@ -130,4 +133,7 @@ Disassembly (0x4c67c0..0x4c685c):
 004c684b:  push   0x1
 004c684d:  push   edx
 004c684e:  call   0x449450                ; write_to_error_file(&formatted, 1)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

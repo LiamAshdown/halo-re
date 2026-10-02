@@ -14,6 +14,9 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: cdecl(record_a, record_b)
 // qsort comparator that orders two candidate-target sort records ascending by the float
@@ -43,4 +46,7 @@ int __cdecl ai_target_distance_qsort_compare(void *record_a,void *record_b)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

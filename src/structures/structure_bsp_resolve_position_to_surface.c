@@ -34,6 +34,9 @@
 #include "objects.h"   // bsp_leaf_reference, needed by projectiles.h's collision_result
 #include "projectiles.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
@@ -129,4 +132,7 @@ undefined4 FUN_00555190(float *param_1)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

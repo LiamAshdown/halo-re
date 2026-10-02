@@ -21,6 +21,9 @@
 
 #include "tags.h"
 #include "shaders.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t numeric_countdown_timer_remaining_ms; // 0x00721e50
 
@@ -96,4 +99,7 @@ undefined4 game_timer_get_digit_pair(void)
   }
   return CONCAT22((short)((uint)iVar1 >> 0x10),uVar2);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern uint8_t actor_update_melee_combat_action(datum_index actor_index); // 0x40cdf0, this module
@@ -104,4 +107,7 @@ uint FUN_0040d820(void)
   uVar2 = FUN_0040cdf0();
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

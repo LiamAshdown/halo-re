@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 
@@ -86,4 +89,7 @@ void string_erase(uint param_1,uint param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

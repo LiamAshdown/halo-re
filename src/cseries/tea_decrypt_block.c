@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void tea_decrypt_block(uint32_t *block, const uint32_t *key)
 {
@@ -27,3 +30,6 @@ void tea_decrypt_block(uint32_t *block, const uint32_t *key)
     block[0] = v0;
     block[1] = v1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

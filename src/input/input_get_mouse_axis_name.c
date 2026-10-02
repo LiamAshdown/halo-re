@@ -21,6 +21,9 @@
 #include "input.h"
 
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
@@ -108,4 +111,7 @@ Disassembly (objdump -d, 0x491010..0x4910b2), confirming the second (direction) 
   491084: setne  al                 ; eax = (direction != 0)
   491087: lea    ebx,[esp+0x14]      ; direction_name buffer
   49108b: call   0x491180            ; input_get_axis_direction_name(eax, ebx)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX
 extern void object_list_reference_add(datum_index header_index, datum_index object_index); // 0x48b2a0
@@ -43,3 +46,6 @@ datum_index hs_cast_object_name_to_object_list(int32_t name_index)
     object_list_reference_add(header_index, object_index);
     return header_index;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

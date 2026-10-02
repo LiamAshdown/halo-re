@@ -30,6 +30,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
@@ -124,4 +127,7 @@ LAB_004ce701:
   }
   return CONCAT22(uVar9,uVar10);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

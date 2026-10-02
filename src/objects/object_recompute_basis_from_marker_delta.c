@@ -36,6 +36,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
     // PHASE-4 REVIEW: this file used to call the same global `matrix4x3_multiply_dispatch`
@@ -133,4 +136,7 @@ void FUN_004f62f0(int param_1,undefined4 param_2)
   vector3d_normalize_with_length();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

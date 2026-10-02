@@ -23,6 +23,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index hs_thread_new(int32_t script_index, uint8_t type); // this module, 0x48a2f0
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -77,4 +80,7 @@ undefined4 FUN_0048a250(int param_1)
   }
   return *(undefined4 *)(iVar2 + 0x14);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

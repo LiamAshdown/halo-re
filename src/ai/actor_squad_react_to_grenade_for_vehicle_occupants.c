@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -109,4 +112,7 @@ void FUN_0042bd70(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

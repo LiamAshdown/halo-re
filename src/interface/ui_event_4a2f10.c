@@ -19,6 +19,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern void saved_item_select(int32_t item); // 0x495be0, blam-cc: EBX -> item
@@ -65,3 +68,6 @@ uint8_t ui_event_4a2f10(widget_instance *widget, int16_t *event, uint8_t *out_ha
     network_game_start_new_server_with_name_and_password(0, network_host_name_00719170, network_host_subname_007191f0);
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

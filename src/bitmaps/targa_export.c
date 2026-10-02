@@ -25,6 +25,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t file_reference_create(file_reference_record *ref); // 0x5555b0, src/saved_games/file_reference_create.c
 extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode); // 0x5557a0, src/saved_games/file_reference_open.c
@@ -121,4 +124,7 @@ char * targa_export(void)
   }
   return "couldn\'t open file";
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

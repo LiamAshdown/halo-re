@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // out = signed_t*a + (1-t)*b, where signed_t is +-t chosen so the interpolation takes the
 // shorter path between the two quaternions (dot(a,b) >= 0).
@@ -54,4 +57,7 @@ void quaternion_lerp(float param_1)
   unaff_ESI[3] = fVar1 * in_EDX[3] + param_1 * in_ECX[3];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

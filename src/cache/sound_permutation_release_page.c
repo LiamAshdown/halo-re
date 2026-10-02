@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern struct cache *sound_cache; // 0x006ac530
 
@@ -51,4 +54,7 @@ void FUN_00443d30(void)
   *(undefined4 *)(unaff_ESI + 0x30) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

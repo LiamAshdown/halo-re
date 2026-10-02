@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -29,3 +32,6 @@ void game_engine_oddball_player_new_life(datum_index player_index)
         king_alt_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0x20)] = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

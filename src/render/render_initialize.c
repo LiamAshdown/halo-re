@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base;              // 0x006e2dc8 (matches src/ai/ai_communication_initialize.c)
 extern int32_t game_state_cursor;             // 0x006e2dcc
@@ -53,4 +56,7 @@ void FUN_00511da0(void)
   rasterizer_initialize_direct3d();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

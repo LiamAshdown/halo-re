@@ -14,6 +14,9 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -37,3 +40,6 @@ void game_engine_slayer_player_new_life(datum_index player_index)
         slayer_team_score[((struct player *)player)->team] = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

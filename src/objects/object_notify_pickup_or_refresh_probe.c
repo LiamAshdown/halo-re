@@ -27,6 +27,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern data_array *player_data;         // 0x0087a480, players module (not owned here)
@@ -137,4 +140,7 @@ void FUN_004ee3c0(undefined4 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

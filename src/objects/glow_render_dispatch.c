@@ -27,6 +27,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *glow_data; // 0x008603a0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -102,4 +105,7 @@ LAB_004fce08:
   lightning_render();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

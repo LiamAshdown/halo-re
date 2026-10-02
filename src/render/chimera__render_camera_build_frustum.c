@@ -49,6 +49,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> {0,0,0} at 0x0065c230 (types/math.h
                                                    // global_math_constant_pointers slot 10; slot 17,
@@ -478,4 +481,7 @@ void chimera__render_camera_build_frustum(char param_1)
   unaff_ESI[0x62] = fVar4 * (float)((int)sVar15 - (int)sVar14) * 0.5;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

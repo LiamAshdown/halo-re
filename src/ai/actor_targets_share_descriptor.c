@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0, UNSURE guess at which array datum_get checks here
@@ -118,4 +121,7 @@ bool FUN_0040e380(void)
   }
   return local_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

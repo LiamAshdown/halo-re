@@ -26,6 +26,9 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *encounter_data;   // 0x008802c8
@@ -434,4 +437,7 @@ LAB_0042cce1:
   }
   goto LAB_0042c9c6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

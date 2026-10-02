@@ -26,6 +26,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t collision_bsp_surface_test_point_leaf(
     ModelCollisionGeometryBSP *bsp, int32_t leaf_index, int16_t breakable_surface_count,
@@ -306,4 +309,7 @@ LAB_0050240c:
   *(char *)(param_1 + 8) = cVar11;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

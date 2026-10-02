@@ -19,6 +19,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event type 2: copies event->animation_state into control->animation_state
@@ -43,4 +46,7 @@ void FUN_0044a650(undefined1 *param_1,int param_2,int *param_3)
   *param_3 = *param_3 + 6;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

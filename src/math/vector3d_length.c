@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // sqrt is a single x87 FSQRT instruction in the original code (Ghidra's SQRT() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.
@@ -29,4 +32,7 @@ float10 vector3d_length(void)
   return SQRT((float10)in_EAX[2] * (float10)in_EAX[2] +
               (float10)in_EAX[1] * (float10)in_EAX[1] + (float10)*in_EAX * (float10)*in_EAX);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

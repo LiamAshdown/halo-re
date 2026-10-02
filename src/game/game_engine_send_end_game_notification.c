@@ -24,6 +24,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 
@@ -73,4 +76,7 @@ void FUN_004671d0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

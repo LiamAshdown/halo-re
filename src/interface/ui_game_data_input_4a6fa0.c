@@ -19,6 +19,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
@@ -46,3 +49,6 @@ void ui_game_data_input_4a6fa0(widget_instance *widget)
     }
     widget->background_bitmap_frame = (int16_t)(strstr((char *)(game + 0x84), "icefields") != 0 ? 0xd : 0x13);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

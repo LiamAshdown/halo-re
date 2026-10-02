@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Clears byte +0x1c of an opaque broadcast-message context, per the function's (unresolved)
 // name.
@@ -31,4 +34,7 @@ void network_game_server_send_message_to_all_machines_ingame(void)
   *(undefined1 *)(unaff_ESI + 0x1c) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

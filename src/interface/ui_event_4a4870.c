@@ -13,6 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t autopatch_status_state_00719234; // 0x00719234, TYPES-GAP
 
@@ -20,3 +23,6 @@ uint8_t ui_event_4a4870(widget_instance *widget, int16_t *event, uint8_t *out_ha
 {
     return autopatch_status_state_00719234;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

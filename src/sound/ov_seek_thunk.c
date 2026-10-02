@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sound_ogg_seek_callback(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high,
     int32_t whence); // 0x544e00, blam-cc: ESI -> file, EAX -> whence, stack -> (offset_low, offset_high)
@@ -19,3 +22,6 @@ int32_t ov_seek_thunk(sound_ogg_memory_file *file, uint32_t offset_low, int32_t 
 {
     return sound_ogg_seek_callback(file, offset_low, offset_high, whence);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

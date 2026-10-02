@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t transparent_geometry_group_count;           // 0x0071d154
 extern int16_t transparent_geometry_group_draw_cursor;     // 0x006d9838
@@ -132,4 +135,7 @@ void transparent_geometry_group_draw_all(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

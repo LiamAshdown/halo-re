@@ -31,6 +31,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, UNSURE argument; not in this batch
@@ -100,4 +103,7 @@ undefined4 FUN_004d9190(int param_1,int param_2)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

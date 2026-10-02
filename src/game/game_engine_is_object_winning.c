@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
@@ -107,4 +110,7 @@ uint FUN_00463660(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

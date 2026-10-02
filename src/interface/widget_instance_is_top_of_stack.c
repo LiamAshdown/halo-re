@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> widget
 // True if `widget` is reachable from the root purely by following focused_child (i.e. it is the
@@ -86,4 +89,7 @@ bool FUN_00499cb0(void)
   } while (iVar1 != 0);
   return bVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

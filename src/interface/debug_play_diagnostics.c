@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
@@ -322,3 +325,6 @@ void debug_fp_pre_draw(void)
     }
     ((debug_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 15, 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

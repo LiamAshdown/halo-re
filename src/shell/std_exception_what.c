@@ -13,9 +13,15 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 const char *__fastcall std_exception_what(uint8_t *self, void *unused_edx)
 {
     (void)unused_edx;
     return ((std_runtime_error *)self)->message.capacity >= 0x10 ? ((std_runtime_error *)self)->message.bx.pointer : ((std_runtime_error *)self)->message.bx.buffer;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

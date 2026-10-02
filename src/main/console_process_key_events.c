@@ -29,6 +29,9 @@
 #include "input.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern console_globals console_globals_data;         // 0x006b7020
 extern uint8_t chat_dialog_open;                 // 0x006b3858
@@ -191,4 +194,7 @@ char FUN_004c65c0(void)
   }
   return DAT_006b7020;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

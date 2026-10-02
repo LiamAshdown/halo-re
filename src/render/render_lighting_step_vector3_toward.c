@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Steps each of 3 floats in `current` toward the matching float in `target` by at most
 // `max_delta`, in place. Used to smooth cached lighting samples frame to frame instead of
@@ -69,4 +72,7 @@ void FUN_0050f520(float param_1)
   in_ECX[2] = fVar2 + in_ECX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

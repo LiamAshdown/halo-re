@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *terminal_messages;     // 0x006b2f00, "terminal output"
 extern datum_index console_message_head;  // 0x006b2f04, newest
@@ -86,4 +89,7 @@ void console_message_new(void)
   DAT_006b2f08 = uVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

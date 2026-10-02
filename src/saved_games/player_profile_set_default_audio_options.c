@@ -16,6 +16,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
 extern uint32_t cpu_speed; // machine class threshold
@@ -64,4 +67,7 @@ undefined4 FUN_0053b240(void)
   *(undefined1 *)(in_EAX + 0xb78) = 10;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

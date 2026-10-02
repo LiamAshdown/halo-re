@@ -24,6 +24,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char cpu_vendor_string[0x10];      // 0x006e35ac EBX/EDX/ECX of leaf 0, 12 bytes
 extern char cpu_brand_string[0x30];       // 0x006e357c EAX/EBX/ECX/EDX of leaves 0x80000002..4
@@ -268,4 +271,7 @@ undefined8 cpu_query_identification(void)
   }
   return CONCAT44(uVar6,uVar5);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

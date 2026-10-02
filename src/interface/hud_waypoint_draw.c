@@ -31,6 +31,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern player_globals *local_player_globals;  // 0x0087a478
@@ -418,4 +421,7 @@ void hud_waypoint_draw(undefined4 param_1,short param_2,short param_3,char param
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_client_globals *network_client;
 extern char network_player_entry_validate(void *entry); // 0x4de9f0, blam-cc: EAX -> entry
@@ -44,3 +47,6 @@ uint8_t ui_event_4a1570(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

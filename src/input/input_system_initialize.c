@@ -22,6 +22,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern di_object_data_format joystick_objects[k_input_joystick_object_count]; // 0x00879f60
 extern input_device input_devices[8];       // 0x006b1868
@@ -159,4 +162,7 @@ uint __cdecl input_system_initialize(void)
   _DAT_006b2cf4 = 0xffffffff;
   return 0xffffff01;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

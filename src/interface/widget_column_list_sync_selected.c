@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> widget
 void widget_column_list_sync_selected(widget_instance *widget)
@@ -54,4 +57,7 @@ void FUN_0049c040(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

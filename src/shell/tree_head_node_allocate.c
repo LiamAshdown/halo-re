@@ -22,6 +22,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // VERIFIED against disassembly 0x57cbf0..0x57cc26 (2026-09-30): malloc(0x30) (0x6277da = the game CRT malloc), left/parent/right = 0,
@@ -64,4 +67,7 @@ void tree_head_node_allocate(void)
   *(undefined1 *)((int)puVar1 + 0x2d) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

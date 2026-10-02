@@ -10,6 +10,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -22,3 +25,6 @@ void actor_mode_alert_target_cleared(datum_index actor_index)
     *(int16_t *)(mode_data + 0x34) = -1;
     *(int32_t *)(mode_data + 0x58) = -1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

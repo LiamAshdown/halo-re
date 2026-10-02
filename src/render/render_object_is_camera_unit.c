@@ -25,6 +25,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals; // 0x0087a478, game module
 extern data_array *player_data;              // 0x0087a480, game module
@@ -126,4 +129,7 @@ Disassembly (objdump -d -M intel, 0x50ea50..0x50eabf):
 0050ea9c:
   mov    al,ds:0x6869d0
   ...
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

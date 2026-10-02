@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -39,4 +42,7 @@ int FUN_00428180(void)
   }
   return (uint)uVar2 << 8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

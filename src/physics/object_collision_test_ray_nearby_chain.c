@@ -49,6 +49,9 @@
 #include "objects.h"
 #include "physics.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -280,4 +283,7 @@ FUN_005055b0(uint param_1,uint param_2,undefined4 param_3,undefined4 param_4,und
   } while (param_1 != 0xffffffff);
   return local_485;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

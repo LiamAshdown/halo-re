@@ -34,6 +34,9 @@
 #include "effects.h"
 #include "projectiles.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -825,4 +828,7 @@ void FUN_0044edc0(uint param_1,int param_2,float *param_3,float param_4,char par
   rejected-surface re-flood pass, the world-space triangle-fan conversion and the rasterizer geometry packing are
   all implemented in the live code above (decal_place_wrap_group and the emit loop), from the disassembly.]
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 
@@ -121,4 +124,7 @@ Disassembly (0x54e5d0..0x54e652, capstone; phase-4 review):
 0x54e64f: pop ebp
 0x54e650: pop ebx
 0x54e651: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t ui_event_49d440(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
@@ -20,3 +23,6 @@ uint8_t ui_event_49d440(widget_instance *widget, int16_t *event, uint8_t *out_ha
     widget->item_count = 0;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

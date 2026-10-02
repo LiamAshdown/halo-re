@@ -22,6 +22,9 @@
 
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; this module, 0x4425d0
 
@@ -130,4 +133,7 @@ void FUN_00442f00(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

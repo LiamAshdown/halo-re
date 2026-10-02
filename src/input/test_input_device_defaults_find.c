@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi); // this module, 0x491670,
     // blam-cc: ansi in ESI
@@ -96,4 +99,7 @@ esi-carried %s vararg that Ghidra's pseudo-C omits:
   4900f5: push   $0x669440             ; "Default profile in tag %d"
   4900fa: xor    %eax,%eax
   4900fc: call   0x496a80
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

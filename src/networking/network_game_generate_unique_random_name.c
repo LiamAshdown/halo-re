@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 extern wchar_t *network_game_get_random_player_name(void); // 0x4dea80, this batch
@@ -76,4 +79,7 @@ void network_game_generate_unique_random_name(wchar_t *param_1)
   param_1[0xb] = L'\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -34,6 +34,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, passed to FUN_005013a0 in ECX
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -215,4 +218,7 @@ Disassembly (0x4fb1c0..0x4fb339), resolved by objdump -d -M intel bin/halo.exe:
 004fb2de..004fb322:  for (i = 0; i <= antenna_tag->vertices.count; i++)
                         ant->vertices[i].position += delta;   (stride 0x20, base ant+0x1c)
 004fb324..004fb333:  ant->previous_marker_position = *unaff_EBX
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

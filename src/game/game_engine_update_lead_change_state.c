@@ -38,6 +38,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern uint8_t game_engine_teams_enabled_flag;       // 0x006f1cbc
@@ -229,4 +232,7 @@ Corrected control flow and register bindings, from objdump -d -M intel
   4708eb: mov ecx,[0x71c2d8] ; add ecx,0xb14 ; call 0x4705f0  ; ...(client+0xb14, leading_or_side, color)
   470909: call 0x470630                                   ; player_set_team_by_color(leading_or_side, color)
   4709a7: mov edx,[esp+0x10] ; mov eax,[esp+0x20] ; push edx ; call 0x463620  ; game_engine_player_round_reset()
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

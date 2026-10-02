@@ -14,6 +14,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int16_t network_game_mode; // 0x00719720
@@ -58,3 +61,6 @@ uint8_t game_engine_oddball_initialize_for_new_game(void)
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

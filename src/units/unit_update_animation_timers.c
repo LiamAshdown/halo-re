@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8
@@ -212,4 +215,7 @@ void FUN_00561620(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 static widget_instance *first_list_child(widget_instance *widget)
 {
@@ -49,3 +52,6 @@ void ui_game_data_input_4a6880(widget_instance *widget)
     }
     label->background_bitmap_frame = sum;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

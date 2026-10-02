@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 extern int32_t king_team_hill_seconds_network[16]; // 0x0087a7e0
@@ -147,4 +150,7 @@ void FUN_0046b7f0(int param_1,int param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

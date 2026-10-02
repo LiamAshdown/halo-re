@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;                           // 0x00746f8c, cache module
 extern uint8_t flying_camera_home_initialized;              // 0x006f17ff
@@ -148,4 +151,7 @@ void FUN_00446350(short param_1)
 objdump of the tail call Ghidra could not recover:
   44645c: mov DWORD PTR [esp+0x4],eax        ; the stack argument becomes the record
   446460: jmp DWORD PTR [edx*8+0x686ab4]     ; flying_camera_transition_procs[mode][1]
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

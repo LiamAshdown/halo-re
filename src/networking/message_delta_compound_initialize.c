@@ -6,6 +6,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t message_delta_compound_initialize(message_delta_field_type *field_type)
 {
@@ -29,3 +32,6 @@ uint8_t message_delta_compound_initialize(message_delta_field_type *field_type)
     }
     return result;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

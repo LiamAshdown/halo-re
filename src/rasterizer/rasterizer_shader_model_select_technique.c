@@ -23,6 +23,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_caps9 rasterizer_caps;                                    // 0x007c10c0
 extern rasterizer_window_parameters rasterizer_window;               // 0x007c1220
@@ -201,4 +204,7 @@ LAB_00527688:
 switchD_00527549_default:
   return (undefined4 *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

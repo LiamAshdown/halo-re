@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest); // 0x466530, blam-cc: ECX ticks
@@ -20,3 +23,6 @@ wchar_t *game_engine_king_build_player_text(datum_index player, wchar_t *buffer)
     game_time_format_minutes_seconds((uint32_t)((int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0xc4)), 0x100, buffer);
     return buffer;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

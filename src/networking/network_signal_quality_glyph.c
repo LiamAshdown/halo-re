@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: lookup code in EAX (in_EAX)
 uint8_t network_signal_quality_glyph(uint32_t code)
@@ -53,4 +56,7 @@ undefined4 FUN_00440610(void)
     return 0x31;
   }
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

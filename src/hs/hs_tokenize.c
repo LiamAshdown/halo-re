@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_new(data_array *array); // memory module, 0x004d0480
 extern void hs_tokenize_primitive(char **cursor, datum_index node_index); // 0x004861b0, this batch
@@ -76,4 +79,7 @@ uint hs_tokenize(undefined4 *param_1)
   hs_tokenize_nonprimitive();
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

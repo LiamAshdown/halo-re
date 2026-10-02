@@ -17,6 +17,9 @@
 
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device; // 0x0071d174
 
@@ -112,4 +115,7 @@ void FUN_004431a0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

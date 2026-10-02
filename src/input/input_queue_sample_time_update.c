@@ -17,6 +17,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t input_queue_sample_time;                      // 0x00712c34
 extern int64_t performance_frequency;                          // 0x006ac8f8/0x006ac8fc
@@ -47,4 +50,7 @@ void FUN_00492210(void)
   _DAT_00712c34 = __alldiv(uVar1,DAT_006ac8f8,DAT_006ac8fc);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

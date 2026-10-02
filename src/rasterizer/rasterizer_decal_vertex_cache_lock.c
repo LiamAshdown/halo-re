@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_decal_vertex_cache;                         // 0x0071d1bc IDirect3DVertexBuffer9
 extern uint8_t *rasterizer_decal_vertex_cache_handle;               // 0x0071d1c0 UNSURE: +0x2c shift, +0x3c data_array
@@ -74,4 +77,7 @@ undefined4 FUN_0051a770(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

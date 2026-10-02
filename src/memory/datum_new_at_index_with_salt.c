@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void datum_element_initialize(data_array *array, void *element); // blam-cc: array in EDX, element in ESI
 
@@ -76,4 +79,7 @@ uint datum_new_at_index_with_salt(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

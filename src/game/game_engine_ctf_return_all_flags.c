@@ -17,6 +17,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern Scenario *global_scenario; // 0x00746f8c
@@ -161,4 +164,7 @@ void FUN_0046efe0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

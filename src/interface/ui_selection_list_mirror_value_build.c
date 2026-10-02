@@ -24,6 +24,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
                                                   // (see types/interface.h player_control_settings note)
@@ -82,4 +85,7 @@ void FUN_004a6810(int param_1)
   *(undefined2 *)(*(int *)(iVar2 + 0x2c) + 0x58) = uVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern float render_camera_global[3];            // 0x007c3114
@@ -89,4 +92,7 @@ undefined4 FUN_00458b50(float param_1)
   }
   return CONCAT22((short)((uint)iVar7 >> 0x10),sVar10);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

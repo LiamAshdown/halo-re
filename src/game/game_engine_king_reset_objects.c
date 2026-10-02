@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
@@ -43,3 +46,6 @@ void game_engine_king_reset_objects(void)
     king_hill_state_006b1054 = 0;
     game_engine_koth_build_hill_boundary();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

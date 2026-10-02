@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;                             // 0x00746f8c
 extern data_array *encounter_data;                            // 0x008802c8
@@ -108,4 +111,7 @@ void __cdecl encounters_reset(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

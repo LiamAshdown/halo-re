@@ -17,6 +17,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 
@@ -64,4 +67,7 @@ undefined4 FUN_004736d0(void)
   }
   return CONCAT31((int3)(char)((ushort)*(short *)(iVar1 + 2) >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

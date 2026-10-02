@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void tree_iterator_increment(hwreq_map_node **iterator)
 {
@@ -84,4 +87,7 @@ void tree_iterator_increment(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

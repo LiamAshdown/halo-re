@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point2d *ai_default_2d_direction; // 0x006966ec, UNSURE: same fallback constant as ai_search_find_circle_tangent_point.c
 
@@ -97,4 +100,7 @@ LAB_0043d216:
   unaff_ESI[1] = local_c * param_1 + in_EDX[1];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

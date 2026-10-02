@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void network_channels_open(void);
 extern void network_handle_registry_close_all(void); // 0x441bb0
@@ -99,4 +102,7 @@ void * __cdecl network_receive_queue_new(void)
   }
   return puVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

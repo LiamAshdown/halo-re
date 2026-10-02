@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double pow(double x, double y);
 extern double sqrt(double x);
@@ -256,4 +259,7 @@ void FUN_004f2ff0(byte param_1,float *param_2,float param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Linear search for `value` in `array`, returning its index or -1 if it is not present (or the
@@ -71,4 +74,7 @@ int FUN_004ba870(void)
   }
   return iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

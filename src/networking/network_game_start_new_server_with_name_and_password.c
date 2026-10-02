@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_server_host_valid; // 0x0071c2dd
@@ -253,4 +256,7 @@ LAB_004e4285:
   FUN_004dde70();
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

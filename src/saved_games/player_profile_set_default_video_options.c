@@ -25,6 +25,9 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t rasterizer_gamma_exponent; // 0x0071d1e0, only its low byte is read here (mov al,ds:0x71d1e0)
 extern uint32_t safe_mode; // 0x007196f4, read as a dword (src/math/math_initialize.c name); nonzero selects the low-end defaults
@@ -214,4 +217,7 @@ undefined4 player_profile_set_default_video_options(int param_1,char param_2)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
     // 0x53f020, blam-cc: EAX, ECX
@@ -109,4 +112,7 @@ undefined4 FUN_00487820(undefined4 param_1,uint param_2)
   } while (iVar3 != -1);
   return CONCAT31(0xffffff,(char)param_2);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

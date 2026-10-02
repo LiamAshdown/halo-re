@@ -38,6 +38,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t profile_globals_block[]; // 0x00712dd8, UNSURE name; row stride 0x801 dwords
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, this module
@@ -230,4 +233,7 @@ char FUN_004d9f50(undefined1 *param_1,short param_2)
   }
   return local_204e;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

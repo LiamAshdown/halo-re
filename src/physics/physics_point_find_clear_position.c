@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_vector3d *global_down3d_pointer; // 0x0069672c
 extern float k_physics_displacement_directions[k_physics_displacement_direction_count][3]; // 0x0069c460
@@ -220,4 +223,7 @@ FUN_00507170(undefined4 param_1,float param_2,float param_3,float param_4,undefi
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

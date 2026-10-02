@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern hs_enum_definition hs_enum_definitions[5]; // 0x0065b638, indexed by (type - 0x20)
@@ -17,3 +20,6 @@ void hs_inspect_enum(int16_t type, int32_t value, char *buffer)
 {
     sprintf(buffer, "%s", hs_enum_definitions[type - 0x20].names[(int16_t)value]);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

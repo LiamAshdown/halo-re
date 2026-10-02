@@ -13,6 +13,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *object_network_id_table; // 0x00687130, UNSURE
 extern uint8_t event9_target;        // 0x00871de0, UNSURE
@@ -78,4 +81,7 @@ void FUN_0056c370(int *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -25,6 +25,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern file_enumeration_position file_enumeration_pos; // 0x0069fa5c
 extern uint32_t file_enumeration_flags_value; // 0x0069fa58
@@ -313,4 +316,7 @@ LAB_00555df1:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

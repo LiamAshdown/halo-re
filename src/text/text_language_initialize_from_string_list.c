@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "text.h"
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // text_encoding, text_justification and text_flags are already the names of this
 // module's enum typedefs (types/text.h), so the file-scope globals that hold their
@@ -117,4 +120,7 @@ void text_language_initialize_from_string_list(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

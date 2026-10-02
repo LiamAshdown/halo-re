@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode;              // 0x00719720
 extern int32_t update_client_write_cursor;      // 0x006887b0
@@ -56,4 +59,7 @@ undefined4 * update_client_queue_get_slot(void)
   }
   return (undefined4 *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

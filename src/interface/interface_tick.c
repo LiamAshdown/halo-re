@@ -50,6 +50,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_time_milliseconds;              // 0x00718f9c
 extern loading_thread_record *loading_thread;      // 0x00718fbc
@@ -664,4 +667,7 @@ LAB_00498316:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

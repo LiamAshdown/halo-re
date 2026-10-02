@@ -11,6 +11,9 @@
 // VERIFIED against disassembly 0x4e0790..0x4e0805 (2026-09-30): four dwords = "message in a bot"; 5th dword never written
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Fills a 20-byte scratch buffer with the literal placeholder text "message in a bot".
 void network_debug_fill_canary_buffer(uint32_t *buffer)
@@ -37,4 +40,7 @@ void FUN_004e0790(void)
   in_EAX[3] = 0x746f6220;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

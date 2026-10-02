@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t local_player_name_filter[0x400]; // this module, 0x0071c420
 
@@ -78,4 +81,7 @@ void player_update_history_log_printf_filtered(undefined4 param_1,char *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

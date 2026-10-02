@@ -14,6 +14,9 @@
 #include "math.h"
 #include "interface.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern int64_t performance_frequency; // 0x006ac8f8, foreign (math module)
@@ -51,4 +54,7 @@ void __cdecl game_timer_reset(void)
   DAT_00719708 = __alldiv(uVar1,DAT_006ac8f8,DAT_006ac8fc);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

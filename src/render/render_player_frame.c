@@ -38,6 +38,9 @@
 #include "game.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern render_fog render_fog_state;                  // 0x007c32f4, this module (named
                                                      // render_fog_state; a variable cannot share
@@ -381,4 +384,7 @@ render_camera_mirror's own prologue (0x50c660) confirms EBX is a real register p
   mov    esi,ebx                        ; source = EBX
   mov    edi,ebp                        ; dest = out camera
   rep movs DWORD PTR es:[edi],DWORD PTR ds:[esi]   ; copies the whole render_camera (0x15 dwords)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

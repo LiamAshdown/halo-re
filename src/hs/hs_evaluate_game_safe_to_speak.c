@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint32_t game_no_player_is_dead(void); // 0x45bbe0
@@ -18,3 +21,6 @@ void hs_evaluate_game_safe_to_speak(int16_t function_index, uint32_t thread_inde
 {
     hs_thread_return((int32_t)(uint8_t)game_no_player_is_dead(), thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

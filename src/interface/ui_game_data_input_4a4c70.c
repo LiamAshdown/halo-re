@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void ui_game_data_input_4a4c70(widget_instance *widget)
 {
@@ -34,3 +37,6 @@ void ui_game_data_input_4a4c70(widget_instance *widget)
     label->background_bitmap_frame = index;
     list->selection_index = index;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -27,6 +27,9 @@
 #include "networking.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t selected_saved_item;      // 0x00714e7c
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80; see UNSURE note above
@@ -144,4 +147,7 @@ void __cdecl controls_build_device_label_table(void)
   } while (iVar8 < 4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

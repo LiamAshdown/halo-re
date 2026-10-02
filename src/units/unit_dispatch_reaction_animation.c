@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -94,4 +97,7 @@ void FUN_005614a0(short param_1)
   (*(code *)(&PTR_LAB_00561604)[param_1])();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

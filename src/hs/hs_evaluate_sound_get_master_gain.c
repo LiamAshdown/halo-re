@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern float sound_master_gain; // 0x007252ac
@@ -18,3 +21,6 @@ void hs_evaluate_sound_get_master_gain(int16_t function_index, uint32_t thread_i
 {
     hs_thread_return(*(int32_t *)&sound_master_gain, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

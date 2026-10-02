@@ -24,6 +24,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                     // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -181,4 +184,7 @@ LAB_0046356f:
   uStack_1c = CONCAT22(uStack_1c._2_2_,uVar4);
   return uStack_1c;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

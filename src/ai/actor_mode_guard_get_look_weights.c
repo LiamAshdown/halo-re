@@ -12,6 +12,9 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -41,3 +44,6 @@ void actor_mode_guard_get_look_weights(datum_index actor_index, float *out_weigh
     out_weights[2] = source[2];
     out_weights[3] = source[3];
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

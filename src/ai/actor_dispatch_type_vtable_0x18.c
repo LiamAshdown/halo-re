@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern void *actor_type_procs[16];  // 0x006853b8
@@ -40,4 +43,7 @@ void actor_dispatch_type_vtable_0x18(void)
             ();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

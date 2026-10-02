@@ -18,6 +18,9 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -148,3 +151,6 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
     path_delta->j = axis.j;
     return escapes;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

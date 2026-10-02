@@ -23,6 +23,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_channel_key_resolve_target(network_player_entry *entry); // 0x4ddcc0, this batch
 extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index,
@@ -71,4 +74,7 @@ undefined4 FUN_004de8c0(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_event_queue input_event_queue_active;                    // 0x00712cc0
 extern int64_t performance_frequency;                           // 0x006ac8f8/0x006ac8fc
@@ -77,4 +80,7 @@ void FUN_00492340(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

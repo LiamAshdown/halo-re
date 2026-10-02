@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "scenario.h"
 #include <string.h> // strcmp: an inlined byte-compare loop in the original
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> scenario, stack -> name
 // Linear-scans scenario->object_names for an entry whose name exactly matches `name`,
@@ -95,4 +98,7 @@ offsets/stride:
   ...
   53ec18: or     ax,0xffff                     ; not found: return -1
   53ec1e: mov    ax,di                         ; found: return index
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -26,6 +26,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -260,4 +263,7 @@ void FUN_00422ec0(uint param_1)
 Ground truth from objdump (bin/halo.exe @ 0x422ec0..0x422ff1) confirming EAX = actor_index
 throughout (not param_1) and the exact register setup for every truncated call; see file
 header.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

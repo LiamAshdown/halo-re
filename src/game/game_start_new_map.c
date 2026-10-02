@@ -22,6 +22,9 @@
 #include "game.h"
 #include "scenario.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern random_seed random_seed_global; // 0x00719cd0
@@ -439,4 +442,7 @@ void FUN_0045b050(void)
   FUN_00435d50();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

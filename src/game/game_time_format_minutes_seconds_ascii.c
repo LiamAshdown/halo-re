@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest)
 {
@@ -26,3 +29,6 @@ void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char
     _snprintf(seconds_text, 0x40, seconds <= 9 ? "0%d" : "%d", seconds); // 0x00660784
     _snprintf(dest, count, "%s:%s", minutes_text, seconds_text); // 0x0066077c
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

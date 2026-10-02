@@ -28,6 +28,9 @@
 #include "sound.h"
 #include <string.h>
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *sound_cache_memory;            // 0x006ac554
 extern int32_t sound_cache_size_megabytes;  // 0x006869c4
@@ -201,4 +204,7 @@ Disassembly (0x545860..0x54591a, capstone; phase-4 review):
 0x545916: sub eax, ecx
 0x545918: pop ebp
 0x545919: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
 extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex,
@@ -76,4 +79,7 @@ void FUN_00503a60(int param_1,undefined4 param_2,undefined4 param_3)
   FUN_00503360(param_2,param_3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

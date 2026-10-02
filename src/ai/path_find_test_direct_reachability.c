@@ -28,6 +28,9 @@
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
     ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin,
@@ -130,4 +133,7 @@ undefined1 FUN_0043a0a0(int param_1,undefined1 *param_2)
   }
   return uVar12;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value); // 0x4f0530
@@ -81,4 +84,7 @@ undefined4 FUN_004e9d40(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

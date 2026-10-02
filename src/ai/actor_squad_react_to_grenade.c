@@ -17,6 +17,9 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *prop_data;      // 0x008802c0
@@ -167,4 +170,7 @@ void actor_squad_react_to_grenade(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -46,6 +46,9 @@
 
 #if defined(_MSC_VER)
 #include <excpt.h>   // GetExceptionInformation is the _exception_info intrinsic, not a function
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 #define WINMAIN_TRY __try
 #define WINMAIN_EXCEPT __except (exception_filter_crash_reporter((win32_exception_pointers *)GetExceptionInformation()))
 #else
@@ -722,4 +725,7 @@ LAB_00541532:
   ExceptionList = local_14;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

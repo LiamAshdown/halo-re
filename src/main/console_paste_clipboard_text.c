@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern terminal_console *console_active; // 0x006b2f0c
 extern console_globals console_globals_data;  // 0x006b7020 (0x006b7024 is &console_globals_data.terminal)
@@ -80,4 +83,7 @@ Disassembly (0x4c6570..0x4c65b5):
 004c65ae:  pop    ebx
 004c65af:  add    esp,0x100
 004c65b5:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

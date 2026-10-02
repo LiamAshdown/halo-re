@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transforms a normal/direction into a matrix4x3's local space using only the transposed
 // rotation.
@@ -49,4 +52,7 @@ void matrix4x3_inverse_transform_normal(int param_1)
               fVar2 * *(float *)(param_1 + 0x20) + fVar3 * *(float *)(param_1 + 0x24);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

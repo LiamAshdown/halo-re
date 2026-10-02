@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> node_index, ECX -> bsp, EDX -> point
 uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
@@ -66,4 +69,7 @@ uint FUN_005013a0(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

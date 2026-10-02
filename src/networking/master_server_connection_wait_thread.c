@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t master_server_request_flags; // 0x0071969c
 extern network_thread_record *server_list_thread; // 0x007196ac, see UNSURE
@@ -105,4 +108,7 @@ void FUN_004b6070(void)
   DAT_007196a8 = (undefined4 *)0x0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

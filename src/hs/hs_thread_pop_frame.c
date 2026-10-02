@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_thread_data; // 0x0087a470
 
@@ -34,4 +37,7 @@ void FUN_0048a770(void)
   *(undefined4 *)(iVar1 + 0x10) = **(undefined4 **)(iVar1 + 0x10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

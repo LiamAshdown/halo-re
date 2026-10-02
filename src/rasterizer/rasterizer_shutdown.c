@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_scratch_memory;      // 0x0071d13c
 extern uint32_t rasterizer_scratch_memory_used; // 0x0071d140
@@ -186,4 +189,7 @@ void __cdecl rasterizer_shutdown(void)
   DAT_0071d178 = (int *)0x0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

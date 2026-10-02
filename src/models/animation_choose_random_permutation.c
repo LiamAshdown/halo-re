@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern random_seed random_seed_global; // 0x00719cd0
@@ -99,4 +102,7 @@ undefined4 FUN_004d6280(int param_1)
   } while (in_DX != -1);
   return CONCAT22(uVar5,in_DX);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

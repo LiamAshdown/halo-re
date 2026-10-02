@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 void hwreq_string_destruct(msvc_std_string *self)
@@ -43,4 +46,7 @@ void hwreq_string_destruct(void)
   *(undefined1 *)(unaff_ESI + 4) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint8_t unit_local_player_weapon_flag_check(void); // 0x565b00
@@ -22,3 +25,6 @@ void hs_evaluate_unit_solo_player_integrated_night_vision_is_active(int16_t func
     uint8_t active = unit_local_player_weapon_flag_check();
     hs_thread_return((int32_t)active, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

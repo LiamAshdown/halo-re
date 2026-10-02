@@ -18,6 +18,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void update_server_push_player_tick_history(void); // other module (UNSURE)
 extern void game_engine_tick(void); // other module, already named
@@ -126,4 +129,7 @@ void FUN_004e03c0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

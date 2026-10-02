@@ -15,6 +15,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type,
     particle_system *system) // blam-cc: in_EAX, in_ECX, stack
@@ -102,4 +105,7 @@ void FUN_004543b0(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

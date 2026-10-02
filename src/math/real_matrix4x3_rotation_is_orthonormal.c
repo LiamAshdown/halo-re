@@ -18,6 +18,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t vector3d_is_unit_length(real_vector3d *v); // 0x4476e0, v in EAX
 extern uint8_t real_approximately_equal(real a, real b); // 0x447680
@@ -78,4 +81,7 @@ undefined4 FUN_005579e0(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

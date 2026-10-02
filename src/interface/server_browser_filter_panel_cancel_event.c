@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_filter_panel_mode; // 0x007196b4
 
@@ -40,3 +43,6 @@ uint8_t server_browser_filter_panel_cancel_event(widget_instance *widget, int16_
     server_browser_filter_panel_mode = 0;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

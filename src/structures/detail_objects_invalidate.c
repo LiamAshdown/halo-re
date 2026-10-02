@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *detail_objects; // 0x0072277c
 
@@ -16,3 +19,6 @@ void detail_objects_invalidate(void)
 {
     detail_objects[0x520e] = 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

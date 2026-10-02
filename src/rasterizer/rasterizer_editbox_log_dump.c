@@ -23,6 +23,9 @@
 #include "rasterizer.h"
 #include <wchar.h>
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
 extern void *(*unknown_00721ea0)(void *hwnd, void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e); // 0x00721ea0 UNSURE: engine factory
@@ -173,4 +176,7 @@ void rasterizer_editbox_log_dump(void)
   (*DAT_00721eb4)(DAT_00721ea4,&puStack_80,PTR_PTR_0069c69c,0x10000000,&uStack_d0,0,0,0,0,0,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void **rasterizer_effect_pool_scratch; // 0x0071d278 UNSURE: &effects[48], types/rasterizer.h rasterizer_effect_slot
 extern void *rasterizer_device;              // 0x0071d174
@@ -59,4 +62,7 @@ void FUN_00512150(void)
   (**(code **)(*DAT_0071d174 + 0x164))(DAT_0071d174,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

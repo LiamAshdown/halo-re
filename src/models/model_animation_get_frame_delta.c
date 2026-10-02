@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
                                               int16_t frame, real_orientation *out_orientations); // 0x4d4a80
@@ -108,4 +111,7 @@ objdump -d -M intel --start-address=0x4d4a00 --stop-address=0x4d4a80 bin/halo.ex
 004d4a6c:  d9 5b 08              fstp   DWORD PTR [ebx+0x8]
 004d4a6f:  81 c4 00 10 00 00     add    esp,0x1000
 004d4a75:  c3                    ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

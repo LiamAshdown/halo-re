@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4 (named _state;
                                              // a variable cannot share the typedef's own name in C)
@@ -43,4 +46,7 @@ float10 FUN_005121a0(void)
   }
   return fVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

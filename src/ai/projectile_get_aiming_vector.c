@@ -44,6 +44,9 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin,
     real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc,
@@ -131,4 +134,7 @@ void FUN_004beec0(int param_1,undefined4 param_2,undefined4 param_3,undefined4 p
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

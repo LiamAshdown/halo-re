@@ -28,6 +28,9 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern render_frustum render_frustum_global; // 0x007c3168, this module
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
@@ -139,4 +142,7 @@ void FUN_00511620(void)
   *(uint *)(unaff_ESI + 0x10) = *(uint *)(unaff_ESI + 0x10) & 0xfffffffb;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

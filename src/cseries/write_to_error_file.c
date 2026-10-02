@@ -22,6 +22,9 @@
 #include "tags.h"
 #include "cseries.h"
 #include <time.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Globals this module reads but does not own (see types/cseries.h "Globals this module reads
 // but does not own"): the shell zeroes both at startup.
@@ -153,4 +156,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) confirms the fopen/mode argument
   4494ec: call 0x624186               ; FUN_00624186(path, "a+b")
   4494f1: mov esi,eax
   4494f3: add esp,0x8                 ; pops both the path and the mode string in one shot
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t bit_stream_write_bits(uint32_t bit_count, uint32_t value, bit_stream *stream);
 
@@ -81,4 +84,7 @@ int FUN_004cf8f0(int param_1)
 LAB_004cf939:
   return param_1 - iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

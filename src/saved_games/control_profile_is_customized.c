@@ -13,6 +13,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: profile in EDI, gamepad_index in EBX
 // True if the gamepad slot is in use (a nonzero first name word) and any of its button, action,
@@ -115,4 +118,7 @@ void control_profile_is_customized(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

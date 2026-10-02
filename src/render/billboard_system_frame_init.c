@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float build_sprite_screen_coverage;      // 0x007c30c4
 extern int16_t build_sprite_large_quad_count;   // 0x007c30c8
@@ -69,4 +72,7 @@ void FUN_00511410(void)
   _DAT_007c30e4 = _DAT_007c3184 * fVar1 + _DAT_007c3190 * fVar2 + _DAT_007c319c * fVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

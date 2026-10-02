@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Given a global surface index, finds which lightmap and which material within it owns that
 // surface (materials own a contiguous, monotonically increasing run of surface indices via
@@ -153,4 +156,7 @@ void FUN_00552110(int param_1,int param_2,short *param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

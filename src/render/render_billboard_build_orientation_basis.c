@@ -25,6 +25,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // billboard_basis: folded into types/render.h (phase-4 review).
 
@@ -140,4 +143,7 @@ reassigned mid-function to &out_basis.tertiary (edi+0x1c) for the render_type 2 
 dot(build_sprite_view_up, normal) * 0x672f20 against a parity-tested threshold and defaults to
 build_sprite_view_left in the disassembled path -- see the UNSURE note above; every field target,
 call, and the -90 degree (sin=-1, cos=0) rotation are exact.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

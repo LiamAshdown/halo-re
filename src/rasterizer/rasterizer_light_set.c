@@ -36,6 +36,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_caps9 rasterizer_caps;                      // 0x007c10c0
 extern void *rasterizer_device;                        // 0x0071d174
@@ -200,4 +203,7 @@ void rasterizer_light_set(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

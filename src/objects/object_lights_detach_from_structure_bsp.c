@@ -15,6 +15,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data;                     // 0x00860b14
 extern cluster_reference_group light_cluster_first; // 0x00860b20
@@ -39,3 +42,6 @@ void object_lights_detach_from_structure_bsp(void)
         }
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

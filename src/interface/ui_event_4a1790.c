@@ -24,6 +24,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_client_globals *network_client;
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
@@ -96,3 +99,6 @@ uint8_t ui_event_4a1790(widget_instance *widget, int16_t *event, uint8_t *out_ha
     local_team_00714dd8[0] = coop_profile_globals_block_00714ddc[0];
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

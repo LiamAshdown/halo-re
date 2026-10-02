@@ -22,6 +22,9 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point3d render_camera_global; // 0x007c3114 (render camera block +0x14)
 extern real_vector3d camera_forward_x; // 0x007c3120 (render camera block +0x20)
@@ -72,4 +75,7 @@ uint FUN_00554a20(float param_1)
   }
   return in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

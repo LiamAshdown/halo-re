@@ -37,6 +37,9 @@
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
 #include <string.h>
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -919,4 +922,7 @@ LAB_00567b40:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

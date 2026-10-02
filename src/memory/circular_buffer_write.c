@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: byte count in EAX, stream in EDX, source buffer as the recognized parameter
 // Writes byte_count bytes from source into the circular buffer, wrapping at capacity and
@@ -132,4 +135,7 @@ undefined4 circular_buffer_write(undefined4 *param_1)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -42,6 +42,9 @@
 #include <string.h>
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t player_effect_reentry_count; // 0x00719ccc, foreign (effects module)
 extern main_globals main_globals_data;      // 0x00719700
@@ -312,4 +315,7 @@ LAB_004c9505:
   DAT_00719ccc = DAT_00719ccc + -1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

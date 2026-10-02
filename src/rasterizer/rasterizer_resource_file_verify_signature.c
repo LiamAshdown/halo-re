@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void tea_decrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key); // 0x618350, TEA over 8-byte blocks
 extern void md5_hex_digest(const uint8_t *data, int32_t length, char *out); // 0x61a730, MD5 as 32 hex digits + NUL
@@ -95,4 +98,7 @@ uint FUN_00519980(void)
   } while (bVar4);
   return (uint)bVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

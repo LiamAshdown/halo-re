@@ -7,6 +7,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double floor(double x);
 extern uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, real minimum, real maximum); // 0x4ea480
@@ -25,3 +28,6 @@ int32_t message_delta_quantized_real_encode(message_delta_field_type *field_type
     }
     return bit_stream_write_bits_chunked(stream, &level, (int32_t)descriptor[0]);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

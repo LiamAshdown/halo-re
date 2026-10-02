@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -259,4 +262,7 @@ The listing is reproduced verbatim in out/phase2/ai and is not duplicated here b
 local-variable aliasing (local_3c never assigned, fVar4 used both as
 ActorVariant.new_target_firing_pattern_time and as a pointer) is described in the UNSURE
 block at the top of this file rather than being reproducible line by line.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

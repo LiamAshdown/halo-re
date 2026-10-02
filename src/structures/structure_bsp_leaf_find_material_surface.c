@@ -33,6 +33,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
@@ -169,4 +172,7 @@ uint FUN_00554fa0(undefined4 param_1,int param_2,short *param_3,short *param_4,u
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

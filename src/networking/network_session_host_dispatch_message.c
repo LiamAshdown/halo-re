@@ -15,6 +15,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
@@ -110,4 +113,7 @@ void FUN_00577e40(int param_1,undefined4 param_2,undefined4 param_3)
   FUN_00615590(param_3,&DAT_0065512c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

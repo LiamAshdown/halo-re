@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns 1.0 while `value` is at or below half of `max_range`, 0.0 once it reaches or exceeds
 // `max_range`, and linearly interpolates between those two bounds in between. Used to turn a
@@ -46,4 +49,7 @@ float10 FUN_00459360(float param_1,float param_2)
   }
   return ((float10)param_2 - (float10)param_1) / ((float10)param_2 - (float10)fVar1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

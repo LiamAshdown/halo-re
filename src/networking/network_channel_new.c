@@ -24,6 +24,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern network_channel_list *network_channel_list_new(int16_t requested_capacity); // 0x441960, this module
@@ -161,4 +164,7 @@ LAB_004dca7f:
   network_channel_delete(channel);
   return (int *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

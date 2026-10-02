@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t controls_input_capture_flags;                    // 0x00712542
 extern player_globals *local_player_globals;        // 0x0087a478
@@ -245,4 +248,7 @@ command.timer, and local_40/3e/38/30 as the position/distance channel snap field
 0x44575c: mov byte ptr [esp + 0x5c], al     ; 0x5c-0x10 = 0x4c == interpolation_flags[0] (position), al == 3
 0x445760: mov dword ptr [esp + 0x6c], 0     ; 0x6c-0x10 = 0x5c == channel_times[2] (distance)
 0x445768: mov byte ptr [esp + 0x5e], al     ; 0x5e-0x10 = 0x4e == interpolation_flags[2] (distance)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -30,6 +30,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef int32_t (*network_game_message_handler_proc)(network_client_globals *client, const void *record,
     int32_t record_length, const uint32_t *sender);
@@ -156,4 +159,7 @@ undefined4 network_game_message_decode_dispatch(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_disabled_flag; // 0x007196ec
 
@@ -28,3 +31,6 @@ void ui_handler_4a68f0(uint8_t *widget)
         *(uint32_t *)(record + 0x24) = 0x3eaa7efa;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_data; // 0x007252c0, "sounds" 0x200 x 0xb0
@@ -47,3 +50,6 @@ void sound_channel_parameters_proc_eax(int16_t channel_index, sound_channel_para
     ((void (*)(int16_t, sound_channel_parameters *, uint8_t, uint8_t, int16_t))
         current_sound_driver->channel_set_parameters)(channel_index, parameters, update, first_person, sound_class);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

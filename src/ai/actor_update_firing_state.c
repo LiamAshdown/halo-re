@@ -21,6 +21,9 @@
 #include "ai.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -477,4 +480,7 @@ Actor tag pointer and later a byte pair, local_24 is first the weapon tag pointe
 cosine, local_18 / local_14 / local_10 are read before assignment on one branch). It is kept
 in out/phase2/ai rather than duplicated here; the aliasing is described in the UNSURE block
 at the top of this file.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

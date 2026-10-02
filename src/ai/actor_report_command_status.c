@@ -17,6 +17,9 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -153,4 +156,7 @@ switchD_004048eb_default:
 switchD_004048eb_caseD_6:
   goto switchD_004048eb_default;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

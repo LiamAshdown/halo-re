@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void byte_swap_array(int32_t size_code, uint32_t *array, int32_t count); // blam-cc: size code EAX, array ECX, count EDX
 
@@ -52,4 +55,7 @@ undefined4 byte_stream_read_long(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

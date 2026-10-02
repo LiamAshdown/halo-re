@@ -26,6 +26,9 @@
 #include "cseries.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char profile_directory[k_profile_directory_storage_size]; // 0x006ac900
 
@@ -148,4 +151,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) fills in the arguments Ghidra dr
   44943f: add esp,0x18
   449442: add esp,0x10c
   449448: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_location_object_marker(datum_index owner, void *callback_data, sound_location *location); // 0x5448c0
 extern datum_index sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index,
@@ -123,4 +126,7 @@ Disassembly (0x543ce0..0x543d7c, capstone; phase-4 review):
 0x543d77: pop edi
 0x543d78: add esp, 0x5c
 0x543d7b: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

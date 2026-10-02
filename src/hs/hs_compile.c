@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *hs_source_buffer_append(char *text, uint32_t length); // 0x004856f0, this batch
 extern void skip_whitespace(char **cursor); // 0x00486350, this batch
@@ -139,4 +142,7 @@ hs_compile(int source_length_field,int source_ptr_field,int *error_message,int *
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

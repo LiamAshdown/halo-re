@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -120,4 +123,7 @@ void FUN_004aa310(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

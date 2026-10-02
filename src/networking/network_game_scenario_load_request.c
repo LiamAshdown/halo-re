@@ -28,6 +28,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -208,4 +211,7 @@ char __cdecl network_game_scenario_load_request(int param_1)
 LAB_004de854:
   return *(char *)(param_1 + 0x3ac);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

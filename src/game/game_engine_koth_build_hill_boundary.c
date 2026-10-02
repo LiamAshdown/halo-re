@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern int32_t king_starting_location_type; // 0x006b1064, UNSURE exact identity (see PLAN.md
@@ -256,4 +259,7 @@ void FUN_0046a240(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

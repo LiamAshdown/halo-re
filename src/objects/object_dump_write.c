@@ -19,6 +19,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -69,4 +72,7 @@ void object_dump_write(FILE *param_1)
            (int)*(short *)((int)in_EAX + 0x16),(int)*(short *)((int)in_EAX + 6),in_EAX[2],pcVar1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

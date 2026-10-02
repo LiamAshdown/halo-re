@@ -18,6 +18,9 @@
 #include "units.h"
 #include "cutscene.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *recorded_animations; // 0x006b0a10
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0
@@ -68,4 +71,7 @@ undefined4 recorded_animation_object_is_playing(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // cos/sin are single x87 FCOS/FSIN instructions in the original code (Ghidra's fcos()/fsin()
 // pseudo-calls); declared locally instead of via <math.h> because -I types shadows that header
@@ -82,4 +85,7 @@ void matrix4x3_from_euler_angles(float param_1,float param_2,float param_3)
   in_EAX[9] = (float)((float10)fVar1 * fVar2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

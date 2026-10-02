@@ -9,6 +9,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t fistp_round(float x); // harness/x87_shims.c: FISTP in the current (round-to-nearest-even) mode
 
@@ -32,4 +35,7 @@ uchar __cdecl color_channel_real_to_byte(float param_1)
   local_4 = (uchar)(int)ROUND(param_1 * 255.0);
   return local_4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

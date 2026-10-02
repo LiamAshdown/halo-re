@@ -11,6 +11,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern int32_t slayer_team_score[16]; // 0x006b13d8
@@ -25,3 +28,6 @@ void game_engine_slayer_reset_objects(void)
         memset(slayer_player_score, 0, sizeof(slayer_player_score));
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

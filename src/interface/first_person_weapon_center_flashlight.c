@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
@@ -131,4 +134,7 @@ Disassembly (objdump, 0x492b80..0x492c2b) pinning the object_marker offsets used
   492c0d: mov eax,[esp+0x58]           ; [esp+0x58] == marker+0x54 == node_transform.up.i
   492c1f: mov [esi],eax                ; out_direction->i = node_transform.up.i
   ; (.j/.k of both follow the same +4/+8 pattern)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

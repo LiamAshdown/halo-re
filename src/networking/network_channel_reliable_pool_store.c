@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *channel,
     int32_t body_capacity_needed, int32_t header_capacity_needed); // 0x4dcc30, this batch
@@ -92,4 +95,7 @@ void FUN_004dcdb0(int param_1,undefined4 *param_2,undefined4 *param_3,undefined4
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

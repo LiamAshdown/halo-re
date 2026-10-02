@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_decode_block_proc k_sound_decode_procs[3]; // 0x0065e640
 extern sound_decode_block_proc sound_decode_proc;       // 0x00724a48
@@ -127,4 +130,7 @@ Disassembly (0x54e830..0x54e8b9, capstone; phase-4 review):
 0x54e8b6: pop esi
 0x54e8b7: pop ecx
 0x54e8b8: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

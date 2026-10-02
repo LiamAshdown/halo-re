@@ -12,6 +12,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -76,4 +79,7 @@ bool FUN_004017b0(uint param_1)
   }
   return *(short *)(iVar3 + iVar1 + 0x280) == 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

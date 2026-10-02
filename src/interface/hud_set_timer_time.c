@@ -15,6 +15,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hud_messaging_globals *hud_messaging;  // 0x006b3a40
 extern game_time_globals *game_time;          // 0x006f1d6c
@@ -68,4 +71,7 @@ void FUN_004adbf0(void)
   *(short *)(iVar2 + 0x484) = sVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

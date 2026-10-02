@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *object_network_id_table; // 0x00687130, the pooled-node table (+0x28: key -> object index)
 
@@ -141,4 +144,7 @@ void FUN_0056ddb0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

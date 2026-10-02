@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EBX -> queue, stack -> source
 // Copies record_size bytes from `source` into the queue's next free slot and advances
@@ -89,4 +92,7 @@ uint circular_queue_push(undefined4 *param_1)
   }
   return uVar3 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

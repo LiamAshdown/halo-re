@@ -22,6 +22,9 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: CL -> pixel_uvs, ESI -> bitmap, EDX -> uv, EAX -> out_extents, stack -> anchor
 // Size of one HUD bitmap quad in screen pixels, laid out around its anchor point. uv is the
@@ -104,4 +107,7 @@ void FUN_004acc50(short param_1)
   (*(code *)(&PTR_LAB_004acd34)[param_1])((in_EDX[1] - *in_EDX) * (float)iVar1,iVar2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

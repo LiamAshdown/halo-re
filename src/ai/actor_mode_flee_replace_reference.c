@@ -10,6 +10,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -23,3 +26,6 @@ void actor_mode_flee_replace_reference(datum_index actor_index, datum_index old_
         ((struct actor *)act)->mode_data.flee.reference = new_reference;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

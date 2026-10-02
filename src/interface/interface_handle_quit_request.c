@@ -24,6 +24,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ui_force_quit;   // 0x00718fca
 extern uint8_t ui_split_screen; // 0x00718fc9
@@ -102,4 +105,7 @@ void interface_handle_quit_request(void)
   DAT_00718fca = '\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

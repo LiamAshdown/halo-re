@@ -13,6 +13,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -48,3 +51,6 @@ wchar_t *game_engine_king_build_score_header_text(wchar_t *buffer)
     wcscpy(buffer, (const wchar_t *)multiplayer_text(0x9e));
     return buffer;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

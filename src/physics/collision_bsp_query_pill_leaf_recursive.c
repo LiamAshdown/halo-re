@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t collision_bsp_query_pill_leaf_test_surface(collision_bsp_pill_query *query,
                                                             int32_t surface_index); // 0x502e70, this batch
@@ -106,4 +109,7 @@ undefined4 FUN_00502d60(int *param_1,uint param_2)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

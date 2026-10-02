@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t local_player_name_filter[0x400]; // 0x0071c420, see player_update_history_log_printf_filtered.c
 
@@ -78,4 +81,7 @@ through concretely for L=0,1,2,3 to resolve Ghidras off-by-one-looking address a
   4e5fc7: mov WORD PTR [eax*2+0x71c422],cx    ; player_update_log_filter_name[eax+1] = name[eax+1]
   (the loop eax runs length-2 .. -1, so eax+1 runs length-1 .. 0 -- every index of name is
   covered exactly once)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

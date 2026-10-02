@@ -8,6 +8,9 @@
 // blam-cc: cdecl (a GT2 connection callback)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct network_receive_queue network_receive_queue;
 extern void *gt2GetConnectionData(void *connection); // 0x614840 gt2GetConnectionData
@@ -23,3 +26,6 @@ void network_channel_gap_441f30(void *connection)
         queue[0x0c] |= 0x40;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

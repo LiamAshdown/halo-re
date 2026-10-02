@@ -30,6 +30,9 @@
 #include "game.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode;   // 0x00719720
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -127,4 +130,7 @@ void FUN_0045b680(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

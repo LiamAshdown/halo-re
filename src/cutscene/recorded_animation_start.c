@@ -35,6 +35,9 @@
 #include "objects.h"
 #include "scenario.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;           // 0x00746f8c
 extern data_array *recorded_animations;     // 0x006b0a10
@@ -196,4 +199,7 @@ LAB_0044a9c8:
   }
   return uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

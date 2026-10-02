@@ -24,6 +24,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *light_volume_instances; // 0x006b8d70, UNSURE: raw table, no struct defined
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -136,4 +139,7 @@ LAB_004fe95a:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

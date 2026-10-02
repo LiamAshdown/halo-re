@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_profile player_profile_cache[16];     // 0x006b0b88
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -96,4 +99,7 @@ Raw disassembly (objdump -d -M intel --start-address=0x466cb0 --stop-address=0x4
 00466cf3:  call eax                  ; callback(EBX=commit, stack=ecx)
 00466cf5:  add esp,0x8
 00466cf8:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

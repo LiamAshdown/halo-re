@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_data;          // 0x007252c0
 extern data_array *looping_sound_data;  // 0x00724a50
@@ -180,4 +183,7 @@ Disassembly (0x549760..0x549806, capstone; phase-4 review):
 0x5497fe: mov dword ptr [0x6ac52c], ebx
 0x549804: pop ebx
 0x549805: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

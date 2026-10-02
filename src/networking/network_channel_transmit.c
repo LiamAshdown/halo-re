@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_pending_connection_count; // 0x006f16d0
@@ -266,4 +269,7 @@ LAB_004dd7e3:
   QueryPerformanceCounter(local_5028);
   return local_5035;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

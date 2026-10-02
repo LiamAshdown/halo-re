@@ -27,6 +27,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
                                                      ai_grenade_avoidance_entry *out_entries); // 0x0042afc0
@@ -202,4 +205,7 @@ segment3d_within_radius_of_segment:
 0042b25f: mov    al,[esp+0x3]             ; return clear
 0042b263: add    esp,0x50c
 0042b269: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

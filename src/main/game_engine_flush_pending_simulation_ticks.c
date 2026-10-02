@@ -20,6 +20,9 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern game_time_globals *game_time;   // 0x006f1d6c, foreign (game module)
@@ -78,4 +81,7 @@ void __cdecl game_engine_flush_pending_simulation_ticks(void)
   DAT_0071976c = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

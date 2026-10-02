@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern uint32_t random_seed_global; // 0x00719cd0
@@ -122,4 +125,7 @@ FUN_00403630(uint param_1,ushort param_2,undefined1 param_3,undefined1 param_4,u
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

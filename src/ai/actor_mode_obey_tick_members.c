@@ -12,6 +12,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
@@ -25,3 +28,6 @@ void actor_mode_obey_tick_members(uint32_t actor_index)
 
     actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)actor_obey_member_tick, 0, (uint16_t *)(actor + 0x9c));
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

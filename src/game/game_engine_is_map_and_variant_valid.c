@@ -21,6 +21,9 @@
 #include "game.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t map_list_count; // 0x00712dd0, interface.h
 extern map_list_entry *map_list; // 0x00712dcc, interface.h, stride 0xc
@@ -71,4 +74,7 @@ uint FUN_00463920(void)
   }
   return uVar2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

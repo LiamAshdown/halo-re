@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hash_table_grow_freelist(hash_table *table); // 0x4f0620, ESI = table, same file
 
@@ -132,4 +135,7 @@ void hash_table_set_or_remove(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

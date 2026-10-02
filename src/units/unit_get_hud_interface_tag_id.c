@@ -18,6 +18,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second) // blam-cc: in_EDX -> unit_tag, in_AL -> use_second
 {
@@ -52,4 +55,7 @@ undefined4 FUN_00560c70(void)
   }
   return *(undefined4 *)((short)iVar1 * 0x30 + 0xc + *(int *)(in_EDX + 0x2ac));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

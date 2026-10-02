@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ai_update_stagger[11]; // 0x006ef910, bytes 0..10
 extern uint8_t autopatch_temp_name_flag;       // 0x006ef91b, UNSURE: cleared here, adjacent to the buffer
@@ -55,4 +58,7 @@ undefined * FUN_00575fa0(void)
   } while (iVar3 != 0);
   return &DAT_006ef914;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

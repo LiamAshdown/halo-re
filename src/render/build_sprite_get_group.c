@@ -24,6 +24,9 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t rasterizer_vertex_buffer_lock_state; // 0x0069c632 (matches
                                                      // src/rasterizer/rasterizer_decal_vertex_cache_lock.c)
@@ -153,4 +156,7 @@ short FUN_00511520(void)
   }
   return sVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

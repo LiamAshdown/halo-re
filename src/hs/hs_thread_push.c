@@ -31,6 +31,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t hs_global_get_value(hs_global_reference reference);
     // blam-cc: EAX -> reference; this module, 0x48a720
@@ -133,4 +136,7 @@ void FUN_0048a560(void)
   *unaff_EBX = uVar5;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

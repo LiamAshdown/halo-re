@@ -20,6 +20,9 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, memory module
 
@@ -103,4 +106,7 @@ void FUN_00552020(int param_1,uint *param_2)
     uVar3 = *(uint *)(iVar1 + 8);
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

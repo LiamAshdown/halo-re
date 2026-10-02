@@ -10,6 +10,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t hwreq_token_parse_hex_digit(hwreq_parser *parser); // 0x00578ad0
 
@@ -93,4 +96,7 @@ uint hwreq_token_parse_hex_id(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

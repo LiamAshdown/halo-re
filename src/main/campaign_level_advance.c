@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data;       // 0x00719700
 extern char *campaign_level_paths[k_main_campaign_level_count]; // 0x00696574
@@ -99,4 +102,7 @@ void __cdecl campaign_level_advance(void)
   DAT_00719754._3_1_ = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

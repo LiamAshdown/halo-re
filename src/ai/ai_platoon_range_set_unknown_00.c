@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
 extern data_array *encounter_data;                        // 0x008802c8
@@ -70,4 +73,7 @@ void FUN_00433270(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t saved_game_file_exists(char *name); // 0x538770
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data); // 0x538e70
@@ -64,3 +67,6 @@ uint8_t ui_event_4a41a0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     network_wait_flag_00719739 = 0;
     return (uint8_t)(ui_restoring_previous_widget != 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

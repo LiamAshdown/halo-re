@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t selected_saved_item;          // 0x00714e7c
 extern uint8_t saved_item_disk_copy[0x1ffc]; // 0x00716e7c
@@ -49,4 +52,7 @@ uint FUN_00495e70(wchar_t *param_1)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

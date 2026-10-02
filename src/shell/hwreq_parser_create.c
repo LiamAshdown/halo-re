@@ -17,6 +17,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hwreq_parser *hwreq_parser_construct(hwreq_parser *self); // 0x579ef0
 
@@ -59,4 +62,7 @@ undefined4 hwreq_parser_create(void)
   ExceptionList = local_c;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

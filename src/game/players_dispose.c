@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;               // 0x0087a480, "players"
 extern data_array *team_data;                 // 0x0087a47c, "teams"
@@ -86,4 +89,7 @@ void players_dispose(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

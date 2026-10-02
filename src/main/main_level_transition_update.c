@@ -35,6 +35,9 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern char map_path_prefix[];         // 0x006f16d8, foreign (cache module)
@@ -268,4 +271,7 @@ LAB_004c98a4:
   DAT_00719748 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

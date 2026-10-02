@@ -20,6 +20,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_connection_stats_count; // 0x006f14bc
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0
@@ -110,4 +113,7 @@ void network_connection_stats_lookup_or_add(void)
   *(undefined4 *)(&DAT_0087bf00 + iVar2) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

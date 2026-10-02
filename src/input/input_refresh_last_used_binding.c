@@ -26,6 +26,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern input_device input_devices[8];            // 0x006b1868
@@ -400,4 +403,7 @@ LAB_0048bd6e:
 objdump 0x48bae0..0x48bde0 (Intel syntax; the caller-context evidence for ECX/ESI and the
 FUN_00490050 argument setup is quoted in the header comment above; full trace omitted here for
 length -- see the pack.py output for the working notes).
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

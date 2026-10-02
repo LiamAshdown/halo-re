@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "cseries.h"
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Lowercases a null-terminated string in place (ASCII, via the CRT tolower()) and returns the
 // same pointer.
@@ -70,4 +73,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe):
   449206: mov eax,edi              ; return value = string (dropped by Ghidra)
   449208: pop esi
   449209: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

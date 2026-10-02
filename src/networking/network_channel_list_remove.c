@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns 0 on success, -19 (0xffffffed) if the list is empty (last_index < 0) or `entry` is
 // not present in list->entries.
@@ -111,4 +114,7 @@ code_r0x00441b4b:
   if (*in_ECX <= uVar2) goto LAB_00441b72;
   goto LAB_00441b47;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

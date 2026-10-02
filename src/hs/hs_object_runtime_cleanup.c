@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *data_iterator_next(data_iterator *iterator);        // memory module, 0x4d05d0
 extern char hs_object_hierarchy_test(datum_index object_index);  // this module, 0x487c10
@@ -169,4 +172,7 @@ LAB_00487ecf:
     uVar1 = local_8;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> value, stack -> target, max_step
 // Moves *value toward target by at most max_step (in either direction) and writes the result
@@ -45,4 +48,7 @@ void FUN_00470d40(float param_1,float param_2)
   *in_ECX = fVar1 + *in_ECX;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

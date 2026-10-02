@@ -30,6 +30,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern struct cache *sound_cache;        // 0x006ac530
@@ -170,4 +173,7 @@ void FUN_004440e0(undefined4 param_1)
   DAT_00000000 = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

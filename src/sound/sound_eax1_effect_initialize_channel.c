@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> this, stack -> channel_index
 // EAX1 has no per-channel EAX state to set up; always reports success.
@@ -37,4 +40,7 @@ Disassembly (0x551240..0x551245; phase-4 review):
 
 0x551240: mov eax, 1
 0x551245: ret 4
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

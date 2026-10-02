@@ -21,6 +21,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t game_state_crc; // 0x006e2dd4
 extern int16_t local_player_count; // 0x006894b8
@@ -260,4 +263,7 @@ LAB_00538569:
   }
   return CONCAT31((int3)((uint)iVar5 >> 8),uVar6);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -24,6 +24,9 @@
 #include "interface.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern void *connect_thread;   // 0x00719b64, this module; HANDLE of the hostname worker
@@ -178,4 +181,7 @@ int __cdecl network_game_client_connect_to_address_async(char *address,char *pas
   display_error(0x35,-1,'\x01','\0');
   return extraout_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

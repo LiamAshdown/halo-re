@@ -21,6 +21,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern wchar_t empty_string; // 0x00660c34, the built-in fallback string
 extern void *tag_instances;      // 0x0087bc14, UNSURE type: raw tag_instance array, see header
@@ -62,4 +65,7 @@ undefined * network_game_get_random_player_name(void)
   }
   return &DAT_00660c34;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

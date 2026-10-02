@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern hs_type_t hs_global_get_type(hs_global_reference global); // 0x00483420, this batch
@@ -162,4 +165,7 @@ undefined4 hs_parse_set(undefined4 param_1,uint param_2)
   DAT_006b14d8 = *(undefined4 *)(iVar1 + 0xc);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

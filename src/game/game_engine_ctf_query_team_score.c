@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern void qr2_buffer_add_int(void *buffer, int32_t value); // 0x616640, GameSpy query-report field writer (networking phase)
@@ -23,3 +26,6 @@ uint8_t game_engine_ctf_query_team_score(int32_t key, int32_t team, void *buffer
     qr2_buffer_add_int(buffer, ctf_team_flag_touch_count[team]);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

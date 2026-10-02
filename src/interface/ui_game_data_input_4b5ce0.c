@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void controls_gamepad_lists_refresh(widget_instance *screen); // 0x4b55d0, blam-cc: ECX
 extern void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen); // 0x4b5560, blam-cc: EAX out, ECX screen
@@ -39,3 +42,6 @@ void ui_game_data_input_4b5ce0(widget_instance *widget)
         nodes[16]->state = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

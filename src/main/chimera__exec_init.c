@@ -26,6 +26,9 @@
 #include "saved_games.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t rasterizer_window_requested; // 0x0071d1a8, see src/rasterizer/rasterizer_initialize_direct3d.c
 
@@ -118,4 +121,7 @@ Disassembly (0x4c6390..0x4c641c), the actual control flow the C above follows:
 004c6414:  pop    esi
 004c6415:  add    esp,0x84
 004c641b:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

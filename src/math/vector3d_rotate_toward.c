@@ -25,6 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670
@@ -92,4 +95,7 @@ undefined4 FUN_004cd950(undefined4 param_1,float param_2)
   vector3d_rotate_about_axis(param_1,param_2);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

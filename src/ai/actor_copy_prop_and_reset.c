@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data; // 0x008802c0
 extern real_point3d *global_origin3d_pointer; // 0x00696714, UNSURE: same constant referenced elsewhere in this module
@@ -103,4 +106,7 @@ void FUN_0043e840(void)
   *(undefined1 *)((int)puVar6 + 0x123) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

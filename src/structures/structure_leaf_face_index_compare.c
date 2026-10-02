@@ -7,8 +7,14 @@
 
 #include "tags.h"
 #include "cseries.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t structure_leaf_face_index_compare(int32_t element, int32_t other)
 {
     return element > other;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

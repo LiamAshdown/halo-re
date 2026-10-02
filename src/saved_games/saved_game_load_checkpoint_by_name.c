@@ -24,6 +24,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern int16_t pending_difficulty; // 0x00696564
@@ -123,4 +126,7 @@ undefined1 saved_game_load_checkpoint_by_name(char *param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

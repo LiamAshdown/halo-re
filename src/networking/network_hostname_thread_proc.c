@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_hostname_ready; // 0x006f14cc
 
@@ -35,4 +38,7 @@ void network_hostname_thread_proc(char *hostname_buffer)
                     /* WARNING: Subroutine does not return */
   ExitThread(0);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

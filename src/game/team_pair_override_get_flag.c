@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern team_pair_globals *team_pair_data; // 0x006b0b84
 
@@ -60,4 +63,7 @@ undefined1 FUN_0045be00(short param_1)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x4cc0d0
 
@@ -19,3 +22,6 @@ void matrix4x3_multiply_sse(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3
 {
     matrix4x3_multiply(a, b, out);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

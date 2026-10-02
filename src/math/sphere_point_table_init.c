@@ -10,6 +10,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_generate(void); // 0x4cd070
 extern sphere_mesh *sphere_mesh_generate(int16_t subdivisions); // 0x4ca4b0, blam-cc: subdivisions in EAX
@@ -76,4 +79,7 @@ void __cdecl sphere_point_table_init(void)
   GlobalFree(hMem);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

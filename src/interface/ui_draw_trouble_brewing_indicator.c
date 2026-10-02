@@ -21,6 +21,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_network_wait_start_time;      // 0x006927c4, -1 when no wait is running
 extern datum_index trouble_brewing_bitmap_tag;  // 0x006927c8, TYPES-GAP
@@ -79,4 +82,7 @@ void ui_draw_trouble_brewing_indicator(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

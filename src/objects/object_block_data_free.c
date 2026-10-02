@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern memory_pool *object_memory_pool; // 0x006b8cb4
 
@@ -87,4 +90,7 @@ void FUN_004f7de0(void)
   *(undefined1 *)(iVar1 + 2) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "game.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *lights_enabled;         // 0x0071cfb8
 extern game_engine_definition *current_game_engine;              // 0x006f1d20, game.h; non-NULL = multiplayer engine loaded (R04)
@@ -163,4 +166,7 @@ void FUN_004f1950(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void tree_destroy_subtree(hwreq_map_node *node); // 0x57cce0, same pass
 extern void tree_iterator_increment(hwreq_map_node **iterator); // 0x57c5e0, same pass
@@ -84,4 +87,7 @@ undefined4 * tree_erase_range(undefined4 *param_1,int *param_2,int *param_3)
   *puVar3 = piVar2;
   return puVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

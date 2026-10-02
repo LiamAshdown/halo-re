@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t lens_flare_vertex_specular; // 0x0069e708
 extern float text_color_scale;              // 0x00672b60 UNSURE: assumed to be 255.0
@@ -47,4 +50,7 @@ void FUN_00512120(void)
   DAT_0069e708 = ((uVar1 << 8 | uVar1) << 8 | uVar1) << 8 | uVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

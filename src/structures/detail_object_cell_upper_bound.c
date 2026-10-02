@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns the first cell in [begin, end) greater than `key`, comparing (cell_x, cell_y, cell_z)
 // lexicographically.
@@ -70,4 +73,7 @@ int FUN_00552780(short *param_1)
   }
   return in_ECX;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

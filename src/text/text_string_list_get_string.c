@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;      // 0x0087bc14
 extern uint16_t missing_string_text[];   // 0x00671fac, L"<missing string>"
@@ -69,4 +72,7 @@ undefined ** text_string_list_get_string(void)
   }
   return ppuVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

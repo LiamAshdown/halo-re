@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
 extern data_array *player_data; // 0x0087a480
@@ -178,4 +181,7 @@ void FUN_004aade0(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

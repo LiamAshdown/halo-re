@@ -41,6 +41,9 @@
 #include <stdint.h>
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern data_array *actor_data;           // 0x00880360
@@ -598,4 +601,7 @@ LAB_00431573:
   *param_2 = 0;
   return (uint)local_a9;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

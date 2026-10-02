@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern data_array *glow_data; // 0x008603a0
@@ -67,3 +70,6 @@ datum_index glow_new(datum_index glow_tag)
     }
     return index;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

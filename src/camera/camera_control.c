@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *hs_camera_control_pointer;                 // 0x0087bc0c, hs module
 extern camera_script_globals camera_script;                // 0x006869d0
@@ -118,4 +121,7 @@ void FUN_00445cc0(char param_1)
 Note: Ghidra folded the four byte stores to 0x006ac56c..f into the trailing "_DAT_006ac56c = 0"
 on both paths. objdump shows the third person path stores the four bytes (0x445d2b..0x445d3d)
 and only the first person path stores the dword (0x445d7f); the effect is the same.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint32_t hwreq_parser_get_requirement_count(hwreq_parser *parser)
 {
@@ -22,3 +25,6 @@ uint32_t hwreq_parser_get_requirement_count(hwreq_parser *parser)
     }
     return (uint32_t)((int32_t)(set->flags.last - set->flags.first) / (int32_t)sizeof(hwreq_string_pair));
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

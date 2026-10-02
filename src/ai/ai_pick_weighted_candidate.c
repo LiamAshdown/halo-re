@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float k_random_scale_65536; // 0x00672b84, 1.5259022e-05 = 1/65536
 extern uint32_t random_seed_global; // 0x00719cd0
@@ -140,4 +143,7 @@ undefined4 FUN_00438480(undefined4 *param_1)
   }
   return CONCAT22((short)(in_EAX >> 0x10),sVar7);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

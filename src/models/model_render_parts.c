@@ -38,6 +38,9 @@
 #include "cache.h"
 #include "models.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); // 0x4cbde0
@@ -335,4 +338,7 @@ VERIFIED against objdump -d -M intel bin/halo.exe, 0x4d72a0..0x4d75fe (key excer
                                                      (records[] base = esp+0x38, record stride 0x10)
   4d75c5  mov ecx,[edx] / ... / mov [ecx],si         *record_i.next_group_index = records[j].group_index
   4d75d9  mov cx,[edx+4] / mov [eax],cx              *records[j].previous_group_index = record_i.group_index
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

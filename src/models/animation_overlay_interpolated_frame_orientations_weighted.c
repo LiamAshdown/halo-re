@@ -37,6 +37,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 extern real_quaternion *global_identity_quaternion_pointer; // 0x00696738: indirect pointer to
@@ -407,4 +410,7 @@ dropped, from --start-address=0x4d57d0 --stop-address=0x4d5c00):
 004d5a82:  8b 44 24 14           mov    eax,DWORD PTR [esp+0x14]                        ; &out[node].rotation
 004d5a86:  8b d0                 mov    edx,eax
 004d5a88:  e8 63 81 ff ff        call   0x4cdbf0                                          ; quaternion_multiply
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

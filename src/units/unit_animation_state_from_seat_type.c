@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t unit_animation_state_from_seat_type(int16_t animation_state) // blam-cc: in_CX -> animation_state
 {
@@ -70,4 +73,7 @@ undefined4 FUN_00565da0(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

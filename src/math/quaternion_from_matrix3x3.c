@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // sqrt is a single x87 FSQRT instruction in the original code (Ghidra's SQRT() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.
@@ -116,4 +119,7 @@ float * quaternion_from_matrix3x3(float *param_1)
   param_1[2] = local_c[2];
   return param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

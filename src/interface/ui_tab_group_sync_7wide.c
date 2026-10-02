@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void ui_tab_group_sync_7wide(widget_instance *widget)
 {
@@ -67,4 +70,7 @@ void FUN_004a4cb0(int param_1)
   *(short *)(*(int *)(iVar1 + 0x2c) + 0x58) = sVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

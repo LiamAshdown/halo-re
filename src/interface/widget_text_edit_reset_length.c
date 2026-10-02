@@ -14,6 +14,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 
@@ -50,4 +53,7 @@ void FUN_0044c5b0(void)
   *(undefined2 *)(unaff_ESI + 2) = 0xffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -36,6 +36,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern cache_file_slot cache_file_slots[k_cache_file_slot_count]; // 0x006a9428
 extern char profile_directory[0x105];                              // 0x006ac900
@@ -218,4 +221,7 @@ LAB_004436a0:
   *puVar1 = 0xffffffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

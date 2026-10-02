@@ -27,6 +27,9 @@
 #include "game.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 
@@ -67,4 +70,7 @@ void main_queue_map_change(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

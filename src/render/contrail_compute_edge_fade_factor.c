@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0,
                                                                                   // math module
@@ -92,4 +95,7 @@ float10 contrail_compute_edge_fade_factor(byte *param_1)
   }
   return fVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

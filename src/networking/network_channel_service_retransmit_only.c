@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void network_channel_scan_retransmit_timeouts(network_channel *channel); // 0x4dd9d0, this batch
@@ -63,4 +66,7 @@ undefined4 FUN_004dd330(void)
   *(undefined4 *)(unaff_EDI + 0xa80) = 0xe0;
   return CONCAT31(uVar1,1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

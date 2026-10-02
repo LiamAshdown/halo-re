@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (teams aliased 0x006f1cbc)
@@ -81,4 +84,7 @@ void game_engine_get_player_color(void)
   unaff_ESI[2] = uVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

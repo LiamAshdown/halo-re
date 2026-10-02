@@ -26,6 +26,9 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                             // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220
@@ -806,4 +809,7 @@ switchD_00532646_default:
   (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0xab,1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

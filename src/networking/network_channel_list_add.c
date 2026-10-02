@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: entry pointer in EAX (in_EAX), list pointer in ECX (in_ECX)
 // Appends `entry` to the write-cursor slot of `list->entries`, then adds its socket_key to the
@@ -111,4 +114,7 @@ undefined4 network_channel_list_add(void)
   *(byte *)(in_EAX + 0xc) = *(byte *)(in_EAX + 0xc) | 8;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

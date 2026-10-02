@@ -11,6 +11,9 @@
 #include "game.h"
 #include <wchar.h>
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -20,3 +23,6 @@ void game_engine_ctf_object_expired(datum_index object_index)
 
     *(int32_t *)&((struct object *)object)->owner_linkage = -1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

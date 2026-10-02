@@ -17,6 +17,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator); // 0x432650, this batch
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator); // 0x4326d0, this batch
@@ -79,4 +82,7 @@ skip-when-both-none case, and the arguments FUN_00432df0 (ai_reference_respawn_m
 00432d66: mov    edi,eax
 00432d68: mov    eax,esi             ; packed_reference == respawn_reference
 00432d6a: call   0x432df0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

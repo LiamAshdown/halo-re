@@ -39,6 +39,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // 0x44d950, out of this module and still unnamed in symbols/functions.txt; ECX = out plane,
 // EAX = first point, EDX = second point. Returns out_plane, or NULL if the points coincide.
@@ -125,4 +128,7 @@ undefined4 FUN_004caa40(short param_1)
   } while (sVar3 < 2);
   return CONCAT22(uVar2,sVar3);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

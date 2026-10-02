@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;        // 0x008603b0
 extern data_array *actor_data;         // 0x00880360
@@ -599,4 +602,7 @@ void trigger_create_projectiles(uint param_1,short param_2,undefined4 param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

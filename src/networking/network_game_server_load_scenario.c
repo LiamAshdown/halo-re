@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t network_scenario_round_counter_a; // 0x00699f44 (UNSURE name)
@@ -68,4 +71,7 @@ char FUN_004e0720(void)
   }
   return cVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

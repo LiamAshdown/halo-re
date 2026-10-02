@@ -19,6 +19,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;      // 0x00746fa0
 extern data_array *object_data;   // 0x008603b0
@@ -98,4 +101,7 @@ void FUN_0046bfe0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> record
 // Clears an ai-communication target/result record: zeroes the whole 0x20-byte record, then
@@ -49,4 +52,7 @@ void FUN_0042d310(void)
   *(undefined2 *)(in_EAX + 2) = 0xffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

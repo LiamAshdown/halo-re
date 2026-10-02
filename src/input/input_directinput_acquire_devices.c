@@ -17,6 +17,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t input_acquired;         // 0x006b15f8
 extern void *keyboard_device;          // 0x006b1800
@@ -132,4 +135,7 @@ void input_directinput_acquire_devices(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -32,6 +32,9 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_client_globals *network_client;      // 0x0071c2d8
 extern uint8_t network_host_handoff_requested;       // 0x0071c2de
@@ -133,4 +136,7 @@ uint FUN_004dc8d0(wchar_t *param_1)
   }
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

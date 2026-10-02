@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key); // 0x4de900, this batch
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
@@ -89,4 +92,7 @@ uint FUN_004de640(void)
   *(short *)(unaff_EBX + 0x1a0) = *(short *)(unaff_EBX + 0x1a0) + -1;
   return CONCAT31((int3)((uint)puVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

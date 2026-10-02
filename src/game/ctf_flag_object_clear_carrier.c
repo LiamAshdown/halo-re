@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                    // 0x008603b0
 extern game_time_globals *game_time;                  // 0x006f1d6c
@@ -113,4 +116,7 @@ Raw disassembly (objdump -d -M intel --start-address=0x4666c0 --stop-address=0x4
 00466717:  mov dword ptr [esi+0x200],0xffffffff
 0046671e:  pop esi
 00466722:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

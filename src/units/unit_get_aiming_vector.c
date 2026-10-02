@@ -9,6 +9,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -36,4 +39,7 @@ void FUN_005696f0(void)
   in_EAX[2] = *(undefined4 *)(iVar1 + 0x244);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

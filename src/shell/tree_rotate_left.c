@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void tree_rotate_left(hwreq_map_node *x, msvc_std_map *tree)
 {
@@ -73,4 +76,7 @@ void tree_rotate_left(int param_1)
   *(int **)(in_ECX + 4) = piVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

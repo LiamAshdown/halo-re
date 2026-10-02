@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern heap *widget_memory_pool; // 0x006926c4, 0x20000 byte GlobalAlloc arena
 extern void *widget_memory_pool_name; // 0x0068e690, the literal "widget_memory_pool"
@@ -139,4 +142,7 @@ void widget_memory_pool_initialize(void)
   DAT_00718fc2 = pvVar5 != (HGLOBAL)0x0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

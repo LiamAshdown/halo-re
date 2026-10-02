@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: ESI -> queue
@@ -38,4 +41,7 @@ void network_queue_destroy(void)
   *(undefined4 *)(unaff_ESI + 0x14) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

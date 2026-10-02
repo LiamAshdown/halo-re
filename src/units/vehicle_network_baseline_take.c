@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); // 0x4f6ec0, ECX object, stack mask
 
@@ -39,3 +42,6 @@ void vehicle_network_baseline_take(uint32_t object_index)
     obj[0x527] = 0;
     copy3(obj, 0x55c, 0x80);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

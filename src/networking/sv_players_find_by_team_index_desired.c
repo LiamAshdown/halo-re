@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (types/game.h `player`)
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
@@ -76,4 +79,7 @@ pseudo-C collapsed to a literal -1 on both paths:
   4e2c56: or eax,0xffffffff                    ; not-found path: return -1
   4e2c5e: mov eax,DWORD PTR [esp+0xc]          ; found path: return iterator.index (updated by
                                                 ; the data_iterator_next call that found it)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

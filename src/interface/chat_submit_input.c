@@ -13,6 +13,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t chat_dialog_open; // 0x006b3858
 
@@ -105,4 +108,7 @@ void __cdecl chat_submit_input(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

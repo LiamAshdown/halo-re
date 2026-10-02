@@ -31,6 +31,9 @@
 #include "game.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *prop_data;        // 0x008802c0
@@ -233,4 +236,7 @@ LAB_0042c5e7:
     iVar8 = data_iterator_next();
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

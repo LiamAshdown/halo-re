@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data;   // 0x008802c0
 extern data_array *object_data; // 0x008603b0
@@ -176,4 +179,7 @@ uint FUN_0041f550(undefined4 param_1,char param_2)
   } while (local_8 != 0);
   return local_4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

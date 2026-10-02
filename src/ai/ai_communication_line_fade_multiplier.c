@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern float ai_communication_class_repeat_delay[]; // 0x00655930, stride 0x28 (10 floats) per class
@@ -97,4 +100,7 @@ FUN_0042f8c0(undefined4 param_1,undefined4 param_2,undefined4 param_3,undefined4
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

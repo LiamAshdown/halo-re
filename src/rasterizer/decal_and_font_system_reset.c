@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals; // 0x00746fa0
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
@@ -122,4 +125,7 @@ void FUN_00515740(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

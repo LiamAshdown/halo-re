@@ -20,6 +20,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t key_frames[0x6d];           // 0x006b1620
 extern int16_t key_event_read_index;       // 0x006b16fa
@@ -117,4 +120,7 @@ void input_reset_state_and_axis_configs(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

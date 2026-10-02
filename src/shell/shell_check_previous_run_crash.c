@@ -22,6 +22,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern char *shell_module_path; // 0x006a32e8, UNSURE: see file header
@@ -220,4 +223,7 @@ undefined4 chimera__registry_check_2(void)
   RegCloseKey(local_11c);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

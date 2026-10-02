@@ -27,6 +27,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern uint8_t physics_shape_sphere_sweep_test_ray(real_point3d *point, real_point3d *origin,
@@ -168,4 +171,7 @@ undefined4 FUN_00503050(float param_1,float *param_2,float *param_3)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

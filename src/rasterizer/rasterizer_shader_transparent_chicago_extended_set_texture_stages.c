@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;   // 0x0071d174
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
@@ -185,4 +188,7 @@ uint FUN_00537d60(void)
 LAB_00537f61:
   return CONCAT31((int3)(uVar4 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

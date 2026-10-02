@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list); // 0x441b00, this module
 extern void network_channel_delete(network_channel *channel); // 0x4dcae0, this batch
@@ -71,4 +74,7 @@ undefined4 FUN_004dd090(int *param_1)
   *(undefined4 *)(unaff_EDI + 0xaa0 + iVar2 * 4) = 0;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

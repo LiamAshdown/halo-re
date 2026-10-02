@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t video_gamma_current; // 0x0071d1e4, UNSURE name
 
@@ -59,4 +62,7 @@ char FUN_004bb5e0(int param_1)
   }
   return cVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

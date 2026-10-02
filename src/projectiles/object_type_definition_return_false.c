@@ -17,6 +17,9 @@
 // blam-cc: (none) -> returns AL = 0
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Shared "always false" filler used in several object_type_definition rows for a query-style
 // vtable column that this build never actually wires to type-specific behaviour. Touches
@@ -34,4 +37,7 @@ undefined1 missed_571dd0(void)
 {
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

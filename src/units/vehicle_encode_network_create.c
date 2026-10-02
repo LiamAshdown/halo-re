@@ -15,6 +15,9 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                    // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -85,3 +88,6 @@ int32_t vehicle_encode_network_create(datum_index vehicle_index, int32_t buffer,
     memcpy(record.vectors[4], vehicle + 0x544, 12);
     return message_delta_encode_message(buffer, bit_budget, 0, 0x1c, 0, &item, 0, 1, 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

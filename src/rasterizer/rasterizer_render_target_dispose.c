@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
 extern int16_t rasterizer_active_render_target;    // 0x0069d350
@@ -91,4 +94,7 @@ void FUN_0052cc50(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

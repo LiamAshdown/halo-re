@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const projection_axis_pair k_projection_axes[6]; // 0x0065c29c, types/math.h (const to
                                                         // match src/math/*.c own declaration)
@@ -97,4 +100,7 @@ int FUN_005014a0(int param_1,short param_2,byte param_3)
   } while (iVar8 != iVar1);
   return CONCAT31(uVar6,1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

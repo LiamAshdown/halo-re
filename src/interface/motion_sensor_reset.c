@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern motion_sensor_globals *motion_sensor; // 0x00719438
 
@@ -72,4 +75,7 @@ void __cdecl motion_sensor_reset(void)
   } while (iVar3 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -109,4 +112,7 @@ LAB_0053f91c:
   FUN_0053f940(param_1,param_3);
   return local_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

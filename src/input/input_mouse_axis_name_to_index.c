@@ -21,6 +21,9 @@
 
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void input_get_mouse_axis_name(int16_t axis_index, uint8_t direction, uint16_t *out_name);
     // this module, 0x491010
@@ -115,4 +118,7 @@ LAB_00491167:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

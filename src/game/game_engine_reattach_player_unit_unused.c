@@ -29,6 +29,9 @@
 #include "game.h"
 #include <string.h>
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;              // 0x0087a480
@@ -402,4 +405,7 @@ void FUN_00475270(uint param_1,uint param_2,undefined4 param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

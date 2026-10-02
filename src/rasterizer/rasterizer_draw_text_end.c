@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_6893e6;   // 0x006893e6
 extern void *rasterizer_device;               // 0x0071d174
@@ -41,4 +44,7 @@ void FUN_00531e90(void)
   (**(code **)(*DAT_0071d174 + 0x134))(DAT_0071d174,DAT_0069c680);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

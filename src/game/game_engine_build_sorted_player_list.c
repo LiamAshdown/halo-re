@@ -35,6 +35,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                      // 0x0087a480
 extern game_engine_definition *current_game_engine;  // 0x006f1d20
@@ -258,4 +261,7 @@ The reconstruction above is instead based on the disassembly:
                                                    : scoreboard_entry_compare_by_unknown_04)
 0045ce1c..0045ce6f: rank/tie loop comparing key_0..key_3 of adjacent sorted entries, writing
   `place` (0x80000000 marks a tie), exactly matching types/game.h's own note on this field.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

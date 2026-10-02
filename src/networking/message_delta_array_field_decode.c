@@ -33,6 +33,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream); // 0x4cfb80, memory module
 
@@ -249,4 +252,7 @@ int message_delta_array_field_decode(int param_1,int param_2,int param_3,int par
   }
   return local_14;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

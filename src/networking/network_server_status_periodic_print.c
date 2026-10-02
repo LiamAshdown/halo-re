@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_server_status_last_print_ms; // 0x0071c2f0 (UNSURE name)
@@ -61,4 +64,7 @@ undefined4 FUN_004e1520(int param_1)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

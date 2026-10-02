@@ -18,6 +18,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0
@@ -68,3 +71,6 @@ void game_engine_ctf_profiles_updated(int32_t mode, int32_t machine_index)
         network_session_send_to_machine(machine_index, network_server, 1, network_message_scratch, bits, 1, 0, 0, 3);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

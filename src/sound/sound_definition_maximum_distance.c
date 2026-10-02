@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes]; // 0x0069eae0
@@ -72,4 +75,7 @@ Disassembly (0x545460..0x545496, capstone; phase-4 review):
 0x54548c: imul edx, edx, 0x2c
 0x54548f: fld dword ptr [edx + 0x69eafc]
 0x545495: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

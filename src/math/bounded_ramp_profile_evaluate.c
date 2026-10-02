@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // See src/math/bounded_ramp_profile_build.c for the profile buffer layout (TYPES-GAP, 0x20 bytes).
 
@@ -131,4 +134,7 @@ undefined4 FUN_00564990(float param_1,float param_2,float *param_3,float param_4
   *param_5 = local_8;
   return CONCAT31((int3)((uint)local_8 >> 8),cVar1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

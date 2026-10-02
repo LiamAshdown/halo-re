@@ -15,6 +15,9 @@
 #include "rasterizer.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe
 extern void *rasterizer_device;                  // 0x0071d174
@@ -172,3 +175,6 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         effect_draw(effect, -1, group);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

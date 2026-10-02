@@ -21,6 +21,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // SSE-optimized implementation of matrix4x3 multiplication, selected at startup when the CPU
 // supports the required feature. (Actually AMD 3DNow!; see header.)
@@ -164,4 +167,7 @@ void __cdecl matrix4x3_multiply_sse(float *a,float *b,float *out)
   out[0xc] = (float)uVar8;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

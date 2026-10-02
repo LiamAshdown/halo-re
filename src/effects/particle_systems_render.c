@@ -18,6 +18,9 @@
 #include "objects.h"
 #include "game.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_system_data;    // 0x0087abd4
 extern player_globals *local_player_globals; // 0x0087a478
@@ -90,4 +93,7 @@ void FUN_00454b40(void)
     } while ((short)iVar2 < *(short *)(iVar5 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

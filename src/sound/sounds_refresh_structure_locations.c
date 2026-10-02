@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_initialized;                       // 0x00725200
 extern uint8_t sound_enabled;                           // 0x00725201
@@ -50,3 +53,6 @@ void sounds_refresh_structure_locations(void)
         }
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

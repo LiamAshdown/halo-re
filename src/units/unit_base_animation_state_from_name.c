@@ -18,6 +18,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *unit_base_animation_state_names[6]; // 0x0069fde4
 
@@ -55,4 +58,7 @@ short FUN_0056eb90(void)
   } while (sVar2 < 6);
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

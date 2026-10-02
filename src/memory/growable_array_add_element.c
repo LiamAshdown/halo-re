@@ -11,6 +11,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 #define GMEM_MOVEABLE 0x0002
@@ -106,4 +109,7 @@ uint growable_array_add_element(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

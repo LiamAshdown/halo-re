@@ -18,6 +18,9 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const real_vector3d *global_forward3d_pointer; // 0x00696718
 extern const real_vector3d *global_up3d_pointer;      // 0x00696720
@@ -595,4 +598,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
 
 #if 0
 No usable Ghidra decompile: it lost every helper argument. Rewritten from objdump -d 0x55efd0..0x560400.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

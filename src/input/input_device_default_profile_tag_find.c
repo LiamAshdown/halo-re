@@ -28,6 +28,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_iterator_next(tag_iterator *iterator); // blam-cc: ESI; cache module, 0x4425d0
@@ -144,4 +147,7 @@ compare / 0x7ff-dword copy used above:
   49018a: mov    0x38(%esp),%edi              ; caller's out_profile argument
   49018f: mov    $0x7ff,%ecx
   490195: rep movsl %ds:(%esi),%es:(%edi)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

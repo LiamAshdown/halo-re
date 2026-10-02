@@ -29,6 +29,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern level_select_entry level_select_entries[10];  // 0x00719018
 extern uint8_t profile_globals_block[0x60a4];                     // 0x00712dd8
@@ -163,4 +166,7 @@ void FUN_0049cc80(int param_1)
   *(short *)(param_1 + 0x40) = DAT_00712f00;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

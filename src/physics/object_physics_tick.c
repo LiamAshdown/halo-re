@@ -29,6 +29,9 @@
 #include "units.h"
 #include "physics.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -176,4 +179,7 @@ void FUN_00507840(uint param_1,int param_2,undefined4 param_3,float *param_4,flo
   FUN_00509e80(param_1,param_2,param_3,param_4,param_5);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

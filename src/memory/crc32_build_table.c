@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 #define CRC32_POLYNOMIAL 0xedb88320u
 
@@ -72,4 +75,7 @@ void crc32_build_table(void)
   } while (iVar4 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

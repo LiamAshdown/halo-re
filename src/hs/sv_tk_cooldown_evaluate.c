@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value,
     uint32_t *out_count, int32_t **out_values); // this module, 0x0048ad60
@@ -58,4 +61,7 @@ void FUN_00482d50(undefined4 param_1,undefined4 param_2,undefined4 param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

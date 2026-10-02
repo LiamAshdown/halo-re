@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t main_menu_music_pending; // 0x00718fc6
 extern int32_t main_menu_music_datum;   // 0x00719748, UNSURE: named by inference, nonzero blocks a restart
@@ -72,4 +75,7 @@ Disassembly confirming the group tag (EDI) and the dropped EAX argument to FUN_0
   49940b: push   0x3f800000               ; gain 1.0
   499410: push   0xffffffff               ; object index -1
   499412: call   0x544090                 ; FUN_00544090(eax=sound_tag, -1, 1.0)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

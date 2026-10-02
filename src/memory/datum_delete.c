@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: array in EAX, handle in EDX
 // Frees the datum slot named by `handle` (index in the low 16 bits, salt in the high 16, with a
@@ -90,4 +93,7 @@ LAB_004d0543:
   *(short *)(in_EAX + 0x30) = *(short *)(in_EAX + 0x30) + -1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

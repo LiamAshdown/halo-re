@@ -20,6 +20,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern ScenarioStructureBSP *global_structure_bsp;   // 0x00746f9c
@@ -103,4 +106,7 @@ Raw disassembly (0x53e810-0x53e866):
   53e863: and    al,0x1
   53e865: pop    esi
   53e866: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

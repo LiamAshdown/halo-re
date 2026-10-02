@@ -26,6 +26,9 @@
 #include "memory.h"
 #include <stdio.h>
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t player_update_log_categories_default;  // 0x00710314
 extern uint32_t player_update_log_categories_filtered;  // 0x00710318
@@ -89,4 +92,7 @@ void player_update_history_log_write(char *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

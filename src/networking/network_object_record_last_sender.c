@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (game module)
 extern uint32_t player_data_iterator_advance(int16_t step_count); // 0x4d98f0, stack -> step_count
@@ -66,4 +69,7 @@ undefined4 FUN_004df900(int param_1)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

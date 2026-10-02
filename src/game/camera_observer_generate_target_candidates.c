@@ -38,6 +38,9 @@
 #include "math.h"
 #include "memory.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sin(double x); // x87 FSIN
 extern double cos(double x); // x87 FCOS
@@ -166,4 +169,7 @@ short FUN_00459f70(undefined4 param_1,undefined4 param_2,undefined4 param_3,unde
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

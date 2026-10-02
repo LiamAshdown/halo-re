@@ -28,6 +28,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> out, EBX -> queue
 // Peeks the queue's head record and decrements its references_remaining. If that reaches zero,
@@ -140,4 +143,7 @@ int FUN_00479fb0(void)
   }
   return iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

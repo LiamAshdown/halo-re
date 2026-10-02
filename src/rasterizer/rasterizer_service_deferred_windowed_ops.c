@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
 extern void *rasterizer_device;     // 0x0071d174
@@ -60,4 +63,7 @@ void FUN_005180d0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

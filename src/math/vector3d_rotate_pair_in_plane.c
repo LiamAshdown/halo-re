@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle)
 {
@@ -55,4 +58,7 @@ void FUN_004cd790(float param_1,float param_2)
   in_EAX[2] = -fVar3 * param_1 + param_2 * in_EAX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

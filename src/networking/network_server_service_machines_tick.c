@@ -17,6 +17,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_channel_service(int32_t mode); // 0x4dd110, other module (UNSURE args beyond this site)
 extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms); // 0x4df090, other module
@@ -142,4 +145,7 @@ LAB_004e127c:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

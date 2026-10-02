@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
@@ -84,4 +87,7 @@ short hs_find_function_by_name(void)
   } while (sVar3 < 0x20a);
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

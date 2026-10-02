@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> this
 // Returns whether QuerySupport found the per-channel buffer properties supported (set by
@@ -43,4 +46,7 @@ Disassembly (0x54ef20..0x54ef23; phase-4 review):
 
 0x54ef20: mov eax, dword ptr [ecx + 0x14]
 0x54ef23: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle)
 {
@@ -58,4 +61,7 @@ void FUN_004cd700(float param_1,float param_2)
   in_EAX[2] = param_2 * in_EAX[2] + (fVar4 * fVar5 - fVar6 * fVar7) * param_1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

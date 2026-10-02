@@ -11,6 +11,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;  // 0x008603b0
 extern uint8_t *cinematic_globals_ptr; // 0x006f187c, UNSURE
@@ -70,4 +73,7 @@ void FUN_0055eb90(char *param_1)
   *param_1 = (*(short *)(iVar1 + 0x508) == 1) + '\x15';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

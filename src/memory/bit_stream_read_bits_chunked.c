@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t bit_stream_read_bits(uint32_t bit_count, uint32_t *out_value, bit_stream *stream);
 
@@ -85,4 +88,7 @@ int FUN_004cf950(void)
     iVar2 = iVar2 + iVar1;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

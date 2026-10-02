@@ -25,6 +25,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // actor_recognition_scan_result now lives in types/ai.h (folded from this file).
 
@@ -174,4 +177,7 @@ lea eax,[esp+0x2c]) and cleans up with add esp,0xc, one more than this function'
 decompilation shows a parameter for; 0x414f50's own body reads the extra two at
 [esp+0x34]/[esp+0x38] as unaff_EDI (forwarded into actor_look_get_wait_ticks) / unaff_ESI
 (forwarded into actor_look_pick_random_point_in_cone), confirming they are param_2/param_3.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

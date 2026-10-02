@@ -16,6 +16,9 @@
 #include "objects.h"
 #include "effects.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *decal_data;       // 0x0087abe4
 extern decal_grid *decal_grid_block; // 0x006b0ad8
@@ -80,4 +83,7 @@ void FUN_0044e220(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

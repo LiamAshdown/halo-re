@@ -17,6 +17,9 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,
                                              int16_t exclude_index, float extra_radius); // 0x43c890
@@ -96,4 +99,7 @@ void FUN_0043b790(undefined4 *param_1,undefined1 param_2,undefined4 param_3,unde
   FUN_0043b5a0(param_4,param_5,0xffffffff,0,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

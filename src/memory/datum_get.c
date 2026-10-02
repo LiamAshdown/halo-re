@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: handle in EDX, array in ESI
 // Resolves `handle` (index in the low 16 bits, salt in the high 16, zero salt acting as a
@@ -61,4 +64,7 @@ short * datum_get(void)
   }
   return psVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

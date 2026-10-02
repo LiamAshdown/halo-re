@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> code, EDX -> out
 // Decodes the compact type-5 code produced by server_browser_gametype5_flags_pack back into two
@@ -40,4 +43,7 @@ void FUN_00576990(void)
   in_EDX[1] = ~-(uint)(2 < uVar2) & uVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -26,6 +26,9 @@
 #include "memory.h"
 #include "interface.h"
 #include "dialogs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int32_t dialog_hyperlink_hovered; // 0x00722bc8, this module; written only here, read by
@@ -156,4 +159,7 @@ LRESULT dialog_static_hyperlink_subclass_proc(HWND hwnd,UINT msg,WPARAM wParam,L
   LVar4 = CallWindowProcA(lpPrevWndFunc,hwnd,msg,wParam,lParam);
   return LVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

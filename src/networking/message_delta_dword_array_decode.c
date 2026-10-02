@@ -26,6 +26,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer,
     bit_stream *stream); // 0x4cf950
@@ -214,4 +217,7 @@ int FUN_004ea040(int param_1,uint param_2,undefined4 *param_3,int param_4)
   }
   return iVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

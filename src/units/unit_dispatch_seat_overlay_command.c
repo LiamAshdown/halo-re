@@ -17,6 +17,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command); // 0x565e00
 extern void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command); // 0x566410
@@ -88,4 +91,7 @@ void FUN_00567400(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

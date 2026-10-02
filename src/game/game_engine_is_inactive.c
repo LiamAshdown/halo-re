@@ -9,6 +9,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_engine_state game_engine_state_value;    // 0x0087aa10
@@ -26,4 +29,7 @@ bool game_engine_is_inactive(void)
 {
   return DAT_006f1d20 == 0 || DAT_0087aa10 == 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

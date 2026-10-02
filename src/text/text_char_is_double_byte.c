@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t text_encoding_state;      // 0x006e4800
 extern char text_markup_codes[11]; // 0x00671fa0, "ibukprlctn"
@@ -209,4 +212,7 @@ LAB_0055784e:
 switchD_0055779f_default:
   return local_2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_channel_service_backoff_bypass; // 0x0071c2c8
 extern int32_t unknown_00697ed8; // 0x00697ed8, UNSURE identity
@@ -105,4 +108,7 @@ LAB_004dd2e5:
   }
   return '\x01';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

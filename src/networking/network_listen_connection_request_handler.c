@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_pending_connection_count; // 0x006f16d0
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count]; // 0x0087bc20
@@ -109,4 +112,7 @@ void network_listen_connection_request_handler
   thunk_FUN_0061cee0(param_2,&local_1c,4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

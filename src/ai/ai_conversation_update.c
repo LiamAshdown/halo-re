@@ -25,6 +25,9 @@
 #include "game.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *ai_conversation_data; // 0x008802d4
@@ -234,4 +237,7 @@ LAB_00430b80:
     squad_instance_index = local_8;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

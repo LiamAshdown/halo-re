@@ -27,6 +27,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base,
                                 float scale); // 0x401930
@@ -266,4 +269,7 @@ uint FUN_005045c0(float *param_1)
   }
   return uVar8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern observer observers[1]; // 0x006ac65c
 
@@ -111,4 +114,7 @@ LAB_00447b11:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

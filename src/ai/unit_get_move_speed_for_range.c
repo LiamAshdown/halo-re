@@ -23,6 +23,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -131,4 +134,7 @@ void FUN_0041bed0(float param_1,float param_2,float param_3,float *param_4,float
   *param_4 = local_8;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char profile_directory[0x105]; // 0x006ac900 (cache module)
 extern file_reference_record savegame_index_file; // 0x00721330
@@ -181,4 +184,7 @@ LAB_0053c437:
   DAT_00721328._2_1_ = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -47,6 +47,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *device_groups; // 0x0087abf0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -173,4 +176,7 @@ uint device_group_set_value(float param_1)
   }
   return uVar3 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

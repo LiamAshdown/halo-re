@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t picked_surfaces_geometry; // 0x006e3adc, this module
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary  // 0x0069fa48, this module
@@ -144,4 +147,7 @@ void FUN_00552980(undefined4 param_1,undefined4 param_2,undefined4 param_3,undef
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "sound.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sound_ogg_error_to_string(int32_t vorbis_error_code); // 0x544f70
 
@@ -266,4 +269,7 @@ Disassembly (0x5451d0..0x545324, capstone; phase-4 review):
 0x54531e: mov dword ptr [edi + 4], eax
 0x545321: pop ebp
 0x545322: mov eax, ebx
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

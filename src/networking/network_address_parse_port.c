@@ -16,6 +16,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> address_string
 // Finds the first ':' in address_string; with none present, succeeds trivially (port_out
@@ -102,4 +105,7 @@ char __cdecl network_address_parse_port(long *port_out)
   *port_out = lVar5;
   return cVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

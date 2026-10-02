@@ -33,6 +33,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
@@ -322,4 +325,7 @@ LAB_0045f163:
   unaff_EBX[param_3 - 1] = L'\0';
   return local_8d;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

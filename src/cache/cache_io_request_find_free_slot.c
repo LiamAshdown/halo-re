@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
 
@@ -60,4 +63,7 @@ void cache_io_request_find_free_slot(void)
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

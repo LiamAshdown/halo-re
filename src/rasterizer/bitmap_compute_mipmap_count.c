@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740; ECX -> value
 
@@ -194,4 +197,7 @@ uint bitmap_compute_mipmap_count(void)
   }
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

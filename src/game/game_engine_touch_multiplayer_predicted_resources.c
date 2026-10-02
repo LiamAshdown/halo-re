@@ -26,6 +26,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;          // 0x00746fa0
 extern game_variant game_engine_variant; // 0x006f1c88
@@ -208,4 +211,7 @@ the EAX argument to every 0x4f7ad0 call is loaded immediately beforehand from
 [[globals+0x168]+0x24 + <vehicle slot offset>], and the jump table at 0x466b40 is
 {0x4668b7, 0x4668c7, 0x4668d7, 0x466907, 0x4668e7, 0x4668f7} for nibble values 2..7, i.e.
 nibble 5 shares the "touch all six" target (0x466907) with the out-of-range default.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

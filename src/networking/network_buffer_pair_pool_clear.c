@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // network_buffer_pair is types/networking.h (0x08; folded out of this file by the review pass).
 
@@ -75,4 +78,7 @@ void FUN_004e3ed0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

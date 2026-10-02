@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void flag_cloth_stamp_region_split_flags(int16_t outer_start, Flag *tag, flag *entry,
                                                  int16_t inner_start, int16_t size, uint16_t split_code); // this module, 0x4fb840
@@ -92,4 +95,7 @@ Disassembly (0x4fb840 args resolved from this), objdump -d -M intel bin/halo.exe
   shape==4: call(in_AX=edge_count, tag, entry, inner_start=0, size=si, code=2)
   shape==1: call(edge_count, tag, entry, 0, si, 2); call(edge_count, tag, entry, si, si, 3)
   shape==2: call(edge_count, tag, entry, 0, si, 3); call(edge_count, tag, entry, si, si, 2)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

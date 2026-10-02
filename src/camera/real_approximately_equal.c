@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Returns whether a and b are equal within a small epsilon (0.001), guarding against NaN.
@@ -50,4 +53,7 @@ uint real_approximately_equal(float param_1,float param_2)
   }
   return uVar2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

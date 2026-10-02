@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t render_frame_index;           // 0x007c3100, this module
 extern render_camera render_camera_global;   // 0x007c3114, this module
@@ -196,4 +199,7 @@ Disassembly (objdump -d -M intel, 0x50c590..0x50c65f) confirming EAX/EBX and the
 0050c64b:
   call   0x517b90
   call   0x518130
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

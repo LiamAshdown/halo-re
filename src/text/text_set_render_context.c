@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // text_encoding, text_justification and text_flags are already the names of this
 // module's enum typedefs (types/text.h); the file-scope globals use a "_state" suffix
@@ -53,4 +56,7 @@ void text_set_render_context(undefined2 param_1,undefined2 param_2,undefined4 pa
   _DAT_006e4730 = param_3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

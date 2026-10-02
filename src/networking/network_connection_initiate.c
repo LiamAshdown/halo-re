@@ -52,6 +52,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, owned by the timing/system module
 extern int32_t network_game_socket_port; // 0x00698208, port of network_game_socket (0x006f14c4)
@@ -241,4 +244,7 @@ LAB_004d8dc6:
   uVar4 = FUN_004d8c50();
   return CONCAT31((int3)((uint)uVar4 >> 8),connection._0_1_);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

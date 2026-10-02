@@ -24,6 +24,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern uint8_t variant_carousel_slots[0x1d4]; // 0x00879d60 (variant_carousel_slot[3])
@@ -105,3 +108,6 @@ uint8_t ui_event_49d8b0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

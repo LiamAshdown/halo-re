@@ -29,6 +29,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 extern double fabs(double x); // ABS is a single x87 FABS instruction
@@ -257,4 +260,7 @@ the vector3d_cross_product_length arguments:
   mov    ecx,esi                      ; ecx = &source_camera->forward
   ...
   call   0x4cd380                     ; vector3d_cross_product_length(EAX=&plane_normal, ECX=&forward)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

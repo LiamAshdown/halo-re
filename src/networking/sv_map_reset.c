@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host
 extern game_engine_state game_engine_state_value; // 0x0087aa10
@@ -73,4 +76,7 @@ void sv_map_reset(void)
   chimera__console_out("Map reset.");
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

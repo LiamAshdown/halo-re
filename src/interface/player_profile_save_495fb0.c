@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t unknown_00712f07;         // 0x00712f07, UNSURE
 extern int32_t saved_player_profile_slots_handle;    // 0x00714dd4
@@ -110,4 +113,7 @@ void player_profile_save_495fb0(void)
   FUN_00496060();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

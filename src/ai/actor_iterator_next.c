@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *actor_data;     // 0x00880360
@@ -107,4 +110,7 @@ LAB_00436b04:
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

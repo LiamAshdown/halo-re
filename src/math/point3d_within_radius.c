@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns whether point `a` is within `radius` of point `b` (squared-distance comparison, no
 // sqrt).
@@ -48,4 +51,7 @@ undefined4 FUN_0043c340(float param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

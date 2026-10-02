@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_thread_record *player_profile_thread; // 0x0072127c
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
@@ -187,4 +190,7 @@ undefined1 player_profile_get(int param_1)
   }
   return local_410d;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

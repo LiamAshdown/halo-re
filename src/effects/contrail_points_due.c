@@ -20,6 +20,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *contrail_data;   // 0x0087abec
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -80,4 +83,7 @@ undefined4 FUN_0044cf80(float param_1)
   *(float *)(iVar3 + 0x20) = *(float *)(iVar3 + 0x20) - param_1;
   return CONCAT22((short)((uint)fVar2 >> 0x10),sVar4);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint64_t game_variant_option_default_by_index(void); // 0x465380, UNSURE signature
 
@@ -110,4 +113,7 @@ void FUN_004a3180(int param_1,uint param_2)
   }
   [... five more identical blocks at shifts 7, 10, 13, 0x10, 0x13 ...]
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

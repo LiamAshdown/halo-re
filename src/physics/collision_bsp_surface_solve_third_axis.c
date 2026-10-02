@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign,
     int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
@@ -50,4 +53,7 @@ undefined4 FUN_00501470(undefined4 param_1,undefined4 param_2)
   FUN_0044d860(param_2);
   return param_2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

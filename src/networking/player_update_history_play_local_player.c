@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -121,4 +124,7 @@ LAB_004e777a:
     iVar1 = data_iterator_next();
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

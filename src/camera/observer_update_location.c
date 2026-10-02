@@ -16,6 +16,9 @@
 #include "game.h"
 #include "structures.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals;      // 0x0087a478
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
@@ -67,4 +70,7 @@ No Ghidra function exists at 0x447a60. objdump -d -M intel:
   447aa4: movsx eax,WORD PTR [eax+edx*1+0x8]
   447aa9: mov ds:0x6ac6e0,ax
   447aaf: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

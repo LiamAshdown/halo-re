@@ -25,6 +25,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
@@ -158,4 +161,7 @@ confirming it is a genuine caller-supplied register argument rather than a spill
 This rewrite folds Ghidra's own resolve-the-weapon-tag block (calling actor_get_threat_
 weapon_object_index and indexing object_data/tag_instances by hand) into the already-rewritten
 actor_get_threat_weapon_definition (0x40f970), which does the identical lookup.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

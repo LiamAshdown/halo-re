@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t adpcm_index_table[16]; // 0x0065e56c
 extern int16_t adpcm_step_table[89];  // 0x0065e590
@@ -73,3 +76,6 @@ int32_t sound_adpcm_decode_mono(void *source, void *destination, int32_t block_c
     } while (block_count != 0);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

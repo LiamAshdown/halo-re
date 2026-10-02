@@ -25,6 +25,9 @@
 #include "objects.h"
 #include "hs.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -88,4 +91,7 @@ void player_examine_nearby_vehicle(undefined4 param_1,undefined4 param_2)
   hs_thread_return();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

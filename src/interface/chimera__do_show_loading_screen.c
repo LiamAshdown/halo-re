@@ -34,6 +34,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern progress_screen_state join_ui_state; // 0x00718f8c, progress_screen_state in interface.h
 extern int32_t interface_loading_screen_address_b;      // 0x0068e684
@@ -374,4 +377,7 @@ LAB_004977c5:
     return;
   }
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

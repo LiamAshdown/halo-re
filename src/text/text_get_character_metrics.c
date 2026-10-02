@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDX=character, EDI=font
 // Resolves the glyph-metrics record for character within font, or (void *)0 if font has no
@@ -66,4 +69,7 @@ int text_get_character_metrics(void)
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

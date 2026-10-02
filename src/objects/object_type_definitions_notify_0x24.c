@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
@@ -66,4 +69,7 @@ void FUN_004f3e30(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

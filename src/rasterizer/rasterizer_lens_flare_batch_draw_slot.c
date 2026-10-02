@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots]; // 0x00746fc0
 extern void *rasterizer_device; // 0x0071d174
@@ -62,4 +65,7 @@ void FUN_00536c10(void)
   (&DAT_0075efc0)[in_EAX * 0x6006] = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call
 
@@ -82,4 +85,7 @@ Disassembly (0x54cda0..0x54cde0, capstone) resolving the __ftol() dataflow:
 0x54cdc6: fmul qword ptr [0x672b10]
 0x54cdcc: fiadd dword ptr [esp + 0xc]
 0x54cdd0: call 0x6391b4
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

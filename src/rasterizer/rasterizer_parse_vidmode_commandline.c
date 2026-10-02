@@ -16,6 +16,9 @@
 #include "rasterizer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t unknown_0071d1b0; // 0x0071d1b0 UNSURE: "already parsed once" latch
 extern uint8_t rasterizer_needs_reset; // 0x0071d16d UNSURE: "explicit vidmode requested" flag
@@ -132,4 +135,7 @@ LAB_0051695b:
   }
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

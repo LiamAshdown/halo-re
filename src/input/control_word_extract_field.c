@@ -32,6 +32,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t control_word_secondary; // 0x006f1cec, UNSURE: not independently named/typed
 extern uint32_t control_word_primary;   // 0x006f1ce8, UNSURE: not independently named/typed
@@ -93,4 +96,7 @@ uint FUN_004f3680(void)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

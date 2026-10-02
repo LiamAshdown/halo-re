@@ -29,6 +29,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t server_browser_total_players; // 0x00719474
 extern int32_t server_list_scroll_offset; // 0x00719478
@@ -79,4 +82,7 @@ void __cdecl server_list_reset(void)
   ticker_text_buffer_append(&DAT_00719498,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

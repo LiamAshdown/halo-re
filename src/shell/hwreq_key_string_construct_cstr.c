@@ -11,6 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source, uint32_t count); // 0x57bc90
 
@@ -27,3 +30,6 @@ msvc_std_string *hwreq_key_string_construct_cstr(msvc_std_string *self, const ch
     msvc_string_assign_n(self, source, (uint32_t)(end - source));
     return self;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

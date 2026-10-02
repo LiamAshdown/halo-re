@@ -28,6 +28,9 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;           // 0x0087bc14
 extern const real_vector3d *global_down3d_pointer;  // 0x0069672c, the constant "down" vector
@@ -149,4 +152,7 @@ FUN_00453490 that Ghidra shows with zero arguments:
   call 0x453490
   add esp,0x10
 453488: pop edi; pop ebp; add esp,0x68; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

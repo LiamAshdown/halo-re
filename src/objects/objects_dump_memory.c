@@ -28,6 +28,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // FIXED 2026-09-28 (retail-independence loop): the second fopen argument is the mode "a+b" (0x00660144, pushed at
 //   0x4fa66d); the earlier 0 would crash in the CRT, and fopen_00624186 bound to nothing (a direct trap).
@@ -267,4 +270,7 @@ LAB_004fa5e8:
     piVar3 = (int *)object_iterator_next();
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

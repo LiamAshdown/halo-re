@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 
@@ -40,4 +43,7 @@ Disassembly (0x546f90..0x546f97; phase-4 review):
 
 0x546f90: mov byte ptr [0x746132], 0
 0x546f97: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

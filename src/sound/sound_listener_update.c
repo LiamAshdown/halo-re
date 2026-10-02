@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 static float sound_listener_update_fabsf(float x) { return (x < 0.0f) ? -x : x; }
 
@@ -371,4 +374,7 @@ Disassembly (0x547070..0x5472c3, capstone; phase-4 review):
 0x5472c0: pop esi
 0x5472c1: pop ebx
 0x5472c2: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

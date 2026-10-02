@@ -24,6 +24,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4
 
@@ -92,4 +95,7 @@ void FUN_00454250(void)
               *(float *)(iVar2 + 0x6c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

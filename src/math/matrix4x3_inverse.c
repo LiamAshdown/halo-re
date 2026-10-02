@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Computes the inverse of a matrix4x3 (uniform scale + rotation + translation).
 void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in)
@@ -119,4 +122,7 @@ void matrix4x3_inverse(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

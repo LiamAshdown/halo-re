@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4, types/math.h
 
@@ -101,4 +104,7 @@ void FUN_004df790(int param_1)
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

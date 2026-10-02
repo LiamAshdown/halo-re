@@ -1,3 +1,6 @@
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 // object_recalculate_bounding_radius_clone_4f8a70   (renamed by the phase-4 review pass; Ghidra/PDB name was `object_reset`,
 //    which this file's own header shows does not describe the code)
 // address 0x4f8a70, size 148 bytes
@@ -50,4 +53,7 @@ void object_reset(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

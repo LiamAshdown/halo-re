@@ -18,6 +18,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 void dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array)
@@ -47,4 +50,7 @@ void FUN_004ba940(void)
   unaff_ESI[1] = unaff_ESI[1] + -1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

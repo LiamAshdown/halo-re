@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void network_event_feed_flush(void); // this module, 0x4e8040; UNSURE: arguments (called with none
     // visible in the decompile, presumably an implicit EAX -> queue passthrough)
@@ -74,4 +77,7 @@ void network_event_feed_queue_append(undefined4 *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

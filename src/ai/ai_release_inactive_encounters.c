@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;              // 0x00880360
 extern data_array *encounter_data;          // 0x008802c8
@@ -114,4 +117,7 @@ int __cdecl ai_release_inactive_encounters(char *buffer,uchar *has_more,short *s
   *has_more = state[1] < *state;
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

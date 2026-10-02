@@ -16,6 +16,9 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void *shell_window;            // 0x007461c4
@@ -107,4 +110,7 @@ void rasterizer_resize_game_window(void)
   DAT_0069c64c = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

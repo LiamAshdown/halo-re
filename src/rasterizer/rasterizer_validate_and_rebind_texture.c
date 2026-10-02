@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 // blam-cc: EAX -> bitmap
@@ -88,4 +91,7 @@ undefined4 FUN_005187e0(undefined4 param_1,short param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

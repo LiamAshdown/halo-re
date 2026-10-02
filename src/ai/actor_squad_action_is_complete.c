@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -444,4 +447,7 @@ LAB_00406935:
 switchD_0040673c_default:
   return true;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

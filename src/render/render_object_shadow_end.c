@@ -32,6 +32,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_window_parameters rasterizer_window;      // 0x007c1220, rasterizer module
 extern uint8_t rasterizer_caps_flag_689;                            // 0x0069c689 UNSURE
@@ -269,4 +272,7 @@ void shadow_compute_bounding_box_and_register(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

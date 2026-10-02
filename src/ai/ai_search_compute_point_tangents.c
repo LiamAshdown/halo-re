@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // ABS
@@ -78,4 +81,7 @@ void FUN_0043c9a0(float param_1,undefined4 param_2,undefined4 param_3)
   FUN_0043c400(fVar2,param_1 + *(float *)(iVar1 + 0x10) + 0.00390625,param_3,fVar2,fVar3,fVar4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern director_globals camera_director_globals;          // 0x006ac558
 extern director directors[1];                             // 0x006ac560
@@ -209,4 +212,7 @@ onwards and adds nothing; it is not reproduced. objdump for the pow operands Ghi
   446170: fld QWORD PTR ds:0x672c60   ; 1.3
   446179: fld DWORD PTR [esp+0x10]    ; zoom
   446194: call 0x6283c0               ; _CIpow(st1, st0)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

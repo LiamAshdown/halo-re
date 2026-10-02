@@ -20,6 +20,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t game_state_revert_available; // 0x006e2dd9
 extern uint8_t unknown_00746fa4; // 0x00746fa4, UNSURE
@@ -84,4 +87,7 @@ void game_state_perform_revert(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -22,6 +22,9 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *encounter_data; // 0x008802c8
@@ -162,4 +165,7 @@ Real disassembly confirming actor_iterator_next dropped argument (0x42b940-0x42b
 0042b97e: mov    byte ptr [esp+0x15],0x1  ; iterator.active
 0042b983: lea    eax,[esp+0x4]
 0042b987: call   0x436a70                 ; actor_iterator_next(&iterator)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns how far value sits from ref_k0 towards ref_k1, as a fraction clamped to [0, 1].
 // ref_k0 and ref_k1 may be given in either order; the "near" end (ref_k0) maps to 0 and the
@@ -65,4 +68,7 @@ LAB_00507464:
   }
   return (float10)0.0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

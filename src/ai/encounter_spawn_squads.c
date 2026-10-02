@@ -29,6 +29,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -248,4 +251,7 @@ switchD_00437600_caseD_2:
   FUN_00437e20();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -8,6 +8,9 @@
 // blam-cc: cdecl (the autopatch check callback)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char autopatch_update_url[0x100];      // 0x007228d8
 extern char autopatch_update_version[0x100];  // 0x007229d8
@@ -34,3 +37,6 @@ void autopatch_version_check_completed(int32_t available, int32_t mandatory, con
     strncpy(autopatch_update_version, version_name, 0x3f);
     autopatch_update_version[0x3f] = 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

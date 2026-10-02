@@ -17,6 +17,9 @@
 #include "memory.h"
 #include <stdio.h>
 #include <time.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x4e5320..0x4e5381 (2026-09-30); fixed: the original calls the CRT _snprintf (0x623a2d),
 //   which writes count characters and does NOT NUL-terminate on truncation (the C99 snprintf the draft used writes a
@@ -58,4 +61,7 @@ void format_time_and_date_strings(char *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

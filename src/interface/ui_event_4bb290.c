@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ui_flag_007196d1; // 0x007196d1, UNSURE (cleared by 0x4bb290, gates the gamma apply in 0x4bb300)
 extern uint8_t ui_flag_007196d2; // 0x007196d2, UNSURE (only ever set to 1 here)
@@ -43,3 +46,6 @@ uint8_t ui_event_4bb290(widget_instance *widget, int16_t *event, uint8_t *out_ha
     video_options_menu_populate((uint8_t *)widget, saved_item_working_copy);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

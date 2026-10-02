@@ -12,6 +12,9 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
@@ -57,4 +60,7 @@ void ai_reset_all_actors_perception(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

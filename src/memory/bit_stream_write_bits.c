@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t bit_mask_clear[8]; // 0x0065c2b4, entry i = (uint8_t)(0xff << i)
 extern uint8_t bit_mask_keep[9];  // 0x0065c2c0, entry i = (uint8_t)((1 << i) - 1), entry 8 = 0xff
@@ -168,4 +171,7 @@ uint bit_stream_write_bits(uint param_1)
   }
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

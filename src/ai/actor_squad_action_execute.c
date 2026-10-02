@@ -23,6 +23,9 @@
 #include "units.h"
 #include <string.h>
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern double fcos(double x); // FCOS
@@ -1268,4 +1271,7 @@ switchD_00405e1c_default:
   return local_f7;
 }
 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

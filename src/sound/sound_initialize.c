@@ -25,6 +25,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_initialized;  // 0x00725200
 extern uint8_t sound_enabled;      // 0x00725201
@@ -317,4 +320,7 @@ Disassembly (0x5492f0..0x549499, capstone; phase-4 review):
 0x549496: pop esi
 0x549497: pop ebx
 0x549498: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

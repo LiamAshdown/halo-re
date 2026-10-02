@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3dx_macro rasterizer_effect_defines[2];                      // 0x007c0460, NULL-terminated
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
@@ -340,4 +343,7 @@ uint __cdecl rasterizer_dx9_shaders_initialize(void)
   uVar6 = shell_display_fatal_error_dialog(0x69,0x7e,1);
   return uVar6 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

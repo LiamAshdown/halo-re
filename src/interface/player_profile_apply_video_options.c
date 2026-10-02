@@ -33,6 +33,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t safe_mode;   // 0x007196f4
 extern int16_t renderer_texture_quality;      // 0x0068944e
@@ -251,4 +254,7 @@ LAB_004955fb:
   }
   return CONCAT31(uVar3,-1 < local_5c);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

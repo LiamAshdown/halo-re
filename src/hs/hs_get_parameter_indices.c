@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_syntax_data;      // 0x0087a474
 extern char *hs_compile_error;          // 0x006b14d4
@@ -80,4 +83,7 @@ undefined4 hs_get_parameter_indices(undefined4 param_1,short param_2)
   }
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

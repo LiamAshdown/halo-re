@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t shell_window_proc_bypass;      // 0x00721e8d
 extern uint8_t directsound_eax_enabled;       // 0x00746121
@@ -60,4 +63,7 @@ void FUN_005481a0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

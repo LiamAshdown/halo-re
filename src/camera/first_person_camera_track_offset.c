@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern Globals *global_globals;      // 0x00746fa0
@@ -132,4 +135,7 @@ void FUN_00447190(float param_1,undefined4 param_2)
              (float)((float10)1.0 / extraout_ST0),(param_1 + 1.5707964) * 0.31830987);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

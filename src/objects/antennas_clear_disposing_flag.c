@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *antenna_data; // 0x008603ac
 
@@ -28,4 +31,7 @@ void FUN_004faa60(void)
   *(undefined1 *)(DAT_008603ac + 0x24) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

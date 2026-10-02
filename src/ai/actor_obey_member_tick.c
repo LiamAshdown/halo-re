@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request); // 0x405390, EAX, EDX, ECX
 
@@ -37,3 +40,6 @@ void actor_obey_member_tick(uint32_t actor_index, datum_index unit_index, uint16
         actor_get_body_axis_vector(actor_index, unit_index, (actor_axis_request *)record);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

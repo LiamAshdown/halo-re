@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void heap_compact(heap *self); // this batch
 extern int32_t heap_get_free_bytes(heap *self); // this batch
@@ -212,4 +215,7 @@ uint FUN_004d2180(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern lens_flare_batch_key lens_flare_current_key;   // 0x00746fb0
 extern GlobalsRasterizerData *rasterizer_globals_data; // 0x0071d164
@@ -53,4 +56,7 @@ uint FUN_005120f0(short param_1)
   DAT_00746fb8 = (int)param_1;
   return in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

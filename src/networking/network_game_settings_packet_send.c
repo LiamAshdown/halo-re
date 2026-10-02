@@ -50,6 +50,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void main_queue_map_change_by_name_or_clear(void); // 0x4c87a0
 extern int32_t join_ui_state; // 0x00718f8c, per network_client_state_dispatch.c cluster naming
@@ -294,4 +297,7 @@ LAB_004d9529:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

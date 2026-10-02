@@ -27,6 +27,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_data;            // 0x007252c0, "sounds" 0x200 x 0xb0
 extern tag_instance *tag_instances;       // 0x0087bc14
@@ -751,4 +754,7 @@ Disassembly (0x54b180..0x54b953, capstone; phase-4 review):
 0x54b93c: mov edi, dword ptr [0x6ac530]
 0x54b942: call 0x4d1c20
 0x54b947: mov dword ptr [esi + 0x2c], 0xffffffff
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

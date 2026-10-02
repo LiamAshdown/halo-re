@@ -14,6 +14,9 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;  // 0x008603b0
 extern Scenario *global_scenario;
@@ -33,3 +36,6 @@ void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint1
         ((unit_object *)unit)->unit.flags |= 0x1000;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

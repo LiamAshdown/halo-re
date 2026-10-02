@@ -18,6 +18,9 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES (folded into types/ai.h by the review pass): see actor_consider_combat_mode.c for the full note; only the two fields this
 // function reads need to be correctly placed.
@@ -103,4 +106,7 @@ float10 FUN_004028e0(void)
   }
   return fVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

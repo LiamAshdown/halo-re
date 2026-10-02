@@ -18,6 +18,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant game_engine_pending_variant; // 0x0087aa80
 extern game_variant game_engine_active_variant;  // 0x0087ab20
@@ -109,4 +112,7 @@ void FUN_0045fc80(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

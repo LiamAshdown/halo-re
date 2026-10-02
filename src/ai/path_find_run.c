@@ -29,6 +29,9 @@
 #include "ai.h"
 #include <stdint.h> // uintptr_t
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void path_find_heap_sift_up(path_find_context *context, int16_t index);   // 0x43af70, EAX, DX
 extern void path_find_heap_sift_down(path_find_context *context, int16_t index); // 0x43b010, EAX, ECX
@@ -513,4 +516,7 @@ LAB_0043aef7:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

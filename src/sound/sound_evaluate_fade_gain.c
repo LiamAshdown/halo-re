@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_data;          // 0x007252c0, "sounds" 0x200 x 0xb0
 extern int32_t sound_time;              // 0x0072520c
@@ -176,4 +179,7 @@ Disassembly (0x54e3c0..0x54e4cd, capstone; phase-4 review):
 0x54e4ca: pop esi
 0x54e4cb: pop ecx
 0x54e4cc: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

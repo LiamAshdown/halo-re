@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index *object_name_list; // 0x006b8cb8
 extern datum_index object_new_from_scenario_name(int16_t name_index); // 0x4f7370, blam-cc: CX
@@ -24,3 +27,6 @@ void hs_object_create_name_index_if_absent(int32_t name_index)
         object_new_from_scenario_name(name);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

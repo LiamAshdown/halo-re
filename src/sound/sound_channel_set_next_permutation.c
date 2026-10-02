@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_cache_entries; // 0x006ac528
@@ -117,4 +120,7 @@ Disassembly (0x54cd30..0x54cd9b, capstone; phase-4 review):
 0x54cd92: mov dword ptr [esi + 8], 0
 0x54cd99: pop esi
 0x54cd9a: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

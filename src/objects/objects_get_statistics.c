@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern memory_pool *object_memory_pool; // 0x006b8cb4
@@ -86,4 +89,7 @@ void FUN_004f7950(void)
   *(float *)(in_EDX + 2) = 1.0 - (float)(*(int *)(DAT_006b8cb4 + 0x28) - iVar2) * 4.7683716e-07;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

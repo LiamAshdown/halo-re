@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;     // 0x00746fa0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -60,4 +63,7 @@ int game_engine_get_multiplayer_sound_duration_ticks(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

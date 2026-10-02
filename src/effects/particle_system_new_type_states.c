@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern tag_instance *tag_instances;      // 0x0087bc14
@@ -165,4 +168,7 @@ char FUN_004538b0(uint param_1)
   }
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

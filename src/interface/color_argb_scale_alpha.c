@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
@@ -33,4 +36,7 @@ uint color_argb_scale_alpha(float param_1)
 
   return in_EAX & 0xffffff | (int)ROUND((float)(in_EAX >> 0x18) * param_1) << 0x18;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

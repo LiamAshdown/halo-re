@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t ui_version_text[]; // 0x00719300
 extern uint16_t ui_format_narrow_string[]; // 0x0066a888, L"%S"
@@ -25,3 +28,6 @@ void *ui_replace_version(widget_instance *widget)
     }
     return ui_version_text;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

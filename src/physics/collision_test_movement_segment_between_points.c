@@ -32,6 +32,9 @@
 #include "objects.h"
 #include "projectiles.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); // 0x505880, this module
@@ -86,4 +89,7 @@ void FUN_00401a20(undefined4 param_1)
   401a53:	e8 28 3e 10 00       	call   0x505880
   401a58:	83 c4 20             	add    esp,0x20
   401a5b:	c3                   	ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ray2d_intersect_circle_distance(const real_vector2d *direction, const real_point2d *origin,
     const real_point2d *center, real *out_distance, real radius); // 0x43c380, EAX, ECX, EDX, ESI, stack
@@ -85,4 +88,7 @@ FUN_0043c8f0(int param_1,short param_2,undefined4 param_3,undefined4 param_4,flo
   }
   return CONCAT31(0xffffff,*(short *)(unaff_EDI + 1) != -1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

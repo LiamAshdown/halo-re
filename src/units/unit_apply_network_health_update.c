@@ -37,6 +37,9 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -173,4 +176,7 @@ void FUN_0055b5f0(uint param_1,undefined4 *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

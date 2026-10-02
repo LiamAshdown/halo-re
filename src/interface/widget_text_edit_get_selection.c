@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void widget_text_edit_clamp_selection(text_edit_state *state); // 0x44c780, this module
 
@@ -65,4 +68,7 @@ uint FUN_0044c5e0(short *param_1,short *param_2)
   *param_2 = sVar1;
   return CONCAT31((int3)(char)((ushort)sVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

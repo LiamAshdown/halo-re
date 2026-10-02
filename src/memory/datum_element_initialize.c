@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: array in EDX, element in ESI
 // Zero-fills one element's worth of bytes at `element`, then stamps its datum_header::identifier
@@ -67,4 +70,7 @@ void FUN_004d06c0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

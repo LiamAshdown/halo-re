@@ -12,6 +12,9 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -26,3 +29,6 @@ void actor_mode_guard_exit(datum_index actor_index)
         *(int32_t *)&((struct actor *)act)->post_combat_prop_index = -1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

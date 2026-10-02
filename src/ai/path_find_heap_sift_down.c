@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> context, ECX -> index
 void path_find_heap_sift_down(path_find_context *context, int16_t index)
@@ -103,4 +106,7 @@ void path_find_heap_sift_down(void)
     in_CX = sVar4;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

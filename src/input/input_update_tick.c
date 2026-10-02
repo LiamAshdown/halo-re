@@ -23,6 +23,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern uint32_t input_menu_exit_deadline;                     // 0x00712918
@@ -212,4 +215,7 @@ the jump table this decompile already resolved:
 0048b5c9: call   0x48ec50                                ; input_menu_generate_events
 0048b5ce..0048b5d3: epilogue / ret
 0048b5d4: jump table (4 dwords): 0048b55b, 0048b5bd, 0048b579, 0048b56e
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

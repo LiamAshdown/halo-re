@@ -15,6 +15,9 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data;  // 0x00860b14
 extern uint8_t *lights_enabled; // 0x0071cfb8
@@ -68,4 +71,7 @@ void lights_initialize(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

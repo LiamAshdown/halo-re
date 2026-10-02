@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // strncpy (0x00623a90 strncpy) comes from <string.h>.
 extern void data_delete_all(data_array *array); // 0x4d0580, below this batch's assigned range
@@ -115,4 +118,7 @@ void cache_new(char *param_1,undefined4 param_2,undefined4 param_3,undefined2 pa
   param_1[0x33] = '\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

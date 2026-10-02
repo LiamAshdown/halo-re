@@ -22,6 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 2 == host
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -94,4 +97,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) for the register convention:
   4e3949: mov ecx,0x7                               ; reason = 7
   4e394e: mov edi,eax                               ; machine
   4e3950: call FUN_004e0af0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

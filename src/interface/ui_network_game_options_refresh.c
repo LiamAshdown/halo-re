@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void player_profile_set_default_server_options(void); // 0x53a150, foreign (profile module), UNSURE
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
@@ -39,4 +42,7 @@ void FUN_004a3b30(void)
   FUN_004a3960();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

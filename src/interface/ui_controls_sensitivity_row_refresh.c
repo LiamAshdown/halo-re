@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void ui_controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record); // 0x4a20f0
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
@@ -37,4 +40,7 @@ undefined4 FUN_004a2270(void)
   widget_play_sound_effect();
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "crt.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int16_t map_download_slot_index; // 0x006ac472, 0xffff (-1) when idle
@@ -150,4 +153,7 @@ Raw disassembly (0x4432f0-0x443359), objdump -d -M intel --start-address=0x4432f
 00443356: xor al,al                          ; idle or not equal: return 0
 00443358: pop esi
 00443359: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

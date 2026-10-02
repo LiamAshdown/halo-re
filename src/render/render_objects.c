@@ -26,6 +26,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_6893ec; // 0x006893ec (matches
                                             // src/rasterizer/rasterizer_model_draw_prepare_states.c)
@@ -132,4 +135,7 @@ void FUN_0050e930(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "math.h"
 #include "objects.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *effect_marker_callback_context; // 0x006b0adc
 
@@ -44,3 +47,6 @@ int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *loc
     effect_marker_from_node_table(0, context, out);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

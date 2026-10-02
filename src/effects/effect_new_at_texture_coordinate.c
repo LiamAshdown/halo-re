@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_data; // 0x0087abdc
 extern const ColorRGB *global_white_color; // 0x00686b04, UNSURE, see file header
@@ -124,4 +127,7 @@ uint FUN_004506d0(undefined2 param_1,undefined2 param_2)
   }
   return particle_system_index;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

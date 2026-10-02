@@ -30,6 +30,9 @@
 #include "ai.h"
 #include <stdint.h>
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 // REWRITTEN 2026-09-28 against objdump 0x4303f0..0x4307b4: when either root cluster is -1 the original
 //   skips only the PVS test and still traces the segment (the draft dropped the player entirely);
 //   distance and facing sums follow the original z, y, x order. Everything else matched.
@@ -370,4 +373,7 @@ LAB_0043078c:
   }
   return (float10)local_13c;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

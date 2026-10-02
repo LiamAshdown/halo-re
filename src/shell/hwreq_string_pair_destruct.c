@@ -13,6 +13,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Destructs a heap-embedded pair of strings, releasing any out-of-line buffers each string owns.
@@ -65,4 +68,7 @@ void hwreq_string_pair_destruct(int param_1)
   ExceptionList = local_c;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t update_client_staged[8];  // 0x006f7ea4, UNSURE raw layout
 extern uint32_t update_client_unknown_ea8; // 0x006f7ea8, UNSURE
@@ -66,4 +69,7 @@ void FUN_00473090(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: ESI -> scenario, stack -> name
@@ -72,4 +75,7 @@ int FUN_00432200(char *param_1)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

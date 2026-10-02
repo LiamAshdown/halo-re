@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void *shell_window; // 0x007461c4
@@ -77,4 +80,7 @@ undefined4 clipboard_get_text(char *param_1,size_t param_2)
   CloseClipboard();
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

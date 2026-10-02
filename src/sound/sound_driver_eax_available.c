@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t directsound_eax_enabled;             // 0x00746121
 extern uint8_t directsound_eax_available;           // 0x00746120
@@ -72,4 +75,7 @@ Disassembly (0x5482a0..0x5482d4; phase-4 review):
 0x5482d1: ret
 0x5482d2: xor eax, eax
 0x5482d4: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

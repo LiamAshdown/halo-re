@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void KeyValCompareKeyA(const void *a, const void *b); // 0x00617340, lib:gamespy, not this module
 extern void hs_enumerate_special_form_names(void); // 0x00483840, this batch (table entry only)
@@ -99,4 +102,7 @@ short chimera__autocomplete_gather(uint param_1,void *param_2)
   DAT_006b14b4 = (void *)0x0;
   return DAT_006b14b0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

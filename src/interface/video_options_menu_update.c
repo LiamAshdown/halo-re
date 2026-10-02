@@ -26,6 +26,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern heap *widget_memory_pool;                  // 0x006926c4
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
@@ -178,4 +181,7 @@ undefined4 video_options_menu_update(int param_1)
   FUN_004a66b0(param_1);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

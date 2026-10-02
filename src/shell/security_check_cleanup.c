@@ -26,6 +26,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Releases the SID, ACL/security-descriptor buffer, and token handles allocated inside
@@ -80,4 +83,7 @@ void security_check_cleanup(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

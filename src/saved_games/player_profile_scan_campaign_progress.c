@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: out_type in ECX, profile in EDX, out_level in ESI
 void player_profile_scan_campaign_progress(int16_t *out_type, saved_player_profile *profile, int16_t *out_level)
@@ -211,4 +214,7 @@ void FUN_00539e00(void)
   } while (iVar3 < 10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

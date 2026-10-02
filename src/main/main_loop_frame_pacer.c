@@ -22,6 +22,9 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern int32_t game_time_force_single_tick; // 0x007196d8, foreign (main-owned global per main.h)
@@ -200,4 +203,7 @@ LAB_004ca0ef:
   _DAT_0071971c = (float)local_1c;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

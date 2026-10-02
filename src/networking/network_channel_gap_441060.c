@@ -8,6 +8,9 @@
 // blam-cc: cdecl (a GT2 socket error callback)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_join_error_code;            // 0x00718fa4
 extern uint8_t network_host_handoff_requested;     // 0x0071c2de
@@ -30,3 +33,6 @@ void network_channel_gap_441060(void *socket)
         network_query_socket = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

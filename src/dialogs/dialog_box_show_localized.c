@@ -21,6 +21,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern uint32_t shell_language_id; // 0x0069ff20, shell-owned; see types/dialogs.h
@@ -104,4 +107,7 @@ void dialog_box_show_localized(LPCSTR param_1,HWND param_2)
   DialogBoxParamA(unaff_ESI,param_1,param_2,unaff_EBX,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

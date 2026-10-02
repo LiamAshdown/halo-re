@@ -12,6 +12,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;      // 0x008603b0
 extern int16_t network_game_mode; // 0x00719720 (a WORD; 0x719722 is the screenshot counter)
@@ -83,4 +86,7 @@ void unit_drop_inventory_weapons(uint param_1)
   } while (sVar4 < 4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

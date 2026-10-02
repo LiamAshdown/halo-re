@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern uint8_t unknown_006893f6, unknown_006893f7, unknown_006893f8, console_debug_toggle_6893f9; // UNSURE debug toggles
@@ -119,4 +122,7 @@ bool __cdecl rasterizer_reset_device_if_needed(void)
   DAT_0071d16f = 1;
   return bVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

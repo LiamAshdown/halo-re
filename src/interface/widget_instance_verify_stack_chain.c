@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> node
 // True if every ancestor from `node` up to the tree root has its focused_child pointing back at
@@ -65,4 +68,7 @@ uint FUN_00499aa0(void)
   }
   return in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

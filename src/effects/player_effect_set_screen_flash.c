@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t screen_flash_pass[8]; // 0x00687218
 
@@ -113,4 +116,7 @@ void FUN_004578a0(int param_1,float param_2,float param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

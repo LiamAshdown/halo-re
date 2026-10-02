@@ -11,6 +11,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t interface_loading_screen_address_b;      // 0x0068e684
 extern uint32_t interface_loading_screen_address_a;   // 0x0068e680, UNSURE: header calls this progress_screen_bitmap; see chimera__do_show_loading_screen.c
@@ -49,4 +52,7 @@ void interface_loading_screen_reset(void)
   DAT_0068e688 = 0xffffffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Second-stage remap from item_type_to_message_stage's result to the final index used to index
 // the weapon_hud_interface message table; -1 for any input with no entry.
@@ -108,4 +111,7 @@ undefined4 FUN_00492880(void)
     return 0xffffffff;
   }
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

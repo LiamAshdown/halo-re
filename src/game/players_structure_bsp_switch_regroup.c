@@ -27,6 +27,9 @@
 #include "cache.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals;            // 0x0087a478
 extern data_array *player_data;                         // 0x0087a480
@@ -144,3 +147,6 @@ void players_structure_bsp_switch_regroup(void)
     local_player_globals->bsp_switch_trigger_volume_index = -1;
     players_clear_bsp_cluster();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

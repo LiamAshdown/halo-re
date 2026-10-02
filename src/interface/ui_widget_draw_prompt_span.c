@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t ui_prompt_clip_y; // 0x006e4770, word store
 extern int16_t ui_prompt_clip_x; // 0x006e476e, clamped to >= 0
@@ -66,4 +69,7 @@ void FUN_0049ad30(undefined4 param_1)
   *in_ECX = *in_EAX;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
@@ -89,4 +92,7 @@ void FUN_004836f0(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

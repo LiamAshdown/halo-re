@@ -24,6 +24,9 @@
 #include "input.h"
 
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
@@ -91,4 +94,7 @@ void chimera__axis_text(short param_1,undefined4 param_2,int param_3)
   *(undefined2 *)(param_3 + 0x30) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

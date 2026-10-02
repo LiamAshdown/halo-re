@@ -24,6 +24,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t input_device_default_profile_tag_find(input_guid guid, uint8_t *out_profile); // 0x490110, not in this module; guid by value
 extern uint8_t control_profile_copy_gamepad_bindings_by_key(controls_gamepad_record *key,
@@ -81,4 +84,7 @@ uint FUN_0053b500(uint param_1)
   }
   return param_1 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

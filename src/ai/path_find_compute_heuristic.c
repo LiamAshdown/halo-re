@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point3d *global_origin3d_pointer; // 0x00696714, a pointer to a constant vector (UNSURE: likely but not confirmed identical to the {1,0,0} constant at 0x00696718 referenced elsewhere in this module)
 
@@ -208,4 +211,7 @@ undefined4 FUN_0043a310(float *param_1,float *param_2,float *param_3,float *para
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

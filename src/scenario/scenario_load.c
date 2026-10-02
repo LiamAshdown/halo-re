@@ -20,6 +20,9 @@
 #include "cache.h"
 #include "scenario.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index cache_file_load(char *path);            // 0x442290, cache module, blam-cc: EAX -> path
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, cache module, blam-cc: EDI -> group
@@ -142,4 +145,7 @@ Raw disassembly (0x53e6a0-0x53e6a3), confirming path forwards through EAX with n
   53e6a0: push   ebx
   53e6a1: xor    bl,bl
   53e6a3: call   0x442290                ; cache_file_load(EAX=path, forwarded from scenario_load's own EAX)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

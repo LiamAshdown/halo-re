@@ -22,6 +22,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float render_camera_global[3]; // 0x007c3114, UNSURE: guessed name
 extern float camera_forward_x[3];  // 0x007c3120, UNSURE: guessed name
@@ -81,4 +84,7 @@ void FUN_00458990(float param_1)
   in_ECX[0xf] = DAT_007c321c;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

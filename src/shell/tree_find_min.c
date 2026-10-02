@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> subtree_root_left_field
 hwreq_map_node *tree_find_min(hwreq_map_node **subtree_root_left_field)
@@ -45,4 +48,7 @@ void tree_find_min(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

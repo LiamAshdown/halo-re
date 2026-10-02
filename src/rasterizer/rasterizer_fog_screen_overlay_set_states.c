@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
@@ -200,4 +203,7 @@ void FUN_0051def0(void)
   rasterizer_set_shader_stage_config();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

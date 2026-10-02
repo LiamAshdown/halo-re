@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (compressed_requested, stereo_requested, sample_rate_44khz_requested), DX ->
 // flags, stack -> requested_3d
@@ -103,4 +106,7 @@ Disassembly (0x548520..0x548588, capstone; phase-4 review):
 0x548583: je 0x548587
 0x548585: xor al, al
 0x548587: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

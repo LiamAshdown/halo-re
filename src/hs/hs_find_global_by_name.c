@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
@@ -88,4 +91,7 @@ ushort chimera__get_global_index(void)
   }
   return 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

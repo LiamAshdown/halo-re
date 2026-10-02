@@ -14,6 +14,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *contrail_data; // 0x0087abec
 
@@ -71,4 +74,7 @@ void FUN_0044ca60(char param_1,float param_2)
   *(float *)(iVar3 + 0x28) = param_2 + *(float *)(iVar3 + 0x28);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

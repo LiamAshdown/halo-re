@@ -11,6 +11,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // qsort-style comparator over two int32_t* carousel-slot ids: entries that are not -1 sort
 // before entries that are -1; two entries of the same "validity" compare equal.
@@ -42,4 +45,7 @@ undefined4 FUN_004a7630(int *param_1,int *param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

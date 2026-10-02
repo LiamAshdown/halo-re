@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Trims *string_ptr in place: walks back from the end, replacing trailing
 // whitespace/'\n'/'\r' with NUL, then walks forward from the start, replacing each leading
@@ -72,4 +75,7 @@ void string_trim_whitespace(void)
   *unaff_EDI = pcVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

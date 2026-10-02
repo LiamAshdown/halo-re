@@ -5,9 +5,15 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t message_delta_compute_size_32(message_delta_field_type *field_type)
 {
     (void)field_type;
     return 32;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

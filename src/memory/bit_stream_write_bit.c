@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Writes a single bit (0 or 1) into a bounds-checked bit stream and advances its one-bit cursor.
 // Returns nonzero (with garbage high bits, only the low byte is meaningful to callers) on
@@ -91,4 +94,7 @@ uint bit_stream_write_bit(int param_1)
   }
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

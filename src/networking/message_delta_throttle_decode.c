@@ -5,6 +5,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void digital_throttle_decode_vector(real *out, uint32_t code); // 0x4eb0c0
 
@@ -18,3 +21,6 @@ int32_t message_delta_throttle_decode(message_delta_field_type *field_type, void
     digital_throttle_decode_vector((real *)current, code);
     return bits;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

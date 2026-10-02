@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *shell_instance;         // 0x007461c0, HINSTANCE
 extern void *direct_input8_create;   // 0x00746268, FARPROC (shell module)
@@ -74,4 +77,7 @@ bool input_directinput_initialize(void)
   }
   return -1 < iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -79,3 +82,6 @@ void actor_mode_search_tick(datum_index actor_index)
         ai_communication_broadcast(0x12, unit_index, actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

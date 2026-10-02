@@ -33,6 +33,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t render_cluster_index;                     // 0x007c3348
 extern uint8_t debug_render_cluster_pvs;                  // 0x00724a45
@@ -177,4 +180,7 @@ LAB_00553bfe:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

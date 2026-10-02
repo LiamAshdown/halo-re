@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stream in EDX; destination, count, consume flag are the recognized parameters
 // Reads byte_count bytes from stream into destination, with wraparound. Advances the read
@@ -134,4 +137,7 @@ undefined4 circular_buffer_read(undefined4 *param_1,uint param_2,char param_3)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

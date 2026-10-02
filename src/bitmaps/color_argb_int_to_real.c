@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> out, ECX -> packed color
 void color_argb_int_to_real(ColorARGB *out, uint32_t packed)
@@ -41,4 +44,7 @@ void color_argb_int_to_real(void)
   in_EAX[3] = (float)(in_ECX & 0xff) * 0.003921569;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

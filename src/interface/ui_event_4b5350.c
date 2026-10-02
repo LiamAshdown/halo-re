@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t controls_menu_list_mode; // 0x00719445, UNSURE name
 extern void widget_instance_close_and_restore_previous(widget_instance *widget); // 0x49c3e0, blam-cc: EAX
@@ -37,3 +40,6 @@ uint8_t ui_event_4b5350(widget_instance *widget, int16_t *event, uint8_t *out_ha
     *out_handled = 1;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

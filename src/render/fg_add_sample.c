@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern frame_graph frame_graphs[1]; // 0x006b9260
 
@@ -91,4 +94,7 @@ void FUN_00512d90(float param_1)
        (float)(int)*(short *)(&DAT_006b9264 + iVar3) - (param_1 / fVar1) * 120.0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

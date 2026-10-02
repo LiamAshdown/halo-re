@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // 0x628140 area, x87 FSQRT
 
@@ -60,4 +63,7 @@ short vector3d_clamp_length(float param_1)
   }
   return (ushort)bVar3 << 8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

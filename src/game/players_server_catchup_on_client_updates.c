@@ -35,6 +35,9 @@
 #include "units.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                     // 0x0087a480
 extern data_array *object_data;                     // 0x008603b0
@@ -200,4 +203,7 @@ reads the update_server_queues element as an offset into the string at 0x662xxx.
   476c6e unit_apply_control_block(EAX=unit, EDX=&block, push source_id)
   476c77 player_unit_has_parent(ECX=iter.index) && [0x6894a1] ? object_update(unit->parent_object)
          : unit_update(player->unit), biped_update(player->unit); -> 476938
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

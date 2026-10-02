@@ -18,6 +18,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern uint8_t message_delta_field_changed_flags[0x40];      // 0x006b89c0, shared scratch (16 dwords)
@@ -159,4 +162,7 @@ LAB_004ecce1:
 LAB_004eccec:
   return CONCAT31((int3)((uint)iVar6 >> 8),bVar9);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

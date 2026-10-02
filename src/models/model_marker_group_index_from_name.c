@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -89,4 +92,7 @@ uint model_marker_group_index_from_name(char *param_1)
   }
   return 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

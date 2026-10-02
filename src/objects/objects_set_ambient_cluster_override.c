@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
@@ -79,4 +82,7 @@ void FUN_004f79d0(void)
   *(undefined2 *)(DAT_006b8cbc + 0x90) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

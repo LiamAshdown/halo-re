@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern Scenario *global_scenario; // 0x00746f8c
@@ -45,4 +48,7 @@ int hs_global_get_address(void)
   }
   return (in_EAX & 0x7fff) * 0x5c + *(int *)(DAT_00746f8c + 0x4ac);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

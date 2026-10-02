@@ -25,6 +25,9 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_id_table *machine_table;
 extern player_globals *local_player_globals; // 0x0087a478
@@ -87,4 +90,7 @@ void FUN_004609d0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

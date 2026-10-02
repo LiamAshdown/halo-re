@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern uint8_t console_debug_toggle_689421;                         // 0x00689421 render target capture enable
@@ -45,4 +48,7 @@ int __cdecl rasterizer_transparent_decals_enabled(void)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

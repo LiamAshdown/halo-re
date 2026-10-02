@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_space_characters[2];   // 0x0065b660
 extern char hs_newline_characters[2]; // 0x0065b664
@@ -164,4 +167,7 @@ LAB_004863a2:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

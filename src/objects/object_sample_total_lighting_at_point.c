@@ -38,6 +38,9 @@
 #include "objects.h"
 #include "structures.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_vector3d *default_axis_b; // 0x00686b0c
 extern real_vector3d object_lightmap_probe_direction;  // 0x0065dd94, (0, 0, -10)
@@ -230,4 +233,7 @@ void FUN_004f1c20(undefined4 param_1,int param_2,float *param_3)
   pfVar3[2] = pfVar3[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

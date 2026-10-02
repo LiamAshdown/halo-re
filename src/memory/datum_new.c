@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: array in EDX
 // Allocates the next free slot in `array` (scanning forward from next_index), zero-initializing
@@ -109,4 +112,7 @@ uint datum_new(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

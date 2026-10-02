@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // position_update_record is types/game.h's (0x14, tick / sequence / position).
 
@@ -61,4 +64,7 @@ void FUN_0047a0c0(undefined4 param_1,undefined4 param_2,undefined4 param_3,undef
   circular_queue_push(&local_14);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

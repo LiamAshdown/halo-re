@@ -34,6 +34,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_incoming_message_scratch[0x510]; // 0x00861de0, UNSURE size
 extern int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *destination,
@@ -195,4 +198,7 @@ bool __cdecl network_game_process_incoming_messages(int param_1)
   }
   return bVar8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

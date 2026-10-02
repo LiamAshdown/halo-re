@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t rendered_object_count;       // 0x006b8dc0, this module
 extern datum_index rendered_objects[0x100]; // 0x006b8dc4, this module
@@ -54,4 +57,7 @@ void FUN_0050eb70(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

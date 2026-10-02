@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index ui_cursor_bitmap; // 0x0068e67c, ui\shell\bitmaps\cursor
 extern int32_t ui_cursor_x;          // 0x00718f84
@@ -118,4 +121,7 @@ Disassembly (objdump -d -M intel, 0x497380..0x497410):
   pop    ebx
   add    esp,0x8
   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device; // 0x0071d174
 
@@ -58,4 +61,7 @@ void FUN_00518130(void)
   (**(code **)(*DAT_0071d174 + 0x1a0))(DAT_0071d174,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

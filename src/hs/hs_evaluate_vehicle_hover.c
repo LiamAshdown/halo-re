@@ -14,6 +14,9 @@
 #include "math.h"
 #include "objects.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern data_array *object_data; // 0x008603b0
@@ -45,3 +48,6 @@ void hs_evaluate_vehicle_hover(int16_t function_index, uint32_t thread_index, ch
         hs_thread_return(0, thread_index);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

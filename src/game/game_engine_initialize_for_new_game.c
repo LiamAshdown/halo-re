@@ -26,6 +26,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine;   // 0x006f1d20
 extern int32_t game_engine_map_table_value;            // 0x006f1d24, TYPES-GAP: see UNSURE above
@@ -153,4 +156,7 @@ void FUN_0045c370(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

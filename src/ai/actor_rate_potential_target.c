@@ -25,6 +25,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -314,4 +317,7 @@ LAB_00420025:
   return (float10)(byte)(cVar3 + cVar2 + cVar4 + cVar6) * (float10)10.0 +
          (float10)5.0 / ((float10)*(float *)(iVar8 + 0x11c) * (float10)0.1 + (float10)1.0) + fVar10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

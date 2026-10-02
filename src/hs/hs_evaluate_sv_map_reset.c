@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern void sv_map_reset(void); // 0x4e2aa0
@@ -19,3 +22,6 @@ void hs_evaluate_sv_map_reset(int16_t function_index, uint32_t thread_index, cha
     sv_map_reset();
     hs_thread_return(0, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

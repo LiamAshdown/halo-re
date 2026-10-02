@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDX -> context, ECX -> index
 void ai_search_heap_sift_up(ai_search_context *context, int16_t index)
@@ -60,4 +63,7 @@ void ai_search_heap_sift_up(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

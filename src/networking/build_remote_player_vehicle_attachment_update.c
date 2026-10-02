@@ -21,6 +21,9 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
@@ -290,4 +293,7 @@ void FUN_004e86f0(int param_1,byte param_2,undefined1 param_3,char param_4)
   *(undefined4 *)(param_1 + 0x17c) = *(undefined4 *)(iVar3 + 0xc);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

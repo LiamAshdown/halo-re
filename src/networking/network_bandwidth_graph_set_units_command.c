@@ -24,6 +24,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_bandwidth_graph network_bandwidth_graph_globals; // 0x00719ce0
 extern uint8_t network_bandwidth_overlay_enabled; // 0x00710305
@@ -74,4 +77,7 @@ undefined4 FUN_004d7d90(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

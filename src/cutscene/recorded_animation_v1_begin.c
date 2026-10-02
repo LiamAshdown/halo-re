@@ -20,6 +20,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void unit_control_data_unpack(unit_control_data *control, uint8_t **cursor,
     uint8_t version); // 0x449fd0, this module
@@ -44,4 +47,7 @@ void FUN_0044a890(undefined4 param_1,undefined4 param_2,undefined4 param_3,undef
   unit_control_data_unpack(param_3,param_4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

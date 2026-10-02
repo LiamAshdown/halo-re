@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // cos is a single x87 FCOS instruction in the original code (Ghidra's fcos() pseudo-call);
 // declared locally instead of via <math.h> because -I types shadows that header name.
@@ -88,4 +91,7 @@ void FUN_004ccbb0(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

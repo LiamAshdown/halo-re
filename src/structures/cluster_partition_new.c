@@ -34,6 +34,9 @@
 #include "math.h"
 #include "objects.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base;   // 0x006e2dc8, game.h (saved_games)
 extern int32_t game_state_cursor;  // 0x006e2dcc, game.h (saved_games)
@@ -124,4 +127,7 @@ Disassembly (objdump -d -M intel, resolving ESI/EDI and the sprintf vararg Ghidr
   lea ecx,[esp+0x108] ; push 0x800 ; push ecx ; call game_state_new
   mov [esi+8],eax                ; out->object_cluster_references = pool
   pop ebx ; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
@@ -82,4 +85,7 @@ Disassembly (0x548380..0x5483c4; phase-4 review):
 0x5483c0: add esp, 0xc
 0x5483c3: pop esi
 0x5483c4: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

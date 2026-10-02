@@ -13,6 +13,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern game_engine_definition *current_game_engine;
@@ -37,3 +40,6 @@ uint32_t game_engine_race_is_winner(datum_index player)
     }
     return game_engine_is_object_winning(player);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

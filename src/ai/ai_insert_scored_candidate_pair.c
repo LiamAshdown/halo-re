@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Preserved exactly as decompiled: the loop does not stop after inserting at slot 0, so if
 // slot 1's score (which may just have been overwritten by the shift) is *also* less than
@@ -79,4 +82,7 @@ undefined1 FUN_004383f0(int param_1,float param_2,float param_3,float param_4,fl
   } while (sVar4 < 2);
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

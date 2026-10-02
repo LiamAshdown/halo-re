@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;              // 0x0087a480
 extern int32_t multikill_medal_threshold;    // 0x006894a4
@@ -104,4 +107,7 @@ void FUN_00479eb0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

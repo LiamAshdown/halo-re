@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                  // 0x008603b0
 extern tag_instance *tag_instances;               // 0x0087bc14
@@ -52,4 +55,7 @@ undefined * FUN_0056c2f0(void)
   }
   return (&PTR_DAT_0069fde4)[*(char *)(iVar1 + 0x2a7)];
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

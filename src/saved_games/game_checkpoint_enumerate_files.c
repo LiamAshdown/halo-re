@@ -29,6 +29,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4
 extern uint8_t checkpoint_sort_newest_first; // 0x0069e7e8
@@ -284,4 +287,7 @@ LAB_005390f4:
   GlobalFree(_Base);
   return iVar6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

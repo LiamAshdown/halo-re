@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern data_array *object_data; // 0x008603b0
@@ -89,4 +92,7 @@ uint FUN_004f7a50(void)
   }
   return CONCAT22((short)(uVar3 >> 0x10),0xffff);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

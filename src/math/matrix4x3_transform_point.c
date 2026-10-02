@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transforms a point by a matrix4x3 (scale, rotate, translate).
 void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m)
@@ -54,4 +57,7 @@ void matrix4x3_transform_point(float *param_1)
   in_EAX[2] = fVar1 * param_1[3] + fVar2 * param_1[6] + fVar3 * param_1[9] + param_1[0xc];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

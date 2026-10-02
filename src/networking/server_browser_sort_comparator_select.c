@@ -17,6 +17,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_sort_column; // 0x00719489, UNSURE name (see file header)
 
@@ -63,4 +66,7 @@ void * __cdecl server_browser_sort_comparator_select(void)
     return &LAB_004b6cd0;
   }
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

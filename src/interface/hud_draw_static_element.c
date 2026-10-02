@@ -22,6 +22,9 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -217,4 +220,7 @@ void FUN_004ac6f0(undefined4 param_1,undefined2 *param_2,int param_3,uint param_
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> this
 // EAX1 has no per-channel EAX properties; always reports unsupported.
@@ -36,4 +39,7 @@ Disassembly (0x551250..0x551252; phase-4 review):
 
 0x551250: xor eax, eax
 0x551252: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

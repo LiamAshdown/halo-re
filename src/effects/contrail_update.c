@@ -27,6 +27,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *contrail_data; // 0x0087abec
 extern data_array *object_data;   // 0x008603b0
@@ -250,4 +253,7 @@ void __cdecl chimera__contrail_update(float delta_time)
     } while ((short)iVar6 < *(short *)(iVar7 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

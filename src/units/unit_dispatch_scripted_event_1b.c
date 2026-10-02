@@ -13,6 +13,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t event9_target;   // 0x00871de0, shared with unit_dispatch_scripted_event_9.c
@@ -112,4 +115,7 @@ void FUN_0056dcd0(int *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

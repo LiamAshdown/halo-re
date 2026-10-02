@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> context, ECX -> position, stack -> goal_vertex_id, goal_cost
 void path_find_set_goal(path_find_context *context, const real_point3d *position,
@@ -38,4 +41,7 @@ void FUN_0043a730(undefined4 param_1,undefined4 param_2)
   *(undefined4 *)(in_EAX + 0x60) = param_2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

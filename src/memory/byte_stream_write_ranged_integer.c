@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void byte_swap_array(int32_t size_code, uint32_t *array, int32_t count); // blam-cc: size code EAX, array ECX, count EDX
 
@@ -86,4 +89,7 @@ bool FUN_004d0700(void)
   *(undefined1 *)(unaff_ESI + 3) = 1;
   return (char)unaff_ESI[3] == '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -29,6 +29,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -325,4 +328,7 @@ LAB_004ac00e:
   FUN_004acad0(&local_1c,uVar2,param_1,local_50,0,0xffffffff,param_4 >> 2 & 0xffffff01);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

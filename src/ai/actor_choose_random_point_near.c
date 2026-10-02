@@ -25,6 +25,9 @@ extern double fsin(double x); // FSIN
 #include "cache.h"
 #include "objects.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object_index, collision_result *result); // 0x505880
 
@@ -148,4 +151,7 @@ void FUN_0040faf0(float param_1)
   unaff_ESI[2] = local_70;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

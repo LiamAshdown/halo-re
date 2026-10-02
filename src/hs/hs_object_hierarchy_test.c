@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t player_index_from_unit_index(datum_index object_index); // game module, 0x474db0; UNSURE semantics
 
@@ -112,4 +115,7 @@ undefined4 FUN_00487c10(uint param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // cos/sin/atan2/sqrt are single x87 instructions in the original code; declared locally instead
 // of via <math.h> because -I types shadows that header name with types/math.h.
@@ -65,4 +68,7 @@ void FUN_00446e30(void)
   in_EAX[4] = (float)fVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

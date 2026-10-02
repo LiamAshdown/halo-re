@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals; // 0x00746fa0
 
@@ -97,4 +100,7 @@ void FUN_004944c0(short param_1,undefined2 param_2,undefined2 param_3,undefined4
   _DAT_006e4730 = param_4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

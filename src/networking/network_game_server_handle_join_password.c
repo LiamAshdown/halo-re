@@ -20,6 +20,9 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0, blam-cc: EAX type, EDX payload
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data,
@@ -194,4 +197,7 @@ pseudo-C collapsed into a single argument-less `FUN_004e0af0(param_1)`:
   4e23d4: push ebp / mov ecx,1 / jmp shared-call      ; reason 1: canary/challenge memcmp mismatch
   4e23df: push ebp / mov ecx,6 / jmp shared-call      ; reason 6: network_join_request_reset_state failed
   4e23ea: push ebp / xor ecx,ecx / jmp shared-call    ; reason 0: session flags/state not ready
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

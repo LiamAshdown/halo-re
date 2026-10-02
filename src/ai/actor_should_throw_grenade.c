@@ -17,6 +17,9 @@
 #include "ai.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;       // 0x00880360
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -127,4 +130,7 @@ int actor_should_throw_grenade(char param_1)
   }
   return CONCAT31(uVar10,uVar12);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

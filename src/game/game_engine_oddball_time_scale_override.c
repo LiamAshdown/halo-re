@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant game_engine_variant; // 0x006f1c88
 extern uint32_t king_hill_occupant_table[16]; // 0x006b120c
@@ -29,3 +32,6 @@ uint8_t game_engine_oddball_time_scale_override(uint32_t player, int32_t value)
     }
     return (uint8_t)(value == game_engine_variant.engine.oddball.trait_without_ball);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

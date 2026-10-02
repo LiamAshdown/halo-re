@@ -8,6 +8,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *device_groups; // 0x0087abf0
 
@@ -15,3 +18,6 @@ void device_groups_clear_disposing_flag(void)
 {
     device_groups->valid = 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

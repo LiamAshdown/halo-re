@@ -20,6 +20,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
@@ -249,4 +252,7 @@ LAB_0043e240:
   }
   return uVar4 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

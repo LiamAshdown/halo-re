@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;         // 0x00
@@ -181,3 +184,6 @@ hwreq_map_node **tree_erase_one(msvc_std_map *tree, hwreq_map_node **result_hold
     *result_holder = successor;
     return result_holder;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

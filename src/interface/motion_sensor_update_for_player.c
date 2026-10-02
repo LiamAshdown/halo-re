@@ -22,6 +22,9 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern motion_sensor_globals *motion_sensor;        // 0x00719438
 extern player_globals *local_player_globals;        // 0x0087a478
@@ -218,4 +221,7 @@ void motion_sensor_update_for_player(short param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

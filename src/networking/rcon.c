@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 1 == client
 
@@ -176,4 +179,7 @@ collapsed into raw byte copies, and confirmed argc/argv both arrive on the stack
   4e4d45: mov esi,[esp+0x10]             ; password, reloaded from its saved slot
   4e4d49: lea eax,[esp+0x18]             ; command buffer
   4e4d4f: call rcon_send_request         ; EAX -> command, ECX -> password (see that file)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

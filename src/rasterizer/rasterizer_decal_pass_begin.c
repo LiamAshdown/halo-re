@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
@@ -195,4 +198,7 @@ LAB_0051aa26:
   (**(code **)(*DAT_0071d174 + 400))(DAT_0071d174,0,DAT_0071d1bc,0,0x10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

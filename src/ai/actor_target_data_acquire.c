@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data; // 0x008802c0
 
@@ -196,4 +199,7 @@ undefined1 FUN_0041f7d0(undefined4 param_1,undefined4 param_2,int param_3,uint p
   }
   return local_45;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

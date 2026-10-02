@@ -13,6 +13,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant game_engine_variant; // 0x006f1c88
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
@@ -30,3 +33,6 @@ wchar_t *game_engine_race_build_score_header_text(wchar_t *buffer)
     wcscpy(buffer, (const wchar_t *)multiplayer_text((int16_t)(game_engine_variant.engine.race.race_type == 2 ? 0xb2 : 0x19)));
     return buffer;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

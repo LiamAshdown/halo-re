@@ -24,6 +24,9 @@
 #include "units.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -95,4 +98,7 @@ Raw disassembly (objdump -d -M intel --start-address=0x467de0 --stop-address=0x4
 00467e06:  mov [esp+0x14],eax       ; unused_checksum
 00467e0a:  call 0x4d05d0            ; data_iterator_next(EDI=&iterator)
 ...
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -25,6 +25,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t control_word_secondary; // 0x006f1cec
 extern uint32_t control_word_primary;   // 0x006f1ce8
@@ -154,4 +157,7 @@ void FUN_004f39d0(void)
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

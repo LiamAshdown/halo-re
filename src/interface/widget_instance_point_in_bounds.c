@@ -20,6 +20,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_cursor_x; // 0x00718f84, clamped into 0 .. 0x280
@@ -109,4 +112,7 @@ instead, and is passed to FUN_00499990 alongside a stack copy of the tag's own b
   499a2d: jne    0x499a20
   499a2f: lea    ecx,[esp+0x8]        ; &local rect copy
   499a33: call   0x499990             ; FUN_00499990(eax=widget, ecx=&rect)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

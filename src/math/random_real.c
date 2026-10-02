@@ -6,6 +6,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed random_seed_global; // 0x00719cd0
 
@@ -25,4 +28,7 @@ float __cdecl random_real(void)
   DAT_00719cd0 = DAT_00719cd0 * 0x19660d + 0x3c6ef35f;
   return (float)(DAT_00719cd0 >> 0x10) * 1.5259022e-05;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

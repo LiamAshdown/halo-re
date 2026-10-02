@@ -9,6 +9,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 extern game_time_globals *game_time;   // 0x006f1d6c
@@ -84,4 +87,7 @@ void __cdecl game_effects_update(float delta_time)
   game_timer_update();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

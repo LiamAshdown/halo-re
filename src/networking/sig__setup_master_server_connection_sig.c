@@ -11,6 +11,9 @@
 
 #include "win32.h"
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_join_requested;    // 0x00719491
 extern void *master_server_query_engine;         // 0x0071946c, the ServerBrowser
@@ -42,3 +45,6 @@ uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter)
     master_server_query_engine = 0;
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

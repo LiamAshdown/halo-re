@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern growable_array hud_text_message_queue; // 0x006b37e8
 extern uint16_t empty_string[];  // 0x00660c34
@@ -103,4 +106,7 @@ int hud_text_message_queue_add(undefined4 param_1)
   puVar1[4] = unaff_EBX + 0x10;
   return 0x10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

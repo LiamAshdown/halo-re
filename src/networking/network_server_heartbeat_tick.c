@@ -27,6 +27,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -248,4 +251,7 @@ LAB_004e17e9:
   }
   return local_11;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

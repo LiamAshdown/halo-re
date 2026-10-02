@@ -23,6 +23,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
 extern int32_t ui_list_current;      // 0x00692c04
@@ -184,4 +187,7 @@ void player_profile_select_list_widget_build(int param_1)
   *(undefined4 *)(iVar8 + 0x24) = 0x3f800000;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

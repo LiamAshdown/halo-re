@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t update_server_initialized;    // 0x006f1d88
 extern int32_t update_server_tick;            // 0x006f1d8c
@@ -71,4 +74,7 @@ undefined1 update_server_new(void)
   }
   return DAT_006f1d88;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

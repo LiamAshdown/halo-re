@@ -35,6 +35,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // math module. blam-cc: EAX -> out, EDX -> point, stack -> m
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
@@ -160,4 +163,7 @@ undefined1 FUN_00554850(int param_1,uint param_2,short param_3,short *param_4)
   }
   return true;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

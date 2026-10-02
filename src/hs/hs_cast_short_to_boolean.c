@@ -8,8 +8,14 @@
 // blam-cc: stack -> value (cdecl)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t hs_cast_short_to_boolean(int32_t value)
 {
     return (int32_t)(((uint32_t)value & 0xffffff00u) | ((int16_t)value == 0));
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

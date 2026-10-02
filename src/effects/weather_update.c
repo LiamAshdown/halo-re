@@ -13,6 +13,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;
                                     // scenario's weather palette (ScenarioStructureBSPWeatherPalette)
@@ -221,4 +224,7 @@ void weather_update(void)
   DAT_00746b84 = (short)iVar8;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

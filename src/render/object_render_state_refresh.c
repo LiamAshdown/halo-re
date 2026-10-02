@@ -37,6 +37,9 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_render_state_cache; // 0x007c30ec, this module
 extern data_array *object_data;                 // 0x008603b0, objects module
@@ -280,4 +283,7 @@ LAB_0050f4f2:
   *(int *)(iVar4 + 0x10) = DAT_007c3100;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -26,6 +26,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 extern int32_t extract_product_id_digits(const char *product_id); // 0x57f360, blam-cc: product_id in EBX
@@ -146,4 +149,7 @@ undefined1 * FUN_0057f3f0(void)
   }
   return &DAT_0065512c;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern int32_t object_cluster_stamp; // 0x008603cc
@@ -35,4 +38,7 @@ undefined4 object_disconnect_from_map(uint param_1)
                   *(int *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_1 & 0xffff) * 0xc) +
                           0x14) != DAT_008603cc);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

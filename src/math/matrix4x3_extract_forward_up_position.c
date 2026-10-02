@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Unpacks two rotation-basis vectors and the translation out of a matrix4x3 structure.
 void matrix4x3_extract_forward_up_position(real_vector3d *out_up, real_vector3d *out_forward,
@@ -41,4 +44,7 @@ void FUN_004cbd90(int param_1,undefined4 *param_2)
   param_2[2] = *(undefined4 *)(param_1 + 0x30);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

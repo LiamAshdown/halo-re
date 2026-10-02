@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data; // 0x008802c8
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -137,4 +140,7 @@ void FUN_004382b0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

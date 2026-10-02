@@ -18,6 +18,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ui_split_screen; // 0x00718fc9
 extern int32_t network_host_number_field_00719218; // 0x00719218, UNSURE (1 or 2: which option is being typed)
@@ -81,3 +84,6 @@ void ui_game_data_input_4a3b70(widget_instance *widget)
     widget_extended_description_sync_selection(widget);
     network_host_number_field_00719218 = 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -24,6 +24,9 @@
 #include "hs.h"
 #include "game.h"
 #include <stdint.h> // uintptr_t: the string argument is a 32-bit pointer in the argument block
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 
@@ -65,4 +68,7 @@ void player_handle_action_jmp_table_adjust_size(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

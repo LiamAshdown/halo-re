@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode; // 0x00719720
@@ -58,3 +61,6 @@ void game_engine_king_unknown_48(void)
         game_engine_koth_update_hill_occupancy_state();
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

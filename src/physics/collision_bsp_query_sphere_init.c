@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void collision_bsp_query_sphere_node_recursive(collision_bsp_sphere_query *query,
                                                         uint32_t node_index); // 0x501a10, this batch
@@ -82,4 +85,7 @@ undefined4 FUN_00501980(undefined4 param_1,undefined4 param_2,undefined4 param_3
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

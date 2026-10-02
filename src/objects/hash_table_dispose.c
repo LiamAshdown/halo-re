@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 void hash_table_dispose(hash_table *table)
@@ -41,3 +44,6 @@ void hash_table_dispose(hash_table *table)
     table->entry_count = 0;
     table->initialized = 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

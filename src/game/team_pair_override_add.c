@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern team_pair_globals *team_pair_data; // 0x006b0b84
 extern void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t clear_secondary); // this batch, 0x45c130
@@ -115,4 +118,7 @@ void FUN_0045be50(undefined1 param_1,short param_2,undefined1 param_3,short para
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

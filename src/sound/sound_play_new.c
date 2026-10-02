@@ -37,6 +37,9 @@
 #include "math.h"
 #include "game.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *sound_data;      // 0x007252c0
@@ -634,4 +637,7 @@ Disassembly (0x549af0..0x549edb, capstone; phase-4 review):
 0x549ed6: pop ebx
 0x549ed7: add esp, 8
 0x549eda: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

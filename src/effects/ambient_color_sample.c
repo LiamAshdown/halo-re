@@ -27,6 +27,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t weather_frame_counter;      // 0x00746f88
 extern ambient_noise_grid ambient_noise;   // 0x00746284
@@ -116,4 +119,7 @@ void FUN_0053fc80(float param_1,float param_2)
   in_EAX[2] = fVar1 * in_EAX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); // 0x4cbf80, ECX, EDX, ESI
 extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir); // 0x4cd670, ECX, EDX
@@ -41,3 +44,6 @@ void effect_marker_from_node_table(int16_t entry_index, uint8_t *context, object
     matrix4x3_from_forward_up(&up, &forward, (real_matrix4x3 *)((uint8_t *)out + 4));
     ((real_matrix4x3 *)((uint8_t *)out + 4))->position = position;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

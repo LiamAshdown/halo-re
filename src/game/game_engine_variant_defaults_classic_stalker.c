@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Fills a game-variant options block with this built-in multiplayer game type's
 // hardcoded default settings. The block is zeroed first (which is also the default
@@ -140,4 +143,7 @@ void __cdecl game_engine_variant_defaults_classic_stalker(void *variant_options)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in); // 0x4cb7a0
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
@@ -168,4 +171,7 @@ uint FUN_00504f60(int param_1)
   }
   return uVar5 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

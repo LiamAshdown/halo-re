@@ -17,6 +17,9 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void *shell_window_proc;    // 0x007461d0, WNDPROC
@@ -180,4 +183,7 @@ undefined4 rasterizer_create_game_window(void)
   ShowWindow(pHVar1,5);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

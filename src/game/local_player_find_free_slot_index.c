@@ -26,6 +26,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t joystick_slot_devices[4]; // 0x006b2ce8, input.h (slot -> device index, -1 none)
 
@@ -86,4 +89,7 @@ LAB_00473765:
   }
   goto LAB_00473765;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

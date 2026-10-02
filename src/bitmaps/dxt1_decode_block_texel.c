@@ -27,6 +27,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void color_565_unpack_to_rgb888(uint16_t *packed, ColorARGBInt *out); // 0x43ff80, this module
 
@@ -145,4 +148,7 @@ void dxt1_decode_block_texel(ushort *param_1,char param_2,char param_3)
              (*(uint *)(param_1 + 2) >> ((param_2 + param_3 * '\x04') * '\x02' & 0x1fU) & 3) * 4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

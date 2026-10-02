@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Looks up a key in the device-override list and, if found, copies its associated value string
@@ -86,4 +89,7 @@ undefined4 hwreq_device_override_list_find(char *param_1,size_t param_2)
   _strncpy(param_1,pcVar4,param_2);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

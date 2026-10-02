@@ -28,6 +28,9 @@
 #include "math.h"
 #include "objects.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 
@@ -199,4 +202,7 @@ Disassembly (0x543c20..0x543cd9, capstone; phase-4 review):
 0x543cd4: pop ebx
 0x543cd5: add esp, 0x6c
 0x543cd8: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

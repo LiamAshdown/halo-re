@@ -28,6 +28,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // qsort comparator: records with is_type_9 clear sort before records with it set; within
 // each group, ascending distance_squared. The flag test is a raw byte compare (any nonzero
@@ -67,4 +70,7 @@ int __cdecl object_sort_by_flag_then_distance(int param_1,int param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

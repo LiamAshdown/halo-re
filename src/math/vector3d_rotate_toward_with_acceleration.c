@@ -53,6 +53,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point3d global_origin3d; // 0x0065c230, reached via global_origin3d_pointer @0x00696714
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
@@ -236,4 +239,7 @@ void vector3d_random_point_in_cone(float *param_1,float param_2,float param_3)
   vector3d_normalize_with_length();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

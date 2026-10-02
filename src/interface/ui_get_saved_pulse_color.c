@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const ColorARGB *global_white_argb; // 0x006851fc, a pointer: only its alpha survives
 extern float ui_saved_color[3]; // 0x006927b8
@@ -54,4 +57,7 @@ void FUN_0049c620(void)
   in_EAX[3] = uVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

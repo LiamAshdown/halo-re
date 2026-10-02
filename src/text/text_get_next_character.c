@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t text_char_is_double_byte(uint8_t *string); // 0x557750
 
@@ -56,4 +59,7 @@ ushort FUN_005576a0(void)
   *unaff_ESI = *unaff_ESI + 1;
   return (ushort)bVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

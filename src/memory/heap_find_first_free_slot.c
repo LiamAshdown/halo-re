@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint32_t heap_find_first_free_slot(heap *self)
 {
@@ -53,4 +56,7 @@ uint FUN_004d2110(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

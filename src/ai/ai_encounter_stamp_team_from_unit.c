@@ -17,6 +17,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data; // 0x008802c8
 extern data_array *object_data;    // 0x008603b0
@@ -59,4 +62,7 @@ void FUN_00436710(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

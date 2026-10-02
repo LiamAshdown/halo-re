@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t sv_maxplayers_value; // 0x00699584
@@ -78,4 +81,7 @@ LAB_004e4b0b:
   chimera__console_out();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

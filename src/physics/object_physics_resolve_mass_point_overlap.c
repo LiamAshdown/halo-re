@@ -29,6 +29,9 @@
 #include "objects.h"
 #include "units.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern float k_physics_gravity;           // 0x0069c52c
@@ -384,4 +387,7 @@ char FUN_005090c0(uint *param_1)
   }
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

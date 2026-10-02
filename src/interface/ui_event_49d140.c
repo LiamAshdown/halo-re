@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t split_screen_quit_prompt_string; // 0x00719754, word stores
 extern uint8_t network_join_error_reason; // 0x0071973c
@@ -26,3 +29,6 @@ uint8_t ui_event_49d140(widget_instance *widget, int16_t *event, uint8_t *out_ha
     split_screen_quit_prompt_armed = 1;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

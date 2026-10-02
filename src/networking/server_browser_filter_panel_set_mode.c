@@ -23,6 +23,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_allow_empty; // 0x006953fa
 extern uint8_t server_browser_allow_full;  // 0x006953fb
@@ -229,4 +232,7 @@ void FUN_004b61c0(char param_1)
   DAT_007196b4 = param_1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

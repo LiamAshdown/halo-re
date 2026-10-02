@@ -16,6 +16,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *mouse_device;             // 0x006b1804, IDirectInputDevice8A
 extern uint8_t input_suppressed;       // 0x006b15f9
@@ -49,4 +52,7 @@ uint FUN_00490e00(short param_1)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

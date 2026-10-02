@@ -24,6 +24,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy,
                                     uint32_t flag1, int32_t flag2); // 0x49a8c0
@@ -110,4 +113,7 @@ void FUN_0049bac0(int param_1,undefined4 param_2,undefined4 param_3,undefined4 p
   *(undefined2 *)(unaff_EDI + 0x42) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

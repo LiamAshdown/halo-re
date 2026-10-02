@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: ESI -> queue
@@ -82,4 +85,7 @@ void FUN_00479f40(void)
   *(undefined1 *)(unaff_ESI + 6) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

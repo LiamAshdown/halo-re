@@ -29,6 +29,9 @@
 #include "cache.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -247,4 +250,7 @@ switchD_0049c2dc_default:
   DAT_00718fa0 = ((int)(DAT_00718fa0 - 1) < 0) - 1 & DAT_00718fa0 - 1;
   return CONCAT31((int3)(DAT_00718fa0 >> 8),local_2);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

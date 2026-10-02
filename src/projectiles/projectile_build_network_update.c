@@ -24,6 +24,9 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_id_table *object_network_id_table; // 0x00687130
     // function hashes the projectile's own datum_index through
@@ -184,4 +187,7 @@ int FUN_004c0f30(int param_1,undefined4 param_2,undefined4 param_3,int param_4)
   }
   return iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

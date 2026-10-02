@@ -14,6 +14,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Converts a raw sensitivity value (clamped to 0.001 .. 100.0) into a radians-per-unit turn-rate
 // scale factor by multiplying it by 2*pi/1000.
@@ -42,4 +45,7 @@ float10 FUN_0048c8e0(float param_1)
   }
   return (float10)param_1 * (float10)0.006283186;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

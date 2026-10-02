@@ -7,8 +7,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t gamespy_array_length(void *array)
 {
     return *(int32_t *)array;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

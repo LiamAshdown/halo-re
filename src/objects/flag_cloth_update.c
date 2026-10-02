@@ -32,6 +32,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;            // 0x0087bc14
 extern uint32_t effect_random_seed;            // 0x00719cd4
@@ -412,4 +415,7 @@ void flag_cloth_update(int param_1,int param_2,float param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

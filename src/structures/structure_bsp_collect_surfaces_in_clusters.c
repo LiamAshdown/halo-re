@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;                            // 0x00746f9c
 extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];  // 0x007d0394
@@ -149,4 +152,7 @@ undefined4 FUN_00553c40(int param_1,short param_2)
   }
   return CONCAT22(uVar6,sVar8);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

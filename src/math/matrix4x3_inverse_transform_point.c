@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transforms a point from world space into a matrix4x3's local space (inverse transform)
 // without computing a full inverse matrix.
@@ -73,4 +76,7 @@ void matrix4x3_inverse_transform_point(void)
   in_EDX[2] = 0.0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

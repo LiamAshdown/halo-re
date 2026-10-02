@@ -20,6 +20,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event types 12..15: copies event->vector into up to three of
@@ -68,4 +71,7 @@ void FUN_0044a820(int param_1,short *param_2,int *param_3)
   *param_3 = *param_3 + 0x10;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

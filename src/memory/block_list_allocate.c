@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner)
 {
@@ -95,4 +98,7 @@ uint block_list_allocate(void)
   }
   return (uint)puVar2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

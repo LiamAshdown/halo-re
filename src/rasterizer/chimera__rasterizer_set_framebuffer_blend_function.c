@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c
 extern void *rasterizer_device;   // 0x0071d174
@@ -70,4 +73,7 @@ void chimera__rasterizer_set_framebuffer_blend_function(void)
   (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0xab,*(undefined4 *)(&DAT_0065e004 + iVar2));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_6893e0; // 0x006893e0 UNSURE: frame statistics enabled flag
 extern uint16_t unknown_006893e2;           // 0x006893e2 UNSURE: paired with the above
@@ -222,4 +225,7 @@ void rasterizer_frame_statistics_sample(undefined1 param_1)
   _DAT_0071d114 = CONCAT22(DAT_0071d114_2,(short)(sVar9 + 1));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_message_scratch[0x7ff8]; // 0x00871de0, UNSURE
 
@@ -91,4 +94,7 @@ void FUN_004efbf0(undefined4 *param_1)
   FUN_004e1a80(1,&DAT_00871de0,0,0,0,3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

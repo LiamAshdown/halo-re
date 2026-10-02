@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t actor_lookup_table_006555a8[12]; // 0x006555a8, UNSURE: size only known to be >= 12
 
@@ -39,4 +42,7 @@ undefined4 FUN_0040e790(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

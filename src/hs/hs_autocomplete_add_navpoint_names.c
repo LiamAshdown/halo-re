@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "hs.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride); // 0x483770
 extern Globals *global_globals; // 0x00746fa0
@@ -31,3 +34,6 @@ void hs_autocomplete_add_navpoint_names(void)
             0, 0x68);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void plane3d_negate(real_plane3d *out, const real_plane3d *in)
 {
@@ -36,4 +39,7 @@ void plane3d_negate(void)
   in_EAX[3] = -in_ECX[3];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

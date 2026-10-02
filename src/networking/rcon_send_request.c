@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_client_globals *network_client; // 0x0071c2d8
 
@@ -144,4 +147,7 @@ void rcon_send_request(void)
   chimera__console_out("ERROR: Maximum rcon command length is %d characters",0x40);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

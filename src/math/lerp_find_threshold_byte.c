@@ -25,6 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int __ftol(double value); // 0x006391b4, MSVC 7.1 CRT float-to-int truncation
 
@@ -76,4 +79,7 @@ byte FUN_004cf7a0(float param_1,float param_2,float param_3)
   }
   return bVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

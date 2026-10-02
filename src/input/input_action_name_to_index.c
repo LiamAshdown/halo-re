@@ -16,6 +16,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char input_action_names[k_input_action_count][0x10]; // 0x0065b730, "jump" .. "screenshot"
 
@@ -64,4 +67,7 @@ short input_action_name_to_index(void)
   } while ((int)_Str2 < 0x65b8e0);
   return 0x7fff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

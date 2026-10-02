@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t cheat_get_target_object_index(void); // this batch, 0x45a7a0
 extern int16_t network_game_mode;   // 0x00719720
@@ -157,4 +160,7 @@ void __cdecl cheat_spawn_objects_near_camera(int tag_array,ushort count)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

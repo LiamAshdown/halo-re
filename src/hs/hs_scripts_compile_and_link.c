@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_allocate_script_node_table(void); // 0x00483100, this batch
 extern char hs_compile_source(void); // 0x00484090, this batch
@@ -102,4 +105,7 @@ LAB_0048322c:
   }
   return cVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

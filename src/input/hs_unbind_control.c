@@ -21,6 +21,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t input_parse_device_binding_string(const char *device_class_name, const char *input_name,
                                                   control_binding_descriptor *out_binding);
@@ -187,4 +190,7 @@ objdump 0x48b8d0..0x48b9a0 (Intel syntax), the full control flow this rewrite is
 0048b99a: add    esp,0xc
 0048b99d: add    esp,0xc
 0048b9a0: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

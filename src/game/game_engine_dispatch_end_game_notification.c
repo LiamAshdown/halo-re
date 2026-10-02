@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void game_engine_end_game_sequence_stage1(void); // 0x4670c0, this batch
 extern void game_engine_end_game_sequence_stage2(void); // 0x4670f0, this batch
@@ -110,4 +113,7 @@ Raw disassembly (objdump -d -M intel --start-address=0x467230 --stop-address=0x4
 00467250:  call 0x467180            ; stage == 3
 ...
 00467265:  call 0x4ec670            ; FUN_004ec670(EAX=event)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

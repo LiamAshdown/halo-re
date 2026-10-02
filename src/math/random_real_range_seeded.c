@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns a pseudo-random float between min and max, advancing the caller-supplied RNG state
 // (*seed) instead of the engine's global seed.
@@ -35,4 +38,7 @@ float10 random_real_range_seeded(float param_1,float param_2)
   return ((float10)param_2 - (float10)param_1) * (float10)(uVar1 >> 0x10) * (float10)1.5259022e-05 +
          (float10)param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

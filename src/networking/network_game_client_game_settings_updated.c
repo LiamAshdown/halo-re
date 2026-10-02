@@ -24,6 +24,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *local_player_globals;  // 0x0087a478, UNSURE identity, see update_server_send_update.c
 extern void *variant_defaults_source;      // 0x0087aa40, UNSURE identity: strncpy'd map-name-ish
@@ -286,4 +289,7 @@ uint __cdecl network_game_client_game_settings_updated(int *param_1)
   *(undefined1 *)((int)param_1 + 0x9fa) = 0;
   return uVar3 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

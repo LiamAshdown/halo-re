@@ -17,6 +17,9 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDX -> bounds_xy, EDI -> polygon
 void polygon2d_bounds_expand(real_bounds *bounds_xy, polygon2d *polygon)
@@ -63,4 +66,7 @@ void polygon2d_bounds_expand(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

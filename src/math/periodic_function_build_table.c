@@ -62,6 +62,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // cos/sin are single x87 instructions in the original code (Ghidra's fcos()/fsin() pseudo-
 // calls); declared locally instead of via <math.h> because -I types shadows that header name.
@@ -294,4 +297,7 @@ LAB_004cceb9:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

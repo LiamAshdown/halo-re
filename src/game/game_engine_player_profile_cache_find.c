@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_profile player_profile_cache[16]; // 0x006b0b88
 
@@ -67,4 +70,7 @@ int FUN_00466e80(void)
   } while (iVar1 < 0x10);
   return iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

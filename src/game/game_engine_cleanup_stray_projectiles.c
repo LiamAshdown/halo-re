@@ -21,6 +21,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -90,4 +93,7 @@ LAB_00467fe0:
     uVar1 = local_8;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

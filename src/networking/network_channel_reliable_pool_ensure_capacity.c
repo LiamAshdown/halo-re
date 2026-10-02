@@ -27,6 +27,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Scans the pool for a free (pending == 0) slot already large enough for both requested
@@ -165,4 +168,7 @@ void FUN_004dcc30(int param_1,int param_2,int param_3)
   *(int *)(param_1 + 0xa78) = *(int *)(param_1 + 0xa78) + 10;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

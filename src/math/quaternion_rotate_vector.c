@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // FIXED (register inputs, objdump): the original never reads EAX as an input (it overwrites or only saves it); those parameters arrive on the stack (1 stack argument(s) read).
 // blam-cc: ECX -> v, EDX -> out, stack -> q
@@ -64,4 +67,7 @@ void quaternion_rotate_vector(float *param_1)
   in_EDX[2] = (fVar5 * fVar6 - fVar7 * fVar8) * fVar10 + fVar9 * in_ECX[2] + fVar11 * param_1[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

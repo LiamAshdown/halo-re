@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "text.h"
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: 0x627c73, Ghidra's fid-conflict placeholder name for the CRT bounded wide
 // vswprintf (_vsnwprintf): dest, count, format, forwarded va_list, all cdecl stack args
@@ -41,4 +44,7 @@ void string_format_wide_va_bounded(wchar_t *param_1,wchar_t *param_2)
   FID_conflict_vswprintf(param_1,in_EDX,param_2,&stack0x0000000c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

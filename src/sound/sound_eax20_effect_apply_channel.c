@@ -24,6 +24,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const uint8_t sound_eax20_buffer_property_guid[16]; // 0x0064e300
 extern float sound_eax20_underwater_direct_gain; // 0x0069ff24, 0.25f (not 0x0069ff28, which EAX3 reads)
@@ -171,4 +174,7 @@ then again for the deferred block (ids | 0x80000000) at 0x54f946..0x54fa6b; both
 0x54fa6e: mov byte ptr [0x746132], 1 ; ret 4. The gain/millibel setup (0x54f720..0x54f7e6) matches
 the decompiled block above exactly, including the three fields (local_10[1], local_10[2],
 local_10[3]) that keep their preset defaults because nothing in that block stores to them.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

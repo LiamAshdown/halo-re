@@ -24,6 +24,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t error_file_logging_enabled; // 0x007196d3
 extern ColorARGB *console_message_default_color; // 0x00685218, UNSURE: unnamed shared default
@@ -92,4 +95,7 @@ Disassembly (0x4c6920..0x4c6991) confirms the real buffer size and the EAX color
 004c6980:  push   0x1
 004c6982:  push   edx
 004c6983:  call   0x449450              ; write_to_error_file(formatted, 1)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

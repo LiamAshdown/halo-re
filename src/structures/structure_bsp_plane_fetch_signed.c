@@ -20,6 +20,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index)
 {
@@ -63,4 +66,7 @@ void FUN_0044dad0(int param_1)
   in_EAX[3] = pfVar1[3];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

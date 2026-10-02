@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data;      // 0x00860b14
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -113,4 +116,7 @@ uint FUN_004f0af0(uint param_1,undefined4 param_2,undefined2 param_3,undefined2 
   }
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

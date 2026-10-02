@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t unit_state_is_scripted_animation(unit_data *unit) // blam-cc: in_ECX -> unit
 {
@@ -56,4 +59,7 @@ undefined1 FUN_00565c60(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

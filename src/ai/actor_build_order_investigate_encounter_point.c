@@ -17,6 +17,9 @@
 #include "objects.h"
 #include <string.h>
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;  // 0x00880360
 extern data_array *object_data; // 0x008603b0
@@ -112,4 +115,7 @@ actor_build_order_investigate_encounter_point(uint param_1,undefined2 param_2,ui
   }
   return local_25;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -25,3 +28,6 @@ void actor_mode_vehicle_enter(datum_index actor_index)
     *(int32_t *)(act + 0xac) = game_time->game_time;
     *(real_point3d *)(act + 0xb0) = *(real_point3d *)&((actor *)act)->body_position.x;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

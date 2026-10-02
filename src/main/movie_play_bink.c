@@ -29,6 +29,9 @@
 #include "shell.h"
 #include "main.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t movie_playback_abort;       // 0x007196d4, UNSURE owner (see header)
 extern void *rasterizer_device;            // 0x0071d174, IDirect3DDevice9
@@ -329,4 +332,7 @@ Disassembly anchors used for the rewrite (esp offsets after push ebx / push ebp 
   43efc2  push 0 ; xor eax,eax ; call 0x518180
   43efcd  cmp [ebp+0xc],[ebp+0x8] ; je close ; cmp [0x7196d4],0 ; je loop
   43efe1  BinkClose ; release [esp+0xc]=offscreen ; pop ebp ; release [esp+0xc]=render_target
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

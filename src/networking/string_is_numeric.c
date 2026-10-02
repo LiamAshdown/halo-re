@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns 1 if `string` is NULL, empty, or consists solely of digits and/or minus signs;
 // returns 0 as soon as any other character is found.
@@ -47,4 +50,7 @@ undefined4 string_is_numeric(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

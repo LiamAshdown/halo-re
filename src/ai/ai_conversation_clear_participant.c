@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;        // 0x00746f8c
@@ -101,4 +104,7 @@ void FUN_00430c70(int param_1)
     iVar1 = data_iterator_next();
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

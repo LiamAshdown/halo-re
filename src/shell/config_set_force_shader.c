@@ -20,6 +20,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sscanf(const char *buffer, const char *format, ...); // 0x626572 CRT
 extern int32_t config_force_shader; // 0x00722b64
@@ -64,4 +67,7 @@ undefined4 missed_57d0c0(short *param_1)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

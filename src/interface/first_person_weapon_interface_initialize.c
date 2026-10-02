@@ -25,6 +25,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
@@ -249,4 +252,7 @@ void FUN_00493c60(undefined4 param_1)
   FUN_004942e0();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

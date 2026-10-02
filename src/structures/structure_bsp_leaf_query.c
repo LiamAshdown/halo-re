@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits]; // 0x007d0394, this module
@@ -137,4 +140,7 @@ short FUN_005540c0(undefined4 param_1,int param_2,int param_3,short param_4)
   }
   return sVar7;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

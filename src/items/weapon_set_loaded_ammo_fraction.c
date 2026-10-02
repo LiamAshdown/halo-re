@@ -15,6 +15,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // floor is a single x87/SSE instruction sequence in the original code (Ghidra's ROUND());
 // declared locally instead of via <math.h> because -I types shadows that header name with
@@ -132,4 +135,7 @@ LAB_004c594c:
   puVar1[0x90] = (uint)(1.0 - param_1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_sort_column;            // 0x00719489
 extern uint8_t server_browser_sort_ascending;          // 0x006953f8
@@ -146,4 +149,7 @@ void FUN_004b7f70(void)
   *(undefined4 *)(iVar1 + 0x24) = 0x3f400000;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t quit_confirm_error_string_index; // 0x00718fac
 extern int16_t quit_confirm_error_unknown_ae; // 0x00718fae
@@ -108,4 +111,7 @@ undefined4 FUN_0049dfc0(int param_1,undefined4 param_2,undefined1 *param_3)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time;               // 0x006f1d6c
 extern motion_sensor_globals *motion_sensor;       // 0x00719438
@@ -404,4 +407,7 @@ void chimera__motion_sensor_update(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> source, EDI -> destination, EBX -> count
 // Projects `count` real_point3d entries from `source` into `destination` as (x, y) pairs,
@@ -76,4 +79,7 @@ void point3d_array_extract_xz_pairs(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

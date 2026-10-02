@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point2d *ai_default_2d_direction; // 0x006966ec, UNSURE: fallback direction constant
 
@@ -110,4 +113,7 @@ LAB_0043d0e1:
   unaff_ESI[1] = local_14 * param_1 + in_ECX[1];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

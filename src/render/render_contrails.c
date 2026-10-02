@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *contrail_data;   // 0x0087abec, effects module
 extern tag_instance *tag_instances; // 0x0087bc14, cache module
@@ -103,4 +106,7 @@ void contrail_render_by_object_type_mask(uint param_1)
     } while ((short)iVar5 < *(short *)(DAT_0087abec + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

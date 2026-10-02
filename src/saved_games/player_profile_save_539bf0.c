@@ -14,6 +14,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void console_out_printf(uint8_t color_index, const char *format, ...); // 0x4c6860, not in this module
 extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); // 0x53a950
@@ -45,4 +48,7 @@ void player_profile_save_539bf0(void)
   player_profile_write_data();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

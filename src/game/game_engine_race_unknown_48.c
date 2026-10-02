@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern game_engine_definition *current_game_engine;
@@ -40,3 +43,6 @@ void game_engine_race_unknown_48(void)
     }
     game_engine_apply_catchup_speed_boost();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

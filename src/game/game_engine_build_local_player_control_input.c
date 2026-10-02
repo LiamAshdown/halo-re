@@ -58,6 +58,9 @@
 #include "items.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals;                 // 0x0087a478
 extern data_array *player_data;                              // 0x0087a480
@@ -883,4 +886,7 @@ void FUN_004710b0(short param_1,float param_2,float *param_3)
   FUN_00472760();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

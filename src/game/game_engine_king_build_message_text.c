@@ -15,6 +15,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
@@ -69,3 +72,6 @@ uint8_t game_engine_king_build_message_text(datum_index recipient, int32_t messa
         return 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

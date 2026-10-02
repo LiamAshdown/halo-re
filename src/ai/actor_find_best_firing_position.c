@@ -39,6 +39,9 @@
 #include "cache.h"
 #include "ai.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -674,4 +677,7 @@ rewrite above is built on is:
 
 and the candidate views map as: iStack_17898 + i*0x3c is the record base, auStack_17894 is
 base+4, afStack_1788c is base+0xc, acStack_17868 is base+0x30 and afStack_17860 is base+0x38.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

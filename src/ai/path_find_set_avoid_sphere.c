@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> context, ECX -> position, stack -> avoid_radius, avoid_object_index, avoid_weight
 void path_find_set_avoid_sphere(path_find_context *context, const real_point3d *position,
@@ -49,4 +52,7 @@ void FUN_0043a070(undefined4 param_1,undefined4 param_2,undefined4 param_3)
   *(undefined4 *)(in_EAX + 0x3c) = param_3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

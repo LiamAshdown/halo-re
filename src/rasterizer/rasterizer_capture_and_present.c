@@ -27,6 +27,9 @@
 #include "rasterizer.h"
 #include <string.h> // memcpy
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t rasterizer_device_lost;                  // 0x007c10b0
 extern void *rasterizer_device;                         // 0x0071d174
@@ -250,4 +253,7 @@ void FUN_00518180(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

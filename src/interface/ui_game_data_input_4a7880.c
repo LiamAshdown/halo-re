@@ -19,6 +19,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t unknown_00719208; // 0x00719208, UNSURE
 extern uint8_t variant_teams_enabled_0071920c; // 0x0071920c, UNSURE name (variant byte +0x34 != 0)
@@ -80,3 +83,6 @@ void ui_game_data_input_4a7880(widget_instance *widget)
     }
     widget_extended_description_sync_selection(widget);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

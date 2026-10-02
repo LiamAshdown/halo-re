@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT
 extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start,
@@ -79,4 +82,7 @@ float10 FUN_0043b3b0(float *param_1)
   *param_1 = 3.4028235e+38;
   return (float10)0.0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

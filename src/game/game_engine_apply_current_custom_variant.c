@@ -18,6 +18,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t game_variant_history_count;    // 0x00687b10
 extern int32_t game_variant_history_current;   // 0x00687b18
@@ -122,4 +125,7 @@ void game_engine_apply_current_custom_variant(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

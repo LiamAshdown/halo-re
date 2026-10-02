@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *flag_data; // 0x008603a8
 
@@ -31,4 +34,7 @@ void flags_initialize(void)
   DAT_008603a8 = game_state_new(&DAT_0066e99c,2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

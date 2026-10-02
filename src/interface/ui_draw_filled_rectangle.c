@@ -42,6 +42,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;      // 0x00746fa0, foreign (game module)
 extern tag_instance *tag_instances;  // 0x0087bc14, foreign (cache module)
@@ -185,4 +188,7 @@ void FUN_00449780(void)
   _DAT_0069c632 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

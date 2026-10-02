@@ -14,6 +14,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
@@ -51,3 +54,6 @@ void network_session_host_qr2_key_list(int32_t key_type, void *keybuffer, void *
         }
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -22,6 +22,9 @@
 #include "camera.h"
 #include "sound.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                               // 0x0087a480
 extern player_effect_globals *player_effect_globals_pointer;  // 0x006f1884
@@ -231,4 +234,7 @@ void FUN_00456cf0(uint *param_1,undefined4 param_2,undefined4 param_3,float para
   DAT_00719ccc = DAT_00719ccc + -1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t effect_random_seed; // 0x00719cd4
 
@@ -86,4 +89,7 @@ void FUN_004fef40(undefined4 param_1)
   unaff_ESI[2] = ((fVar4 + fVar4) - 1.0) * fVar3 + unaff_ESI[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

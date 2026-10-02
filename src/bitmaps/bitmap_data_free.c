@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern struct cache *texture_cache; // 0x006ac540
 extern void cache_evict_entry(datum_index handle, struct cache *self); // 0x4d1c20, memory module
@@ -82,4 +85,7 @@ void bitmap_group_free(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

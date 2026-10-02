@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_session_start_host_name[];    // 0x00722798
 extern char network_session_start_map_name[];      // 0x007227a0
@@ -97,4 +100,7 @@ void FUN_00576100(undefined4 param_1)
   FUN_0061bb40(0x36,"game_classic");
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Accumulates a digitally-pressed control's contribution into the corresponding movement/look
 // axis of *state (throttle_x for forward/backward, throttle_y for left/right, look_x for
@@ -152,4 +155,7 @@ LAB_0048cabb:
 switchD_0048ca1f_default:
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

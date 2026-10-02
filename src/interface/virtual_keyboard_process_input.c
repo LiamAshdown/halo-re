@@ -28,6 +28,9 @@
 #include "cache.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
@@ -543,4 +546,7 @@ code_r0x004a8cbb:
   if (iVar3 < 0) goto LAB_004a8cca;
   goto LAB_004a8ca0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

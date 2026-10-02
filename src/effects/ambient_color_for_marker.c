@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t weather_particle_system_count;                // 0x00746b84
 extern weather_particle_system_state weather_wind_states[8]; // 0x00746b88
@@ -120,4 +123,7 @@ void FUN_0053f940(undefined4 param_1,byte param_2)
   unaff_EDI[2] = *(float *)(puVar2 + 8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

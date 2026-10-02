@@ -25,6 +25,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // UNSURE: every field of vehicle_update_body is inferred from this function's own use of it
 // (tick, sequence, 16-dword body), with this function's own view of the body's fields.
@@ -191,4 +194,7 @@ void apply_remote_player_vehicle_position_update(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

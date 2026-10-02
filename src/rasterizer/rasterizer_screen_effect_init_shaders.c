@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t screen_effect_techniques[k_rasterizer_screen_effect_techniques]; // 0x0071d210
 
@@ -100,4 +103,7 @@ int __cdecl rasterizer_screen_effect_init_shaders(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

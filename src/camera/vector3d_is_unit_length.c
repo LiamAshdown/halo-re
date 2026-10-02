@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: EAX -> v
@@ -52,4 +55,7 @@ uint vector3d_is_unit_length(void)
   }
   return uVar2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

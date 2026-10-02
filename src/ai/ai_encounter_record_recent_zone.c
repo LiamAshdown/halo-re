@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data; // 0x008802c8
 
@@ -74,4 +77,7 @@ int FUN_00437820(void)
 LAB_00437866:
   return CONCAT31(uVar3,1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

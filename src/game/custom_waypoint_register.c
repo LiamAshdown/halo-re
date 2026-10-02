@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints]; // 0x006f1888
 
@@ -68,4 +71,7 @@ void FUN_00462260(float param_1,undefined4 param_2,undefined2 param_3)
   (&DAT_006f1890)[iVar2 * 8] = param_1 + (float)(&DAT_006f1890)[iVar2 * 8] + 0.63;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

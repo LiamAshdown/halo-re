@@ -24,6 +24,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern heap *widget_memory_pool; // 0x006926c4
 extern uint8_t controls_action_table[][0x18]; // 0x00692fe8: char name[0x10], int32 bindable, uint32 unbindable columns
@@ -212,4 +215,7 @@ void FUN_004b4520(int param_1,int param_2)
   *(undefined4 *)(param_1 + 0x24) = 0x3eaa7efa;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

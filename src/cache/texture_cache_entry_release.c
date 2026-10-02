@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *texture_cache_entries; // 0x006ac538
 extern void *texture_cache; // 0x006ac540
@@ -51,3 +54,6 @@ void texture_cache_entry_release(datum_index handle)
     }
     datum_delete(texture_cache_entries, handle);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

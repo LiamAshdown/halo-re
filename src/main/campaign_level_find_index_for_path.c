@@ -24,6 +24,9 @@
 #include "main.h"
 #include <string.h>
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char campaign_level_short_names[k_main_campaign_level_count][4]; // .rdata 0x00669a38,
     // d40 first, a10 last (types/main.h)
@@ -125,4 +128,7 @@ int FUN_004c8b90(char *param_1)
   iVar3 = FUN_00625430(&local_88,&DAT_00669a38);
   return (-(uint)(iVar3 != 0) & 10) - 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

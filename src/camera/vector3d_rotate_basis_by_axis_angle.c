@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, vector in ECX
 extern double fsin(double angle); // FSIN
@@ -60,4 +63,7 @@ void FUN_00448880(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

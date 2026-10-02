@@ -22,6 +22,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 #define TAG_ID_AS_DATUM_INDEX(field) (*(datum_index *)&(field)) // see object_new_with_datum_role_control.c
 
@@ -102,4 +105,7 @@ void FUN_004f59d0(uint param_1,char param_2)
   FUN_004f9b00();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

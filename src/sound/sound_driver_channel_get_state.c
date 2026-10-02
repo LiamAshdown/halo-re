@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 
@@ -63,4 +66,7 @@ Disassembly (0x548450..0x54846f; phase-4 review):
 0x548467: jmp 0x548050
 0x54846c: mov ax, cx
 0x54846f: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

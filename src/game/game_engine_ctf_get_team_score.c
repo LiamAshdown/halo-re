@@ -10,6 +10,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
 
@@ -17,3 +20,6 @@ int32_t game_engine_ctf_get_team_score(int32_t team)
 {
     return ctf_team_flag_touch_count[team];
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

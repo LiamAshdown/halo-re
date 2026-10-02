@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
 extern const real_vector3d *global_origin3d_pointer;            // 0x00696714
@@ -205,4 +208,7 @@ LAB_00418bad:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

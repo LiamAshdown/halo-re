@@ -23,6 +23,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern void *keyboard_device;                                 // 0x006b1800, IDirectInputDevice8A
@@ -90,4 +93,7 @@ objdump call-site evidence for the AL argument (both known callers):
   004aa8da: call 0x48b650
   004c6567: mov al,0x1
   004c656a: jmp 0x48b650                 ; tail call, same AL=1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

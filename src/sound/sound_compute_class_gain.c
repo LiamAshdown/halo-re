@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_class_gain *sound_class_gains; // 0x00746140 holds a pointer to the 51-entry table (mov eax, [0x746140])
 extern float sound_ducking_gain;  // 0x007252a4, ramps toward 0.7 while dialog plays
@@ -102,4 +105,7 @@ Disassembly (0x54b100..0x54b174, capstone; phase-4 review):
 0x54b16c: ret 
 0x54b16d: fmul dword ptr [0x7252ac]
 0x54b173: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

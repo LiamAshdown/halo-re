@@ -19,6 +19,9 @@
 #include "memory.h"
 #include <string.h>
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, below this batch's
     // assigned range
@@ -106,4 +109,7 @@ void FUN_004d1ca0(int param_1,undefined4 *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

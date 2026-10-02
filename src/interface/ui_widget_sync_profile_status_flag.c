@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t profile_slot_id[];                // 0x00714dde
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8, saved_games.h
@@ -83,4 +86,7 @@ void FUN_004a7360(int param_1)
   *(ushort *)(param_1 + 0x40) = (ushort)(cVar5 != '\0');
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

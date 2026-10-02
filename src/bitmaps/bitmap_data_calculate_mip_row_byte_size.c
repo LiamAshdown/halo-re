@@ -19,6 +19,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count]; // 0x006571f4 (types/bitmaps.h)
 
@@ -64,4 +67,7 @@ int bitmap_data_calculate_mip_row_byte_size(void)
               ((int)(char)(&DAT_006571f4)[*(short *)(in_EDX + 0xc)] * (int)sVar1 >> 0x1f & 7U)) >> 3
   ;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

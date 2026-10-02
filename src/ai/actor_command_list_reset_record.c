@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra,
     void *component_record, int32_t secondary_record, uint32_t callback_extra)
@@ -34,3 +37,6 @@ void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_inde
         *(int16_t *)(secondary + 2) = -1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

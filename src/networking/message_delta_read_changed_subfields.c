@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 
@@ -111,4 +114,7 @@ int message_delta_read_changed_subfields(int param_1,int param_2,int param_3)
   }
   return iVar6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

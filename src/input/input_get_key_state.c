@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t input_suppressed;              // 0x006b15f9
 extern uint8_t key_frames[0x6d];              // 0x006b1620
@@ -129,4 +132,7 @@ uint FUN_00490b50(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

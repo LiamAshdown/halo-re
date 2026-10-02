@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sv_tk_grace_ticks; // 0x0069956c
 extern char sv_tk_grace_arg_buffer[]; // 0x0066d568, UNSURE: scratch buffer reused by 0x4e51c0
@@ -61,4 +64,7 @@ void sv_tk_grace(void)
   chimera__console_out("sv_tk_grace: %ds",DAT_0069956c / 0x1e);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

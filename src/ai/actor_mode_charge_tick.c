@@ -12,6 +12,9 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -25,3 +28,6 @@ void actor_mode_charge_tick(datum_index actor_index)
         ((struct actor *)act)->mode_data.charge.stage_ticks += 1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -23,6 +23,9 @@
 #include "units.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *object_data;    // 0x008603b0
@@ -155,4 +158,7 @@ void FUN_0042c140(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

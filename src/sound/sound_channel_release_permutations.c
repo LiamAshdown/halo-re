@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
 extern data_array *sound_cache_entries; // 0x006ac528
@@ -96,4 +99,7 @@ Disassembly (0x54d0d0..0x54d139, capstone), showing the "!= 0" pointer guard:
 0x54d0d6: lea ecx, [ecx*8 + 0x724a60]
 0x54d0dd: test ecx, ecx
 0x54d0df: je 0x54d12f
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 #include <stdlib.h>
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *std_exception_vtable; // 0x0064ef90
 
@@ -37,3 +40,6 @@ void *exception_copy_construct(void *self_, const void *other)
     }
     return self_;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

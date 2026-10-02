@@ -13,6 +13,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t printf(const char *format, ...); // 0x62427c _printf
 
@@ -66,4 +69,7 @@ uint data_file_read_header(int param_1)
   uVar2 = _printf("Failed to read data file header %s\n",unaff_ESI[0xe]);
   return uVar2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

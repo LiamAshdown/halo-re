@@ -12,6 +12,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
@@ -53,4 +56,7 @@ int FUN_004926f0(void)
   }
   return (int)sVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

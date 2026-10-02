@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                        // 0x0071d174
 extern rasterizer_render_target rasterizer_render_targets[k_rasterizer_render_targets]; // 0x0069d358
@@ -82,4 +85,7 @@ void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_co
 Original Ghidra decompilation (0x52ccc0): see `python tools/pack.py 0x52ccc0`; the two stack
 parameters and several vtable call arguments are unreliable in the decompile, resolved above via
 `objdump -d -Mintel --start-address=0x52ccc0 --stop-address=0x52cdc5 bin/halo.exe`.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

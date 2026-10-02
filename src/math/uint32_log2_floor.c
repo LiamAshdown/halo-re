@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns the bit-index of the highest set bit of its argument (0 for an input of 0).
 int32_t uint32_log2_floor(uint32_t value)
@@ -42,4 +45,7 @@ int uint32_log2_floor(void)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

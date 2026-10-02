@@ -24,6 +24,9 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float physics_scalar_approach_direction(physics_scalar_range *range, float value, uint8_t wrap, float target); // 0x50b4d0
 extern void physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); // 0x50b290
@@ -83,4 +86,7 @@ undefined4 FUN_0050b2f0(undefined4 param_1,undefined4 param_2,float param_3)
   *puVar3 = param_2;
   return CONCAT31((int3)((uint)uVar2 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

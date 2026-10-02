@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // out = b * a  (quaternion Hamilton product, b outer/left, a inner/right)
 void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out)
@@ -75,4 +78,7 @@ void quaternion_multiply(void)
               in_ECX[2] * in_EAX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

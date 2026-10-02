@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern float actor_compute_accuracy_scale(datum_index actor_index); // 0x429620, not yet rewritten (an engagement-range radius)
@@ -67,4 +70,7 @@ undefined1 FUN_00416700(void)
 LAB_00416782:
   return *(undefined1 *)(iVar2 + 0x484);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

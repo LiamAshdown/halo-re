@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t weather_enabled;               // 0x00687350
 extern int16_t current_local_player_index;     // 0x007c3108, UNSURE: foreign module (render globals)
@@ -118,4 +121,7 @@ void FUN_00458a90(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

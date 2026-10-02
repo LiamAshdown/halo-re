@@ -28,6 +28,9 @@
 #include "game.h"
 #include "hs.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time;           // 0x006f1d6c
 extern data_array *object_list_header_data;    // 0x0087a464
@@ -285,4 +288,7 @@ LAB_00435160:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

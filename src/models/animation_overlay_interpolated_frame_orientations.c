@@ -51,6 +51,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -398,4 +401,7 @@ dropped, from --start-address=0x4d53f0 --stop-address=0x4d57d0):
 004d5679:  8b d0                 mov    edx,eax                              ; edx = &out[node].rotation
 004d567b:  8d 4c 24 6c           lea    ecx,[esp+0x6c]                          ; ecx = lerped/normalized rotation
 004d567f:  e8 6c 85 ff ff        call   0x4cdbf0                                  ; quaternion_multiply(a=edx,b=ecx,out=edx)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

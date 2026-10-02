@@ -32,6 +32,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern data_array *actor_data;           // 0x00880360
@@ -208,4 +211,7 @@ ticks_per_second multiply, and the variant-array indexing:
 00431e44: fld    DWORD PTR [edi+0xc]        ; line->line_delay_time
 00431e47: fmul   DWORD PTR ds:0x672ac8      ; ticks_per_second (30.0)
 00431e4d: call   0x6391b4                   ; __ftol
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

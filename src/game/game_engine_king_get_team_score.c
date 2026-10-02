@@ -10,6 +10,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
 
@@ -17,3 +20,6 @@ int32_t game_engine_king_get_team_score(int32_t team)
 {
     return king_bucket_credit_ticks[team];
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

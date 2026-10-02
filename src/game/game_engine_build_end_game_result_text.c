@@ -25,6 +25,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                     // 0x0087a480
 extern tag_instance *tag_instances;                  // 0x0087bc14
@@ -365,4 +368,7 @@ LAB_0045d41b:
   param_2[0x4f] = L'\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

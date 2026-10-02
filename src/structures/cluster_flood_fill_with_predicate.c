@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern int32_t cluster_flood_stamp;         // 0x006e3f04
@@ -161,4 +164,7 @@ FUN_00554e30(undefined4 param_1,undefined4 param_2,undefined4 param_3,undefined4
   DAT_006e3f01 = 0;
   return CONCAT22(uVar9,sVar10);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

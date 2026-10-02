@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hwreq_parser_destruct(hwreq_parser *parser); // 0x0057a010
 
@@ -44,4 +47,7 @@ void FUN_005786a0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

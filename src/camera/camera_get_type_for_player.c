@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern director directors[1]; // 0x006ac560
 
@@ -76,4 +79,7 @@ undefined4 camera_get_type_for_player(void)
   }
   return CONCAT22((short)((uint)pcVar1 >> 0x10),*(undefined2 *)(&DAT_006ac5b6 + iVar3));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

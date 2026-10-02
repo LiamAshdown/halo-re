@@ -18,6 +18,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char saved_game_root_path[0x100]; // 0x006e3108
 extern file_reference_record savegame_index_file; // 0x00721330
@@ -95,4 +98,7 @@ undefined1 FUN_0053daa0(void)
   DAT_00721444 = 0xffff;
   return DAT_00721448;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

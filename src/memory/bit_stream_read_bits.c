@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t bit_mask_keep[9]; // 0x0065c2c0
 
@@ -165,4 +168,7 @@ uint bit_stream_read_bits(uint param_1,uint *param_2)
                    (&DAT_0065c2c0)[local_10]) | *param_2 & uVar5 | uVar6 << ((byte)local_10 & 0x1f);
   return param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

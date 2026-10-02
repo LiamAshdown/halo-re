@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
                                                      ai_grenade_avoidance_entry *out_entries); // 0x0042afc0
@@ -203,4 +206,7 @@ Real disassembly confirming the register mapping (0x42b5d0-0x42b5e9):
 0042b5e6: push   ecx                 ; ecx = source_actor_index
 0042b5e7: mov    edi,edx             ; edi = start_position
 0042b5e9: call   0x42afc0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

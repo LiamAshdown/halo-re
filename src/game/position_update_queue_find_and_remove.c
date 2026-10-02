@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // position_update_record is types/game.h's (0x14, tick / sequence / position).
 
@@ -121,4 +124,7 @@ uint FUN_0047a100(int *param_1,int param_2,int *param_3)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

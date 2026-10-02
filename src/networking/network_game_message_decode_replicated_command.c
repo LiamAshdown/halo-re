@@ -31,6 +31,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern data_packet_group network_game_messages_group; // 0x006994f8
@@ -96,4 +99,7 @@ undefined4 FUN_004dc410(int param_1,undefined4 param_2,int *param_3)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

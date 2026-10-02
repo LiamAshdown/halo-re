@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t console_rcon_handle;       // 0x006b2f1c, -1 routes output to the win32 console
 extern uint8_t console_rcon_out_reentrant_guard; // 0x00718f80, UNSURE: no other reference found
@@ -103,4 +106,7 @@ void chimera__console_out_copy(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Resolves a global MaterialType_t out of definition's per-object materials table. Returns -1
 // when material_index itself is -1 (no material).
@@ -49,4 +52,7 @@ int FUN_00505330(void)
   }
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

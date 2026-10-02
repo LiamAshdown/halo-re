@@ -28,6 +28,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out); // 0x463c40
 extern void game_variant_sanitize_options(game_variant *variant); // 0x466730; blam-cc: ECX -> variant
@@ -151,4 +154,7 @@ uint FUN_0053bb50(undefined4 param_1,wchar_t *param_2)
   saved_game_delete_by_handle();
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

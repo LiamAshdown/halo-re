@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *runtime_decals_suppressed; // 0x0072278c
 
@@ -16,3 +19,6 @@ void structure_runtime_decals_mark_dirty(void)
 {
     *runtime_decals_suppressed = 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

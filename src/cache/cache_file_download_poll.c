@@ -30,6 +30,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern map_download_state *map_download; // 0x006869c0
@@ -227,4 +230,7 @@ Raw disassembly (0x442720-0x442830), objdump -d -M intel --start-address=0x44272
 0044282c: and eax,0x2
 0044282f: pop ebx
 00442830: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

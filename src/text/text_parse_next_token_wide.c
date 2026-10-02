@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX=state, no other arguments
 // Reads the next 16-bit code unit from state->string at state->position, stores it in
@@ -96,4 +99,7 @@ switchD_00556f39_caseD_d:
   *(undefined2 *)(in_EAX + 0x14) = 6;
   return *(undefined2 *)(in_EAX + 0x14);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

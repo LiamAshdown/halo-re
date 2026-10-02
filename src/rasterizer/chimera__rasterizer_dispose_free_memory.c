@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_misc_vertex_buffer; // 0x0071d270
 extern transparent_geometry_group *transparent_geometry_groups;           // 0x0071d14c
@@ -71,4 +74,7 @@ void __cdecl chimera__rasterizer_dispose_free_memory(void)
   DAT_0071d154 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

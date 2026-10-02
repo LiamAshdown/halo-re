@@ -17,6 +17,9 @@
 #include <wchar.h>
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, blam-cc: EAX context, ECX destination
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags,
@@ -79,3 +82,6 @@ void game_engine_race_profile_post_update(void **context)
     *(uint32_t *)ctf_globals_live = *(uint32_t *)ctf_globals_network;
     *(int32_t *)(ctf_globals_live + 0x84) = *(int32_t *)(ctf_globals_network + 0x84);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

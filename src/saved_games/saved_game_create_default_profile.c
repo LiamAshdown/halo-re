@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t saved_game_create_slot(uint16_t type, uint16_t *display_name); // 0x53c660, this module
 extern uint8_t saved_game_open_file_by_handle(int32_t handle, file_reference_record *out_reference); // 0x53c9f0, not in this batch
@@ -121,4 +124,7 @@ uint FUN_00539ab0(void)
   saved_game_delete_by_handle();
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

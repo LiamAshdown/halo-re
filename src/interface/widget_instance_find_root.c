@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> widget
 // Walks up the parent chain and returns the topmost ancestor (the widget itself if it has no
@@ -42,4 +45,7 @@ void FUN_00498e10(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

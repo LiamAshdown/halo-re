@@ -30,6 +30,9 @@
 #include "objects.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char ai_marker_name_a[]; // 0x0066bfa0
 
@@ -164,4 +167,7 @@ Disassembly excerpt establishing the register roles and the argument forwarding
   43007c: lea    eax,[esp+0x44]           ; EAX -> position_a
   430080: mov    ecx,edi                  ; ECX -> object_a
   430082: call   0x42fb90
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

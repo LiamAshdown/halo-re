@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t shell_instance_mode_value;    // 0x0069eab4, UNSURE: named _value -- shell.h's shell_instance_mode enum typedef occupies that identifier
 extern int32_t shell_instance_index;         // 0x00721f04
@@ -176,4 +179,7 @@ LAB_00542e89:
   shell_display_fatal_error_dialog(0x92,0x7e,1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

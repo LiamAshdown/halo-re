@@ -23,6 +23,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *object_data;     // 0x008603b0
@@ -192,4 +195,7 @@ undefined4 FUN_004279f0(uint param_1,uint param_2)
 LAB_00427bad:
   return CONCAT31(uVar5,local_5);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;   // 0x008603b0
 extern player_globals *local_player_globals; // 0x0087a478
@@ -176,4 +179,7 @@ bool FUN_00575c50(void)
 LAB_00575e17:
   return !bVar6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

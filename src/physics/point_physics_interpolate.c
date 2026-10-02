@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> out, ECX -> from, EDX -> to, stack -> fraction
 // Linearly interpolates the tunable fields of two point_physics definitions.
@@ -36,4 +39,7 @@ Disassembly (0x50b9e0): fld 1.0; fsub [esp+4]; out->flags = from->flags; then fo
 +0x20 +0x08 +0x0c +0x04 +0x24 +0x28 +0x2c +0x30:
   out[f] = (1 - t) * from[f] + t * to[f]
 ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

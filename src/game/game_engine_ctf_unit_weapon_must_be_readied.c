@@ -16,6 +16,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_variant game_engine_variant;            // 0x006f1c88
@@ -56,4 +59,7 @@ undefined1 FUN_00466bc0(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

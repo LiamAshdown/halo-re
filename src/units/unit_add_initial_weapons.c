@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -104,4 +107,7 @@ rewrite follows the listing:
   56d013 if unit_pickup_weapon(EAX=weapon, ECX=unit, push 0): next
   56d035 r = weapon->network_role: 0 -> object_delete_unparented(EDI=weapon) then
          object_delete_recursive(weapon, 0); 3 -> object_delete_recursive(weapon, 0); else next
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

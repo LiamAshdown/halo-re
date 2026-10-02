@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: DX -> after_index, EDI -> array
 // Finds the handle of the next in-use slot strictly after `after_index`, or k_datum_index_none
@@ -66,4 +69,7 @@ uint FUN_004d0630(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

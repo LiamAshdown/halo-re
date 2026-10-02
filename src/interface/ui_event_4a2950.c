@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t player_profile_set_default_audio_options(void *profile); // 0x53b240, blam-cc: profile in EAX
 extern void ui_controls_populate_input_row(widget_instance *widget, const uint8_t *profile_record); // 0x4a22e0, blam-cc: EAX widget, EDI profile_record
@@ -34,3 +37,6 @@ uint8_t ui_event_4a2950(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return ok;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

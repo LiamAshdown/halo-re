@@ -38,6 +38,9 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current;      // 0x00692c04
@@ -113,4 +116,7 @@ undefined1 render_widget_recursive(void)
   }
   return in_stack_00000018._3_1_;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

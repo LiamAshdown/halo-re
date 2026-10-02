@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index hs_thread_find_by_script_name(char *name); // this module, 0x48a9f0
 extern void hs_thread_restart(uint32_t thread_index);          // this module, 0x48a790
@@ -47,4 +50,7 @@ undefined4 hs_call_script_by_name(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

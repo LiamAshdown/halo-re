@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
@@ -209,4 +212,7 @@ void FUN_00522930(void *param_1)
   rasterizer_transparent_geometry_group_draw_vertices(param_1,(void *)0x0,(char)piVar7);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

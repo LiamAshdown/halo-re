@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_initialized;   // 0x00725200
 extern uint8_t sound_enabled;       // 0x00725201
@@ -81,4 +84,7 @@ Disassembly (0x549f50..0x549f9c, capstone; phase-4 review):
 0x549f91: imul eax, eax, 0xe4
 0x549f97: mov byte ptr [eax + edx + 0x4c], cl
 0x549f9b: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -28,6 +28,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void interface_handle_quit_request(void); // 0x499170
 
@@ -244,4 +247,7 @@ Raw disassembly (0x442640-0x442713), objdump -d -M intel --start-address=0x44264
 00442711: pop ebx
 00442712: pop ecx
 00442713: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

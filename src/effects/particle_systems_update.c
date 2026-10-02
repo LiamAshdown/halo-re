@@ -12,6 +12,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_system_data; // 0x0087abd4
 
@@ -63,4 +66,7 @@ void FUN_00454000(undefined4 param_1)
     } while ((short)iVar3 < *(short *)(DAT_0087abd4 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

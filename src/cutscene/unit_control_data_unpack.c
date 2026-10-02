@@ -14,6 +14,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern unit_control_data_field_layout *unit_control_data_version_layouts[4]; // 0x00686d88
 
@@ -120,4 +123,7 @@ void FUN_00449fd0(int *param_1,byte param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

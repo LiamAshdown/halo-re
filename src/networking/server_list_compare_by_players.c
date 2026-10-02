@@ -10,6 +10,9 @@
 
 #include "crt.h"
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 extern const char *SBServerGetStringValue(void *server, const char *key, const char *default_value); // 0x617490 SBServerGetStringValue
@@ -58,3 +61,6 @@ int32_t server_list_compare_by_players(const void *a, const void *b)
     }
     return server_browser_sort_ascending != 0 ? result : -result;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

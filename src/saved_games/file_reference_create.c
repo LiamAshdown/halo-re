@@ -20,6 +20,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void path_build_full(char *source, char *destination, int16_t location); // 0x5560d0, this module
 extern void saved_games_report_last_error(void); // 0x556170, this module
@@ -104,4 +107,7 @@ LAB_0055563b:
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

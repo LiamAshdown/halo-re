@@ -25,6 +25,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern profile_carousel_slot profile_carousel_slots[3]; // 0x00873d60, reset to 0xff (0x1800 dwords)
@@ -198,4 +201,7 @@ undefined4 ui_build_profile_list(int param_1)
   }
   return CONCAT31(uVar1,1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

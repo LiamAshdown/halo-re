@@ -23,6 +23,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern large_integer performance_frequency;   // 0x006ac8f8 QueryPerformanceFrequency result
 extern char profile_directory[0x105];         // 0x006ac900 (types/cache.h); memset clears 0x105
@@ -174,4 +177,7 @@ int __cdecl engine_initialize_subsystems(void)
   }
   return uVar1 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

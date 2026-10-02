@@ -51,6 +51,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void os_platform_identify(void); // 0x5427e0
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal); // 0x57ea70
@@ -293,4 +296,7 @@ Raw disassembly (0x443360-0x443462), objdump -d -M intel --start-address=0x44336
 0044348c: pop ebp
 0044348d: xor al,al
 0044348f: pop ebx
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

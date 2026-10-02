@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> widget, ESI -> profile_record
 // Finds the first spinner_list among each of widget's first three child "rows" and sets each
@@ -90,4 +93,7 @@ void FUN_004a20f0(void)
   *(ushort *)(iVar2 + 0x40) = (ushort)(*(char *)(unaff_ESI + 0x12f) != '\0');
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

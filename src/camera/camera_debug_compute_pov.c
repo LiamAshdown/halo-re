@@ -31,6 +31,9 @@
 #include "units.h"
 #include "cache.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern camera_script_globals camera_script;         // 0x006869d0
 extern game_time_globals *game_time;                // 0x006f1d6c
@@ -332,4 +335,7 @@ Disassembly (objdump -d -M intel), the register roles Ghidra's decompiler droppe
 0x444f53..0x444f96: builds the animation-frame float (frame_count - time_remaining*30) and truncates it with __ftol
 0x444fb2..0x444fb8: push 0; lea eax,[esp+0x24]; call 0x4d49b0  (ECX = frame index still live from the clamp
     above, EDI = animation element pointer, EAX = out real_matrix4x3, stack = 0)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

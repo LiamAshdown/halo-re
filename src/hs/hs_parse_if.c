@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_parse(datum_index node_index, hs_type_t expected_type); // 0x00486420, this batch
 
@@ -151,4 +154,7 @@ undefined1 hs_parse_if(undefined4 param_1,uint param_2)
   DAT_006b14d8 = *(undefined4 *)(*(int *)(DAT_0087a474 + 0x34) + 0xc + iVar10);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

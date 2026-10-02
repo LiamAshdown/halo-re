@@ -13,6 +13,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> angles, EDX -> delta
 // Identical to recorded_animation_apply_char_difference, but the delta is a full 16 bit
@@ -58,4 +61,7 @@ void FUN_0044a150(void)
   in_EAX[1] = in_EAX[1] + in_EDX[1];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

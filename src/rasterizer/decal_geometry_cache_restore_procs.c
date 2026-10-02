@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *rasterizer_decal_vertex_cache_handle; // 0x0071d1c0
 
@@ -21,3 +24,6 @@ void decal_geometry_cache_restore_procs(void)
     *(void **)(rasterizer_decal_vertex_cache_handle + 0x20) = (void *)decal_vertex_cache_release;
     *(void **)(rasterizer_decal_vertex_cache_handle + 0x24) = (void *)decal_vertex_cache_in_use;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

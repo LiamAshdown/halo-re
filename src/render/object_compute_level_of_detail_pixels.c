@@ -23,6 +23,9 @@
 #include "rasterizer.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                                  // 0x008603b0
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
@@ -106,4 +109,7 @@ float10 FUN_0050f740(void)
   fVar2 = ((float10)_DAT_007c32f0 / fVar3) * fVar2;
   return fVar2 + fVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

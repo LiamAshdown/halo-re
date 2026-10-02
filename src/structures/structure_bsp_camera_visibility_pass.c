@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t render_cluster_index; // 0x007c3348
 extern uint32_t *flood_recursion_bits; // 0x006e3af8
@@ -116,4 +119,7 @@ void FUN_005544f0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

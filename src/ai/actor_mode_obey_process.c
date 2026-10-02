@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;       // 0x00880360
 extern Scenario *global_scenario;
@@ -53,3 +56,6 @@ uint8_t actor_mode_obey_process(uint32_t actor_index)
     }
     return (uint8_t)(((struct actor *)actor)->mode == 0xb && mode_data[5] != 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

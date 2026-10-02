@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Walks every portal referenced by leaf `leaf_index`, and for each one, busy-loops counting up to
 // its vertex count (result discarded). A debug/validation pass with no observable effect on
@@ -80,4 +83,7 @@ void FUN_005520b0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

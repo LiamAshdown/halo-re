@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern actor_firing_position_rule actor_firing_position_reject_rules[6]; // 0x006555f8
 
@@ -72,4 +75,7 @@ void FUN_00412730(undefined4 param_1)
   } while (cVar1 != '\0');
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

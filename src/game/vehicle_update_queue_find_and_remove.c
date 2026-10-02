@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: no header names this record; declared locally, body left opaque.
 // vehicle_update_record is types/game.h's (0x48, tick / sequence / vehicle_update_body).
@@ -126,4 +129,7 @@ uint FUN_0047a2c0(int *param_1,int param_2,int *param_3)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

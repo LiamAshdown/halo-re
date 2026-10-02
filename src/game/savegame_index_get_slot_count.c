@@ -18,6 +18,9 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
 extern file_reference savegame_index_file; // 0x00721330
@@ -90,4 +93,7 @@ uint FUN_0053e420(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

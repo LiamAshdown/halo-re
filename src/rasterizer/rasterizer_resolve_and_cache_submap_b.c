@@ -19,6 +19,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 extern GlobalsRasterizerData *rasterizer_globals_data;              // 0x0071d164
@@ -128,4 +131,7 @@ LAB_005188d8:
 LAB_0051894a:
   return -(uint)bVar2 & 0x6d9870;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

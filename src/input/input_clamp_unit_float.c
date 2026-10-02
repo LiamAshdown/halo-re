@@ -13,6 +13,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Clamps a floating-point input value to the 0..1 range.
 float input_clamp_unit_float(float value)
@@ -40,4 +43,7 @@ float10 FUN_0048c8a0(float param_1)
   }
   return (float10)param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

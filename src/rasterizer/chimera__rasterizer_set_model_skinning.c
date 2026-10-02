@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t rasterizer_maximum_skinning_nodes; // 0x0069c67e (usually 0x3f)
 extern rasterizer_skinning_matrix rasterizer_skinning_palette[63]; // 0x007c04e0
@@ -105,4 +108,7 @@ void chimera__rasterizer_set_model_skinning(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

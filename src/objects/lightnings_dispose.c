@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *lightning_instances; // 0x006b8d74
 extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
@@ -23,3 +26,6 @@ void lightnings_dispose(void)
         data_delete_all(lightning_instances);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

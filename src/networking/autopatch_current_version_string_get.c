@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> out
 // Writes the hardcoded current game build version string ("01.00.10.0621") into out (a 14-byte
@@ -39,4 +42,7 @@ void autopatch_current_version_string_get(void)
   *(undefined2 *)(in_EAX + 3) = 0x31;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

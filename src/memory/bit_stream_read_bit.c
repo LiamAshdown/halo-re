@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: destination as the recognized parameter, stream in EDX
 // Reads a single bit from a bounds-checked bit stream into *out_bit and advances the stream's
@@ -62,4 +65,7 @@ undefined4 bit_stream_read_bit(undefined1 *param_1)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

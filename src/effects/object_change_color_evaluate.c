@@ -51,6 +51,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_location_data; // 0x0087abe0
 extern data_array *object_data;          // 0x008603b0
@@ -337,4 +340,7 @@ switchD_00452c21_caseD_3:
   cVar10 = '\0';
   goto LAB_00452a80;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

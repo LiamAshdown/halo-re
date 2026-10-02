@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_caps9 rasterizer_caps; // 0x007c10c0
 extern void *unknown_007c048c; // 0x007c048c shader_environment self-illumination draw procedure
@@ -128,4 +131,7 @@ LAB_0051689a:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

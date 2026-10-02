@@ -17,6 +17,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t debug_log_level;          // 0x0087ac06, byte-wide (R01)
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count]; // 0x0087bec0
@@ -63,4 +66,7 @@ void __cdecl network_connection_stats_end(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

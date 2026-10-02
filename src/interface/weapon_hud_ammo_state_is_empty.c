@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: state -> EAX
 uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state)
@@ -46,4 +49,7 @@ undefined4 FUN_004a9750(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

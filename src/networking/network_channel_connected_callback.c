@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *gt2GetConnectionData(void *connection); // 0x614840, cdecl
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue); // 0x441ce0, ESI, EDI
@@ -63,3 +66,6 @@ void network_channel_connected_callback(void *connection, int32_t result, const 
         queue->flags |= 0x80;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

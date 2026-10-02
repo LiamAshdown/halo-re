@@ -11,6 +11,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -31,3 +34,6 @@ void actor_mode_flee_enter(datum_index actor_index)
         unit_initialize_random_turn_angle(((actor *)act)->unit_index);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

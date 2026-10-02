@@ -29,6 +29,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -505,4 +508,7 @@ it unusually hard to diff against:
     which of them were checked against the disassembly and which were inferred by analogy.
 The whole body was later re-derived from the disassembly (see the VERIFIED header line); the
 live C below is the authoritative reading.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

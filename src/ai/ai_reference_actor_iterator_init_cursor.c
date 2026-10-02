@@ -27,6 +27,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data; // 0x008802c8
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -82,4 +85,7 @@ that fixes this function's true field offsets:
 004326b7:	add    ecx,0xc          ; ecx now points at iterator + 0xc
 004326ba:	pop    esi
 004326bb:	jmp    0x4369f0         ; tail call, EAX = encounter_index
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

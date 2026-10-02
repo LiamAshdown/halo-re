@@ -54,6 +54,9 @@
 #include "cache.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;       // 0x00880360
 extern data_array *prop_data;        // 0x008802c0
@@ -431,4 +434,7 @@ basis for the bucket-scoring and call-selection tail that Ghidra decompile drops
   4213a0: pop    ebx
   4213a1: add    esp,0x1dc
   4213a7: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

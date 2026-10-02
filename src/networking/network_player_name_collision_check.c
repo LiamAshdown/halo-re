@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_player_entry_validate(network_player_entry *entry); // 0x4de9f0, this batch
 
@@ -62,4 +65,7 @@ undefined4 FUN_004df6f0(void)
   } while (iVar3 < 0x10);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

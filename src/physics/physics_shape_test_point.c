@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t physics_shape_sphere_test_point(real_point3d *point, physics_model_sphere *sphere,
                                                  real_plane3d *out_normal,
@@ -195,4 +198,7 @@ joined_r0x005042fb:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

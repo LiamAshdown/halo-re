@@ -21,6 +21,9 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float sinf(float x);
 extern float cosf(float x);
@@ -165,4 +168,7 @@ void FUN_004acd50(undefined4 param_1,undefined4 param_2,float *param_3,float *pa
   FUN_0051c9a0(local_60);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

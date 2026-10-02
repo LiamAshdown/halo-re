@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *hs_camera_control_pointer; // 0x0087bc0c, hs module
 
@@ -35,4 +38,7 @@ camera_track_compute_pov). objdump -d -M intel:
   44556f: call 0x445cc0
   445574: pop ecx
   445575: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

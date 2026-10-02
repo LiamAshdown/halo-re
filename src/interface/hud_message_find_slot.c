@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: source -> ESI
 hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messaging_state *record, uint8_t source_kind)
@@ -83,4 +86,7 @@ int * FUN_004ae480(int param_1,char param_2)
   }
   return (int *)((short)uVar2 * 0x8c + param_1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

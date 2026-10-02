@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
 
@@ -77,4 +80,7 @@ void hs_thread_new(undefined1 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

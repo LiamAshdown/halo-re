@@ -22,6 +22,9 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
 
@@ -94,4 +97,7 @@ void FUN_004734b0(void)
   DAT_006f7ea0 = iVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "input.h"
 
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t input_last_error; // 0x0068e544
 
@@ -56,4 +59,7 @@ void __cdecl input_error_log_once(int param_1,char *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // FABS
 
@@ -79,4 +82,7 @@ void FUN_0048fce0(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

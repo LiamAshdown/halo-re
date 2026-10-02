@@ -20,6 +20,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int32_t os_platform_value; // 0x00721ef0, UNSURE: named os_platform_value not os_platform -- shell.h's os_platform enum typedef occupies that identifier in the same C namespace, so the documented global name does not compile as written
@@ -245,4 +248,7 @@ LAB_00542a5d:
   ExceptionList = local_14;
   return (uint)(DAT_0069eab0 == 1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

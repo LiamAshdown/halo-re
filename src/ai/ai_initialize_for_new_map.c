@@ -17,6 +17,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr; // 0x00880354
 extern data_array *prop_data;      // 0x008802c0
@@ -80,4 +83,7 @@ void ai_initialize_for_new_map(void)
   FUN_0041a2d0();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

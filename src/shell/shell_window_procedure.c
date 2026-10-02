@@ -58,6 +58,9 @@
 #include "interface.h"
 #include "main.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Minimal GDI BITMAP layout: only the fields GetObjectA's caller reads are named (bmWidth,
@@ -894,4 +897,7 @@ that reached it):
   pop ebx
   add esp,0x28
   ret 0x10
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

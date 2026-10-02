@@ -32,6 +32,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern void *hud_globals_tag_data;                      // 0x0071941c, the hud_globals tag data
@@ -695,4 +698,7 @@ void game_engine_post_rasterize_post_game(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

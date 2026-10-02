@@ -18,6 +18,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -83,3 +86,6 @@ void actor_mode_flee_update(datum_index actor_index)
     ((struct actor *)act)->mode_data.flee.destination = -1;
     act[0xa2] = 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

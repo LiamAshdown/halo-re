@@ -12,6 +12,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -42,4 +45,7 @@ void __cdecl weapon_trigger_effect_set_state(short trigger_index,char state,shor
   *(short *)(iVar1 + 0x262) = counter;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

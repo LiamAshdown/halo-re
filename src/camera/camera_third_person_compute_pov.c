@@ -30,6 +30,9 @@
 #include "units.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                             // 0x008603b0
 extern player_control_globals *player_control_globals_ptr;  // 0x006b145c
@@ -311,4 +314,7 @@ void camera_third_person_compute_pov(char *param_1,short *param_2,uint *param_3)
   *param_1 = '\x01';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -53,6 +53,9 @@
 #include "objects.h"
 #include "effects.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *contrail_point_data;              // 0x0087abe8, effects module
 extern data_array *object_data;                      // 0x008603b0, objects module
@@ -701,4 +704,7 @@ LAB_0050e6f1:
 switchD_0050e450_caseD_3:
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Copies up to 8 wide characters from `source` into `server`'s password field and forces a
@@ -37,4 +40,7 @@ void FUN_004e0910(void)
   *(undefined2 *)(unaff_ESI + 0xa0c) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

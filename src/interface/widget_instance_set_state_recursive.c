@@ -12,6 +12,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Sets widget->state (and every descendant's state, recursively through first_child then
 // next_sibling) to the low byte of `state`.
@@ -40,4 +43,7 @@ void FUN_00498e60(int param_1,undefined4 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

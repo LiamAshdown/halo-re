@@ -26,6 +26,9 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sort_adjust_heap(rendered_particle_datum *first, int32_t hole, int32_t bottom,
     rendered_particle_datum value, int32_t predicate); // 0x510a90, blam-cc: ECX first, EAX hole, EDI bottom, stack (value, predicate)
@@ -75,4 +78,7 @@ void FUN_005107e0(undefined4 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

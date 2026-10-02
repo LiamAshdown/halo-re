@@ -13,6 +13,9 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address); // 0x4dd390, blam-cc: EAX channel, ECX out
 extern uint32_t network_local_address; // 0x006869b0
@@ -43,4 +46,7 @@ void FUN_004e0ab0(void)
   FUN_00575ff0();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

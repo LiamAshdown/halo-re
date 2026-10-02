@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int32_t cpu_identification_state; // 0x00721e88
@@ -570,4 +573,7 @@ switchD_005403d7_caseD_1:
   ExceptionList = local_14;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

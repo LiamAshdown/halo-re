@@ -31,6 +31,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;         // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -115,4 +118,7 @@ float10 FUN_00461d90(float param_1)
   }
   return (float10)param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

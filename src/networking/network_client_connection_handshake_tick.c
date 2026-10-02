@@ -30,6 +30,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_disconnect_timeout_flag; // 0x0071c2dc
 extern void network_timer_advance(network_timer_pair *timer); // 0x4deb50, this module
@@ -176,4 +179,7 @@ void FUN_004e0590(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

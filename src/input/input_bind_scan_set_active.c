@@ -25,6 +25,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern uint8_t input_suppressed;                               // 0x006b15f9
@@ -129,4 +132,7 @@ LAB_0048b70b:
 objdump call-site evidence (the only statically resolvable caller):
   004b531b: mov al,0x1
   004b531d: call 0x48b6b0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4 (saved_player_profile_slots[0].handle)
 
@@ -153,4 +156,7 @@ HANDLE __cdecl game_state_open_persistent_storage(char *name)
   }
   return (HANDLE)0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

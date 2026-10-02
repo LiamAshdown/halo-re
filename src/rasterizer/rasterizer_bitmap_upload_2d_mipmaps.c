@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 // reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern void *rasterizer_device; // 0x0071d174, UNSURE relevance here (read but not used directly)
@@ -193,4 +196,7 @@ LAB_00524244:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data;  // 0x008802c8
 extern data_array *ai_pursuit_data; // 0x008802d0
@@ -51,4 +54,7 @@ void squad_recent_object_list_clear(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

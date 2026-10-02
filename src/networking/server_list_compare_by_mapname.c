@@ -27,6 +27,9 @@
 #include "networking.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8, see UNSURE
 
@@ -102,4 +105,7 @@ int server_list_compare_by_mapname(void)
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

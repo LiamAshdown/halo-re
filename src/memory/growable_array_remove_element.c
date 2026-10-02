@@ -10,6 +10,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 #define GMEM_MOVEABLE 0x0002
@@ -83,4 +86,7 @@ void growable_array_remove_element(void)
   unaff_ESI[2] = (int)pvVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

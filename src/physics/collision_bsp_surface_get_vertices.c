@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDI -> bsp, stack -> surface_index, out_vertices
 int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp, int32_t surface_index,
@@ -84,4 +87,7 @@ void FUN_00501400(int param_1,int param_2)
   } while (iVar5 != iVar3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

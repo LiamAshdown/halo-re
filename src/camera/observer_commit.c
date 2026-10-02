@@ -29,6 +29,9 @@
 #include "objects.h"
 #include "structures.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern observer observers[1];               // 0x006ac65c
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
@@ -335,4 +338,7 @@ void FUN_00448900(void)
   *(undefined4 *)(&DAT_006ac708 + iVar10) = *(undefined4 *)(&DAT_006ac728 + iVar10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

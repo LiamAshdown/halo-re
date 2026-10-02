@@ -22,6 +22,9 @@
 #include "units.h"
 #include "hs.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;             // 0x008603b0
 extern data_array *object_list_header_data; // 0x0087a464
@@ -136,4 +139,7 @@ uint FUN_00432740(int param_1)
   }
   return uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

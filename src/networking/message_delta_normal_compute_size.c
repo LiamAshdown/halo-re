@@ -5,6 +5,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t message_delta_normal_compute_size(message_delta_field_type *field_type)
 {
@@ -14,3 +17,6 @@ int32_t message_delta_normal_compute_size(message_delta_field_type *field_type)
 
     return second > first ? second : first;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

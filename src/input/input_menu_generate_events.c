@@ -34,6 +34,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals;    // 0x00710328
 extern input_event_queue input_event_queue_active;              // 0x00712cc0
@@ -410,4 +413,7 @@ switchD_0048ed15_caseD_38:
   /* event firing: see objdump 0x48f4e0..0x48f7d8, quoted in the file header, for the exact
      kind/code/pressed bytes push_event receives (queue index 0 in every call, hidden in EAX). */
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

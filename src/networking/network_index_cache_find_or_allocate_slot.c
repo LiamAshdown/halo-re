@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 
@@ -144,4 +147,7 @@ LAB_004e9c9d:
   }
   goto LAB_004e9c9d;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

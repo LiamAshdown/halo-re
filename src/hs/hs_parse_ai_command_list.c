@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagReflexive *array, int32_t stride);
     // 0x486f90, blam-cc: EAX -> node_index, EBX -> name_offset, ESI -> array, stack -> stride
@@ -19,3 +22,6 @@ char hs_parse_ai_command_list(datum_index node_index)
 {
     return hs_parse_scenario_datum(node_index, 0, &global_scenario->command_lists, 0x60);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

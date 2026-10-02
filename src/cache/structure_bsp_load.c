@@ -24,6 +24,9 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t cache_io_request_new(cache_io_completion *completion, // blam-cc: ESI
     int32_t offset, uint32_t size, void *destination, uint8_t priority,
@@ -92,4 +95,7 @@ undefined4 FUN_004424b0(void)
   *(undefined4 *)(*(short *)(unaff_EDI + 7) * 0x20 + 0x14 + DAT_0087bc14) = uVar1;
   return CONCAT31((int3)((uint)uVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

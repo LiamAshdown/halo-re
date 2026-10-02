@@ -28,6 +28,9 @@
 #include "hs.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t hs_preserve_token_case;  // 0x007102fd
@@ -169,4 +172,7 @@ Disassembly (0x4c6a80..0x4c6bbf) resolving the hs_autocomplete_gather registers:
 004c6b4c:  mov    edx,eax                ; context_mask (result of console_command_context_mask)
 004c6b4e:  lea    eax,[esp+0x14]         ; &command_name
 004c6b52:  call   0x483c90               ; hs_autocomplete_gather(EAX, ECX=0x100, EDX, 0x28, &out_names)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

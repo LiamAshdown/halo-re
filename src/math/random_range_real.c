@@ -17,6 +17,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4, the non-deterministic LCG stream (types/math.h)
 
@@ -38,4 +41,7 @@ float __cdecl random_range_real(float minimum,float maximum)
   DAT_00719cd4 = DAT_00719cd4 * 0x19660d + 0x3c6ef35f;
   return (maximum - minimum) * (float)(DAT_00719cd4 >> 0x10) * 1.5259022e-05 + minimum;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

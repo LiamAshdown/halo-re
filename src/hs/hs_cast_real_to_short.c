@@ -8,6 +8,9 @@
 // blam-cc: stack -> value (cdecl)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t hs_cast_real_to_short(int32_t value)
 {
@@ -15,3 +18,6 @@ int32_t hs_cast_real_to_short(int32_t value)
 
     return (int32_t)(((uint32_t)value & 0xffff0000u) | (uint16_t)result);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

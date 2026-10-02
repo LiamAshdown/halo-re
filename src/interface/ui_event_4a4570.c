@@ -13,6 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void ui_list_free_all(void); // 0x4a7b20
 
@@ -21,3 +24,6 @@ uint8_t ui_event_4a4570(widget_instance *widget, int16_t *event, uint8_t *out_ha
     ui_list_free_all();
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

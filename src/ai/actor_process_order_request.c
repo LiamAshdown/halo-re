@@ -20,6 +20,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern data_array *actor_data;       // 0x00880360
@@ -305,4 +308,7 @@ LAB_00409fac:
   }
   return local_91;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

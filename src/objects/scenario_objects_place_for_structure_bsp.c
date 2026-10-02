@@ -20,6 +20,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t global_structure_bsp_index; // 0x0069e8d8
 extern uint8_t *global_scenario; // 0x00746f8c
@@ -205,4 +208,7 @@ void FUN_004f4880(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

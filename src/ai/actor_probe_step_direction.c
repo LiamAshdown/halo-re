@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
@@ -143,4 +146,7 @@ FUN_00417e50(undefined4 param_1,undefined4 param_2,ushort *param_3,undefined4 pa
 Disassembly cross-check (objdump -d -M intel bin/halo.exe, 0x417e50..0x417f7f): the jump table at
 0x417f80 (417e76 417e8a 417e9b 417eaa 417ebd) gives the five case bodies Ghidra omitted; ECX
 holds the 2-float direction input throughout, confirmed never assigned inside this function.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

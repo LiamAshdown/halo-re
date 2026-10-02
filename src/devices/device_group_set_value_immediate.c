@@ -19,6 +19,9 @@
 #include "math.h"
 #include "objects.h"
 #include "devices.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *device_groups; // 0x0087abf0
 
@@ -106,4 +109,7 @@ void device_group_set_value_immediate(float param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -57,6 +57,9 @@
 #include "structures.h"
 #include "game.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t render_window_count;                   // 0x007c3104, this module
 extern int16_t current_local_player_index;             // 0x007c3108, this module
@@ -557,4 +560,7 @@ void render_scene_draw(undefined2 param_1,undefined4 *param_2,undefined4 *param_
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

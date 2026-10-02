@@ -20,6 +20,9 @@
 #include "interface.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -94,3 +97,6 @@ uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_i
     ui_list_add_entry(0, wide, index, record, 0x68, (uint8_t)(index == 0));
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -39,6 +39,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern widget_instance *ui_root_widget[1]; // 0x00718f94
@@ -221,4 +224,7 @@ LAB_004984a2:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

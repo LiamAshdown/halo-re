@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *memcpy(void *destination, const void *source, uint32_t size); // 0x6236f0
 
@@ -32,3 +35,6 @@ uint32_t ov_read_thunk(void *destination, uint32_t size, uint32_t count, sound_o
     file->position = file->position + bytes;
     return bytes;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

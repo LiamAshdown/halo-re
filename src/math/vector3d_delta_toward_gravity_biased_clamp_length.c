@@ -21,6 +21,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float k_physics_gravity; // 0x0069c52c, ~0.0035651792 world units/tick^2
 extern void vector3d_clamp_length(real_vector3d *v, real max_length); // 0x459300, ECX->v, stack->max_length
@@ -81,4 +84,7 @@ void FUN_00572a90(float param_1,float param_2)
   vector3d_clamp_length(param_2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -48,6 +48,9 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                  // 0x0087bc14, cache module
 extern const ColorARGB *global_white_argb;            // 0x006851fc, points at {1,1,1,1} 0x00655138
@@ -450,4 +453,7 @@ void render_billboard_quad_build
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

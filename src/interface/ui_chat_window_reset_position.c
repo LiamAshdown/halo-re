@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t chat_window_default_x; // 0x00692d80, UNSURE name
 extern int32_t chat_window_default_y; // 0x00692d84, UNSURE name
@@ -65,4 +68,7 @@ void FUN_004aa6b0(void)
   hud_chat_listbox_clear();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_thread_data; // 0x0087a470
 extern data_array *hs_syntax_data; // 0x0087a474
@@ -49,3 +52,6 @@ void hs_evaluate_object_cast(int16_t function_index, uint32_t thread_index, char
     }
     hs_thread_return(-1, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

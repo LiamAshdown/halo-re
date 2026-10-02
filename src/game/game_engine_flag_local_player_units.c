@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern game_time_globals *game_time;                // 0x006f1d6c
@@ -96,4 +99,7 @@ void FUN_0045b590(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

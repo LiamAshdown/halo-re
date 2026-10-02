@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Spawns the particle at the marker's world position with an initial "unknown_28" vector copied
 // straight from the system's own velocity (world units per second).
@@ -52,4 +55,7 @@ void missed_455310(int param_1,undefined4 param_2,int param_3,int param_4)
   *(undefined4 *)(param_3 + 0x30) = *(undefined4 *)(param_1 + 0x34);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

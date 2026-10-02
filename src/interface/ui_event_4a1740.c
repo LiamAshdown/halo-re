@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *network_client; // 0x0071c2d8 (network_client_globals *)
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
@@ -36,3 +39,6 @@ uint8_t ui_event_4a1740(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return multiplayer_host_session_start();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

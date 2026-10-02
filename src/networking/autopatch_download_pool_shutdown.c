@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern autopatch_download_slot autopatch_download_slots[2]; // 0x006ef93c
 extern uint8_t autopatch_download_active_count;              // 0x007227c8, UNSURE: stop signal, see autopatch_download_worker_thread.c
@@ -96,4 +99,7 @@ uint autopatch_download_pool_shutdown(void)
   uVar4 = FUN_0061bd40();
   return uVar4 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transforms a vector by the transpose of a 3x3 matrix (inverse transform for an orthonormal
 // matrix).
@@ -50,4 +53,7 @@ void matrix3x3_inverse_transform_vector(float *param_1)
   in_EAX[2] = param_1[5] * in_ECX[1] + param_1[2] * *in_ECX + param_1[8] * in_ECX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

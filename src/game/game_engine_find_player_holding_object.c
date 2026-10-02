@@ -24,6 +24,9 @@
 #include "units.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -109,3 +112,6 @@ undefined4 FUN_00468b50(void)
 //   468bd9: pop ebp
 //   468bda: add esp,0x10
 //   468bdd: ret
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

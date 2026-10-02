@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -151,4 +154,7 @@ void unit_update_recoil_decay(uint param_1)
   object_set_position_and_orientation(param_1,&local_1c,&local_10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

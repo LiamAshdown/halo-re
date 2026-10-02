@@ -38,6 +38,9 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time;         // 0x006f1d6c, foreign (game module)
 extern console_globals console_globals_data; // 0x006b7020, this module's own header type
@@ -205,4 +208,7 @@ void FUN_004c9050(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

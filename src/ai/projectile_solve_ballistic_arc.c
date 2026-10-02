@@ -34,6 +34,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float k_physics_gravity; // 0x0069c52c, k_physics_gravity (types/physics.h); named
     // k_physics_gravity here to match src/ai/actor_solve_grenade_lob.c's existing extern
@@ -291,4 +294,7 @@ LAB_004becfe:
   }
   return uVar12;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

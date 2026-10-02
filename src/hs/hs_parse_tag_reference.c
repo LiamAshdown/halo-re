@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_syntax_data;                          // 0x0087a474
 extern Scenario *global_scenario;                            // 0x00746f8c
@@ -107,4 +110,7 @@ LAB_00486d79:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

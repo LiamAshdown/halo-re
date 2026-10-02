@@ -33,6 +33,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index hud_text_draw_font_tag_id;              // 0x006e472c
 extern int16_t hud_text_draw_color_or_flags;                 // 0x006e4734
@@ -302,4 +305,7 @@ void FUN_00557030(code *param_1,short *param_2,ushort *param_3,uint param_4,unde
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

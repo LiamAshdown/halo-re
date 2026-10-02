@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Builds the rotation part of a matrix4x3 from two vectors and their cross product, leaving
 // scale=1 and translation zeroed.
@@ -67,4 +70,7 @@ void FUN_004cb970(undefined4 *param_1)
   param_1[0xc] = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

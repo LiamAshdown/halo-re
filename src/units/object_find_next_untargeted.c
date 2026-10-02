@@ -11,6 +11,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object * object_iterator_next(object_iterator *iterator); // 0x4f6f20
 
@@ -113,4 +116,7 @@ int FUN_0056bdc0(void)
   }
   return local_8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

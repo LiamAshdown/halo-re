@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern int32_t message_delta_decode_field_changed_flags(void **context); // 0x4ed070, this module
@@ -92,4 +95,7 @@ undefined4 FUN_004ec510(void)
   *(undefined1 *)(piVar2 + 7) = 1;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

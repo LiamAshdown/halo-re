@@ -23,6 +23,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fcos(double x);
 extern double fsin(double x);
@@ -96,4 +99,7 @@ void biped_build_update_delta_unit_grenade_count_mod1
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

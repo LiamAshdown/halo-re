@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_frame_rate_average frame_rate_average_data; // 0x00719ab0
 
@@ -101,4 +104,7 @@ uint __cdecl game_frame_rate_average_update(void)
   _DAT_00719ab0 = __alldiv(uVar6,DAT_006ac8f8,DAT_006ac8fc);
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

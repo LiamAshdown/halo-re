@@ -28,6 +28,9 @@
 #include "interface.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern uint16_t progress_screen_subtext[0x20]; // 0x006b2f68, foreign (types/interface.h); the level name is
@@ -79,4 +82,7 @@ void main_queue_map_change_by_name_or_clear(void)
   cache_file_request_map(0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

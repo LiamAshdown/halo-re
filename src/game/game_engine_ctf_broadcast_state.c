@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ctf_globals ctf_globals_live;    // 0x006b1290
 extern ctf_globals ctf_globals_network; // 0x0087a520
@@ -129,4 +132,7 @@ void FUN_0046ec10(undefined4 *param_1,int param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

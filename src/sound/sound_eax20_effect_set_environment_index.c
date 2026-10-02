@@ -23,6 +23,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const uint8_t sound_eax20_listener_property_guid[16]; // 0x0064e2f0
 extern void *directsound_listener; // 0x00746114, IDirectSound3DListener *
@@ -73,4 +76,7 @@ Disassembly (0x54ff30..0x54ff5e; phase-4 review):
 0x54ff5a: push eax
 0x54ff5b: call dword ptr [ecx + 0x44]
 0x54ff5e: ret 4
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: see ai_reference_squad_iterator_new.c.
 extern data_array *encounter_data;                             // 0x008802c8
@@ -93,4 +96,7 @@ int FUN_004325b0(void)
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

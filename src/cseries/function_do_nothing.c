@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns immediately; used wherever a callback slot needs a harmless default.
 void function_do_nothing(void)
@@ -19,4 +22,7 @@ void function_do_nothing(void)
 
 #if 0
 0x44ad80: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88
@@ -106,3 +109,6 @@ uint8_t game_engine_race_build_message_text(datum_index recipient, int32_t messa
         return 1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

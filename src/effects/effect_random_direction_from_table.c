@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed;    // 0x00719cd4
 extern real_point3d *sphere_point_table;  // 0x006b7af4, 1026 unit vectors
@@ -41,4 +44,7 @@ void FUN_004505e0(void)
   in_EAX[2] = puVar1[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

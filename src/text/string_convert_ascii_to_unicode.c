@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "text.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX=dst, EBX=source, EDI=capacity_bytes
 // Widens source (narrow, byte-per-character) into dst (UTF-16), NUL-terminated, copied
@@ -82,4 +85,7 @@ void FUN_00557990(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

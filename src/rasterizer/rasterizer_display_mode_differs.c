@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_present_parameters rasterizer_present_parameters; // 0x007c04a0
 extern uint8_t rasterizer_fullscreen;                               // 0x0071d16c (the header called it windowed)
@@ -93,4 +96,7 @@ undefined4 FUN_00515d10(void)
   }
   return CONCAT31((int3)((uint)iVar3 >> 8),bVar5);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

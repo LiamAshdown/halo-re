@@ -27,6 +27,9 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;    // 0x008603b0
 extern Scenario *global_scenario;  // 0x00746f8c
@@ -201,4 +204,7 @@ LAB_004358de:
   *(undefined2 *)(iVar1 + 0x336) = (undefined2)local_14;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

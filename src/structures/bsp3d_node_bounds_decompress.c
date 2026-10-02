@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Decompresses one BSP3D node's byte-quantized per-axis bounds (each byte 0..255 mapping
 // linearly across the corresponding world_bounds range, with 0xff mapping to exactly the range's
@@ -92,4 +95,7 @@ void FUN_00553380(void)
   unaff_ESI[5] = in_ECX[5];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

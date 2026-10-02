@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> actor_index, query, candidate
 // Turns the perception result code the movement request came back with into a desirability
@@ -99,4 +102,7 @@ undefined1 FUN_00412620(undefined4 param_1,int param_2,int param_3)
   }
   return *(undefined1 *)(param_3 + 0x30);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

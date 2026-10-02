@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "text.h"
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: 0x627d49, Ghidra: _vswprintf. The unbounded CRT wide vswprintf: dest, format,
 // forwarded va_list, all cdecl stack args.
@@ -40,4 +43,7 @@ void string_format_wide_va(wchar_t *param_1)
   _vswprintf(in_EDX,param_1,&stack0x00000008);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                                 // 0x0087bc14
 // blam-cc: ESI -> bitmap, EDI -> effect_slot, stack -> stage
@@ -81,4 +84,7 @@ undefined4 chimera__rasterizer_set_texture_direct_d3dx(undefined4 param_1,short 
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

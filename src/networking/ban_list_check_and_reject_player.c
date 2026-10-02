@@ -21,6 +21,9 @@
 #include "game.h"
 #include "networking.h"
 #include <time.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ban_list_entry *ban_list_find_by_name(char *key); // this batch, 0x4e37d0
 extern void chimera__console_out(ColorARGB *color, char *format, ...); // 0x496b50, EAX color (NULL = default)
@@ -85,4 +88,7 @@ call's second vararg:
   4e3864: push esi           ; entry (second pushed = first vararg)
   4e3865: push 0x66d6f8      ; "Rejecting banned player %s (%s)."
   4e386e: call chimera__console_out
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -29,6 +29,9 @@
 #include "units.h"
 #include "cache.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;           // 0x00880360, 0x724-byte actors
 extern data_array *prop_data;            // 0x008802c0, 0x138-byte props
@@ -535,3 +538,6 @@ void actor_type_infection_swarm_update(datum_index actor_index)
         unit_apply_control_block(unit, &control, -1);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

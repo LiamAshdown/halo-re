@@ -13,6 +13,9 @@
 #include "memory.h"
 #include <stdio.h>
 #include <stdarg.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_player_update_log_enabled; // 0x00710320
 extern char *network_player_update_history_log_path; // 0x0069a2c8, "ServerPlayerUpdateHistory.log"
@@ -59,4 +62,7 @@ void __cdecl network_player_update_history_log_write(char *format,...)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

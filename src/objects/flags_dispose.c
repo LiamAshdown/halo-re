@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *flag_data; // 0x008603a8
 
@@ -33,4 +36,7 @@ void flags_dispose(void)
   data_delete_all();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

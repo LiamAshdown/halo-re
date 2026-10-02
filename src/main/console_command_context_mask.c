@@ -25,6 +25,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern main_globals main_globals_data;                    // 0x00719700
@@ -205,4 +208,7 @@ Disassembly (0x4c69c0..0x4c6a7a) confirming the parameter and the flags-field re
 004c6a6b:  test   ah,0x40
 004c6a6e:  je     0x4c6a75
 004c6a70:  and    eax,0xffbf
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

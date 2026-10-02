@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern player_globals *local_player_globals; // 0x0087a478
@@ -105,4 +108,7 @@ void FUN_004aa5f0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

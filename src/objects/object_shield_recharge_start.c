@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -72,4 +75,7 @@ undefined4 FUN_004edba0(void)
   return CONCAT22(uVar3,(ushort)(fVar1 < 1.0) << 8 | (ushort)NAN(fVar1) << 10 |
                         (ushort)(fVar1 == 1.0) << 0xe);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

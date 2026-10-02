@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_sort_ascending; // 0x006953f8
 
@@ -94,4 +97,7 @@ uint server_list_compare_by_mapname_then_hostname(undefined4 *param_1,undefined4
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

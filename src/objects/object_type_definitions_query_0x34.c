@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern object_type_definition *object_type_definitions[k_maximum_object_types]; // 0x0069bfdc
@@ -72,4 +75,7 @@ undefined4 FUN_004f4000(uint param_1)
   }
   return CONCAT31((int3)((uint)piVar1 >> 8),uVar5);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

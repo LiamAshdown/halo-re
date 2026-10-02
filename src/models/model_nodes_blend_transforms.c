@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t); // 0x4cdcc0
 extern void quaternion_normalize(real_quaternion *q); // 0x4cdb20
@@ -82,4 +85,7 @@ void model_nodes_blend_transforms(int param_1,short param_2,short param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
 #include <string.h> // memcpy (rep movsd / rep movsb)
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                        // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing;                  // 0x0069c680
@@ -159,4 +162,7 @@ char rasterizer_index_buffer_create(short *param_1)
   }
   return cVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

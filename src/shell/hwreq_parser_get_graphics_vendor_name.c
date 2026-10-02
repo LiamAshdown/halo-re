@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 static char *string_c_str(msvc_std_string *s)
 {
@@ -22,3 +25,6 @@ char *hwreq_parser_get_graphics_vendor_name(hwreq_parser *parser)
 {
     return string_c_str(&parser->graphics_vendor_name);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

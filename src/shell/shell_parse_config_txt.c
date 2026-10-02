@@ -31,6 +31,9 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // The IDirect3D9 slot typedefs (d3d9_get_adapter_identifier_fn / d3d9_get_device_caps_fn) and the
 // hwreq_parser_vtable slot typedefs (hwreq_*_fn) are in types/shell.h.
@@ -350,4 +353,7 @@ undefined * shell_parse_config_txt(void)
     uVar5 = uVar5 + 1;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

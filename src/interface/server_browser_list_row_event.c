@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t server_browser_selected_index;             // 0x006953f4
 extern int32_t server_list_scroll_offset;                 // 0x00719478
@@ -90,3 +93,6 @@ uint8_t server_browser_list_row_event(widget_instance *widget, int16_t *event, u
     master_server_request_flags |= 0x20;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

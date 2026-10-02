@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t *ui_button_caption[0x28]; // 0x00692708, first entry is the a-button token
 
@@ -63,4 +66,7 @@ ushort ui_button_prompt_index_from_string(void)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -44,6 +44,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals; // 0x00746fa0
 
@@ -270,4 +273,7 @@ between 0x4654a6 and 0x465583 is omitted from the rewrite as unreachable-in-effe
 004655c5:  pop ebx
 004655c6:  add esp,0x28
 004655c9:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c)
 {
@@ -42,4 +45,7 @@ float10 vector3d_scalar_triple_product(float *param_1)
          (float10)(param_1[2] * *in_EAX - *param_1 * in_EAX[2]) * (float10)in_EDX[1] +
          (float10)(*param_1 * in_EAX[1] - *in_EAX * param_1[1]) * (float10)in_EDX[2];
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

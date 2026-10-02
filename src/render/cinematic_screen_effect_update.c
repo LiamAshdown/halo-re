@@ -34,6 +34,9 @@
 #include "game.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state; // 0x0071cfc4 (named _state;
                                              // a variable cannot share the typedef's own name in C)
@@ -214,4 +217,7 @@ pointer) arguments are &g->filter_light_enhancement_intensity (edx+0xc) and
   512488: call   0x4cd900
   512495: lea    ecx,0x10(%edx)
   512499: call   0x4cd900
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

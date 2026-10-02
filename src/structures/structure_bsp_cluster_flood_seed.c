@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t cluster_flood_stamp; // 0x006e3f04
 extern uint8_t cluster_flood_in_progress; // 0x006e3f01
@@ -77,4 +80,7 @@ undefined4 FUN_00554cb0(undefined4 param_1,float param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

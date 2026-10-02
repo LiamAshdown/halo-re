@@ -48,6 +48,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;   // 0x00746f8c
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -144,4 +147,7 @@ bool FUN_00438e20(uint param_1,short param_2,undefined4 param_3)
   }
   return false;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

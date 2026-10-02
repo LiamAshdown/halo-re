@@ -27,6 +27,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern heap *widget_memory_pool;                  // 0x006926c4
 extern controls_gamepad_record controls_available_gamepads[8]; // 0x006b42d8
@@ -178,4 +181,7 @@ LAB_004b5737:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

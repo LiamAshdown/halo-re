@@ -15,6 +15,9 @@
 #include "crt.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Three-way float comparator in qsort() order: -1 if *a < *b, 1 if *b < *a, 0 otherwise
 // (including when either is NaN, since neither x87 comparison then succeeds).
@@ -46,4 +49,7 @@ int __cdecl float_compare_ascending(float *param_1,float *param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

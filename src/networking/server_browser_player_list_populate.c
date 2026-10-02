@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern wchar_t hud_text_unbound[]; // 0x00669cc8, L"???"
 
@@ -119,4 +122,7 @@ undefined4 server_browser_player_list_populate(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

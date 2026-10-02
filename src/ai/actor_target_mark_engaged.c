@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data;      // 0x008802c0
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -77,4 +80,7 @@ void FUN_0041fa80(char param_1)
   *(float *)(iVar2 + 0x50) = (float)fVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

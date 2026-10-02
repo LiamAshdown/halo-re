@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data;   // 0x008802c8
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -136,4 +139,7 @@ undefined4 squad_activate(void)
   }
   return CONCAT31((int3)((uint)uVar4 >> 8),*(undefined1 *)(iVar1 + 0xd));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

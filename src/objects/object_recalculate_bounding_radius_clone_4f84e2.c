@@ -1,3 +1,6 @@
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 // object_recalculate_bounding_radius_clone_4f84e2   (renamed by the phase-4 review pass; Ghidra/PDB name was `objects_initialize_for_new_map_mod_processed_bsps`,
 //    which this file's own header shows does not describe the code)
 // address 0x4f84e2, size 850 bytes
@@ -286,4 +289,7 @@ void objects_initialize_for_new_map_mod_processed_bsps(void)
     in_AX = psVar1[2];
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

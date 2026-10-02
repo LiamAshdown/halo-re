@@ -24,6 +24,9 @@
 #include "objects.h"
 #include "units.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern data_array *decal_data;                                      // 0x0087abe4
@@ -363,4 +366,7 @@ LAB_0051b09f:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

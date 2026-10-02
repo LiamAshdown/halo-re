@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern real transition_function_evaluate(transition_function_t type, real phase); // 0x4ccac0, math module
@@ -51,4 +54,7 @@ void item_set_permutation(undefined2 param_1,undefined4 param_2)
   *(float *)(iVar1 + 0x234) = (float)fVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -24,6 +24,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle; // 0x00714dd4 (saved_player_profile_slots[0].handle)
 
@@ -167,4 +170,7 @@ undefined4 saved_game_validate_crc(int *param_1,undefined1 *param_2)
   CloseHandle(hFile);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

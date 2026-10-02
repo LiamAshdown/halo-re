@@ -25,6 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, in place, ECX
 extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle,
@@ -116,4 +119,7 @@ void FUN_005096f0(float *param_1,float *param_2)
   unaff_ESI[2] = param_2[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

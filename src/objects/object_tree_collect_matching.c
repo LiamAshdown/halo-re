@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -72,4 +75,7 @@ int object_tree_collect_matching
   iVar3 = object_tree_collect_matching(iVar3,param_2,param_3,param_4,param_5,param_6);
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

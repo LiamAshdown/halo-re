@@ -17,6 +17,9 @@
 #include "cache.h"
 #include "game.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;  // 0x0087bc14
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -82,4 +85,7 @@ Disassembly (0x543fc0..0x543ff8, capstone; phase-4 review):
 0x543ff4: dec eax
 0x543ff5: and eax, ecx
 0x543ff7: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

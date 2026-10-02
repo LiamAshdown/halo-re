@@ -10,6 +10,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t king_alt_team_score[16]; // 0x006b114c (oddball team score)
 
@@ -17,3 +20,6 @@ int32_t game_engine_oddball_get_team_score(int32_t team)
 {
     return king_alt_team_score[team];
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

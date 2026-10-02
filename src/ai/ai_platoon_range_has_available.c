@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: mirrors ai_reference_expand_to_platoon_range.c's local struct of the same name.
 extern encounter_platoon_state *encounter_platoon_states; // 0x008802c4
@@ -84,4 +87,7 @@ undefined4 FUN_00433180(void)
   } while (*pcVar1 != '\0');
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

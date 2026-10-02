@@ -23,6 +23,9 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -103,4 +106,7 @@ Raw disassembly (0x4449f0..0x444a60) recovering the elided EAX/tag_instances res
 00444a38:  lea    eax,[eax+eax*2]          shl eax,0x4                ; resource_index * 0x30
 00444a3e:  push   0x1                      push 0x0
 00444a42:  add    eax,ecx                  call 444550                ; texture_cache_get(bitmap,0,1)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

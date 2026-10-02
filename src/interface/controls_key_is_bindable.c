@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t controls_reserved_action_table[9]; // 0x0065c15c .. 0x0065c180
 
@@ -51,4 +54,7 @@ undefined1 FUN_004b43c0(void)
   } while ((int)piVar1 < 0x65c180);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

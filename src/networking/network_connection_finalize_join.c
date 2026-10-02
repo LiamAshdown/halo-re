@@ -50,6 +50,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t debug_log_level;                  // 0x0087ac06, byte-wide (R01)
 extern uint8_t network_statistics_logging_enabled; // 0x006f14b4
@@ -366,4 +369,7 @@ LAB_004d9ae0:
 LAB_004d9cc4:
   return (uint)(connection[0x76d] == 3);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

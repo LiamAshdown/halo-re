@@ -15,6 +15,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
 extern int32_t video_resolution_count;            // 0x007196cc
@@ -66,4 +69,7 @@ uint video_refresh_rate_find_index(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: header widget in EAX (in_EAX), sort direction in EDX (in_EDX)
 void server_browser_column_header_update(network_ui_widget *header, int32_t sort_direction)
@@ -78,4 +81,7 @@ void FUN_004b7f10(void)
   *(bool *)(iVar1 + 0x10) = in_EDX < 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

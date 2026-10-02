@@ -16,6 +16,9 @@
 extern char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagReflexive *array, int32_t stride);
     // 0x486f90, blam-cc: EAX -> node_index, EBX -> name_offset, ESI -> array, stack -> stride
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 extern Globals *global_globals; // 0x00746fa0
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -31,3 +34,6 @@ char hs_parse_navpoint(datum_index node_index)
     return hs_parse_scenario_datum(node_index, 0,
         (TagReflexive *)((uint8_t *)tag_instances[hud_globals & 0xffff].data + 0x160), 0x68);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -28,6 +28,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern console_globals console_globals_data; // 0x006b7020
 
@@ -328,4 +331,7 @@ Disassembly anchors (esp offsets after the four register pushes):
   4c6d47  dec esi ; mov [esp+0x20],esi                common_index = i - 1
   4c6d98  append word [0x669140] + byte [0x669142]    "|t"
   4c6e61  sub bx,dx ; lea eax,[ebx+edi+1] ; mov [0x6b71de],ax
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

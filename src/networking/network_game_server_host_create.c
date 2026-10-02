@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4, types/math.h
 extern network_client_globals *network_client; // 0x0071c2d8
@@ -66,4 +69,7 @@ int __cdecl network_game_server_host_create(void)
   }
   return CONCAT31((int3)((uint)pvVar2 >> 8),pvVar2 != (void *)0x0);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

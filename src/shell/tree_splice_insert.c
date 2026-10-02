@@ -17,6 +17,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_map_value_type {
     msvc_std_string key;
@@ -124,3 +127,6 @@ hwreq_map_node **tree_splice_insert(msvc_std_map *tree, hwreq_map_node *parent, 
     *result_holder = node;
     return result_holder;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

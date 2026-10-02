@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -97,4 +100,7 @@ void FUN_0044db30(short param_1,short param_2,float param_3,float *param_4)
                fVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

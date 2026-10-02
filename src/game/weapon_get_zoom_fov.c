@@ -24,6 +24,9 @@
 #include "cache.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals; // 0x00746fa0
 
@@ -81,4 +84,7 @@ float10 FUN_0046fe10(short param_1)
   }
   return fVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x);
 
@@ -238,4 +241,7 @@ dropped register arguments to FUN_00505880 and FUN_00401a20 entirely:
 0042b3e7: mov ecx,esi (target)    ;   exclude_object_index, out_record) with ECX/EAX supplying
 0042b3e9: lea eax,... (origin)    ;   target/origin, matching the signature this project
 0042b3ed: call 0x401a20           ;   already established in src/projectiles/projectile_collision_test.c.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

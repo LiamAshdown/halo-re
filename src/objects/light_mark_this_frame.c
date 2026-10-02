@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data; // 0x00860b14
 static uint8_t *light_get(datum_index handle)
@@ -29,3 +32,6 @@ uint8_t light_mark_this_frame(datum_index handle)
     *(int32_t *)(light + 0xc) = light_frame_counter;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

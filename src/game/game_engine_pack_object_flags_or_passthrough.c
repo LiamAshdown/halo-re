@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t game_engine_unknown_aa00; // 0x0087aa00
 extern game_variant game_engine_variant; // 0x006f1c88 (flags aliased 0x006f1cc0)
@@ -47,4 +50,7 @@ uint FUN_00462bd0(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

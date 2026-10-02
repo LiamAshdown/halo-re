@@ -37,6 +37,9 @@
 #include "shaders.h"
 #include "render.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real periodic_function_evaluate(periodic_function_t type, double time); // 0x4cc9b0, math
     // module; blam-cc: AX (low half of EAX) -> type, stack -> time
@@ -219,4 +222,7 @@ LAB_0053ff23:
                         (float10)*(float *)(unaff_ESI + 0x1a));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

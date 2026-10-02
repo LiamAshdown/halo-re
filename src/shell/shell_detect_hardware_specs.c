@@ -48,6 +48,9 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 
@@ -489,4 +492,7 @@ void shell_detect_hardware_specs(void)
   hex_string_to_uint, hex_string_to_bytes, _strncpy, FUN_00625430 (strstr) against "ven_",
   "dev_", "subsys_" and "rev_", _sscanf "%d.%d.%d.%d", VariantClear and CoUninitialize.)
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

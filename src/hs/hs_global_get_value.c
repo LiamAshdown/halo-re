@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_global_read_value(hs_global_reference reference); // this module, 0x48aec0
 
@@ -47,4 +50,7 @@ undefined4 hs_global_get_value_pointer(void)
   }
   return *(undefined4 *)(*(int *)(DAT_0087a46c + 0x34) + 4 + ((in_EAX & 0x7fff) + 0x1eb) * 8);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

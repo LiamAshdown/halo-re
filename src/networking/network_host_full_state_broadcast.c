@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t network_challenge_packet_block; // 0x006b7f98, UNSURE identity: packed header word
 extern uint8_t network_broadcast_body[1536]; // 0x006b7f9a, UNSURE identity/size: encoded body buffer
@@ -119,4 +122,7 @@ void FUN_004df510(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

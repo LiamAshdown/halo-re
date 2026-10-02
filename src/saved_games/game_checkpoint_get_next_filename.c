@@ -25,6 +25,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first,
     checkpoint_enumerate_proc callback, void *user_data); // 0x538e70
@@ -85,4 +88,7 @@ bool game_checkpoint_get_next_filename(undefined4 param_1)
   }
   return true;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

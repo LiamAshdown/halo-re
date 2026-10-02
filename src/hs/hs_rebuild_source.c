@@ -40,6 +40,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // FIXED 2026-09-28 (retail-independence loop): rewritten from objdump 0x483e20..0x484087 with the file helpers'
 //   register arguments restored (path_append_component ESI/EBX, path_remove_last_component EBX, path_build_full
@@ -256,4 +259,7 @@ char __cdecl hs_rebuild_source(void)
   }
   return local_d9d;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -41,6 +41,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct vehicle_network_update_header {
     int32_t network_key;           // +0x00 hash_table_get result, 0 when unknown
@@ -257,4 +260,7 @@ int FUN_005724d0(int param_1,undefined4 param_2,undefined4 param_3,int param_4)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

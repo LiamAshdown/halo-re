@@ -29,6 +29,9 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern void *object_try_and_get(datum_index object_index, int32_t kind); // 0x4f6ec0, blam-cc: ECX -> object_index, stack -> kind
@@ -168,4 +171,7 @@ undercounted both call sites arguments:
 0042b92b: mov    eax,edi
 0042b92d: pop    ebp
 0042b92e: jmp    0x435f90             ; tail call, EAX=edi, ESI=occupant, EBX=vehicle_object_index
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

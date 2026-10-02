@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t message_delta_parameters_enabled;   // 0x0071cfa8
 extern uint8_t message_delta_parameters_sending;   // 0x0071cfb4, UNSURE: reentrancy/in-progress flag
@@ -95,4 +98,7 @@ void message_delta_parameters_protocol_send_update(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

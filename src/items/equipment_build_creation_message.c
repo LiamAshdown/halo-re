@@ -25,6 +25,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_id_table *object_network_id_table; // 0x00687130
     // variable's value is the table root, and +0x0c off it is the hash_table this function hashes
@@ -174,4 +177,7 @@ void FUN_004bbc90(undefined4 *param_1,undefined4 param_2,undefined4 param_3,unde
   message_delta_encode_message(0,0x1f,0,&param_1,0,1,'\0');
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

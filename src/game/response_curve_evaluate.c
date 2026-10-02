@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double response_curve_scale_limit; // 0x00672c08, the double 0.0: a floor on the scaled position
 
@@ -94,4 +97,7 @@ float10 FUN_00470fb0(short param_1,float param_2)
   }
   return fVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

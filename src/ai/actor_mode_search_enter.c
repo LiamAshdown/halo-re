@@ -13,6 +13,9 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -43,3 +46,6 @@ void actor_mode_search_enter(datum_index actor_index)
     ((struct actor *)act)->mode_data.search.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.search.remaining_ticks = ticks;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

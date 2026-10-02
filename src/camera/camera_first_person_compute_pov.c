@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern player_globals *local_player_globals;           // 0x0087a478
@@ -125,4 +128,7 @@ Disassembly (objdump -d -M intel, 0x446d60..0x446e26), confirming the register r
 0x446e08..0x446e1d: command.interpolation_flags[0] (position) |= 3
 0x446e0b/0x446e0e/0x446e11: channel_times[4]=0, channel_times[0]=0, command.timer=0
 0x446e19: command.flags |= 1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

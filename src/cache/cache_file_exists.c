@@ -18,6 +18,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern char map_path_prefix[]; // 0x006f16d8
@@ -160,4 +163,7 @@ Raw disassembly (0x442bb0-0x442c69), objdump -d -M intel --start-address=0x442bb
 00442c62: pop ebx
 00442c63: add esp,0x104
 00442c69: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

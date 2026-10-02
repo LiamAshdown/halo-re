@@ -25,6 +25,9 @@
 #include "objects.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *object_data;      // 0x008603b0
@@ -165,4 +168,7 @@ void FUN_004782a0(undefined4 *param_1,char param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

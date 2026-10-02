@@ -37,6 +37,9 @@
 #include "projectiles.h"
 #include "cache.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // collision_test_movement_segment_flags now lives in types/physics.h.
 
@@ -623,4 +626,7 @@ char FUN_00505880(uint param_1,float *param_2,float *param_3,undefined4 param_4,
   }
   return local_436;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

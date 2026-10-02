@@ -26,6 +26,9 @@
 #include "cache.h"
 #include "effects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                   // 0x008603b0
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -309,4 +312,7 @@ void FUN_00453b10(int param_1,undefined4 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

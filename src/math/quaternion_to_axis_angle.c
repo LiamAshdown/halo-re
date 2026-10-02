@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990
 extern double atan2(double y, double x); // fpatan is a single x87 FPATAN instruction
@@ -70,4 +73,7 @@ void quaternion_to_axis_angle(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

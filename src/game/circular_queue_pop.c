@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> queue, EDX -> out_record
 // If the queue is non-empty, writes the storage pointer at read_index into *out_record,
@@ -51,4 +54,7 @@ uint circular_queue_pop(void)
   *in_EDX = 0;
   return uVar1 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

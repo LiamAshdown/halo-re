@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data; // 0x008802c0
 extern datum_index datum_new(data_array *array); // 0x4d0480, EDX
@@ -60,4 +63,7 @@ uint FUN_0043e910(undefined4 param_1,uint param_2)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

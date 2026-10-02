@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t config_min_max_blend_op_is_broken; // 0x00722b7c
 
@@ -36,4 +39,7 @@ void missed_57d2a0(void)
   DAT_00722b7c = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern data_array *object_data; // 0x008603b0
@@ -149,4 +152,7 @@ void FUN_0045f8f0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

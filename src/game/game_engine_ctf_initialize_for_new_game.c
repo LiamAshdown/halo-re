@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode; // 0x00719720
@@ -149,3 +152,6 @@ uint8_t game_engine_ctf_initialize_for_new_game(void)
     ctf_single_flag_mode = network_single_flag_force_reset_value;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

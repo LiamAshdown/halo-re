@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
@@ -45,4 +48,7 @@ float10 vector3d_cross_product_length(void)
   return SQRT((float10)fVar1 * (float10)fVar1 +
               (float10)fVar3 * (float10)fVar3 + (float10)fVar2 * (float10)fVar2);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

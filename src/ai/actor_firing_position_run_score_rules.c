@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern actor_firing_position_rule actor_firing_position_score_rules[7]; // 0x006555c0
 
@@ -63,4 +66,7 @@ void FUN_004126f0(undefined4 param_1)
   } while (*ppuVar1 != (undefined *)0x0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

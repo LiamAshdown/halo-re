@@ -15,6 +15,9 @@
 #include "game.h"
 #include <wchar.h>
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -145,3 +148,6 @@ uint8_t game_engine_race_allow_grenade_counts(datum_index player_index)
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

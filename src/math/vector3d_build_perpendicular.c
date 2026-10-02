@@ -18,6 +18,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
@@ -82,4 +85,7 @@ void vector3d_build_perpendicular(void)
   in_ECX[2] = *in_EDX;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

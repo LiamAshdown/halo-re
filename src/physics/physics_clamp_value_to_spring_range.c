@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
@@ -139,4 +142,7 @@ void FUN_0050b370(float param_1)
   *in_ECX = fVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -31,6 +31,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern datum_index hud_text_draw_font_tag_id;                         // 0x006e472c
@@ -401,4 +404,7 @@ switchD_00556a66_caseD_4:
 -- structural differences from text_wrap_and_draw_narrow (0x556400) are the tokenizer
 -- (0x556f10, EAX=&state) and draw (0x5572b0) callees: see 0x556780..0x556ae7 in
 -- bin/halo.exe and out/phase4/text_types_notes.md.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

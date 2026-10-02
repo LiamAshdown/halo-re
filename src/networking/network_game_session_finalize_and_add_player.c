@@ -30,6 +30,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t game_engine_team_is_leading(uint32_t requested_team); // 0x470720, other module;
     // UNSURE: parameter/return purpose inferred only from "-1 means auto-assign" usage here
@@ -122,4 +125,7 @@ uint FUN_004df840(void)
   }
   return (uint)in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

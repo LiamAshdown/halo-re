@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;              // 0x0087a480
 extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 0x006f1cd8)
@@ -67,4 +70,7 @@ uint FUN_0045cc30(void)
   }
   return uVar1 | in_EDX + 1000U;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

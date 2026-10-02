@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> animation_block
 // False for the animation states 0x17..0x1b, 0x1d and 0x22..0x23; true for every other state.
@@ -30,4 +33,7 @@ uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block)
 #if 0
 Original Ghidra decompilation (0x565d60): Ghidra shows the entry only (zero visible
 arguments, switch unresolved); the tables above were read from the binary directly.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

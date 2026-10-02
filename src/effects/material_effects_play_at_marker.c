@@ -34,6 +34,9 @@
 #include "objects.h"
 #include "effects.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
@@ -151,4 +154,7 @@ void FUN_00453490(short param_1,short param_2,undefined4 *param_3,undefined4 par
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

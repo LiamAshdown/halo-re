@@ -18,6 +18,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t text_find_character_boundary(char *path, int16_t *remaining_length); // 0x5576d0, outside this batch
 extern uint8_t text_char_is_double_byte(const char *at); // 0x557750, outside this batch
@@ -115,4 +118,7 @@ void path_remove_last_component(void)
   unaff_EBX[(short)(sVar6 + sVar5)] = '\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

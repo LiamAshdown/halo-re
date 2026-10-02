@@ -18,6 +18,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern console_globals console_globals_data; // 0x006b7020
 extern uint8_t virtual_keyboard; // 0x007193a8, UNSURE: only tested here; blocks opening
@@ -83,4 +86,7 @@ Disassembly (0x4c6530..0x4c656f):
 004c6569:  pop    edi
 004c656a:  jmp    0x48b650              ; tail call: input_keyboard_set_capture_mode(AL = 1)
 004c656f:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern heap *widget_memory_pool; // 0x006926c4
 
@@ -217,4 +220,7 @@ int ui_string_replace_all(wchar_t *param_1,undefined4 *param_2,undefined4 *param
   }
   return iVar7;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

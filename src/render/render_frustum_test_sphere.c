@@ -17,6 +17,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Classifies a world-space sphere against the camera frustum: outside, partially inside (straddles
 // at least one plane) or fully inside. First rejects spheres that do not even overlap the
@@ -132,4 +135,7 @@ have all failed; if that expression's own comparison is also false the enclosing
 runs and uVar6=2 (fully inside) survives to the return, otherwise the `if` body overwrites it with
 1 (partial). The rewrite above expresses the same result directly as two returns instead of
 reproducing the uninitialized-until-touched local.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

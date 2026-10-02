@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char default_player_profiles_directory[0x100]; // 0x00721849
 
@@ -164,4 +167,7 @@ void FUN_0053a610(void)
   } while (iVar4 < 2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

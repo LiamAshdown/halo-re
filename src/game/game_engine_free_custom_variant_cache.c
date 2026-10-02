@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant_history_entry *game_variant_history; // 0x00687b0c
 extern uint32_t game_variant_history_count;              // 0x00687b10
@@ -66,4 +69,7 @@ void game_engine_free_custom_variant_cache(void)
   DAT_00687b18 = 0xffffffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

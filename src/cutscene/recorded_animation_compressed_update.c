@@ -23,6 +23,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern recorded_animation_compressed_event_proc
     recorded_animation_compressed_event_handlers[k_recorded_animation_event_type_count]; // 0x00686d98
@@ -125,4 +128,7 @@ uint FUN_0044a590(undefined4 param_1,undefined4 param_2,int *param_3,undefined4 
   }
   return CONCAT31((int3)((uint)pbVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

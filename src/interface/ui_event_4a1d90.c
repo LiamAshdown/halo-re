@@ -13,6 +13,9 @@
 #include "math.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record); // 0x492340, blam-cc: EAX, EDI
 
@@ -25,3 +28,6 @@ uint8_t ui_event_4a1d90(widget_instance *widget, int16_t *event, uint8_t *out_ha
     input_queue_push_event(0, &queued);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

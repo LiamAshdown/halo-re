@@ -23,6 +23,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type); // 0x43fe30, this module
 extern int32_t uint32_log2_floor(uint32_t value); // 0x4cb740, math module (src/math/uint32_log2_floor.c)
@@ -129,4 +132,7 @@ uint FUN_0043fd30(char param_1)
   }
   return in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

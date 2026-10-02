@@ -12,8 +12,14 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t hwreq_parser_has_error(hwreq_parser *parser)
 {
     return parser->error_reported;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

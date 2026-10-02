@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *campaign_level_paths[k_campaign_level_count]; // 0x00696574, UNSURE: element type/exact table length
 extern ColorARGB *actor_mode_default_look_weights; // 0x00686af8, UNSURE: console color passed to chimera__console_out
@@ -113,4 +116,7 @@ Original disassembly (0x539110, no Ghidra export -- not in out/functions.json):
   b0 01                mov    al,0x1
   5e                   pop    esi
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

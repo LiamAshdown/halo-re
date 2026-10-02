@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -33,3 +36,6 @@ uint8_t device_create(datum_index object_index)
     ((device_object *)obj)->base.flags |= 0x40000;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

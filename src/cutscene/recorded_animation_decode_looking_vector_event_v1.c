@@ -16,6 +16,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event type 11: copies event->vector into control->looking_vector and
@@ -42,4 +45,7 @@ void FUN_0044a760(int param_1,int param_2,int *param_3)
   *param_3 = *param_3 + 0x10;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

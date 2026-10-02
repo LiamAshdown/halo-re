@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> this_object
 void sound_eax1_effect_shutdown(sound_effect_object *this_object)
@@ -53,4 +56,7 @@ Disassembly (0x54ec40..0x54ec59, capstone; phase-4 review):
 0x54ec50: mov dword ptr [esi + 0x18], 0
 0x54ec57: pop esi
 0x54ec58: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

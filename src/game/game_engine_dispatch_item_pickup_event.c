@@ -17,6 +17,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t hash_table_get(hash_table *table, int32_t key); // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -88,4 +91,7 @@ void FUN_0045f850(undefined4 param_1,int *param_2)
   FUN_004e1a80(1,&DAT_00871de0,1,0,0,3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

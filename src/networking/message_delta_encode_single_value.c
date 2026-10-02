@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type, int32_t changed_offset,
                                              void **items, int32_t type_offset, int32_t count,
@@ -56,4 +59,7 @@ void FUN_004ec450(int param_1,int param_2)
              (int)&stack0x00000010,1,in_DL);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

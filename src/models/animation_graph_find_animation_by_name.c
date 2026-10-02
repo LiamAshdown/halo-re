@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -78,4 +81,7 @@ instead from objdump -d -M intel bin/halo.exe, 0x4d6ab0..0x4d6b00:
 004d6afe  pop edi
 004d6aff  pop esi
 004d6b00  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

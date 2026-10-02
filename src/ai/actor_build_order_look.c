@@ -20,6 +20,9 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -192,4 +195,7 @@ undefined4 FUN_004046c0(void)
   unaff_ESI[0xf] = 0xffffffff;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

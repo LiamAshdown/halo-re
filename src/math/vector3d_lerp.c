@@ -10,6 +10,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // out = t*a + (1-t)*b
 void vector3d_lerp(real_vector3d *out, real_vector3d *a, real_vector3d *b, real t)
@@ -39,4 +42,7 @@ void vector3d_lerp(float param_1)
   in_EAX[2] = param_1 * in_ECX[2] + fVar1 * in_EDX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

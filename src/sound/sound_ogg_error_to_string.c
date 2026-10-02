@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "sound.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> vorbis_error_code
 // Formats a libvorbisfile/Ogg Vorbis OV_* error code into its human-readable description.
@@ -266,4 +269,7 @@ Disassembly (0x544f70..0x545107, capstone; phase-4 review):
 0x5450fd: add esp, 8
 0x545100: add esp, 0x1000
 0x545106: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

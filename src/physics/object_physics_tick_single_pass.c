@@ -45,6 +45,9 @@
 #include "projectiles.h"
 #include "physics.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern double sqrt(double x);
@@ -1241,4 +1244,7 @@ LAB_0050a886:
   puVar15[4] = uVar11 | 0x10;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

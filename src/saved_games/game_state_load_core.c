@@ -15,6 +15,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern game_state_proc game_state_revert_proc; // 0x0069e7b0
@@ -77,4 +80,7 @@ void __cdecl game_state_load_core(void)
   console_print_error_va("couldn\'t open \'%s\'");
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: name as the recognized parameter, requested size in EAX
@@ -64,4 +67,7 @@ void circular_buffer_new(undefined4 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

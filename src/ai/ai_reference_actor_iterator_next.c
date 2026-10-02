@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern ai_globals *ai_globals_ptr;  // 0x00880354
@@ -90,4 +93,7 @@ int FUN_004326d0(void)
   } while (*(int *)(in_EDX + 8) != (int)*(short *)(iVar4 + 0x3c));
   return iVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

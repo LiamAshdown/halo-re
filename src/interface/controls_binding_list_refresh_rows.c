@@ -18,6 +18,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern controls_device_label controls_device_labels[0x10]; // 0x006932e8
 
@@ -88,4 +91,7 @@ undefined4 FUN_004b4790(void)
   } while (iVar4 < 8);
   return local_4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -32,6 +32,9 @@
 #include "cache.h"
 #include "text.h"
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                 // 0x0087bc14
 extern datum_index text_localization_strings;       // 0x006e4728
@@ -392,4 +395,7 @@ short FUN_00556bb0(void)
   556e81: token = 1 (newline, ch==0xd); store and return
   556e98: token = 3 (tab, ch==9); store and return
   556eaf: token = 0 (end, ch==0); store and return
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

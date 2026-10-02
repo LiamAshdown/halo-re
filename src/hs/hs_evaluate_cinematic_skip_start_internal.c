@@ -12,6 +12,9 @@
 #include "hs.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
@@ -21,3 +24,6 @@ void hs_evaluate_cinematic_skip_start_internal(int16_t function_index, uint32_t 
     cinematic_globals_ptr->skip_in_progress = 1;
     hs_thread_return(0, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

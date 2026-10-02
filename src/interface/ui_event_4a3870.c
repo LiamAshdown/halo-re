@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "interface.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -60,3 +63,6 @@ uint8_t ui_event_4a3870(widget_instance *widget, int16_t *event, uint8_t *out_ha
     ((struct game_variant *)variant)->team_autobalance = (uint8_t)(first_list_child(group->next_sibling)->selection_index == 1);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

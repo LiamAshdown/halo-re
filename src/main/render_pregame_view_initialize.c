@@ -22,6 +22,9 @@
 #include "render.h"
 #include "interface.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern render_view pregame_render_view; // 0x006b79e8
 
@@ -113,4 +116,7 @@ void FUN_004c8f20(void)
   FUN_0050c590();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern font_glyph_cache g_font_glyph_cache; // 0x006d8828
 
@@ -52,4 +55,7 @@ void __cdecl font_glyph_cache_clear_all(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

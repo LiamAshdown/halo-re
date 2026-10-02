@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> source, ESI -> object
 void network_password_field_set(uint8_t *object, wchar_t *source)
@@ -38,4 +41,7 @@ uint FUN_004df070(void)
   *(undefined2 *)(unaff_ESI + 0x86) = 0;
   return (uint)pwVar1 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

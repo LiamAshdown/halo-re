@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: EAX -> code, ECX -> out
@@ -46,4 +49,7 @@ void FUN_00576a20(void)
   *(uint *)(in_ECX + 0x14) = in_EAX >> 0xd & 0x1f;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

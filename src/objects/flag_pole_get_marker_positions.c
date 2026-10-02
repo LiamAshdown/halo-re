@@ -33,6 +33,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name,
@@ -327,4 +330,7 @@ void FUN_004fc020(int param_1,int *param_2,float *param_3,int param_4,int param_
   *(float *)(param_1 + 0x18) = param_3[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

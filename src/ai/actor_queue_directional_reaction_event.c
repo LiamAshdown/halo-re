@@ -25,6 +25,9 @@
 #include "ai.h"
 #include "cache.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT
 extern data_array *actor_data; // 0x00880360
@@ -257,4 +260,7 @@ and the exact register setup for the two truncated calls:
   422402: mov edx,[esp+0x2c]         ; prop_index (kind==1 path)
   422406: mov esi,ds:0x8802c0        ; prop_data (the data_array*, not ->data)
   42240c: call datum_get             ; EDX = handle, ESI = array
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

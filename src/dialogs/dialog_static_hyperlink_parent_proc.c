@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "interface.h"
 #include "dialogs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int32_t dialog_hyperlink_hovered; // 0x00722bc8, this module; owned by
@@ -94,4 +97,7 @@ LRESULT missed_57e2a0(HWND param_1,UINT param_2,HDC param_3,HWND param_4)
   LVar2 = CallWindowProcA(lpPrevWndFunc,param_1,param_2,(WPARAM)param_3,(LPARAM)param_4);
   return LVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

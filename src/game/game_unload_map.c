@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "game.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t map_download_in_progress;   // 0x006ac470
 extern game_main_globals *main_game_globals; // 0x006b0b80
@@ -105,4 +108,7 @@ void FUN_0045afb0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

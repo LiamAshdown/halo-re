@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_syntax_data;       // 0x0087a474
 extern char *hs_compiled_source;         // 0x006b14c0
@@ -31,3 +34,6 @@ char hs_parse_script(datum_index node_index)
     hs_compile_error_offset = node->source_offset;
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t directsound_deferred_dirty; // 0x00746132
 extern void *directsound_listener;          // 0x00746114, IDirectSound3DListener *
@@ -593,4 +596,7 @@ Disassembly (0x546b80..0x546f8d, capstone; phase-4 review):
 0x546f89: pop esi
 0x546f8a: pop ebp
 0x546f8b: pop ebx
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

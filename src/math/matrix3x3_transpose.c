@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transposes a 3x3 matrix, handling in-place (aliased) transposition.
 void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in)
@@ -71,4 +74,7 @@ void matrix3x3_transpose(void)
   in_EAX[8] = in_ECX[8];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

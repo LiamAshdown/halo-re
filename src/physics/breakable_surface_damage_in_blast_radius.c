@@ -19,6 +19,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78, see
                                     // breakable_surface_apply_damage.c
@@ -125,4 +128,7 @@ void FUN_004fff20(uint *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t user_save_path_keys[k_maximum_user_save_paths]; // 0x00722758
 extern char user_save_paths[k_maximum_user_save_paths][k_user_save_path_slot_stride]; // 0x00721f30
@@ -53,4 +56,7 @@ int user_save_path_register(undefined4 param_1,char *param_2)
   } while (iVar1 < 8);
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

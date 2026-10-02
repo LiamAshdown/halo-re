@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern uint8_t hs_gametype_flags_applicable(uint8_t flags); // 0x00483600, this batch
@@ -114,4 +117,7 @@ void chimera__autocomplete_scan_globals(int *param_1,short param_2,int param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

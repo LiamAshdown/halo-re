@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time;              // 0x006f1d6c
 extern uint8_t update_server_initialized;         // 0x006f1d88
@@ -75,3 +78,6 @@ void update_queues_revert(void)
         update_client_dispose();
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

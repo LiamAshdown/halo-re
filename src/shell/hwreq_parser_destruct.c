@@ -26,6 +26,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hwreq_parser_vtable hwreq_parser_vtable_instance; // 0x006721e8
 
@@ -233,4 +236,7 @@ void hwreq_parser_destruct(undefined4 *param_1)
   ExceptionList = local_c;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns the machines[] slot whose machine_id equals `machine_id`, or NULL if none matches.
 network_machine *network_machine_find_by_id(network_server_globals *server, int32_t machine_id)
@@ -48,4 +51,7 @@ int FUN_004e0810(void)
   } while (iVar1 < 0x10);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

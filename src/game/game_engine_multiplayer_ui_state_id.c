@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *network_server; // 0x0071c2d4
 extern uint8_t *network_client;  // 0x0071c2d8
@@ -110,4 +113,7 @@ int FUN_004655d0(void)
   }
   return 8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

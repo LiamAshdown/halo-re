@@ -10,6 +10,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t printf(const char *format, ...); // 0x62427c _printf
 
@@ -65,4 +68,7 @@ undefined1 data_file_read_data_block(void)
   _printf("Invalid format in data file %s\n",*(undefined4 *)(unaff_ESI + 0x38));
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

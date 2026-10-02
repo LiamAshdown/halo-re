@@ -22,6 +22,9 @@
 #include "units.h"
 #include "projectiles.h" // collision_result
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -330,4 +333,7 @@ LAB_0055a568:
   } while (local_536 == '\0');
   return CONCAT31((int3)((uint)local_50c >> 8),local_536);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

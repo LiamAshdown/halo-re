@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c); // 0x44d8e0, not physics;
                                                                   // returns cross(b,a) . c
@@ -159,4 +162,7 @@ void FUN_00503ae0(int param_1,undefined4 param_2,undefined4 param_3,int param_4)
                *(undefined2 *)((int)puVar1 + 10));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

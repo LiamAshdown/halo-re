@@ -6,8 +6,14 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void *gamespy_array_nth(void *array, int32_t index)
 {
     return *(uint8_t **)((uint8_t *)array + 0x14) + index * *(int32_t *)((uint8_t *)array + 0x08);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

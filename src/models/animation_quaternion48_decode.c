@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Unpacks the three 16-bit words of a 48-bit compressed animation rotation into four 12-bit
 // signed fields (i, j, k, w), each left-justified into a 16-bit half and scaled by 1/32767.
@@ -57,4 +60,7 @@ void model_vertex_unpack_compressed_normal(void)
   unaff_ESI[3] = (float)(int)(short)(uVar3 >> 8 & 0xf | uVar3 << 4) * 3.051851e-05;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

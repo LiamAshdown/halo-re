@@ -10,6 +10,9 @@
 #include "crt.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern uint8_t cache_file_loaded;              // 0x006a8150
@@ -69,4 +72,7 @@ undefined4 tag_lookup(char *param_1)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // physics_point_walk_state now lives in types/physics.h.
 
@@ -81,4 +84,7 @@ void FUN_005070d0(undefined4 param_1,float *param_2,undefined4 param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

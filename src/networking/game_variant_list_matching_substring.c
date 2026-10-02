@@ -18,6 +18,9 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t playlist_profiles_need_defaults; // 0x0069e8d0
 
@@ -166,4 +169,7 @@ void game_variant_list_matching_substring(int param_1,undefined4 *param_2)
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

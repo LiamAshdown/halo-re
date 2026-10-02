@@ -25,6 +25,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
 
@@ -144,4 +147,7 @@ uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_
 
 #if 0
 Original Ghidra decompilation: see `python tools/pack.py 0x524980` (the repack loops above were rewritten from the disassembly).
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

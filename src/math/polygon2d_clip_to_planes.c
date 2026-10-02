@@ -43,6 +43,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // 0x44d950, out of this module and still unnamed in symbols/functions.txt; ECX = out plane,
 // EAX = first point, EDX = second point. Returns out_plane, or NULL if the points coincide.
@@ -159,4 +162,7 @@ uint polygon2d_clip_to_planes
   }
   return in_ECX & 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

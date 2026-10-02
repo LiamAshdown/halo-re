@@ -23,6 +23,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *gt2GetConnectionData(void *gamespy_connection); // foreign, GameSpy library; -> network_receive_queue*
 extern uint32_t gamespy_array_length(int32_t object); // 0x6175f0: returns the uint32 at object+0x00 // foreign, GameSpy library; address byte source
@@ -78,4 +81,7 @@ void network_channel_receive_callback(undefined4 param_1,undefined4 param_2,int 
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

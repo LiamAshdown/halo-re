@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                          // 0x0087a480
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
@@ -164,4 +167,7 @@ LAB_0045e4fb:
   }
   return local_c4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

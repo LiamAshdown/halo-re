@@ -32,6 +32,9 @@
 #include "projectiles.h"
 #include "structures.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90, the structure collision BSP (types/structures.h)
 extern ScenarioStructureBSP *global_structure_bsp;       // 0x00746f9c
@@ -353,4 +356,7 @@ LAB_00449085:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *actor_data; // 0x00880360
@@ -102,4 +105,7 @@ drops the incoming EAX/EBX register arguments and every argument of both calls:
   42225a: mov esi, 0x1c2              ; data = 0x1c2
   42225f: mov eax, ebx                ; eax = actor_index
   422261: call actor_record_perception_event   ; EAX=actor_index, EDX=event, ESI=data
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

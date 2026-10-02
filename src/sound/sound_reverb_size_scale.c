@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Maps SoundEnvironment +0x34 onto the value written to EAX 3.0 listener property 0x16
 // (HF reference): 1000 at or below 20, 20000 at or above 20000, 5000 kept exactly, otherwise
@@ -76,4 +79,7 @@ Disassembly (0x550c10..0x550c6b, capstone; phase-4 review):
 0x550c5e: fmul dword ptr [0x672adc]
 0x550c64: fmul dword ptr [0x672ad8]
 0x550c6a: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

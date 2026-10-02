@@ -31,6 +31,9 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;      // 0x00746f9c
 extern ai_globals *ai_globals_ptr;               // 0x00880354
@@ -445,4 +448,7 @@ LAB_00438220:
     iVar15 = data_iterator_next();
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

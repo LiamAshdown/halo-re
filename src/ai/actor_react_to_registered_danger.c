@@ -17,6 +17,9 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -182,4 +185,7 @@ void FUN_00422930(float param_1,int param_2)
 
 Ground truth from objdump (bin/halo.exe @ 0x422930..0x422a56) confirming EAX=point and the
 exact look-at/search-position argument setup (see file header).
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

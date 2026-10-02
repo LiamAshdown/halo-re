@@ -16,6 +16,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char pov_direction_names[8][10]; // 0x0065b938, "north" .. "northwest"
 
@@ -64,4 +67,7 @@ short input_joystick_pov_direction_name_to_index(void)
   } while ((int)_Str2 < 0x65b988);
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

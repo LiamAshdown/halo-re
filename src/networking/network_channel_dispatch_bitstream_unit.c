@@ -30,6 +30,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream); // 0x4de420, EDI, stack, EBX
 extern uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine,
@@ -80,4 +83,7 @@ uint FUN_004e18b0(undefined4 param_1,uint param_2)
   }
   return param_2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

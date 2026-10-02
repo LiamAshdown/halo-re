@@ -33,6 +33,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
 extern char savegames_directory[0x100]; // 0x00721549
@@ -353,4 +356,7 @@ LAB_0053d844:
   DAT_00721447 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

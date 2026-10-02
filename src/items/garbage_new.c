@@ -26,6 +26,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;               // 0x008603b0
 extern object_globals *object_globals_pointer; // 0x006b8cbc
@@ -74,4 +77,7 @@ undefined4 missed_4bc490(uint param_1)
   *(short *)(iVar1 + 0x22c) = (short)((random_seed_global >> 0x10) * 300 >> 0x10) + 300;
   return CONCAT31((int3)((uint)iVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

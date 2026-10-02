@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots]; // 0x007bf060
 extern int32_t rasterizer_vertex_buffer_slot_high_water; // 0x0071d258
@@ -107,4 +110,7 @@ int FUN_005305f0(void)
   (&DAT_007bf06c)[iVar3 * 5] = unaff_ESI;
   return iVar3 + 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

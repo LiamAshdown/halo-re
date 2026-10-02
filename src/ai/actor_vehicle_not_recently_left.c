@@ -14,6 +14,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -33,3 +36,6 @@ uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index veh
     }
     return (uint8_t)(game_time->game_time >= *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

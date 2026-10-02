@@ -15,6 +15,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> widget
 // Returns widget->scale multiplied by every ancestor's own scale, walking up the parent chain.
@@ -45,4 +48,7 @@ float10 widget_instance_get_cumulative_scale(void)
   }
   return fVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

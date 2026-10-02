@@ -15,6 +15,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_win32_attached;   // 0x006b2f18
 extern terminal_console *console_active; // 0x006b2f0c
@@ -69,4 +72,7 @@ void console_position_cursor(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void cache_io_wait_all_requests(void); // this module, 0x4432b0
@@ -118,4 +121,7 @@ void __cdecl data_file_close(void)
   GlobalFree(DAT_006ac4a0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

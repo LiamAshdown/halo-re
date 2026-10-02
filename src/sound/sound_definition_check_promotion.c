@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t sound_time;          // 0x0072520c
@@ -175,4 +178,7 @@ Disassembly (0x54b050..0x54b100, capstone; phase-4 review):
 0x54b0fb: mov ax, bp
 0x54b0fe: pop ebp
 0x54b0ff: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

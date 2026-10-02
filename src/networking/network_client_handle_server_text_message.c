@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_log_path_format[]; // 0x0065efec, the shared "%s" format string (see network_log_path_resolve.c)
 
@@ -91,4 +94,7 @@ void network_client_handle_server_text_message(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

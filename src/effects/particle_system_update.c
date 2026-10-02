@@ -37,6 +37,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_system_data;          // 0x0087abd4
 extern data_array *particle_system_particle_data; // 0x0087abd8
@@ -586,4 +589,7 @@ LAB_00454af4:
   if (*(int *)(iVar7 + 0x5c) <= iVar11) goto LAB_00454b13;
   goto LAB_004545e1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

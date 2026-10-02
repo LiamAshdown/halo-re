@@ -24,6 +24,9 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -227,4 +230,7 @@ LAB_00414385:
   *(undefined4 *)(iVar4 + 0x558) = *(undefined4 *)(param_3 + 6);
   return CONCAT31((int3)((uint)uVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

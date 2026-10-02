@@ -29,6 +29,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *lightning_instances; // 0x006b8d74, UNSURE: raw table, see light_volume_render.c
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -283,4 +286,7 @@ Original Ghidra decompilation (0x4ff010): see `python tools/pack.py 0x4ff010` fo
 rewrite relies on; the full decompile was long enough (350+ lines, four Ghidra warning banners
 about deadcode/heritage restarts, a >128KB stack frame) that inlining it here was skipped in
 favour of the source reference, consistent with the 0.1 confidence rating on this file.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

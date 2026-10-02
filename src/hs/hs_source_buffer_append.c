@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern char *hs_compiled_source;          // 0x006b14c0
@@ -106,4 +109,7 @@ undefined4 * hs_source_buffer_append(undefined4 *param_1)
   *(undefined1 *)((int)DAT_006b14c0 + DAT_006b14bc) = 0;
   return puVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

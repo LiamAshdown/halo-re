@@ -26,6 +26,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 float cubic_interpolate_divided_difference(float y0, float y1, float y2, float y3,
                                             float x0, float x1, float x2, float x3, float x)
@@ -65,4 +68,7 @@ float10 FUN_004fca60(float param_1,float param_2,float param_3,float param_4,flo
                              ((float10)param_8 - (float10)param_6)) - fVar3) /
            ((float10)param_8 - (float10)param_5)) + fVar3) + (float10)fVar1) + (float10)param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

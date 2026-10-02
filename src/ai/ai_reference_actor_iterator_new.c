@@ -20,6 +20,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern ai_globals *ai_globals_ptr; // 0x00880354
@@ -111,4 +114,7 @@ void FUN_00432650(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data;                            // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;         // 0x008802cc
@@ -78,4 +81,7 @@ void __cdecl encounters_initialize(void)
   DAT_008802d0 = game_state_new("ai pursuit",0x100);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

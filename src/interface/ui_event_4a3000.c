@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern game_engine_definition *current_game_engine;
@@ -35,3 +38,6 @@ uint8_t ui_event_4a3000(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

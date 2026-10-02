@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ui_list_has_default;  // 0x007192f8
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
@@ -73,4 +76,7 @@ int FUN_004a7cb0(void)
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double pow(double base, double exponent); // 0x6283c0, MSVC 7.1 CRT _CIpow
 
@@ -84,4 +87,7 @@ Disassembly (0x54cdf0..0x54ce43, capstone; phase-4 review):
 0x54ce3c: fstp st(0)
 0x54ce3e: fld dword ptr [esp + 4]
 0x54ce42: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

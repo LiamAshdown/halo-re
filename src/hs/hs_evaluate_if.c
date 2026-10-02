@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address); // 0x48a560
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
@@ -67,3 +70,6 @@ void hs_evaluate_if(int16_t function_index, uint32_t thread_index, char first)
     }
     hs_thread_push(*branch, thread_index, result);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

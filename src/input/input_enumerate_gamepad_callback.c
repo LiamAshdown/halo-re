@@ -25,6 +25,9 @@
 #include "input.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *direct_input;                    // 0x006b15fc, IDirectInput8A*
 extern int32_t input_device_count;            // 0x006b1844
@@ -107,3 +110,6 @@ fail:
     input_device_release((int16_t)index);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

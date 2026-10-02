@@ -21,6 +21,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_list_current;    // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830
@@ -158,4 +161,7 @@ void FUN_004a4650(int param_1)
   *(undefined2 *)(*(int *)(iVar3 + 0x3c) + 0x3e) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

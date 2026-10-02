@@ -12,6 +12,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void datum_delete(data_array *array, datum_index index); // 0x4d0510, blam-cc: EAX -> array, EDX -> index
 extern data_array *flag_data; // 0x008603a8
@@ -20,3 +23,6 @@ void flag_delete(datum_index flag_index)
 {
     datum_delete(flag_data, flag_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

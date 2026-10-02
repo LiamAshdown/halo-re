@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ESI -> file, EAX -> whence, stack -> (offset_low, offset_high)
 // fseek-style SEEK_SET(0)/SEEK_CUR(1)/SEEK_END(2) position update on a bounds-checked in-memory
@@ -196,4 +199,7 @@ Disassembly (0x544e00..0x544eb0, capstone; phase-4 review):
 0x544eac: mov eax, ebp
 0x544eae: pop ebp
 0x544eaf: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

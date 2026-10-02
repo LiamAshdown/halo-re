@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t slayer_team_score[16]; // 0x006b13d8
 extern int32_t slayer_player_score[16]; // 0x006b1418
@@ -23,3 +26,6 @@ wchar_t *game_engine_slayer_build_team_score_text(int32_t team, wchar_t *buffer)
     string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", slayer_team_score[team]);
     return buffer;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

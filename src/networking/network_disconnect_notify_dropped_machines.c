@@ -26,6 +26,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_disconnect_notice_shown; // 0x00697e78, UNSURE name
 extern uint8_t local_player_globals[8]; // 0x0087a478, UNSURE name/size; only +4 is read here
@@ -92,4 +95,7 @@ void FUN_004d9340(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

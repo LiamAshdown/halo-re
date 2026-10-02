@@ -19,6 +19,9 @@
 #include "ai.h"
 #include <stdint.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position,
     real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b); // 0x43c9a0, ECX, AX, EDX, ESI, stack
@@ -181,4 +184,7 @@ void FUN_0043ba60(float *param_1,short param_2)
   } while (0 < (short)local_15c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

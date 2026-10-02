@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double ftan(double x); // x87 FPTAN
 
@@ -109,4 +112,7 @@ Disassembly excerpt (objdump -d -M intel) confirming the register roles:
   fld    st(0)
   fmul   DWORD PTR [edx]
   fstp   DWORD PTR [ecx]       ; bounds_out[0]
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

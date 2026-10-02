@@ -33,6 +33,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -377,4 +380,7 @@ LAB_004ef654:
   *param_11 = *(undefined4 *)(param_6 + 0x3c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

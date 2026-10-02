@@ -16,6 +16,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char game_state_core_directory[0x100]; // 0x006e2efc
 
@@ -69,4 +72,7 @@ undefined1 game_state_write_profile_file(undefined4 param_1,LPCVOID param_2)
   CloseHandle(hFile);
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

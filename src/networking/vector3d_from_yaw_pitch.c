@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
@@ -82,4 +85,7 @@ void vector3d_from_yaw_pitch(float param_1,float param_2)
   in_ECX[2] = (float)fVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

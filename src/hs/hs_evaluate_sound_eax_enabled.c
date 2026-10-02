@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint8_t *global_sound_effect_object; // 0x00721f24
@@ -25,3 +28,6 @@ void hs_evaluate_sound_eax_enabled(int16_t function_index, uint32_t thread_index
     }
     hs_thread_return((int32_t)enabled, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

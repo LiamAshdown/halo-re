@@ -32,6 +32,9 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // actor_recognition_scan_result now lives in types/ai.h (folded from this file).
 
@@ -287,4 +290,7 @@ Disassembly cross-check for the call site of FUN_00414910/actor_point_in_directi
 (objdump -d -M intel bin/halo.exe, 0x414c2a..0x414c76): EAX = &current_prop.unknown_e0 in both
 calls, EDX = &actor.position_cache_a in both; ECX = &actor.position_cache_b only for the
 0x414990 call; the float threshold is the only stack argument to either.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

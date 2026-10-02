@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns the squared Euclidean length of a 3D vector (no sqrt), i.e. the dot product of the
 // vector with itself. Used where callers only need to compare magnitudes.
@@ -47,4 +50,7 @@ void vector3d_magnitude_squared(void)
   40101c:	dd d8                	fstp   st(0)
   40101e:	c3                   	ret
   40101f:	cc                   	int3
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

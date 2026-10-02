@@ -28,6 +28,9 @@
 #include <stdint.h>
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;   // 0x0087a480
 extern game_variant game_engine_variant; // 0x006f1c88 (ctf_value_80/score_limit aliased
@@ -293,4 +296,7 @@ LAB_0046dcf6:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern uint8_t *object_globals_pointer; // 0x006b8cbc
@@ -22,3 +25,6 @@ void hs_evaluate_garbage_collect_now(int16_t function_index, uint32_t thread_ind
     object_globals_pointer[2] = 1; // requests a collection on the next update
     hs_thread_return(0, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

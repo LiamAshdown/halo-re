@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base;   // 0x006e2dc8
 extern int32_t game_state_cursor;  // 0x006e2dcc
@@ -55,4 +58,7 @@ void missed_561fe0(void)
   DAT_006ef910 = iVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -68,3 +71,6 @@ uint8_t actor_alert_from_projectile(datum_index actor_index)
     actor_raise_alert(actor, 0xa, source);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

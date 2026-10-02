@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
@@ -85,4 +88,7 @@ elides which scale/offset pair each branch actually uses:
   424b91: cmp eax,3 / jg 0x424c03          ; category > 3 -> default
   424b96: ... fmul ds:0x672dec / fadd ds:0x672ca8   ; categories 2-3
   424bcc: ... fmul ds:0x672cac / fadd ds:0x672ac4   ; category 1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

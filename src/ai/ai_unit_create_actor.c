@@ -28,6 +28,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr;   // 0x00880354
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -131,4 +134,7 @@ void FUN_00435420(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

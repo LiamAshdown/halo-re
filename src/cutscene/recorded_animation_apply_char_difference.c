@@ -13,6 +13,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> angles, EDX -> delta
 // Adds a compressed 8 bit yaw/pitch delta to a wrapped 1000-unit fixed-point angle pair,
@@ -58,4 +61,7 @@ void FUN_0044a110(void)
   in_EAX[1] = in_EAX[1] + (short)in_EDX[1];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

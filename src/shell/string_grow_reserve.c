@@ -30,6 +30,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: ECX -> this, stack -> new_capacity, preserve_count
@@ -158,4 +161,7 @@ void string_copy_into_new_buffer(void)
   ExceptionList = *(void **)(unaff_EBP + -0xc);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

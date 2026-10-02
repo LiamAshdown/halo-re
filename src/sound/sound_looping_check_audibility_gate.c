@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_looping_audibility_check; // 0x00724a54
 extern tag_instance *tag_instances;            // 0x0087bc14
@@ -172,4 +175,7 @@ Disassembly (0x54e740..0x54e7f2, capstone; phase-4 review):
 0x54e7ef: pop ebp
 0x54e7f0: pop ebx
 0x54e7f1: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

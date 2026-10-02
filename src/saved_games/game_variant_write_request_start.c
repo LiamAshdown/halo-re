@@ -21,6 +21,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_thread_record *variant_write_thread; // 0x00721324
 extern variant_write_request variant_write_request_state; // 0x00721288
@@ -86,4 +89,7 @@ void FUN_0053c0b0(undefined4 param_1,undefined4 *param_2)
   network_thread_create(0,FUN_0053c150,&DAT_00721288,&DAT_00721324);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

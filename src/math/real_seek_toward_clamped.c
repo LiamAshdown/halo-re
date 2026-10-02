@@ -39,6 +39,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
@@ -221,4 +224,7 @@ undefined4 FUN_004cf360(float param_1,float param_2,float param_3,float param_4,
                                         (ushort)(NAN(param_1) || NAN(param_4)) << 10 |
                                         (ushort)(param_1 == param_4) << 0xe) >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

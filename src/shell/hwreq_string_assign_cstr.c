@@ -25,6 +25,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern msvc_std_string *msvc_string_assign_n(msvc_std_string *dest, const char *s, uint32_t count); // 0x57bc90, blam-cc: ECX dest, stack (s, count)
 
@@ -57,4 +60,7 @@ void FUN_0057b590(void)
   FUN_0057bc90(in_EDX,(int)pcVar2 - (int)(in_EDX + 1));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

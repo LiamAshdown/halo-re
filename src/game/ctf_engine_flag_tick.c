@@ -40,6 +40,9 @@
 #include "game.h"
 #include <stdint.h>
 #ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+#ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
 #else
 #define CTF_CUSTOM_WAYPOINT_ZERO (custom_waypoint){0}
@@ -439,4 +442,7 @@ LAB_00469085:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

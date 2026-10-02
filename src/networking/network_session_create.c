@@ -29,6 +29,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_session_active; // 0x0071c2c2
 extern network_client_globals network_client_storage; // 0x00872de0
@@ -153,4 +156,7 @@ undefined * network_session_create(void)
   network_stats_summary_log_open();
   return puVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

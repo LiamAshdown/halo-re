@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x43b2b0..0x43b2e8 (2026-09-30): probe order, wrap mask, node stride 0x34 and offsets
 //   (hash 0xe08a, vertex_id 0x8c) match; the difftest hang is a random table with no empty slot.
@@ -61,4 +64,7 @@ void FUN_0043b2b0(void)
   } while (*(uint *)(sVar1 * 0x34 + 0x8c + in_EDX) != unaff_ESI);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

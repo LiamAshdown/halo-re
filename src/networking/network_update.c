@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_high_res_clock_ms;    // 0x006a6144, UNSURE: exact unit/consumer
 extern uint8_t network_update_unknown_869bf; // 0x006869bf, UNSURE
@@ -80,4 +83,7 @@ uint network_update(void)
   uVar1 = FUN_006154f0();
   return uVar1 & 0xffff0000;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

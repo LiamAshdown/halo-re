@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: the 5-dword state ai_reference_squad_iterator_new/_next (0x4324f0/0x4325b0)
 // share. No existing header struct matches.
@@ -115,4 +118,7 @@ LAB_00432599:
   *in_ECX = 0xffffffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

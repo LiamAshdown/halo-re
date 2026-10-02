@@ -7,6 +7,9 @@
 // blam-cc: stack -> value (cdecl)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t hs_cast_enum_to_real(int32_t value)
 {
@@ -14,3 +17,6 @@ int32_t hs_cast_enum_to_real(int32_t value)
 
     return *(int32_t *)&result;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

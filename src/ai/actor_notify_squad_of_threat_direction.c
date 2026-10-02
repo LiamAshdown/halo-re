@@ -18,6 +18,9 @@
 #include "math.h"
 #include "ai.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -115,4 +118,7 @@ void FUN_004234f0(short param_1,short param_2)
 
 Ground truth from objdump (bin/halo.exe @ 0x4234f0..0x4235ef) recovering EBX (the point
 pointer) and the exact register setup for both truncated calls; see file header.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

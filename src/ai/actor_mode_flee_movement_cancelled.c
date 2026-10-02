@@ -10,6 +10,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -22,3 +25,6 @@ void actor_mode_flee_movement_cancelled(datum_index actor_index)
     ((actor_mode_flee_data *)mode_data)->destination = -1;
     ((actor_mode_flee_data *)mode_data)->movement_cancelled = 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

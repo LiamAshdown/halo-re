@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns the squared Euclidean distance between two 3D points (no sqrt). Used where callers
 // only need to compare distances (e.g. against a squared threshold).
@@ -45,4 +48,7 @@ Original Ghidra decompilation (0x401020):
   401042:	dd d8                	fstp   st(0)
   401044:	dd d8                	fstp   st(0)
   401046:	c3                   	ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

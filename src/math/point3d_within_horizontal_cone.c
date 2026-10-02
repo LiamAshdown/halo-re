@@ -40,6 +40,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT
 extern double fabs(double x); // FABS
@@ -168,4 +171,7 @@ Disassembly cross-check (objdump -d -M intel bin/halo.exe, 0x414910..0x41498f):
 0041498a: mov al,cl                       ; al = 0
 0041498c: add esp,0x8
 0041498f: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

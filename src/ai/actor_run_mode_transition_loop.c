@@ -17,6 +17,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern void *actor_type_procs[16];  // 0x006853b8
@@ -114,4 +117,7 @@ void actor_run_mode_transition_loop(uint param_1)
   actor_set_mode(param_1,0,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

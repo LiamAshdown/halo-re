@@ -28,6 +28,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel); // 0x4dd3f0
@@ -189,4 +192,7 @@ undefined4 FUN_004db310(int param_1)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

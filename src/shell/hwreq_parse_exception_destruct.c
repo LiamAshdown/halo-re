@@ -19,6 +19,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;
@@ -71,4 +74,7 @@ void hwreq_parse_exception_destruct(void)
   ExceptionList = local_c;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

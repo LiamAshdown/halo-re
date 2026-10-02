@@ -23,6 +23,9 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -196,4 +199,7 @@ the FUN_0045bd50 call:
   422d1f: mov esi, 0x384              ; data = 0x384
   422d24: mov edx, 2                  ; event = 2
   422d29: call actor_record_perception_event
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

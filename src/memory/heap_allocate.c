@@ -16,6 +16,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t heap_allocate_raw(uint32_t size, heap *self); // this batch
 
@@ -83,4 +86,7 @@ uint * heap_allocate(void)
   }
   return puVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

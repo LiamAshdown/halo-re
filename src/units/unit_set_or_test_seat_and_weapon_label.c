@@ -34,6 +34,9 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -233,4 +236,7 @@ LAB_005653d6:
   if (*(int *)(_Str2 + 0x58) <= iVar6) goto LAB_005653f1;
   goto LAB_00565280;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -104,4 +107,7 @@ undefined4 actor_movement_set_destination_point(uint param_1,int param_2,undefin
   uVar4 = actor_movement_action_resolve(param_1,1,0);
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

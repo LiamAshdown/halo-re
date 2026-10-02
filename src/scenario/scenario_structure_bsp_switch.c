@@ -29,6 +29,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t global_structure_bsp_index;              // 0x0069e8d8
 extern Scenario *global_scenario;                        // 0x00746f8c
@@ -152,4 +155,7 @@ undefined1 scenario_structure_bsp_switch(void)
   DAT_0071976a = 1;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

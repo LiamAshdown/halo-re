@@ -26,6 +26,9 @@
 #include "cache.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern Globals *global_globals;                              // 0x00746fa0
@@ -376,4 +379,7 @@ void FUN_00472160(float param_1,float param_2)
   *(undefined4 *)(iVar1 + 0x10) = *(undefined4 *)(iVar1 + 0x38);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

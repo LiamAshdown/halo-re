@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;                             // 0x00880360
 extern actor_mode_definition actor_mode_definitions[16];   // 0x00655254
@@ -79,4 +82,7 @@ void squad_members_assign_team_and_request_order(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

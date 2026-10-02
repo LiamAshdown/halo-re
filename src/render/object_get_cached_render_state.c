@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                    // 0x008603b0
 extern data_array *object_render_state_cache;       // 0x007c30ec, this module
@@ -131,4 +134,7 @@ uint shadow_cache_get_or_allocate_entry(uint param_1,undefined4 param_2)
   *(uint *)(iVar1 + 0x170) = uVar5;
   return uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

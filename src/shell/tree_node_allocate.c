@@ -26,6 +26,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_map_value_type {
     msvc_std_string key; // 0x00
@@ -90,4 +93,7 @@ tree_node_allocate(undefined4 param_1,undefined4 param_2,undefined4 param_3,unde
   ExceptionList = local_10;
   return puVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t wcslen(const uint16_t *s); // 0x625b7a, wide strlen (wcslen), not this module
 
@@ -74,4 +77,7 @@ int FUN_00557950(int param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

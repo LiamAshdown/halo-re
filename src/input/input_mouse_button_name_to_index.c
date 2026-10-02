@@ -18,6 +18,9 @@
 
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void input_get_mouse_button_name(int16_t button_index, uint16_t *out_name); // this module, 0x490f20
 
@@ -93,4 +96,7 @@ uint input_mouse_button_name_to_index(char *param_1)
   }
   return uVar4 & 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

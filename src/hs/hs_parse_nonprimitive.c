@@ -16,6 +16,9 @@
 #include "hs.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_resolve_identifier_as_function_or_script(datum_index node_index); // 0x00486680, this batch
 extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source_type); // 0x0048ac90, outside this batch's assigned range
@@ -274,4 +277,7 @@ undefined4 hs_parse_nonprimitive(uint param_1)
   DAT_006b14d8 = *(undefined4 *)(iVar11 + 0xc);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

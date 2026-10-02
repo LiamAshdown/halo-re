@@ -18,6 +18,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real k_weapon_zoom_fov_maximum; // 0x00672ea0
 extern real k_weapon_zoom_fov_minimum; // 0x00672ea4
@@ -57,4 +60,7 @@ float10 FUN_004c2e50(undefined4 param_1,float param_2)
   }
   return fVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

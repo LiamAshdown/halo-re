@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> animation_block
 // True when the third animation overlay is unused, unknown_2a4 is clear and the current
@@ -39,4 +42,7 @@ uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block)
 #if 0
 Original Ghidra decompilation (0x565d00): Ghidra shows the entry only (zero visible
 arguments, switch unresolved); the tables above were read from the binary directly.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

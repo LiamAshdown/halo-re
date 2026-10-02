@@ -32,6 +32,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_time_milliseconds; // 0x00718f9c
 extern heap *widget_memory_pool;     // 0x006926c4
@@ -335,4 +338,7 @@ LAB_0049b3e3:
   ui_widget_draw_formatted_prompt_string(&sStack_70,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -8,6 +8,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *device_groups; // 0x0087abf0
 extern void data_delete_all(data_array *array); // 0x4d0580, blam-cc: ESI -> array
@@ -19,3 +22,6 @@ void device_groups_dispose(void)
     data_delete_all(device_groups);
     device_groups_initialize();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

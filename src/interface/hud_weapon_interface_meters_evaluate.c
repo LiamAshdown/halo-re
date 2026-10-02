@@ -41,6 +41,9 @@
 #include "objects.h"
 #include "units.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *player_data;               // 0x0087a480, stride 0x200 (no types/players.h yet)
@@ -591,4 +594,7 @@ table lives at 0x4b1dc8:
   jl 0x4b1aa2
 004b1db7: mov ecx,[esp+0x18]; pop edi; mov [esi+0x4c],ecx; pop ebp; pop esi; pop ebx;
   add esp,0x58; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

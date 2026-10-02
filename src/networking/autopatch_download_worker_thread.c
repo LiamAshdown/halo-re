@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t autopatch_download_active_count; // 0x007227c8, UNSURE: per types/networking.h's
                                                  // name, but used here as a 0/nonzero stop signal
@@ -55,4 +58,7 @@ undefined4 autopatch_download_worker_thread(void)
   DAT_007227c8 = 0;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

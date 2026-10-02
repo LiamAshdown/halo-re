@@ -13,6 +13,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_state_proc game_state_after_load_procs[k_game_state_after_load_proc_count]; // 0x0069e7b4
 
@@ -48,4 +51,7 @@ void game_state_dispatch_load_callbacks(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

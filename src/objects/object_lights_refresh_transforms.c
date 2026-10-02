@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data; // 0x00860b14
 
@@ -77,4 +80,7 @@ void FUN_004f2d50(void)
     } while ((short)iVar3 < *(short *)(iVar6 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

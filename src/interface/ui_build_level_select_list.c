@@ -38,6 +38,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: one entry of the campaign level path table at 0x00692acc (stride 8, second dword
 // always read as part of the (&table)[i*2] indexing but never itself examined here).
@@ -401,4 +404,7 @@ undefined4 ui_build_level_select_list(int param_1,undefined4 param_2,undefined4 
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

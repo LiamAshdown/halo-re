@@ -13,6 +13,9 @@
 // global at a different address, so the link bound it there).
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct server_list_globals server_list_globals;
 extern uint8_t server_browser_initialized;       // 0x00719470
@@ -76,3 +79,6 @@ void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *i
         return;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

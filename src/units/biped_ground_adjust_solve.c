@@ -37,6 +37,9 @@
 #include "units.h"
 #include "physics.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -235,3 +238,6 @@ void biped_ground_adjust_solve(uint32_t object_index, real_matrix4x3 *nodes)
         } while (read_index != write_index);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

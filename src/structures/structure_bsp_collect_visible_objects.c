@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t visible_cluster_count; // 0x007d0390
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters]; // 0x007c3390
@@ -114,4 +117,7 @@ FUN_00554420(int param_1,short param_2,code *param_3,code *param_4,code *param_5
   }
   return CONCAT22(uVar4,sVar5);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

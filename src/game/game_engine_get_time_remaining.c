@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant game_engine_variant; // 0x006f1c88 (::unknown_78 at 0x006f1d00, time limit)
 extern game_time_globals *game_time;      // 0x006f1d6c
@@ -55,4 +58,7 @@ int FUN_0045cab0(void)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

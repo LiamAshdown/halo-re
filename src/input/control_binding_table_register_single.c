@@ -32,6 +32,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t control_binding_device_type; // 0x006f1cb8, UNSURE: 1..4, device type selector
 
@@ -144,4 +147,7 @@ switchD_004f3803_default:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

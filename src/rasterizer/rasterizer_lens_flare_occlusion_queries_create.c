@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device; // 0x0071d174
 extern uint8_t lens_flare_occlusion_queries_supported; // 0x006e1dc0
@@ -86,4 +89,7 @@ bool __cdecl rasterizer_lens_flare_occlusion_queries_create(void)
   } while ((int)puVar3 < 0x6e2dc8);
   return (bool)DAT_006e1dc0 == bVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

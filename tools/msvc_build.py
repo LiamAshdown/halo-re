@@ -9,9 +9,13 @@ VCVARS = r"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\
 CACHE = os.path.join(ROOT, "build", "msvc_env.json")
 # /TC C, /W3, /Zi-free, /Od keeps a 1:1 shape for debugging in the harness; /GS- /Oy- like a 2004 build; /J not used (char is signed)
 DXSDK_INCLUDE = r"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include"
-CFLAGS = ["/nologo", "/c", "/TC", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996", "/I", os.path.join(ROOT, "types"),
+CFLAGS = ["/nologo", "/c", "/TP", "/std:c++20", "/permissive-", "/GR-", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996", "/I", os.path.join(ROOT, "types"),
           "/I", DXSDK_INCLUDE,
           "/FI" + os.path.join(ROOT, "harness", "msvc_compat.h")]
+
+# GameSpy stays vendored C (docs/CPP_ARCHITECTURE.md): compiled as C, everything else as C++20
+CFLAGS_C = [f for f in CFLAGS if f not in ("/std:c++20", "/permissive-", "/GR-")]
+CFLAGS_C[CFLAGS_C.index("/TP")] = "/TC"
 
 def msvc_env():
     if os.path.exists(CACHE): return json.load(open(CACHE))
@@ -32,7 +36,7 @@ def main():
     def build(c):
         mod = os.path.basename(os.path.dirname(c)); od = os.path.join(ROOT, "build", "obj", mod); os.makedirs(od, exist_ok=True)
         obj = os.path.join(od, os.path.splitext(os.path.basename(c))[0] + ".obj")
-        r = subprocess.run([cl] + CFLAGS + ["/Fo" + obj, c], capture_output=True, text=True, env=env, errors="replace")
+        r = subprocess.run([cl] + (CFLAGS_C if mod == "gamespy" else CFLAGS) + ["/Fo" + obj, c], capture_output=True, text=True, env=env, errors="replace")
         lines = [l for l in r.stdout.splitlines() if re.search(r": (fatal )?error |: warning C4(013|020|029|047|133|024|028|087|113|716)", l)]
         return c, r.returncode, lines
     fails, warn_files, out = 0, 0, []

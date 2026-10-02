@@ -13,6 +13,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 
@@ -58,4 +61,7 @@ void cutscene_title_queue(undefined2 param_1,float param_2)
   } while (sVar2 < 4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

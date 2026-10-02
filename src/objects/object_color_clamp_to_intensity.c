@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void object_color_clamp_to_intensity(float intensity, ColorRGB *color) // blam-cc: stack -> intensity, ECX -> color
 {
@@ -88,4 +91,7 @@ LAB_004f34a6:
   in_ECX[2] = fVar1 * in_ECX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

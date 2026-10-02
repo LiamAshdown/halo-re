@@ -47,6 +47,9 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern real projectile_network_update_position_tolerance; // 0x00696140
@@ -206,4 +209,7 @@ void __cdecl item_apply_network_update(uint item_index,void *update_record)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern map_list_entry *map_list;  // 0x00712dcc
 extern int32_t map_list_count;    // 0x00712dd0
@@ -57,4 +60,7 @@ void chimera__free_map_index(void)
   DAT_00712dd4 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

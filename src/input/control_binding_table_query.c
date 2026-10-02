@@ -27,6 +27,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t current_game_engine; // 0x006f1d20, same global as control_binding_table_initialize.c
 
@@ -144,4 +147,7 @@ undefined1 FUN_004f3ad0(int param_1)
   }
   return local_5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

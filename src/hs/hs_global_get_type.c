@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count]; // 0x0068b398
 extern Scenario *global_scenario; // 0x00746f8c
@@ -51,4 +54,7 @@ undefined4 FUN_00483420(void)
   return CONCAT22((short)((uint)iVar1 >> 0x10),
                   *(undefined2 *)(iVar1 + 0x20 + *(int *)(DAT_00746f8c + 0x4ac)));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

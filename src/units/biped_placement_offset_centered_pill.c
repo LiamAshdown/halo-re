@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -34,3 +37,6 @@ void biped_placement_offset_centered_pill(datum_index object_index, object_place
     placement->position.y = radius * placement->up.j + placement->position.y;
     placement->position.z = radius * placement->up.k + placement->position.z;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern uint8_t rasterizer_software_vertex_processing;               // 0x0069c680
@@ -54,4 +57,7 @@ undefined4 __cdecl rasterizer_decal_dynamic_vertex_buffer_create(void)
   DAT_0071d1c8 = (iVar2 < 0) - 1 & uVar1;
   return CONCAT31((int3)(DAT_0071d1c8 >> 8),DAT_0071d1c8 != 0);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

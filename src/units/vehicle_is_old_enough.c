@@ -11,6 +11,9 @@
 #include "objects.h"
 #include "game.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -29,3 +32,6 @@ uint8_t vehicle_is_old_enough(uint32_t object_index)
     }
     return (uint8_t)(obj[0x524] == 1);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

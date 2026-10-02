@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride); // 0x483770
 extern datum_index global_scenario_index; // 0x0069e8d4
@@ -23,3 +26,6 @@ void hs_autocomplete_add_recorded_animation_names(void)
         hs_autocomplete_scan_globals(&global_scenario->recorded_animations, 0, 0x40);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

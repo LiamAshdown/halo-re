@@ -56,6 +56,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // UNSURE: signature reconstructed from this call site; see file header.
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias); // 0x524590 (0x4f08e0 calls it)
@@ -169,4 +172,7 @@ void bsp_lightmap_sample_vertex_color(undefined4 param_1,float param_2,float par
   color_rgb_int_to_real();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

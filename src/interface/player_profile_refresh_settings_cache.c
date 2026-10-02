@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t profile_globals_block[];         // 0x00712dd8, stride 0x2004 per slot
 extern int16_t profile_slot_id[];               // 0x00714dde, indexed by player index
@@ -298,4 +301,7 @@ void FUN_00496060(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

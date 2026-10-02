@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern terminal_console *console_active; // 0x006b2f0c
 
@@ -81,4 +84,7 @@ undefined4 console_open(void)
   }
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_bit_chunk_size; // 0x0071c2cc
 extern uint32_t circular_buffer_read(uint8_t *destination, uint32_t byte_count, char consume,
@@ -192,4 +195,7 @@ FUN_004dcf10(int param_1,undefined4 param_2,int *param_3,int *param_4,undefined4
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

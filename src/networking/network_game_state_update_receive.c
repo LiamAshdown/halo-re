@@ -28,6 +28,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -150,4 +153,7 @@ undefined4 FUN_004d9d20(int param_1,uint *param_2)
   *(undefined4 *)(param_1 + 0xed0) = uVar2;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

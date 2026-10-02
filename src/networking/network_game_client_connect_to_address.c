@@ -26,6 +26,9 @@
 #include "networking.h"
 #include <stdlib.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t network_game_socket_port; // 0x00698208
 extern int32_t progress_screen_text; // 0x006b2f28, UNSURE identity/type; see
@@ -125,4 +128,7 @@ void network_game_client_connect_to_address(undefined4 param_1)
   FUN_004dc8d0(param_1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

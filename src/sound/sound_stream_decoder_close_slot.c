@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 static void sound_stream_decoder_clear_ogg_vorbis_file(void *vorbis_file)
@@ -242,4 +245,7 @@ Disassembly (0x545760..0x54585c, capstone; phase-4 review):
 0x545854: mov byte ptr [esi + 0x5a8], bl
 0x54585a: pop ebx
 0x54585b: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

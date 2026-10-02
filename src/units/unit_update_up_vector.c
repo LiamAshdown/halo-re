@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_vector3d *global_forward3d_pointer; // 0x00696718 (1, 0, 0)
 extern real_vector3d *global_left3d_pointer;    // 0x0069671c (0, 1, 0)
@@ -329,4 +332,7 @@ LAB_00560c18:
   *(undefined4 *)(in_ECX + 0x88) = *(undefined4 *)(puVar2 + 8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

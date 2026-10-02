@@ -22,6 +22,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern data_array *player_data;    // 0x0087a480
@@ -71,4 +74,7 @@ void FUN_00473430(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

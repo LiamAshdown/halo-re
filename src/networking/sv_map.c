@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720, 2 == host, 0 == local/not in a game
 extern int32_t game_variant_history_current; // 0x00687b18
@@ -124,4 +127,7 @@ void sv_map(void)
   chimera__console_out("sv_map is a server-only function!");
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

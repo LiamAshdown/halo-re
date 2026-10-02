@@ -26,6 +26,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: struct_definition_compute_size(definition, out_size, fields, out_field_count)
 extern void struct_definition_compute_size(struct_definition *definition, int16_t *out_size,
@@ -105,4 +108,7 @@ bool FUN_004d0bc0(undefined4 param_1,undefined2 *param_2,short param_3)
   *param_2 = local_c;
   return !bVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

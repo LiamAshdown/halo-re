@@ -8,6 +8,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *device_groups; // 0x0087abf0
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
@@ -16,3 +19,6 @@ void device_groups_allocate(void)
 {
     device_groups = game_state_new((char *)"device groups", 0x400, 0x8);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

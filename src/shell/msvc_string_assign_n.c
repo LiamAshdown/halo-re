@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right, uint32_t pos,
     uint32_t count); // 0x57b830, blam-cc: ECX -> this, stack -> right, pos, count
@@ -55,3 +58,6 @@ msvc_std_string *msvc_string_assign_n(msvc_std_string *self, const char *source,
     string_data(self)[count] = 0;
     return self;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

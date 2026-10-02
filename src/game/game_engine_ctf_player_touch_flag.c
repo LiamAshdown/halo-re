@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;   // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -70,4 +73,7 @@ void FUN_00468910(uint param_1)
   FUN_00460c10(param_1,0x21,0x23,0x22,param_1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

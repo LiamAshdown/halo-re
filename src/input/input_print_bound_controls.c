@@ -37,6 +37,9 @@
 
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_device input_devices[8];            // 0x006b1868
 extern int32_t joystick_slot_devices[4];         // 0x006b2ce8
@@ -265,4 +268,7 @@ DAT_0065b730 + action*0x10, 0x10 bytes) is action_name_copy() here; the dead
 already-known-not-0x7fff branch that also tests for 0x7fff is folded into one ternary. Every
 wcslen-then-narrow-to-ASCII block (copy while length is below the buffer size, space out any
 non-ASCII code unit, null terminate) is narrow_copy() here.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

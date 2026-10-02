@@ -14,6 +14,9 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d_display_mode rasterizer_desktop_display_mode;           // 0x007c11f0
 
@@ -56,4 +59,7 @@ int FUN_00515c70(void)
   }
   return 0x3c;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

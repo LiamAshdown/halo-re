@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;      // 0x008603b0
 extern Globals *global_globals;
@@ -154,4 +157,7 @@ void unit_throw_grenade_move_to_hand(uint param_1)
   *(undefined1 *)(iVar3 + 0x28d) = 3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

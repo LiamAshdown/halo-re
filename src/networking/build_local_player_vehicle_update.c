@@ -26,6 +26,9 @@
 #include "game.h"
 #include "objects.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -191,4 +194,7 @@ int build_local_player_vehicle_update(undefined1 *param_1)
   *(undefined4 *)(unaff_EDI + 0xf0) = *(undefined4 *)(iVar1 + 0xc);
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

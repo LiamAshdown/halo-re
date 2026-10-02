@@ -27,6 +27,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: category in EAX, destination in EDX, source in EBX
 // Copies a category of binding/settings fields from src to dst:
@@ -224,4 +227,7 @@ undefined4 FUN_00490280(void)
   *(undefined1 *)(in_EDX + 0x132) = *(undefined1 *)(unaff_EBX + 0x132);
   return CONCAT31((int3)((uint)uVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

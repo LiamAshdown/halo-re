@@ -57,6 +57,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_banlist_full_path[0x104];        // 0x0071c308, see sv_banlist_file.c
 extern char network_ban_file_read_mode_string[];      // 0x0066d81c, "rt"
@@ -280,4 +283,7 @@ value at 0x4e31b0, ESP_LOOP):
    tm_hour=+0x08, tm_mday=+0x0c, tm_mon=+0x10, tm_year=+0x14, tm_wday=+0x18, tm_yday=+0x1c,
    tm_isdst=+0x20, matching the standard MSVCRT struct tm layout exactly)
   4e332f: cmp eax,0xffffffff / 4e333a: jne 0x4e3347   ; mktime succeeded -> skip indefinite=1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -29,6 +29,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -350,4 +353,7 @@ call site):
 004d4d6e:  83 c4 08              add    esp,0x8
 004d4d71:  46                    inc    esi                             ; scale_index++
 004d4d72:  89 74 24 28           mov    DWORD PTR [esp+0x28],esi
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

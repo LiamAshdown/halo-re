@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_channel_binding directsound_bindings[k_maximum_sound_channels]; // 0x007252e4
 extern int16_t directsound_first_channel_of_type[4]; // 0x00746028
@@ -140,4 +143,7 @@ Disassembly (0x5482e0..0x548376, capstone; phase-4 review):
 0x548368: imul eax, eax, 0x678
 0x54836e: mov word ptr [eax + 0x725432], bp
 0x548375: pop edi
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

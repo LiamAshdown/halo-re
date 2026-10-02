@@ -18,6 +18,9 @@
 #include "game.h"
 #include "networking.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern growable_array ban_list;              // 0x006b859c, foreign (networking module)
@@ -107,4 +110,7 @@ void __cdecl main_loop_shutdown_cleanup(void)
   chat_close();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

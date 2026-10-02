@@ -41,6 +41,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;              // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -209,4 +212,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) for the real vector3d_cross_prod
   (player_update_history_play argument order, deferred-cleanup `add esp,0x18` after the call,
    confirms: update_history, unit, x, y, z, &control_ptr, with EAX=1 and ECX=candidate->unknown_ec
    loaded immediately before the call as two more register-passed values)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

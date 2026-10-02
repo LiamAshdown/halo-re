@@ -14,6 +14,9 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *actor_data;  // 0x00880360
@@ -84,4 +87,7 @@ uint FUN_0043ea80(uint param_1)
             (*(int *)(iVar4 + 0x1c) != iVar3))))));
   return uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

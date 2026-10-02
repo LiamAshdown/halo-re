@@ -16,6 +16,9 @@
 #include "math.h"
 #include "interface.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t text_rendering_enabled;                         // 0x00689402
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
@@ -196,4 +199,7 @@ void chimera__draw_16_bit_text(undefined4 param_1,undefined4 param_2,short *para
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

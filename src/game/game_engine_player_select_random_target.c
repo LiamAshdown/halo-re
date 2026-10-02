@@ -44,6 +44,9 @@
 #include "math.h"
 #include <stdint.h>
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;        // 0x0087a480
 extern random_seed random_seed_global;    // 0x00719cd0
@@ -220,4 +223,7 @@ bin/halo.exe (the part Ghidra's own decompiler discarded):
   46f361: call chimera__kill_feed   ; (recipient=edi, param_1=edi, type=0x20, subject=esi, bcast=1)
   46f366..46f374: lea edi,[esp+0x24] ; call data_iterator_next ; loop while more elements
   46f376: pop edi ; pop esi ; pop ebp ; pop ebx ; add esp,0x24 ; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

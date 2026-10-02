@@ -26,6 +26,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t sound_channel_count;   // 0x007252b4
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
@@ -507,4 +510,7 @@ Disassembly (0x54c900..0x54cd22, capstone; phase-4 review):
 0x54cd17: mov dword ptr [esp + 0x10], esi
 0x54cd1b: jl 0x54c970
 0x54cd21: pop edi
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

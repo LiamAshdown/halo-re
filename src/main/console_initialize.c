@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern console_globals console_globals_data; // 0x006b7020
 extern ColorARGB console_default_color;      // 0x00696554
@@ -136,4 +139,7 @@ void weapon_prevents_grenade_throwing(void)
   DAT_006b7021 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Marks an asynchronous cache read finished: raises the caller's completion flag and frees
 // the request slot for the worker thread.
@@ -32,4 +35,7 @@ No Ghidra function exists at 0x443ae0. Disassembly:
   443aec: mov [eax+0x1d],cl
   443aef: mov [eax+0x1e],cl
   443af2: ret 0xc
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Frees every node of a player_update_history's linked list and clears its head/tail.
@@ -49,4 +52,7 @@ void player_update_history_free_all(int param_1)
   *(undefined4 *)(param_1 + 8) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

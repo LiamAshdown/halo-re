@@ -26,6 +26,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void data_delete_all(data_array *array); // blam-cc: ESI; memory module, 0x4d0580
 extern datum_index datum_new(data_array *array); // blam-cc: EDX; memory module, 0x4d0480
@@ -242,4 +245,7 @@ void hs_scenario_scripts_initialize(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

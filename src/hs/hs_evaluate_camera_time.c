@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern float camera_script_time_remaining; // 0x006869d8
@@ -19,3 +22,6 @@ void hs_evaluate_camera_time(int16_t function_index, uint32_t thread_index, char
 {
     hs_thread_return((int32_t)(uint16_t)(int16_t)(int32_t)(camera_script_time_remaining * 30.0f), thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -27,6 +27,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00,
     ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c,
@@ -80,4 +83,7 @@ bool FUN_0043be20(void)
   }
   return *(short *)(unaff_ESI + 0x1e) != -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

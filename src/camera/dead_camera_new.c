@@ -26,6 +26,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern observer observers[1];                // 0x006ac65c
 extern random_seed effect_random_seed;        // 0x00719cd4, UNSURE: distinct from math's random_seed_global (0x00719cd0)
@@ -142,4 +145,7 @@ void camera_shake_initialize(int param_1)
   in_EAX[9] = uVar3;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

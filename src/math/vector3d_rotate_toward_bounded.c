@@ -63,6 +63,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double acos(double x);  // 0x628140, MSVC 7.1 CRT; see vector3d_rotate_toward_with_acceleration.c
 extern double cos(double x);   // x87 FCOS
@@ -551,4 +554,7 @@ LAB_00564cfb:
   param_1[2] = local_5c;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
@@ -64,3 +67,6 @@ uint8_t game_engine_king_initialize_for_new_game(void)
     game_engine_koth_reset_hill_marker_history();
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

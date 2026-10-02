@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module
 
@@ -100,4 +103,7 @@ No Ghidra function exists at 0x446e90. objdump -d -M intel (condensed):
   446fde: mov eax,[ebx+0x18] / mov [ebp+0x20],eax   ; fov = data->field_of_view
   446fe4: mov DWORD PTR [ebp+0x0],0x1               ; flags = valid
   446ff0: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

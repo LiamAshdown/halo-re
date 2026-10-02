@@ -28,6 +28,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t hwreq_token_match_keyword(const char *keyword, hwreq_parser *parser); // 0x00578fa0
 extern const char *hwreq_parser_evaluate_condition(hwreq_parser *parser, int32_t kind,
@@ -828,4 +831,7 @@ LAB_00579a26:
 switchD_00579953_default:
   return "Invalid";
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

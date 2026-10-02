@@ -22,6 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant_history_entry *game_variant_history; // 0x00687b0c
 extern uint32_t game_variant_history_count;              // 0x00687b10
@@ -200,4 +203,7 @@ uint game_engine_variant_add_to_history(char *param_1,undefined4 *param_2)
 LAB_00463a74:
   return (uint)in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

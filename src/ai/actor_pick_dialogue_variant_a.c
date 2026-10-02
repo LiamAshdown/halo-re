@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
@@ -98,4 +101,7 @@ no second fmul at all):
   424aad: dec eax / je 0x424aed           ; category == 2 -> fmul 0x672b84, fmul 0x672df0, fadd 0x672be4
   424ab0: dec eax / jne 0x424b57          ; category != 3 -> default (falls straight to the shared tail)
   424ab7: (category == 3) fmul 0x672b84, fmul 0x672ca8, fadd 0x672bc8
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;         // 0x00
@@ -39,3 +42,6 @@ void string_throw_length_error(void)
     exception.vtable = (uint32_t)&length_error_vtable;
     _CxxThrowException(&exception, length_error_throw_info);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

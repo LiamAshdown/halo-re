@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *antenna_data; // 0x008603ac
 
@@ -29,4 +32,7 @@ void antennas_initialize(void)
   DAT_008603ac = game_state_new("antenna",0xc);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

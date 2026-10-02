@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t heap_get_free_bytes(heap *self)
 {
@@ -36,4 +39,7 @@ int FUN_004d20f0(void)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

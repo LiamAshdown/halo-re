@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Computes the normalized (-1..1) screen-space clip rectangle (left, right, bottom, top) implied
 // by the frustum's current projection matrix, from its two diagonal scale terms and its
@@ -57,4 +60,7 @@ void FUN_0050ddc0(void)
   in_EAX[3] = (-fVar2 + 1.0) * fVar4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

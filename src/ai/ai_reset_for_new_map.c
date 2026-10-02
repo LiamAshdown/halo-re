@@ -15,6 +15,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr;       // 0x00880354
 extern data_array *actor_data;           // 0x00880360
@@ -113,4 +116,7 @@ void ai_reset_for_new_map(void)
   *(undefined1 *)((int)puVar3 + 1) = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

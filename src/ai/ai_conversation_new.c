@@ -17,6 +17,9 @@
 #include "game.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern game_time_globals *game_time;     // 0x006f1d6c
@@ -143,4 +146,7 @@ Real disassembly (0x431590-0x431678), used to recover the eviction path Ghidra d
 00431622: call   0x430ea0             ; ai_conversation_stop(best_handle, 0, 0)
 00431630: mov    eax,esi
 00431632: call   0x4d03d0             ; datum_new_at_index_with_salt(best_handle, ai_conversation_data)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x004d0630
 extern char hs_verify_source_offset(int32_t offset); // 0x004858a0, this batch
@@ -336,4 +339,7 @@ LAB_004859b1:
   DAT_006b15e0 = 0;
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

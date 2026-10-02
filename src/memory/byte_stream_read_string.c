@@ -7,6 +7,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stream in ECX
 // Reads a NUL-terminated string out of `stream` starting at the current cursor, returning its
@@ -62,4 +65,7 @@ int byte_stream_read_string(void)
   *(undefined1 *)(in_ECX + 3) = 1;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void msvc_string_assign_n(msvc_std_string *dest, const char *source, uint32_t length); // 0x57bc90, blam-cc: dest in ECX, source/length on the stack; library code, not in the function list
 extern hwreq_map_node *hwreq_map_find(msvc_std_map *map, msvc_std_string *key); // 0x57b7a0, blam-cc: map in EDI, key in ESI, iterator slot in EBX (folded into the return value); library code (std::map<string,T*>::find); returns the found node or the map's head sentinel
@@ -91,4 +94,7 @@ undefined4 FUN_005788f0(char *param_1)
   ExceptionList = local_c;
   return *(undefined4 *)(*piVar3 + 0x28);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t current_local_player_index; // 0x007c3108
 extern player_globals *local_player_globals;   // 0x0087a478, established in src/game/
@@ -166,4 +169,7 @@ void __cdecl hud_update_player(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *data_packet_group_error; // 0x006b7f00
 
@@ -122,4 +125,7 @@ data_packet_group_decode_packet
   DAT_006b7f00 = "got packet with bad type";
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

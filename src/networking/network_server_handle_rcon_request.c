@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct rcon_request_decode {
     char password[20];
@@ -182,4 +185,7 @@ LAB_004e4fb9:
   chimera__console_out("Ignoring rcon request from client #%d (empty command)",iVar7);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

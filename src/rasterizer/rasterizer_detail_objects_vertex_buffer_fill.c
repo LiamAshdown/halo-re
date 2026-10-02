@@ -20,6 +20,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_detail_object_vertex_buffer;                // 0x0071d1c8
 extern Scenario *global_scenario;                                   // 0x00746f8c
@@ -163,4 +166,7 @@ void FUN_0051b6f0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

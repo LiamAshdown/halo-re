@@ -19,6 +19,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void network_client_globals_dispose(void); // 0x4dde70
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -47,3 +50,6 @@ uint8_t ui_event_49d1b0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     network_host_handoff_requested = 0;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

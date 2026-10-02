@@ -14,6 +14,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char last_game_variant_path[0x100]; // 0x00721c49
 
@@ -80,4 +83,7 @@ undefined1 FUN_0053d3f0(int param_1)
   *(undefined1 *)(param_1 + 0xff) = 0;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

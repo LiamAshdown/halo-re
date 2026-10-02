@@ -24,6 +24,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -50,4 +53,7 @@ void missed_4bc460(uint param_1)
        *(undefined4 *)(DAT_006f1d6c + 0xc);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

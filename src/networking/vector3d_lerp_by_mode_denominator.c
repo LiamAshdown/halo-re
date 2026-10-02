@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t message_delta_vector3d_mode; // 0x0069b350, see message_delta_encode_vector3d.c
 
@@ -130,4 +133,7 @@ void FUN_004eb370(void)
   in_ECX[2] = (in_EAX[1] - fVar2) * (fVar3 / fVar1) + fVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

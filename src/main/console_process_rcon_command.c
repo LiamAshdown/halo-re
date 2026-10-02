@@ -12,6 +12,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t console_rcon_handle; // 0x006b2f1c
 
@@ -45,4 +48,7 @@ Disassembly (0x4c69a0..0x4c69b9):
 004c69ac:  add    esp,0x4
 004c69af:  mov    DWORD PTR ds:0x6b2f1c,0xffffffff  ; console_rcon_handle = -1
 004c69b9:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

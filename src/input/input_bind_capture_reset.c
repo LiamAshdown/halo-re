@@ -16,6 +16,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 
@@ -60,4 +63,7 @@ void input_bind_capture_reset(void)
   _DAT_007124bc = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

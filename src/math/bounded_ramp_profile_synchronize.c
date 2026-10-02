@@ -16,6 +16,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // x87 FSQRT
 extern double fabs(double x); // x87 FABS
@@ -138,4 +141,7 @@ void FUN_00564840(float param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

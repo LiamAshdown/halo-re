@@ -28,6 +28,9 @@
 #include "sound.h"
 #include "interface.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_disabled;       // 0x007252b6
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -272,4 +275,7 @@ Disassembly (0x549810..0x549960, capstone; phase-4 review):
 0x54995b: inc dword ptr [eax + 0x30]
 0x54995e: pop ecx
 0x54995f: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: profile in EDX, key in EBX
 // Searches the profile's four gamepad slots for one whose device_key matches key's device_key
@@ -83,4 +86,7 @@ int FUN_0053b6b0(void)
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

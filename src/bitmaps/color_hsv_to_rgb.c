@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDI -> hsv, ESI -> color; returns color in EAX (mov eax,esi at every exit)
 ColorRGB *color_hsv_to_rgb(real_hsv_color *hsv, ColorRGB *color)
@@ -123,4 +126,7 @@ void color_hsv_to_rgb(void)
   *unaff_ESI = fVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

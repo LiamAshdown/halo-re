@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 
@@ -291,4 +294,7 @@ undefined * FUN_00576180(void)
   _sprintf(&DAT_006ef91c,"%d,%d",uVar5 ^ (uint)(*(char *)(in_EAX + 0x40) != '\0') << 0x1d,uVar7);
   return &DAT_006ef91c;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

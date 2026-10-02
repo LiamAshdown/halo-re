@@ -29,6 +29,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x);
 extern const real_vector3d *global_up3d_pointer; // 0x00696720
@@ -423,4 +426,7 @@ LAB_00506c74:
   local_38 = pfVar9[3];
   goto LAB_00506c74;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

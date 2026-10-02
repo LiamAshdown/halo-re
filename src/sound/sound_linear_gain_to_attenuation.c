@@ -20,6 +20,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double log10(double x); // FYL2X with LG2, Ghidra's log2()+scale pseudo-call; see file header
 
@@ -100,4 +103,7 @@ Disassembly (0x545710..0x545757, capstone; phase-4 review):
 0x545753: mov eax, esi
 0x545755: pop esi
 0x545756: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

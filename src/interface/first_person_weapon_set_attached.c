@@ -20,6 +20,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 
@@ -98,4 +101,7 @@ Disassembly (objdump, 0x493e50..0x493e9c), which is what actually pins the regis
   8a 5c 24 0c          mov    0xc(%esp),%bl         ; reload attached (0) after ebx was clobbered
   88 1e                mov    %bl,(%esi)            ; fp->attached = 0
   5e/5b/c3             pop esi; pop ebx; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

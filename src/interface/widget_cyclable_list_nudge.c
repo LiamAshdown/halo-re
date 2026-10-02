@@ -19,6 +19,9 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget); // 0x4a1ff0
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90
@@ -96,4 +99,7 @@ LAB_004a20d6:
   widget_play_sound_effect();
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

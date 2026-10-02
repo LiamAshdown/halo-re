@@ -22,6 +22,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void path_append_component(char *destination, const char *component); // 0x555ec0, this module
 extern void path_remove_last_component(char *path); // 0x555f80, this module
@@ -83,4 +86,7 @@ undefined4 * FUN_005554c0(undefined4 *param_1,undefined4 param_2,char param_3)
   *(byte *)(param_1 + 1) = *(byte *)(param_1 + 1) | 1;
   return param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

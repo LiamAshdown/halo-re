@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *game_looping_sound_data; // 0x007461a0
 extern tag_instance *tag_instances;         // 0x0087bc14
@@ -104,4 +107,7 @@ Disassembly (0x544180..0x5441f2, capstone; phase-4 review):
 0x5441ea: fld dword ptr [esp + 4]
 0x5441ee: fstp dword ptr [ecx + 8]
 0x5441f1: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

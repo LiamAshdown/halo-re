@@ -23,6 +23,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // ai_group_bucket_entry now lives in types/ai.h (folded from this file).
 
@@ -105,4 +108,7 @@ int FUN_00420de0(short param_1)
   }
   return iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

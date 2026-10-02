@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void physics_shape_add_vertex_proxy(ModelCollisionGeometryBSP *bsp, uint32_t vertex_index,
     uint32_t object_index, real_matrix4x3 *matrix, float height_offset, float radius,
@@ -89,4 +92,7 @@ void FUN_00503d90(undefined4 param_1,undefined4 param_2,undefined4 param_3,undef
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_gametype_flag_satisfied(uint8_t bit_index, uint8_t flags); // 0x004835b0, this batch
 
@@ -93,4 +96,7 @@ byte FUN_00483600(void)
   }
   return bVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -50,6 +50,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void ***rasterizer_device; // 0x0071d174, foreign render module (read, not owned);
     // same global and access idiom as src/structures/structure_picked_polygon_draw.c
@@ -376,4 +379,7 @@ void network_stats_overlay_draw(void)
   (**(code **)(*DAT_0071d174 + 0x134))(DAT_0071d174,DAT_0069c680);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

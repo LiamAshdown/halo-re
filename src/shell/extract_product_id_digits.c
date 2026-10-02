@@ -13,6 +13,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t isdigit(int32_t c); // 0x62532f CRT
 extern long atol(const char *string); // CRT atol (0x62589e: skips isspace, optional sign, decimal digits)
@@ -94,4 +97,7 @@ long FUN_0057f360(void)
   lVar3 = _atol(local_c);
   return lVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

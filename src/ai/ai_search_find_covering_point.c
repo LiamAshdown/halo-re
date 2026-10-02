@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ESI -> list, EDX -> position, EBX -> exclude_index, stack -> extra_radius
 int16_t ai_search_find_covering_point(ai_search_obstacle_list *list, real_point2d *position,
@@ -60,4 +63,7 @@ short FUN_0043c890(float param_1)
   }
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

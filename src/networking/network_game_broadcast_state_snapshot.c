@@ -29,6 +29,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t network_challenge_packet_block[]; // 0x006b7f98, the reused message block
 extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version); // 0x4d0ae0
@@ -102,4 +105,7 @@ under-attributed calls:
   4e1ba9: call 0x440350               ; network_message_block_build(0x6b7f98, buffer, 3, length)
   4e1bc3: mov ecx,DWORD PTR [esp+0x640] ; server, from the saved-ESI prologue slot
   4e1bd2: call 0x4e19c0               ; network_session_broadcast_to_all(server, 0, block, 1, 0, 1, 3)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

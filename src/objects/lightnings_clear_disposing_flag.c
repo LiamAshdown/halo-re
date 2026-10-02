@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *lightning_instances; // 0x006b8d74
 
@@ -21,3 +24,6 @@ void lightnings_clear_disposing_flag(void)
         lightning_instances->valid = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

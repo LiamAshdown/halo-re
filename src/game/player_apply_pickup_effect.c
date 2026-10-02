@@ -25,6 +25,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;              // 0x0087a480
 extern data_array *object_data;           // 0x008603b0
@@ -172,4 +175,7 @@ void FUN_00479930(uint param_1,uint param_2)
   object_delete();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

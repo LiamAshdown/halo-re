@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: __cdecl, all parameters on the stack (0x447000, this module)
 extern double scalar_catmull_rom_interpolate(float value0, float value1, float value2,
@@ -63,4 +66,7 @@ void vector3d_catmull_rom_interpolate
   param_1[2] = (float)dVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES (folded into types/ai.h by the review pass): see note above.
 
@@ -98,4 +101,7 @@ undefined4 FUN_00402cf0(void)
   *(undefined1 *)((int)in_EDX + 5) = 0;
   return CONCAT31(uVar4,1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

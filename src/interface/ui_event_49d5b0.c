@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t local_player_count; // 0x006894b8
 extern uint8_t save_in_progress_00719010; // 0x00719010
@@ -26,3 +29,6 @@ uint8_t ui_event_49d5b0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     network_dispatch_initialize();
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

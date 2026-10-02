@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *antenna_data; // 0x008603ac
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -37,3 +40,6 @@ void antenna_render_callback(datum_index object_index, datum_index antenna_index
     self->update_counter = 0;
     antenna_render_geometry(tag, self);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

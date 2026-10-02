@@ -22,6 +22,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern rasterizer_frame_time rasterizer_time;                       // 0x007c1200
@@ -143,4 +146,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
 #if 0
 Original Ghidra decompilation (0x51dc50) -- see `python tools/pack.py 0x51dc50` for the full
 body; this rewrite is a low-confidence structural sketch, see file header.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

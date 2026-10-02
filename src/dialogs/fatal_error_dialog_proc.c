@@ -37,6 +37,9 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sprintf(char *buffer, const char *format, ...); // 0x623693 CRT
 
@@ -264,4 +267,7 @@ LAB_0057e826:
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

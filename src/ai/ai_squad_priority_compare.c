@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // qsort comparator that orders candidate entries by priority (descending) with a tie-break
 // on the leading tiebreak byte (ascending).
@@ -45,4 +48,7 @@ int __cdecl ai_squad_priority_compare(uchar *record_a,uchar *record_b)
   }
   return (uint)(*record_a < *record_b);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -26,6 +26,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t rasterizer_caps_flag_689;                 // 0x0069c689
 extern uint8_t rasterizer_water_enabled;         // 0x006893fe (also gates 0x534f80)
@@ -278,3 +281,6 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         }
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

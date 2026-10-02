@@ -22,6 +22,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern msvc_std_string *string_assign_substr(msvc_std_string *self, const msvc_std_string *right,
     uint32_t pos, uint32_t count); // 0x57b830, module=lib:crt, not this pass
@@ -69,4 +72,7 @@ int string_pair_construct_empty(int param_1)
   *unaff_FS_OFFSET = local_c;
   return param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

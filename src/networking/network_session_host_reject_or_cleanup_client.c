@@ -15,6 +15,9 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern int32_t network_console_connection_id; // 0x0069fdfc
@@ -87,4 +90,7 @@ undefined4 FUN_00575ff0(void)
   FUN_0061b3f0(DAT_0069fdfc);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

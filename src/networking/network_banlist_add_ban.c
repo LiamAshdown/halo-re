@@ -27,6 +27,9 @@
 #include "game.h"
 #include "networking.h"
 #include <time.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_console_connection_id; // 0x0069fdfc, "the rcon/console connection id" (networking.h)
 extern int32_t sv_ban_penalty_seconds[4]; // 0x00699574
@@ -161,4 +164,7 @@ And sv_ban.c's call site:
   4e3a1d: push ebx                    ; ebx = target_player (network_player_entry*)
   4e3a1e: mov ecx,ebp                 ; ebp = parsed duration, or 0
   4e3a20: call network_banlist_add_ban
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

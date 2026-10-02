@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t safe_mode; // 0x007196f4
 
@@ -147,4 +150,7 @@ void FUN_004957d0(void)
   FUN_005480f0(uVar1,*(char *)(unaff_ESI + 0xb7b) == '\x01',*(undefined1 *)(unaff_ESI + 0xb7d));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

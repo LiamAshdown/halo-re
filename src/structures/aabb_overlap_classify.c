@@ -26,6 +26,9 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> box_a, EDX -> box_b
 structure_bsp_overlap aabb_overlap_classify(real_rectangle3d *box_a, real_rectangle3d *box_b)
@@ -63,4 +66,7 @@ undefined4 aabb_overlap_classify(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

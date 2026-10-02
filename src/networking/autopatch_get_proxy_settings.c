@@ -32,6 +32,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct internet_proxy_info {       // Win32 INTERNET_PROXY_INFO
     uint32_t access_type;
@@ -318,4 +321,7 @@ LAB_00577171:
   }
   return &DAT_007227d0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

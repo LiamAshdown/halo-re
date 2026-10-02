@@ -14,6 +14,9 @@
 #include "hs.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // fopen: <stdio.h>, resolved to the game CRT at 0x624186 // 0x00624186, lib:crt (_fsopen wrapper), not this module
 extern void hs_format_function_signature(int16_t function_index, char *out); // 0x00484300, this batch
@@ -73,4 +76,7 @@ void __cdecl hs_doc(void)
   _fclose(_File);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

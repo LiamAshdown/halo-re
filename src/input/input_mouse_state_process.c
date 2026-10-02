@@ -20,6 +20,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t mouse_wheel_granularity;              // 0x006b1808
 extern int16_t mouse_button_map[k_input_mouse_button_count]; // 0x0068e534
@@ -117,4 +120,7 @@ Disassembly (objdump -d, 0x491bc0..0x491c45) resolving the button_pressed direct
   491c08: cmp    cl,[eax+0xc]    ; cl(0) vs old button_frames[mapped]
   491c0b: je     0x491c13        ; old frames == 0 too -> button_pressed = 0
   491c0d: movb   [eax+0x14],1    ; else (was held, now released) -> button_pressed = 1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

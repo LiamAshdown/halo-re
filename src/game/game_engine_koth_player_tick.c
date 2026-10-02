@@ -24,6 +24,9 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                  // 0x0087a480
 extern uint8_t king_hill_player_in_hill[16];     // 0x006b0f40
@@ -162,4 +165,7 @@ void FUN_0046ab00(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

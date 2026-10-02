@@ -36,6 +36,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t default_game_variant_count; // 0x00721328
 extern uint8_t savegame_index_dirty; // 0x00721447
@@ -277,4 +280,7 @@ void __cdecl playlist_profile_create_default_profiles_on_disk(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

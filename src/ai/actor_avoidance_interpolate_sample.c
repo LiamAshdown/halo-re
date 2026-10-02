@@ -28,6 +28,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> direction, EBX -> samples, stack -> count, values, out_index, out_value
 uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction,
@@ -134,4 +137,7 @@ uint FUN_00419240(float param_1,int param_2,float *param_3,float *param_4)
   } while ((short)(iVar8 + 1) < sVar6);
   return CONCAT22((short)((uint)(*pfVar2 * in_ECX[1] - *in_ECX * pfVar2[1]) >> 0x10),uVar10);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

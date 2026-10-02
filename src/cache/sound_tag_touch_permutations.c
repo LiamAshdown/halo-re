@@ -16,6 +16,9 @@
 
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -100,4 +103,7 @@ FUN_00443e10 (sound_cache_touch):
 00444ab1:  push 0x1                 ; pushed last  => first stack arg (allocate_if_missing)
 00444ab3:  xor bl,bl                ; wait_until_loaded = 0        (unaff_BL)
 00444ab5:  call 0x443e10            ; sound_cache_touch(1, 0, 0, &permutations[j])
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

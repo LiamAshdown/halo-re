@@ -37,6 +37,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
     void *field_bindings, const void *previous, void *destination);
@@ -152,4 +155,7 @@ void network_game_client_apply_received_update(undefined4 param_1,int *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

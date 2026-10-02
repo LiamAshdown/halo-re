@@ -13,6 +13,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_channel_transmit(network_channel *channel); // 0x4dd730, this batch
 extern void network_receive_queue_close_socket(network_receive_queue *queue); // 0x442040, this module
@@ -52,4 +55,7 @@ undefined4 FUN_004dd3f0(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

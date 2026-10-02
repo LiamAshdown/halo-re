@@ -26,6 +26,9 @@
 #include "math.h"
 #include "ai.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES (folded into types/ai.h by the review pass): see note above.
 
@@ -158,4 +161,7 @@ void FUN_00405390(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

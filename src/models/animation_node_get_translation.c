@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double floor(double x); // 0x623e40, MSVC CRT, see src/models/animation_overlay_interpolated_frame_orientations.c
 extern int16_t animation_keyframe_time_search(uint16_t *times, int16_t count, int16_t frame); // 0x4d6b10, this batch
@@ -162,4 +165,7 @@ void model_node_get_interpolated_translation
   param_4[2] = fVar2 * pfVar12[2] + fVar3 * pfVar7[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

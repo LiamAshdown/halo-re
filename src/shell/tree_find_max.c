@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 hwreq_map_node *tree_find_max(hwreq_map_node *node)
 {
@@ -44,4 +47,7 @@ void tree_find_max(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

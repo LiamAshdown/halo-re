@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const uint8_t sound_eax_property_set_guid[16];      // 0x0064e20c, IID for QueryInterface
 extern const uint8_t sound_eax20_listener_property_guid[16]; // 0x0064e2f0
@@ -514,4 +517,7 @@ Disassembly (0x54f270..0x54f6d6, capstone; phase-4 review):
 0x54f6d0: xor eax, eax
 0x54f6d2: pop ebp
 0x54f6d3: ret 8
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

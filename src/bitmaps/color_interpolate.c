@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float fabsf(float x); // x87 FABS
 
@@ -171,4 +174,7 @@ float * color_interpolate(float *param_1,uint param_2,float param_3)
   43f78b: pop    ebx
   43f78c: add    esp,0x24
   43f78f: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "physics.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> 0x0065c230 {0,0,0}
@@ -165,4 +168,7 @@ uint FUN_00575e30(uint param_1,float *param_2)
   }
   return (uint)fVar6 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

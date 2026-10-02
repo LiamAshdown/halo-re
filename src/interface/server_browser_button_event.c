@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void master_server_list_refresh_request(void);      // 0x4b6660
 extern void master_server_ensure_list_connection(void);    // 0x4b66c0
@@ -42,3 +45,6 @@ uint8_t server_browser_button_event(widget_instance *widget, int16_t *event, uin
     widget_play_sound_effect(2);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

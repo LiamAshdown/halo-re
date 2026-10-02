@@ -32,6 +32,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_time_milliseconds; // 0x00718f9c
@@ -213,4 +216,7 @@ void widget_initialize_from_tag(undefined2 param_1,undefined2 *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

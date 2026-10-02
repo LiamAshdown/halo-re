@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern controls_device_label controls_device_labels[0x10]; // 0x006932e8
 extern int32_t controls_device_label_count;                 // 0x00719440
@@ -64,4 +67,7 @@ void FUN_004b4830(wchar_t *param_1,undefined4 param_2)
   } while ((int)psVar1 < 0x6953e8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

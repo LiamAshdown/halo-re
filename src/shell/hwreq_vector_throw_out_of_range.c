@@ -13,6 +13,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_parse_exception {
     uint32_t vtable;         // 0x00
@@ -43,3 +46,6 @@ void hwreq_vector_throw_out_of_range(void)
     exception.vtable = (uint32_t)&out_of_range_vtable;
     _CxxThrowException(&exception, out_of_range_throw_info);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t *out_width, int16_t *out_height);
     // 0x523f10, blam-cc: EAX, EBX, stack
@@ -186,4 +189,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
 #if 0
 Original Ghidra decompilation: see `python tools/pack.py 0x524590`; the rewrite above was compared instruction by instruction with
 the disassembly.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t profile_slot_lookup_cache_00692ac8; // 0x00692ac8, TYPES-GAP
 extern int32_t ui_list_current; // 0x00692c04
@@ -65,3 +68,6 @@ uint8_t ui_event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_ha
     widget_play_sound_effect(4);
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
@@ -51,3 +54,6 @@ char hs_parse_string_arguments(int16_t function_index, datum_index node_index)
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

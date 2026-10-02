@@ -15,6 +15,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (control, event, cursor)
 // Uncompressed (v1..v3) event type 6: copies event->throttle.i / .j into control->throttle.i / .j,
@@ -43,4 +46,7 @@ void FUN_0044a6d0(int param_1,int param_2,int *param_3)
   *param_3 = *param_3 + 0xc;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t selected_saved_item;      // 0x00714e7c
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8 (validation_mode at 0x00719410)
@@ -82,4 +85,7 @@ char FUN_00495cf0(void)
   }
   return cVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

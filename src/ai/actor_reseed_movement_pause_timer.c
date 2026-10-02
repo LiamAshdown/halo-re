@@ -17,6 +17,9 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern uint32_t random_seed_global; // 0x00719cd0
@@ -72,4 +75,7 @@ void FUN_004104e0(uint param_1)
   *(undefined2 *)((param_1 & 0xffff) * 0x724 + iVar1 + 0x5f4) = uVar2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

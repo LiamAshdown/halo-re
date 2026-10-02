@@ -23,6 +23,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern uint8_t debug_print_enabled_flag; // 0x00689412, compared against 0x45 ('E'?); UNSURE identity
@@ -219,4 +222,7 @@ code_r0x0045d5d3:
   if (iVar2 < 0) goto LAB_0045d61b;
   goto LAB_0045d5c0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

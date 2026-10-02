@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // x87 FSQRT
 
@@ -68,4 +71,7 @@ float * FUN_0044d950(void)
   in_ECX[2] = 0.0;
   return (float *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cseries.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Thin wrapper allocating a fixed (GMEM_FIXED, flags=0) block of `size` bytes via GlobalAlloc.
@@ -37,4 +40,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe):
   449371: push 0x0
   449373: call DWORD PTR ds:0x63a0b0    ; GlobalAlloc(0, size)
   449379: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

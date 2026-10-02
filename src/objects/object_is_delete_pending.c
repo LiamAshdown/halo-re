@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -39,4 +42,7 @@ uint FUN_004f5c10(void)
                   *(byte *)(*(int *)(DAT_008603b0 + 0x34) + 2 + (in_EAX & 0xffff) * 0xc) >> 3) &
          0xffffff01;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

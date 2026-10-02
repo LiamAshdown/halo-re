@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t network_game_option_a_00719210; // 0x00719210, TYPES-GAP
 extern uint32_t network_game_option_b_00719214; // 0x00719214, TYPES-GAP
@@ -50,3 +53,6 @@ uint8_t ui_event_4a3a70(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return result;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

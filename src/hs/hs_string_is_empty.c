@@ -11,6 +11,9 @@
 // inlined library idioms (see e.g. src/hs/hs_report_expected_enum_values.c's strcat/strcpy).
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns nonzero if `s` is the empty string.
 char hs_string_is_empty(char *s)
@@ -37,4 +40,7 @@ undefined4 hs_string_is_single_char(char *param_1)
                     );
   return local_4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary // 0x0069fa48, this module
 extern void **rasterizer_dynamic_index_buffer; // 0x006e09e8, physics.h/objects.h (read, not owned)
@@ -97,4 +100,7 @@ int chimera__bsp_poly_movsx_2(undefined4 param_1)
   }
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

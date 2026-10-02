@@ -20,6 +20,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index ui_cursor_bitmap; // 0x0068e67c
 extern uint8_t ui_widget_opened;     // 0x00718fc8
@@ -165,4 +168,7 @@ int chimera__load_ui_widget
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

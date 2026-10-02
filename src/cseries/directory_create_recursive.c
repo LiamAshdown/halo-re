@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "cseries.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Creates `path` and every missing parent directory along it. If `path` already exists (per
@@ -131,4 +134,7 @@ LAB_0044934c:
   SetErrorMode(uMode);
   return local_105;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

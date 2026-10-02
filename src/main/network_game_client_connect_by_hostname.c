@@ -31,6 +31,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern void *connect_thread;   // 0x00719b64, this module; HANDLE of the worker thread, 0 when idle
@@ -164,4 +167,7 @@ LAB_004c84d9:
   DAT_00719b64 = 0;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

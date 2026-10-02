@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t collision_bsp_surface_get_vertices(ModelCollisionGeometryBSP *bsp,
                                                     int32_t surface_index,
@@ -143,4 +146,7 @@ void FUN_00503c50(int param_1,undefined4 param_2,undefined4 param_3,int param_4,
                *(undefined1 *)(iVar1 + 9),*(undefined2 *)(iVar1 + 10),param_5);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

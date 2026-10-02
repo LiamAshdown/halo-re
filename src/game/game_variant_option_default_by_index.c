@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> selector
 // Returns one of eight hardcoded 32-bit constants selected by `selector` (0..7), or 0x249248
@@ -91,4 +94,7 @@ Raw disassembly (objdump -d -M intel --start-address=0x465380 --stop-address=0x4
 004653bb:  ret
 004653bc:  mov eax,0x249248
 004653c1:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

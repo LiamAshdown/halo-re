@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char registry_halo_version_buffer[0x40]; // 0x006ef968
 
@@ -75,4 +78,7 @@ undefined4 * registry_get_halo_version(void)
   RegCloseKey(local_8);
   return &DAT_006ef968;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

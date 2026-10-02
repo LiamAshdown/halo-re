@@ -9,6 +9,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern periodic_function_table *periodic_function_tables[12]; // 0x006b7aa8
@@ -59,4 +62,7 @@ void __cdecl periodic_function_tables_free(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

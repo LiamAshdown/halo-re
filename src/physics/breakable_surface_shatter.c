@@ -28,6 +28,9 @@
 #include "bitmaps.h"
 #include "physics.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t breakable_surfaces_enabled;                          // 0x00689470, the breakable_surfaces global
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;   // 0x00746f98
@@ -466,3 +469,6 @@ void breakable_surface_shatter(uint16_t breakable_surface_index, damage_data *da
         sound_play_new(I32(shatter, 0x2c), &location, k_datum_index_none, 0, 0, 0, 0);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

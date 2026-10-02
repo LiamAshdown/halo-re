@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void network_client_rejoin_check(int8_t machine_player_index); // 0x4de390
 
@@ -24,3 +27,6 @@ uint8_t ui_event_4a10f0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     network_client_rejoin_check((int8_t)event[1]);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

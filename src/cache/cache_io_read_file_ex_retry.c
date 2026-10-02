@@ -29,6 +29,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // The Win32 ReadFileEx signature, as this function calls it through the pointer it is handed.
@@ -151,4 +154,7 @@ Raw disassembly (0x442c70-0x442cdc), objdump -d -M intel --start-address=0x442c7
 00442cd9: je 0x442cb2                       ; retry forever
 00442cdb: pop ebp
 00442cdc: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

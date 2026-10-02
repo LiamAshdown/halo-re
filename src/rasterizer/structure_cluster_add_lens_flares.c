@@ -22,6 +22,9 @@
 #include "math.h"
 #include "cache.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t unknown_006893ff;                                    // 0x006893ff UNSURE: lens flares enable toggle
 extern int16_t unknown_00719aac;                                    // 0x00719aac UNSURE: at most 1 allowed
@@ -112,4 +115,7 @@ void FUN_00513a00(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // *out = clamp(lerp(a, b, t), 0, 1)
 void real_lerp_clamped(real *out, real a, real b, real t)
@@ -46,4 +49,7 @@ void real_lerp_clamped(float param_1,float param_2,float param_3)
   *in_ECX = fVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

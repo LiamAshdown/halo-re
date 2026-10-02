@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_autocomplete_test_candidate(char *candidate); // 0x00483690, this batch
 
@@ -32,4 +35,7 @@ void FUN_00483840(void)
   FUN_00483690();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

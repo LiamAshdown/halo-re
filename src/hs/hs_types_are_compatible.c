@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_type_mask_is_subset(int16_t subtype_index, int16_t supertype_index);
     // this module, 0x48ac60
@@ -78,4 +81,7 @@ undefined1 hs_types_are_compatible(void)
   }
   return false;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

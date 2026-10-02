@@ -20,6 +20,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *hs_camera_control_pointer;                 // 0x0087bc0c, hs module
 extern player_globals *local_player_globals;               // 0x0087a478
@@ -191,4 +194,7 @@ objdump for the register arguments Ghidra dropped:
   445e51: xor bl,bl / mov eax,edi / call 0x445c00       ; director_update_seat_camera(i, 0)
   445e74: push -1 / lea eax,[esi+0xc] / mov edx,edi / call 0x4450e0   ; dead_camera_new
   445ea9: mov edx,ds:0x6b145c / shl ebp,6 / mov ecx,[edx+ebp+0x10] / call 0x445b20
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

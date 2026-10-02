@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t network_bandwidth_graph_default_interval_ms; // 0x006894b0
 
@@ -59,4 +62,7 @@ void network_bandwidth_graph_instance_init(undefined4 param_1,undefined4 param_2
   FUN_004d7e20(1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

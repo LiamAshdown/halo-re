@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_win32_attached; // 0x006b2f18
 extern void *console_input_handle;     // 0x006b2dcc, win32 console input handle (not otherwise named)
@@ -111,4 +114,7 @@ arguments since Ghidra's decompile above drops them entirely:
   496d14: movzx  eax,WORD PTR [esp+0x1a]      ; eax = uChar
   496d19: mov    ecx,0x102                    ; WM_CHAR
   496d1e: call   0x490d10                     ; input_record_windows_key_message(uChar, 0x102)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

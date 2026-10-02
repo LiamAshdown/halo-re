@@ -13,6 +13,9 @@
 #include "networking.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server; // 0x0071c2d4
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine,
@@ -39,3 +42,6 @@ void network_session_host_cd_key_callback(int32_t game_id, int32_t local_id, int
     }
     network_server_notify_or_resend_challenge(4, machine, server);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

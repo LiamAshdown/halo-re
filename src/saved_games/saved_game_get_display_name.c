@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t saved_game_display_name_buffer[0x80]; // 0x006e3008
 
@@ -66,4 +69,7 @@ undefined * FUN_0053c600(void)
   }
   return &DAT_006e3008;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

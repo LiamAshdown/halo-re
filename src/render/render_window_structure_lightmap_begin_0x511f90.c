@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t console_debug_toggle_6893e4; // 0x006893e4
 extern uint8_t console_debug_toggle_6893f7; // 0x006893f7
@@ -31,3 +34,6 @@ void render_window_structure_lightmap_begin_0x511f90(void *bitmap_data)
         rasterizer_lightmap_bitmap_missing = 1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

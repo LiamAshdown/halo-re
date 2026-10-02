@@ -34,6 +34,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t game_engine_teams_enabled_flag; // 0x006f1cbc, UNSURE: nonzero -> "secondary control word in use", see below
 extern uint8_t g_control_binding_state;     // 0x008607a0, UNSURE: not independently typed
@@ -140,4 +143,7 @@ void FUN_004f3700(void)
   } while ((int)local_4 < 0x860484);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

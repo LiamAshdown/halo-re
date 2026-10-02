@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *flying_camera_render_frame;                    // 0x00686aa4 -> 0x007c3100; +0x14 is a render_camera
 extern editor_camera_data flying_camera_saved_flying;       // 0x006f1830
@@ -60,4 +63,7 @@ No Ghidra function exists at 0x446a10. objdump -d -M intel:
   446a59: fld [ecx+0x24] / fld [ecx+0x20] / fpatan / fstp [eax+0xc]   ; yaw
   446a66..446a85: atan2(forward.k, sqrt(i*i + j*j)) -> [eax+0x10]     ; pitch
   446a8a: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "cache.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;            // 0x0087bc14
 
@@ -141,4 +144,7 @@ arguments Ghidra could not name:
   b8 58 5c 6b 00       mov    eax,0x6b5c58
   5e                   pop    esi
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

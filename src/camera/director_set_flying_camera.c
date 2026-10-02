@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern director directors[1]; // 0x006ac560
 
@@ -59,4 +62,7 @@ objdump for the call Ghidra left without arguments:
   445f5d: push eax             ; local_player_index (still the AX argument)
   445f5e: lea eax,[esi+0xc]    ; &directors[i].data
   445f61: call 0x446350
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

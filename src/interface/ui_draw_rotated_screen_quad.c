@@ -27,6 +27,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fsin(double x); // FSIN
 extern double fcos(double x); // FCOS
@@ -191,4 +194,7 @@ void FUN_00494d70(int param_1,float *param_2,float param_3,float param_4)
   FUN_0051c9a0(local_60);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -39,6 +39,9 @@
 #include "game.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: mirrors types/units.h unit_speech (0x30 bytes) but names the tail three fields
 // this call site actually writes (documented as always-zero padding for the other builder).
@@ -313,4 +316,7 @@ LAB_00432046:
 LAB_004320ed:
   return CONCAT31((int3)(uVar3 >> 8),*(undefined1 *)(iVar7 + 99));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

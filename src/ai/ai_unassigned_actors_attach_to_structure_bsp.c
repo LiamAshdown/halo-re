@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr;          // 0x00880354
 extern data_array *actor_data;              // 0x00880360
@@ -43,3 +46,6 @@ void ai_unassigned_actors_attach_to_structure_bsp(void)
         actor_index = next;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

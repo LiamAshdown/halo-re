@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *flag_data; // 0x008603a8
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -37,3 +40,6 @@ void flag_render_callback(datum_index object_index, datum_index flag_index, uint
         flag_render((uint32_t *)self, (uint32_t *)arg3, tag, (uint8_t *)arg4);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -16,6 +16,9 @@
 #include "game.h"
 #include "objects.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -100,3 +103,6 @@ uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_in
     }
     return queued;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

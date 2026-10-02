@@ -19,6 +19,9 @@
 #include "game.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // wcsncpy (0x00627a94 wcsncpy) comes from <wchar.h>; memset is inlined by the compiler.
 extern data_array *player_data; // 0x0087a480
@@ -150,4 +153,7 @@ void FUN_0045e520(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

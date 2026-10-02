@@ -34,6 +34,9 @@
 #include "networking.h"
 #include <string.h>
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sin(double x); // FSIN
 extern double cos(double x); // FCOS
@@ -441,4 +444,7 @@ code_r0x004de0ae:
   if (iVar5 == 0) goto LAB_004de306;
   goto LAB_004de0a8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

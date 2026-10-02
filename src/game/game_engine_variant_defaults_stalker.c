@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Fills a game-variant options block with this built-in multiplayer game type's
 // hardcoded default settings. The block is zeroed first (which is also the default
@@ -133,4 +136,7 @@ void FUN_00467450(undefined4 *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

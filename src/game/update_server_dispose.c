@@ -32,6 +32,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *update_server_queues; // 0x006f1d90
 extern data_array *player_data;          // 0x0087a480
@@ -146,4 +149,7 @@ bin/halo.exe of the loop body Ghidra discarded (esi=update_server_queues per ite
   472c65: call 0x479f40                                              ; player_update_queue_create(esi)
   472c6a: lea edi,[esp+0x14] ; call data_iterator_next ; loop
   472c7d: call update_client_dispose (0x472fa0)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

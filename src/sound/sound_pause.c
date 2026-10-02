@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_paused;    // 0x00725202
 extern sound_driver *current_sound_driver; // 0x00725208
@@ -70,4 +73,7 @@ Disassembly (0x548170..0x54819e, capstone; phase-4 review):
 0x548193: call dword ptr [eax + 0x28]
 0x548196: add esp, 4
 0x548199: jmp 0x443fd0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

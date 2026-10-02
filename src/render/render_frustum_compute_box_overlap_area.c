@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Projects a view-space axis-aligned box (as seen at both its nearest and farthest z) onto the
 // screen and returns the area of its clamped (-1..1) NDC bounding rectangle as a fraction of the
@@ -186,4 +189,7 @@ float10 FUN_0050dac0(void)
   }
   return (float10)0.0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

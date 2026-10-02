@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: out -> EAX, screen -> ECX
 void controls_gamepad_widget_nodes_collect(widget_instance **out, widget_instance *screen)
@@ -106,4 +109,7 @@ void FUN_004b5560(void)
   in_EAX[0x10] = *(int *)(iVar1 + 0x2c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index *light_cluster_first; // 0x00860b20
 extern data_array *light_cluster_references; // 0x00860b24
@@ -30,3 +33,6 @@ datum_index light_cluster_iterate_begin(datum_index *cursor, int16_t cluster_ind
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

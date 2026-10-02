@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index hs_tokenize(char **cursor); // 0x00486120, this batch
 extern void skip_whitespace(char **cursor); // 0x00486350, this batch
@@ -126,4 +129,7 @@ LAB_00486328:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

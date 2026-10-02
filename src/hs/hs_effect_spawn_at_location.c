@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fcos(double x); // CRT
 extern double fsin(double x);
@@ -77,4 +80,7 @@ void FUN_00488870(undefined4 param_1)
                ,0,1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

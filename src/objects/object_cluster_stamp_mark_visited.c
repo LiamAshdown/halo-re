@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern int32_t object_cluster_stamp; // 0x008603cc
@@ -28,3 +31,6 @@ uint8_t object_cluster_stamp_mark_visited(datum_index object_index)
     *(int32_t *)(object + 0x14) = object_cluster_stamp;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

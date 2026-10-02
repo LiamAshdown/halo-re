@@ -18,6 +18,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void particle_system_update_physics_default(particle_system *system, real dt); // 0x4552a0, this batch
 
@@ -36,4 +39,7 @@ Original Ghidra decompilation (0x4554d0):
 Raw objdump (bin/halo.exe):
 
 004554d0:  e9 cb fd ff ff    jmp    0x4552a0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

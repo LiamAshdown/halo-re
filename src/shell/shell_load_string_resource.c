@@ -19,6 +19,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Loads Win32 string-table resource entry `id` (block (id>>4)+1, index id&0xf) from `module` for
@@ -115,4 +118,7 @@ int shell_load_string_resource(LPSTR param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sound_cache_decode_permutation(SoundPermutation *permutation); // 0x443d60, this module
 
@@ -49,4 +52,7 @@ Raw disassembly (Ghidra did not give this address a function boundary):
   443e04: 8b 48 08       mov    ecx,DWORD PTR [eax+0x8]
   443e07: 8b 41 0c       mov    eax,DWORD PTR [ecx+0xc]
   443e0a: e9 51 ff ff ff jmp    0x443d60
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -8,6 +8,9 @@
 #include "message_delta_codec.h"
 
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t message_delta_wide_string_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
@@ -25,3 +28,6 @@ int32_t message_delta_wide_string_encode(message_delta_field_type *field_type, v
     }
     return bits;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

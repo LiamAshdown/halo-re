@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // RSA reference MD5_CTX (layout from 0x61a5a0/0x61a660: state +0x00, bit count +0x10, buffer +0x18; 0x58 bytes, which
 // md5_final zeroes as 0x16 dwords)
@@ -38,3 +41,6 @@ void md5_hex_digest(const uint8_t *data, int32_t length, char *out)
     md5_final(digest, &context);
     md5_digest_to_hex(digest, out);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

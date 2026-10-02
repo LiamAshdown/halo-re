@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // FIXED 2026-09-28 (retail-independence loop), from objdump 0x466530..0x4665f5: every string_format_wide_va_bounded
 //   call passes its character count in EDX (0x40 for the two parts, the caller's second argument -- 0x100 at every
@@ -68,4 +71,7 @@ void game_time_format_minutes_seconds(undefined4 param_1,undefined4 param_2)
   string_format_wide_va_bounded(param_2,L"%s:%s",local_80,local_100);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

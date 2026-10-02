@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_global_reference hs_find_global_by_name(char *name); // 0x00483480, this batch
 extern char *hs_global_get_name(hs_global_reference global); // 0x00483450, this batch
@@ -129,4 +132,7 @@ LAB_00486647:
   *(byte *)(iVar1 + 6) = *(byte *)(iVar1 + 6) | 4;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

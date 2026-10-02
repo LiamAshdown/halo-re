@@ -12,6 +12,9 @@
 #include "math.h"
 #include "hs.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
@@ -36,3 +39,6 @@ void hs_evaluate_unit_is_playing_custom_animation(int16_t function_index, uint32
         hs_thread_return((int32_t)(uint8_t)(playing), thread_index);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

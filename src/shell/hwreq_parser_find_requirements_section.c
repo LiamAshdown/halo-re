@@ -17,6 +17,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target); // 0x57af10
 
@@ -119,4 +122,7 @@ bool hwreq_parser_find_requirements_section(void)
   cVar2 = hwreq_parser_parse_block(unaff_ESI,*(undefined4 *)(unaff_ESI + 0x1c));
   return cVar2 != '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

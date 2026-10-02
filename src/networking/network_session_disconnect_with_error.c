@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_join_error_code; // 0x00718fa4, the pending join/disconnect error
                                         // string index; -1 means none. WORD-sized everywhere
@@ -45,4 +48,7 @@ void FUN_004d97e0(void)
   chat_close();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

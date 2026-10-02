@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 extern network_server_globals *network_server;
@@ -168,4 +171,7 @@ void FUN_0046d060(int param_1,int param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

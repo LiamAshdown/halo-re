@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t debug_sound;         // 0x00724a4d
 extern data_array *sound_data;      // 0x007252c0, "sounds" 0x200 x 0xb0
@@ -89,4 +92,7 @@ Disassembly (0x54e6d0..0x54e731, capstone; phase-4 review):
 0x54e727: add esp, 0x1c
 0x54e72a: add esp, 0x200
 0x54e730: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

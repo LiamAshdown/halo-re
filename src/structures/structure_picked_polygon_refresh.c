@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 extern int16_t visible_surface_count;   // 0x00850394: every store in the binary is
@@ -129,4 +132,7 @@ void FUN_005527f0(void)
   _DAT_006e3aec = *(undefined4 *)(PTR_DAT_00696714 + 8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

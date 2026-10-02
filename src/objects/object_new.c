@@ -23,6 +23,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -55,4 +58,7 @@ void FUN_004f5460(void)
   object_new_with_datum_role_control();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

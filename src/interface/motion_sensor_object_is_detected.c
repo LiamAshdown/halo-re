@@ -26,6 +26,9 @@
 #include "objects.h"
 #include "units.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
@@ -144,4 +147,7 @@ LAB_004b3772:
 LAB_004b3784:
   return CONCAT31((int3)(uVar6 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

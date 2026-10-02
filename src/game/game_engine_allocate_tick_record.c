@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base;    // 0x006e2dc8 (saved_games)
 extern int32_t game_state_cursor;   // 0x006e2dcc (saved_games)
@@ -60,4 +63,7 @@ void __cdecl game_engine_allocate_tick_record(void)
   puVar1[7] = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

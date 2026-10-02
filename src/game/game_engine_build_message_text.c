@@ -29,6 +29,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 
@@ -67,4 +70,7 @@ void FUN_00460890(undefined4 param_1,undefined4 param_2)
   game_engine_build_kill_feed_message_text(param_2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

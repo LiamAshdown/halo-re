@@ -34,6 +34,9 @@
 #include "interface.h"
 #include <string.h>
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern map_list_entry *map_list;     // 0x00712dcc
 extern int32_t map_list_count;       // 0x00712dd0
@@ -189,4 +192,7 @@ void chimera__load_multiplayer_maps(undefined4 param_1)
   DAT_00712dd0 = DAT_00712dd0 + 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

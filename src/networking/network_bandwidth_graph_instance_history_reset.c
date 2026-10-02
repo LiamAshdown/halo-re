@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ESI -> graph
 void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph)
@@ -95,4 +98,7 @@ void FUN_004d8080(void)
   *unaff_ESI = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

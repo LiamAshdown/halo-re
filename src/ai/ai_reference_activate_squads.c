@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void encounter_spawn_squads(uint32_t encounter_index, int32_t platoon_filter,
                                                 int32_t squad_filter); // 0x437510, this batch
@@ -60,4 +63,7 @@ void FUN_00432b80(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

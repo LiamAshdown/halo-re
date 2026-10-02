@@ -29,6 +29,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: the caller-owned output record this function fills, one per adjacent edge.
 // Ghidra shows every field written via `(int)float_value` (a truncating cast, not a
@@ -125,4 +128,7 @@ void FUN_0043b1c0(int param_1,int param_2)
   } while (iVar9 != *(int *)(iVar1 + 4));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

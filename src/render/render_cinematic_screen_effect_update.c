@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float rasterizer_default_z_near;      // 0x0069c65c, rasterizer.h (R11)
 extern float rasterizer_default_z_far;       // 0x0069c660, rasterizer.h (R11)
@@ -73,4 +76,7 @@ Confirmed as a plain tail jump (register-preserving) via objdump:
   fucompp
   ...
   jmp    0x517470
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

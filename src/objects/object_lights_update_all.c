@@ -40,6 +40,9 @@
 #include "game.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *light_data; // 0x00860b14
@@ -332,4 +335,7 @@ Original Ghidra decompilation (0x4f133c): see out/functions.json / tools/pack.py
 full 694-byte listing (omitted here for length). This is the direct continuation of
 object_lights_update_all's own per-light loop; every field access and call above was transcribed from
 it, with the same render-queue record copy left unmodeled as in object_lights_update_all.c.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

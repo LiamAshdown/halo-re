@@ -28,6 +28,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner); // this batch
 extern void block_list_unlink(void **payload_ptr, memory_pool *arena); // this batch
@@ -119,4 +122,7 @@ undefined4 block_list_reallocate(int param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

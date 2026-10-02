@@ -23,6 +23,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name); // 0x432200, this batch
@@ -139,4 +142,7 @@ LAB_00432406:
   *param_1 = local_24;
   return local_24 != 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

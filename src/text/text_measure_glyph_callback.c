@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Rectangle2D text_measure_bounds;             // 0x006e4714, top, left, bottom, right
 extern uint32_t text_measure_font;                  // 0x006e471c, Font*
@@ -79,4 +82,7 @@ objdump -d -M intel bin/halo.exe, 0x556260..0x5562cc (no Ghidra function at this
   5562c5:	mov    ds:0x6e471c,eax
   5562ca:	pop    esi
   5562cb:	ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

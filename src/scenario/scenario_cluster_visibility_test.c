@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 
@@ -66,4 +69,7 @@ Raw disassembly (0x53eb60-0x53eba0):
   53eb9d: neg    eax
   53eb9f: pop    esi
   53eba0: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

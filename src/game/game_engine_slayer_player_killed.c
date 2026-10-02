@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern int16_t network_game_mode; // 0x00719720
@@ -59,3 +62,6 @@ void game_engine_slayer_player_killed(datum_index killer, datum_index death_obje
     }
     game_engine_slayer_add_score(killer, 1);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

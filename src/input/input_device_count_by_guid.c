@@ -15,6 +15,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t input_device_count;    // 0x006b1844
 extern input_device input_devices[8]; // 0x006b1868
@@ -83,4 +86,7 @@ int FUN_00491d30(int *param_1)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

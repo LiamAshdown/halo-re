@@ -31,6 +31,9 @@
 #include "interface.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 
@@ -153,4 +156,7 @@ void __cdecl network_game_client_connect_to_resolved_address(void)
   DAT_00719a79 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "math.h"
 #include "ai.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;  // 0x00880360, 0x724-byte actors
 extern data_array *prop_data;   // 0x008802c0, 0x138-byte props
@@ -42,3 +45,6 @@ uint8_t ai_dialogue_condition_42f4f0(datum_index object_index, uint32_t param_2,
     }
     return (uint8_t)(*(int16_t *)(p + 0x38) != 0 && *(int16_t *)(p + 0x38) != 1);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

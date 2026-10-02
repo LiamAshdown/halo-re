@@ -34,6 +34,9 @@
 #include "interface.h"
 #include "objects.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0, "objects"
 extern tag_instance *tag_instances;  // 0x0087bc14, types/cache.h, stride 0x20, tag data at +0x14
@@ -281,4 +284,7 @@ the field-offset chain used above:
   e8 17 12 0b 00       call   0x543ce0
   83 c4 10             add    $0x10,%esp
   5e/5f/59/c3           pop esi; pop edi; pop ecx; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -8,6 +8,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t message_delta_vector3d_mode; // 0x0069b350, nonzero picks the first bit widths
 
@@ -69,3 +72,6 @@ int32_t message_delta_velocity_encode(message_delta_field_type *field_type, void
     total += bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[2], bits);
     return total;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void objects_garbage_collection(void); // objects module, 0x4f9c60
 extern void block_list_compact(memory_pool *arena); // 0x4d1eb0, EBX
@@ -108,4 +111,7 @@ LAB_00488841:
     uVar2 = local_8;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

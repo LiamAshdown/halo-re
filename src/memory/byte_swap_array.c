@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: size code in EAX, array in ECX, count in EDX
 // In-place byte-swaps `count` elements of size 8, 4, or 2 bytes (selected by `size_code`, one of
@@ -105,4 +108,7 @@ void byte_swap_array(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

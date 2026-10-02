@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
@@ -177,4 +180,7 @@ Disassembly (0x54e4d0..0x54e5cb, capstone; phase-4 review):
 0x54e5c6: mov dword ptr [esi + 8], edx
 0x54e5c9: pop ecx
 0x54e5ca: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

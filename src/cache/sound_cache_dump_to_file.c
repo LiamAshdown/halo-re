@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "cache.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sound_cache_page_count;   // 0x006f17e4
 extern struct cache *sound_cache;        // 0x006ac530
@@ -277,4 +280,7 @@ void sound_cache_dump_to_file(void)
   GlobalFree(hMem);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

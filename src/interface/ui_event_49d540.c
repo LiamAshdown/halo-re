@@ -20,6 +20,9 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t local_team_00714dd8; // 0x00714dd8, TYPES-GAP
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc]; // 0x00714ddc, TYPES-GAP
@@ -60,3 +63,6 @@ uint8_t ui_event_49d540(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // True if `server`'s join password is not the empty string.
@@ -34,4 +37,7 @@ bool FUN_004e08e0(void)
   iVar1 = _wcsncmp((wchar_t *)(in_EAX + 0x9fc),L"",8);
   return iVar1 != 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

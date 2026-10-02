@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
@@ -64,4 +67,7 @@ void actor_snapshot_orientation(void)
   *(undefined2 *)(iVar2 + 0x6ec) = 0xffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

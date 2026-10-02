@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t hs_find_function_by_name(char *name); // 0x00483520, this batch
 extern int16_t hs_script_find_by_name(char *name); // 0x004833a0, this batch
@@ -90,4 +93,7 @@ void hs_resolve_identifier_as_function_or_script(void)
   *(undefined2 *)(iVar1 + 2) = *(undefined2 *)(iVar2 + 2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

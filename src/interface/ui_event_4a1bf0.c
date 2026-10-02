@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t main_menu_music_pending; // 0x00718fc6
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550, blam-cc: EDI group
@@ -32,3 +35,6 @@ uint8_t ui_event_4a1bf0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern observer observers[1]; // 0x006ac65c
 
@@ -38,4 +41,7 @@ undefined4 * camera_get_globals_for_player(void)
   }
   return puVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

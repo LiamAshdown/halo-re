@@ -16,6 +16,9 @@
 
 #include "tags.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;              // 0x00746fa0
 extern uint8_t material_table_warning_issued;      // 0x00721e4c, owned by types/physics.h
@@ -79,4 +82,7 @@ Raw disassembly (0x53e7c0-0x53e806):
   53e7fa: mov    BYTE PTR ds:0x721e4c,0x1
   53e801: mov    eax,0x6e3208
   53e806: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

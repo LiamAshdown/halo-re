@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *decal_data; // 0x0087abe4
 extern datum_index decal_vertex_cache_last_queried; // 0x0069c6b0
@@ -22,3 +25,6 @@ uint8_t decal_vertex_cache_in_use(datum_index handle)
     decal_vertex_cache_last_queried = handle;
     return (element[2] & 3) != 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

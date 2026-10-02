@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 extern int32_t last_input_device;                // 0x0087a460
@@ -95,4 +98,7 @@ surrounding batch); reconstructed here from objdump 0x48bde0..0x48be43:
           mov    edx,[ebx+4]; mov [ebp+4],edx
           mov    ecx,[ebx+8]; mov [ebp+8],ecx
 0048be3f: pop edi; pop esi; pop ebp; pop ebx; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

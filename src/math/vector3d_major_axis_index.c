@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x);
 
@@ -22,3 +25,6 @@ int16_t vector3d_major_axis_index(real_vector3d *v)
     }
     return 2;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

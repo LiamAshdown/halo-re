@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t render_frustum_classify_point_side_planes(render_frustum *frustum,
                                                           real_point3d *point); // 0x50d4c0, this
@@ -239,4 +242,7 @@ unaff_EDI[0..5]=box.x.lower/upper,y.lower/upper,z.lower/upper):
   bVar4 ("a>b" idiom):          vertex.z >  box.z.lower ? 0 : 0x10   -> bit 0x10 = vertex.z <= box.z.lower
   bVar5 (plain "<"):            vertex.z <  box.z.upper ? 0 : 0x20   -> bit 0x20 = vertex.z >= box.z.upper
   last term ("(a<b)!=(a==b)"="a<=b"): vertex.x <= box.x.lower ? 1 : 0 -> bit 0x01 = vertex.x <= box.x.lower
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

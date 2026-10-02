@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDX -> queue
 int32_t circular_queue_count(circular_queue *queue)
@@ -46,4 +49,7 @@ int circular_queue_count(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

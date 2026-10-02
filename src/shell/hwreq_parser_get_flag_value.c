@@ -12,6 +12,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hwreq_vector_throw_out_of_range(void); // 0x57b9e0, throws out_of_range; never returns
 
@@ -30,3 +33,6 @@ char *hwreq_parser_get_flag_value(hwreq_parser *parser, uint32_t index)
     }
     return string_c_str(&pairs[index].second);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

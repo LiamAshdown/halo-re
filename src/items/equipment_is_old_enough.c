@@ -24,6 +24,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern void *game_time; // 0x006f1d6c, +0x0c the game tick
@@ -58,4 +61,7 @@ undefined4 missed_4bc420(uint param_1)
   iVar1 = iVar1 + DAT_006894cc;
   return CONCAT31((int3)((uint)iVar1 >> 8),iVar1 <= *(int *)(DAT_006f1d6c + 0xc));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

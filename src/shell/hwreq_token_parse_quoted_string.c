@@ -11,6 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hwreq_quoted_string[k_hwreq_quoted_string_length]; // 0x00722d58
 
@@ -111,4 +114,7 @@ undefined1 * hwreq_token_parse_quoted_string(void)
   hwreq_parser_report_error("String too long");
   return (undefined1 *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

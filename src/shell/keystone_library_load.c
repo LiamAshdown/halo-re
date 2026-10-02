@@ -17,6 +17,9 @@
 #include "rasterizer.h"
 #include "interface.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t default_locale_name[2]; // 0x00670f90, UNSURE: "C"
 extern char *locale_codepage_format;   // 0x00670f8c, UNSURE: ".%d"
@@ -195,4 +198,7 @@ void __cdecl keystone_library_load(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

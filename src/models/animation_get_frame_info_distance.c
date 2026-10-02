@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Sums the leading dx component of every frame_info entry (stride depends on frame_info_type)
 // and writes the running total through *dx_total; *dx_to_key_frame receives the same running
@@ -107,4 +110,7 @@ void FUN_004d4850(float *param_1,float *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

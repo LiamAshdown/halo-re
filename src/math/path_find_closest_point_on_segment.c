@@ -28,6 +28,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Projects `point` onto the segment [segment_start, segment_end]; if the projection parameter
 // falls inside [0,1] the lerped point is written to `out`, otherwise `out` is set to
@@ -93,4 +96,7 @@ void path_find_closest_point_on_segment(void)
   unaff_ESI[2] = in_EDX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

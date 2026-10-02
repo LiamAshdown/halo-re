@@ -11,6 +11,9 @@
 #include "math.h"
 #include "hs.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern object_globals *object_globals_pointer;
@@ -20,3 +23,6 @@ void hs_evaluate_object_pvs_clear(int16_t function_index, uint32_t thread_index,
     object_globals_pointer->ambient_cluster_mode = 0;
     hs_thread_return(0, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

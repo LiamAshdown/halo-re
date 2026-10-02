@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Copies `server`'s password (up to 8 wide characters) into `dest` and NUL-terminates it.
@@ -35,4 +38,7 @@ void FUN_004e0930(void)
   unaff_ESI[8] = L'\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

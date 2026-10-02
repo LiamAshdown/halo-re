@@ -18,6 +18,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480
@@ -79,3 +82,6 @@ void game_engine_oddball_unknown_48(void)
         *(int32_t *)(waypoint + 0x10) = -1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

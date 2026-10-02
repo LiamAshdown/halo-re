@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t strstr(ScenarioObjectName *entry, uint32_t predicate_arg); // UNSURE: predicate, module unknown, 0x625430
 
@@ -63,4 +66,7 @@ void hs_object_names_for_each(code *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                    // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -259,4 +262,7 @@ void FUN_00572110(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

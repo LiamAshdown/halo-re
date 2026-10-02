@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char k_empty_string; // 0x0065512c, the shared MSVC empty std::string/char literal
 
@@ -232,4 +235,7 @@ undefined4 * command_line_parse_to_argv(int *param_1)
   }
   return puVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

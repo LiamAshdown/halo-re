@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: node pointer in EAX
 // Returns the type field of the syntax node at `node` (offset 4, shared by hs_syntax_node and
@@ -38,4 +41,7 @@ undefined2 hs_null_with_params_evaluate(void)
 
   return *(undefined2 *)(in_EAX + 4);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

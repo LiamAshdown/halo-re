@@ -27,6 +27,9 @@
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_log_path_buffer[0x104]; // 0x006b85b8
 extern char network_log_path_format[];         // 0x0065efec, UNSURE: assumed to be "%s"
@@ -95,4 +98,7 @@ And the caller (network_banlist_save, 0x4e3380):
   4e3390: call 0x4e40a0
   4e3395: push eax
   4e3396: call 0x624186      ; fopen(path=eax, mode=0x65fd30)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

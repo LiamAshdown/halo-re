@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern encounter_squad_state *encounter_squad_states; // 0x008802cc
 extern data_array *encounter_data;                    // 0x008802c8
@@ -314,4 +317,7 @@ LAB_0043746d:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

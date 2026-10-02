@@ -29,6 +29,9 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t shell_nosound;                 // 0x007196e4, foreign (shell)
 extern void *shell_window;                    // 0x007461c4, HWND, foreign (shell)
@@ -800,4 +803,7 @@ Disassembly of the EAX channel-budget search Ghidra lost (0x546056..0x54654f; ju
 [esp+0x44/40/38/3c] previous 0..3, [esp+0x30]/ebx/edi/ebp requested 0..3, [esp+0x11/13/12/27]
 saturated 0..3, [esp+0x26] shrank, [esp+0x2f] done, [esp+0x28] pool, [esp+0x34] iterations:
 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

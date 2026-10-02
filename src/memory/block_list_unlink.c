@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> payload_ptr, EDX -> arena
 void block_list_unlink(void **payload_ptr, memory_pool *arena)
@@ -59,4 +62,7 @@ void block_list_unlink(void)
   *(undefined4 *)(in_EDX + 0x34) = *(undefined4 *)(iVar1 + -8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

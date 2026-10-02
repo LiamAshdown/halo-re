@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t savegame_index_dirty; // 0x00721447
 extern char savegames_directory[0x100]; // 0x00721549
@@ -102,4 +105,7 @@ undefined1 saved_game_delete_by_handle(void)
   DAT_00692af8 = 0xffffffff;
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -22,6 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer,
     bit_stream *stream); // 0x4cf950; UNSURE: total_bit_count/buffer not visible at these call
@@ -154,4 +157,7 @@ int FUN_004eb890(int param_1,int param_2,undefined4 *param_3,int param_4)
   FUN_004eb370();
   return param_1 + iVar5 + iVar8 + iVar6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

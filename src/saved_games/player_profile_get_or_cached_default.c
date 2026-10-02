@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern saved_player_profile default_profile_data; // 0x0071d280
 
@@ -58,4 +61,7 @@ uint FUN_00539bc0(void)
   uVar1 = player_profile_get();
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

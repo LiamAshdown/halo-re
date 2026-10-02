@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> flags
 // Encodes 3 boolean flags into a compact code tagged with type id 2 (the low 3 bits).
@@ -31,4 +34,7 @@ uint FUN_00576920(void)
   return (((uint)(in_EAX[2] != '\0') << 1 | (uint)(in_EAX[1] != '\0')) << 1 |
          (uint)(*in_EAX != '\0')) << 3 | 2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

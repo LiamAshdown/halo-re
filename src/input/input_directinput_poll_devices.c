@@ -25,6 +25,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t input_acquired;                 // 0x006b15f8
 extern uint8_t input_suppressed;               // 0x006b15f9
@@ -350,4 +353,7 @@ LAB_00490a78:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

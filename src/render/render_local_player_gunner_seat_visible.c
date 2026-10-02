@@ -32,6 +32,9 @@
 #include "objects.h"
 #include "units.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0
 extern player_globals *local_player_globals;                        // 0x0087a478
@@ -190,4 +193,7 @@ Confirmed against objdump 0x50fcd0..0x50fd88 (the true extent of this function):
   50fd85: mov    $0x1,%al
   50fd87: pop    %esi
   50fd88: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

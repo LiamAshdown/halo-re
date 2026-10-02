@@ -13,6 +13,9 @@
 #include "math.h"
 #include "interface.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_list_current; // 0x00692c04
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
@@ -29,3 +32,6 @@ uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void 
     out[0x3f] = 0;
     return (uint8_t)(out[0] != 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

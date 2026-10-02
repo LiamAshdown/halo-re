@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transforms a normal/direction by only the rotation part of a matrix4x3.
 void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m)
@@ -48,4 +51,7 @@ void matrix4x3_transform_normal(int param_1)
               fVar2 * *(float *)(param_1 + 0x18) + fVar3 * *(float *)(param_1 + 0x24);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

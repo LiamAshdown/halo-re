@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
 
@@ -97,4 +100,7 @@ undefined4 FUN_00506fb0(undefined4 param_1,float param_2,float param_3,float *pa
   unaff_EBX[2] = unaff_ESI[2];
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "sound.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *sound_class_names[k_maximum_sound_classes]; // 0x0069f3a8
 extern sound_class_gain *sound_class_gains; // 0x00746140 holds a pointer to the 51-entry table (mov eax, [0x746140])
@@ -145,4 +148,7 @@ Disassembly (0x545390..0x54541c, capstone; phase-4 review):
 0x545419: pop ebp
 0x54541a: pop ebx
 0x54541b: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

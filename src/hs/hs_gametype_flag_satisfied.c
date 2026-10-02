@@ -19,6 +19,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t hs_autocomplete_gametype_mask; // 0x006b14ac
 
@@ -63,4 +66,7 @@ char FUN_004835b0(byte param_1)
   }
   return cVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

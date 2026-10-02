@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void bitmap_data_free(BitmapData *bitmap_data); // 0x43f880, blam-cc: ESI
 
@@ -18,3 +21,6 @@ void bitmap_data_block_delete_element(TagReflexive *block, int32_t index)
 {
     bitmap_data_free((BitmapData *)((uint8_t *)block->pointer + index * 0x30));
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

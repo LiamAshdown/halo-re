@@ -34,6 +34,9 @@
 #include "objects.h"
 #include "projectiles.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
@@ -188,4 +191,7 @@ undefined4 FUN_00506040(byte param_1,float *param_2)
   unaff_ESI[8] = uVar3;
   return CONCAT31((int3)(char)((ushort)uVar3 >> 8),cVar5);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

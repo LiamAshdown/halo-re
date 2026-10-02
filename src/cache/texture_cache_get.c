@@ -39,6 +39,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *texture_cache_entries;  // 0x006ac538
 extern struct cache *texture_cache;        // 0x006ac540
@@ -241,4 +244,7 @@ int FUN_00444550(undefined4 param_1,char param_2)
   }
   return iVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

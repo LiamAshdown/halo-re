@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 
@@ -209,4 +212,7 @@ void chimera__rasterizer_set_frustum_z_func(undefined4 param_1,int *param_2)
   (**(code **)(*DAT_0071d174 + 0x178))(DAT_0071d174,0x1b,&piStack_f0,2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t directsound_initialized; // 0x007252e0
 extern sound_effect_object *global_sound_effect_object; // 0x00721f24
@@ -276,4 +279,7 @@ Disassembly (0x5514d0..0x551611, capstone; phase-4 review):
 0x551606: mov word ptr [0x746130], 2
 0x55160f: pop ebx
 0x551610: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

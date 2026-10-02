@@ -13,6 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -30,3 +33,6 @@ void unit_place(datum_index object_index, uint8_t *placement)
 {
     unit_apply_scale_change(object_index, placement + 0x48);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -14,6 +14,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern tag_instance *tag_instances;               // 0x0087bc14
@@ -78,4 +81,7 @@ int __cdecl virtual_keyboard_initialize(void)
   DAT_007193cc = tag_lookup("ui\\shell\\bitmaps\\white");
   return (uint)(DAT_007193ac != 0);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

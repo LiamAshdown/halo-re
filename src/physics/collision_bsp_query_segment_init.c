@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t collision_bsp_query_segment_node_recursive(collision_bsp_segment_query *query,
                                                             uint32_t node_index, float t_min,
@@ -106,4 +109,7 @@ void FUN_00502060(undefined4 param_1,undefined2 param_2,undefined4 param_3,undef
   FUN_00502140(local_28,0,0,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

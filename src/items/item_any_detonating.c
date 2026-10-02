@@ -12,6 +12,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
 
@@ -65,4 +68,7 @@ undefined4 FUN_004bcf50(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t new_profile_name_entry_player_00692b00; // 0x00692b00
 extern virtual_keyboard_globals virtual_keyboard;       // 0x007193a8 (committed at 0x007193be)
@@ -154,4 +157,7 @@ LAB_004a1ace:
   DAT_00692b00 = 0xffff;
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

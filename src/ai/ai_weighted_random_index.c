@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_global; // 0x00719cd0
 
@@ -117,4 +120,7 @@ int FUN_00432100(int param_1,short param_2,ushort param_3,int param_4)
   }
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

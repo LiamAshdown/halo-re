@@ -16,6 +16,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: profile in ECX
 void control_profile_reset_analog_bindings(saved_player_profile *profile)
@@ -70,4 +73,7 @@ void control_profile_reset_analog_bindings(void)
   *(undefined2 *)(in_ECX + 0x21e) = 0x1a;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

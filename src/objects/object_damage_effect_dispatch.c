@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void effect_new_on_object_with_node_table(); // effects module, 0x450870
     // The convention of this foreign callee is not established: different call sites in this
@@ -47,4 +50,7 @@ void mdpi_encode(void)
   FUN_00450870();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

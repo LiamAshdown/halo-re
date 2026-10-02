@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
 extern void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
@@ -71,4 +74,7 @@ rasterizer_dynamic_geometry_draw_dispatch(int source_kind,undefined4 param_2,int
   FUN_0051c490(source_kind);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

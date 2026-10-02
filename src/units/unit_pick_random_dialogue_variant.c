@@ -20,6 +20,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed random_seed_global; // 0x00719cd0
 
@@ -95,4 +98,7 @@ undefined4 FUN_00561a00(short param_1)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

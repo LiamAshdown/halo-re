@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> out, EAX -> axis, EDX -> v
 // Projects v onto the (not necessarily unit) axis.
@@ -25,4 +28,7 @@ void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *ax
 No Ghidra function at 0x506760 (it sits in the gap after point3d_project_onto_line).
   fld [eax+8]; fld [eax+4]; fld [eax]                     ; axis z y x
   v . axis via EDX; axis . axis; fdivp; out = axis * scale through ECX; ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

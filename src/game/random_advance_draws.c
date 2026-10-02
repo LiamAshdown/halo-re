@@ -13,6 +13,9 @@
 // decompilation; correctness depends on whatever the real calling convention around __ftol does.
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t __ftol(void); // 0x6391b4, MSVC runtime; UNSURE: real argument is on the x87 stack
 
@@ -53,4 +56,7 @@ undefined4 FUN_0045f6e0(void)
   } while (iVar2 != 0);
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

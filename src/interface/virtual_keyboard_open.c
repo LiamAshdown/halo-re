@@ -25,6 +25,9 @@
 #include "interface.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern virtual_keyboard_globals virtual_keyboard; // 0x007193a8
 extern uint8_t controls_input_capture_flags; // 0x00712542, UNSURE (per src/interface/widget_close_all.c)
@@ -156,4 +159,7 @@ undefined4 virtual_keyboard_open(ushort param_1,undefined2 param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

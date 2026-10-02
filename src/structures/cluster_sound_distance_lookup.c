@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Looks up the cached one-byte sound-propagation distance between two clusters from the
 // triangular distance matrix in the BSP tag's sound_pas_data block, or returns 0 when the two
@@ -66,4 +69,7 @@ uint cluster_sound_distance_lookup(void)
   }
   return in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

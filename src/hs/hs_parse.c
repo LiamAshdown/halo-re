@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_parse_primitive(datum_index node_index); // 0x00486480, this batch
 extern char hs_parse_nonprimitive(datum_index node_index); // 0x00486710, this batch
@@ -65,4 +68,7 @@ undefined2 hs_parse(uint param_1,undefined2 param_2)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

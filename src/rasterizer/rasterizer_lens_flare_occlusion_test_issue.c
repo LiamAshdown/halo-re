@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_689424;                                // 0x00689424
 extern uint8_t lens_flare_occlusion_queries_supported;                     // 0x006e1dc0
@@ -261,4 +264,7 @@ uint FUN_00537800(undefined4 param_1,undefined4 param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -26,6 +26,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern tag_instance *tag_instances;                // 0x0087bc14
@@ -131,4 +134,7 @@ uint FUN_0053ec30(void)
   }
   return (uint)uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

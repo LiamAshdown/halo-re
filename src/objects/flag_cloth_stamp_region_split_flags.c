@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x4fb840..0x4fb961 (2026-09-30): stack slots (tag, entry, inner_start, size, split_code), both
 //   guards, the two split-code selectors, the cell index ((height-1)*outer + inner) at entry+0x1534, and the a==b / a<=b
@@ -121,4 +124,7 @@ void FUN_004fb840(int param_1,int param_2,short param_3,short param_4,ushort par
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

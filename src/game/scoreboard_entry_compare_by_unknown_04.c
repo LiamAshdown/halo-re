@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Ascending qsort comparator on scoreboard_entry::unknown_04. Unreferenced in this build.
 uint32_t scoreboard_entry_compare_by_unknown_04(const scoreboard_entry *a, const scoreboard_entry *b)
@@ -34,4 +37,7 @@ uint FUN_0045cbc0(int param_1,int param_2)
   }
   return (uint)(*(int *)(param_1 + 4) < *(int *)(param_2 + 4));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

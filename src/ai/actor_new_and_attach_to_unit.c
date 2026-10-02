@@ -30,6 +30,9 @@
 #include "ai.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *encounter_data;  // 0x008802c8
@@ -244,4 +247,7 @@ LAB_00426cb8:
   actor_delete(0);
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

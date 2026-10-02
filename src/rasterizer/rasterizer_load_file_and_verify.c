@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size); // 0x519980 (this session)
@@ -104,4 +107,7 @@ undefined4 rasterizer_load_file_and_verify(undefined4 *param_1,DWORD *param_2)
   CloseHandle(hFile);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_main_globals *main_game_globals; // 0x006b0b80
 
@@ -80,4 +83,7 @@ void FUN_00433ba0(short param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t network_host_name_field_00719238[32]; // 0x00719238
 extern uint16_t network_host_subname_007191f0[9]; // 0x007191f0
@@ -36,3 +39,6 @@ uint8_t ui_event_4a4af0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

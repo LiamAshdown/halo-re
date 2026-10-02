@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Cheaper variant of the convex-polygon containment test that compares raw cross-product
 // margin instead of true distance.
@@ -74,4 +77,7 @@ undefined4 polygon2d_point_inside_margin(short param_1,float *param_2,float para
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

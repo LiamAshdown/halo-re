@@ -13,8 +13,14 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void ui_game_data_input_4a7350(widget_instance *widget)
 {
     widget->scale = 1.0f;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

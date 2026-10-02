@@ -33,6 +33,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t sphere_mesh_get_face_point(sphere_mesh *mesh, int16_t *next_point_index, int16_t apex,
                                            int16_t vertex_a, int16_t vertex_b, int16_t row, int16_t col,
@@ -174,4 +177,7 @@ void sphere_mesh_build_face
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

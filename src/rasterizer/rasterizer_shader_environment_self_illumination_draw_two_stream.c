@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "bitmaps.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t console_debug_toggle_6893f1;         // 0x006893f1
@@ -121,3 +124,6 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot,
         first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (unknown_006e0a04 == 0 ? 20 : 0)));
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

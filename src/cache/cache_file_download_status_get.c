@@ -29,6 +29,9 @@
 // the machine code rather than only Ghidra's pseudo-C.
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t cache_file_download_poll(float *progress_out); // blam-cc: stack; this module, 0x442720
 
@@ -116,4 +119,7 @@ Raw disassembly (0x4434a0-0x4434ed), objdump -d -M intel --start-address=0x4434a
 004434e9: mov eax,DWORD PTR [esp]        ; default: the never-popped "push ecx" slot
 004434ec: pop ecx
 004434ed: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

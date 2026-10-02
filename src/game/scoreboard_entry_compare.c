@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t scoreboard_entry_compare(const scoreboard_entry *a, const scoreboard_entry *b)
 {
@@ -72,4 +75,7 @@ undefined4 FUN_0045cbe0(int param_1,int param_2)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

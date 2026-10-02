@@ -22,6 +22,9 @@
 #include "cache.h"
 #include "physics.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_data;   // 0x0087abd0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -322,4 +325,7 @@ LAB_00456374:
   *(float *)(iVar9 + 0x54) = param_2 * *(float *)(iVar9 + 0x58) + *(float *)(iVar9 + 0x54);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

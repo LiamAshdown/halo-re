@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_filter_panel_mode; // 0x007196b4
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, AX
@@ -49,3 +52,6 @@ uint8_t server_browser_back_event(widget_instance *widget, int16_t *event, uint8
     widget_play_sound_effect(3);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

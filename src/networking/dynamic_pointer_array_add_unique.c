@@ -29,6 +29,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern uint8_t server_browser_server_passes_filter(void *server_record); // 0x4b7080, this module
@@ -134,4 +137,7 @@ LAB_004ba932:
   unaff_ESI[1] = unaff_ESI[1] + 1;
   return CONCAT31((int3)((uint)(iVar2 + 1) >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

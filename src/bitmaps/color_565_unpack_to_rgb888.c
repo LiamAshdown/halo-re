@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> packed, stack -> out
 // Unpacks the r5g6b5 color at *packed into out as 8-bit-per-channel blue/green/red, with alpha
@@ -58,4 +61,7 @@ void color_565_unpack_to_rgb888(uint *param_1)
   *param_1 = local_4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

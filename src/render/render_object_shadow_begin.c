@@ -29,6 +29,9 @@
 #include "objects.h"
 #include "units.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0, objects module
 
@@ -110,4 +113,7 @@ void FUN_0050f830(void)
   FUN_00530ff0(uVar5,in_EAX + 0x10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Steps each of 4 floats in `current` toward the matching float in `target` by at most
 // `max_delta`, in place. Used to smooth cached lighting samples (render_lighting.reflection_tint)
@@ -75,4 +78,7 @@ void FUN_0050f5c0(float param_1)
   in_ECX[3] = fVar2 + in_ECX[3];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

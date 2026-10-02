@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "objects.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern data_array *player_data;     // 0x0087a480
@@ -171,4 +174,7 @@ LAB_004ae327:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

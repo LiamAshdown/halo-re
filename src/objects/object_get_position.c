@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -60,4 +63,7 @@ void object_get_position(void)
             ((int)*(short *)(iVar2 + 0x1f2) + *(char *)(iVar1 + 0x120) * 0x34 + iVar2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

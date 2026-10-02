@@ -11,6 +11,9 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -28,3 +31,6 @@ void actor_mode_flee_exit(datum_index actor_index)
         *(uint32_t *)(obj + 0x204) &= ~0x2000000u;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

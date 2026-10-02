@@ -25,6 +25,9 @@
 #include "cache.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern cinematic_globals *cinematic_globals_ptr; // 0x006f187c
 extern ui_pending_error ui_pending_errors[4]; // 0x00718fb6
@@ -332,4 +335,7 @@ LAB_00499027:
 switchD_00498fdc_default:
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

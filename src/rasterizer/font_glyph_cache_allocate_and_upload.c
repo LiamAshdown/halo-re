@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern font_glyph_cache g_font_glyph_cache;   // 0x006d8828
 extern int32_t rasterizer_frame_index;        // 0x0069c694
@@ -269,4 +272,7 @@ void font_glyph_cache_allocate_and_upload(int param_1,byte *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> model, ESI -> vertex, DI -> material_type,
 //          stack -> height_offset, radius, object_index, surface_index, surface_flags,
@@ -160,4 +163,7 @@ void FUN_00503360(float param_1,undefined4 param_2,undefined4 param_3,undefined4
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second) // blam-cc: see file header
 {
@@ -53,4 +56,7 @@ undefined4 FUN_00560cb0(char param_1)
   }
   return *(undefined4 *)((short)iVar2 * 0x30 + 0xc + *(int *)(iVar1 + 0xe0));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

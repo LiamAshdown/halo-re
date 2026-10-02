@@ -17,6 +17,9 @@
 #include "input.h"
 
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern datum_index tag_lookup(tag_group group, char *path); // cache module, 0x442550
@@ -82,4 +85,7 @@ void input_get_mouse_button_name(void)
   unaff_EBX[0x17] = L'\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

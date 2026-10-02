@@ -24,6 +24,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2,
@@ -62,4 +65,7 @@ void missed_4bbc30(uint param_1,undefined4 param_2,undefined4 param_3)
   equipment_build_creation_message(param_1,param_2,param_3,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

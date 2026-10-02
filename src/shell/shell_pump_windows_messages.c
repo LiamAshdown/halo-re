@@ -11,6 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *chat_gui_root_handle;                    // 0x00721ea4
 extern void *keystone_module;                  // 0x00721e9c
@@ -73,4 +76,7 @@ LAB_00541a99:
     iVar1 = PeekMessageA(&local_1c,(HWND)0x0,0,0,1);
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

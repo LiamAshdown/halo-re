@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "cache.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_cache_entries; // 0x006ac528
 extern void *sound_decode_buffer;       // 0x006f17ec
@@ -85,4 +88,7 @@ void __cdecl sound_cache_dispose(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

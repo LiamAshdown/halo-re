@@ -31,6 +31,9 @@
 #include "networking.h"
 #include <stdint.h>
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -278,4 +281,7 @@ LAB_004e7d5a:
   FUN_004e7890(param_1,param_2,param_3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

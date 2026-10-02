@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_allow_empty;               // 0x006953fa
 extern uint8_t server_browser_allow_full;                // 0x006953fb
@@ -81,3 +84,6 @@ uint8_t server_browser_filter_panel_apply_event(widget_instance *widget, int16_t
     server_browser_query_pending = 1;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

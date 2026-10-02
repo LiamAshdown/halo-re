@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t current_local_player_index;           // 0x007c3108, UNSURE owning module
 extern uint8_t local_player_hud_status_table[];       // 0x007124a4, stride 0x28, UNSURE meaning
@@ -123,4 +126,7 @@ LAB_0045f30c:
   *(float *)(&DAT_0087aa14 + iVar2 * 4) = local_4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

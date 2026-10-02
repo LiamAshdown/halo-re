@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX -> v
 extern void real_matrix4x3_rotation_from_forward(const real_vector3d *axis, real_vector3d *out_axis2,
@@ -81,4 +84,7 @@ void FUN_00418c20(float *param_1,float *param_2)
   vector3d_normalize_with_length();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

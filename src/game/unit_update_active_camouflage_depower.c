@@ -31,6 +31,9 @@
 #include "cache.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_engine_definition *current_game_engine; // 0x006f1d20
 extern data_array *player_data;                     // 0x0087a480
@@ -220,4 +223,7 @@ Raw disassembly (objdump -d -M intel --start-address=0x466420 --stop-address=0x4
 0046652d:  pop esi
 0046652e:  pop ebp
 0046652f:  ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

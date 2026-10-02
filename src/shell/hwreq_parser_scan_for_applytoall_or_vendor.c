@@ -18,6 +18,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t hwreq_parser_parse_block(hwreq_parser *self, hwreq_property_set *target); // 0x57af10
 
@@ -139,4 +142,7 @@ undefined4 FUN_0057a220(void)
   } while (pcVar4 < *(char **)(unaff_ESI + 0xc));
   return CONCAT31((int3)((uint)pcVar4 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

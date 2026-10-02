@@ -13,6 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_new(data_array *array); // 0x4d0480, blam-cc: EDX -> array
 extern data_array *light_volume_instances; // 0x006b8d70
@@ -40,3 +43,6 @@ datum_index light_volume_new(datum_index definition_tag)
     }
     return index;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

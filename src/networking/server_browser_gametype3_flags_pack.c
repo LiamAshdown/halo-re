@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: ECX -> options
@@ -37,4 +40,7 @@ uint FUN_005769c0(void)
            *(uint *)(in_ECX + 4) & 3) << 1 | (uint)(in_ECX[1] != '\0')) << 1 |
          (uint)(*in_ECX != '\0')) << 3 | 3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

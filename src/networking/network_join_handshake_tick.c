@@ -34,6 +34,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -190,4 +193,7 @@ LAB_004dab24:
   }
   return (uint)bVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

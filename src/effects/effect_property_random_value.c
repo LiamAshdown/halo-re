@@ -18,6 +18,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns a random value in [base_min, base_max), where base_min and (base_max - base_min) are
 // each independently multiplied by self->a_scale when their bit_index bit is set in a_bitset,
@@ -85,4 +88,7 @@ float10 particle_system_property_random_value(uint *param_1,float param_2,float 
   *param_1 = uVar1;
   return (float10)(uVar1 >> 0x10) * (float10)1.5259022e-05 * fVar3 + fVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

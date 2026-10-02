@@ -38,6 +38,9 @@
 #include "rasterizer.h"
 #include "main.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data;              // 0x00719700
 extern timedemo_globals timedemo_globals_data;      // 0x00719afc
@@ -594,4 +597,7 @@ Disassembly notes (0x4c6f30..0x4c760a):
           touches only EAX), which is why Ghidra shows it as the high half of the result
   4c750e  push quality_variety(edx), env(esi), sound_quality(ecx), hw(eax): the report prints
           0x00746128 as Sound Quality and 0x007252b8 as Sound Variety
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

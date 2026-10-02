@@ -38,6 +38,9 @@
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 
@@ -245,4 +248,7 @@ void actor_movement_test_obstacle_ray(float *param_1,char *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

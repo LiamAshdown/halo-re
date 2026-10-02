@@ -24,6 +24,9 @@
 #include "rasterizer.h"
 #include "render.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t render_frame_index;      // 0x007c3100, this module
 extern float render_time_since_tick;    // 0x007c310c, this module
@@ -227,4 +230,7 @@ Disassembly (objdump -d -M intel, 0x50bea0..0x50bfaf), which the rewrite above a
   call   0x49c870                       ; ui_draw_trouble_brewing_indicator
   call   0x517b90                       ; chimera__rasterizer_globals
   call   0x518130
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

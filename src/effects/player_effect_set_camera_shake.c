@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void player_effect_set_camera_shake(player_effect *self, player_camera_shake *descriptor,
     float intensity_falloff, float duration_scale) // blam-cc: unaff_EBX, in_EAX, stack, stack
@@ -75,4 +78,7 @@ void FUN_00457d50(float param_1,float param_2)
   *(float *)(unaff_EBX + 0xa4) = param_2 * *(float *)(unaff_EBX + 0xa4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

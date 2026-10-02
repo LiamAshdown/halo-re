@@ -12,6 +12,9 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -26,3 +29,6 @@ void actor_mode_uncover_movement_cancelled(datum_index actor_index)
         mode_data[0x1] = 1;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

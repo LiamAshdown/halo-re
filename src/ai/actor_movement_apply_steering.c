@@ -22,6 +22,9 @@
 #include "objects.h"
 #include "ai.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern data_array *actor_data;      // 0x00880360
@@ -606,4 +609,7 @@ LAB_004185fe:
   param_13[2] = local_38;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

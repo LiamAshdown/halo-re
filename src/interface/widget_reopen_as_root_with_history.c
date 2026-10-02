@@ -30,6 +30,9 @@
 #include "interface.h"
 #include <string.h>
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -186,4 +189,7 @@ LAB_0049c549:
   chimera__load_ui_widget(0,param_2,0,puVar8,*puVar5,uVar6,iVar7);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

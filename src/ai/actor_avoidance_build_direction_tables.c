@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double cos(double x); // FCOS
 extern double sin(double x); // FSIN
@@ -175,4 +178,7 @@ void FUN_0041a2d0(void)
   } while (local_4 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

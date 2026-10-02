@@ -13,6 +13,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern video_resolution video_resolutions[0x20]; // 0x006b6690
 extern int32_t video_resolution_count;            // 0x007196cc
@@ -67,4 +70,7 @@ void __cdecl video_resolution_list_build(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

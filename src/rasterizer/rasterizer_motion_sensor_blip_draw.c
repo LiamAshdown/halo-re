@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                    // 0x0071d174
 extern uint8_t console_debug_toggle_689403;        // 0x00689403 motion sensor rendering enabled
@@ -142,4 +145,7 @@ void FUN_0052bad0(undefined4 param_1,float param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

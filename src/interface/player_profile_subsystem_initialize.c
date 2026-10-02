@@ -27,6 +27,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t profile_globals_block[0x60a4]; // 0x00712dd8, 3 x 0x2004 byte profile records + tail
 extern int32_t saved_player_profile_slots_handle;         // 0x00714dd4
@@ -195,4 +198,7 @@ LAB_0049546a:
   DAT_00718e78 = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -6,6 +6,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t item_placement_bits_x; // 0x0069a2e0
 extern uint32_t item_placement_bits_y; // 0x0069a2e4
@@ -48,3 +51,6 @@ int32_t message_delta_item_placement_encode(message_delta_field_type *field_type
     }
     return total;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

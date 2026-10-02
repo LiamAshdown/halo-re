@@ -14,6 +14,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640
 extern player_control_globals *player_control_globals_ptr;
@@ -24,3 +27,6 @@ void hs_evaluate_player_action_test_accept(int16_t function_index, uint32_t thre
     player_control_globals_ptr->action_flags_edge |= 4;
     hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 2) & 1), thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

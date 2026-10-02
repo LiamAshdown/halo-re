@@ -26,6 +26,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t ai_search_find_nearest_visible_point(ai_search_obstacle_list *list, int16_t exclude_index,
                                                     real_point2d *origin, real_vector2d *direction, float radius,
@@ -179,4 +182,7 @@ FUN_0043b830(undefined4 param_1,undefined4 param_2,undefined4 param_3,undefined4
   param_12[1] = local_8;
   return param_10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

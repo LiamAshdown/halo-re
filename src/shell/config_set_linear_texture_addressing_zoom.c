@@ -11,6 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t config_linear_texture_addressing_zoom; // 0x00722b2c
 
@@ -21,3 +24,6 @@ uint8_t config_set_linear_texture_addressing_zoom(const char *value)
     config_linear_texture_addressing_zoom = 1;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

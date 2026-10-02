@@ -25,6 +25,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hwreq_string_pair *uninit_copy_string_pair(hwreq_string_pair *source_begin, hwreq_string_pair *source_end,
     hwreq_string_pair *dest); // 0x57cf50, blam-cc: ECX -> source_begin, stack -> source_end, dest
@@ -98,3 +101,6 @@ void hwreq_pair_vector_insert_n(msvc_std_vector *self, hwreq_string_pair *where,
     }
     hwreq_string_pair_destruct(&temporary);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

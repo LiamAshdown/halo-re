@@ -7,6 +7,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value); // 0x4ebe00, EAX scope
 extern uint8_t message_delta_parameters_enabled; // 0x0071cfa8
@@ -21,3 +24,6 @@ uint8_t message_delta_normal_initialize(message_delta_field_type *field_type)
     }
     return descriptor[0] > 0 && descriptor[1] > 0 && descriptor[2] > 0 && descriptor[3] > 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

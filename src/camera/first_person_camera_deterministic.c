@@ -18,6 +18,9 @@
 #include "units.h"
 #include "cache.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -138,4 +141,7 @@ Disassembly (objdump -d -M intel, 0x446a90..0x446b68), confirming the register r
 0x446b36: je 0x446b61
 0x446b38..0x446b51: *out_position (edi) <- out+0x60 (position)
 0x446b46..0x446b5e: *out_direction (ebp) <- out+0x3c (forward)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

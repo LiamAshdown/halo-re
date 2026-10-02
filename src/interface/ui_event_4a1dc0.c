@@ -20,6 +20,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern int32_t ui_cursor_x; // 0x00718f84
@@ -100,3 +103,6 @@ uint8_t ui_event_4a1dc0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

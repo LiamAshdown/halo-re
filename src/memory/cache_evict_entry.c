@@ -18,6 +18,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void datum_delete(data_array *array, datum_index handle); // 0x4d0510, below this batch's
     // assigned range
@@ -83,4 +86,7 @@ void cache_evict_entry(void)
   datum_delete();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

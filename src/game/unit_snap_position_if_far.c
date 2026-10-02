@@ -18,6 +18,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_vector3d global_origin3d; // 0x0065c230
 
@@ -67,4 +70,7 @@ void unit_snap_position_if_far(void)
   object_set_position_and_recalculate();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

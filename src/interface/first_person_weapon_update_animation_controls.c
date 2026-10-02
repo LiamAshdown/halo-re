@@ -40,6 +40,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern first_person_weapon_interface *first_person_weapon_interfaces; // 0x006b2d98
 extern data_array *object_data; // 0x008603b0, "objects"
@@ -364,4 +367,7 @@ LAB_00493c21:
   model_nodes_calculate_world_transforms(iVar8 + 0x108c,iVar8 + 0x8c,&DAT_007c3120,&DAT_007c312c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -25,6 +25,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 extern projection_axis_pair k_projection_axes[6]; // 0x0065c29c
@@ -83,4 +86,7 @@ int FUN_0044d860(int param_1)
        *(float *)(sVar2 * 4 + unaff_EBX) * unaff_EDI[1]) / *(float *)(unaff_EBX + iVar4 * 4);
   return param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

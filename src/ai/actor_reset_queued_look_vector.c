@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
@@ -85,4 +88,7 @@ uint FUN_00417ae0(uint param_1)
 LAB_00417b64:
   return uVar3 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

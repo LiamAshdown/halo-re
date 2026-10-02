@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Converts a quaternion (ECX) into the rotation part of a matrix4x3 (EDX).
 void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out)
@@ -105,4 +108,7 @@ void matrix4x3_from_quaternion(void)
   in_EDX[9] = 1.0 - (fVar9 * fVar5 + fVar10);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

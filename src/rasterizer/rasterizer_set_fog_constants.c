@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_window_parameters rasterizer_window;              // 0x007c1220
 extern d3d_caps9 rasterizer_caps;                      // 0x007c10c0
@@ -294,4 +297,7 @@ void FUN_005176d0(void)
   (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0x25,fVar8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_data; // 0x0087abd0
 
@@ -82,4 +85,7 @@ void FUN_00455c80(void)
     } while ((short)iVar3 < *(short *)(iVar1 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

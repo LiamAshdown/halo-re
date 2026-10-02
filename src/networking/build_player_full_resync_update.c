@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern void *machine_table; // 0x00687558
@@ -190,4 +193,7 @@ void build_player_full_resync_update(void)
   network_session_send_to_machine(1,&DAT_00871de0,iVar3,1,0,0,1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

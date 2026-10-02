@@ -16,6 +16,9 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -62,3 +65,6 @@ void game_engine_race_update(datum_index player_index)
         game_engine_ctf_score_flag(player_index, result);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

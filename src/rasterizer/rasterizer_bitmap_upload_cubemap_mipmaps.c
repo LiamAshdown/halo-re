@@ -23,6 +23,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 // reconciled: the Direct3D texture is BitmapData.hardware_texture (+0x28, retail PC runtime); tags.h's `pointer` (+0x24) is a different field
 
 extern d3d_caps9 rasterizer_caps;                                   // 0x007c10c0
@@ -96,4 +99,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
 #if 0
 Original Ghidra decompilation (0x524270) -- see `python tools/pack.py 0x524270` for the full
 body; this rewrite is a low-confidence structural placeholder, see file header.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

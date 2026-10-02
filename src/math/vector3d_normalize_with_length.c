@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // sqrt/fabs are single x87 instructions (FSQRT/FABS) in the original code, which Ghidra
 // renders as the pseudo-functions SQRT()/ABS(); declared locally instead of via <math.h>
@@ -53,4 +56,7 @@ float10 vector3d_normalize_with_length(void)
   }
   return (float10)0.0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

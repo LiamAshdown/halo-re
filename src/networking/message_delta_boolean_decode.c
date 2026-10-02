@@ -5,6 +5,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t message_delta_boolean_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
@@ -13,3 +16,6 @@ int32_t message_delta_boolean_decode(message_delta_field_type *field_type, void 
     *(uint8_t *)current = 0;
     return (int32_t)bit_stream_read_bit((uint8_t *)current, stream);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

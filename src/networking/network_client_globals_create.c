@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_client_globals *network_client; // 0x0071c2d8
 extern uint8_t network_host_handoff_requested;  // 0x0071c2de
@@ -38,4 +41,7 @@ bool FUN_004dde50(void)
   }
   return DAT_0071c2d8 != 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

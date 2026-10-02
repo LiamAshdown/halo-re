@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, EDI iterator
 extern void cache_evict_entry(datum_index handle, cache *self); // 0x4d1c20, EBX handle, EDI self
@@ -403,4 +406,7 @@ LAB_004d1913:
   }
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

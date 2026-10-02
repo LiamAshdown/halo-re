@@ -6,6 +6,9 @@
 // blam-cc: stack -> vector (12 bytes by value)
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 int32_t digital_throttle_encode_vector(real_vector3d vector)
 {
@@ -16,3 +19,6 @@ int32_t digital_throttle_encode_vector(real_vector3d vector)
     code = code << 1 | (vector.j < -0.0001f ? 1 : 0);
     return (int32_t)((code << 1) >> 1);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

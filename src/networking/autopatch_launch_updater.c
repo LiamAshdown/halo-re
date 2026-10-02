@@ -46,6 +46,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct win32_process_information { // Win32 PROCESS_INFORMATION
     void *process;
@@ -353,4 +356,7 @@ uint autopatch_launch_updater(void)
   }
   return uVar2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

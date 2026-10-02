@@ -35,6 +35,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_screen_point game_window_top_left;     // 0x0069c634
 extern network_screen_point game_window_bottom_right;  // 0x0069c638
@@ -224,4 +227,7 @@ void FUN_004d7e20(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

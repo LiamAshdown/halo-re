@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_thread_record network_thread_table[k_network_thread_table_count]; // 0x006f0cb0
 
@@ -106,4 +109,7 @@ network_thread_create
   } while (iVar2 < 0x20);
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

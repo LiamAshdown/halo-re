@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *texture_cache_entries; // 0x006ac538
 extern struct cache *texture_cache;       // 0x006ac540
@@ -73,4 +76,7 @@ void texture_cache_new(void)
   _DAT_006ac53c = DAT_006ac550;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

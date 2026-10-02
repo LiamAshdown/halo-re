@@ -24,6 +24,9 @@
 #include "cache.h"
 #include "bitmaps.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t rasterizer_water_enabled;              // 0x006893fe
 extern uint8_t console_debug_toggle_689409;           // 0x00689409, "use the tag's ripple bitmap"
@@ -265,3 +268,6 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
     rasterizer_set_shader_stage_config(2);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

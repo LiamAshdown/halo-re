@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Parses consecutive lowercase hex digits ('0'-'9', 'a'-'f') from the given string into an
 // unsigned integer, stopping at the first non-hex-digit character. Returns 0 for an empty or
@@ -62,4 +65,7 @@ int __cdecl hex_string_to_uint(char *in_EDX)
   }
   return iVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

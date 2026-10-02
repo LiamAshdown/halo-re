@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t autopatch_status_active_00719235; // 0x00719235, TYPES-GAP
 extern uint8_t autopatch_status_flag_00692b11;    // 0x00692b11, TYPES-GAP
@@ -163,4 +166,7 @@ void autopatch_status_widget_update(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

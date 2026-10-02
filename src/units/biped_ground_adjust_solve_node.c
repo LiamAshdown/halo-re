@@ -29,6 +29,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;    // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -163,3 +166,6 @@ char biped_ground_adjust_solve_node(uint32_t object_index, real_point3d *referen
     *own_position = *reference_position;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

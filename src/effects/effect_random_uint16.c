@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4
 
@@ -27,4 +30,7 @@ uint FUN_0044da40(void)
   DAT_00719cd4 = DAT_00719cd4 * 0x19660d + 0x3c6ef35f;
   return DAT_00719cd4 >> 0x10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

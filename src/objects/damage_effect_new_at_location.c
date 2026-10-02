@@ -17,6 +17,9 @@
 #include "objects.h"
 #include <stdint.h>
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern real_vector3d *global_down3d_pointer;    // 0x0069672c, the gravity direction
@@ -216,4 +219,7 @@ void damage_effect_new_at_location(undefined4 param_1,undefined4 param_2)
   FUN_00450980(param_1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

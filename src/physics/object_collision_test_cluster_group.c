@@ -29,6 +29,9 @@
 #include "math.h"
 #include "objects.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp; // 0x00746f98
 extern ScenarioStructureBSP *global_structure_bsp;        // 0x00746f9c
@@ -126,4 +129,7 @@ undefined4 FUN_00505490(uint param_1,undefined4 param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

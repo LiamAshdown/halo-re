@@ -30,6 +30,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                // 0x0087a480
 extern wchar_t empty_string;                   // 0x00660c34, established fallback (see
@@ -242,4 +245,7 @@ void FUN_00473780(uint param_1,undefined2 param_2,wchar_t *param_3)
   } while (iVar3 < 1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

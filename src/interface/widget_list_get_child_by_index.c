@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> list, EDX -> index
 // Returns the Nth child of `list` (0-based), or NULL if the child list is shorter than `index`.
@@ -57,4 +60,7 @@ void widget_list_get_child_by_index(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

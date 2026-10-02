@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *hud_messaging; // 0x006b3a40
 
@@ -20,3 +23,6 @@ void hud_messaging_clear_after_load(void)
         hud_messaging[0x82 + i * 0x8c] = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -61,6 +61,9 @@
 #include "objects.h"
 #include "units.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -408,4 +411,7 @@ void item_detonate(char param_1,float param_2)
   FUN_0042c610();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

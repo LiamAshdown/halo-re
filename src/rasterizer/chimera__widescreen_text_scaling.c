@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float rasterizer_ui_text_constants[20]; // 0x006e1d08
 
@@ -65,4 +68,7 @@ void chimera__widescreen_text_scaling(void)
   _DAT_006e1d54 = 0x3f800000;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

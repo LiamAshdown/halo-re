@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data; // 0x008802c0
 
@@ -70,4 +73,7 @@ real stack arguments to FUN_00421af0:
   4221de: xor ecx, ecx                ; position = NULL
   4221e0: mov edx, 6                  ; priority = 6
   4221e5: call actor_queue_search_position   ; EAX = actor_index, ESI = &prop.unknown_e0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

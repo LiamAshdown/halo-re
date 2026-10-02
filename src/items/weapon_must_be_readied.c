@@ -12,6 +12,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -38,4 +41,7 @@ uint FUN_004c2ea0(void)
   return *(uint *)(*(int *)((**(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc
                                         ) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14) + 0x308) >> 3 & 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

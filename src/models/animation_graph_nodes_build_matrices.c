@@ -30,6 +30,9 @@
 #include "math.h"
 #include "cache.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out); // 0x00696664
@@ -168,4 +171,7 @@ objdump -d -M intel bin/halo.exe, 0x4d6880..0x4d69d0 (key excerpts):
   4d694e  mov edx,[ecx+0x1c] / mov [esp+0x18],edx            local_matrix.scale = orientations[node].scale
   4d6958..4d6978  translation.x/y/z -> local_matrix.position
   4d697c  call ds:0x696664                                   matrix4x3_multiply_procedure(parent, &local_matrix, &out_matrices[node])
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_game_socket;                    // 0x006f14c4 (GT2Socket; its first dword is the SOCKET)
 extern void *network_session_host_object;               // 0x00722a20
@@ -70,4 +73,7 @@ undefined4 FUN_00577850(undefined4 param_1)
   FUN_0061b6d0(DAT_00722a20,0x319,DAT_0069fe00);
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

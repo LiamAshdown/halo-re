@@ -21,6 +21,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS is a single x87 FABS instruction
 
@@ -113,4 +116,7 @@ uint plane3d_intersect_pair_to_line(void)
   return (uint)(ushort)((ushort)(fVar2 < 0.0001) << 8 | (ushort)NAN(fVar2) << 10 |
                        (ushort)(fVar2 == 0.0001) << 0xe);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

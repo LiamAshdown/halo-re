@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data; // 0x008802c8
 
@@ -99,4 +102,7 @@ Real disassembly (0x432df0-0x432e75), used to recover EDI and the FUN_0043eb30 a
 00432e46: push   esi
 00432e47: mov    eax,edi            ; unit_index, unmodified since function entry
 00432e49: call   0x43eb30
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

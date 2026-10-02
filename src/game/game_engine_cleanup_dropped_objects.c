@@ -24,6 +24,9 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_time_globals *game_time; // 0x006f1d6c
 extern data_array *object_data;   // 0x008603b0
@@ -167,4 +170,7 @@ LAB_0045f4ef:
     uVar2 = local_8;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

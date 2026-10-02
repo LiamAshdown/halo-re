@@ -25,6 +25,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: existing buffer (or NULL) in EAX, source pointer in ECX, flags in DL, byte
@@ -89,4 +92,7 @@ void FUN_00440350(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -8,6 +8,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode;    // 0x00719720
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -33,4 +36,7 @@ float __cdecl game_engine_get_time_scale(void)
   }
   return 1.0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

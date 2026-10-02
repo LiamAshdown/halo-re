@@ -8,6 +8,9 @@
 // blam-cc: cdecl (the qr2 natneg callback)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t network_game_socket; // 0x006f14c4 (GT2Socket)
 extern void function_do_nothing(void); // 0x44ad80
@@ -21,3 +24,6 @@ void network_session_host_natneg_callback(int32_t cookie)
     NNBeginNegotiationWithSocket(*(uint32_t *)network_game_socket, cookie, 0, (void *)function_do_nothing,
         (void *)network_session_host_natneg_completed, 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

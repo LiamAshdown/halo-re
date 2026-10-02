@@ -17,6 +17,9 @@
 #include <wchar.h>
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t king_bucket_credit_ticks[16]; // 0x006b0ec0
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination); // 0x4ec590, blam-cc: EAX context, ECX destination
@@ -90,3 +93,6 @@ void game_engine_king_profile_post_update(void **context)
         game_engine_koth_build_hill_boundary();
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

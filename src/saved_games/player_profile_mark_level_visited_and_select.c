@@ -23,6 +23,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char unknown_00719779[]; // 0x00719779, UNSURE: current scenario/level name buffer
 extern game_main_globals *main_game_globals; // 0x006b0b80
@@ -94,4 +97,7 @@ void FUN_00539d50(short param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

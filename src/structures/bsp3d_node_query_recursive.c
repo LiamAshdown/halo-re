@@ -40,6 +40,9 @@
 #include "math.h"
 #include "physics.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c, physics.h/objects.h (read, not owned)
 
@@ -226,4 +229,7 @@ LAB_0055408e:
   }
   return CONCAT22(uVar8,(short)iVar11);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

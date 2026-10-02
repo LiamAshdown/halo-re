@@ -20,6 +20,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t heap_allocate_raw(uint32_t size, heap *self); // this batch
 extern void heap_unlink_block(heap_block *block, heap *self); // this batch
@@ -94,4 +97,7 @@ uint * FUN_004d2020(void)
   }
   return (uint *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

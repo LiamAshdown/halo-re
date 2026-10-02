@@ -34,6 +34,9 @@
 #include "game.h"
 #include <string.h>
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // player_update_record is types/game.h's (0x2c: field0, references_remaining,
 // reference_count, player_action action).
@@ -418,4 +421,7 @@ LAB_00474949:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

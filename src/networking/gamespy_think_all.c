@@ -8,6 +8,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *negotiatorList; // 0x006a26c8
 extern int32_t gamespy_array_length(void *array); // 0x6175f0
@@ -25,3 +28,6 @@ void gamespy_think_all(void)
         NegotiateThink(gamespy_array_nth(negotiatorList, i));
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

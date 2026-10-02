@@ -18,6 +18,9 @@
 #include "memory.h"
 #include <ctype.h>
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t default_time_unit_table[]; // 0x00699568, used when unit_table is NULL
 
@@ -140,4 +143,7 @@ LAB_004e522d:
     return lVar5;
   }
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

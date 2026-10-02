@@ -10,6 +10,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hwreq_property_set_upsert(hwreq_property_set *property_set, char *key, char *value); // 0x578410
 
@@ -27,3 +30,6 @@ void hwreq_property_set_apply(hwreq_property_set *source, hwreq_property_set *ta
         hwreq_property_set_upsert(target, c_str(&pair->first), c_str(&pair->second));
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

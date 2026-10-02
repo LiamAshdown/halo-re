@@ -17,6 +17,9 @@
 #include "game.h"
 #include "ai.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)
 
@@ -71,4 +74,7 @@ FUN_00432df0 arguments:
 00432dc6: mov    edi,[eax+0x34]     ; player.unit
 00432dc9: mov    eax,esi            ; packed_reference
 00432dcb: call   0x432df0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

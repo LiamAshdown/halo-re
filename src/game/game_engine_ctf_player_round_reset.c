@@ -12,6 +12,9 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern void *datum_get(datum_index handle, data_array *array); // 0x4d0680, blam-cc: EDX handle, ESI array
@@ -24,3 +27,6 @@ void game_engine_ctf_player_round_reset(datum_index player_index)
         ((struct player *)player)->objective_score = 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

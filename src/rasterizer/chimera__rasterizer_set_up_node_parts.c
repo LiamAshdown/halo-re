@@ -21,6 +21,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_skinning_matrix rasterizer_skinning_palette[63]; // 0x007c04e0
 extern void *rasterizer_device;                                   // 0x0071d174
@@ -164,4 +167,7 @@ void chimera__rasterizer_set_up_node_parts(void)
   (**(code **)(*DAT_0071d174 + 0x178))(DAT_0071d174,0x1d,local_420,iVar5 * 3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

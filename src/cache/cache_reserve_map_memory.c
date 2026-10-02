@@ -23,6 +23,9 @@
 #include "cache.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *map_memory;             // 0x006ac548, VirtualAlloc at 0x40000000, 0x1b40000 bytes
 extern void *tag_data_base;          // 0x006ac54c, constant 0x40440000
@@ -138,4 +141,7 @@ void __cdecl cache_reserve_map_memory(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

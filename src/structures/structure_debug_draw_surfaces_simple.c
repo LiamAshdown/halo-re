@@ -25,6 +25,9 @@
 #include "memory.h"
 #include "math.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t geometry_buffer_warning;  // 0x0069fa48: accessed as WORD in the binary  // 0x0069fa48, this module
 extern void **rasterizer_dynamic_index_buffer; // 0x006e09e8, physics.h/objects.h (read, not owned)
@@ -130,4 +133,7 @@ third value that Ghidra's decompilation dropped:
           lea eax,[esp+0x18] ; &local_4000
           push 0x1000 ; push eax
           call 0x553d80
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -30,6 +30,9 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t config_linear_texture_addressing_zoom;    // 0x00722b2c UNSURE name: render target textures carry the linear flag
@@ -471,4 +474,7 @@ void rasterizer_screen_effect_compute_uv_transform
   (**(code **)(*DAT_0071d174 + 0x178))(DAT_0071d174,0xd,local_b0,8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

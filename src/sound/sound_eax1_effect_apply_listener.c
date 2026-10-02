@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const uint8_t sound_eax_listener_property_guid[16]; // 0x0064e2d0, EAX 1.0 listener property set
 extern uint8_t directsound_deferred_dirty; // 0x00746132
@@ -130,4 +133,7 @@ Disassembly (0x54ed50..0x54ede4, capstone; phase-4 review):
 0x54edd9: mov byte ptr [0x746132], 1
 0x54ede0: pop esi
 0x54ede1: ret 4
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

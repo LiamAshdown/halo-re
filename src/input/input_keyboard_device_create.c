@@ -23,6 +23,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t key_frames[0x6d];              // 0x006b1620
 extern int16_t key_event_read_index;          // 0x006b16fa
@@ -192,4 +195,7 @@ third (outer) argument that Ghidra's pseudo-C dropped:
   49195d: mov    %esi,0x18(%esp)      ; header.object = 0
   491961: movl   $0x20,0x20(%esp)     ; data = 32
   49196c: call   *0x18(%ecx)          ; SetProperty(device, 1, &buffer_size)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

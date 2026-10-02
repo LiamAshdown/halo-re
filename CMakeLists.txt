@@ -13,7 +13,7 @@
 # after adding or renaming functions run tools/gen_link_sources.py, after adding globals tools/update_globals.py.
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)   # CMAKE_MSVC_RUNTIME_LIBRARY
-project(halo C ASM_MASM)
+project(halo C CXX ASM_MASM)
 
 if(NOT MSVC OR NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "halo_rebuilt is 32-bit MSVC only: use -A Win32 (Visual Studio) or an x86 tools prompt (Ninja)")
@@ -37,6 +37,7 @@ endif()
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
     set(CMAKE_C_FLAGS_${config} "")
+    set(CMAKE_CXX_FLAGS_${config} "")
     set(CMAKE_EXE_LINKER_FLAGS_${config} "/INCREMENTAL:NO")
 endforeach()
 # Debug adds symbols only (a PDB for breakpoints; /Zi does not change the generated code)
@@ -46,8 +47,13 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO /DEBUG")
 # ---- the rewritten game functions, one file each
 file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.c")
 add_library(halo_game OBJECT ${GAME_SOURCES})
+# the rewritten game code is compiled as C++20 (C++ conversion, phase 1); each file wraps its code in extern "C"
+# (tools/cxx_wrap_linkage.py) so every symbol keeps its C name. No exceptions, no RTTI.
+set(CXX_GAME_SOURCES ${GAME_SOURCES})
+list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
+set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
 target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
-target_compile_options(halo_game PRIVATE /TC /W3 /Od /GS- /Oy- /Gy /wd4996
+target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
 
 # ---- import libraries for the third-party DLLs in the Halo folder (no .lib ships with them), delay-loaded

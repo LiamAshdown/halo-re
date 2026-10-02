@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "effects.h"
 #include <stdint.h>  // uintptr_t only; this is a .c file, not a Ghidra-ingested header
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *particle_system_data; // 0x0087abd4
 extern uint8_t particle_systems_enabled; // 0x0069c566
@@ -110,4 +113,7 @@ uint FUN_00453600(undefined4 param_1,undefined4 *param_2,undefined4 param_3)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

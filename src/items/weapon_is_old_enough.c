@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern game_time_globals *game_time; // 0x006f1d6c
@@ -57,4 +60,7 @@ undefined4 missed_4c6290(uint param_1)
   iVar1 = iVar1 + DAT_006894c4;
   return CONCAT31((int3)((uint)iVar1 >> 8),iVar1 <= *(int *)(DAT_006f1d6c + 0xc));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

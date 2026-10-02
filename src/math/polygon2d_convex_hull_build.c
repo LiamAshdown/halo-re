@@ -24,6 +24,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // atan2/fabs are the C-library spellings of the x87 FPATAN/FABS instructions the original code
 // uses directly (Ghidra's fpatan()/ABS() pseudo-calls); declared locally instead of via
@@ -275,4 +278,7 @@ LAB_004cad2f:
   }
   return CONCAT22((short)(uVar2 >> 0x10),sVar9);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

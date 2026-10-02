@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t controls_action_table[][0x18];   // 0x00692fe8
 extern int32_t selected_saved_item;             // 0x00714e7c
@@ -142,4 +145,7 @@ LAB_004b4e56:
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

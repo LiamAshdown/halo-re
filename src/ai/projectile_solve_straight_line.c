@@ -30,6 +30,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module
 
@@ -126,4 +129,7 @@ undefined4 FUN_004bee20(float param_1,float *param_2,float *param_3)
   }
   return uVar9;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

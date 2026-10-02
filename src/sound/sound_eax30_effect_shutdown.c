@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const uint8_t sound_eax30_listener_property_guid[16]; // 0x0064e310
 extern const uint8_t sound_eax30_buffer_property_guid[16];   // 0x0064e320
@@ -445,4 +448,7 @@ Disassembly (0x54fff0..0x550362, capstone; phase-4 review):
 0x55035d: pop ebx
 0x55035e: add esp, 0x30
 0x550361: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

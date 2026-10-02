@@ -21,6 +21,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 
@@ -231,4 +234,7 @@ objdump -d -M intel excerpt (the quaternion_multiply call Ghidra dropped):
 004d5087:  8b c7                 mov    eax,edi           ; eax = &out[node].rotation
 004d5089:  8d 4c 24 40           lea    ecx,[esp+0x40]      ; ecx = &new_rotation
 004d508d:  e8 5e 8b ff ff        call   0x4cdbf0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

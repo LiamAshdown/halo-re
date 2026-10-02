@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef int32_t (__stdcall *d3d_vertex_buffer_lock_fn)(void *self, uint32_t offset, uint32_t size,
                                               void **out_data, uint32_t flags);
@@ -96,4 +99,7 @@ uint FUN_0051be40(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

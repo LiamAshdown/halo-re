@@ -30,6 +30,9 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // actor_flee_source_reason now lives in types/ai.h (folded from this file).
 
@@ -266,4 +269,7 @@ register arguments Ghidra dropped:
 00414897: lea eax,[esp+0xc] / mov ecx,esi / call 0x4f6900           ; EAX=out, ECX=handle
 004148c8: mov ecx,edi / call 0x401990                                ; vector3d_normalize_with_length(ecx=out)
 004148cf: fcomp ds:0x672ac0 / fnstsw ax / test ah,0x41 / je 0x414821 ; length > 0.0f -> success
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

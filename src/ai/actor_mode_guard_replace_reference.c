@@ -12,6 +12,9 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -31,3 +34,6 @@ void actor_mode_guard_replace_reference(datum_index actor_index, datum_index old
         }
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

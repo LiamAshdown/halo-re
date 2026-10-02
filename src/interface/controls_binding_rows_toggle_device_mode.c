@@ -25,6 +25,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t controls_selected_device;        // 0x006953ec
 extern int32_t selected_saved_item;             // 0x00714e7c
@@ -134,4 +137,7 @@ void FUN_004b53a0(char param_1)
   DAT_00719445 = param_1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

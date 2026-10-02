@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void rasterizer_water_ripple_draw(void *vertex_buffer, void *shader, int32_t dynamic_index_slot, int32_t first_primitive,
     int32_t primitive_count); // 0x51ee60, EAX, stack
@@ -18,3 +21,6 @@ void render_window_structure_material_0x5120c0(void *shader_data, int16_t shader
 {
     rasterizer_water_ripple_draw(material_extra, shader_data, render_context, first_surface, surface_count);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

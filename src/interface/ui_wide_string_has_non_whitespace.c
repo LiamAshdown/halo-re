@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 #define WCTYPE_SPACE 0x0008
 
@@ -57,4 +60,7 @@ undefined4 FUN_004a8b10(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

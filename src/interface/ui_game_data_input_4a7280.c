@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t selected_saved_item; // 0x00714e7c, low nibble: 0 profile, 1 variant
 extern uint8_t saved_item_working_copy[0x1ffc]; // 0x00714e80, the record itself
@@ -28,3 +31,6 @@ void ui_game_data_input_4a7280(widget_instance *widget)
     type = *(int32_t *)(saved_item_working_copy + 0x30);
     widget->selection_index = (int16_t)(type >= 1 && type <= 5 ? type + 2 : 8);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

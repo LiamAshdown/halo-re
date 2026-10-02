@@ -23,6 +23,9 @@
 #include <wchar.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern growable_array ui_lists[3]; // 0x006b3830, element size 0x10 (ui_list_item)
 extern int32_t ui_list_current; // 0x00692c04
@@ -104,3 +107,6 @@ uint8_t ui_event_4a0860(widget_instance *widget, int16_t *event, uint8_t *out_ha
     widget->item_count = 0x12;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

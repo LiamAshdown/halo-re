@@ -25,6 +25,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern data_array *prop_data;  // 0x008802c0
@@ -110,4 +113,7 @@ undefined4 FUN_0041fc60(void)
   *(char *)(iVar3 + 0xa4) = cVar4;
   return CONCAT31((int3)((uint)iVar2 >> 8),cVar4);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

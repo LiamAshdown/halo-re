@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX (AX) -> depth, stack -> type
 // Validates a BitmapData's depth against its type: depth must be in (0, k_bitmap_maximum_depth],
@@ -40,4 +43,7 @@ undefined4 FUN_0043fe30(short param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

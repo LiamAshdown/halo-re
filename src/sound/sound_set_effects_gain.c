@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "sound.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float sound_effects_gain; // 0x007252b0
 extern char *sound_class_names[k_maximum_sound_classes]; // 0x0069f3a8
@@ -1083,4 +1086,7 @@ Disassembly (0x5487b0..0x5492ec, capstone; phase-4 review):
 0x5492e5: pop ebx
 0x5492e6: jmp 0x54c900
 0x5492eb: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

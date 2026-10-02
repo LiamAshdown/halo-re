@@ -20,6 +20,9 @@
 #include "math.h"
 #include "ai.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double fabs(double x); // ABS
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis,
@@ -79,4 +82,7 @@ uint FUN_0043d910(int param_1)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

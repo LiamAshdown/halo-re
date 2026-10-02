@@ -24,6 +24,9 @@
 #include "units.h"
 #include "items.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
                                                  const int16_t *offset, int16_t *out, int32_t selector); // 0x4ab690, blam-cc: AL has_scale, EDX offset, ECX child placement (selector)
@@ -103,4 +106,7 @@ void FUN_004acad0(undefined4 param_1,int param_2,undefined2 *param_3,undefined4 
   FUN_004acd50(param_1,param_2,in_EAX,local_10,param_5,param_6);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

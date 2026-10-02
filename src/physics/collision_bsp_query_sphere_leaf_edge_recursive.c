@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void collision_bsp_query_sphere_collect_geometry(collision_bsp_sphere_query *query,
                                                           int32_t surface_index); // 0x501d20, this batch
@@ -84,4 +87,7 @@ void FUN_00501c90(int *param_1,float param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

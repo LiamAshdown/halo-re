@@ -24,6 +24,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;      // 0x0087a480
 extern game_engine_definition *current_game_engine; // 0x006f1d20
@@ -142,4 +145,7 @@ undefined4 FUN_00479ba0(undefined4 param_1,undefined4 param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

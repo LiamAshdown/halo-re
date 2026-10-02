@@ -21,6 +21,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t loading_thread_result;                    // 0x00718fc0
 extern uint8_t playlist_profiles_need_defaults;    // 0x0069e8d0, TYPES-GAP
@@ -91,4 +94,7 @@ undefined4 FUN_0049c680(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

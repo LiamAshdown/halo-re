@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t local_player_count;                 // 0x006894b8, TYPES-GAP
 extern int32_t joystick_slot_devices[4];                   // 0x006b2ce8, input.h (DWORD cmp at 0x49cff3)
@@ -145,4 +148,7 @@ LAB_0049d014:
   if ((short)iVar1 != -1) goto LAB_0049d02f;
   goto LAB_0049d014;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

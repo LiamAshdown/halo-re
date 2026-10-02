@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Decodes the four int16 components of an uncompressed animation rotation (i, j, k, w, in
 // that struct order) into a real_quaternion, each scaled by 1/32767. Does not normalize.
@@ -40,4 +43,7 @@ void FUN_004d6330(void)
   in_EAX[3] = (float)(int)in_ECX[3] * 3.051851e-05;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

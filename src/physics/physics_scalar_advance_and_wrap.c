@@ -20,6 +20,9 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Adds delta to *value, then keeps the result inside [range->lower, range->upper]: overshooting
 // the upper edge either wraps by the range's span (wrap != 0) or clamps to range->upper;
@@ -76,4 +79,7 @@ void FUN_0050b290(float param_1)
   *in_EDX = in_ECX[1];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

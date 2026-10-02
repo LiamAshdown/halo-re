@@ -17,6 +17,9 @@
 #include "hs.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hs_function_definition *hs_function_definitions[k_hs_function_count]; // 0x00688b58
 extern char *hs_type_names[k_hs_type_count]; // 0x00688a78
@@ -127,4 +130,7 @@ void hs_format_function_signature(void)
   pcVar6[1] = '\0';
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

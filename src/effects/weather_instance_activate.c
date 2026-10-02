@@ -18,6 +18,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern weather_instance weather_instances[1]; // 0x006b0ae4
 extern int32_t weather_instance_count;      // 0x006b0ae0
@@ -97,4 +100,7 @@ void FUN_00457e20(undefined4 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

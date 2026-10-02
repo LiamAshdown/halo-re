@@ -18,6 +18,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: (definition, data, codes, out_size, out_record_count) -- see file header
 // Recursively interprets a byte_swap_definition code table (types/memory.h byte_swap_code) to
@@ -243,4 +246,7 @@ switchD_004cff2c_caseD_ffffff9b:
   if (local_18 == 0) goto LAB_004d00c6;
   goto LAB_004cff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

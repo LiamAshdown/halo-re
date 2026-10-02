@@ -18,6 +18,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode;              // 0x00719720
 extern game_engine_state game_engine_state_value; // 0x0087aa10
@@ -85,4 +88,7 @@ undefined4 restart_map_dialog_choice_handler(int param_1)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -44,6 +44,9 @@
 #include "shell.h"
 #include <string.h>
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 #if defined(_MSC_VER)
 #define CRASH_TRY __try
@@ -635,4 +638,7 @@ LAB_0054392e:
     ReleaseMutex(*(HANDLE *)(puVar12 + -0x24));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

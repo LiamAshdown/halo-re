@@ -48,6 +48,9 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;            // 0x008603b0, objects module
 extern tag_instance *tag_instances;        // 0x0087bc14
@@ -258,4 +261,7 @@ follows; key excerpts:
 0050f0fc: if (obj->first_child_object(+0x118)!=-1) recurse with parent_effect = (data->
              shadow_pass==0) ? &effect : 0
 0050f127: ebp = obj->next_object(+0x114); loop while ebp != -1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

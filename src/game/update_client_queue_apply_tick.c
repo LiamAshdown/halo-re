@@ -17,6 +17,9 @@
 #include <stdint.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t update_client_base_tick; // 0x006f7e9c
 extern int32_t update_client_unknown_ea0; // 0x006f7ea0
@@ -170,4 +173,7 @@ uint FUN_004730d0(int param_1,int param_2)
   }
   return uVar3 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

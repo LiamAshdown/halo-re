@@ -25,6 +25,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern breakable_surface_globals *breakable_surface_state; // 0x006b8d78
                                     // UNSURE name: an earlier objects-module pass named this
@@ -116,4 +119,7 @@ void FUN_004ffde0(undefined4 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

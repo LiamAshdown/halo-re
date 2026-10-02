@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t game_time_force_single_tick; // 0x007196d8
 extern int16_t network_game_mode;            // 0x00719720
@@ -122,4 +125,7 @@ void __cdecl game_engine_advance_simulation_ticks(float delta_time)
   game_effects_update(delta_time * 1.0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

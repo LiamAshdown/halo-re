@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t sv_tk_cooldown_ticks; // 0x00699570
 extern char sv_tk_grace_arg_buffer[]; // 0x0066d568, UNSURE: same scratch buffer as sv_tk_grace.c
@@ -59,4 +62,7 @@ void sv_tk_cooldown(void)
   chimera__console_out("sv_tk_cooldown: %ds",DAT_00699570 / 0x1e);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

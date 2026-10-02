@@ -29,6 +29,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[]; // 0x006607a0, L"%d"
 
@@ -180,4 +183,7 @@ void FUN_004b67e0(undefined4 param_1,wchar_t *param_2,undefined4 param_3,char pa
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

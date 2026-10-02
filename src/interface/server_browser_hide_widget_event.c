@@ -9,6 +9,9 @@
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t server_browser_hide_widget_event(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
@@ -22,3 +25,6 @@ uint8_t server_browser_hide_widget_event(widget_instance *widget, int16_t *event
     parent->focused_child = parent->first_child->next_sibling;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

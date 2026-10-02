@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t shell_application_inactive;   // 0x00721e8c
 extern uint8_t shell_window_proc_bypass;     // 0x00721e8d
@@ -147,4 +150,7 @@ LAB_00541180:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

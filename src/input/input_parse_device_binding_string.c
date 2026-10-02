@@ -21,6 +21,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t _stricmp(const char *a, const char *b); // 0x628d8b, libc
 
@@ -210,4 +213,7 @@ undefined4 input_parse_device_binding_string(undefined4 param_1)
   unaff_ESI[3] = sVar1;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

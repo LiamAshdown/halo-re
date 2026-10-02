@@ -15,6 +15,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> normal, EDX -> point, stack -> out
 void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point)
@@ -40,4 +43,7 @@ void FUN_0044d9e0(float *param_1)
   param_1[3] = *param_1 * *in_EDX + param_1[1] * in_EDX[1] + param_1[2] * in_EDX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

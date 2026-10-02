@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...); // 0x4c67c0, blam-cc: AL
@@ -20,3 +23,6 @@ void hs_evaluate_version(int16_t function_index, uint32_t thread_index, char fir
     console_print_error_va(0, "halo pc 01.00.10.0621 Apr 16 2014 15:54:48"); // 0x0066b25c
     hs_thread_return(0, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -15,6 +15,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern wchar_t empty_string; // 0x00660c34
 
@@ -69,4 +72,7 @@ undefined * game_engine_get_multiplayer_text_list(void)
   puVar2 = (undefined *)text_string_list_get_string();
   return puVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

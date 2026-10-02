@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t object_marker_scratch[0x6c]; // 0x006b8cc0
@@ -115,4 +118,7 @@ undefined * FUN_004fe740(void)
   _DAT_006b8d4c = fVar1 * *(float *)(puVar2 + 0x8c) + fVar4 * *(float *)(puVar2 + 0x8c);
   return &DAT_006b8cc0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

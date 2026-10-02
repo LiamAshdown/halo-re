@@ -19,6 +19,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t network_random_seeded; // 0x006f0ca8, one-time seed flag
 
@@ -57,4 +60,7 @@ int FUN_004403b0(void)
   iVar2 = __ftol(iVar2);
   return iVar2 + unaff_ESI;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

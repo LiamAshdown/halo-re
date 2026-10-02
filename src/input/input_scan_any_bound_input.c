@@ -20,6 +20,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *mouse_device;                    // 0x006b1804
 extern uint8_t input_suppressed;              // 0x006b15f9
@@ -369,4 +372,7 @@ LAB_0048f9ab:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

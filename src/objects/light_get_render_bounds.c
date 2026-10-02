@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data; // 0x00860b14
 static uint8_t *light_get(datum_index handle)
@@ -55,3 +58,6 @@ void light_get_render_bounds(datum_index handle, real_point3d *center_out, float
         offset_center(center_out, light, distance);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

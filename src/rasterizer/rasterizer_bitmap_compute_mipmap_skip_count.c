@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int8_t renderer_texture_quality; // 0x0068944e, UNSURE owner; clamped to [0,2] skip levels
 
@@ -94,4 +97,7 @@ int rasterizer_bitmap_compute_mipmap_skip_count(short *param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

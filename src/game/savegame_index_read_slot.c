@@ -22,6 +22,9 @@
 #include "hs.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char saved_game_root_path[]; // 0x006e3108 (an array: the original passes its address), the appended component
 extern file_reference savegame_index_file; // 0x00721330
@@ -146,4 +149,7 @@ LAB_0053e1cf:
   ReleaseMutex((HANDLE)*DAT_00721440);
   return local_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -25,6 +25,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern render_camera render_camera_global;     // 0x007c3114, this module (named
                                                // render_camera_global; a variable cannot share
@@ -210,4 +213,7 @@ Relevant disassembly (objdump -d -M intel, 0x50bdc0..0x50be94):
   mov    ebx,0x7c30a0
   call   0x512530
   call   0x512e80
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

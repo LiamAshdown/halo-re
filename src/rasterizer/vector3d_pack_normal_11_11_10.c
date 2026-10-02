@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double floor(double x); // 0x00623e40
 
@@ -100,4 +103,7 @@ uint FUN_005132d0(void)
   return ((int)ROUND((float)fVar4) << 0xb | (int)ROUND((float)fVar3) & 0x7ffU) << 0xb |
          (int)ROUND((float)fVar2) & 0x7ffU;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

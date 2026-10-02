@@ -21,6 +21,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_location_data; // 0x0087abe0
 
@@ -91,4 +94,7 @@ void FUN_004517d0(int param_1,short param_2,char param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

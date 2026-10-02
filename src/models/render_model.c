@@ -27,6 +27,9 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern Scenario *global_scenario; // 0x00746f8c
@@ -367,4 +370,7 @@ void FUN_004d6fc0(float param_1,undefined *param_2,undefined *param_3,undefined 
   DAT_007c0478 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

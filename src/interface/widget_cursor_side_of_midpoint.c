@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_cursor_x; // 0x00718f84
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -75,4 +78,7 @@ int FUN_004a1ff0(void)
   return (uint)(((int)(short)(sStack_2 + sVar4) + (int)(short)(sStack_6 + sVar4)) / 2 < DAT_00718f84
                ) * 2 + -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

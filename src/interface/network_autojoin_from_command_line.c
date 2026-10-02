@@ -27,6 +27,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t default_profile_data[0x1ffc]; // 0x0071d280, UNSURE name
 extern char k_empty_string[];                  // 0x0065512c
@@ -222,4 +225,7 @@ Disassembly (objdump, 0x4c9c80..0x4c9dcb), which the rewrite above actually foll
   8b e5                mov    esp,ebp
   5d                   pop    ebp
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

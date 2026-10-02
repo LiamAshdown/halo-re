@@ -18,6 +18,9 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x464430..0x46450f (2026-09-30): every field value/offset written by the original matches.
 //   The original builds the variant in an UNINITIALISED 0x98-byte stack local and rep-movs it out, so the bytes it never
@@ -116,4 +119,7 @@ void __cdecl game_engine_variant_defaults_classic_team_oddball(void *variant_opt
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

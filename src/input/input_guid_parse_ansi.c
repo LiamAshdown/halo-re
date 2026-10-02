@@ -17,6 +17,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: ansi string in ESI
@@ -78,4 +81,7 @@ bool input_guid_parse_ansi(LPCLSID param_1)
   HVar4 = CLSIDFromString(local_50,param_1);
   return -1 < HVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *update_server_queues; // 0x006f1d90
 
@@ -52,4 +55,7 @@ void FUN_00472c90(void)
   FUN_00479f40();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

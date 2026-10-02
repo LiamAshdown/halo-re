@@ -33,6 +33,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern ModelCollisionGeometryBSP *global_collision_bsp; // 0x00746f90
@@ -138,4 +141,7 @@ undefined4 FUN_00459a00(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Tests whether a 2D point lies inside a convex polygon within a given distance tolerance.
 uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count, real_point2d *point, real tolerance)
@@ -86,4 +89,7 @@ undefined4 polygon2d_point_inside_tolerance(short param_1,float *param_2,float p
   }
   return uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

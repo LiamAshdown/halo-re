@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 static void reject(actor_firing_position_query *query, actor_firing_position_candidate *candidate)
 {
@@ -60,3 +63,6 @@ uint8_t actor_reject_firing_position_by_perception(datum_index actor_index, acto
     }
     return candidate->valid;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

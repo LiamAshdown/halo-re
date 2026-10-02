@@ -11,6 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t transparent_geometry_group_count;           // 0x0071d154
 extern int16_t *transparent_geometry_group_sorted_indices; // 0x0071d15c
@@ -73,4 +76,7 @@ void __cdecl transparent_geometry_group_sort(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

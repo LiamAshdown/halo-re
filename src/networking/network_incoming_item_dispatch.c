@@ -30,6 +30,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream,
     const uint32_t *sender); // 0x4db870, stack
@@ -80,4 +83,7 @@ uint FUN_004db630(undefined4 param_1,uint param_2)
   }
   return param_2 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

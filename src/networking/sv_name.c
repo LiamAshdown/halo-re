@@ -21,6 +21,9 @@
 #include "networking.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t network_server_name[64]; // 0x00699588, "Halo" by default (UNSURE name)
 extern uint8_t network_server_name_is_default; // 0x00699606 (UNSURE name)
@@ -134,4 +137,7 @@ LAB_004e2fb7:
   chimera__console_out("Incorrect usage. Type help sv_name for more information.");
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

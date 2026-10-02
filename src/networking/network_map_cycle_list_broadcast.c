@@ -25,6 +25,9 @@
 #include "objects.h"
 #include "units.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern network_server_globals *network_server; // 0x0071c2d4
@@ -106,4 +109,7 @@ void FUN_004deec0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

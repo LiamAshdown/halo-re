@@ -21,6 +21,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;              // 0x008603b0
 extern uint8_t *first_person_weapon_interfaces; // 0x006b2d98, row stride 0x1ea0; UNSURE of the
@@ -72,4 +75,7 @@ int FUN_00453220(void)
   iVar1 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (*(uint *)(in_ECX + 0x3c) & 0xffff) * 0xc);
   return (int)*(short *)(iVar1 + 0x1f2) + (short)uVar2 * 0x34 + iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

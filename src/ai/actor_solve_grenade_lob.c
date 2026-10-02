@@ -23,6 +23,9 @@
 #include "ai.h"
 #include "objects.h"
 #include "projectiles.h" // Projectile
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -184,4 +187,7 @@ undefined4 FUN_00410780(uint param_1,undefined4 param_2)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -25,6 +25,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_data;                 // 0x0087abdc
 extern uint8_t first_person_effects_enabled;    // 0x00687014
@@ -127,4 +130,7 @@ uint FUN_004507a0(undefined4 param_1,short param_2,undefined4 param_3,undefined4
   }
   return particle_system_index;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

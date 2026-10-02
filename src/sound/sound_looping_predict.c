@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -134,4 +137,7 @@ Disassembly (0x544000..0x544082, capstone; phase-4 review):
 0x54407f: pop esi
 0x544080: pop ebp
 0x544081: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

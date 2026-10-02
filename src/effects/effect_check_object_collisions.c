@@ -39,6 +39,9 @@
 #include "effects.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_data;              // 0x0087abdc
 extern data_array *effect_location_data;     // 0x0087abe0
@@ -297,4 +300,7 @@ uint FUN_00450fa0(void)
     } while ((short)iVar14 < *(short *)(iVar13 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

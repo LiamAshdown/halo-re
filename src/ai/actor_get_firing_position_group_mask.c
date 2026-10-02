@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;    // 0x00880360
 extern Scenario *global_scenario; // 0x00746f8c
@@ -113,4 +116,7 @@ undefined4 FUN_00412880(short param_1)
   }
   return *(undefined4 *)(iVar3 + 0x54 + (short)(ushort)(cVar4 != '\0') * 4);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

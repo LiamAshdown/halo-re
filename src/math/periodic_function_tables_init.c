@@ -9,6 +9,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void periodic_function_build_table(periodic_function_t type, uint8_t *out); // 0x4ccdb0
 extern void periodic_function_build_transition_table(transition_function_t type, uint8_t *table); // 0x4cccb0
@@ -92,4 +95,7 @@ void __cdecl periodic_function_tables_init(void)
   } while (sVar3 < 6);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

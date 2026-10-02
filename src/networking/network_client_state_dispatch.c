@@ -17,6 +17,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // The five per-state handlers. 0x4d8bb0's own dispatch table shows how each is reached:
 //   case 0  mov eax,esi / jmp 0x4daa20   -> client in EAX, tail call
@@ -84,4 +87,7 @@ undefined1 FUN_004d8bb0(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

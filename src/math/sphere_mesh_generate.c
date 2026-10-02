@@ -36,6 +36,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sphere_mesh_build_face(int16_t *next_point_index, sphere_mesh *mesh, int16_t vertex_a,
                                     int16_t vertex_b, int16_t apex, int16_t *strip_cursor,
@@ -184,4 +187,7 @@ LAB_004ca5dc:
   }
   return psVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

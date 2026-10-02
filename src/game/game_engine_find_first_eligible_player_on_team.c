@@ -35,6 +35,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;              // 0x0087a480
 extern game_variant game_engine_variant;    // 0x006f1c88 (::lives_per_round at 0x006f1cd8)
@@ -131,4 +134,7 @@ undefined4 FUN_0045c9e0(int param_1)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

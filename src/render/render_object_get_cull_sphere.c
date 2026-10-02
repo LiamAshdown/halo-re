@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0, objects module
 extern tag_instance *tag_instances; // 0x0087bc14, cache module
@@ -61,4 +64,7 @@ disassembly it was rewritten from:
   50e922:	mov    DWORD PTR [eax],edx
   50e924:	pop    esi
   50e925:	ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

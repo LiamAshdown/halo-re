@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char ai_marker_name_b[]; // 0x00672034, "body" (an array: its address is the marker name)
 
@@ -45,4 +48,7 @@ void FUN_00569280(void)
   unaff_ESI[2] = local_4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

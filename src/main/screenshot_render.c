@@ -38,6 +38,9 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data; // 0x00719700
 extern int16_t screenshot_scale;       // 0x00696568, foreign (rasterizer module)
@@ -304,4 +307,7 @@ void screenshot_render(undefined4 param_1)
   DAT_00719aac = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

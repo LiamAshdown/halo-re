@@ -29,6 +29,9 @@
 #include "saved_games.h"
 #include "input.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *mouse_device;                          // 0x006b1804, input module
 extern uint8_t input_suppressed;                    // 0x006b15f9, input module
@@ -209,4 +212,7 @@ objdump for the arguments Ghidra dropped:
   445ffa: mov ecx,0x1d / call 0x490b50       ; key indices travel in ECX
   4460ef: mov eax,[esp+0x14]                  ; AX = local_player_index for 0x446170
   4460f3: push ecx / fstp [esp] / push ebp    ; (key_bits, (float)mouse->wheel)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

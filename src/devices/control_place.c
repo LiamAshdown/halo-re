@@ -14,6 +14,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "devices.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -41,3 +44,6 @@ void control_place(datum_index object_index, uint8_t *placement)
     ((control_object *)obj)->control.custom_name_index =
         (int16_t)(((ScenarioControl *)placement)->custom_control_name - 1);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void path_find_heap_sift_up(path_find_context *context, int16_t index); // 0x43af70
 
@@ -44,4 +47,7 @@ void path_find_heap_push(undefined2 param_1,undefined2 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

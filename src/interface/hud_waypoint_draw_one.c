@@ -28,6 +28,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;        // 0x0087a480
 extern Globals *global_globals;         // 0x00746fa0
@@ -147,4 +150,7 @@ void FUN_004aa440(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

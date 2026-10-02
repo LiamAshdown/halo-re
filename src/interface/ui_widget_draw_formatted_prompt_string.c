@@ -29,6 +29,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t formatted_prompt_scratch[0x100]; // 0x006b2fe8, copy of the source text split in place
 extern int16_t ui_prompt_clip_y; // 0x006e4770, word store
@@ -306,4 +309,7 @@ LAB_0049b016:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

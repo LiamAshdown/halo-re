@@ -22,6 +22,9 @@
 #include "cache.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t sound_paused;        // 0x00725202
 extern uint8_t sound_initialized;   // 0x00725200
@@ -265,4 +268,7 @@ Disassembly (0x5495f0..0x549753, capstone; phase-4 review):
 0x54974e: pop ebp
 0x54974f: add esp, 0x10
 0x549752: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

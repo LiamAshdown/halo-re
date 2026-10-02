@@ -11,6 +11,9 @@
 
 #include "tags.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern structure_bsp_procedure structure_bsp_activate_procedures[k_structure_bsp_activate_procedure_count]; // 0x0069e8dc
 
@@ -43,4 +46,7 @@ void FUN_0053e680(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

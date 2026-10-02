@@ -26,6 +26,9 @@
 #include "math.h"
 #include "cache.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // actor_recognition_scan_result now lives in types/ai.h (folded from this file).
 
@@ -215,4 +218,7 @@ Call site inside this function to actor_look_pick_random_point_in_cone (0x414eb9
 [esp+0x34]` loads ESI with a stack copy of local_c/local_8/local_4 just before the call, and
 `mov bl,1` sets BL, both consumed as implicit register arguments by actor_look_pick_random_
 point_in_cone's own decompilation (unaff_ESI, unaff_BL).
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

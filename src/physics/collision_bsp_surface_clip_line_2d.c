@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX -> clip, stack -> bsp, surface_index, origin, direction
 uint32_t collision_bsp_surface_clip_line_2d(collision_bsp_boundary_clip *clip,
@@ -157,4 +160,7 @@ undefined4 FUN_005017f0(int param_1,int param_2,float *param_3,float *param_4)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

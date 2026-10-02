@@ -22,6 +22,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const real_vector3d *global_origin3d_pointer; // 0x00696714
 extern data_array *object_data; // 0x008603b0
@@ -109,4 +112,7 @@ void FUN_00428f40(void)
   FUN_00569bf0();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_listener sound_listeners[1]; // 0x00725218
 
@@ -177,4 +180,7 @@ Disassembly (0x54bb20..0x54bbcb, capstone; phase-4 review):
 0x54bbc8: pop ebx
 0x54bbc9: pop ecx
 0x54bbca: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

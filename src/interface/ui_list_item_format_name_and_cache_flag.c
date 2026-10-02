@@ -18,6 +18,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ui_list_current;      // 0x00692c04
 extern growable_array ui_lists[3];   // 0x006b3830, element size 0x10 (ui_list_item)
@@ -67,4 +70,7 @@ undefined1 FUN_004a83d0(wchar_t *param_1,int param_2)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <time.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
     char *time_dest); // this batch, 0x4e5320
@@ -69,4 +72,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) fills in the register setup Ghid
   4e5306: mov esi,eax               ; esi = tm pointer (localtime's result or the fallback)
   4e5309: call format_time_and_date_strings   ; EBX, EDI still whatever this function's own
                                                ; caller set them to
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

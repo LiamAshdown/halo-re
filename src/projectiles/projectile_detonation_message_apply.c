@@ -35,6 +35,9 @@
 #include "math.h"
 #include "objects.h"
 #include "projectiles.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -194,4 +197,7 @@ follows (Ghidra elided every register argument shown here):
   add    esp,0x18
   ret
   call   0x4ec670  (from jne 0x4bdbed)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

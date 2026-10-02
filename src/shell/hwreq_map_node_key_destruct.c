@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 void hwreq_map_node_key_destruct(hwreq_map_node *node)
@@ -44,4 +47,7 @@ void FUN_0057cde0(void)
   *(undefined1 *)(unaff_ESI + 0x10) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

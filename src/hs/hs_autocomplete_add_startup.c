@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_autocomplete_scan_candidates(char **table, int16_t end, int16_t start); // 0x004836f0, this batch
 
@@ -38,4 +41,7 @@ void chimera__autocomplete_add_startup(void)
   FUN_004836f0(&PTR_s_startup_00688b3c);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

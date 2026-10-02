@@ -48,6 +48,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern game_time_globals *game_time; // 0x006f1d6c, +0x0c is the current game tick
@@ -181,4 +184,7 @@ iterator memory reuse described in the header:
   4e5441: movzx eax,[esp+0x15]  ; -> candidate->unknown_ec (uninitialized)
   4e544c..4e5463: [esp+0x18],[esp+0x1c],[esp+0x20] (the iterator own fields, well-defined) ->
                   candidate->unknown_f0/f4/f8
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Not callable: see the header. Kept only so the address stays listed in the symbol tables.
 void vehicle_calculate_hover_lift_toward_target(void)
@@ -249,4 +252,7 @@ void unit_start_user_animation(void)
   vehicle_create_hover_thruster_midpoint_effects(uVar5);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

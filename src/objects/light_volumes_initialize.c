@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_volume_instances; // 0x006b8d70
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size); // 0x5380d0, blam-cc: EBX -> element_size, stack -> name, maximum_count
@@ -20,3 +23,6 @@ void light_volumes_initialize(void)
 {
     light_volume_instances = game_state_new((char *)"light volumes", 0x100, 8);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

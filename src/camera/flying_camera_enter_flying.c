@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *flying_camera_render_frame;                    // 0x00686aa4 -> 0x007c3100; +0x14 is a render_camera
 extern datum_index flying_camera_attached_object;           // 0x00686aa0
@@ -53,4 +56,7 @@ No Ghidra function exists at 0x4469a0. objdump -d -M intel:
   4469e2..446a06: atan2(forward.k, sqrt(i*i + j*j)) -> [edx+0x10]       ; pitch
   4469ef: mov eax,ds:0x686aa0
   446a0b: jmp 0x446470                   ; flying_camera_attach_to_object(EAX)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -7,6 +7,9 @@
 // blam-cc: ESI -> out, stack -> vector (12 bytes by value)
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, ECX v
 extern double acos(double x);
@@ -26,3 +29,6 @@ void vector3d_to_angles(real *out, real_vector3d vector)
     }
     out[0] = (real)acos(vector.k);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

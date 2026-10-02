@@ -43,6 +43,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;                  // 0x0087bc14
 extern datum_index hud_text_draw_font_tag_id;                         // 0x006e472c
@@ -412,4 +415,7 @@ switchD_005566e0_caseD_4:
 -- base, esp+0x40 line_bounds copy, and the text_draw_character_range_narrow call's
 -- EAX=&line_bounds / stack argument order is in this rewrite's file header comment
 -- and out/phase4/text_types_notes.md; see 0x556400..0x5566be in bin/halo.exe.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

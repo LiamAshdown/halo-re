@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern hud_messaging_globals *hud_messaging;
 extern Scenario *global_scenario; // 0x00746f8c
@@ -50,3 +53,6 @@ void ui_widget_text_from_hud_objective(widget_instance *widget)
     wcsncpy((wchar_t *)buffer, (const wchar_t *)text, (size_t)length);
     buffer[length] = 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

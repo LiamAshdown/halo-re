@@ -17,6 +17,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Projects *point onto the infinite line through *line_origin in direction *direction, and
 // writes the projected point to *out_result. out_result may alias point.
@@ -57,4 +60,7 @@ void point3d_project_onto_line(float *param_1)
   in_EDX[2] = fVar1 * in_EAX[2] + in_ECX[2];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

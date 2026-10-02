@@ -21,6 +21,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;           // 0x008603b0
 extern float k_default_resting_plane[4];  // 0x0069c53c
@@ -69,4 +72,7 @@ void missed_559f10(uint param_1)
   *(undefined4 *)(iVar1 + 0x4f8) = 0xffffffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

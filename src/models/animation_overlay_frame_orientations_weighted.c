@@ -22,6 +22,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t animation_compressed_data_enabled; // 0x006894b4
 extern real_quaternion *global_identity_quaternion_pointer; // 0x00696738: indirect pointer to
@@ -249,4 +252,7 @@ objdump -d -M intel excerpt (the quaternion_lerp / quaternion_multiply calls Ghi
 004d52bc:  8b d5                 mov    edx,ebp                          ; out = &out[node].rotation
 004d52be:  8b c5                 mov    eax,ebp                           ; a = &out[node].rotation
 004d52c0:  e8 2b 89 ff ff        call   0x4cdbf0                          ; quaternion_multiply(a, ecx=&new_rotation, out)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

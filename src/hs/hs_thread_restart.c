@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_pop_frame(uint32_t thread_index);
     // blam-cc: EAX -> thread_index; this module, 0x48a770
@@ -110,4 +113,7 @@ void FUN_0048a790(uint param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

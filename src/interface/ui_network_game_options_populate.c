@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t network_game_option_a_00719210; // 0x00719210, TYPES-GAP
 extern uint32_t network_game_option_b_00719214; // 0x00719214, TYPES-GAP
@@ -66,4 +69,7 @@ undefined1 FUN_004a3960(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

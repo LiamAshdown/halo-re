@@ -21,6 +21,9 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t unit_build_seat_occupant_zone_list(int32_t object_handle); // 0x56bbd0, not in this batch;
     // blam-cc: ECX -> object_handle, returns in EAX; UNSURE exact effect
@@ -61,4 +64,7 @@ void player_camo_screen_effect(undefined4 param_1,undefined4 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

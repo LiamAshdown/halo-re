@@ -21,6 +21,9 @@
 #include "objects.h"
 #include "items.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern data_array *player_data; // 0x0087a480, players module, stride 0x200 (types/units.h)
@@ -107,4 +110,7 @@ LAB_004bd79d:
   }
   return uVar3 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

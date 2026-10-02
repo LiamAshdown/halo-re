@@ -27,6 +27,9 @@
 #include "interface.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances;            // 0x0087bc14
 extern player_globals *local_player_globals;   // 0x0087a478
@@ -196,4 +199,7 @@ void FUN_004afee0(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

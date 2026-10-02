@@ -21,6 +21,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void os_platform_identify(void); // 0x5427e0
 
@@ -227,4 +230,7 @@ LAB_00442a30:
   cache_io_thread_start();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -30,6 +30,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float sqrtf(float x);
 
@@ -268,4 +271,7 @@ those are first used; the move_toward call sites (0x53ea0c-0x53ea5c) show ECX = 
 field address, EDX = target color pointer only for the 0x50f520 (color) call, and the pushed
 stack value(s) as target/rate for 0x470d40, matching value_step_toward_target's and
 render_lighting_step_vector3_toward's own established signatures.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

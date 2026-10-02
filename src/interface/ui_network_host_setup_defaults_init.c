@@ -26,6 +26,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t save_in_progress_00719010;           // 0x00719010
 extern int32_t quality_selection_00692b04;          // 0x00692b04
@@ -196,4 +199,7 @@ undefined4 FUN_004a2ad0(int param_1)
   *(undefined1 *)(iVar4 + 0x12) = 0;
   return 0x3f800001;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -56,6 +56,9 @@
 #include "render.h"
 #include "shaders.h"
 #include <stdint.h> // uintptr_t, for the 32 bit pointer fields of build_sprite_data
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t particle_spawn_debug_mode;          // 0x0069c565 particles enabled
 extern int16_t current_local_player_index;            // 0x007c3108, this module
@@ -571,4 +574,7 @@ LAB_0051011c:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

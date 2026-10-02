@@ -15,6 +15,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length);
 // 0x557720, module text (foreign). UNSURE: Ghidra shows zero visible arguments at every call
@@ -113,4 +116,7 @@ void FUN_0044c780(undefined4 *param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

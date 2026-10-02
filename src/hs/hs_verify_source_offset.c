@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t hs_compiled_source_length; // 0x006b14bc
 extern char *hs_compile_error;            // 0x006b14d4
@@ -44,4 +47,7 @@ undefined1 hs_verify_source_offset(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

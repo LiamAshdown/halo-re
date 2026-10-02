@@ -19,6 +19,9 @@
 #include "cache.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 extern tag_instance *tag_instances;    // 0x0087bc14
@@ -346,4 +349,7 @@ Disassembly (0x54d9f0..0x54dc0d, capstone; phase-4 review):
 0x54dc08: pop ebx
 0x54dc09: add esp, 0x10
 0x54dc0c: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

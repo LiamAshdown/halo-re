@@ -31,6 +31,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t rasterizer_vertex_buffer_create(int16_t *record, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t second_stream, uint32_t size); // UNSURE, see structure_bsp_load_material_vertex_
     // buffers.c; rasterizer module, 0x524980
@@ -226,4 +229,7 @@ void chimera__on_map_load_client(void)
   GlobalFree(hMem);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

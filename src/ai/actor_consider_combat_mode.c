@@ -38,6 +38,9 @@
 #include "game.h"
 #include <string.h>
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES (folded into types/ai.h by the review pass): local model of the 0x38-byte result record actor_consider_combat_mode and its
 // siblings (0x402f80, 0x403180, 0x403630, 0x40c620...) build and pass around. Only the
@@ -267,4 +270,7 @@ LAB_00401cda:
   *(short *)(puVar6 + 1) = param_2;
   return param_3._0_1_;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -12,6 +12,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;         // 0x008603b0
 extern real_point3d *global_origin3d_pointer;    // 0x00696714
@@ -74,4 +77,7 @@ void FUN_0056a290(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t hs_autocomplete_maximum_count; // 0x006b14a0
 extern char *hs_autocomplete_prefix;          // 0x006b14a4
@@ -50,3 +53,6 @@ void hs_autocomplete_add_global_names(void)
         hs_autocomplete_scan_globals(&global_scenario->globals, 0, 0x5c);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

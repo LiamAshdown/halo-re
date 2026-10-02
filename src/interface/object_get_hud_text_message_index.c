@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -50,4 +53,7 @@ int FUN_004a9b40(void)
                                               (in_EAX & 0xffff) * 0xc) & 0xffff) * 0x20 + 0x14 +
                                  DAT_0087bc14) + 0x13c);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

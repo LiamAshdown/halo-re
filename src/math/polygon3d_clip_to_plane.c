@@ -18,6 +18,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // fabs is a single x87 FABS instruction in the original code (Ghidra's ABS() pseudo-function);
 // declared locally instead of via <math.h> because -I types shadows that header name.
@@ -339,4 +342,7 @@ LAB_004cb70c:
   }
   return CONCAT22((short)(uVar13 >> 0x10),param_1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

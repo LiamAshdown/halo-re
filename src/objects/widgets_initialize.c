@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *widget_data; // 0x00860398
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types]; // 0x0069c010
@@ -50,4 +53,7 @@ void widgets_initialize(void)
   } while (iVar2 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

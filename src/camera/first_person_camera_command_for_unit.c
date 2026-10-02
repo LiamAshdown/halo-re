@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "units.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -62,4 +65,7 @@ Disassembly (objdump -d -M intel, 0x446d30..0x446d5b), showing the register role
 0x446d57: add esp, 4
 0x446d5a: pop ebx
 0x446d5b: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

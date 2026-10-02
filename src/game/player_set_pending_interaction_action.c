@@ -18,6 +18,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;    // 0x0087a480
 extern data_array *object_data; // 0x008603b0
@@ -106,4 +109,7 @@ void player_set_pending_interaction_action(short param_1,undefined2 param_2)
   *(undefined2 *)(iVar10 + 0x2a) = param_2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

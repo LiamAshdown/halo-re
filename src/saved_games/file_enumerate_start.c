@@ -20,6 +20,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern file_enumeration_position file_enumeration_pos; // 0x0069fa5c
 extern uint32_t file_enumeration_flags_value; // 0x0069fa58
@@ -99,4 +102,7 @@ void FUN_00555b90(undefined4 param_1,int param_2)
   } while (cVar1 != '\0');
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

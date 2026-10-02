@@ -23,6 +23,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *weather_particle_data;     // 0x0087abcc
 extern weather_instance weather_instances[1]; // 0x006b0ae4
@@ -206,4 +209,7 @@ uint FUN_00458070(short param_1,short param_2)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

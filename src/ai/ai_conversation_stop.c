@@ -16,6 +16,9 @@
 #include "cache.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *ai_conversation_data; // 0x008802d4
 extern Scenario *global_scenario;        // 0x00746f8c
@@ -135,4 +138,7 @@ void __cdecl squad_despawn(uint squad_instance_index,uchar reason_a,uchar reason
   datum_delete();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

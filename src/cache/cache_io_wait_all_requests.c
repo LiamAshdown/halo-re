@@ -10,6 +10,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern cache_io_request *cache_io_requests; // 0x006ac4a0
@@ -52,4 +55,7 @@ void __cdecl cache_io_wait_all_requests(void)
   } while (iVar3 != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

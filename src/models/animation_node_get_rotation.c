@@ -36,6 +36,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double floor(double x); // 0x623e40, MSVC CRT, see src/models/animation_overlay_interpolated_frame_orientations.c
 extern void animation_quaternion48_decode(animation_quaternion48 *source, real_quaternion *out); // 0x4d6380, this batch
@@ -161,4 +164,7 @@ void model_node_get_interpolated_rotation(float param_1,short param_2)
   quaternion_normalize();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

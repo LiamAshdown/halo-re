@@ -16,6 +16,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t directsound_paused;          // 0x00746118
 extern int16_t directsound_channel_count;   // 0x00725428
@@ -126,4 +129,7 @@ Disassembly (0x546fe0..0x547062; phase-4 review):
 0x54705c: pop edi
 0x54705d: mov byte ptr [0x746118], al
 0x547062: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

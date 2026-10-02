@@ -16,6 +16,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (state, control, header, cursor)
 // Compressed event type 5: copies one word from *cursor into control->weapon_index and advances
@@ -37,4 +40,7 @@ void FUN_0044a0c0(undefined4 param_1,int param_2,undefined4 param_3,int *param_4
   *param_4 = *param_4 + 2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // TYPES-GAP: a caller-owned 0x5c-byte scratch record, not established elsewhere in this
 // module. Only the fields this function actually writes are named; the remainder (zeroed by
@@ -104,4 +107,7 @@ FUN_0043a190(undefined4 param_1,undefined4 param_2,undefined4 param_3,undefined4
   }
   return *(undefined1 *)unaff_EBX;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

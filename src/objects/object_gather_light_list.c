@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t light_frame_counter; // 0x008607c4
 extern uint8_t light_render_unknown_7c0; // 0x008607c0 (a byte: mov byte ptr at 0x4f2495)
@@ -124,4 +127,7 @@ void FUN_004f2430(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

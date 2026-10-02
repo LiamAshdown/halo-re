@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern data_array *hs_syntax_data;                 // 0x0087a474
@@ -215,4 +218,7 @@ undefined4 hs_report_expected_enum_values(uint param_1)
   *(short *)(iVar2 + 0x10) = sVar11;
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

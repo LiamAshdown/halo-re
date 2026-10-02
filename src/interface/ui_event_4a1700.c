@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t profile_slot_id[]; // 0x00714dde
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error); // 0x498f20
@@ -29,3 +32,6 @@ uint8_t ui_event_4a1700(widget_instance *widget, int16_t *event, uint8_t *out_ha
     profile_slot_id[1] = event[1];
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

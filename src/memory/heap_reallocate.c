@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *heap_resize_block(uint32_t new_size, heap_block *old_block, heap *self); // this batch
 
@@ -104,4 +107,7 @@ uint * heap_reallocate(void)
   }
   return puVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

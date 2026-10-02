@@ -24,6 +24,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *virtual_keyboard_blacklist_charset; // 0x00692d78, UNSURE: passed to strchr
 
@@ -80,4 +83,7 @@ uint FUN_004a8b80(void)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

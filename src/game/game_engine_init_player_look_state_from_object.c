@@ -22,6 +22,9 @@
 #include "units.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern data_array *object_data;                          // 0x008603b0
@@ -125,4 +128,7 @@ void game_engine_init_player_look_state_from_object(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

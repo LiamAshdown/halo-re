@@ -31,6 +31,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -131,4 +134,7 @@ void FUN_004f51c0(uint param_1,float *param_2,undefined4 *param_3)
   FUN_004f5c30(param_1,0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

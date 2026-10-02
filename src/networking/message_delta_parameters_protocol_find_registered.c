@@ -11,6 +11,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t message_delta_parameter_count;               // 0x0071cfb0
 extern message_delta_parameter message_delta_parameters[];  // 0x006b86c0
@@ -90,4 +93,7 @@ LAB_004ec159:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

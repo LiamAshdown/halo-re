@@ -13,6 +13,9 @@
 #include "game.h"
 #include "networking.h"
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_address_string_normalize(char *address_string, char *out_buffer, uint8_t *out_is_any); // 0x4dc5e0, this module
 
@@ -85,4 +88,7 @@ char FUN_004dc730(void)
   }
   return cVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

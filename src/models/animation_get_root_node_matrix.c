@@ -17,6 +17,9 @@
 #include "tags.h"
 #include "math.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); // 0x4cbad0
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model,
@@ -78,4 +81,7 @@ objdump -d -M intel --start-address=0x4d49b0 --stop-address=0x4d49f8 bin/halo.ex
 004d49f0:  5e                    pop    esi
 004d49f1:  81 c4 00 08 00 00     add    esp,0x800
 004d49f7:  c3                    ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

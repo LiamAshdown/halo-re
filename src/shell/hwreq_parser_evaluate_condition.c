@@ -20,6 +20,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t hwreq_token_parse_number(hwreq_parser *parser); // 0x00578b20
 extern uint32_t hwreq_token_parse_hex_id(hwreq_parser *parser); // 0x00578ef0
@@ -493,4 +496,7 @@ LAB_00579a26:
 switchD_00579953_default:
   return "Invalid";
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

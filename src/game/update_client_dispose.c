@@ -31,6 +31,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *update_client_queues; // 0x006f7ed0
 extern data_array *player_data;          // 0x0087a480
@@ -131,4 +134,7 @@ bin/halo.exe of the loop body Ghidra discarded (per-player slot at esi=update_cl
   473041..473054: zero `size` bytes at edx (dword-at-a-time then remainder bytes)
   473056..47306e: next_identifier++ (wrap to 0x8000 at 0); *edx = bx (the player's own salt)
   473071: reload esi ; loop to next player via data_iterator_next
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

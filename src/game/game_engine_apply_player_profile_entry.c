@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_profile player_profile_cache[16]; // 0x006b0b88
 extern game_variant game_engine_variant;        // 0x006f1c88
@@ -240,4 +243,7 @@ part this rewrite relied on for the two corrections and the two calls argument r
 00466e43:  ret (epilogue)
 00466e4b:  mov eax,edi
 00466e4d:  call 0x4ec670             ; FUN_004ec670(EAX=event)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char message_delta_metrics_filename_suffix[]; // 0x0069b24c, UNSURE: e.g. a map/scenario name
 
@@ -65,4 +68,7 @@ void message_delta_metrics_dump(void)
   FUN_00496a80("Wrote network message metrics to %s",local_104);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char **shell_argv; // 0x00721e90
 extern int32_t shell_argc; // 0x00721e94
@@ -77,4 +80,7 @@ undefined4 command_line_check_flag(char *param_1)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data; // 0x00860b14
 extern datum_index *light_cluster_first; // 0x00860b20, the per-cluster list descriptor
@@ -42,4 +45,7 @@ void FUN_004f0bd0(void)
   datum_delete();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

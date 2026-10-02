@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; // 0x0069e350
 
@@ -54,4 +57,7 @@ void __cdecl rasterizer_dx9_shaders_release_all(void)
   rasterizer_dx9_pixel_shaders_release();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

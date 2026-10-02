@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void rasterizer_transparent_geometry_group_new(void *shader, int16_t shader_permutation, uint32_t lightmap_bitmap,
     uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count, uint32_t vertex_buffer, void *tint,
@@ -23,3 +26,6 @@ void render_window_structure_transparent_0x512080(void *shader_data, int16_t sha
         (uint32_t)surface_offset, (uint32_t)(uint16_t)surface_count, (uint32_t)material_extra, lightmap_vertices,
         (uint32_t)lightmap_vertices_offset, (uint32_t)zero, rendered_vertices);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

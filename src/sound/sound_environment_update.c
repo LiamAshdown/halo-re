@@ -46,6 +46,9 @@
 #include "sound.h"
 #include <stdint.h> // uintptr_t: tag block pointers are 32-bit fields
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals;  // 0x0087a478
 extern int16_t local_player_0_cluster_index;  // 0x006ac6e0, observers[0].camera.cluster_index
@@ -263,4 +266,7 @@ LAB_0053f2b9:
   *param_2 = (int)puVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

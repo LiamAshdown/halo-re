@@ -34,6 +34,9 @@
 #include "objects.h"
 #include "units.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_server_globals *network_server;   // 0x0071c2d4
 extern data_array *player_data;                     // 0x0087a480
@@ -210,4 +213,7 @@ void FUN_004aabd0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

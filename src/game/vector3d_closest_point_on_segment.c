@@ -32,6 +32,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_status,
     real_vector3d *out_direction, real_point3d *out_origin); // 0x55a390, units module
@@ -165,4 +168,7 @@ void FUN_0045a280(float *param_1,float *param_2)
   param_2[2] = param_2[2] - (fVar10 * fVar9 + (fVar5 - fVar6));
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

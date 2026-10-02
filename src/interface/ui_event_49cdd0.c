@@ -15,6 +15,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t level_select_entries[0x50]; // 0x00719018
 extern void ui_list_free_all(void); // 0x4a7b20
@@ -27,3 +30,6 @@ uint8_t ui_event_49cdd0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     ui_list_free_all();
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -22,6 +22,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t input_parse_device_binding_string(const char *device_class_name, const char *input_name,
                                                   control_binding_descriptor *out_binding);
@@ -106,4 +109,7 @@ objdump 0x48b750..0x48b7a9 (Intel syntax):
 0048b7a5: pop    ebp
 0048b7a6: add    esp,0xc
 0048b7a9: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "math.h"
 #include "objects.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const ColorRGB *global_white_color;  // 0x00686b04, UNSURE, see
     // effect_new_at_texture_coordinate.c
@@ -70,4 +73,7 @@ void FUN_00451600(undefined4 param_1,undefined4 param_2)
   *(undefined4 *)(in_EAX + 0x38) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

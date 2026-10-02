@@ -28,6 +28,9 @@
 #include "interface.h"
 #include <string.h>
 #include <ctype.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern map_list_entry *map_list; // 0x00712dcc
 extern int32_t map_list_count;   // 0x00712dd0
@@ -124,4 +127,7 @@ LAB_00495080:
     }
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

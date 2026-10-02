@@ -22,6 +22,9 @@
 #include "networking.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern controls_gamepad_record controls_available_gamepads[8]; // 0x006b42d8
 extern controls_gamepad_record controls_assigned_gamepads[4];   // 0x006b53d8
@@ -88,4 +91,7 @@ undefined4 FUN_004b5800(undefined4 *param_1)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

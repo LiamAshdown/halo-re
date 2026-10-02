@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ctf_globals ctf_globals_live;            // 0x006b1290
 extern uint32_t ctf_team_captured_flags_mask[]; // 0x006b12d4, this batch (ctf_globals::unknown_44)
@@ -112,4 +115,7 @@ bool FUN_0046df30(void)
   }
   return false;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

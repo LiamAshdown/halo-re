@@ -22,6 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t message_delta_parameters_enabled;              // 0x0071cfa8
 extern int32_t message_delta_parameter_count;                 // 0x0071cfb0
@@ -163,4 +166,7 @@ void __cdecl message_delta_parameters_protocol_register(char *name,int type,void
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

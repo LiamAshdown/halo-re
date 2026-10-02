@@ -9,6 +9,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *cache_io_event;   // 0x006ac498, auto-reset event that wakes the worker
 extern void *cache_io_thread;  // 0x006ac49c, 0x4000-byte stack
@@ -66,4 +69,7 @@ void __cdecl cache_io_thread_start(void)
                     (LPDWORD)0x0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

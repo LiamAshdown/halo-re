@@ -21,6 +21,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 uint8_t game_checkpoint_reclaim_slot_callback(int32_t index, const char *name, int32_t level_index,
@@ -50,4 +53,7 @@ Original disassembly (0x538ac0, no Ghidra export -- not in out/functions.json):
 00538adc:
   b0 01                mov    al,0x1
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

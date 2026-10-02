@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern motion_sensor_globals *motion_sensor;   // 0x00719438
 extern HUDGlobals *hud_globals_tag_data; // 0x0071941c
@@ -178,4 +181,7 @@ void motion_sensor_render(char param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

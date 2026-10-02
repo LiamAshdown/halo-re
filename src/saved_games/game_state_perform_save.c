@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_state_proc game_state_before_save_proc; // 0x0069e7ac
 extern uint8_t unknown_00719769; // 0x00719769, UNSURE: interface busy flag
@@ -55,4 +58,7 @@ void FUN_005381c0(char param_1)
   DAT_0071976a = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

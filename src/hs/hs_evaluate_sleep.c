@@ -31,6 +31,9 @@
 #include "math.h"
 #include "game.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
     // this module, 0x48a560; see hs_evaluate_random.c and the UNSURE note above
@@ -233,4 +236,7 @@ void hs_evaluate_sleep(undefined4 param_1,uint param_2,char param_3)
   FUN_0048a640();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

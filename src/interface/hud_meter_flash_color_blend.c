@@ -22,6 +22,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double cos(double x);           // FCOS
 extern double sqrt(double x);          // FSQRT
@@ -176,4 +179,7 @@ LAB_004aba2b:
   color_pack_argb_from_real(&local_30);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

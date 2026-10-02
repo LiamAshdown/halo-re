@@ -47,6 +47,9 @@
 #include "math.h"
 #include "objects.h"
 #include "items.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real equipment_network_update_position_tolerance; // 0x00695e18, 2.0f; UNSURE name, by
     // analogy with weapon_network_update_position_tolerance (0x696550) and
@@ -221,4 +224,7 @@ void missed_4bc250(uint param_1,undefined4 *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

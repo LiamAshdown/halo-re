@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> entry
 // True when entry is non-NULL, its machine_player_index is 0, its machine_index is 0..15, and
@@ -94,4 +97,7 @@ LAB_004dea72:
   }
   return (uint)in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

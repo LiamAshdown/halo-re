@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char network_address_string[0x100]; // 0x006a3f38, shared format buffer
 
@@ -70,4 +73,7 @@ undefined * network_address_to_string(void)
   }
   return &DAT_006a3f38;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -15,6 +15,9 @@
 #include "math.h"
 #include "objects.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;     // 0x00880360
 extern data_array *encounter_data; // 0x008802c8
@@ -205,4 +208,7 @@ the exact register mapping into actor_grenade_avoidance_entry_init:
 0042b161: lea    esi,[ecx+eax*8]           ; esi = &out_entries[count]
 0042b164: push   edx                       ; edx = prop_cursor
 0042b165: call   0x42af50
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

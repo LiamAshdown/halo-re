@@ -15,6 +15,9 @@
 #include "cache.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
@@ -84,3 +87,6 @@ uint8_t game_engine_ctf_build_message_text(datum_index recipient, int32_t messag
         return 0;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

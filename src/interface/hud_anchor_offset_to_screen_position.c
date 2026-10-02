@@ -23,6 +23,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
@@ -133,4 +136,7 @@ void FUN_004ab690(ushort *param_1,float param_2,undefined2 *param_3)
   (*(code *)(&PTR_LAB_004ab8b8)[(short)uVar1])();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

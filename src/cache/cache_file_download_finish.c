@@ -21,6 +21,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 extern void cache_file_slot_read_header(int32_t slot_index); // blam-cc: EAX; this module, 0x4435e0
@@ -83,4 +86,7 @@ void FUN_00443540(void)
   DAT_006ac472 = 0xffff;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Opens (creating if necessary) HKLM\Software\Microsoft\Microsoft Games\Halo and writes its
@@ -48,4 +51,7 @@ void __cdecl shell_registry_set_exit_flag_clean(void)
   RegCloseKey(local_4);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

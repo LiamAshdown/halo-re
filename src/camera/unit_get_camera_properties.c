@@ -15,6 +15,9 @@
 #include "units.h"
 #include "cache.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -77,4 +80,7 @@ int FUN_00447110(void)
   }
   return *(int *)((*puVar1 & 0xffff) * 0x20 + 0x14 + iVar2) + 0x1a8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

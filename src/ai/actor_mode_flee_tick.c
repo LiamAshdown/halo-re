@@ -14,6 +14,9 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -41,3 +44,6 @@ void actor_mode_flee_tick(datum_index actor_index)
         *(int32_t *)&((struct actor *)act)->panic_cooldown_time = game_time->game_time + 750;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

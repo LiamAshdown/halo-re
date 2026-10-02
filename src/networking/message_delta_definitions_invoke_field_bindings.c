@@ -15,6 +15,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
 extern void message_delta_field_bindings_invoke(message_delta_static_fields *list); // 0x4ec700, this module
@@ -50,4 +53,7 @@ void FUN_004ec390(void)
   } while ((int)ppuVar1 < 0x65d520);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

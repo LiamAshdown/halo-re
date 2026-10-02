@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 
@@ -139,4 +142,7 @@ Disassembly (0x547c10..0x547c71, capstone; phase-4 review):
 0x547c6a: mov eax, 1
 0x547c6f: pop ecx
 0x547c70: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

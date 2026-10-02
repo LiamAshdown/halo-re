@@ -49,6 +49,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *server_browser_join_target; // 0x00719450, a GameSpy peer/query handle;
     // matches server_browser_join_target_has_password / network_join_target_address at the adjacent
@@ -354,4 +357,7 @@ uint FUN_004ba320(void)
   }
   return uVar5 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -16,6 +16,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ctf_globals ctf_globals_live; // 0x006b1290
 extern Scenario *global_scenario;    // 0x00746f8c
@@ -103,4 +106,7 @@ int __cdecl game_engine_ctf_pick_random_flag(int exclude_flag_index)
   } while (iVar2 < *(int *)(global_scenario + 0x378));
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "math.h"
 #include "objects.h"
 #include "scenario.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, physics module
 
@@ -83,4 +86,7 @@ Raw disassembly (0x53e780-0x53e7b8):
   53e7af: movsx  eax,WORD PTR [eax+edx*1+0x8] ; leaves[leaf_index].cluster
   53e7b4: mov    WORD PTR [esi+0x4],ax        ; out->cluster_index = cluster
   53e7b8: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

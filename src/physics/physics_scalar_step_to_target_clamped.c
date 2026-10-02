@@ -24,6 +24,9 @@
 #include "tags.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); // 0x50b370
 
@@ -81,4 +84,7 @@ undefined4 FUN_0050b460(float param_1,float param_2)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

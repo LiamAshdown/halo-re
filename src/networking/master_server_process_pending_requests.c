@@ -28,6 +28,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *master_server_query_engine;        // 0x0071946c, see UNSURE
 extern uint32_t master_server_request_flags;    // 0x0071969c
@@ -218,4 +221,7 @@ void FUN_004b5d70(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

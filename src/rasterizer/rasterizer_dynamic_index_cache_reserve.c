@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t rasterizer_dynamic_index_count;                                          // 0x006e09e4
 extern int32_t rasterizer_dynamic_index_slot_count;                                     // 0x006e09e0
@@ -71,4 +74,7 @@ int FUN_0051bd60(void)
   }
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

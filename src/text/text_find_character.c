@@ -20,6 +20,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "text.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t text_char_is_double_byte(uint8_t *string); // 0x557750
 
@@ -85,4 +88,7 @@ int FUN_00557870(int param_1)
   }
   return (uint)uVar3 << 8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

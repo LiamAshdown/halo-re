@@ -7,6 +7,9 @@
 
 #include "win32.h"
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hash_table_dispose(hash_table *table); // 0x4f04c0, EDI table
 
@@ -17,3 +20,6 @@ void message_delta_index_teardown(message_delta_field_type *field_type)
     GlobalFree((void *)descriptor[10]);
     hash_table_dispose((hash_table *)(descriptor + 3));
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

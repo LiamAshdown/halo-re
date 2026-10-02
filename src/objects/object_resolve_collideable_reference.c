@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index *collideable_cluster_first; // 0x008603d0
 extern data_array *collideable_object_references; // 0x008603d4
@@ -51,4 +54,7 @@ undefined4 FUN_004f5f00(uint *param_1,short param_2)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

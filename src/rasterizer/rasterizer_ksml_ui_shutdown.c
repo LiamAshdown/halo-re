@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *chat_gui_root_handle;                                  // 0x00721ea4 KSML UI engine instance (interface module name)
 extern int32_t (*unknown_00721eb8)(void *engine, void *key); // 0x00721eb8: "find document"
@@ -83,4 +86,7 @@ void __cdecl rasterizer_ksml_ui_shutdown(void)
   ExceptionList = local_14;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

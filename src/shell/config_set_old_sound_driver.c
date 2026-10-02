@@ -11,6 +11,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t config_old_sound_driver; // 0x00722b48
 
@@ -21,3 +24,6 @@ uint8_t config_set_old_sound_driver(const char *value)
     config_old_sound_driver = 1;
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

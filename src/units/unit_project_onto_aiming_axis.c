@@ -35,6 +35,9 @@
 #include "math.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out_position); // 0x568f80, blam-cc: ECX unit_index, EDI out
@@ -101,4 +104,7 @@ void FUN_005658f0(uint param_1,float *param_2,char param_3,char param_4)
   *param_2 = local_c * *unaff_EBX + local_4 * unaff_EBX[2] + local_8 * unaff_EBX[1];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

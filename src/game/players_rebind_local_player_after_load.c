@@ -19,6 +19,9 @@
 #include "objects.h"
 #include "game.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals;      // 0x0087a478
 extern data_array *player_data;                   // 0x0087a480
@@ -90,3 +93,6 @@ void players_rebind_local_player_after_load(void)
     memmove(hud_weapon_state + 0x28 + local * 0x50, hud_weapon_state + 0x28 + slot * 0x50, 0x50);
     memmove(hud_unit_meters + local * 0x58, hud_unit_meters + slot * 0x58, 0x58);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

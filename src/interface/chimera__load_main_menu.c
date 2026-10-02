@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t main_menu_reload_pending; // 0x006926c8, UNSURE name
 extern char *shell_command_line;    // 0x006e35c0, TYPES-GAP, UNSURE name
@@ -111,4 +114,7 @@ void chimera__load_main_menu(void)
   DAT_006926c8 = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

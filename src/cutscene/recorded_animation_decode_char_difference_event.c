@@ -23,6 +23,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void recorded_animation_apply_char_difference(recorded_animation_angles *angles,
     recorded_animation_char_difference *delta); // 0x44a110, this batch
@@ -198,4 +201,7 @@ LAB_0044a278:
   *param_4 = *param_4 + 2;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

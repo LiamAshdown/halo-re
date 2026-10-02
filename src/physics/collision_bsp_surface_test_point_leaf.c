@@ -26,6 +26,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t bsp2d_node_find_leaf(int32_t node_index, TagReflexive *bsp2d_nodes,
                                      real_point2d *point); // 0x501340, this batch
@@ -150,4 +153,7 @@ FUN_00502460(undefined4 param_1,undefined4 param_2,uint param_3,undefined4 param
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

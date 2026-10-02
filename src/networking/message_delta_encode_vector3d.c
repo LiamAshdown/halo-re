@@ -15,6 +15,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x); // FSQRT, Ghidra SQRT() pseudo-function
 
@@ -259,4 +262,7 @@ int message_delta_encode_vector3d(undefined4 param_1,float *param_2,float *param
   } while (iVar7 < 3);
   return local_20;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "math.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_control_globals *player_control_globals_ptr; // 0x006b145c
 extern director directors[1];                              // 0x006ac560
@@ -136,4 +139,7 @@ objdump (the unit argument Ghidra dropped):
   445c1d: shl eax,0x6                         ; local_player_index * 0x40
   445c20: mov ecx,DWORD PTR [eax+ecx*1+0x10]  ; local_players[i].unit
   445c25: call 0x445b20
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

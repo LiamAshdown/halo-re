@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;     // 0x00746f8c (types/game.h)
 extern tag_instance *tag_instances;   // 0x0087bc14
@@ -125,4 +128,7 @@ undefined4 FUN_00555270(void)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

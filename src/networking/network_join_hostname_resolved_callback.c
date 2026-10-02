@@ -19,6 +19,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t server_browser_join_target_has_password;   // 0x00719454, nonzero selects network_join_target_address
 extern uint16_t network_join_target_address[128]; // 0x00719458, a hostname/address string
@@ -117,4 +120,7 @@ void FUN_004ba270(int param_1,undefined4 param_2,int param_3)
   DAT_00719754._3_1_ = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

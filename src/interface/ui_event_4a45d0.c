@@ -14,6 +14,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char pending_delete_saved_game_name_00718fd0[]; // 0x00718fd0, UNSURE name
 extern uint8_t saved_game_delete_files(char *name); // 0x5388c0, blam-cc: EDI name
@@ -25,3 +28,6 @@ uint8_t ui_event_4a45d0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

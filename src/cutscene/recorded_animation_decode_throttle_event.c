@@ -17,6 +17,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: stack -> (state, control, header, cursor)
 // Compressed event type 6: copies two dwords from *cursor into control->throttle.i / .j, zeroes
@@ -48,4 +51,7 @@ void FUN_0044a0e0(undefined4 param_1,int param_2,undefined4 param_3,int *param_4
   *param_4 = *param_4 + 8;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

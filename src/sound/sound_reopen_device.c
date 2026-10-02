@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_data;              // 0x007252c0
 extern sound_driver *current_sound_driver;      // 0x00725208
@@ -262,4 +265,7 @@ Disassembly (0x5494a0..0x5495df, capstone; phase-4 review):
 0x5495d5: test al, al
 0x5495d7: mov al, byte ptr [esp + 0x13]
 0x5495db: je 0x5495e7
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

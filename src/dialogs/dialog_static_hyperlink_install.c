@@ -22,6 +22,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "dialogs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // The two subclass procs are referenced only as values (push 0x57e350 at 0x57e526,
@@ -118,4 +121,7 @@ undefined4 dialog_static_hyperlink_install(void)
   SetPropA(unaff_ESI,"Static",(HANDLE)0x1);
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

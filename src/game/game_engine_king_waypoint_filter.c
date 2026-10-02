@@ -10,6 +10,9 @@
 #include "math.h"
 #include "game.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t king_hill_player_in_hill[16]; // 0x006b0f40
 
@@ -17,3 +20,6 @@ uint8_t game_engine_king_waypoint_filter(datum_index player)
 {
     return (uint8_t)(king_hill_player_in_hill[player & 0xffff] == 0);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

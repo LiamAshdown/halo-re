@@ -26,6 +26,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // The element type is types/interface.h map_list_entry (0x0c), the table interface.h calls map_list.
 
@@ -178,4 +181,7 @@ void map_list_matching_substring(int param_1,undefined4 *param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

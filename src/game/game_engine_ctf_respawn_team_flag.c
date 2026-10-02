@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real_point3d *ctf_team_flag_stand_position[2]; // 0x006b0e88, UNSURE exact element count
 extern datum_index ctf_team_flag_object[2];           // 0x006b0e90
@@ -61,4 +64,7 @@ void FUN_00468430(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

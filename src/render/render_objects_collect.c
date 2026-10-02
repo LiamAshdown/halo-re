@@ -25,6 +25,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t object_cluster_stamp;           // 0x008603cc, objects module
 extern object_globals *object_globals_pointer; // 0x006b8cbc, objects module
@@ -112,4 +115,7 @@ void FUN_0050eac0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

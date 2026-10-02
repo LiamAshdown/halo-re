@@ -18,6 +18,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_id_table *object_network_id_table; // 0x00687130
 extern void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument,
@@ -57,4 +60,7 @@ void FUN_004f4680(undefined4 param_1)
   FUN_004f4620(param_1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

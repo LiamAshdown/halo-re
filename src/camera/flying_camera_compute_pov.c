@@ -18,6 +18,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t flying_camera_follow_script;                 // 0x006f17fd, UNSURE name
 extern void *flying_camera_render_frame;                    // 0x00686aa4 -> 0x007c3100; +0x14 is a render_camera
@@ -118,4 +121,7 @@ No Ghidra function exists at 0x4464f0. objdump -d -M intel:
   4465c4: pop edi
   4465c5: pop esi
   4465c6: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

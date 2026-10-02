@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20
 extern void object_delete_unparented(uint32_t object_index); // blam-cc: EDI -> object_index // 0x4f5aa0, this batch; UNSURE: called with no
@@ -91,4 +94,7 @@ LAB_004f4845:
     uVar1 = local_8;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

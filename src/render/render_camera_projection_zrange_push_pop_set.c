@@ -15,6 +15,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float render_saved_projection_z[4]; // 0x006b8d84, this module
 
@@ -75,4 +78,7 @@ void render_camera_projection_zrange_push_pop_set(float param_1,float param_2)
   *(float *)(in_ECX + 0x17c) = (param_1 * param_2 * -2.0) / (param_2 - param_1);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

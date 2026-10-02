@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index datum_next(int16_t after_index, data_array *array); // 0x4d0630, blam-cc: DX, EDI
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
@@ -83,4 +86,7 @@ void FUN_00487750(void)
     } while ((short)iVar5 < *(short *)(iVar7 + 0x2e));
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

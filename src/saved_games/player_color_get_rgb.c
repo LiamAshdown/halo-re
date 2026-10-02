@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t player_color_table[k_player_color_count]; // 0x0069e7f0
 
@@ -62,4 +65,7 @@ void player_color_get_rgb(void)
   in_EAX[2] = (float)(uVar1 & 0xff) * 0.003921569;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

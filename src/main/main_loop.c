@@ -52,6 +52,9 @@
 #include <stdint.h> // uintptr_t
 #include "units.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data;                      // 0x00719700
 extern main_frame_rate_average frame_rate_average_data;     // 0x00719ab0
@@ -1156,4 +1159,7 @@ Disassembly facts Ghidra dropped or got wrong (0x4c7610..0x4c8333):
           paused or while the console is open
   4c81fd  64 bit present counter + 1 ; mov ebx,0x7c30a0 ; push 1 ; call 0x512530
   4c8308  cmp eax,0xc8 ; jbe  unsigned clamp of the newest frame time sample
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

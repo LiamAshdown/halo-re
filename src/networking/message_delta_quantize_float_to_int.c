@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <math.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double floor(double x); // CRT floor (0x623e40: SSE2-dispatched; its x87 path reports _FpCodeFloor 11)
 
@@ -60,4 +63,7 @@ uint message_delta_quantize_float_to_int(float param_1,float param_2,float param
   }
   return -(uint)(uVar2 != 0) & uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

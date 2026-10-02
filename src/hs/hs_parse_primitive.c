@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "hs.h"
 #include <stdio.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char hs_parse_variable(datum_index node_index); // 0x00486560, this batch
 
@@ -115,4 +118,7 @@ uint hs_parse_primitive(void)
   DAT_006b14d8 = *(undefined4 *)(iVar1 + 0xc);
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

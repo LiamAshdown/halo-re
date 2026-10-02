@@ -33,6 +33,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint8_t widget_creating_children; // 0x00718fc3
@@ -290,4 +293,7 @@ LAB_0049966d:
 LAB_00499770:
   return CONCAT31((int3)((uint)puVar5 >> 8),local_1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

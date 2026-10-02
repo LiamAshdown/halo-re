@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "effects.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity,
     int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale,
@@ -86,4 +89,7 @@ void FUN_004565a0(undefined4 param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -28,6 +28,9 @@
 #include "interface.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                          // 0x0071d174
 extern void *rasterizer_direct3d;                        // 0x0071d178
@@ -939,4 +942,7 @@ LAB_005171de:
   rasterizer_shutdown();
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

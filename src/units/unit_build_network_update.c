@@ -28,6 +28,9 @@
 #include "objects.h"
 #include "units.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                    // 0x008603b0
 extern network_id_table *object_network_id_table; // 0x00687130
@@ -222,4 +225,7 @@ void FUN_0055aed0(uint param_1)
   message_delta_encode_message(0,0x1d,0,&local_94,0,1,'\0');
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -8,6 +8,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void heap_unlink_block(heap_block *block, heap *self)
 {
@@ -56,4 +59,7 @@ void FUN_004d20a0(void)
   *(uint *)(in_ECX + 0x10) = -(uint)(*(int *)(in_ECX + 0x2c) != 0) & uVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Writes out = the cross product built from a (ECX) and b (stack), component order taken
 // directly from the FPU trace: out.i = a.k*b.j - b.k*a.j, out.j = b.k*a.i - b.i*a.k,
@@ -68,4 +71,7 @@ void vector3d_cross_product(float *param_1)
   in_EAX[2] = fVar5 * fVar6 - fVar7 * fVar8;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point)
 {
@@ -72,4 +75,7 @@ float10 point3d_distance_squared_to_segment(void)
   fVar3 = fVar3 * (float10)in_ECX[2] + ((float10)in_EDX[2] - (float10)in_EAX[2]);
   return (float10)fVar1 * (float10)fVar1 + (float10)fVar2 * (float10)fVar2 + fVar3 * fVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

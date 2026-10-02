@@ -38,6 +38,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern network_thread_record *variant_write_thread; // 0x00721324
 extern network_mutex_record *saved_game_files_mutex; // 0x0072143c
@@ -224,4 +227,7 @@ undefined4 FUN_0053bee0(int param_1,undefined4 *param_2)
   }
   return uVar6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

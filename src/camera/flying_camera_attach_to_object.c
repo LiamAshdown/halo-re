@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;                         // 0x008603b0, objects module
 extern const real_point3d *global_origin3d_pointer;     // 0x00696714, math module
@@ -66,4 +69,7 @@ void FUN_00446470(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

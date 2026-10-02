@@ -26,6 +26,9 @@
 #include "game.h"
 #include "networking.h"
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t server_browser_selected_index; // 0x006953f4, -1 when nothing is selected
 extern uint8_t server_browser_skip_reselect;  // 0x00719480, nonzero suppresses the reselect pass
@@ -133,4 +136,7 @@ void FUN_004ba9c0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

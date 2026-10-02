@@ -24,6 +24,9 @@
 #include "objects.h"
 #include "models.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;     // 0x008603b0
 extern tag_instance *tag_instances; // 0x0087bc14
@@ -134,3 +137,6 @@ void vehicle_blend_animations(datum_index object_index, real_orientation *orient
         }
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

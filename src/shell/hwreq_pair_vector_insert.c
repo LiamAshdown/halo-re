@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hwreq_pair_vector_insert_n(msvc_std_vector *self, hwreq_string_pair *where, uint32_t count,
     const hwreq_string_pair *value); // 0x57be20, blam-cc: ECX -> value, stack -> this, where, count
@@ -30,3 +33,6 @@ hwreq_string_pair **hwreq_pair_vector_insert(msvc_std_vector *self, hwreq_string
     *result = (hwreq_string_pair *)self->first + offset;
     return result;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

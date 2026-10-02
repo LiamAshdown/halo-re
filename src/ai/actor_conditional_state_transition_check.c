@@ -13,6 +13,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 extern char actor_evaluate_combat_state_transition(uint32_t actor_index); // 0x40c620, other half of this session
@@ -82,4 +85,7 @@ LAB_0040d7ea:
   uVar3 = actor_evaluate_combat_state_transition();
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

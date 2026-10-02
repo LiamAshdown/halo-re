@@ -22,6 +22,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char *data_packet_group_error; // 0x006b7f00
 
@@ -79,4 +82,7 @@ bool data_packet_group_encode_packet(undefined4 param_1,undefined4 param_2,undef
   DAT_006b7f00 = pcVar2;
   return pcVar2 == (char *)0x0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

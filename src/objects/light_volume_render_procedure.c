@@ -28,6 +28,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *light_volume_instances; // 0x006b8d70
 extern tag_instance *tag_instances;     // 0x0087bc14
@@ -156,3 +159,6 @@ void light_volume_render_procedure(uint32_t object_index, datum_index light_volu
     }
     rasterizer_effect_slot_release_active();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

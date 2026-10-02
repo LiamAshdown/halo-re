@@ -18,6 +18,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // VERIFIED against disassembly 0x4705f0..0x470623 (2026-09-30); fixed: key is the full ESI (zero-extended by the callers) and
 //   the two byte comparisons sign-extend the stored bytes, so a stored byte >= 0x80 never matches / always reports changed.
@@ -71,4 +74,7 @@ uint FUN_004705f0(void)
   } while (iVar3 < 0x10);
   return in_EAX & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

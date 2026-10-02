@@ -19,6 +19,9 @@
 #include "math.h"
 #include "objects.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 
@@ -157,4 +160,7 @@ Disassembly (0x5448c0..0x544977, capstone; phase-4 review):
 0x544972: pop ebx
 0x544973: add esp, 8
 0x544976: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

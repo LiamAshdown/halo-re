@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                     // 0x0071d174
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type,
@@ -195,4 +198,7 @@ void FUN_0051bec0(undefined4 param_1,int param_2,int param_3,short param_4)
   (**(code **)(*DAT_0071d174 + 0x134))(DAT_0071d174,DAT_0069c680);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

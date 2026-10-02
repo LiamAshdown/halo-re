@@ -47,6 +47,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                         // 0x0071d174
 extern rasterizer_window_parameters rasterizer_window;  // 0x007c1220, rasterizer module
@@ -454,4 +457,7 @@ void object_render_state_refresh(void)
   (**(code **)(*DAT_0071d174 + 0x134))(DAT_0071d174,DAT_0069c680);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

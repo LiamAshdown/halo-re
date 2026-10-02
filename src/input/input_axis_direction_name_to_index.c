@@ -18,6 +18,9 @@
 
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void input_get_axis_direction_name(int16_t direction_index, uint16_t *out_name); // this module, 0x491180
 
@@ -93,4 +96,7 @@ uint input_axis_direction_name_to_index(char *param_1)
   }
   return uVar4 & 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -35,6 +35,9 @@ extern uint32_t global_structure_collision_bsp; // 0x00746f98, UNSURE: foreign m
 extern object *object_iterator_next(object_iterator *iterator); // 0x4f6f20, this batch
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); // 0x4f5c30
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); // 0x5013a0, EAX node, ECX bsp, EDX point
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count,
@@ -155,4 +158,7 @@ void FUN_004f7570(void)
   DAT_008603b0 = iVar1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

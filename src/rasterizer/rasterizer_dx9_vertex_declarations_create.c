@@ -16,6 +16,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <string.h> // memset
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device; // 0x0071d174
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; // 0x006e1a90
@@ -271,4 +274,7 @@ bool __cdecl rasterizer_dx9_vertex_declarations_create(void)
   }
   return bVar20;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

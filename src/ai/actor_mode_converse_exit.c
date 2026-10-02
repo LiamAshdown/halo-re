@@ -11,6 +11,9 @@
 #include "ai.h"
 #include "game.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data; // 0x00880360
 
@@ -26,3 +29,6 @@ void actor_mode_converse_exit(datum_index actor_index)
         ai_conversation_stop(conversation, 0, 0);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

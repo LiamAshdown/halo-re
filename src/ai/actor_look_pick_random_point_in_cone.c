@@ -29,6 +29,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t random_seed_global; // 0x00719cd0
 extern const real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
@@ -198,4 +201,7 @@ Disassembly cross-check (objdump -d -M intel bin/halo.exe, 0x415260..0x41547b) r
   - unaff_BL is read directly (test bl,bl) with no push/pop of ebx in this function, and its
     two known callers set it explicitly right before the call (0x414d00: mov bl,1; 0x414f50:
     xor bl,bl), confirming it is a genuine caller-supplied flag, not a spilled local.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

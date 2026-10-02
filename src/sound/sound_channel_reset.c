@@ -18,6 +18,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t config_enable_stop_start; // 0x00722b58, UNSURE, see file header
 extern uint8_t sound_stopping_all; // 0x007252b7
@@ -129,4 +132,7 @@ Disassembly (0x547f60..0x547fe2, capstone; phase-4 review):
 0x547fdf: pop esi
 0x547fe0: pop ebx
 0x547fe1: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

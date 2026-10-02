@@ -24,6 +24,9 @@
 #include "units.h"
 #include "cache.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const real_point3d *global_origin3d_pointer; // 0x00696714
 extern data_array *object_data;                     // 0x008603b0
@@ -250,4 +253,7 @@ Disassembly (objdump -d -M intel, 0x446b70..0x446d26) that this rewrite is actua
 0x446d18: add esp, 0x10                                     ; pops all four deferred stack args at once
 0x446d1b: mov dword ptr [ebx], 1
 0x446d21..0x446d26: pop edi/esi, epilogue, ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -21,6 +21,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float mouse_acceleration;                                  // 0x006894d0
 extern float mouse_acceleration_cached;                            // 0x0068e418
@@ -139,4 +142,7 @@ float10 FUN_0048cb60(float param_1,int param_2)
   }
   return fVar7;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

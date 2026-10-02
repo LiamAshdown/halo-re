@@ -35,6 +35,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern uint8_t *local_player_globals; // 0x0087a478, same declaration as objects_update.c and
@@ -247,4 +250,7 @@ LAB_004f790f:
   }
   return local_a1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

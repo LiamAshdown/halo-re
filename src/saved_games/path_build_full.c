@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char file_root_template[4]; // 0x0069fa50
 
@@ -30,3 +33,6 @@ void path_build_full(char *source, char *destination, int16_t location)
     }
     strcat(destination, source);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

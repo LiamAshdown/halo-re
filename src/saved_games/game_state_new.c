@@ -17,6 +17,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *game_state_base; // 0x006e2dc8
 extern int32_t game_state_cursor; // 0x006e2dcc
@@ -93,4 +96,7 @@ char * game_state_new(char *param_1,short param_2)
   _Dest[0x24] = '\0';
   return _Dest;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

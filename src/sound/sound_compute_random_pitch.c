@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern random_seed effect_random_seed; // 0x00719cd4
 
@@ -76,4 +79,7 @@ Disassembly (0x54aec0..0x54af09, capstone; phase-4 review):
 0x54af05: fmulp st(1)
 0x54af07: pop ecx
 0x54af08: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

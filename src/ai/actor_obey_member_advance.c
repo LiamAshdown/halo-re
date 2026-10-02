@@ -13,6 +13,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index,
     void *component_record, int32_t secondary_record, uint32_t callback_extra)
@@ -26,3 +29,6 @@ void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uin
     (void)callback_extra;
     record[4] = (uint8_t)((record[4] & 0xef) | 8);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

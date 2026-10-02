@@ -21,6 +21,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Projects a world-space point into the camera's normalized device coordinates and then into
 // screen pixel coordinates, returning whether it lies within the view (in front of the camera,
@@ -105,4 +108,7 @@ uint render_project_world_point_to_screen(void)
   }
   return uVar4;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

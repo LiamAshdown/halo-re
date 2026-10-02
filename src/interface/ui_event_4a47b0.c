@@ -13,6 +13,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t game_checkpoint_save_new(void); // 0x538db0
 
@@ -21,3 +24,6 @@ uint8_t ui_event_4a47b0(widget_instance *widget, int16_t *event, uint8_t *out_ha
     game_checkpoint_save_new();
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -90,6 +90,9 @@
 #include "game.h"
 #include "networking.h"
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index tag_lookup(tag_group group, char *path); // 0x442550
 extern wchar_t *unicode_string_list_get_string(char *path, int16_t index); // 0x4b8d30, this module (src/game/unicode_string_list_get_string.c)
@@ -1244,4 +1247,7 @@ LAB_004ba19f:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

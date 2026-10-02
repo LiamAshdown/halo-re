@@ -29,6 +29,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char savegames_directory[0x100]; // 0x00721549
 
@@ -219,4 +222,7 @@ LAB_0053d068:
   XDeleteSaveGame();
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

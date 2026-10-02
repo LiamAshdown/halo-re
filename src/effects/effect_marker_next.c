@@ -17,6 +17,9 @@
 #include "objects.h"
 #include "effects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_location_data;      // 0x0087abe0
 extern player_globals *local_player_globals;  // 0x0087a478
@@ -77,4 +80,7 @@ int FUN_00453180(int param_1,uint *param_2,undefined4 param_3)
   }
   return iVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

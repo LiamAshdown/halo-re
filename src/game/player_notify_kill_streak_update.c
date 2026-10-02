@@ -20,6 +20,9 @@
 #include "objects.h" // hash_table
 #include "units.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t shared_hud_text_draw_state; // 0x00871de0
 
@@ -87,4 +90,7 @@ void FUN_00479aa0(int *param_1,undefined4 param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

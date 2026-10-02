@@ -36,6 +36,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 
@@ -691,4 +694,7 @@ LAB_00462a6e:
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

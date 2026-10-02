@@ -18,6 +18,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern input_abstraction_globals input_globals; // 0x00710328
 
@@ -67,4 +70,7 @@ objdump call-site evidence (both statically resolvable callers, e.g. 0x4822b9..0
   004822cf: push ecx
   004822d0: mov cx,[eax]          ; slot
   004822d3: call 0x48c930
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

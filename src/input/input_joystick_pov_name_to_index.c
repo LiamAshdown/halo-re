@@ -22,6 +22,9 @@
 #include "interface.h"
 #include "saved_games.h"
 #include "input.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char joystick_pov_prefix[0x18]; // 0x0065b920, "pov"
 extern char decimal_suffixes[0x20][3]; // 0x0065b988, "0" .. "31" (only the first 16 are scanned)
@@ -117,4 +120,7 @@ undefined2 FUN_00491590(short *param_1)
   }
   return (short)iVar6;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

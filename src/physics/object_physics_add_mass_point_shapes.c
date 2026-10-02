@@ -28,6 +28,9 @@
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
     real_matrix4x3 *m); // 0x4cbde0, blam-cc: EAX out, EDX point, stack m
@@ -92,4 +95,7 @@ undefined4 FUN_00507790(undefined4 param_1,float param_2,short *param_3)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

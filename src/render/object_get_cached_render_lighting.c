@@ -18,6 +18,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_render_state_cache; // 0x007c30ec, this module
 extern render_lighting render_uncached_object_lighting; // 0x006b91c8, this module
@@ -64,4 +67,7 @@ undefined * render_get_cluster_ambient_light_sample(void)
   object_gather_light_list(&DAT_006b91c8);
   return &DAT_006b91c8;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

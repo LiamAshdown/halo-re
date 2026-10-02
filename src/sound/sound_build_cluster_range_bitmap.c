@@ -24,6 +24,9 @@
 #include "game.h"
 #include "camera.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ScenarioStructureBSP *global_structure_bsp; // 0x00746f9c
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words]; // 0x00746160
@@ -223,4 +226,7 @@ Disassembly (0x544980..0x544a92, capstone; phase-4 review):
 0x544a8d: pop ebp
 0x544a8e: add esp, 8
 0x544a91: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "math.h"
 #include "cache.h"
 #include "models.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 
@@ -132,4 +135,7 @@ undefined4 FUN_004d48d0(undefined4 param_1)
   }
   return 1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

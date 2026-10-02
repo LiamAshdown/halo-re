@@ -22,6 +22,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // blam-cc: flag in ESI
@@ -85,4 +88,7 @@ Raw disassembly (0x442ce0-0x442d0b), objdump -d -M intel --start-address=0x442ce
 00442d08: ret
 00442d09: mov al,BYTE PTR [esi]            ; the already-set fast path
 00442d0b: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

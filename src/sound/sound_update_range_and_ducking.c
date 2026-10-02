@@ -18,6 +18,9 @@
 #include "cache.h"
 #include "game.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_globals *local_player_globals; // 0x0087a478
 extern data_array *sound_data;               // 0x007252c0, "sounds" 0x200 x 0xb0
@@ -343,4 +346,7 @@ Disassembly (0x54bd60..0x54c014, capstone; phase-4 review):
 0x54c00a: fstp dword ptr [0x7252a4]
 0x54c010: add esp, 0xc
 0x54c013: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

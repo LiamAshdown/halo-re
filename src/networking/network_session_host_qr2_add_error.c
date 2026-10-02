@@ -8,6 +8,9 @@
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct ColorARGB ColorARGB;
 extern void *console_message_default_color; // 0x00685218
@@ -19,3 +22,6 @@ void network_session_host_qr2_add_error(int32_t error, char *message, void *user
     (void)user_data;
     console_printf_verbose((ColorARGB *)console_message_default_color, (char *)"qr2_adderror_callback - %s", message);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

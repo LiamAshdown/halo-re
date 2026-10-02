@@ -16,6 +16,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern lens_flare_batch_key lens_flare_applied_key; // 0x007bf040
 
@@ -92,4 +95,7 @@ undefined4 FUN_00536b70(void)
   }
   return CONCAT31((int3)(uVar2 >> 8),bVar3);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -18,6 +18,9 @@
 #include "cache.h"
 #include "interface.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t controls_capture_row; // 0x006953e8, UNSURE identity
 extern uint8_t controls_menu_list_mode; // 0x00719445, UNSURE name
@@ -67,3 +70,6 @@ uint8_t ui_event_4b4980(widget_instance *widget, int16_t *event, uint8_t *out_ha
     controls_binding_list_refresh_rows(second, 0);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

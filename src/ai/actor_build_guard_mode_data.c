@@ -27,6 +27,9 @@ extern tag_instance *tag_instances; // 0x0087bc14
 #define F(o) (*(float *)(actor + (o)))
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index,
     int16_t kind); // 0x412960, EDX actor, stack
@@ -71,3 +74,6 @@ uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out)
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

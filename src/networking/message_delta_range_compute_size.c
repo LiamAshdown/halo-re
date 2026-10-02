@@ -5,6 +5,9 @@
 // blam-cc: cdecl
 
 #include "message_delta_codec.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t message_delta_item_count_bits[]; // 0x0065d51f
 
@@ -14,3 +17,6 @@ int32_t message_delta_range_compute_size(message_delta_field_type *field_type)
 
     return message_delta_item_count_bits[descriptor[1] - descriptor[0] + 1];
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: iterator in EDI
 // Advances `iterator` to the next in-use element at or after its resume index, returning that
@@ -82,4 +85,7 @@ short * data_iterator_next(void)
   *(short *)(unaff_EDI + 1) = sVar5;
   return psVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

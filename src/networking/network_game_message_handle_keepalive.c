@@ -24,6 +24,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload); // 0x4deaf0
@@ -108,4 +111,7 @@ real arguments:
   4e2175: call 0x4deaf0
   4e217e: test BYTE PTR [esi+0xa8c],0x1
   4e2189: jne 0x4e21aa           ; flags bit0 set -> skip FUN_004dcdb0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

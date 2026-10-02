@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720 (types/game.h), 2 == host
 extern char sv_ban_penalty_arg_buffer[]; // 0x0066d6a4, UNSURE: scratch buffer reused by 0x4e51c0
@@ -124,4 +127,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe) for the register convention:
   4e3a2a: push eax                                 ; server, stack arg
   4e3a2b: mov ecx,0x6                              ; reason = 6
   4e3a30: call FUN_004e0af0
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -31,6 +31,9 @@
 #include "objects.h"
 #include "game.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *encounter_data;                        // 0x008802c8
 extern encounter_squad_state *encounter_squad_states;     // 0x008802cc
@@ -490,4 +493,7 @@ LAB_00437d04:
   *(undefined1 *)(iVar16 + 0x28) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0
 extern uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, real_point3d *point_a,
@@ -106,4 +109,7 @@ uint FUN_0043a220(undefined4 param_1,undefined1 *param_2,undefined4 *param_3)
   param_3[2] = *(undefined4 *)(iVar5 + 0x14);
   return CONCAT31((int3)((uint)uVar2 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

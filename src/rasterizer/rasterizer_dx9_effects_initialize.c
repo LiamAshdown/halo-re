@@ -13,6 +13,9 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void rasterizer_dx9_vertex_declarations_release(void);        // 0x530540
 extern int32_t rasterizer_dx9_vertex_declarations_create(void);      // 0x5301b0
@@ -86,4 +89,7 @@ char __cdecl rasterizer_dx9_effects_initialize(void)
   }
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

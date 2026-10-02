@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void widget_play_sound_effect(int16_t effect_id); // 0x498e90, blam-cc: AX effect_id
 extern uint8_t saved_item_has_unsaved_changes(void); // 0x495ea0
@@ -43,3 +46,6 @@ uint8_t ui_event_4a0c00(widget_instance *widget, int16_t *event, uint8_t *out_ha
     *out_handled = 1;
     return 0;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -7,6 +7,9 @@
 // blam-cc: cdecl (a NAT negotiation callback)
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t gt2NetworkToHostShort(uint16_t value); // 0x6148a0 gt2NetworkToHostShort
 extern char *gt2AddressToString(uint32_t ip, uint16_t port, char *string); // 0x6148b0 gt2AddressToString
@@ -21,3 +24,6 @@ void network_session_host_natneg_completed(int32_t result, uint32_t socket, cons
         gt2AddressToString(*(const uint32_t *)(remote_address + 4), gt2NetworkToHostShort(*(const uint16_t *)(remote_address + 2)), text);
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

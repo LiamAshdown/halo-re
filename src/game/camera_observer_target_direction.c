@@ -24,6 +24,9 @@
 #include "math.h"
 #include "memory.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector,
     real_point3d *reference_point, real_point3d *out_closest); // 0x45a280, ECX unit, EBX aux, stack (reference, out)
@@ -112,4 +115,7 @@ FUN_00459cc0(undefined4 param_1,undefined4 param_2,float *param_3,float *param_4
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

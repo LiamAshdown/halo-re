@@ -29,6 +29,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t object_lookup_table_get(int32_t value); // UNSURE args; module unknown, 0x4f73c0
 
@@ -119,4 +122,7 @@ void FUN_0048a640(void)
        **(undefined4 **)(*(int *)(iVar1 + 0x34) + 0x10 + iVar5);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -11,6 +11,9 @@
 #include "tags.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                                      // 0x0071d174
 extern void *rasterizer_effect_pool;                                  // 0x0071d254
@@ -75,4 +78,7 @@ bool rasterizer_dx9_pixel_shader_effect_load(undefined4 param_1,undefined4 param
   }
   return -1 < iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

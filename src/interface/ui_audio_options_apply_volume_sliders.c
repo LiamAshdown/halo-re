@@ -19,6 +19,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sound_set_master_gain(float gain); // 0x548590, UNSURE: presumably a sound_set_*_gain sibling, not in this module's range
 extern void sound_set_effects_gain(float gain); // 0x5487b0
@@ -147,4 +150,7 @@ void FUN_004a76d0(float param_1)
   FUN_004a66b0(iVar3);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

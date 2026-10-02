@@ -24,6 +24,9 @@
 #include "input.h"
 
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char joystick_axis_prefix[0x18]; // 0x0065b908, "axis"
 extern char decimal_suffixes[0x20][3];  // 0x0065b988, "0" .. "31"
@@ -115,4 +118,7 @@ uint FUN_004913e0(undefined1 *param_1)
   }
   return 0xffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

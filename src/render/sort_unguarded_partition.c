@@ -27,6 +27,9 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct rendered_particle_range { // std::pair<iterator, iterator>, returned through a hidden pointer
     rendered_particle_datum *first;
@@ -315,4 +318,7 @@ LAB_00510678:
     local_10 = puVar9;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

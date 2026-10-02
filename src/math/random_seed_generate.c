@@ -10,6 +10,9 @@
 #include "win32.h"
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency() result, owned by the timing/system module
 
@@ -63,4 +66,7 @@ uint __cdecl random_seed_generate(void)
   uVar5 = __alldiv(local_8.s.LowPart,local_8.s.HighPart,uVar1,uVar2);
   return uVar3 ^ uVar4 ^ uVar5;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -17,6 +17,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern const char *network_bandwidth_units_label_table[2]; // 0x0065d428
 
@@ -54,4 +57,7 @@ int network_bandwidth_unit_name_to_index(void)
   } while (iVar2 < 2);
   return -1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

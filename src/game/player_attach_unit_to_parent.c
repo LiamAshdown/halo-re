@@ -19,6 +19,9 @@
 #include "game.h"
 #include <string.h>
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data;      // 0x008603b0
 extern tag_instance *tag_instances;  // 0x0087bc14
@@ -349,4 +352,7 @@ undefined4 FUN_00475c60(uint param_1,undefined4 param_2,undefined4 param_3)
   uVar10 = FUN_004757b0(param_1,param_2,param_3);
   return uVar10;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

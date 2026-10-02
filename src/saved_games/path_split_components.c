@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t text_find_character_boundary(uint8_t *string, int16_t *length_inout); // 0x5576d0
 
@@ -52,3 +55,6 @@ void path_split_components(char **dir_start_out, char *path, char **ext_fallback
         *name_end_out = path;
     }
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

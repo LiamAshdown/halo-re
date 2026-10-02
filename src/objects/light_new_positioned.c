@@ -25,6 +25,9 @@
 #include "game.h"
 #include "hs.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *light_data;      // 0x00860b14
 extern game_time_globals *game_time;         // 0x006f1d6c, game time globals; +0x0c is the current tick
@@ -115,4 +118,7 @@ uint FUN_004f0c10(undefined4 param_1,int param_2,undefined2 param_3,undefined4 *
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

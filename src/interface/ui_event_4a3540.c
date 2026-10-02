@@ -24,6 +24,9 @@
 #include <string.h>
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern uint32_t time_query_performance_counter_ms(void); // 0x449210
@@ -109,3 +112,6 @@ uint8_t ui_event_4a3540(widget_instance *widget, int16_t *event, uint8_t *out_ha
     row_clicked(list, row, committed, double_click);
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

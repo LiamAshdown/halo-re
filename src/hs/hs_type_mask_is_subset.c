@@ -9,6 +9,9 @@
 //   // blam-cc: AX -> subtype_index, CX -> supertype_index
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t hs_object_type_masks[6]; // 0x00657538
 
@@ -38,4 +41,7 @@ undefined4 hs_type_mask_is_subset(void)
   return CONCAT31((int3)(char)(uVar1 >> 8),
                   '\x01' - ((*(ushort *)(&DAT_00657538 + in_CX * 2) & uVar1) != uVar1));
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

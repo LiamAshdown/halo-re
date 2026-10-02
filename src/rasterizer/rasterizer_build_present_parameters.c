@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t config_disable_buffering; // 0x00722b54 UNSURE: debug/flags toggle
 extern uint8_t unknown_0071d18d;  // 0x0071d18d UNSURE: debug/flags toggle
@@ -155,4 +158,7 @@ void rasterizer_build_present_parameters(undefined4 *param_1)
   param_1[0xd] = 0x80000000;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -24,6 +24,9 @@
 #include "math.h"
 #include "memory.h"
 #include "structures.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> box, EBX -> planes, DI -> plane_count
 structure_bsp_overlap frustum_planes_classify_box(real_rectangle3d *box, real_plane3d *planes,
@@ -127,4 +130,7 @@ undefined4 frustum_planes_classify_box(void)
   }
   return 2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

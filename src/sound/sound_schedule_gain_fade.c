@@ -27,6 +27,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_data;              // 0x007252c0, "sounds" 0x200 x 0xb0
 extern int32_t sound_time;                  // 0x0072520c
@@ -138,4 +141,7 @@ Disassembly (0x54af60..0x54b048, capstone), resolving the __ftol() dataflow:
 0x54af86: cmp edi, esi
 0x54af88: jg 0x54af8c
 0x54af8a: mov edi, esi
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

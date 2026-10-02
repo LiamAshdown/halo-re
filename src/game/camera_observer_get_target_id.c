@@ -29,6 +29,9 @@
 #include "objects.h"
 #include "game.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t camera_get_type_for_player(int16_t local_player_index); // 0x445ac0, blam-cc: CX -> local_player_index
 extern player_globals *local_player_globals;     // 0x0087a478
@@ -132,4 +135,7 @@ undefined4 FUN_00459900(undefined4 *param_1)
   }
   return 0xffffffff;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -13,6 +13,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Transforms a vector by a matrix4x3's scale and rotation, without translation.
 void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m)
@@ -57,4 +60,7 @@ void matrix4x3_transform_vector(float *param_1)
   in_EAX[2] = fVar1 * param_1[3] + fVar2 * param_1[6] + fVar3 * param_1[9];
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

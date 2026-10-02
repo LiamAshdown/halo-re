@@ -13,6 +13,9 @@
 //   a CE address transplanted onto a retail mid-function label).
 
 #include "tags.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 void game_engine_rasterize_message(void)
 {
@@ -26,4 +29,7 @@ void game_engine_rasterize_message(void)
 {
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

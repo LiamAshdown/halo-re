@@ -14,6 +14,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Decodes consecutive lowercase hex digit pairs ('0'-'9', 'a'-'f') from source into raw bytes at
 // dest, stopping at the first character that is not a hex digit (so an odd trailing digit, or a
@@ -79,4 +82,7 @@ void hex_string_to_bytes(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

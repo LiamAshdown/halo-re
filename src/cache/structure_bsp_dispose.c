@@ -14,6 +14,9 @@
 
 #include "tags.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void structure_bsp_dispose_material_vertex_buffers(
     ScenarioStructureBSPCompiledHeader *compiled_header); // blam-cc: EAX // blam-cc: EAX;
@@ -58,4 +61,7 @@ Raw disassembly (0x442520-0x442546), objdump -d -M intel --start-address=0x44252
 0044253d: mov DWORD PTR [ecx+edx*1+0x14],eax   ; tag_instances[index].data = 0
 00442541: mov ds:0x6a8958,eax               ; structure_bsp_data = 0
 00442546: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

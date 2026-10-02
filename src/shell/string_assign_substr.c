@@ -15,6 +15,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void string_throw_out_of_range(void); // 0x638e74, _Xran: throws out_of_range("invalid string position")
 extern void string_throw_length_error(void); // 0x638eb4, _Xlen: throws length_error("string too long")
@@ -68,3 +71,6 @@ msvc_std_string *string_assign_substr(msvc_std_string *this_, const msvc_std_str
     string_data(this_)[available] = 0;
     return this_;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

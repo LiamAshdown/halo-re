@@ -16,6 +16,9 @@
 
 #include "tags.h"
 #include "bitmaps.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: ECX (CL) -> level, EDX -> bitmap
 // Computes bitmap's height at mip level `level` (>>= level, clamped to a minimum of 1), rounded
@@ -55,4 +58,7 @@ uint bitmap_data_calculate_mip_dimension(void)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

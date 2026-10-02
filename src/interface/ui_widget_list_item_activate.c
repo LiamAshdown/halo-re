@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario; // 0x00746f8c
 extern void *ui_event_function_table[0xbe]; // 0x006927d0
@@ -523,4 +526,7 @@ LAB_0049a89e:
   *param_5 = local_49;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

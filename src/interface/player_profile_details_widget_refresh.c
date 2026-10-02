@@ -24,6 +24,9 @@
 #include "networking.h"
 #include "interface.h"
 #include "cache.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint16_t hud_text_unknown[]; // 0x0066a750
 
@@ -210,4 +213,7 @@ void player_profile_details_widget_refresh(int param_1)
   *(undefined1 *)(iVar5 + 0x10) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

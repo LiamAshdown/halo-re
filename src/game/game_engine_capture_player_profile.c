@@ -29,6 +29,9 @@
 #include "math.h"
 #include "game.h"
 #include "objects.h" // hash_table
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern player_profile player_profile_cache[16]; // 0x006b0b88
 extern data_array *player_data;                 // 0x0087a480
@@ -156,4 +159,7 @@ void FUN_00466ee0(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

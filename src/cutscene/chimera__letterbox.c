@@ -27,6 +27,9 @@
 #include "cache.h"
 #include "interface.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t ROUND(float x); // MSVC round-to-nearest helper
 extern float fabsf(float x); // x87 FABS
@@ -402,4 +405,7 @@ is the ScenarioCutsceneTitle*, i.e. text_bounds in types/tags.h at +0x28..+0x2f)
   449c53: add    ebx,0x2dc                 ; else ebx = &hud_globals->default_chapter_title_bounds
   449c59: ...
   ; ecx (dest_rect_override) at the call site 0x449e33 is this ebx.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

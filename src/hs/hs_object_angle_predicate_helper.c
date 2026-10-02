@@ -13,6 +13,9 @@
 #include "math.h"
 #include "objects.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *object_data; // 0x008603b0
 extern char ai_marker_name_a[]; // 0x0066bfa0, "head"
@@ -62,4 +65,7 @@ uint FUN_004878f0(undefined4 param_1,float param_2)
   }
   return uVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

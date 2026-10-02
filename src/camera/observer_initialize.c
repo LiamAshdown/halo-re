@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern observer observers[1]; // 0x006ac65c
 
@@ -27,4 +30,7 @@ No Ghidra function exists at 0x447870. objdump -d -M intel:
 
   447870: mov edx,0x6ac65c
   447875: jmp 0x447740
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

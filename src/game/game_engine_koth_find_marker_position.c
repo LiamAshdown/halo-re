@@ -21,6 +21,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Scenario *global_scenario;      // 0x00746f8c
 extern random_seed random_seed_global;    // 0x00719cd0
@@ -157,4 +160,7 @@ LAB_0046bfb6:
   param_1[2] = local_4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

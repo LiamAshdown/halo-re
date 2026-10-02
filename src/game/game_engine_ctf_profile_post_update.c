@@ -18,6 +18,9 @@
 #include <wchar.h>
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern game_variant game_engine_variant; // 0x006f1c88
 extern int32_t ctf_team_flag_touch_count[2]; // 0x006b0e98
@@ -94,3 +97,6 @@ void game_engine_ctf_profile_post_update(void **context)
     ctf_active_team = team;
     ctf_flag_auto_return_ticks = *(int32_t *)context[0x11];
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -21,6 +21,9 @@
 #include "ai.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;   // 0x00880360
 extern data_array *prop_data;    // 0x008802c0
@@ -186,4 +189,7 @@ LAB_0040e738:
   *(uint *)(iVar6 + 0x1d0) = local_18;
   return local_20;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

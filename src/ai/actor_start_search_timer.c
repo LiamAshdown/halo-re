@@ -21,6 +21,9 @@
 #include "math.h"
 #include "ai.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *prop_data;  // 0x008802c0
 extern data_array *actor_data; // 0x00880360
@@ -105,4 +108,7 @@ drops every register argument and under-counts FUN_00421af0's stack arguments:
   422192: mov edx, 2                  ; priority = 2
   422197: mov eax, ebx                ; actor_index
   422199: call actor_queue_search_position
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

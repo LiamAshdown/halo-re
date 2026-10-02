@@ -13,6 +13,9 @@
 #include "objects.h"
 #include "cache.h"
 #include "effects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *effect_data;          // 0x0087abdc
 extern data_array *effect_location_data; // 0x0087abe0
@@ -91,4 +94,7 @@ void __cdecl particle_system_delete_450be0(int particle_system_index)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

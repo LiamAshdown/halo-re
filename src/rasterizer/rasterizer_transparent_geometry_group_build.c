@@ -28,6 +28,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include <stdint.h> // uintptr_t
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_6893ec;                 // 0x006893ec
 extern uint8_t console_debug_toggle_6893ed;                 // 0x006893ed
@@ -369,4 +372,7 @@ LAB_0052b273:
   puVar13[0x1d] = uVar5;
   return local_14;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

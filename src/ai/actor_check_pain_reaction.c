@@ -24,6 +24,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base,
     uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order); // 0x403630, this module
@@ -61,4 +64,7 @@ undefined4 FUN_0040de20(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

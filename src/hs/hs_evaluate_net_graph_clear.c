@@ -11,6 +11,9 @@
 #include "memory.h"
 #include "math.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void hs_thread_return(int32_t value, uint32_t thread_index); // 0x48a640, blam-cc: EAX value, ECX thread
 extern uint8_t network_bandwidth_graph_globals[]; // 0x00719ce0
@@ -21,3 +24,6 @@ void hs_evaluate_net_graph_clear(int16_t function_index, uint32_t thread_index, 
     network_bandwidth_graph_instance_history_reset(network_bandwidth_graph_globals);
     hs_thread_return(0, thread_index);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

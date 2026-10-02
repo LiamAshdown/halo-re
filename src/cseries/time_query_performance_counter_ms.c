@@ -22,6 +22,9 @@
 #include "tags.h"
 #include "math.h"
 #include "cseries.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int64_t performance_frequency; // 0x006ac8f8/0x006ac8fc, QueryPerformanceFrequency()
                                        // result, owned by this module (see types/cseries.h)
@@ -72,4 +75,7 @@ Disassembly (objdump -d -M intel, bin/halo.exe):
   449242: call 0x639230                   ; __alldiv(product_low, product_high, freq_low, freq_high) -> EDX:EAX
   449247: add esp,0x8
   44924a: ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

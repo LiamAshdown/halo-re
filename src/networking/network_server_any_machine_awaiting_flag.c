@@ -14,6 +14,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Returns 1 if no machine slot is both connected (id 0..15) and free of
 // k_network_machine_version_mismatch; returns 0 as soon as one is found.
@@ -54,4 +57,7 @@ undefined1 FUN_004e14e0(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

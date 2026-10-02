@@ -17,6 +17,9 @@
 #include "math.h"
 #include "objects.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode;        // 0x00719720
 extern data_array *object_data;       // 0x008603b0
@@ -69,4 +72,7 @@ void FUN_0046c1a0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

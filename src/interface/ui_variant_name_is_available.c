@@ -16,6 +16,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity); // 0x557950, blam-cc: ESI out, EDI wide source
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out); // 0x4622d0, blam-cc: ECX name
@@ -42,4 +45,7 @@ bool FUN_004a8b50(void)
   cVar1 = game_engine_get_variant_by_name(0);
   return cVar1 == '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

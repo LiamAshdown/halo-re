@@ -14,6 +14,9 @@
 #include "game.h"
 #include <wchar.h>
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t network_game_mode; // 0x00719720
 extern game_variant game_engine_variant; // 0x006f1c88
@@ -49,3 +52,6 @@ void game_engine_ctf_reset_objects(void)
     ctf_notify_throttle_tick = 0;
     memset(custom_waypoints, 0, 0x80);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

@@ -22,6 +22,9 @@
 #include "game.h"
 #include "objects.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern game_time_globals *game_time;               // 0x006f1d6c
@@ -229,4 +232,7 @@ literal decompiled indices, which mislabel which struct field is being touched b
 0x445475: mov dword ptr [ebx + 0x1c], 0x3f000000  ; command->parameters.distance = 0.5f
 0x44547c: mov dword ptr [ebx + 0x5c], eax      ; command->channel_times[2] (distance) = 0
 0x44547f: mov byte ptr [ebx + 0x4e], cl        ; command->interpolation_flags[2] (distance) = 3
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

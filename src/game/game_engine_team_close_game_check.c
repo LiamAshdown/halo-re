@@ -20,6 +20,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2],
     int32_t filter_value); // this batch, 0x470690
@@ -82,4 +85,7 @@ uint FUN_00470790(undefined4 param_1)
   }
   return uVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

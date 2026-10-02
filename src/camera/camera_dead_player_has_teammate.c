@@ -22,6 +22,9 @@
 #include "math.h"
 #include "game.h"
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data; // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern void *data_iterator_next(data_iterator *iterator); // 0x4d05d0, memory module
@@ -103,4 +106,7 @@ follows (the iterator's returned handle is compared against reference_player, NO
 0x4452a6: jne 0x445290
 0x4452a8: mov al, bl                             ; return 0
 0x4452b2: mov al, 1                              ; return 1
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

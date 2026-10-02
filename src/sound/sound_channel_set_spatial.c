@@ -26,6 +26,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 static float sound_channel_set_spatial_fabsf(float x) { return (x < 0.0f) ? -x : x; }
 
@@ -467,4 +470,7 @@ Disassembly (0x5472d0..0x5475a8, capstone; phase-4 review):
 0x5475a5: pop ebp
 0x5475a6: pop ecx
 0x5475a7: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

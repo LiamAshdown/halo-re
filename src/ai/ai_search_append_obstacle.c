@@ -12,6 +12,9 @@
 #include "memory.h"
 #include "math.h"
 #include "ai.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EDX -> list, ESI -> position, stack -> object_index, flags, radius
 uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t flags, uint32_t object_index,
@@ -67,4 +70,7 @@ uint FUN_0043c4b0(undefined4 param_1,ushort param_2,undefined4 param_3)
   *(undefined4 *)(puVar1 + 8) = param_3;
   return CONCAT31((int3)((uint)puVar1 >> 8),1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -34,6 +34,9 @@
 #include "objects.h"
 #include "effects.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *player_data;                    // 0x0087a480, stride 0x200 (no types/players.h yet)
 extern player_globals *local_player_globals;       // 0x0087a478
@@ -400,4 +403,7 @@ and the field-offset / stack-argument chain used above:
   5f                   pop    edi
   83 c4 1c             add    esp,0x1c
   c3                   ret
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

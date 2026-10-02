@@ -22,6 +22,9 @@
 #include "math.h"
 #include "ai.h"
 #include "physics.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t *breakable_surface_state;          // 0x006b8d78
 extern int16_t global_structure_bsp_index;        // 0x0069e8d8
@@ -301,4 +304,7 @@ LAB_0043dca4:
     param_4 = local_c;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

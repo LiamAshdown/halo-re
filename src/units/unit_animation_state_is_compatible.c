@@ -21,6 +21,9 @@
 #include "cache.h"
 #include "objects.h"
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state) // blam-cc: ECX -> animation_block, DX -> requested_state
 {
@@ -102,4 +105,7 @@ undefined4 FUN_00565be0(void)
 switchD_00565bf5_caseD_4:
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

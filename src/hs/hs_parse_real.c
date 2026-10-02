@@ -12,6 +12,9 @@
 #include "hs.h"
 #include <ctype.h>
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *hs_syntax_data; // 0x0087a474
 extern char *hs_compiled_source;   // 0x006b14c0
@@ -102,4 +105,7 @@ LAB_00486b5d:
     pcVar5 = pcVar5 + 1;
   } while( true );
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

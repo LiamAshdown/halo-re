@@ -15,6 +15,9 @@
 #include "math.h"
 #include "cache.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern widget_history_node *ui_widget_history[3]; // 0x00718f98
 extern heap *widget_memory_pool; // 0x006926c4
@@ -40,3 +43,6 @@ uint8_t ui_event_4a1b00(widget_instance *widget, int16_t *event, uint8_t *out_ha
     }
     return 1;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

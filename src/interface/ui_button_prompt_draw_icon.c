@@ -24,6 +24,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;       // 0x00746fa0
 extern int64_t performance_frequency; // 0x006ac8f8 (LowPart) .. 0x006ac8fc (HighPart), LARGE_INTEGER
@@ -88,4 +91,7 @@ void FUN_0049ac80(void)
   FUN_004ab8d0(uVar1,*unaff_ESI,&local_c,&local_8);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

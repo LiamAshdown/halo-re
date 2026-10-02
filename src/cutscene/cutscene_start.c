@@ -15,6 +15,9 @@
 #include "game.h"
 #include "ai.h"
 #include "cutscene.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sound_set_music_gain(float gain); // 0x548680
 extern void game_engine_cleanup_stray_projectiles(void); // 0x467f70, this build's tail call target
@@ -75,4 +78,7 @@ void __cdecl cutscene_start(void)
 
 objdump (the tail call Ghidra folded into a plain return):
   449777: e9 f4 e7 01 00        jmp    0x467f70
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

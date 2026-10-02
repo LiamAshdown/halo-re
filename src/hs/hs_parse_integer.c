@@ -20,6 +20,9 @@ extern char *hs_compile_error;           // 0x006b14d4
 extern int32_t hs_compile_error_offset;  // 0x006b14d8
 #include <ctype.h>
 #include <stdlib.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 char hs_parse_integer(datum_index node_index)
 {
@@ -52,3 +55,6 @@ char hs_parse_integer(datum_index node_index)
     }
     return valid;
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

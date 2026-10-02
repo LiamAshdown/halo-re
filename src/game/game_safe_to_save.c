@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t debug_print_safety_checks; // 0x00719aa9, TYPES-GAP
 
@@ -165,4 +168,7 @@ char __cdecl game_safe_to_save(void)
   }
   return '\0';
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

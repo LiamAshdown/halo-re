@@ -18,6 +18,9 @@
 #include "ai.h"
 #include <string.h>
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr;  // 0x00880354
 extern data_array *object_data;     // 0x008603b0
@@ -126,4 +129,7 @@ void __cdecl ai_process_vehicle_entry_queue(void)
   *(undefined2 *)(iVar6 + 0x8b8) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

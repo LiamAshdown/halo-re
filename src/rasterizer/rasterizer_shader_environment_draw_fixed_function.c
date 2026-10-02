@@ -18,6 +18,9 @@
 #include "cache.h"
 #include "rasterizer.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *rasterizer_device;                     // 0x0071d174
 extern uint8_t console_debug_toggle_6893ec;         // 0x006893ec
@@ -139,3 +142,6 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     }
     rasterizer_clear_decal_zbias();
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

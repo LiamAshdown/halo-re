@@ -9,6 +9,9 @@
 
 #include "tags.h"
 #include "memory.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Clamps `gain` against `compare` scaled or divided by `ratio`: if compare < gain, clamps gain
 // down to whichever of gain/(compare*ratio) is smaller; if compare > gain, clamps gain up to
@@ -96,4 +99,7 @@ Disassembly (0x54e660..0x54e6c7, capstone; phase-4 review):
 0x54e6c0: fstp st(0)
 0x54e6c2: fld dword ptr [esp + 4]
 0x54e6c6: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

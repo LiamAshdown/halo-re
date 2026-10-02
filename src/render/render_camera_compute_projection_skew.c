@@ -14,6 +14,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // Computes the four asymmetric-projection skew terms for a camera whose viewport is a sub-
 // rectangle of its window (e.g. a split-screen pane): bounds_out[0..1] are the left/right terms
@@ -74,4 +77,7 @@ void FUN_0050ca90(void)
 Field mapping (render_camera, types/rasterizer.h): viewport_bounds (Rectangle2D: top,left,bottom,
 right) at +0x2c..+0x33, window_bounds at +0x34..+0x3b. So in_EAX+0x2c/0x2e/0x30/0x32 are
 viewport.top/left/bottom/right, and in_EAX+0x34/0x36/0x38/0x3a are window.top/left/bottom/right.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -10,6 +10,9 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> out, ECX -> packed
 // Unpacks an 11:11:10 bit signed-normal-encoded direction vector (see
@@ -36,4 +39,7 @@ void vector3d_unpack_normal_11_11_10(void)
   in_EAX[2] = ((float)(int)(in_ECX & 0xffc00000) * 4.7683716e-07 + 1.0) * 0.0009775171;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

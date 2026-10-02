@@ -12,6 +12,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint32_t message_delta_vector3d_mode; // 0x0069b350
 extern uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, real minimum, real maximum); // 0x4ea480, ESI max_level
@@ -26,3 +29,6 @@ void vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point)
     out_indices[1] = (int32_t)message_delta_quantize_float_to_int(levels, point[1], minimum, maximum);
     out_indices[2] = (int32_t)message_delta_quantize_float_to_int(levels, point[2], minimum, maximum);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

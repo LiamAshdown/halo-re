@@ -42,6 +42,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t console_debug_toggle_6893e0;       // 0x006893e0 frame statistics enabled
 extern int32_t frame_statistics_key_a_latch;      // 0x0071d120, this module
@@ -359,4 +362,7 @@ void __cdecl rasterizer_frame_statistics_draw(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

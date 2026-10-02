@@ -26,6 +26,9 @@
 #include "effects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t *player_control_globals_ptr; // 0x006b145c, UNSURE: foreign module (player look/aim
                                     // globals); stride 0x40, +0x1c pitch, +0x20 yaw
@@ -232,4 +235,7 @@ void FUN_004579b0(short param_1,float *param_2,float *param_3,float param_4,floa
                fVar5);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

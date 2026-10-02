@@ -20,6 +20,9 @@
 #include "math.h"
 #include "ai.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern real vector3d_distance(real_point3d *a, real_point3d *b); // 0x4088b0, EAX a, ECX b
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id); // 0x43b2b0, EDX, ESI
@@ -204,4 +207,7 @@ undefined1 FUN_0043a4d0(undefined1 *param_1)
 LAB_0043a6ec:
   return *param_1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

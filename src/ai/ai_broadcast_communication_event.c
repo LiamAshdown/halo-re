@@ -24,6 +24,9 @@
 #include "physics.h"
 #include <stdint.h>
 #include "units.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data; // 0x008802c8
@@ -149,4 +152,7 @@ void FUN_00429fc0(undefined4 param_1,short param_2)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

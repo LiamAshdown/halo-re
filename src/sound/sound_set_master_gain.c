@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern float sound_master_gain;  // 0x007252ac
 extern uint8_t sound_enabled;    // 0x00725201
@@ -144,4 +147,7 @@ Disassembly (0x548590..0x548671, capstone; phase-4 review):
 0x548665: mov dword ptr [0x7252ac], edx
 0x54866b: jmp 0x54c900
 0x548670: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

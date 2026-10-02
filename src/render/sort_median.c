@@ -26,6 +26,9 @@
 #include "effects.h"
 #include "interface.h"
 #include "render.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void sort_median_of_three(rendered_particle_datum *first, rendered_particle_datum *mid,
     rendered_particle_datum *last, int32_t predicate); // 0x5109d0, blam-cc: ECX first, EAX mid, EDX last, stack predicate
@@ -80,4 +83,7 @@ void FUN_005108f0(int param_1,undefined4 param_2)
   FUN_005109d0(param_2);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

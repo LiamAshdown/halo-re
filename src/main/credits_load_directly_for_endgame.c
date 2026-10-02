@@ -26,6 +26,9 @@
 #include "networking.h"
 #include "saved_games.h"
 #include "main.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; // 0x00712dd8,
     // foreign (saved_games); slot 0 handle at 0x00714dd4 (+0x1ffc)
@@ -79,4 +82,7 @@ void __cdecl credits_load_directly_for_endgame(void)
   DAT_00719230 = 1;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

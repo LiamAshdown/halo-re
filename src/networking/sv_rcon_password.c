@@ -17,6 +17,9 @@
 #include "game.h"
 #include "networking.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern char sv_rcon_password_value[9]; // 0x0071c410, 8 chars + forced NUL
 
@@ -94,4 +97,7 @@ LAB_004e4b8a:
   chimera__console_out();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -47,6 +47,9 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern uint8_t game_engine_attribute_enabled;    // 0x006b1458, UNSURE: see header
 extern game_time_globals *game_time;             // 0x006f1d6c
@@ -529,4 +532,7 @@ LAB_0047049c:
   game_engine_on_player_death(param_2,uVar12,local_50);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

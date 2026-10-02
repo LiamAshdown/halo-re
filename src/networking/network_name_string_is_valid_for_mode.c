@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *tag_lookup(const char *tag_path); // foreign, UNSURE shape
 extern int32_t text_get_character_metrics(uint8_t ch); // foreign, UNSURE shape: this call site
@@ -116,4 +119,7 @@ bool FUN_004e4350(char *param_1,undefined4 param_2,int param_3)
   }
   return false;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

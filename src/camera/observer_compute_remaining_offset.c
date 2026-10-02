@@ -23,6 +23,9 @@
 #include "memory.h"
 #include "math.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double sqrt(double x);   // FSQRT
 extern double fabs(double x);   // FABS
@@ -168,4 +171,7 @@ void FUN_00448710(void)
   } while (local_fc != 0);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -19,6 +19,9 @@
 #include "networking.h"
 #include "main.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern main_globals main_globals_data;  // 0x00719700
 extern int16_t pending_difficulty; // 0x00696564, foreign (main-owned global per main.h)
@@ -102,4 +105,7 @@ void __cdecl game_start_new_single_player_map(void)
   game_scenario_session_begin();
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

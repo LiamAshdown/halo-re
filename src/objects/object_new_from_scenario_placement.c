@@ -18,6 +18,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern object_globals *object_globals_pointer; // 0x006b8cbc
 extern datum_index *object_name_list; // 0x006b8cb8
@@ -90,4 +93,7 @@ int FUN_004f9b70(int param_1)
   }
   return iVar3;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

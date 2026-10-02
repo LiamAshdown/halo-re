@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "camera.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: __cdecl, all parameters on the stack
 // Evaluates the cubic that passes through value0, value1, value2 and value3 at times time0,
@@ -51,4 +54,7 @@ scalar_catmull_rom_interpolate
                     (param_7 - (param_5 + param_6 + param_6))) / (param_6 * 3.0) + fVar1)) /
                    (param_6 + param_6) + (param_2 - param_1)) + param_1);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

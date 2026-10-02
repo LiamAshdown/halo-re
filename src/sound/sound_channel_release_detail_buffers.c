@@ -17,6 +17,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern sound_driver *current_sound_driver;  // 0x00725208, header calls this "sound_driver"
 extern sound_channel sound_channels[k_maximum_sound_channels]; // 0x00724a60
@@ -177,4 +180,7 @@ Disassembly (0x54d020..0x54d0d0, capstone; phase-4 review):
 0x54d0cd: pop esi
 0x54d0ce: pop ebp
 0x54d0cf: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

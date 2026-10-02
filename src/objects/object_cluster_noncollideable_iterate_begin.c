@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern datum_index *noncollideable_cluster_first; // 0x008603c0
 extern data_array *noncollideable_object_references; // 0x008603c4
@@ -27,3 +30,6 @@ datum_index object_cluster_noncollideable_iterate_begin(datum_index *cursor, int
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

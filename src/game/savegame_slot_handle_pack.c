@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // blam-cc: EAX -> slot_index, ECX -> type_nibble, DL -> flag_bit_30, stack -> flag_bit_31
 // Packs a 12-bit slot index, a 4-bit type nibble and two boolean flags into one 32-bit handle:
@@ -56,4 +59,7 @@ uint FUN_0053e630(char param_1)
   }
   return uVar1;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

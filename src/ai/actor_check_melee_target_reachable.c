@@ -17,6 +17,9 @@
 #include "ai.h"
 #include "cache.h"
 #include <string.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *actor_data;      // 0x00880360
 extern data_array *prop_data;       // 0x008802c0
@@ -264,4 +267,7 @@ void FUN_00403f00(uint param_1)
   *(undefined1 *)(unaff_EBX + 3) = 0;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

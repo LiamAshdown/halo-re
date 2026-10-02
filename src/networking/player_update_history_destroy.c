@@ -16,6 +16,9 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 // Frees every node of history's linked list and then the history container itself.
@@ -57,4 +60,7 @@ void FUN_004e6b10(void)
   GlobalFree(unaff_EBX);
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

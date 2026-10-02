@@ -30,6 +30,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *sound_cache_entries;  // 0x006ac528
 extern struct cache *sound_cache;        // 0x006ac530
@@ -186,4 +189,7 @@ uint FUN_00443e10(char param_1,char param_2)
   }
   return uVar1 & 0xffffff00;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

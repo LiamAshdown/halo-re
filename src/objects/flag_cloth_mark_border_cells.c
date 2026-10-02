@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void flag_cloth_stamp_region_split_flags(int16_t outer_start, Flag *tag, flag *entry,
                                                  int16_t inner_start, int16_t size, uint16_t split_code); // this module, 0x4fb840
@@ -112,4 +115,7 @@ Disassembly of the two calls (0x4fb840 args resolved from this), objdump -d -M i
   4fb74c: push edi              ; tag
   4fb74d: xor eax,eax           ; outer_start = 0
   4fb74f: call 0x4fb840
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

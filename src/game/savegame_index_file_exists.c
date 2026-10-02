@@ -28,6 +28,9 @@
 #include "math.h"
 #include "hs.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern file_reference savegame_index_file; // 0x00721330
 
@@ -97,4 +100,7 @@ undefined4 FUN_0053e060(void)
   }
   return 0;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

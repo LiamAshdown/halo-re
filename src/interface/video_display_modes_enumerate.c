@@ -29,6 +29,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern d3d9_interface *rasterizer_direct3d;       // 0x0071d178
 extern uint32_t d3d_adapter;                // 0x0071d180, UNSURE name
@@ -175,4 +178,7 @@ LAB_004bad24:
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

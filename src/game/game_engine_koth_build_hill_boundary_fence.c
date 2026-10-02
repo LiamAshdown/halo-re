@@ -25,6 +25,9 @@
 #include "math.h"
 #include "cache.h"
 #include "game.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern Globals *global_globals;                    // 0x00746fa0
 extern int32_t king_starting_location_count;        // 0x006b0f50
@@ -284,4 +287,7 @@ void FUN_0046a670(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

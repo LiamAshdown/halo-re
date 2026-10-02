@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count); // 0x004d0370
 extern void data_delete_all(data_array *array); // 0x004d0580
@@ -72,4 +75,7 @@ void __cdecl hs_allocate_script_node_table(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

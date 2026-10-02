@@ -30,6 +30,9 @@
 #include "math.h"
 #include "cache.h"
 #include "objects.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern tag_instance *tag_instances; // 0x0087bc14
 extern real_vector3d *global_left3d_pointer; // 0x0069671c, UNSURE: see file header
@@ -333,4 +336,7 @@ void antenna_update_physics(int param_1,int param_2,float param_3)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

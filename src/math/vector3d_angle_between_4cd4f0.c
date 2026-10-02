@@ -12,6 +12,9 @@
 
 #include "tags.h"
 #include "math.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern double acos(double x); // 0x00628140, CRT/compiler helper
 
@@ -79,4 +82,7 @@ float10 vector3d_angle_between_4cd4f0(void)
   }
   return fVar2;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

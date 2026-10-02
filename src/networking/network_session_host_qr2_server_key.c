@@ -13,6 +13,9 @@
 #include "tags.h"
 #include <string.h>
 #include <wchar.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern void *current_game_engine; // 0x006f1d20 (game_engine_definition *; +0x9c/+0xa0/+0xa4/+0xa8 the query hooks)
 extern void qr2_buffer_add(void *buffer, const char *value); // 0x615590 qr2_buffer_add
@@ -124,3 +127,6 @@ void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *use
     }
     qr2_buffer_add(buffer, "");
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

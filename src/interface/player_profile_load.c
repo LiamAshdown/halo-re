@@ -28,6 +28,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int32_t saved_player_profile_slots_handle;               // 0x00714dd4, record 0 field +0x1ffc
 extern uint8_t profile_globals_block[];             // 0x00712dd8, stride 0x2004 per player
@@ -148,4 +151,7 @@ void player_profile_load(int param_1)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

@@ -20,6 +20,9 @@
 #include "memory.h"
 #include "cache.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern directsound_channel directsound_channels[k_maximum_sound_channels]; // 0x00725430
 
@@ -165,4 +168,7 @@ Disassembly (0x547a00..0x547aac, capstone; phase-4 review):
 0x547aa7: pop esi
 0x547aa8: add esp, 0x10
 0x547aab: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

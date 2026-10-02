@@ -14,6 +14,9 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern int16_t profile_slot_id[]; // 0x00714dde
 
@@ -45,4 +48,7 @@ int player_profile_find_index_by_id(void)
   } while ((short)iVar1 < 1);
   return CONCAT22((short)((uint)iVar1 >> 0x10),0xffff);
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

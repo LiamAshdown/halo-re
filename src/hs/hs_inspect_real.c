@@ -9,6 +9,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "hs.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 
 void hs_inspect_real(int16_t type, int32_t value, char *buffer)
@@ -18,3 +21,6 @@ void hs_inspect_real(int16_t type, int32_t value, char *buffer)
     bits.i = value;
     sprintf(buffer, "%f", (double)bits.f);
 }
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

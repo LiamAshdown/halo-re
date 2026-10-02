@@ -45,6 +45,9 @@
 #include "game.h"
 #include <string.h>
 #include <stdint.h>
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 // client_update_carry is types/game.h's (0x10; every field still UNSURE, see that header).
 
@@ -317,4 +320,7 @@ void FUN_004740a0(void)
   }
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

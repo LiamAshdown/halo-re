@@ -14,6 +14,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "sound.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 extern data_array *looping_sound_data; // 0x00724a50, "looping sounds" 0x80 x 0xe4
 
@@ -77,4 +80,7 @@ Disassembly (0x54dc10..0x54dc6b, capstone; no Ghidra function exists here):
 0x54dc67: xor al, al
 0x54dc69: pop esi
 0x54dc6a: ret 
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif

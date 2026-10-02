@@ -26,6 +26,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
 
 typedef struct hwreq_map_value_type {
     msvc_std_string key;
@@ -172,4 +175,7 @@ LAB_0057baa8:
   *unaff_ESI = *puVar4;
   return;
 }
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
 #endif
