@@ -65,13 +65,14 @@ add_custom_target(third_party_import_libs DEPENDS ${THIRD_PARTY_LIBS})
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
 file(GLOB IMAGE_ASM CONFIGURE_DEPENDS "${SA}/image/*.asm")
+file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")  # engine globals as C definitions
 set(SUPPORT_SOURCES
     "${SA}/loader.c"
     "${SA}/d3dx_compat.c"
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
     "${SA}/image/pieces.c"
     "${SA}/generated/image_bindings.c")
-add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
+add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${DATA_SOURCES} ${IMAGE_ASM}
     "${SA}/globals.asm" "${SA}/generated/code_entries.asm" "${SA}/bridges.asm"
     $<TARGET_OBJECTS:halo_game>)
 add_dependencies(halo_rebuilt third_party_import_libs)
