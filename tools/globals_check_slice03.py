@@ -16,6 +16,7 @@ import os, re, struct, sys, json, glob
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, sys.argv[1] if len(sys.argv) > 1 else "build/s03")
 SRC = os.path.join(ROOT, "standalone", "data", "slice03.c")
+MANIFEST = os.path.join(ROOT, "tools", "globals_check_slice03.json")   # the pointer dwords slice03.c re-targets
 IMG = os.path.join(ROOT, "standalone", "image")
 BSS_START = 0x6a0088     # end of the initialised .data piece: everything above is zero in the original image
 
@@ -118,9 +119,26 @@ def main():
     if not defs:
         raise SystemExit("no definitions parsed from slice03.c")
 
+    # the pointer dwords the C initializers re-target (generated with slice03.c): (object, offset, old value, kind, a, b)
+    manifest = {}
+    for obj, off, old, kind, a, b in json.load(open(MANIFEST)):
+        manifest[(obj, off)] = (old, kind, a, b)
+
+    def cstr_at(addr, wide):
+        out = bytearray()
+        step = 2 if wide else 1
+        while True:
+            chunk = [pe.byte(addr + len(out) + i) for i in range(step)]
+            if None in chunk:
+                return None
+            if not any(chunk):
+                return bytes(out)
+            out += bytes(chunk)
+
     bad = 0
     retargeted = 0
     checked_bytes = 0
+    kinds = {}
     for name, old, size in defs:
         new = syms.get("_" + name)
         if new is None:
@@ -130,57 +148,65 @@ def main():
         a = 0
         while a < size:
             dw_old = old + a
-            base = dw_old & ~3
-            entry = mems.get(base, "missing")
-            # dword-sized unit at the same alignment as the original (blobs/objects start at the original offset)
-            unit_ok = (dw_old % 4 == 0) and a + 4 <= size
-            if unit_ok:
+            if dw_old % 4 == 0 and a + 4 <= size:
                 nb = [pe.byte(new + a + i) for i in range(4)]
                 if None in nb:
-                    print("%s+%#x: not in exe" % (name, a)); bad += 1; a += 4; continue
+                    print("%s+%#x: not in exe" % (name, a))
+                    bad += 1
+                    a += 4
+                    continue
                 nv = int.from_bytes(bytes(nb), "little")
-                if entry is None:                                  # image had a code symbol here
-                    retargeted += 1
-                    if not pe.in_code(nv):
-                        print("%s+%#x: code pointer %#x is not in the exe's code" % (name, a, nv)); bad += 1
-                    a += 4; continue
-                ov = entry if entry != "missing" else 0
-                if nv != ov:
-                    if 0x630000 <= ov < 0x8c0000 and pe.in_exe(nv):
-                        retargeted += 1
-                        for i in range(16):
-                            ob = img_byte(mems, ov + i)
-                            nb2 = pe.byte(nv + i)
-                            if ob is None:
-                                break
-                            if nb2 is None:
-                                break
-                            if ob != nb2 and ov + i < BSS_START:
-                                # tolerated: the pointee may be a shorter object whose neighbour differs after it
-                                pass
-                        # strict check on the first 4 bytes of the pointee when the image defines them (not code ptrs)
-                        o4 = [img_byte(mems, ov + i) for i in range(4)]
-                        n4 = [pe.byte(nv + i) for i in range(4)]
-                        if None not in o4 and None not in n4 and o4 != n4 and ov < BSS_START:
-                            print("%s+%#x: pointer %#x -> %#x, pointee bytes %s != image %s" %
-                                  (name, a, ov, nv, bytes(n4).hex(), bytes(o4).hex())); bad += 1
+                entry = mems.get(dw_old, "missing")
+                ov = 0 if entry == "missing" else entry          # None: a code symbol in the image
+                man = manifest.get((name, a))
+                if man is None:
+                    if entry is None or nv != ov:
+                        print("%s+%#x: dword %#x differs from the image (%s) and is not a declared re-target" %
+                              (name, a, nv, "code pointer" if entry is None else "%#x" % ov))
+                        bad += 1
                     else:
-                        print("%s+%#x: value %#x != image %#x" % (name, a, nv, ov)); bad += 1
+                        checked_bytes += 4
+                    a += 4
+                    continue
+                oldv, kind, x, y = man
+                retargeted += 1
+                kinds[kind] = kinds.get(kind, 0) + 1
+                ok = False
+                if kind == "code":
+                    tgt = syms.get("_" + x)
+                    ok = pe.in_code(nv) and (tgt is None or tgt == nv)
+                elif kind == "sym":
+                    tgt = syms.get("_" + x)
+                    ok = (nv == tgt + y) if tgt is not None else (nv == oldv)   # still-EQU globals keep their address
+                    if tgt is None and nv != oldv:
+                        print("%s+%#x: target %s is neither in the map nor at its original address" % (name, a, x))
+                elif kind in ("str", "wstr"):
+                    want = x.encode("utf-16-le" if kind == "wstr" else "latin-1")
+                    ok = cstr_at(nv, kind == "wstr") == want
+                    # and the original pointee (image bytes) must be the same text
+                    img = bytes(img_byte(mems, oldv + i) or 0 for i in range(len(want)))
+                    if img != want:
+                        ok = False
                 else:
-                    checked_bytes += 4
+                    ok = False
+                if not ok:
+                    print("%s+%#x: re-targeted pointer %#x -> %#x (%s %r) does not hold" % (name, a, oldv, nv, kind, x))
+                    bad += 1
                 a += 4
             else:
                 ob = img_byte(mems, dw_old)
                 nbv = pe.byte(new + a)
                 if ob is None:
-                    a += 1; continue      # inside a symbolic dword (unused lead bytes of a table based mid-dword)
+                    a += 1      # inside a symbolic dword (the unused lead bytes of a table based mid-dword)
+                    continue
                 if ob != nbv:
-                    print("%s+%#x: byte %#x != image %#x" % (name, a, nbv or 0, ob)); bad += 1
+                    print("%s+%#x: byte %#x != image %#x" % (name, a, nbv or 0, ob))
+                    bad += 1
                 else:
                     checked_bytes += 1
                 a += 1
-    print("%d definitions, %d bytes compared equal, %d pointer dwords re-targeted, %d mismatches" %
-          (len(defs), checked_bytes, retargeted, bad))
+    print("%d definitions, %d bytes compared equal, %d pointer dwords re-targeted %s, %d mismatches" %
+          (len(defs), checked_bytes, retargeted, kinds, bad))
     raise SystemExit(1 if bad else 0)
 
 
