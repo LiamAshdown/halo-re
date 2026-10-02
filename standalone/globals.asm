@@ -412,6 +412,8 @@ PUBLIC _console_caret_visible
 _console_caret_visible EQU 06B2F10h
 PUBLIC _console_color_00685214
 _console_color_00685214 EQU 0685214h
+PUBLIC _console_color_00686af8
+_console_color_00686af8 EQU 0686AF8h
 PUBLIC _console_debug_flag_0
 _console_debug_flag_0 EQU 087AC00h
 PUBLIC _console_debug_flag_4
@@ -2992,6 +2994,10 @@ PUBLIC _SBOverrideMasterServer
 _SBOverrideMasterServer EQU 06A3278h
 PUBLIC _scan_code_to_key
 _scan_code_to_key EQU 065BD58h
+PUBLIC _scoreboard_server_address_raw
+_scoreboard_server_address_raw EQU 06869B4h
+PUBLIC _scoreboard_server_port
+_scoreboard_server_port EQU 0698208h
 PUBLIC _screen_effect_techniques
 _screen_effect_techniques EQU 071D210h
 PUBLIC _screen_flash_techniques
@@ -3332,6 +3338,22 @@ PUBLIC _team_pair_data
 _team_pair_data EQU 06B0B84h
 PUBLIC _teleport_effect_const_006f1d30
 _teleport_effect_const_006f1d30 EQU 06F1D30h
+PUBLIC _teleport_flash_alpha
+_teleport_flash_alpha EQU 0687AF8h
+PUBLIC _teleport_flash_blue
+_teleport_flash_blue EQU 0687B04h
+PUBLIC _teleport_flash_duration
+_teleport_flash_duration EQU 0687B08h
+PUBLIC _teleport_flash_fade_function
+_teleport_flash_fade_function EQU 06F1D30h
+PUBLIC _teleport_flash_green
+_teleport_flash_green EQU 0687B00h
+PUBLIC _teleport_flash_maximum_intensity
+_teleport_flash_maximum_intensity EQU 0687AF4h
+PUBLIC _teleport_flash_red
+_teleport_flash_red EQU 0687AFCh
+PUBLIC _teleport_flash_type
+_teleport_flash_type EQU 0687AF0h
 PUBLIC _teleport_message_cooldown
 _teleport_message_cooldown EQU 06F1D2Ch
 PUBLIC _terminal_initialized
@@ -3508,6 +3530,8 @@ PUBLIC _unit_speech_repeat_seconds
 _unit_speech_repeat_seconds EQU 065E964h
 PUBLIC _unit_updates_suppressed
 _unit_updates_suppressed EQU 071C419h
+PUBLIC _unknown_00672f20
+_unknown_00672f20 EQU 0672F20h
 PUBLIC _unknown_006869d1
 _unknown_006869d1 EQU 06869D1h
 PUBLIC _unknown_00689426
