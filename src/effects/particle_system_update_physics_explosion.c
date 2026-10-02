@@ -1,5 +1,5 @@
 // particle_system_update_physics_explosion  (Ghidra: no function created; the phase-4 types
-//   agent carved a placeholder "missed_4554d0" from the .rdata dispatch-table evidence)
+//   agent carved the stub name "missed_4554d0" from the .rdata dispatch-table evidence)
 // address 0x4554d0, size 5 bytes
 // VERIFIED against disassembly 0x4554d0..0x4554d5 (2026-09-30)
 // name confidence 0.6, rewrite confidence 0.9

@@ -44,7 +44,7 @@ extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg,
     int16_t *out_material_type, real radius, real dt); // 0x50b530, physics module
 
 // Per-tick motion update for one particle. A particle at rest just re-validates its attached
-// object (if any). An object-attached particle otherwise decays its own velocity by a simplified
+// object (if any). An object-attached particle otherwise decays its own velocity by a reduced
 // version of the PointPhysics air-friction formula and integrates position directly (no
 // collision test). A free-standing particle instead runs the full point-physics collision tick,
 // firing its collision/material effect and death-on-contact flags, and both paths settle the
@@ -130,7 +130,7 @@ uint8_t particle_update_motion(datum_index particle_handle, real delta_time)
                                     // literally even though it looks like a bug in the original
         }
     } else {
-        // Object-attached particle: simplified exponential velocity decay, no collision test.
+        // Object-attached particle: reduced (as in the original) exponential velocity decay, no collision test.
         PointPhysics *physics = (PointPhysics *)tag_instances[tag->physics.tag_id.index].data;
         real radius;
         real friction, mass_related, decay;

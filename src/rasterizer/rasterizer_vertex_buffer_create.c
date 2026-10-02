@@ -88,9 +88,8 @@ static void rasterizer_vertex_buffer_fill(void *locked, int16_t vertex_type, int
 //   with no source data the result is whether that worked and the record is left alone (0x5249d2 -> 0x524fef);
 //   with source data it is locked, filled, unlocked, and the record gets {type, count, 0, source, buffer}; any
 //   failure (create, lock, NULL lock pointer, unlock) zeroes the record and returns 0.
-//   NOT REPRODUCED (logged): on devices without ps_1_1 (0x007c118c < 0xffff0101) vertex types 12..19 are repacked
-//   through the jump table at 0x0052500c into narrower layouts; this rewrite copies the source verbatim on every
-//   device, which is only right for ps_1_1 and later (every device d3d9 still supports).
+//   The pre-ps_1_1 repack of vertex types 12, 13, 14 and 19 (jump table 0x0052500c) is done by
+//   rasterizer_vertex_buffer_fill above.
 uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_t vertex_type, int32_t count,
                                         uint32_t *source_data, int32_t second_stream, uint32_t size)
 {

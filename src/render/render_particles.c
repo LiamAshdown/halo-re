@@ -76,7 +76,7 @@ extern void datum_delete(data_array *array, datum_index index);
     // 0x4d0510, memory module; blam-cc: EAX -> array, EDX -> index (sign extended word here)
 extern void sort_introsort_loop(rendered_particle_datum *first, rendered_particle_datum *last,
                                 int32_t ideal, int32_t predicate);
-    // 0x510410, MSVC STL std::sort instantiation (library code, not rewritten); cdecl
+    // 0x510410, MSVC STL std::sort instantiation (rewritten in src/render/sort_introsort_loop.c); cdecl
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
                          int16_t mode, real_point3d *origin, real_vector3d *direction,
                          float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);

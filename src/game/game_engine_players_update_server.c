@@ -1,6 +1,6 @@
 // game_engine_players_update_server  (Ghidra: FUN_004740a0; named per this rewrite)
 // address 0x4740a0, size 1262 bytes
-// name confidence: 0.4   rewrite confidence: 0.95 (VERIFIED 2026-09-28 against objdump 0x4740a0..0x47458d (respawn, action / exchange / equipment / must-be-readied, control block, idle branch); the network transform-update OPEN stays.)
+// name confidence: 0.4   rewrite confidence: 0.95 (VERIFIED 2026-09-28 against objdump 0x4740a0..0x47458d (respawn, action / exchange / equipment / must-be-readied, control block, idle branch);)
 // evidence: out/phase4/game_functions.md ("Main per-tick players update used on the
 //   server/single-player path: applies queued client input, handles respawning, and processes
 //   each player's action flags"); types/game.h player_action (0x20 bytes, this batch's
@@ -32,7 +32,7 @@
 // Re-verified against the disassembly 0x4740a0..0x474584 on 2026-09-30: both unit_control_data constructions (action path: base at
 // [esp+0x30], forward vector output at +0x28 and copied to +0x1c/+0x34; idle path: base at [esp+0x70]) match the C field for field, as
 // do the respawn/interaction/weapon-readiness logic and the closing bitmask/local_player_count updates. The carry record's byte and
-// dword fields keep placeholder names (produced by update_client_queue_apply_tick).
+// dword fields keep their generic names (produced by update_client_queue_apply_tick).
 // reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
 // reconciled: R34 player_globals.unknown_0c -> local_player_count (int16 at +0x0c, same width)
 

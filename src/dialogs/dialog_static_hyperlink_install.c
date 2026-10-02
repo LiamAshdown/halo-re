@@ -29,7 +29,7 @@
 // can be passed to SetWindowLongA without raw immediates.
 extern int32_t __stdcall dialog_static_hyperlink_subclass_proc(void *window, uint32_t message, uint32_t wparam,
                                                                  int32_t lparam); // 0x57e350, this module
-// Not a Ghidra function (out/phase4/dialogs_types_notes.md), so not rewritten yet. Its address is
+// Not a Ghidra function (out/phase4/dialogs_types_notes.md); rewritten in dialog_static_hyperlink_parent_proc.c. Its address is
 // the immediates above; its __stdcall WNDPROC shape is confirmed by objdump at 0x57e2a0 (hwnd read
 // at [esp+0x10] after four pushes, every exit is ret 0x10).
 extern int32_t __stdcall dialog_static_hyperlink_parent_proc(void *window, uint32_t message, uint32_t wparam,
