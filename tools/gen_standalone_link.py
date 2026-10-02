@@ -76,6 +76,8 @@ def main():
              compile_c(os.path.join(SA, "generated", "image_bindings.c"), o("image_bindings.obj"))]
     for p in json.load(open(os.path.join(SA, "image", "pieces.json"))):
         extra.append(assemble(os.path.join(SA, "image", p["label"] + ".asm"), o("image_%s.obj" % p["label"])))
+    for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):   # the engine globals as C definitions, one file per slice
+        extra.append(compile_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj"), [SA]))
     extra += [assemble(os.path.join(SA, "globals.asm"), o("globals.obj")),
               assemble(os.path.join(SA, "generated", "code_entries.asm"), o("code_entries.obj")),
               assemble(os.path.join(SA, "bridges.asm"), o("bridges.obj"))]

@@ -68,7 +68,7 @@ extern float hud_text_draw_color_r; // 0x006e473c
 extern float hud_text_draw_color_g; // 0x006e4740
 extern float hud_text_draw_color_b; // 0x006e4744
 extern uint16_t hud_text_draw_background_mode; // 0x006e4748
-extern const char *decimal_format_string; // 0x0065fb30, the literal "%d"
+extern const char decimal_format_string[]; // 0x0065fb30, the literal "%d"
 
 extern void rasterizer_set_shader_stage_config(int32_t stage); // 0x519200, blam-cc: EAX -> stage, outside this batch
 extern int32_t hud_text_draw_configure(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f); // 0x4944c0,

@@ -20,7 +20,7 @@
 #include "networking.h"
 #include <string.h>
 
-extern char *network_log_path_format; // 0x0065efec, the shared "%s" format string (see network_log_path_resolve.c)
+extern char network_log_path_format[]; // 0x0065efec, the shared "%s" format string (see network_log_path_resolve.c)
 
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
     // blam-cc: EAX -> decode_context, ECX -> destination; 0x4ec590, message-delta stateless
