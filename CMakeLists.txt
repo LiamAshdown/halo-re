@@ -71,7 +71,8 @@ set(SUPPORT_SOURCES
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
     "${SA}/image/pieces.c"
     "${SA}/generated/image_bindings.c")
-add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
+file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")   # the engine globals as C definitions (one file per slice)
+add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${DATA_SOURCES} ${IMAGE_ASM}
     "${SA}/globals.asm" "${SA}/generated/code_entries.asm" "${SA}/bridges.asm"
     $<TARGET_OBJECTS:halo_game>)
 add_dependencies(halo_rebuilt third_party_import_libs)
