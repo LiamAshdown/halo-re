@@ -51,7 +51,7 @@ int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16
             Sound *sound_tag = (Sound *)tag_instances[unit->current_speech.sound_tag & 0xffff].data;
             int32_t length = *(int32_t *)((uint8_t *)sound_tag + 0x84) * 0x1e; // Sound tag +0x84: length in ms
             unit->speech_duration_ticks = (int16_t)(length / 1000);
-            return (int32_t)((int64_t)length * 0x10624dd3); // see file header UNSURE note
+            return (int32_t)((int64_t)length * 0x10624dd3); // register residue, see file header
         } else if (mode == 1) {
             unit->pending_speech = *source;
         }

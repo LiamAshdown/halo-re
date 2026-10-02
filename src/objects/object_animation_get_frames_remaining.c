@@ -25,7 +25,7 @@ extern tag_instance *tag_instances; // 0x0087bc14
 uint32_t object_animation_get_frames_remaining(uint32_t object_index) // blam-cc: EAX -> object_index
 {
     object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *extended_flags = (uint8_t *)obj + 0x1f4; // UNSURE: see file header
+    uint8_t *extended_flags = (uint8_t *)obj + 0x1f4; // flag byte at +0x1f4 (Ghidra +500), bit 0
 
     if ((*extended_flags & 1) != 0) {
         void *graph = tag_instances[obj->animation_graph & 0xffff].data;

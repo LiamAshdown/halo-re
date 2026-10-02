@@ -51,10 +51,7 @@ void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, 
         (damage->damage_effect_tag != k_datum_index_none) && (damage->material_type != -1)) {
         extension = &breakable_surface_state->health[global_structure_bsp_index][index];
         if (0.0f < *extension) {
-            // UNSURE: Ghidra's decompile of this call shows globals_material_get() with no visible
-            // argument. damage->unknown_4c (the material type) was just loaded for the test
-            // above and nothing in between clobbers it, so it is almost certainly what is still
-            // live in the register globals_material_get reads its argument from.
+            // VERIFIED (0x4ffe42): the material argument is the damage's material_type, still live in ECX.
             material = globals_material_get(damage->material_type);
             if ((material != 0) && (0.0f < material->maximum_vitality)) {
                 DamageEffect *effect =
@@ -76,13 +73,7 @@ void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, 
                 if (new_extension <= 0.0f) {
                     breakable_surface_state->active[global_structure_bsp_index][index >> 5] &=
                         ~(1u << (index & 0x1f));
-                    // UNSURE: the callee's real signature (physics_point_spawn_contact_effect,
-                    // see 0x4fff20's call for the fully-visible form) takes three arguments, but
-                    // Ghidra's decompile of this call site shows only surface_index. `damage` is
-                    // the best-supported reconstruction of the second (mirrors 0x4fff20, where
-                    // the analogous context pointer is the second argument); the third
-                    // (collision_surface_index there) has no equivalent value visible in this
-                    // function and is passed as 0 pending confirmation from the effects module.
+                    // VERIFIED (0x4fff02): stack arguments are (surface_index, collision_surface_index); `damage` is EBX.
                     breakable_surface_shatter((uint16_t)index, damage, collision_surface_index);
                 }
             }
