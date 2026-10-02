@@ -103,11 +103,11 @@ char hs_compile_and_evaluate(char *command)
             }
         }
         if (mode == 1) {
-            format = "(%s)";
+            format = (char *)"(%s)";
             sprintf(formatted, format, buffer);
             command = formatted;
         } else if (mode == 2) {
-            format = "(set %s)";
+            format = (char *)"(set %s)";
             sprintf(formatted, format, buffer);
             command = formatted;
         }

@@ -63,7 +63,7 @@ char hs_parse_begin(int16_t function_index, datum_index node_index)
         return 0;
     }
     if (count > 0x20 && function_index == 1) {
-        hs_compile_error = "begin_random can take a maximum of 32 arguments (matt can increase this.)"; // 0x00665c78
+        hs_compile_error = (char *)"begin_random can take a maximum of 32 arguments (matt can increase this.)"; // 0x00665c78
         hs_compile_error_offset = call->source_offset;
         return 0;
     }

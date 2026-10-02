@@ -40,7 +40,7 @@ void control_profile_variant_write_wait_and_clear(void)
     if (variant_write_thread != 0) {
         do {
             do {
-                got_code = GetExitCodeThread(variant_write_thread->handle, &exit_code);
+                got_code = GetExitCodeThread(variant_write_thread->handle, (LPDWORD)&exit_code);
             } while (got_code == 0);
         } while (exit_code == 0x103);
         CloseHandle(variant_write_thread->handle);

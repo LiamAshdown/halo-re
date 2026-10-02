@@ -37,7 +37,7 @@ uint16_t *saved_game_get_display_name(int32_t handle)
     if (slot_index < 999) {
         found = savegame_index_read_slot(slot_index, &entry);
         if (found != 0) {
-            wcsncpy(saved_game_display_name_buffer, entry.display_name, 0x7f);
+            wcsncpy((wchar_t *)saved_game_display_name_buffer, (const wchar_t *)entry.display_name, 0x7f);
             saved_game_display_name_buffer[0x7f] = 0;
         }
     }

@@ -52,7 +52,7 @@ uint8_t game_checkpoint_print_list_entry(int32_t index, const char *name, int32_
         level_name = campaign_level_paths[level_index];
     }
 
-    chimera__console_out(actor_mode_default_look_weights, "%-15s %-20s %02d:%02d:%02d", name, level_name, hours, minutes, seconds);
+    chimera__console_out(actor_mode_default_look_weights, (char *)"%-15s %-20s %02d:%02d:%02d", name, level_name, hours, minutes, seconds);
     return 1;
 }
 

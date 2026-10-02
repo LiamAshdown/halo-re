@@ -56,7 +56,7 @@ void saved_game_allocate_new_slot(uint16_t *out_name)
     char scratch_path[0x100];
 
     out_name[0] = 0;
-    tag_index = tag_lookup('ustr', "ui\\saved_game_file_strings");
+    tag_index = tag_lookup('ustr', (char *)"ui\\saved_game_file_strings");
     if (tag_index != -1) {
         memset(scratch_path, 0, sizeof(scratch_path));
         number = 0;

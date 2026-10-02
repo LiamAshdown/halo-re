@@ -51,28 +51,28 @@ char hs_parse_set(int16_t function_index, datum_index node_index)
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
     variable_index = node->data.first_child;
     if (variable_index == k_datum_index_none) {
-        hs_compile_error = "i expected a variable to set and a value.";
+        hs_compile_error = (char *)"i expected a variable to set and a value.";
         hs_compile_error_offset = node->source_offset;
         return 0;
     }
     variable_node = (hs_syntax_node *)((uint8_t *)nodes->data + (variable_index & 0xffff) * nodes->size);
     value_index = variable_node->next_node;
     if (value_index == k_datum_index_none) {
-        hs_compile_error = "i expected an assignment value.";
+        hs_compile_error = (char *)"i expected an assignment value.";
         hs_compile_error_offset = node->source_offset;
         return 0;
     }
     value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & 0xffff) * nodes->size);
     if (value_node->next_node != k_datum_index_none) {
         extra_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_node->next_node & 0xffff) * nodes->size);
-        hs_compile_error = "i didn't expect this argument.";
+        hs_compile_error = (char *)"i didn't expect this argument.";
         hs_compile_error_offset = extra_node->source_offset;
         return 0;
     }
 
     global = hs_find_global_by_name(hs_compiled_source + variable_node->source_offset);
     if (global == k_hs_global_reference_none) {
-        hs_compile_error = "this is not a valid global variable.";
+        hs_compile_error = (char *)"this is not a valid global variable.";
         hs_compile_error_offset = variable_node->source_offset;
         return 0;
     }

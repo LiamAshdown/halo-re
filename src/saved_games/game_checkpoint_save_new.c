@@ -37,7 +37,7 @@ uint8_t game_checkpoint_save_new(void)
     if (game_checkpoint_get_next_filename(target_name, directory) == 0) {
         return 0;
     }
-    return saved_game_copy_files_to_target(directory, "savegame", target_name);
+    return saved_game_copy_files_to_target(directory, (char *)"savegame", target_name);
 }
 
 #if 0

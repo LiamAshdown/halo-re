@@ -59,10 +59,10 @@ void game_state_write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, in
     memset(buffer, 0, header_size);
 
     if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
-        WriteFile(file, buffer, total_size, &bytes_written, 0) == 0 ||
+        WriteFile(file, buffer, total_size, (LPDWORD)&bytes_written, 0) == 0 ||
         bytes_written != (uint32_t)total_size ||
         SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
-        WriteFile(file, header_backup, header_size, &bytes_written, 0) == 0 ||
+        WriteFile(file, header_backup, header_size, (LPDWORD)&bytes_written, 0) == 0 ||
         bytes_written != (uint32_t)header_size) {
         shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {

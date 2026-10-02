@@ -31,7 +31,7 @@ char hs_parse_sleep_until(int16_t function_index, datum_index node_index)
     char ok;
 
     if (condition == 0xffffffff) {
-        hs_compile_error = "the sleep_until call requires a condition and, optionally, a period."; // 0x006659c8
+        hs_compile_error = (char *)"the sleep_until call requires a condition and, optionally, a period."; // 0x006659c8
         hs_compile_error_offset = call->source_offset;
         return 0;
     }

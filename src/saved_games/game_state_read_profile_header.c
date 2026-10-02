@@ -35,7 +35,7 @@ uint8_t game_state_read_profile_header(char *name, int32_t size, void *buffer)
     sprintf(path, "%s\\%s", game_state_core_directory, name);
     file = CreateFileA(path, 0x80000000, 0, 0, 3 /* OPEN_EXISTING */, 0x80 /* FILE_FLAG_RANDOM_ACCESS */, 0);
     if (file != (void *)0xffffffff) {
-        if (ReadFile(file, buffer, size, &bytes_read, 0) != 0 && bytes_read == (uint32_t)size) {
+        if (ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)size) {
             result = 1;
         }
     }

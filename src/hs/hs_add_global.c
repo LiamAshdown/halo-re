@@ -99,7 +99,7 @@ char hs_add_global(datum_index node_index)
                         type_ordinal = string_table_index_of(hs_compiled_source + type_node->source_offset,
                                                      k_hs_type_count, (const char **)hs_type_names);
                         if ((type_ordinal < 4) || (0x30 < type_ordinal)) {
-                            hs_compile_error = "this is not a valid type.";
+                            hs_compile_error = (char *)"this is not a valid type.";
                             hs_compile_error_offset = type_node->source_offset;
                             return 0;
                         }
@@ -113,18 +113,18 @@ char hs_add_global(datum_index node_index)
                                 if (hs_parse(value_index, type_ordinal) != 0) {
                                     // The form is completely valid -- and there is still nowhere
                                     // to put it. See the RESOLVED note at the top of the file.
-                                    hs_compile_error = "i couldn't allocate space for this global.";
+                                    hs_compile_error = (char *)"i couldn't allocate space for this global.";
                                     hs_compile_error_offset = node->source_offset;
                                 }
                                 hs_blocking_forbidden = 0;
                                 hs_set_forbidden = 0;
                                 return 0;
                             }
-                            hs_compile_error = "there is already a variable by this name.";
+                            hs_compile_error = (char *)"there is already a variable by this name.";
                             hs_compile_error_offset = name_node->source_offset;
                             return 0;
                         }
-                        hs_compile_error = "i expected a global variable name less than 32 characters.";
+                        hs_compile_error = (char *)"i expected a global variable name less than 32 characters.";
                         hs_compile_error_offset = name_node->source_offset;
                         return 0;
                     }
@@ -132,7 +132,7 @@ char hs_add_global(datum_index node_index)
             }
         }
     }
-    hs_compile_error = "i expected (global<type> <name> <initial value>)";
+    hs_compile_error = (char *)"i expected (global<type> <name> <initial value>)";
     hs_compile_error_offset = node->source_offset;
     return 0;
 }

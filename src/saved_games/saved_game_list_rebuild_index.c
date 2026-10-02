@@ -153,7 +153,7 @@ void saved_game_list_rebuild_index(void)
                     goto next_entry;
 
                 have_candidate:
-                    wcsncpy(entry.display_name, find_data.save_game_name, 0x7f);
+                    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)find_data.save_game_name, 0x7f);
                     entry.type = entry_type;
 
                     opened = file_reference_open(&ref, 1);

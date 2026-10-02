@@ -35,7 +35,7 @@ uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buff
     sprintf(path, "%s\\%s", game_state_core_directory, name);
     file = CreateFileA(path, 0x40000000, 0, 0, 2 /* CREATE_ALWAYS */, 0x80 /* FILE_FLAG_RANDOM_ACCESS */, 0);
     if (file != (void *)0xffffffff) {
-        if (WriteFile(file, buffer, size, &bytes_written, 0) != 0 && bytes_written == (uint32_t)size) {
+        if (WriteFile(file, buffer, size, (LPDWORD)&bytes_written, 0) != 0 && bytes_written == (uint32_t)size) {
             result = 1;
         }
     }

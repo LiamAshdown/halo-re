@@ -73,7 +73,7 @@ char hs_add_script(datum_index node_index)
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
     type_index = node->data.first_child;
     if (type_index == k_datum_index_none) {
-        hs_compile_error = "i expected (script <type> <name> <expression(s)>)";
+        hs_compile_error = (char *)"i expected (script <type> <name> <expression(s)>)";
         hs_compile_error_offset = node->source_offset;
         return 0;
     }
@@ -81,7 +81,7 @@ char hs_add_script(datum_index node_index)
     script_type = string_table_index_of(hs_compiled_source + type_node->source_offset,
                                 k_hs_script_type_count, (const char **)hs_script_type_names);
     if (script_type == -1) {
-        hs_compile_error = "script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".";
+        hs_compile_error = (char *)"script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".";
         hs_compile_error_offset = type_node->source_offset;
         return 0;
     }
@@ -89,7 +89,7 @@ char hs_add_script(datum_index node_index)
     if ((script_type == _hs_script_static) || (script_type == _hs_script_stub)) {
         return_type_index = type_node->next_node;
         if (return_type_index == k_datum_index_none) {
-            hs_compile_error = "i expected (script local <type> <name> <expression(s)>).";
+            hs_compile_error = (char *)"i expected (script local <type> <name> <expression(s)>).";
             hs_compile_error_offset = node->source_offset;
             return 0;
         }
@@ -98,7 +98,7 @@ char hs_add_script(datum_index node_index)
                                     k_hs_type_count, (const char **)hs_type_names);
         name_index = return_type_node->next_node;
         if ((return_type < 4) || (0x30 < return_type)) {
-            hs_compile_error = "this is not a valid return type.";
+            hs_compile_error = (char *)"this is not a valid return type.";
             hs_compile_error_offset = return_type_node->source_offset;
             return 0;
         }
@@ -116,7 +116,7 @@ char hs_add_script(datum_index node_index)
             if ((name_length != 0) && (name_length < 0x20)) {
                 existing_index = hs_script_find_by_name(name_text);
                 if (existing_index == -1) {
-                    hs_compile_error = "i couldn't allocate a script.";
+                    hs_compile_error = (char *)"i couldn't allocate a script.";
                     hs_compile_error_offset = node->source_offset;
                     return 0;
                 }
@@ -127,7 +127,7 @@ char hs_add_script(datum_index node_index)
                     new_root = datum_new(nodes);
                     new_body_holder = datum_new(nodes);
                     if ((new_root == k_datum_index_none) || (new_body_holder == k_datum_index_none)) {
-                        hs_compile_error = "i couldn't allocate a syntax node.";
+                        hs_compile_error = (char *)"i couldn't allocate a syntax node.";
                         return 0;
                     }
                     nodes = hs_syntax_data;
@@ -161,22 +161,22 @@ char hs_add_script(datum_index node_index)
                     (script_type == _hs_script_stub)) {
                     return 1;
                 }
-                hs_compile_error = "only static scripts of the same type can override stub scripts.";
+                hs_compile_error = (char *)"only static scripts of the same type can override stub scripts.";
                 hs_compile_error_offset = node->source_offset;
                 return 0;
             }
-            hs_compile_error = "i expected a script name less than 32 characters.";
+            hs_compile_error = (char *)"i expected a script name less than 32 characters.";
             hs_compile_error_offset = name_node->source_offset;
             return 0;
         }
     }
 
     if (script_type == _hs_script_static) {
-        hs_compile_error = "i expected (script static <type> <name> <expression(s)>)";
+        hs_compile_error = (char *)"i expected (script static <type> <name> <expression(s)>)";
     } else if (script_type == _hs_script_stub) {
-        hs_compile_error = "i expected (script stub <type> <name> <expression(s)>)";
+        hs_compile_error = (char *)"i expected (script stub <type> <name> <expression(s)>)";
     } else {
-        hs_compile_error = "i expected (script <type> <name> <expression(s)>)";
+        hs_compile_error = (char *)"i expected (script <type> <name> <expression(s)>)";
     }
     hs_compile_error_offset = node->source_offset;
     return 0;

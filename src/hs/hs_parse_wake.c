@@ -39,7 +39,7 @@ char hs_parse_wake(int16_t function_index, datum_index node_index)
     }
     script = (ScenarioScript *)global_scenario->scripts.pointer + node->data.short_value;
     if (script->script_type == 3 || script->script_type == 4) {
-        hs_compile_error = "this static script cannot be awakened."; // 0x006659a0
+        hs_compile_error = (char *)"this static script cannot be awakened."; // 0x006659a0
         hs_compile_error_offset = node->source_offset;
         return 0;
     }

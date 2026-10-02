@@ -59,7 +59,7 @@ uint8_t saved_game_validate_crc(int32_t total_size, int32_t header_size, uint8_t
     }
 
     if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
-        ReadFile(file, header_buffer, header_size, &bytes_read, 0) == 0 ||
+        ReadFile(file, header_buffer, header_size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)header_size) {
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, profile_directory) != 0) {
             DeleteFileA(profile_directory);
@@ -78,7 +78,7 @@ uint8_t saved_game_validate_crc(int32_t total_size, int32_t header_size, uint8_t
             if (0x1ffff < remaining) {
                 chunk = 0x20000;
             }
-            if (ReadFile(file, chunk_buffer, chunk, &bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
+            if (ReadFile(file, chunk_buffer, chunk, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
                 crc32_update(&running_crc, chunk_buffer, chunk);
             }
             sound_idle_update();

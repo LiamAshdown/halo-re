@@ -30,7 +30,7 @@ void player_profile_verify_thread_wait_and_clear(void)
 
     if (player_profile_thread != 0) {
         do {
-            while (GetExitCodeThread(player_profile_thread->handle, &exit_code) == 0) {
+            while (GetExitCodeThread(player_profile_thread->handle, (LPDWORD)&exit_code) == 0) {
                 /* keep polling */
             }
         } while (exit_code == 0x103 /* STILL_ACTIVE */);

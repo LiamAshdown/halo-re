@@ -44,7 +44,7 @@ static void player_profile_build_default(saved_player_profile *profile, int32_t 
 
     player_profile_initialize(profile, 0, 0);
     name = saved_game_get_display_name(handle);
-    wcsncpy(profile->name, name, 0xb);
+    wcsncpy((wchar_t *)profile->name, (const wchar_t *)name, 0xb);
 }
 
 // blam-cc: out_buffer in ECX, then the recognized stack parameter (index)
@@ -66,7 +66,7 @@ uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer)
     if (player_profile_thread != 0) {
         uint32_t exit_code;
         do {
-            while (GetExitCodeThread(player_profile_thread->handle, &exit_code) == 0) {
+            while (GetExitCodeThread(player_profile_thread->handle, (LPDWORD)&exit_code) == 0) {
                 /* keep polling */
             }
         } while (exit_code == 0x103 /* STILL_ACTIVE */);

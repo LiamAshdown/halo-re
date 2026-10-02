@@ -80,7 +80,7 @@ void playlist_profile_create_default_profiles_on_disk(void)
     char *end;
     uint8_t written;
 
-    tag_id = tag_lookup(0x75737472, "ui\\default_multiplayer_game_setting_names"); // 'ustr'
+    tag_id = tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names"); // 'ustr'
     if (tag_id == k_datum_index_none) {
         return;
     }
@@ -112,7 +112,7 @@ void playlist_profile_create_default_profiles_on_disk(void)
             }
         }
 
-        wcsncpy(variant_file.variant.name, source_name, 0x17);
+        wcsncpy((wchar_t *)variant_file.variant.name, (const wchar_t *)source_name, 0x17);
         variant_file.variant.name[0x17] = 0;
         variant_file.variant.variant_flags =
             (int16_t)((uint16_t)variant_file.variant.variant_flags | ((uint16_t)(uint8_t)i << 8));

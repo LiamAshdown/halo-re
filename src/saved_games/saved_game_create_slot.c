@@ -130,7 +130,7 @@ uint32_t saved_game_create_slot(uint16_t type, uint16_t *name)
     }
 
     memset(&entry, 0, sizeof(entry));
-    wcsncpy(entry.display_name, name, 0x7f);
+    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)name, 0x7f);
     entry.display_name[0x7f] = 0;
     entry.type = (int16_t)type;
     entry.index = (int16_t)entry_count;

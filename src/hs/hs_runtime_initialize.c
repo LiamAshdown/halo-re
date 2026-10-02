@@ -28,8 +28,8 @@ void hs_runtime_initialize(void)
 {
     int32_t i;
 
-    hs_thread_data = game_state_new("hs thread", k_hs_thread_maximum_count, 0x218 /* EBX at the original call */);
-    hs_globals_data = game_state_new("hs globals", k_hs_global_maximum_count, 0x8 /* EBX at the original call */);
+    hs_thread_data = game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 /* EBX at the original call */);
+    hs_globals_data = game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 /* EBX at the original call */);
     if (hs_thread_data != 0 && hs_globals_data != 0) {
         hs_globals_data->valid = 1;
         data_delete_all(hs_globals_data);

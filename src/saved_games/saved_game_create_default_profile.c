@@ -56,7 +56,7 @@ uint32_t saved_game_create_default_profile(uint16_t *name)
 
     memset(&file, 0, sizeof(file));
     player_profile_initialize(&file.profile, 0, 1);
-    wcsncpy(file.profile.name, name, 0xb);
+    wcsncpy((wchar_t *)file.profile.name, (const wchar_t *)name, 0xb);
 
     file.checksum = 0xffffffff;
     crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);

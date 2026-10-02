@@ -79,7 +79,7 @@ int16_t saved_game_index_register_default_playlists(void)
     uint8_t written;
 
     count = default_game_variant_count;
-    tag_id = tag_lookup(0x75737472, "ui\\default_multiplayer_game_setting_names"); // 'ustr'
+    tag_id = tag_lookup(0x75737472, (char *)"ui\\default_multiplayer_game_setting_names"); // 'ustr'
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none && 0 < count) {
@@ -121,7 +121,7 @@ int16_t saved_game_index_register_default_playlists(void)
             if (exists != 0) {
                 memset(&entry, 0, sizeof(entry));
                 strncpy(entry.path, path, 0xff);
-                wcsncpy(entry.display_name, source_name, 0x7f);
+                wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)source_name, 0x7f);
                 entry.type = _saved_game_type_game_variant;
                 entry.builtin = 1;
 

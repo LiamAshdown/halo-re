@@ -18,8 +18,8 @@ extern void hs_autocomplete_test_candidate(char *candidate); // 0x00483690, this
 // match the current prefix.
 void hs_enumerate_special_form_names(void)
 {
-    hs_autocomplete_test_candidate("script");
-    hs_autocomplete_test_candidate("global");
+    hs_autocomplete_test_candidate((char *)"script");
+    hs_autocomplete_test_candidate((char *)"global");
 }
 
 #if 0

@@ -66,7 +66,7 @@ void *game_state_open_persistent_storage(char *name)
     file_size = GetFileSize(file, 0);
     if (file_size != k_game_state_file_size) {
         memset(zero_block, 0, sizeof(zero_block));
-        if (WriteFile(file, zero_block, k_game_state_file_initial_block, &bytes_written, 0) == 0 ||
+        if (WriteFile(file, zero_block, k_game_state_file_initial_block, (LPDWORD)&bytes_written, 0) == 0 ||
             bytes_written != k_game_state_file_initial_block ||
             SetFilePointer(file, k_game_state_file_size, 0, 0) == 0xffffffff ||
             SetEndOfFile(file) == 0) {

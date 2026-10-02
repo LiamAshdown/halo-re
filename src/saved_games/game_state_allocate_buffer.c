@@ -43,7 +43,7 @@ void *game_state_allocate_buffer(int32_t cpu_size, int32_t extra_size)
     void *base;
 
     base = map_memory;
-    game_state_snapshot_source = map_memory;
+    game_state_snapshot_source = (uint8_t *)map_memory;
     game_state_size = cpu_size + extra_size;
     game_state_write_buffer_allocated = 1;
     game_state_write_buffer = (uint8_t *)GlobalAlloc(0, game_state_size);

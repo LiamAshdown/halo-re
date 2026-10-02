@@ -43,7 +43,7 @@ char hs_parse_real(datum_index node_index)
         }
         if (!isdigit((unsigned char)c)) {
             if ((has_dot != 0) || (*p != '.')) {
-                hs_compile_error = "this is not a valid real number.";
+                hs_compile_error = (char *)"this is not a valid real number.";
                 hs_compile_error_offset = node->source_offset;
                 valid = 0;
                 goto convert;

@@ -29,7 +29,7 @@ int16_t hs_find_function_by_name(char *name)
 
     strcpy(alias, "player_effect_set_max_rumble");
     if (_stricmp(name, alias) == 0) {
-        name = "player_effect_set_max_vibrate";
+        name = (char *)"player_effect_set_max_vibrate";
     }
     for (index = 0; index < k_hs_function_count; index++) {
         if (_stricmp(hs_function_definitions[index]->name, name) == 0) {

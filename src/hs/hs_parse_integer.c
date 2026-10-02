@@ -33,7 +33,7 @@ char hs_parse_integer(datum_index node_index)
     }
     for (; *p != 0; p++) {
         if (!isdigit((unsigned char)*p)) { // the original passes the sign-extended char; scripts are ASCII
-            hs_compile_error = "this is not a valid integer.";
+            hs_compile_error = (char *)"this is not a valid integer.";
             hs_compile_error_offset = node->source_offset;
             valid = 0;
             break;
@@ -41,7 +41,7 @@ char hs_parse_integer(datum_index node_index)
     }
     value = atoi(hs_compiled_source + node->source_offset);
     if (valid && node->type != 8 && (value > 0x7fff || value < -0x8000)) {
-        hs_compile_error = "shorts must be in the range [-32767, 32768].";
+        hs_compile_error = (char *)"shorts must be in the range [-32767, 32768].";
         hs_compile_error_offset = node->source_offset;
         valid = 0;
     }

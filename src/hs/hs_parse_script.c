@@ -27,7 +27,7 @@ char hs_parse_script(datum_index node_index)
         node->data.short_value = script_index;
         return 1;
     }
-    hs_compile_error = "this is not a valid script name.";
+    hs_compile_error = (char *)"this is not a valid script name.";
     hs_compile_error_offset = node->source_offset;
     return 0;
 }

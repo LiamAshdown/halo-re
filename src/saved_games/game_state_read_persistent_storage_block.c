@@ -38,7 +38,7 @@ void game_state_read_persistent_storage_block(int32_t size, void *buffer)
     }
 
     if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
-        ReadFile(file, buffer, size, &bytes_read, 0) == 0 ||
+        ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
         shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
         if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
