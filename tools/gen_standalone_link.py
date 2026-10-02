@@ -43,9 +43,9 @@ def run(cmd, what):
     return r
 
 
-def compile_c(src, obj, includes=(), defines=()):
+def compile_c(src, obj, includes=(), defines=(), flags=()):
     run([gl.tool("cl"), "/nologo", "/c", "/GS-", "/O2", "/Fo" + obj] + ["/I" + i for i in includes] +
-        ["/D" + d for d in defines] + [src], "compile " + src)
+        ["/D" + d for d in defines] + ["/" + f for f in flags] + [src], "compile " + src)
     return obj
 
 
@@ -74,6 +74,10 @@ def main():
              compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), o("x87_shims.obj")),
              compile_c(os.path.join(SA, "image", "pieces.c"), o("pieces.obj"), [SA]),
              compile_c(os.path.join(SA, "generated", "image_bindings.c"), o("image_bindings.obj"))]
+    for src in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):      # the engine globals as C definitions
+        extra.append(compile_c(src, o("data_" + os.path.basename(src)[:-2] + ".obj"),
+                               [os.path.join(ROOT, "types"), os.path.join(DXSDK, "Include")],
+                               [], ["FI" + os.path.join(ROOT, "harness", "msvc_compat.h")]))
     for p in json.load(open(os.path.join(SA, "image", "pieces.json"))):
         extra.append(assemble(os.path.join(SA, "image", p["label"] + ".asm"), o("image_%s.obj" % p["label"])))
     extra += [assemble(os.path.join(SA, "globals.asm"), o("globals.obj")),
