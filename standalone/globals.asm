@@ -80,6 +80,8 @@ PUBLIC _collideable_object_references
 _collideable_object_references EQU 08603D4h
 PUBLIC _console_color_00685214
 _console_color_00685214 EQU 0685214h
+PUBLIC _console_color_00686af8
+_console_color_00686af8 EQU 0686AF8h
 PUBLIC _console_message_default_color
 _console_message_default_color EQU 0685218h
 PUBLIC _control_binding_device_type
@@ -610,6 +612,10 @@ PUBLIC _saved_item_working_copy
 _saved_item_working_copy EQU 0714E80h
 PUBLIC _saved_player_profile_slots_handle
 _saved_player_profile_slots_handle EQU 0714DD4h
+PUBLIC _scoreboard_server_address_raw
+_scoreboard_server_address_raw EQU 06869B4h
+PUBLIC _scoreboard_server_port
+_scoreboard_server_port EQU 0698208h
 PUBLIC _screen_safe_area_bottom
 _screen_safe_area_bottom EQU 07C314Ch
 PUBLIC _screen_safe_area_right
@@ -640,6 +646,20 @@ PUBLIC _split_screen_quit_prompt_string
 _split_screen_quit_prompt_string EQU 0719754h
 PUBLIC _team_data
 _team_data EQU 087A47Ch
+PUBLIC _teleport_flash_alpha
+_teleport_flash_alpha EQU 0687AF8h
+PUBLIC _teleport_flash_blue
+_teleport_flash_blue EQU 0687B04h
+PUBLIC _teleport_flash_duration
+_teleport_flash_duration EQU 0687B08h
+PUBLIC _teleport_flash_green
+_teleport_flash_green EQU 0687B00h
+PUBLIC _teleport_flash_maximum_intensity
+_teleport_flash_maximum_intensity EQU 0687AF4h
+PUBLIC _teleport_flash_red
+_teleport_flash_red EQU 0687AFCh
+PUBLIC _teleport_flash_type
+_teleport_flash_type EQU 0687AF0h
 PUBLIC _text_tab_stops
 _text_tab_stops EQU 06E474Ah
 PUBLIC _ui_event_byte_0071975b
@@ -668,6 +688,8 @@ PUBLIC _unit_base_animation_state_names
 _unit_base_animation_state_names EQU 069FDE4h
 PUBLIC _unit_control_data_version_layouts
 _unit_control_data_version_layouts EQU 0686D88h
+PUBLIC _unknown_00672f20
+_unknown_00672f20 EQU 0672F20h
 PUBLIC _unknown_006869d1
 _unknown_006869d1 EQU 06869D1h
 PUBLIC _unknown_00699f40
