@@ -198,8 +198,6 @@ PUBLIC _breakable_surface_state
 _breakable_surface_state EQU 06B8D78h
 PUBLIC _breakable_surfaces_enabled
 _breakable_surfaces_enabled EQU 0689470h
-PUBLIC _build_sprite_group_warning
-_build_sprite_group_warning EQU 071CFBFh
 PUBLIC _build_sprite_large_quad_count
 _build_sprite_large_quad_count EQU 07C30C8h
 PUBLIC _build_sprite_screen_coverage
@@ -282,14 +280,10 @@ PUBLIC _chat_gui_finalize
 _chat_gui_finalize EQU 0721ED0h
 PUBLIC _chat_gui_find_child
 _chat_gui_find_child EQU 0721ECCh
-PUBLIC _chat_gui_find_object
-_chat_gui_find_object EQU 0721EB8h
 PUBLIC _chat_gui_find_object_arg
 _chat_gui_find_object_arg EQU 069C698h
 PUBLIC _chat_gui_release
 _chat_gui_release EQU 0721EC8h
-PUBLIC _chat_gui_root_handle
-_chat_gui_root_handle EQU 0721EA4h
 PUBLIC _chat_gui_set_focus
 _chat_gui_set_focus EQU 0721ED4h
 PUBLIC _chat_gui_set_property_int
@@ -316,12 +310,6 @@ PUBLIC _chat_local_prompt_string
 _chat_local_prompt_string EQU 06607A0h
 PUBLIC _chat_scope_active
 _chat_scope_active EQU 06B385Ch
-PUBLIC _chat_state_00719a79
-_chat_state_00719a79 EQU 0719A79h
-PUBLIC _chat_state_00719a7a
-_chat_state_00719a7a EQU 0719A7Ah
-PUBLIC _chat_state_00719a9a
-_chat_state_00719a9a EQU 0719A9Ah
 PUBLIC _chat_window_default_height
 _chat_window_default_height EQU 0692D8Ch
 PUBLIC _chat_window_default_width
@@ -332,8 +320,6 @@ PUBLIC _chat_window_default_y
 _chat_window_default_y EQU 0692D84h
 PUBLIC _cheat_super_jump
 _cheat_super_jump EQU 087ABC4h
-PUBLIC _checkfpu
-_checkfpu EQU 071D1A4h
 PUBLIC _checkpoint_sort_newest_first
 _checkpoint_sort_newest_first EQU 069E7E8h
 PUBLIC _chimera_contrail_scale
@@ -344,8 +330,6 @@ PUBLIC _cinematic_globals_ptr
 _cinematic_globals_ptr EQU 06F187Ch
 PUBLIC _cinematic_saved_music_gain
 _cinematic_saved_music_gain EQU 0686B60h
-PUBLIC _cinematic_screen_effect_state
-_cinematic_screen_effect_state EQU 071CFC4h
 PUBLIC _clsid_dxdiag_provider
 _clsid_dxdiag_provider EQU 06728D4h
 PUBLIC _cluster_flood_in_progress
@@ -430,8 +414,6 @@ PUBLIC _config_use_fixed_function
 _config_use_fixed_function EQU 0722B34h
 PUBLIC _connect_address
 _connect_address EQU 06869A4h
-PUBLIC _connect_thread
-_connect_thread EQU 0719B64h
 PUBLIC _console_active
 _console_active EQU 06B2F0Ch
 PUBLIC _console_caret_blink_time
@@ -632,30 +614,6 @@ PUBLIC _coop_profile_globals_block_00714ddc
 _coop_profile_globals_block_00714ddc EQU 0714DDCh
 PUBLIC _cpu_brand_string
 _cpu_brand_string EQU 06E357Ch
-PUBLIC _cpu_extended_features
-_cpu_extended_features EQU 0721E60h
-PUBLIC _cpu_features
-_cpu_features EQU 0721E5Ch
-PUBLIC _cpu_identification_state
-_cpu_identification_state EQU 0721E88h
-PUBLIC _cpu_l1_code_cache
-_cpu_l1_code_cache EQU 0721E74h
-PUBLIC _cpu_l1_data_cache
-_cpu_l1_data_cache EQU 0721E70h
-PUBLIC _cpu_l1_tlb_4k
-_cpu_l1_tlb_4k EQU 0721E6Ch
-PUBLIC _cpu_l1_tlb_large
-_cpu_l1_tlb_large EQU 0721E68h
-PUBLIC _cpu_l2_cache
-_cpu_l2_cache EQU 0721E80h
-PUBLIC _cpu_l2_tlb_4k
-_cpu_l2_tlb_4k EQU 0721E7Ch
-PUBLIC _cpu_l2_tlb_large
-_cpu_l2_tlb_large EQU 0721E78h
-PUBLIC _cpu_l2_unknown
-_cpu_l2_unknown EQU 0721E84h
-PUBLIC _cpu_signature
-_cpu_signature EQU 0721E64h
 PUBLIC _cpu_speed
 _cpu_speed EQU 0722BACh
 PUBLIC _cpu_vendor_string
@@ -664,8 +622,6 @@ PUBLIC _crash_in_progress
 _crash_in_progress EQU 0722BD0h
 PUBLIC _crc32_lookup_table
 _crc32_lookup_table EQU 06B7B00h
-PUBLIC _crc32_lookup_table_initialized
-_crc32_lookup_table_initialized EQU 0719CD8h
 PUBLIC _crypt_provider
 _crypt_provider EQU 0722BCCh
 PUBLIC _ctf_active_team
@@ -718,8 +674,6 @@ PUBLIC _custom_waypoints
 _custom_waypoints EQU 06F1888h
 PUBLIC _d3d9_module
 _d3d9_module EQU 0746264h
-PUBLIC _d3d_adapter
-_d3d_adapter EQU 071D180h
 PUBLIC _DAT_00000050
 _DAT_00000050 EQU 050h
 PUBLIC _DAT_00655ab4
@@ -786,8 +740,6 @@ PUBLIC _debug_log_level
 _debug_log_level EQU 087AC06h
 PUBLIC _debug_print_enabled_flag
 _debug_print_enabled_flag EQU 0689412h
-PUBLIC _debug_print_safety_checks
-_debug_print_safety_checks EQU 0719AA9h
 PUBLIC _debug_render_cluster_pvs
 _debug_render_cluster_pvs EQU 0724A45h
 PUBLIC _debug_sound
@@ -822,20 +774,10 @@ PUBLIC _default_color_a
 _default_color_a EQU 0686B10h
 PUBLIC _default_color_b
 _default_color_b EQU 0686B18h
-PUBLIC _default_game_variant_count
-_default_game_variant_count EQU 0721328h
 PUBLIC _default_game_variant_procs
 _default_game_variant_procs EQU 069E838h
 PUBLIC _default_locale_name
 _default_locale_name EQU 0670F90h
-PUBLIC _default_player_profile_initialized
-_default_player_profile_initialized EQU 0721280h
-PUBLIC _default_player_profiles_directory
-_default_player_profiles_directory EQU 0721849h
-PUBLIC _default_playlists_directory
-_default_playlists_directory EQU 0721A49h
-PUBLIC _default_profile_data
-_default_profile_data EQU 071D280h
 PUBLIC _default_time_unit_table
 _default_time_unit_table EQU 0699568h
 PUBLIC _detail_objects
@@ -928,8 +870,6 @@ PUBLIC _effect_location_data
 _effect_location_data EQU 087ABE0h
 PUBLIC _effect_marker_callback_context
 _effect_marker_callback_context EQU 06B0ADCh
-PUBLIC _effect_random_seed
-_effect_random_seed EQU 0719CD4h
 PUBLIC _empty_string
 _empty_string EQU 0660C34h
 PUBLIC _empty_wide_string_pointer
@@ -1074,34 +1014,8 @@ PUBLIC _formatted_prompt_scratch
 _formatted_prompt_scratch EQU 06B2FE8h
 PUBLIC _fortune_easter_egg_text
 _fortune_easter_egg_text EQU 066A8B4h
-PUBLIC _frame_graph_render_graph
-_frame_graph_render_graph EQU 071D128h
-PUBLIC _frame_graph_render_infos
-_frame_graph_render_infos EQU 071D12Ch
-PUBLIC _frame_graph_window_height
-_frame_graph_window_height EQU 071D11Ch
-PUBLIC _frame_graph_window_width
-_frame_graph_window_width EQU 071D118h
 PUBLIC _frame_graphs
 _frame_graphs EQU 06B9260h
-PUBLIC _frame_rate_average_data
-_frame_rate_average_data EQU 0719AB0h
-PUBLIC _frame_statistics_count
-_frame_statistics_count EQU 071D114h
-PUBLIC _frame_statistics_dropped
-_frame_statistics_dropped EQU 071D0D8h
-PUBLIC _frame_statistics_key_a_latch
-_frame_statistics_key_a_latch EQU 071D120h
-PUBLIC _frame_statistics_key_b_latch
-_frame_statistics_key_b_latch EQU 071D124h
-PUBLIC _frame_statistics_last_time
-_frame_statistics_last_time EQU 071D130h
-PUBLIC _frame_statistics_times
-_frame_statistics_times EQU 071CFE8h
-PUBLIC _frame_statistics_unknown_d0
-_frame_statistics_unknown_d0 EQU 071CFD0h
-PUBLIC _frame_statistics_unknown_d8
-_frame_statistics_unknown_d8 EQU 071CFD8h
 PUBLIC _g_00689481
 _g_00689481 EQU 0689481h
 PUBLIC _g_006966e4
@@ -1342,8 +1256,6 @@ PUBLIC _global_007102f8
 _global_007102f8 EQU 07102F8h
 PUBLIC _global_00719750
 _global_00719750 EQU 0719750h
-PUBLIC _global_00719772
-_global_00719772 EQU 0719772h
 PUBLIC _global_collision_bsp
 _global_collision_bsp EQU 0746F90h
 PUBLIC _global_down3d_pointer
@@ -1424,10 +1336,6 @@ PUBLIC _hill_pulse_fade_done
 _hill_pulse_fade_done EQU 06F1D05h
 PUBLIC _hill_pulse_grow_done
 _hill_pulse_grow_done EQU 06F1D04h
-PUBLIC _hostname_resolve_complete
-_hostname_resolve_complete EQU 0719B68h
-PUBLIC _hostname_resolve_result
-_hostname_resolve_result EQU 0719B6Ch
 PUBLIC _hs_autocomplete_count
 _hs_autocomplete_count EQU 06B14B0h
 PUBLIC _hs_autocomplete_gametype_mask
@@ -1774,22 +1682,10 @@ PUBLIC _keystone_control_get_attribute
 _keystone_control_get_attribute EQU 0721EE0h
 PUBLIC _keystone_control_set_attribute
 _keystone_control_set_attribute EQU 0721EE4h
-PUBLIC _keystone_create
-_keystone_create EQU 0721EA0h
-PUBLIC _keystone_create_window
-_keystone_create_window EQU 0721EB4h
-PUBLIC _keystone_current_directory
-_keystone_current_directory EQU 0721EA8h
 PUBLIC _keystone_dispatch_message
 _keystone_dispatch_message EQU 0721EC0h
-PUBLIC _keystone_module
-_keystone_module EQU 0721E9Ch
-PUBLIC _keystone_release
-_keystone_release EQU 0721EACh
 PUBLIC _keystone_set_focus_window
 _keystone_set_focus_window EQU 0721EC4h
-PUBLIC _keystone_translate_accelerator
-_keystone_translate_accelerator EQU 0721EB0h
 PUBLIC _keystone_update
 _keystone_update EQU 0721EBCh
 PUBLIC _keystone_window_add_dirty_control
@@ -1856,18 +1752,12 @@ PUBLIC _known_solo_level_index_00712f00
 _known_solo_level_index_00712f00 EQU 0712F00h
 PUBLIC _last_controller_index_00879f50
 _last_controller_index_00879f50 EQU 0879F50h
-PUBLIC _last_game_variant_path
-_last_game_variant_path EQU 0721C49h
 PUBLIC _last_input_device
 _last_input_device EQU 087A460h
 PUBLIC _last_level_widget_selection_00692afc
 _last_level_widget_selection_00692afc EQU 0692AFCh
-PUBLIC _last_multiplayer_map_path
-_last_multiplayer_map_path EQU 0721D49h
 PUBLIC _last_profile_name
 _last_profile_name EQU 0718E80h
-PUBLIC _last_profile_path
-_last_profile_path EQU 0721B49h
 PUBLIC _length_error_throw_info
 _length_error_throw_info EQU 0673524h
 PUBLIC _length_error_vtable
@@ -1880,10 +1770,6 @@ PUBLIC _lens_flare_batches
 _lens_flare_batches EQU 0746FC0h
 PUBLIC _lens_flare_current_key
 _lens_flare_current_key EQU 0746FB0h
-PUBLIC _lens_flare_instance_count
-_lens_flare_instance_count EQU 071D134h
-PUBLIC _lens_flare_instance_overflow
-_lens_flare_instance_overflow EQU 071D138h
 PUBLIC _lens_flare_instances
 _lens_flare_instances EQU 06CE818h
 PUBLIC _lens_flare_marker_visibility
@@ -1936,8 +1822,6 @@ PUBLIC _light_volume_instances
 _light_volume_instances EQU 06B8D70h
 PUBLIC _lightning_instances
 _lightning_instances EQU 06B8D74h
-PUBLIC _lights_enabled
-_lights_enabled EQU 071CFB8h
 PUBLIC _live_mouse_state
 _live_mouse_state EQU 06B180Ch
 PUBLIC _loading_thread
@@ -1958,8 +1842,6 @@ PUBLIC _local_player_input_states
 _local_player_input_states EQU 0712498h
 PUBLIC _local_player_look_frozen
 _local_player_look_frozen EQU 06AC5B1h
-PUBLIC _local_player_name_filter
-_local_player_name_filter EQU 071C420h
 PUBLIC _local_team_00714dd8
 _local_team_00714dd8 EQU 0714DD8h
 PUBLIC _locale_codepage_format
@@ -2064,8 +1946,6 @@ PUBLIC _material_table_bad_index
 _material_table_bad_index EQU 06E3578h
 PUBLIC _material_table_fallback
 _material_table_fallback EQU 06E3208h
-PUBLIC _material_table_warning_issued
-_material_table_warning_issued EQU 0721E4Ch
 PUBLIC _matrix4x3_multiply_procedure
 _matrix4x3_multiply_procedure EQU 0696664h
 PUBLIC _matrix4x3_multiply_ptr
@@ -2096,18 +1976,10 @@ PUBLIC _message_delta_item_count_bits
 _message_delta_item_count_bits EQU 065D51Fh
 PUBLIC _message_delta_metrics_filename_suffix
 _message_delta_metrics_filename_suffix EQU 069B24Ch
-PUBLIC _message_delta_parameter_count
-_message_delta_parameter_count EQU 071CFB0h
 PUBLIC _message_delta_parameters
 _message_delta_parameters EQU 06B86C0h
-PUBLIC _message_delta_parameters_enabled
-_message_delta_parameters_enabled EQU 071CFA8h
 PUBLIC _message_delta_parameters_protocol_broadcast_target
 _message_delta_parameters_protocol_broadcast_target EQU 0871DE0h
-PUBLIC _message_delta_parameters_protocol_sequence
-_message_delta_parameters_protocol_sequence EQU 071CFACh
-PUBLIC _message_delta_parameters_sending
-_message_delta_parameters_sending EQU 071CFB4h
 PUBLIC _message_delta_unary_ones
 _message_delta_unary_ones EQU 065D438h
 PUBLIC _message_delta_unknown_table_0069a304
@@ -2204,8 +2076,6 @@ PUBLIC _negotiatorList
 _negotiatorList EQU 06A26C8h
 PUBLIC _network_ack_resend_interval_ms
 _network_ack_resend_interval_ms EQU 0689484h
-PUBLIC _network_action_apply_active
-_network_action_apply_active EQU 071C2C0h
 PUBLIC _network_action_resend_interval_ms
 _network_action_resend_interval_ms EQU 068948Ch
 PUBLIC _network_action_resend_interval_ms_alt
@@ -2222,16 +2092,10 @@ PUBLIC _network_bandwidth_direction_label_table
 _network_bandwidth_direction_label_table EQU 065D430h
 PUBLIC _network_bandwidth_graph_default_interval_ms
 _network_bandwidth_graph_default_interval_ms EQU 06894B0h
-PUBLIC _network_bandwidth_graph_globals
-_network_bandwidth_graph_globals EQU 0719CE0h
 PUBLIC _network_bandwidth_overlay_enabled
 _network_bandwidth_overlay_enabled EQU 0710305h
 PUBLIC _network_bandwidth_units_label_table
 _network_bandwidth_units_label_table EQU 065D428h
-PUBLIC _network_banlist_full_path
-_network_banlist_full_path EQU 071C308h
-PUBLIC _network_bit_chunk_size
-_network_bit_chunk_size EQU 071C2CCh
 PUBLIC _network_broadcast_body
 _network_broadcast_body EQU 06B7F9Ah
 PUBLIC _network_broadcast_event_feed_mode
@@ -2242,18 +2106,10 @@ PUBLIC _network_buffer_pair_pool_count
 _network_buffer_pair_pool_count EQU 06B85ACh
 PUBLIC _network_buffer_pair_pool_data
 _network_buffer_pair_pool_data EQU 06B85B0h
-PUBLIC _network_build_string
-_network_build_string EQU 0719879h
 PUBLIC _network_challenge_packet_block
 _network_challenge_packet_block EQU 06B7F98h
-PUBLIC _network_channel_service_backoff_bypass
-_network_channel_service_backoff_bypass EQU 071C2C8h
-PUBLIC _network_channel_table_default_flag
-_network_channel_table_default_flag EQU 071C2C1h
 PUBLIC _network_channels_open_ok
 _network_channels_open_ok EQU 06869BEh
-PUBLIC _network_client
-_network_client EQU 071C2D8h
 PUBLIC _network_client_storage
 _network_client_storage EQU 0872DE0h
 PUBLIC _network_client_vehicle_ack_enabled
@@ -2278,8 +2134,6 @@ PUBLIC _network_disabled_flag
 _network_disabled_flag EQU 07196ECh
 PUBLIC _network_disconnect_notice_shown
 _network_disconnect_notice_shown EQU 0697E78h
-PUBLIC _network_disconnect_timeout_flag
-_network_disconnect_timeout_flag EQU 071C2DCh
 PUBLIC _network_ellipsis_dots
 _network_ellipsis_dots EQU 0697E7Ch
 PUBLIC _network_game_info_packet_flag
@@ -2304,8 +2158,6 @@ PUBLIC _network_high_res_clock_ms
 _network_high_res_clock_ms EQU 06A6144h
 PUBLIC _network_host_edit_field_00719410
 _network_host_edit_field_00719410 EQU 0719410h
-PUBLIC _network_host_handoff_requested
-_network_host_handoff_requested EQU 071C2DEh
 PUBLIC _network_host_name_00719170
 _network_host_name_00719170 EQU 0719170h
 PUBLIC _network_host_name_field_00719238
@@ -2350,8 +2202,6 @@ PUBLIC _network_pending_connection_count
 _network_pending_connection_count EQU 06F16D0h
 PUBLIC _network_pending_connections
 _network_pending_connections EQU 087BC20h
-PUBLIC _network_ping_debug_last_sample
-_network_ping_debug_last_sample EQU 071C2C4h
 PUBLIC _network_ping_debug_log_enabled
 _network_ping_debug_log_enabled EQU 0710306h
 PUBLIC _network_player_update_history_log_path
@@ -2374,28 +2224,12 @@ PUBLIC _network_resolved_local_address
 _network_resolved_local_address EQU 06869B4h
 PUBLIC _network_scenario_round_counter_a
 _network_scenario_round_counter_a EQU 0699F44h
-PUBLIC _network_scenario_round_counter_b
-_network_scenario_round_counter_b EQU 071CC24h
-PUBLIC _network_server
-_network_server EQU 071C2D4h
-PUBLIC _network_server_host_valid
-_network_server_host_valid EQU 071C2DDh
 PUBLIC _network_server_name
 _network_server_name EQU 0699588h
 PUBLIC _network_server_name_is_default
 _network_server_name_is_default EQU 0699606h
-PUBLIC _network_server_password
-_network_server_password EQU 071C2F4h
-PUBLIC _network_server_password_is_default
-_network_server_password_is_default EQU 071C304h
-PUBLIC _network_server_status_last_print_ms
-_network_server_status_last_print_ms EQU 071C2F0h
 PUBLIC _network_server_storage
 _network_server_storage EQU 0861340h
-PUBLIC _network_session_active
-_network_session_active EQU 071C2C2h
-PUBLIC _network_session_active2
-_network_session_active2 EQU 071C2ECh
 PUBLIC _network_session_host_closing
 _network_session_host_closing EQU 0722A1Ch
 PUBLIC _network_session_host_flags_byte
@@ -2414,8 +2248,6 @@ PUBLIC _network_session_start_map_name
 _network_session_start_map_name EQU 07227A0h
 PUBLIC _network_session_start_variant_name
 _network_session_start_variant_name EQU 07227A8h
-PUBLIC _network_single_flag_force_reset_value
-_network_single_flag_force_reset_value EQU 071C306h
 PUBLIC _network_statistics_logging_enabled
 _network_statistics_logging_enabled EQU 06F14B4h
 PUBLIC _network_stats_enabled_gate
@@ -2476,12 +2308,6 @@ PUBLIC _novideo_or_connect
 _novideo_or_connect EQU 07196E8h
 PUBLIC _nowindowskey
 _nowindowskey EQU 07196F8h
-PUBLIC _numeric_countdown_timer_last_update_ms
-_numeric_countdown_timer_last_update_ms EQU 0721E58h
-PUBLIC _numeric_countdown_timer_remaining_ms
-_numeric_countdown_timer_remaining_ms EQU 0721E50h
-PUBLIC _numeric_countdown_timer_running
-_numeric_countdown_timer_running EQU 0721E54h
 PUBLIC _object_ambient_lightmap_default
 _object_ambient_lightmap_default EQU 0686B08h
 PUBLIC _object_cluster_stamp
@@ -2598,8 +2424,6 @@ PUBLIC _periodic_functions_initialized
 _periodic_functions_initialized EQU 06B7AF0h
 PUBLIC _physical_memory
 _physical_memory EQU 0722BA8h
-PUBLIC _physics_disable_integration
-_physics_disable_integration EQU 071CFBCh
 PUBLIC _picked_leaf_map_leaf
 _picked_leaf_map_leaf EQU 069FA40h
 PUBLIC _picked_leaf_map_portal
@@ -2622,8 +2446,6 @@ PUBLIC _player_data
 _player_data EQU 087A480h
 PUBLIC _player_effect_globals_pointer
 _player_effect_globals_pointer EQU 06F1884h
-PUBLIC _player_effect_reentry_count
-_player_effect_reentry_count EQU 0719CCCh
 PUBLIC _player_help_name_a10
 _player_help_name_a10 EQU 0669A5Ch
 PUBLIC _player_help_name_a30
@@ -2652,10 +2474,6 @@ PUBLIC _player_profile_cache_count
 _player_profile_cache_count EQU 06F1D34h
 PUBLIC _player_profile_cache_initialized
 _player_profile_cache_initialized EQU 06F1D38h
-PUBLIC _player_profile_thread
-_player_profile_thread EQU 072127Ch
-PUBLIC _player_profiles_directory
-_player_profiles_directory EQU 0721749h
 PUBLIC _player_update_history_log_path
 _player_update_history_log_path EQU 06997F8h
 PUBLIC _player_update_log_categories_default
@@ -2668,10 +2486,6 @@ PUBLIC _player_update_log_flags
 _player_update_log_flags EQU 0710310h
 PUBLIC _playlist_profiles_need_defaults
 _playlist_profiles_need_defaults EQU 069E8D0h
-PUBLIC _playlists_directory
-_playlists_directory EQU 0721949h
-PUBLIC _port_overridden
-_port_overridden EQU 071C2D0h
 PUBLIC _portal_visibility_tolerance
 _portal_visibility_tolerance EQU 07C3154h
 PUBLIC _pov_direction_names
@@ -2754,14 +2568,6 @@ PUBLIC _race_used_locations
 _race_used_locations EQU 06B139Ch
 PUBLIC _race_vehicle_counts
 _race_vehicle_counts EQU 06B13C0h
-PUBLIC _random_seed_global
-_random_seed_global EQU 0719CD0h
-PUBLIC _rasterizer_active_environment_effect
-_rasterizer_active_environment_effect EQU 071D1D0h
-PUBLIC _rasterizer_active_model_context
-_rasterizer_active_model_context EQU 071D1F0h
-PUBLIC _rasterizer_active_model_mode
-_rasterizer_active_model_mode EQU 071D1F8h
 PUBLIC _rasterizer_active_render_target
 _rasterizer_active_render_target EQU 069D350h
 PUBLIC _rasterizer_bitmap_format_to_d3dformat
@@ -2782,10 +2588,6 @@ PUBLIC _rasterizer_camera_forward
 _rasterizer_camera_forward EQU 07C1234h
 PUBLIC _rasterizer_camera_position
 _rasterizer_camera_position EQU 07C1228h
-PUBLIC _rasterizer_camouflage_fade
-_rasterizer_camouflage_fade EQU 071D200h
-PUBLIC _rasterizer_camouflage_fade_active
-_rasterizer_camouflage_fade_active EQU 071D1FEh
 PUBLIC _rasterizer_capability_007c10e4
 _rasterizer_capability_007c10e4 EQU 07C10E4h
 PUBLIC _rasterizer_caps
@@ -2810,10 +2612,6 @@ PUBLIC _rasterizer_decal_blend_mode
 _rasterizer_decal_blend_mode EQU 06D98D8h
 PUBLIC _rasterizer_decal_layer
 _rasterizer_decal_layer EQU 06D98DCh
-PUBLIC _rasterizer_decal_vertex_cache
-_rasterizer_decal_vertex_cache EQU 071D1BCh
-PUBLIC _rasterizer_decal_vertex_cache_handle
-_rasterizer_decal_vertex_cache_handle EQU 071D1C0h
 PUBLIC _rasterizer_default_material
 _rasterizer_default_material EQU 069C708h
 PUBLIC _rasterizer_default_z_far
@@ -2826,42 +2624,28 @@ PUBLIC _rasterizer_desktop_display_mode
 _rasterizer_desktop_display_mode EQU 07C11F0h
 PUBLIC _rasterizer_desktop_gamma_ramp
 _rasterizer_desktop_gamma_ramp EQU 06E0B18h
-PUBLIC _rasterizer_detail_object_vertex_buffer
-_rasterizer_detail_object_vertex_buffer EQU 071D1C8h
-PUBLIC _rasterizer_device
-_rasterizer_device EQU 071D174h
 PUBLIC _rasterizer_device_lost
 _rasterizer_device_lost EQU 07C10B0h
 PUBLIC _rasterizer_device_type
 _rasterizer_device_type EQU 069C6A0h
 PUBLIC _rasterizer_device_version
 _rasterizer_device_version EQU 07C118Ch
-PUBLIC _rasterizer_direct3d
-_rasterizer_direct3d EQU 071D178h
 PUBLIC _rasterizer_dynamic_index_buffer
 _rasterizer_dynamic_index_buffer EQU 06E09E8h
 PUBLIC _rasterizer_dynamic_index_count
 _rasterizer_dynamic_index_count EQU 06E09E4h
-PUBLIC _rasterizer_dynamic_index_overflow
-_rasterizer_dynamic_index_overflow EQU 071D1CCh
 PUBLIC _rasterizer_dynamic_index_slot_count
 _rasterizer_dynamic_index_slot_count EQU 06E09E0h
 PUBLIC _rasterizer_dynamic_index_slots
 _rasterizer_dynamic_index_slots EQU 06DD9E0h
 PUBLIC _rasterizer_dynamic_vertex_caches
 _rasterizer_dynamic_vertex_caches EQU 06D98E8h
-PUBLIC _rasterizer_dynamic_vertex_overflow
-_rasterizer_dynamic_vertex_overflow EQU 071D1CDh
 PUBLIC _rasterizer_dynamic_vertex_slot_count
 _rasterizer_dynamic_vertex_slot_count EQU 06DD9D8h
 PUBLIC _rasterizer_dynamic_vertex_slots
 _rasterizer_dynamic_vertex_slots EQU 06D99D8h
 PUBLIC _rasterizer_effect_defines
 _rasterizer_effect_defines EQU 07C0460h
-PUBLIC _rasterizer_effect_pool
-_rasterizer_effect_pool EQU 071D254h
-PUBLIC _rasterizer_effect_pool_scratch
-_rasterizer_effect_pool_scratch EQU 071D278h
 PUBLIC _rasterizer_effects
 _rasterizer_effects EQU 069D410h
 PUBLIC _rasterizer_environment_lightmap
@@ -2902,26 +2686,14 @@ PUBLIC _rasterizer_frame_statistics_state
 _rasterizer_frame_statistics_state EQU 07C30A0h
 PUBLIC _rasterizer_frustum_z_values
 _rasterizer_frustum_z_values EQU 069C664h
-PUBLIC _rasterizer_fullscreen
-_rasterizer_fullscreen EQU 071D16Ch
 PUBLIC _rasterizer_game_gamma_ramp
 _rasterizer_game_gamma_ramp EQU 06E1118h
-PUBLIC _rasterizer_gamma_captured
-_rasterizer_gamma_captured EQU 071D1ECh
-PUBLIC _rasterizer_gamma_disabled
-_rasterizer_gamma_disabled EQU 071D1E8h
-PUBLIC _rasterizer_gamma_exponent
-_rasterizer_gamma_exponent EQU 071D1E0h
 PUBLIC _rasterizer_gamma_high_bit_17
 _rasterizer_gamma_high_bit_17 EQU 06E1718h
 PUBLIC _rasterizer_glass_draw_procedures
 _rasterizer_glass_draw_procedures EQU 07C0480h
-PUBLIC _rasterizer_globals_data
-_rasterizer_globals_data EQU 071D164h
 PUBLIC _rasterizer_identity_vertex_constants
 _rasterizer_identity_vertex_constants EQU 065E118h
-PUBLIC _rasterizer_in_scene
-_rasterizer_in_scene EQU 071D16Fh
 PUBLIC _rasterizer_light_count
 _rasterizer_light_count EQU 07C1480h
 PUBLIC _rasterizer_lightmap_bitmap
@@ -2932,10 +2704,6 @@ PUBLIC _rasterizer_lights
 _rasterizer_lights EQU 07C1484h
 PUBLIC _rasterizer_maximum_skinning_nodes
 _rasterizer_maximum_skinning_nodes EQU 069C67Eh
-PUBLIC _rasterizer_misc_vertex_buffer
-_rasterizer_misc_vertex_buffer EQU 071D270h
-PUBLIC _rasterizer_model_ambient_reflection_tint
-_rasterizer_model_ambient_reflection_tint EQU 071CFC0h
 PUBLIC _rasterizer_model_effect_vector
 _rasterizer_model_effect_vector EQU 06E17E4h
 PUBLIC _rasterizer_model_scratch_function_source
@@ -2946,38 +2714,20 @@ PUBLIC _rasterizer_model_scratch_node_count
 _rasterizer_model_scratch_node_count EQU 06E19C8h
 PUBLIC _rasterizer_model_scratch_node_matrices
 _rasterizer_model_scratch_node_matrices EQU 06E18D4h
-PUBLIC _rasterizer_model_scratch_valid
-_rasterizer_model_scratch_valid EQU 071D1F4h
 PUBLIC _rasterizer_model_vertex_declaration
 _rasterizer_model_vertex_declaration EQU 06E1AC0h
-PUBLIC _rasterizer_motion_sensor_ready
-_rasterizer_motion_sensor_ready EQU 071D205h
-PUBLIC _rasterizer_needs_reset
-_rasterizer_needs_reset EQU 071D16Dh
-PUBLIC _rasterizer_node_part_count
-_rasterizer_node_part_count EQU 071D1A0h
-PUBLIC _rasterizer_node_part_indices
-_rasterizer_node_part_indices EQU 071D19Ch
 PUBLIC _rasterizer_object_shadow_blur_quad
 _rasterizer_object_shadow_blur_quad EQU 06E1B80h
 PUBLIC _rasterizer_object_shadow_border_lines
 _rasterizer_object_shadow_border_lines EQU 06E1BE0h
 PUBLIC _rasterizer_object_shadow_color
 _rasterizer_object_shadow_color EQU 06E1CC0h
-PUBLIC _rasterizer_object_shadow_model_active
-_rasterizer_object_shadow_model_active EQU 071D265h
-PUBLIC _rasterizer_object_shadow_model_context
-_rasterizer_object_shadow_model_context EQU 071D260h
-PUBLIC _rasterizer_object_shadow_prepared
-_rasterizer_object_shadow_prepared EQU 071D264h
 PUBLIC _rasterizer_object_shadow_projection
 _rasterizer_object_shadow_projection EQU 06E1CD0h
 PUBLIC _rasterizer_object_shadow_radius
 _rasterizer_object_shadow_radius EQU 06E1CCCh
 PUBLIC _rasterizer_object_shadow_window_restored
 _rasterizer_object_shadow_window_restored EQU 069E550h
-PUBLIC _rasterizer_pending_clear
-_rasterizer_pending_clear EQU 071D16Eh
 PUBLIC _rasterizer_present_counter_high
 _rasterizer_present_counter_high EQU 069C64Ch
 PUBLIC _rasterizer_present_counter_low
@@ -2990,34 +2740,18 @@ PUBLIC _rasterizer_projected_light_cube_map
 _rasterizer_projected_light_cube_map EQU 06E0A64h
 PUBLIC _rasterizer_projected_light_has_cube_map
 _rasterizer_projected_light_has_cube_map EQU 06E0A60h
-PUBLIC _rasterizer_projected_light_luminance
-_rasterizer_projected_light_luminance EQU 071D1D8h
 PUBLIC _rasterizer_projected_light_shader_variant
 _rasterizer_projected_light_shader_variant EQU 069C6FCh
 PUBLIC _rasterizer_render_states_dirty
 _rasterizer_render_states_dirty EQU 069C74Ch
-PUBLIC _rasterizer_render_target_capture_done
-_rasterizer_render_target_capture_done EQU 071D1B2h
-PUBLIC _rasterizer_render_target_capture_requested
-_rasterizer_render_target_capture_requested EQU 071D1B1h
-PUBLIC _rasterizer_render_target_index_buffer
-_rasterizer_render_target_index_buffer EQU 071D208h
-PUBLIC _rasterizer_render_target_vertex_buffer
-_rasterizer_render_target_vertex_buffer EQU 071D20Ch
 PUBLIC _rasterizer_render_targets
 _rasterizer_render_targets EQU 069D358h
-PUBLIC _rasterizer_scratch_memory
-_rasterizer_scratch_memory EQU 071D13Ch
-PUBLIC _rasterizer_scratch_memory_used
-_rasterizer_scratch_memory_used EQU 071D140h
 PUBLIC _rasterizer_screen_effect_quad
 _rasterizer_screen_effect_quad EQU 06E1A30h
 PUBLIC _rasterizer_screen_flash_effect
 _rasterizer_screen_flash_effect EQU 069E270h
 PUBLIC _rasterizer_screen_quad_vertices
 _rasterizer_screen_quad_vertices EQU 06D9878h
-PUBLIC _rasterizer_secondary_groups_drawn
-_rasterizer_secondary_groups_drawn EQU 071D274h
 PUBLIC _rasterizer_shader_file_name
 _rasterizer_shader_file_name EQU 0722BBCh
 PUBLIC _rasterizer_shader_stage_config
@@ -3042,8 +2776,6 @@ PUBLIC _rasterizer_transparent_vertex_shader_table
 _rasterizer_transparent_vertex_shader_table EQU 069E558h
 PUBLIC _rasterizer_triangle_buffer_primitive_types
 _rasterizer_triangle_buffer_primitive_types EQU 065E034h
-PUBLIC _rasterizer_ui_render_failed
-_rasterizer_ui_render_failed EQU 071D168h
 PUBLIC _rasterizer_ui_text_constants
 _rasterizer_ui_text_constants EQU 06E1D08h
 PUBLIC _rasterizer_underwater_material
@@ -3054,14 +2786,8 @@ PUBLIC _rasterizer_underwater_tint_jitter_g
 _rasterizer_underwater_tint_jitter_g EQU 06E09FCh
 PUBLIC _rasterizer_underwater_tint_jitter_r
 _rasterizer_underwater_tint_jitter_r EQU 06E09F8h
-PUBLIC _rasterizer_use_fx_file
-_rasterizer_use_fx_file EQU 071D18Eh
 PUBLIC _rasterizer_vertex_buffer_lock_state
 _rasterizer_vertex_buffer_lock_state EQU 069C632h
-PUBLIC _rasterizer_vertex_buffer_slot_count
-_rasterizer_vertex_buffer_slot_count EQU 071D25Ch
-PUBLIC _rasterizer_vertex_buffer_slot_high_water
-_rasterizer_vertex_buffer_slot_high_water EQU 071D258h
 PUBLIC _rasterizer_vertex_buffer_slots
 _rasterizer_vertex_buffer_slots EQU 07BF060h
 PUBLIC _rasterizer_vertex_declarations
@@ -3076,18 +2802,10 @@ PUBLIC _rasterizer_water_enabled
 _rasterizer_water_enabled EQU 06893FEh
 PUBLIC _rasterizer_water_ripple_quad
 _rasterizer_water_ripple_quad EQU 06E1D60h
-PUBLIC _rasterizer_widescreen_camouflage_scale
-_rasterizer_widescreen_camouflage_scale EQU 071D18Ch
 PUBLIC _rasterizer_window
 _rasterizer_window EQU 07C1220h
 PUBLIC _rasterizer_window_handle
 _rasterizer_window_handle EQU 07461C8h
-PUBLIC _rasterizer_window_icon_bitmap
-_rasterizer_window_icon_bitmap EQU 071D188h
-PUBLIC _rasterizer_window_icon_dc
-_rasterizer_window_icon_dc EQU 071D184h
-PUBLIC _rasterizer_window_requested
-_rasterizer_window_requested EQU 071D1A8h
 PUBLIC _rasterizer_window_style
 _rasterizer_window_style EQU 069C6A4h
 PUBLIC _rcon_out_channel_key
@@ -3114,8 +2832,6 @@ PUBLIC _render_camera_global
 _render_camera_global EQU 07C3114h
 PUBLIC _render_camera_world_to_view
 _render_camera_world_to_view EQU 07C3178h
-PUBLIC _render_clip_warning
-_render_clip_warning EQU 071CFBDh
 PUBLIC _render_cluster_has_sky
 _render_cluster_has_sky EQU 07C334Dh
 PUBLIC _render_cluster_index
@@ -3158,8 +2874,6 @@ PUBLIC _render_viewport_right
 _render_viewport_right EQU 07C3146h
 PUBLIC _render_viewport_top
 _render_viewport_top EQU 07C3140h
-PUBLIC _render_views
-_render_views EQU 0719B70h
 PUBLIC _render_window_count
 _render_window_count EQU 07C3104h
 PUBLIC _render_window_index
@@ -3168,8 +2882,6 @@ PUBLIC _rendered_object_count
 _rendered_object_count EQU 06B8DC0h
 PUBLIC _rendered_objects
 _rendered_objects EQU 06B8DC4h
-PUBLIC _rendered_objects_full_warning
-_rendered_objects_full_warning EQU 071CFBEh
 PUBLIC _renderer_texture_quality
 _renderer_texture_quality EQU 068944Eh
 PUBLIC _renderer_unknown_68940c
@@ -3220,18 +2932,8 @@ PUBLIC _safe_mode
 _safe_mode EQU 07196F4h
 PUBLIC _save_in_progress_00719010
 _save_in_progress_00719010 EQU 0719010h
-PUBLIC _saved_directory
-_saved_directory EQU 0721649h
 PUBLIC _saved_game_display_name_buffer
 _saved_game_display_name_buffer EQU 06E3008h
-PUBLIC _saved_game_files_initialized
-_saved_game_files_initialized EQU 0721446h
-PUBLIC _saved_game_files_mutex
-_saved_game_files_mutex EQU 072143Ch
-PUBLIC _saved_game_index_file_open
-_saved_game_index_file_open EQU 0721448h
-PUBLIC _saved_game_root_directory
-_saved_game_root_directory EQU 0721449h
 PUBLIC _saved_game_root_path
 _saved_game_root_path EQU 06E3108h
 PUBLIC _saved_item_disk_copy
@@ -3240,28 +2942,14 @@ PUBLIC _saved_item_working_copy
 _saved_item_working_copy EQU 0714E80h
 PUBLIC _saved_player_profile_slots_handle
 _saved_player_profile_slots_handle EQU 0714DD4h
-PUBLIC _savegame_index_dirty
-_savegame_index_dirty EQU 0721447h
-PUBLIC _savegame_index_file
-_savegame_index_file EQU 0721330h
-PUBLIC _savegame_index_mutex
-_savegame_index_mutex EQU 0721440h
-PUBLIC _savegame_index_write_count
-_savegame_index_write_count EQU 0721444h
-PUBLIC _savegames_directory
-_savegames_directory EQU 0721549h
 PUBLIC _SBNullServer
 _SBNullServer EQU 06A27F8h
 PUBLIC _SBOverrideMasterServer
 _SBOverrideMasterServer EQU 06A3278h
 PUBLIC _scan_code_to_key
 _scan_code_to_key EQU 065BD58h
-PUBLIC _screen_effect_techniques
-_screen_effect_techniques EQU 071D210h
 PUBLIC _screen_flash_pass
 _screen_flash_pass EQU 0687218h
-PUBLIC _screen_flash_techniques
-_screen_flash_techniques EQU 071D23Ch
 PUBLIC _screen_safe_area_bottom
 _screen_safe_area_bottom EQU 07C314Ch
 PUBLIC _screen_safe_area_right
@@ -3272,10 +2960,6 @@ PUBLIC _screenshots
 _screenshots EQU 07196E0h
 PUBLIC _security_write_access_state
 _security_write_access_state EQU 069EAB0h
-PUBLIC _selected_level_active_00719878
-_selected_level_active_00719878 EQU 0719878h
-PUBLIC _selected_level_pending_00719778
-_selected_level_pending_00719778 EQU 0719778h
 PUBLIC _selected_saved_item
 _selected_saved_item EQU 0714E7Ch
 PUBLIC _selected_sound_device
@@ -3364,18 +3048,10 @@ PUBLIC _shared_constant_vector_696704
 _shared_constant_vector_696704 EQU 0696704h
 PUBLIC _shared_hud_text_draw_state
 _shared_hud_text_draw_state EQU 0871DE0h
-PUBLIC _shell_application_inactive
-_shell_application_inactive EQU 0721E8Ch
-PUBLIC _shell_argc
-_shell_argc EQU 0721E94h
-PUBLIC _shell_argv
-_shell_argv EQU 0721E90h
 PUBLIC _shell_arrow_cursor
 _shell_arrow_cursor EQU 06E35BCh
 PUBLIC _shell_command_line
 _shell_command_line EQU 06E35C0h
-PUBLIC _shell_direct3d
-_shell_direct3d EQU 0721E98h
 PUBLIC _shell_instance
 _shell_instance EQU 07461C0h
 PUBLIC _shell_instance_index
@@ -3414,8 +3090,6 @@ PUBLIC _shell_window_minimized
 _shell_window_minimized EQU 0746254h
 PUBLIC _shell_window_proc
 _shell_window_proc EQU 07461D0h
-PUBLIC _shell_window_proc_bypass
-_shell_window_proc_bypass EQU 0721E8Dh
 PUBLIC _shell_window_title
 _shell_window_title EQU 0746214h
 PUBLIC _shfolder_module
@@ -3592,12 +3266,8 @@ PUBLIC _sv_ban_penalty_arg_buffer
 _sv_ban_penalty_arg_buffer EQU 066D6A4h
 PUBLIC _sv_ban_penalty_seconds
 _sv_ban_penalty_seconds EQU 0699574h
-PUBLIC _sv_friendly_fire_mode
-_sv_friendly_fire_mode EQU 071C40Ch
 PUBLIC _sv_maxplayers_value
 _sv_maxplayers_value EQU 0699584h
-PUBLIC _sv_rcon_password_value
-_sv_rcon_password_value EQU 071C410h
 PUBLIC _sv_timelimit_minutes
 _sv_timelimit_minutes EQU 0699608h
 PUBLIC _sv_tk_cooldown_ticks
@@ -3660,8 +3330,6 @@ PUBLIC _text_measure_font
 _text_measure_font EQU 06E471Ch
 PUBLIC _text_rendering_enabled
 _text_rendering_enabled EQU 0689402h
-PUBLIC _text_shadow_color_argb
-_text_shadow_color_argb EQU 071D144h
 PUBLIC _text_tab_stops
 _text_tab_stops EQU 06E474Ah
 PUBLIC _texture_cache
@@ -3676,16 +3344,12 @@ PUBLIC _ticker_field_separator
 _ticker_field_separator EQU 066AF68h
 PUBLIC _ticks_per_second
 _ticks_per_second EQU 0672AC8h
-PUBLIC _timedemo_globals_data
-_timedemo_globals_data EQU 0719AFCh
 PUBLIC _timedemo_last_frame_index
 _timedemo_last_frame_index EQU 07196DCh
 PUBLIC _timedemo_pixel_shader_version
 _timedemo_pixel_shader_version EQU 06B7A94h
 PUBLIC _transition_function_tables
 _transition_function_tables EQU 06B7AD8h
-PUBLIC _transparent_geometry_group_count
-_transparent_geometry_group_count EQU 071D154h
 PUBLIC _transparent_geometry_group_draw_cursor
 _transparent_geometry_group_draw_cursor EQU 06D9838h
 PUBLIC _transparent_geometry_group_drawn_bits
@@ -3696,22 +3360,6 @@ PUBLIC _transparent_geometry_group_immediate
 _transparent_geometry_group_immediate EQU 06E0A70h
 PUBLIC _transparent_geometry_group_last_drawn_key
 _transparent_geometry_group_last_drawn_key EQU 06E1D58h
-PUBLIC _transparent_geometry_group_overflow_a
-_transparent_geometry_group_overflow_a EQU 071D1CEh
-PUBLIC _transparent_geometry_group_overflow_b
-_transparent_geometry_group_overflow_b EQU 071D1DCh
-PUBLIC _transparent_geometry_group_overflow_c
-_transparent_geometry_group_overflow_c EQU 071D204h
-PUBLIC _transparent_geometry_group_overflow_d
-_transparent_geometry_group_overflow_d EQU 071D27Ch
-PUBLIC _transparent_geometry_group_secondary_count
-_transparent_geometry_group_secondary_count EQU 071D158h
-PUBLIC _transparent_geometry_group_sorted_indices
-_transparent_geometry_group_sorted_indices EQU 071D15Ch
-PUBLIC _transparent_geometry_groups
-_transparent_geometry_groups EQU 071D14Ch
-PUBLIC _transparent_geometry_groups_secondary
-_transparent_geometry_groups_secondary EQU 071D150h
 PUBLIC _trouble_brewing_bitmap_tag
 _trouble_brewing_bitmap_tag EQU 06927C8h
 PUBLIC _ui_button_caption
@@ -3818,8 +3466,6 @@ PUBLIC _unit_speech_priority_table
 _unit_speech_priority_table EQU 065E94Ch
 PUBLIC _unit_speech_repeat_seconds
 _unit_speech_repeat_seconds EQU 065E964h
-PUBLIC _unit_updates_suppressed
-_unit_updates_suppressed EQU 071C419h
 PUBLIC _unknown_006869d1
 _unknown_006869d1 EQU 06869D1h
 PUBLIC _unknown_006893e2
@@ -3904,48 +3550,6 @@ PUBLIC _unknown_00719769
 _unknown_00719769 EQU 0719769h
 PUBLIC _unknown_0071976a
 _unknown_0071976a EQU 071976Ah
-PUBLIC _unknown_00719774
-_unknown_00719774 EQU 0719774h
-PUBLIC _unknown_00719779
-_unknown_00719779 EQU 0719779h
-PUBLIC _unknown_00719979
-_unknown_00719979 EQU 0719979h
-PUBLIC _unknown_00719aac
-_unknown_00719aac EQU 0719AACh
-PUBLIC _unknown_0071cc20
-_unknown_0071cc20 EQU 071CC20h
-PUBLIC _unknown_0071d160
-_unknown_0071d160 EQU 071D160h
-PUBLIC _unknown_0071d18d
-_unknown_0071d18d EQU 071D18Dh
-PUBLIC _unknown_0071d1b0
-_unknown_0071d1b0 EQU 071D1B0h
-PUBLIC _unknown_0071d1b4
-_unknown_0071d1b4 EQU 071D1B4h
-PUBLIC _unknown_0071d1c4
-_unknown_0071d1c4 EQU 071D1C4h
-PUBLIC _unknown_0071d1fa
-_unknown_0071d1fa EQU 071D1FAh
-PUBLIC _unknown_0071d1fb
-_unknown_0071d1fb EQU 071D1FBh
-PUBLIC _unknown_0071d1fc
-_unknown_0071d1fc EQU 071D1FCh
-PUBLIC _unknown_0071d1fd
-_unknown_0071d1fd EQU 071D1FDh
-PUBLIC _unknown_0071d275
-_unknown_0071d275 EQU 071D275h
-PUBLIC _unknown_0071d276
-_unknown_0071d276 EQU 071D276h
-PUBLIC _unknown_0072132a
-_unknown_0072132a EQU 072132Ah
-PUBLIC _unknown_00721ea0
-_unknown_00721ea0 EQU 0721EA0h
-PUBLIC _unknown_00721eac
-_unknown_00721eac EQU 0721EACh
-PUBLIC _unknown_00721eb4
-_unknown_00721eb4 EQU 0721EB4h
-PUBLIC _unknown_00721eb8
-_unknown_00721eb8 EQU 0721EB8h
 PUBLIC _unknown_00721ebc
 _unknown_00721ebc EQU 0721EBCh
 PUBLIC _unknown_00721ec8
@@ -4010,16 +3614,10 @@ PUBLIC _update_client_write_cursor
 _update_client_write_cursor EQU 06887B0h
 PUBLIC _update_server_history
 _update_server_history EQU 06F1D94h
-PUBLIC _update_server_history_index
-_update_server_history_index EQU 071C2E5h
 PUBLIC _update_server_initialized
 _update_server_initialized EQU 06F1D88h
 PUBLIC _update_server_last_log_ms
 _update_server_last_log_ms EQU 06B7F90h
-PUBLIC _update_server_last_tick_ms
-_update_server_last_tick_ms EQU 071C2E0h
-PUBLIC _update_server_pending_flush
-_update_server_pending_flush EQU 071C2E4h
 PUBLIC _update_server_queues
 _update_server_queues EQU 06F1D90h
 PUBLIC _update_server_tick
@@ -4038,10 +3636,6 @@ PUBLIC _variant_team_selection_00692b08
 _variant_team_selection_00692b08 EQU 0692B08h
 PUBLIC _variant_teams_enabled_0071920c
 _variant_teams_enabled_0071920c EQU 071920Ch
-PUBLIC _variant_write_request_state
-_variant_write_request_state EQU 0721288h
-PUBLIC _variant_write_thread
-_variant_write_thread EQU 0721324h
 PUBLIC _vehicle_network_update_period
 _vehicle_network_update_period EQU 06F1CF0h
 PUBLIC _vehicle_wait_tick_counter
@@ -4078,10 +3672,6 @@ PUBLIC _vertex_elements_screen_transformed_lit_specular
 _vertex_elements_screen_transformed_lit_specular EQU 065E3A0h
 PUBLIC _vertex_elements_unlit_zsprite
 _vertex_elements_unlit_zsprite EQU 065E1F8h
-PUBLIC _video_force_mode_flag
-_video_force_mode_flag EQU 071D170h
-PUBLIC _video_gamma_current
-_video_gamma_current EQU 071D1E4h
 PUBLIC _video_gamma_setting
 _video_gamma_setting EQU 0695464h
 PUBLIC _video_memory
@@ -4154,13 +3744,5 @@ PUBLIC _widget_type_definitions
 _widget_type_definitions EQU 069C010h
 PUBLIC _width640
 _width640 EQU 07196F0h
-PUBLIC _windowed
-_windowed EQU 071D1ACh
-PUBLIC _zoom_static_tint_b
-_zoom_static_tint_b EQU 071D198h
-PUBLIC _zoom_static_tint_g
-_zoom_static_tint_g EQU 071D194h
-PUBLIC _zoom_static_tint_r
-_zoom_static_tint_r EQU 071D190h
 
 END
