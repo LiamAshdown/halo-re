@@ -74,6 +74,8 @@ def main():
              compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), o("x87_shims.obj")),
              compile_c(os.path.join(SA, "image", "pieces.c"), o("pieces.obj"), [SA]),
              compile_c(os.path.join(SA, "generated", "image_bindings.c"), o("image_bindings.obj"))]
+    extra += [compile_c(c, o("data_%s.obj" % os.path.splitext(os.path.basename(c))[0]))   # engine globals as C (standalone/data/)
+              for c in sorted(glob.glob(os.path.join(SA, "data", "*.c")))]
     for p in json.load(open(os.path.join(SA, "image", "pieces.json"))):
         extra.append(assemble(os.path.join(SA, "image", p["label"] + ".asm"), o("image_%s.obj" % p["label"])))
     extra += [assemble(os.path.join(SA, "globals.asm"), o("globals.obj")),
