@@ -54,7 +54,8 @@ extern int64_t frame_statistics_unknown_d8;       // 0x0071cfd8, this module, ne
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, this module
 extern int64_t performance_frequency;             // 0x006ac8f8/0x006ac8fc
 extern Rectangle2D game_screen_rect;              // 0x0069c63c UNSURE: screen bounds
-extern int64_t rasterizer_present_counter_low;                  // 0x0069c648 present counter (64 bit)
+extern int32_t rasterizer_present_counter_low;                  // 0x0069c648 present counter, low dword (64 bit with the high dword)
+extern int32_t rasterizer_present_counter_high;                 // 0x0069c64c present counter, high dword
 
 extern float hud_text_draw_color_a;               // 0x006e4738, interface module
 extern float hud_text_draw_color_r;               // 0x006e473c
@@ -148,7 +149,8 @@ void rasterizer_frame_statistics_draw(void)
         return;
     }
 
-    presents = rasterizer_present_counter_low - frame_statistics_unknown_d8;
+    presents = (int64_t)(((uint64_t)(uint32_t)rasterizer_present_counter_high << 32) | (uint32_t)rasterizer_present_counter_low) -
+               frame_statistics_unknown_d8;
     left = game_screen_rect.left;
     tab_stops[0] = 100;
     tab_stops[1] = 200;
