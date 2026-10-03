@@ -1,0 +1,20 @@
+// hs_evaluate_cls  (not a Ghidra function; the evaluate handler of hs "cls" (-> void))
+// address 0x4826e0, size 53 bytes
+// name confidence: 0.9  rewrite confidence: 0.9
+// evidence: hs_function_definitions 0x688b58[i] evaluate (+0xc) 0x4826e0, only reachable through that pointer.
+//   Campaign track: 12 uses across the campaign scripts (not a10); it had no C and would have trapped
+//   (unlisted callback).
+// objdump 0x4826e0: when the terminal is initialized: both message indices to -1, data_delete_all (ESI) of the message array, console_clear_screen; returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x496f90
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x48a640 | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x006b2efc | extern uint8_t terminal_initialized;
+  // 0x006b2f00 | extern data_array *terminal_messages;
+  // 0x006b2f04 | extern int32_t console_message_head;
+  // 0x006b2f08 | extern int32_t console_message_tail;
+  // 0x4d0580, ESI | extern void data_delete_all(data_array *array);
+  // 0x496f90 | extern void console_clear_screen(void);

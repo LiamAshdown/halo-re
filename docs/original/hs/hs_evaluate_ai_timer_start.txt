@@ -1,0 +1,17 @@
+// hs_evaluate_ai_timer_start  (not a Ghidra function; the evaluate handler of hs function 176 "ai_timer_start" (ai -> void))
+// address 0x47d660, size 63 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_47d660 trapped.
+// WRITTEN 2026-09-28 from objdump 0x47d660..0x47d69e: evaluates the arguments and calls
+//   ai_reference_mark_squads_unknown_11; returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x432f10, blam-cc: EAX
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x432f10, blam-cc: EAX | extern void ai_reference_mark_squads_unknown_11(uint32_t packed_reference);

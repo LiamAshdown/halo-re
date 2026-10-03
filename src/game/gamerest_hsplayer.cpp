@@ -1,0 +1,198 @@
+#include "halo/game/gamerest_hsplayer.hpp"
+#include <stdint.h>
+
+extern "C" {
+extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
+extern void hs_thread_return(int32_t value, uint32_t thread_index);
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
+extern uint8_t unit_is_child_seated_at_named_marker(datum_index unit_index, const char *seat_label, datum_index child_object_index);
+extern int32_t unit_build_seat_occupant_zone_list(int32_t object_handle);
+extern data_array *object_data;
+}
+
+namespace halo::game {
+
+/**
+ * (vehicle_gunner <unit>): the unit's gunner, or none.
+ *
+ * @address 0x47c3a0
+ */
+void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        object *unit_obj = object_try_and_get((datum_index)arguments[0], 3);
+        datum_index gunner = (datum_index)0xffffffff;
+
+        if (unit_obj != 0) {
+            gunner = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->gunner_unit_index;
+        }
+        hs_thread_return((int32_t)gunner, thread_index);
+    }
+}
+
+/**
+ * (vehicle_test_seat <vehicle> <string> <unit>): whether the unit sits in the vehicle's seat with
+ * that label.
+ *
+ * @address 0x47bef0
+ */
+void HsPlayerFunctions::vehicle_test_seat_evaluate(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        uint8_t seated = unit_is_child_seated_at_named_marker((datum_index)arguments[0],
+            (const char *)(uintptr_t)(uint32_t)arguments[1], (datum_index)arguments[2]);
+        hs_thread_return((int32_t)seated, thread_index);
+    }
+}
+
+/**
+ * blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
+ * Evaluates this builtin's one object argument; once ready, forwards it to unit_build_seat_occupant_zone_list and
+ * returns its result from the HS thread.
+ *
+ * @address 0x47c310
+ */
+void HsPlayerFunctions::camo_screen_effect(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
+{
+    int32_t *args = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+    (void)index;
+
+    if (args != 0) {
+        int32_t result = unit_build_seat_occupant_zone_list(args[0]);
+        hs_thread_return(result, thread_index);
+    }
+}
+
+/**
+ * blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
+ * Evaluates this builtin's one (object, boolean) argument pair; once both are ready, and unless
+ * the object argument is -1, sets or clears object::vitality_flags bit 0x0100 on it according to
+ * the boolean, then returns from the HS thread (result unused, i.e. void).
+ *
+ * @address 0x47b140
+ */
+void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
+{
+    int32_t *args = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+    (void)index;
+
+    if (args == 0) {
+        return;
+    }
+    if (args[0] != (int32_t)0xffffffff) {
+        object *target = (object *)((object_header *)object_data->data)[args[0] & 0xffff].data;
+        if ((char)args[1] != 0) {
+            *((uint8_t *)&target->vitality_flags + 1) |= 0x01;
+            hs_thread_return(0, thread_index);
+            return;
+        }
+        *((uint8_t *)&target->vitality_flags + 1) &= 0xfe;
+    }
+    hs_thread_return(0, thread_index);
+}
+
+/**
+ * Evaluates function_index's one object argument; once ready, and unless it is -1, sets
+ * object::vitality_flags bit 0x2000 on it (byte 0x106 bit 0x20) and returns from the HS thread.
+ *
+ * @address 0x47b940
+ */
+void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *args = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (args != 0) {
+        object *target = (object *)((object_header *)object_data->data)[args[0] & 0xffff].data;
+        *((uint8_t *)&target->vitality_flags) |= 0x20;
+        hs_thread_return(0, thread_index);
+    }
+}
+
+}  // namespace halo::game
+
+extern "C" {
+
+/**
+ * C entry point for halo::game::HsPlayerFunctions::vehicle_gunner_evaluate; forwards to the C++ implementation.
+ * register convention: the hs_function_definition::evaluate shape, all on the stack.
+ * // blam-cc: stack -> (function_index, thread_index, first)
+ * blam-cc: EAX value, ECX thread_index
+ * blam-cc: ECX object_index
+ *
+ * @address 0x47c3a0
+ */
+void hs_vehicle_gunner_evaluate(int16_t function_index, uint32_t thread_index, char first)
+{
+    halo::game::HsPlayerFunctions::vehicle_gunner_evaluate(function_index, thread_index, first);
+}
+
+/**
+ * C entry point for halo::game::HsPlayerFunctions::vehicle_test_seat_evaluate; forwards to the C++ implementation.
+ * register convention: the hs_function_definition::evaluate shape, all on the stack.
+ * // blam-cc: stack -> (function_index, thread_index, first)
+ * blam-cc: EAX value, ECX thread_index
+ * blam-cc: stack (unit_index, seat_label), EBX child_object_index
+ *
+ * @address 0x47bef0
+ */
+void hs_vehicle_test_seat_evaluate(int16_t function_index, uint32_t thread_index, char first)
+{
+    halo::game::HsPlayerFunctions::vehicle_test_seat_evaluate(function_index, thread_index, first);
+}
+
+/**
+ * C entry point for halo::game::HsPlayerFunctions::camo_screen_effect; forwards to the C++ implementation.
+ * register convention: the hs_function_definition* dispatching this evaluate call in EAX
+ * (in_EAX), the "first call" flag in ECX (in_ECX); `index` and `thread_index` are this
+ * function's own two stack parameters (`index` is never read).
+ * // blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
+ * blam-cc: ECX -> object_handle, returns in EAX; UNSURE exact effect
+ * blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
+ *
+ * @address 0x47c310
+ */
+void player_camo_screen_effect(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
+{
+    halo::game::HsPlayerFunctions::camo_screen_effect(index, thread_index, definition, first);
+}
+
+/**
+ * C entry point for halo::game::HsPlayerFunctions::examine_nearby_vehicle; forwards to the C++ implementation.
+ * register convention: the hs_function_definition* dispatching this evaluate call in EAX
+ * (in_EAX), the "first call" flag in ECX (in_ECX); `index` and `thread_index` are this
+ * function's own two stack parameters (`index` is never read).
+ * // blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
+ * blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
+ *
+ * @address 0x47b140
+ */
+void player_examine_nearby_vehicle(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
+{
+    halo::game::HsPlayerFunctions::examine_nearby_vehicle(index, thread_index, definition, first);
+}
+
+/**
+ * C entry point for halo::game::HsPlayerFunctions::set_action_result; forwards to the C++ implementation.
+ * register convention: none -- all three are genuine stack parameters.
+ *
+ * @address 0x47b940
+ */
+void player_set_action_result(int16_t function_index, uint32_t thread_index, char first)
+{
+    halo::game::HsPlayerFunctions::set_action_result(function_index, thread_index, first);
+}
+
+}

@@ -1,0 +1,16 @@
+// hs_evaluate_ai_timer_expire  (not a Ghidra function; the evaluate handler of hs function 177 "ai_timer_expire" (ai -> void))
+// address 0x47d6a0, size 63 bytes
+// name confidence: 0.9  rewrite confidence: 0.9
+// evidence: hs_function_definitions 0x688b58[i] -> record, evaluate (+0xc) 0x47d6a0, only reachable through
+//   that pointer. Campaign track: a10's scripts call it.
+// objdump 0x47d6a0..0x47d6df: ai_reference_for_each_squad(EAX ai), returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x432f50, blam-cc: EAX
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640 | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x432f50, blam-cc: EAX | extern void ai_reference_for_each_squad(uint32_t packed_reference);

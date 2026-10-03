@@ -1,0 +1,17 @@
+// hs_evaluate_device_group_set_immediate  (not a Ghidra function; the evaluate handler of hs "device_group_set_immediate" (device_group, real -> void))
+// address 0x47cc90, size 73 bytes
+// name confidence: 0.9  rewrite confidence: 0.9
+// evidence: hs_function_definitions 0x688b58[i] evaluate (+0xc) 0x47cc90, only reachable through that pointer.
+//   Campaign track: 11 uses across the campaign scripts (not a10); it had no C and would have trapped
+//   (unlisted callback).
+// objdump 0x47cc90: SI = the group (+0x0), stack the value (+0x4); returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x44bea0, SI group, stack value
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640 | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x44bea0, SI group, stack value | extern void device_group_set_value_immediate(uint16_t group_index, float value);

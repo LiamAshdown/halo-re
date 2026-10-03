@@ -1,3 +1,4 @@
+#pragma once
 // Blam memory module (halo.exe 1.0.10 retail, 0x4cf810..0x4d3980).
 // Structures recovered from the decompiled module plus the static definition
 // tables in .data. Offsets in comments are byte offsets from the struct base.

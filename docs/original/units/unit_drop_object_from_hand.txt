@@ -1,0 +1,123 @@
+// unit_drop_object_from_hand  (Ghidra: FUN_0056ed00)
+// address 0x56ed00, size 596 bytes
+// name confidence: 0.5   rewrite confidence: 0.9
+// REWRITTEN from objdump 0x56ed00..0x56ef53. The draft called item_accelerate without the item, the root-velocity
+//   helper without operands (reading an uninitialised float as the toss), and the reposition with a bogus point.
+//   Stack: (unit, object). An object that is not attached is first put in a cluster, unhidden and placed at the
+//   unit's "left hand"; then it is detached (item flags &= ~3), stopped, and tossed along the unit's aim randomised
+//   within pi/8 at 0.0267..0.04 per tick plus the unit's root velocity (item +0x200 remembers the unit), swept back
+//   from the unit's camera (0x4f7b70; deleted in single player when that fails), and deleted when the unit's
+//   dropped items vanish (unit +0x204 bit 0x100000).
+// blam-cc: stack -> unit_index, object_index
+
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x00696714 | extern real_vector3d *global_origin3d_pointer;
+  // 0x00719cd0 | extern random_seed random_seed_global;
+  // 0x00671ffc "left hand" | extern char s_left_hand_marker[];
+  // 0x0065512c "" | extern char k_empty_string[];
+  // 0x4f5c30 | extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
+  // 0x4f9a20, EAX, stack | int32_t invoke_callback);
+  // 0x4f6180, stack, ESI, EDI | uint32_t object_index, char *object_marker_name);
+  // 0x4f6610 | extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
+  // 0x4cd1b0, EAX, EBX, EDI, stack | random_seed *seed, real lo, real hi);
+  // 0x4f6aa0, EAX, ESI, EDI | real_vector3d *out_angular_velocity);
+  // 0x4bd080, EAX, stack | extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
+  // 0x568f80, ECX, EDI | extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
+  // 0x4f7b70, stack, ECX | uint32_t ignore_object_index);
+  // 0x4f5bd0, EAX | extern void object_delete(uint32_t object_index);
+  // 0x4f5aa0, EDI | extern void object_delete_unparented(uint32_t object_index);
+  // 0x4f59d0 | extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
+  // [esp+0x14] | uint8_t *unit = OBJECT_DATA(unit_index);
+  // [esp+0x1c] | uint8_t *dropped = OBJECT_DATA(object_index);
+  // [esp+0x20] | real_vector3d toss;
+  // [esp+0x2c] | real_vector3d root_velocity;
+  // [esp+0x38] | real_point3d camera;
+  // 0x56ee29: toss along the aim | 
+
+#if 0
+Original Ghidra decompilation (0x56ed00):
+
+void unit_drop_object_from_hand(uint param_1,uint param_2)
+
+{
+  byte *pbVar1;
+  int iVar2;
+  int iVar3;
+  uint *puVar4;
+  int iVar5;
+  float fVar6;
+  undefined *puVar7;
+  char cVar8;
+  int iVar9;
+  float10 fVar10;
+  float local_24;
+  float local_20;
+  float local_1c;
+  float local_18;
+  float local_14;
+  float local_10;
+
+  iVar2 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_1 & 0xffff) * 0xc);
+  iVar9 = (param_2 & 0xffff) * 0xc;
+  iVar3 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar9);
+  if (*(int *)(iVar3 + 0x11c) == -1) {
+    object_set_cluster_and_parent(param_2,0);
+    puVar4 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar9);
+    iVar5 = *(int *)((*puVar4 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    if (*(int *)(iVar5 + 0x34) != -1) {
+      if ((puVar4[4] & 1) != 0) {
+        object_for_each_light_attachment(0,1);
+      }
+      if (*(int *)(iVar5 + 0x34) != -1) {
+        iVar5 = *(int *)(DAT_008603b0 + 0x34);
+        puVar4[4] = puVar4[4] & 0xfffffffe;
+        pbVar1 = (byte *)(iVar5 + iVar9 + 2);
+        *pbVar1 = *pbVar1 | 2;
+      }
+    }
+    object_reorient_relative_to_marker(param_1,"left hand");
+  }
+  iVar5 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar9);
+  *(uint *)(iVar5 + 500) = *(uint *)(iVar5 + 500) & 0xfffffffc;
+  FUN_004f6610(param_2);
+  puVar7 = PTR_DAT_00696714;
+  *(undefined4 *)(iVar3 + 0x68) = *(undefined4 *)PTR_DAT_00696714;
+  *(undefined4 *)(iVar3 + 0x6c) = *(undefined4 *)(puVar7 + 4);
+  *(undefined4 *)(iVar3 + 0x70) = *(undefined4 *)(puVar7 + 8);
+  *(undefined4 *)(iVar3 + 0x8c) = *(undefined4 *)puVar7;
+  *(undefined4 *)(iVar3 + 0x90) = *(undefined4 *)(puVar7 + 4);
+  *(undefined4 *)(iVar3 + 0x94) = *(undefined4 *)(puVar7 + 8);
+  vector3d_randomize_direction(0,0x3ec90fdb);
+  random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+  fVar6 = (float)(random_seed_global >> 0x10) * 1.5259022e-05 * 0.0133333355 + 0.026666667;
+  local_20 = fVar6 * local_20;
+  local_1c = local_1c * fVar6;
+  fVar10 = (float10)FUN_004f6aa0();
+  local_24 = (float)(fVar10 + (float10)local_18);
+  *(uint *)(iVar3 + 0x200) = param_1;
+  local_20 = local_14 + local_20;
+  local_1c = local_10 + local_1c;
+  item_accelerate(&local_24,0);
+  unit_get_camera_position();
+  cVar8 = FUN_004f7b70(param_2,0xffffffff);
+  if ((cVar8 == '\0') && (DAT_006f1d20 == 0)) {
+    object_delete();
+  }
+  if ((*(uint *)(iVar2 + 0x204) & 0x100000) != 0) {
+    iVar2 = *(int *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar9) + 4);
+    if (iVar2 == 0) {
+      object_delete_unparented();
+    }
+    else if (iVar2 != 3) {
+      return;
+    }
+    object_delete_recursive(param_2,0);
+  }
+  return;
+}
+#endif

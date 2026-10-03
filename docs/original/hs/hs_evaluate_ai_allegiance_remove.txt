@@ -1,0 +1,16 @@
+// hs_evaluate_ai_allegiance_remove  (not a Ghidra function; the evaluate handler of hs function 187 "ai_allegiance_remove" (team, team -> void))
+// address 0x47d970, size 88 bytes
+// name confidence: 0.9  rewrite confidence: 0.9
+// evidence: hs_function_definitions 0x688b58[i] -> record, evaluate (+0xc) 0x47d970, only reachable through
+//   that pointer. Campaign track: a10's scripts call it.
+// objdump 0x47d970..0x47d9c8: with both teams set: team_pair_override_remove(EAX = the second team, stack: the first (movsx)); returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x45bf10, blam-cc: EAX, stack
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640 | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x45bf10, blam-cc: EAX, stack | extern uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b);

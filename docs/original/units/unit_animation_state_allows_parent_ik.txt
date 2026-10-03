@@ -1,0 +1,23 @@
+// unit_animation_state_allows_parent_ik  (Ghidra: FUN_00565d60)
+// address 0x565d60, size 31 bytes
+// name confidence: 0.35 (its only caller, unit_update_ik_detail_nodes, asks it before
+//   attaching the unit's IK nodes to its parent object)   rewrite confidence: 0.9
+// evidence: objdump -d 0x565d60..0x565d7e plus its tables: jump table 0x565d80 {0x565d7c
+//   "return 0", 0x565d7e "return 1"} and byte map 0x565d88 for animation states 0x17..0x23.
+//   ECX is &unit->animation_state_flags (unit + 0x298), so +0x0b is animation_state
+//   (unit 0x2a3).
+// register convention: ECX = &unit->animation_state_flags, result in AL.
+//   // blam-cc: ECX -> animation_block
+
+Original comment above the definition:
+// blam-cc: ECX -> animation_block
+// False for the animation states 0x17..0x1b, 0x1d and 0x22..0x23; true for every other state.
+
+Inline comments that were in the source (comment | code on that line):
+  // animation_state | int32_t state_index = (int32_t)*(int8_t *)(animation_block + 0x0b) - 0x17;
+  // byte map 0x565d88: {0,0,0,0,0,1,0,1,1,1,1,0,0} | 
+
+#if 0
+Original Ghidra decompilation (0x565d60): Ghidra shows the entry only (zero visible
+arguments, switch unresolved); the tables above were read from the binary directly.
+#endif

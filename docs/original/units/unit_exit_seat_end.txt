@@ -1,0 +1,70 @@
+// unit_exit_seat_end  (NOT A FUNCTION: an address inside unit_melee_lunge_damage_tick)
+// address 0x56fd40, size 508 bytes
+// VERIFIED against disassembly 0x56fc80..0x56ff3c (2026-09-30): 0x56fd40 is the middle of unit_melee_lunge_damage_tick
+//   (frame `sub esp,0x4b8` at 0x56fc86, `ret` at 0x56ff3b; it uses ESI/EBP/EBX/EDI and the x87 stack set up by the
+//   code before it, which is why Ghidra split it out with unaffected registers). Nothing calls or jumps to 0x56fd40
+//   (the callers of the melee tick enter at 0x56fc80). The whole range is implemented, verified, in
+//   unit_melee_lunge_damage_tick.c; this file intentionally has no body of its own and must never be hooked.
+
+Original comment above the definition:
+// Not callable: see the header. Kept only so the address stays listed in the symbol tables.
+
+#if 0
+Original Ghidra decompilation (0x56fd40):
+
+void unit_exit_seat_end(void)
+
+{
+  char cVar1;
+  int iVar2;
+  char unaff_BL;
+  int unaff_ESI;
+  undefined4 *puVar3;
+  float10 in_ST0;
+  float fStack00000024;
+  float fStack00000028;
+  int in_stack_00000048;
+  undefined4 in_stack_0000004c;
+  uint in_stack_00000050;
+  undefined4 in_stack_00000054;
+  undefined2 uStack000000b4;
+  undefined2 uStack000000b6;
+  undefined2 in_stack_000000b8;
+  undefined4 in_stack_000000bc;
+  int in_stack_000000c8;
+  undefined4 uVar4;
+  undefined4 uVar5;
+
+  fStack00000024 = (float)in_ST0;
+  fStack00000028 = *(float *)(unaff_ESI + 0x7c) * 0.2;
+  cVar1 = FUN_00504f60(&stack0x000000a4,3);
+  if (cVar1 != '\0') {
+    matrix4x3_transform_plane();
+    if (in_stack_000000c8 < 0) {
+      fStack00000024 = -fStack00000024;
+      fStack00000028 = -fStack00000028;
+    }
+    unaff_BL = '\x01';
+  }
+  puVar3 = &stack0x0000004c;
+  for (iVar2 = 0x15; iVar2 != 0; iVar2 = iVar2 + -1) {
+    *puVar3 = 0;
+    puVar3 = puVar3 + 1;
+  }
+  in_stack_0000004c = *(undefined4 *)(in_stack_00000048 + 0x294);
+  in_stack_00000054 = *(undefined4 *)(unaff_ESI + 0x218);
+  if (unaff_BL == '\0') {
+    uVar5 = 0xffffffff;
+    uVar4 = *(undefined4 *)(unaff_ESI + 0x11c);
+  }
+  else {
+    in_stack_00000050 = in_stack_00000050 | 2;
+    uVar5 = CONCAT22(uStack000000b6,uStack000000b4);
+    uVar4 = *(undefined4 *)(unaff_ESI + 0x11c);
+    *(undefined1 *)(unaff_ESI + 0x28a) = 10;
+  }
+  object_apply_damage(&stack0x0000004c,uVar4,uVar5);
+  *(char *)(unaff_ESI + 0x28a) = *(char *)(unaff_ESI + 0x28a) + -1;
+  return;
+}
+#endif

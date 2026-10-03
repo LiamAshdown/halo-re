@@ -1,0 +1,111 @@
+// biped_movement_solve  (Ghidra: FUN_0055efd0)
+// address 0x55efd0, size 5169 bytes (Ghidra reports 5157; the loop's take block at 0x5603ef..0x560400 lies past it)
+// Written section by section from objdump -d 0x55efd0..0x5603f5 (python scratchpad/annot.py).
+// Frame: Ghidra local_X lives at esp0 + (0xafb0 - X), esp0 = esp after the four register pushes.
+// All four sections written and checked against the listing in step 1 (2026-09-26).
+//
+// flags bit 0 is "airborne" (2D air control with airborne_acceleration, gravity applied), and the
+// ground-contact choice sets result bit 0 when no ground plane was found (types/units.h renamed
+// both from "grounded" in step 1).
+// name confidence: 0.5   rewrite confidence: 0.8
+// register convention: plain __cdecl, the solver record on the stack.
+// blam-cc: stack -> solve
+
+Original comment above the definition:
+// blam-cc: stack -> solve
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00696718 | extern const real_vector3d *global_forward3d_pointer;
+  // 0x00696720 | extern const real_vector3d *global_up3d_pointer;
+  // 0x0069c52c | extern float k_physics_gravity;
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0069c53c | extern float k_default_resting_plane[4];
+  // 0x401960, blam-cc: EAX v | extern real vector3d_length(real_vector3d *v);
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x506440 | float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model);
+  // 0x504bb0 | physics_model_contact *out_contact);
+  // 0x00746f98 | extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
+  // 0x55eed0, blam-cc: ESI forward, EBX left, EDI up | real_vector3d *up);
+  // 0x401990, blam-cc: ECX v | extern real vector3d_normalize_with_length(real_vector3d *v);
+  // 0x4018e0, blam-cc: ECX v | extern real vector2d_normalize_with_length(real_vector2d *v);
+  // 0x4052c0, blam-cc: EAX out, ECX a, stack b -- computes b x a | 
+  // 0x401930, blam-cc: EAX out, ECX direction, stack base, scale | 
+  // 0x506fb0, blam-cc: EDI origin, ESI delta, EBX out_velocity, ECX exclude, stack the rest | 
+  // 0x44dad0, blam-cc: EAX out, EDX signed_index, stack planes_owner | 
+  // 0x672ed0, 1/128 | #define K_GROUND_NORMAL_OFFSET 0.0078125f
+  // 0x672bbc | #define K_FLAT_GROUND_K        0.0001f
+  // [esp+0x44] | uint16_t flags = (uint16_t)solve->flags;
+  // written as a word at 0xa0 | uint16_t *result_flags = (uint16_t *)&solve->result_flags;
+  // [esp+0x5f] | uint8_t climbs_any_surface = (uint8_t)((flags >> 9) & 1);
+  // [esp+0x48] local_af68 | float lateral_x = 0.0f;
+  // [esp+0x70] local_af40 | float lateral_y = 0.0f;
+  // [esp+0x14] local_af9c | real_vector3d a;
+  // [esp+0x24] local_af8c | real_vector3d b;
+  // [esp+0x30] local_af80 | real_vector3d c;
+  // [esp+0x4c] local_af64 | real_vector3d direction;
+  // [esp+0x60] local_af50 | real_vector3d e;
+  // [esp+0x58] local_af58 | float speed;
+  // [esp+0x58] (reuses speed's slot) | int16_t contact_count;
+  // [esp+0x74] local_af3c | real_point3d swept_position;
+  // [esp+0x94] local_af1c | real_vector3d swept_velocity;
+  // [esp+0xbc] local_aef4 | physics_model_contact contacts[16];
+  // [esp+0x3a8] local_ac08 | physics_model probe_model;
+  // ---- section 1: target velocity -> solve->result_velocity (0x55efd0..0x55f6d6) | 
+  // flying (0x55f022): movement delta in the facing frame, acceleration-limited | 
+  // a = left, b = up | real_matrix4x3_rotation_from_forward(&solve->facing, &a, &b);
+  // 0x55f159: the planar delta rotated by facing is the velocity, vertical taken as is | 
+  // airborne (0x55f19f): 2D air control limited by airborne_acceleration, then gravity | 
+  // [esp+0x4c] keeps the normalized 2D delta | direction.i = delta2.i;
+  // on the ground (0x55f270): delta along the ground, scaled by slope, acceleration-limited | 
+  // 0x55f2a4: ground frame from the aiming vector (any surface is walkable) | 
+  // c = normal x aiming | vector3d_cross_product(&c, &b, ground_normal);
+  // normal x up | vector3d_cross_product(&c, global_up3d_pointer, ground_normal);
+  // normal x forward | vector3d_cross_product(&c, global_forward3d_pointer, ground_normal);
+  // b = c x normal | vector3d_cross_product(&b, ground_normal, &c);
+  // 0x55f3a0: rotate the planar delta by facing and lift it onto the ground plane | 
+  // 0x55f3fa: ground too steep to lift onto: build the frame from aiming projected | 
+  // onto the ground plane, and push the vertical part five times harder | 
+  // e = up x aiming | vector3d_cross_product(&e, &solve->aiming, global_up3d_pointer);
+  // always true on this branch | if (climbs_any_surface == 0) {
+  // 0x672c40 | direction.k = direction.k * 5.0f;
+  // 0x55f508: slope speed scaling on the normalized direction's k (the sine of the slope) | 
+  // 0x55f55f: test ah,1 -- NaN goes on | } else if (z >= solve->sine_uphill_cutoff_angle) {
+  // ---- section 2: capsule sweep and ground-edge snapping (0x55f6d6..0x55fce4) | 
+  // 0x20c3a0 + 0xffdfff00 | model_flags = 0xc2a0;
+  // [esp+0x60] local_af50 | e = delta;
+  // [esp+0x6c] local_af44 | int32_t best_surface = -1;
+  // [esp+0x80] local_af30 | float best_distance_squared = 3.4028235e+38f;
+  // [esp+0x4c] local_af64 | float best_dot = 0.0f;
+  // [esp+0xa8] local_af08 | real_plane3d best_plane;
+  // [esp+0x84] local_af2c | real_plane3d plane;
+  // a = the swept position dropped onto our ground plane | 
+  // 0x55fad3: step over onto the neighbouring surface when it is close and shallow | 
+  // ---- section 3: choose the ground contact (0x55fce7..0x560088) | 
+  // [esp+0x80] local_af30 | int16_t best = -1;
+  // [esp+0x13] bVar8 | uint8_t best_walkable = 0;
+  // [esp+0x23] local_af8d | uint8_t best_is_snap_surface = 0;
+  // [esp+0x3c] local_af74 | float best_k = -3.4028235e+38f;
+  // [esp+0x40] local_af70 | float best_height = -3.4028235e+38f;
+  // 0x673178 | if (lateral_squared > 9.999999e-09f) {
+  // 0x55fd99: compares the CURRENT BEST's surface (not contact i) with the snap surface. | 
+  // With no best yet the original reads the slot before contacts[0] (section 2's plane d | 
+  // bits), which never equals a surface index; treated as "no". | 
+  // 0x55fe63: anything dynamic in contact keeps the biped "moving" | 
+  // everything but scenery | dynamic = ((1u << (type & 0x1f)) & 0x40) == 0;
+  // [esp+0x84] | real_plane3d plane;
+  // [esp+0x48] (reuses lateral_x's slot) | float penetration;
+  // 0x55ff57 test ah,1: too steep (or NaN) | landed = 0;
+  // 0x560044: airborne | 
+  // ---- section 4: contacted objects, results, stand-up probe (0x560088..0x560400) | 
+  // ESI | uint32_t best_object = 0xffffffff;
+  // BX (only read once best_object is set) | int16_t best_type = 0;
+  // [esp+0x4c] | float best_relative_speed_squared = 0.0f;
+  // the contacted object moving fastest relative to us, vehicles first | 
+  // a contacted device machine that carries whatever stands on it (0x560170) | 
+  // device_machine | if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
+  // UNSURE field names | if ((tag[0x292] & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
+  // stand-up probe: a crouching biped that wants to stand checks for head room (0x5602b1) | 
+
+#if 0
+No usable Ghidra decompile: it lost every helper argument. Rewritten from objdump -d 0x55efd0..0x560400.
+#endif

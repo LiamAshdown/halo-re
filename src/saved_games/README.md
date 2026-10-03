@@ -348,3 +348,12 @@ function was compared instruction by instruction during the phase-4 review.
 | `0x5560d0` | path_build_full | 152 | 0.5 | 0.7 | 0 |  |
 | `0x556170` | saved_games_report_last_error | 55 | 0.5 | 0.85 | 0 |  |
 | `0x555d30` | *(not a function: mid-body of file_enumerate_find_next)* | | | | | yes |
+
+## C++ layout (converted)
+
+The one-function-per-file `.c` sources were merged into topic files (`file_system.cpp`, `game_state.cpp`,
+`checkpoint.cpp`, `control_profile.cpp`, `player_profile.cpp`, `saved_game_index.cpp`). Operations on the
+records are member functions of the view classes in `include/halo/saved_games/saved_games.hpp` (`FileReference`,
+`PlayerProfile`, `ControlBinding`, `VariantWriteRequest`); the rest are namespace functions in
+`halo::saved_games::<family>`. `saved_games_c_api.cpp` holds the `extern "C"` shims with the original names.
+The old author notes and decompile blocks are in `docs/original/saved_games/`.

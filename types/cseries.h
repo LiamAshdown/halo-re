@@ -1,3 +1,4 @@
+#pragma once
 // Blam cseries module (halo.exe 1.0.10 retail, 0x4491e0..0x44971e, 9 Ghidra functions).
 // The Win32 half of the engine support library: an in-place string lowercaser, the
 // millisecond clock built on QueryPerformanceCounter, a recursive CreateDirectory,

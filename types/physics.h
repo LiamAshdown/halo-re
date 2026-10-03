@@ -1,3 +1,4 @@
+#pragma once
 // Blam physics / collision module (halo.exe 1.0.10 retail, 0x4ffde0..0x50b530, 80 Ghidra
 // functions). Three layers live here:
 //
@@ -125,6 +126,7 @@ typedef struct collision_bsp_sphere_query {
     float projected_center_i;       // 0x220 center projected onto the surviving axis pair
     float projected_center_j;       // 0x224
 } collision_bsp_sphere_query;       // size 0x228
+static_assert(sizeof(collision_bsp_sphere_query) == 0x228, "collision_bsp_sphere_query layout");
 
 // Filled by 0x00501a10 (leaves) and 0x00501d20 (vertices, edges, surfaces). Every list is
 // append-with-dedupe and silently drops entries past 256. 0x00503d90 turns the three geometry
@@ -139,6 +141,7 @@ typedef struct collision_bsp_sphere_result {
     int32_t leaf_count;             // 0xc0c
     int32_t leaves[256];            // 0xc10
 } collision_bsp_sphere_result;      // size 0x1010
+static_assert(sizeof(collision_bsp_sphere_result) == 0x1010, "collision_bsp_sphere_result layout");
 
 // ---------------------------------------------------------------------------
 // collision_bsp segment query  (0x00502060 sets it up, 0x00502140 recurses, 0x00502460 and
@@ -176,6 +179,7 @@ typedef struct collision_bsp_segment_query {
     uint8_t unknown_21[3];          // 0x21
     int32_t crossing_plane;         // 0x24 plane index of the crossing being resolved
 } collision_bsp_segment_query;      // size 0x28
+static_assert(sizeof(collision_bsp_segment_query) == 0x28, "collision_bsp_segment_query layout");
 
 typedef struct collision_bsp_segment_result {
     float t;                        // 0x00 fraction of delta consumed; 0x00502060 clamps the
@@ -191,6 +195,7 @@ typedef struct collision_bsp_segment_result {
     int32_t leaves[256];            // 0x18 every leaf the segment passed through, in order;
                                     //      once full the overflow is written over leaves[255]
 } collision_bsp_segment_result;     // size 0x418
+static_assert(sizeof(collision_bsp_segment_result) == 0x418, "collision_bsp_segment_result layout");
 
 // ---------------------------------------------------------------------------
 // collision_bsp swept-sphere ("pill") query  (0x00502730 sets it up, 0x005027a0 recurses,
@@ -214,6 +219,7 @@ typedef struct collision_bsp_pill_query {
     float projected_delta_i;        // 0x224
     float projected_delta_j;        // 0x228
 } collision_bsp_pill_query;         // size 0x22c
+static_assert(sizeof(collision_bsp_pill_query) == 0x22c, "collision_bsp_pill_query layout");
 
 typedef struct collision_bsp_pill_result {
     float t;                        // 0x000 deepest contact fraction found so far
@@ -227,6 +233,7 @@ typedef struct collision_bsp_pill_result {
     int32_t leaf_count;             // 0x01c
     int32_t leaves[256];            // 0x020
 } collision_bsp_pill_result;        // size 0x420
+static_assert(sizeof(collision_bsp_pill_result) == 0x420, "collision_bsp_pill_result layout");
 
 // ---------------------------------------------------------------------------
 // collision_bsp_boundary_clip  (0x005017f0)
@@ -239,11 +246,13 @@ typedef struct collision_bsp_boundary_hit {
     int32_t surface_index;          // 0x08 edge->left_surface or right_surface, whichever is
                                     //      on the far side of the edge
 } collision_bsp_boundary_hit;       // size 0x0c
+static_assert(sizeof(collision_bsp_boundary_hit) == 0xc, "collision_bsp_boundary_hit layout");
 
 typedef struct collision_bsp_boundary_clip {
     collision_bsp_boundary_hit enter; // 0x00
     collision_bsp_boundary_hit exit;  // 0x0c
 } collision_bsp_boundary_clip;        // size 0x18
+static_assert(sizeof(collision_bsp_boundary_clip) == 0x18, "collision_bsp_boundary_clip layout");
 
 // ---------------------------------------------------------------------------
 // physics_model  (0x00503360 / 0x00503490 / 0x005038a0 append, 0x00504260 and 0x00504bb0
@@ -271,6 +280,7 @@ typedef struct physics_model_sphere {
                                     //      is approximated
     float radius;                   // 0x18
 } physics_model_sphere;             // size 0x1c
+static_assert(sizeof(physics_model_sphere) == 0x1c, "physics_model_sphere layout");
 
 typedef struct physics_model_pill {
     uint32_t object_index;          // 0x00
@@ -286,6 +296,7 @@ typedef struct physics_model_pill {
     float extent_k;                 // 0x20
     float radius;                   // 0x24
 } physics_model_pill;               // size 0x28
+static_assert(sizeof(physics_model_pill) == 0x28, "physics_model_pill layout");
 
 typedef struct physics_model_shape {
     uint32_t object_index;          // 0x00
@@ -305,6 +316,7 @@ typedef struct physics_model_shape {
     int32_t vertex_count;           // 0x24
     float vertices[8][2];           // 0x28 the boundary projected onto the surviving axis pair
 } physics_model_shape;              // size 0x68
+static_assert(sizeof(physics_model_shape) == 0x68, "physics_model_shape layout");
 
 typedef struct physics_model {
     int16_t sphere_count;           // 0x0000 the three counts are indexed as counts[type]
@@ -315,6 +327,7 @@ typedef struct physics_model {
     physics_model_pill pills[256];     // 0x1c08
     physics_model_shape shapes[256];   // 0x4408
 } physics_model;                    // size 0xac08
+static_assert(sizeof(physics_model) == 0xac08, "physics_model layout");
 
 // The one record both physics_model query entry points produce. 0x00504260 (deepest point
 // overlap) leaves the point untouched and puts the penetration depth in t; 0x00504bb0
@@ -336,6 +349,7 @@ typedef struct physics_model_contact {
     int8_t breakable_surface_index; // 0x29
     int16_t material_type;          // 0x2a
 } physics_model_contact;            // size 0x2c
+static_assert(sizeof(physics_model_contact) == 0x2c, "physics_model_contact layout");
 
 // ---------------------------------------------------------------------------
 // object collision context  (built by 0x00504e10, consumed by 0x00504e90, 0x00504f60,
@@ -351,6 +365,7 @@ typedef struct object_collision_context {
     uint8_t *region_permutations;   // 0x08 object + 0x180, one byte per region
     void *nodes;                    // 0x0c real_matrix4x3 *, at object + object nodes offset
 } object_collision_context;         // size 0x10
+static_assert(sizeof(object_collision_context) == 0x10, "object_collision_context layout");
 
 // Result of a per-node query (0x00504f60 SEGMENT, 0x005050b0 PILL -- the two were labelled the
 // other way round in phase 2 and in an earlier copy of this comment; 0x00504f60's BSP callee is
@@ -365,6 +380,7 @@ typedef struct object_node_collision_result {
     int16_t unknown_06;             // 0x06
     collision_bsp_segment_result segment; // 0x08
 } object_node_collision_result;     // size 0x420
+static_assert(sizeof(object_node_collision_result) == 0x420, "object_node_collision_result layout");
 
 // ---------------------------------------------------------------------------
 // object physics context  (built by 0x005074b0, consumed by 0x00507590, 0x00507610,
@@ -394,6 +410,7 @@ typedef struct object_physics_context {
     float position_y;               // 0x34
     float position_z;               // 0x38
 } object_physics_context;           // size 0x3c
+static_assert(sizeof(object_physics_context) == 0x3c, "object_physics_context layout");
 
 // Output of 0x00507610: a ray tested against the mass point spheres in object space, with the
 // fraction and the hit plane transformed back to world space.
@@ -404,6 +421,7 @@ typedef struct object_physics_ray_result {
     float plane_k;                  // 0x0c
     float plane_d;                  // 0x10
 } object_physics_ray_result;        // size 0x14
+static_assert(sizeof(object_physics_ray_result) == 0x14, "object_physics_ray_result layout");
 
 // ---------------------------------------------------------------------------
 // mass_point_state  (0x00507cc0 zeroes definition mass_points.count * 0x130 bytes and then
@@ -493,6 +511,7 @@ typedef struct mass_point_state {
     float torque_j;                 // 0x128
     float torque_k;                 // 0x12c
 } mass_point_state;                 // size 0x130
+static_assert(sizeof(mass_point_state) == 0x130, "mass_point_state layout");
 
 // ---------------------------------------------------------------------------
 // powered_mass_point_state  (the array the caller of 0x00507840 owns; 0x00507cc0 indexes it
@@ -517,6 +536,7 @@ typedef struct powered_mass_point_state {
     float matrix[3][3];             // 0x30
     float matrix_position[3];       // 0x54
 } powered_mass_point_state;         // size 0x60
+static_assert(sizeof(powered_mass_point_state) == 0x60, "powered_mass_point_state layout");
 
 // ---------------------------------------------------------------------------
 // breakable_surface_globals  (0x004ffde0 damages one, 0x004fff20 resets the ones an explosion
@@ -534,6 +554,7 @@ typedef struct breakable_surface_globals {
     float health[16][256];          // 0x204 remaining vitality; crossing zero clears the bit
                                     //       and fires the break effect at 0x00500090
 } breakable_surface_globals;        // size 0x4204
+static_assert(sizeof(breakable_surface_globals) == 0x4204, "breakable_surface_globals layout");
 
 // ---------------------------------------------------------------------------
 // point_physics  (0x0050b530)
@@ -562,6 +583,7 @@ typedef struct physics_scalar_range {
     float upper;                    // 0x00
     float lower;                    // 0x04
 } physics_scalar_range;             // size 0x08
+static_assert(sizeof(physics_scalar_range) == 0x8, "physics_scalar_range layout");
 
 typedef struct physics_scalar_rates {
     float maximum_positive;         // 0x00 the step is clamped to rate times this going up
@@ -569,6 +591,7 @@ typedef struct physics_scalar_rates {
     float acceleration_positive;    // 0x08 scales the step while the value is already moving
     float acceleration_negative;    // 0x0c the same, in the other direction
 } physics_scalar_rates;             // size 0x10
+static_assert(sizeof(physics_scalar_rates) == 0x10, "physics_scalar_rates layout");
 
 // ---------------------------------------------------------------------------
 // collision_test_movement_segment_flags  (0x00505880's param_1, extending
@@ -599,6 +622,7 @@ typedef struct object_physics_tick_accumulator {
     real_vector3d torque;           // 0x00 local_54/50/4c
     real_vector3d force;            // 0x0c local_48/44/40
 } object_physics_tick_accumulator;  // size 0x18
+static_assert(sizeof(object_physics_tick_accumulator) == 0x18, "object_physics_tick_accumulator layout");
 
 // ---------------------------------------------------------------------------
 // physics_point_walk_state  (0x005070d0's param_1, built by 0x00507170)
@@ -609,6 +633,7 @@ typedef struct physics_point_walk_state {
     float t;                        // 0x00 remaining fraction of the step still available
     real_point3d position;          // 0x04 current candidate position, tested each iteration
 } physics_point_walk_state;         // size 0x10
+static_assert(sizeof(physics_point_walk_state) == 0x10, "physics_point_walk_state layout");
 
 // ---------------------------------------------------------------------------
 // what this module adds to collision_result (types/projectiles.h, size 0x50)

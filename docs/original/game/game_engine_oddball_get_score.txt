@@ -1,0 +1,14 @@
+// game_engine_oddball_get_score  (not a Ghidra function; the oddball game engine definition's +0x4c slot (get_score); no C existed, so that
+//   stored pointer trapped as unlisted_46cea0)
+// address 0x46cea0, size 58 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x46cea0..0x46ced9: team_mode 1: the team score of the player's team; otherwise
+//   the player score.
+// blam-cc: cdecl (called through the engine definition)
+
+
+Inline comments that were in the source (comment | code on that line):
+  extern data_array *player_data; | // 0x0087a480
+  extern int32_t king_alt_team_score[16]; | // 0x006b114c (oddball team score)
+  extern int32_t king_alt_player_score[]; | // 0x006b118c (oddball player score)
+

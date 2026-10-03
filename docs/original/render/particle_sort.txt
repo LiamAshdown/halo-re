@@ -1,0 +1,1341 @@
+====================================================================================================
+original file: src/render/sort_adjust_heap.c
+====================================================================================================
+// sort_adjust_heap  (Ghidra: FUN_00510a90)
+// address 0x510a90, size 133 bytes (0x510a90..0x510b14)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Adjust_heap(_First, _Hole, _Bottom, _Val, _Pred): sift the hole down to a leaf along
+//   the larger child, then _Push_heap the value back up to its place.
+// register convention: first in ECX (moved to ESI and left there for the tail call, which is how sort_push_heap
+//   receives it), hole in EAX, bottom in EDI, the 8-byte value (two dwords) and the functor on the
+//   stack (callers 0x5109a0..0x5109b5 and 0x5107f5..0x510817).
+//   // blam-cc: ECX -> first, EAX -> hole, EDI -> bottom, stack -> (value, predicate)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void sort_push_heap(rendered_particle_datum *first, int32_t hole, int32_t top,
+    rendered_particle_datum value, int32_t predicate); // 0x510b20, blam-cc: ESI first, EAX hole, stack (top, value, predicate)
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Re-establishes the heap property below `hole` for a heap of `bottom` elements, storing value.
+void sort_adjust_heap(rendered_particle_datum *first, int32_t hole, int32_t bottom,
+    rendered_particle_datum value, int32_t predicate)
+{
+    int32_t top = hole;
+    int32_t index;
+
+    for (index = 2 * hole + 2; index < bottom; index = 2 * index + 2) {
+        if (rendered_particle_compare(&first[index], &first[index - 1]) < 0) {
+            index--;
+        }
+        first[hole] = first[index];
+        hole = index;
+    }
+    if (index == bottom) {
+        first[hole] = first[bottom - 1];
+        hole = bottom - 1;
+    }
+    sort_push_heap(first, hole, top, value, predicate);
+}
+
+#if 0
+Original Ghidra decompilation (0x510a90):
+
+void FUN_00510a90(void)
+
+{
+  int in_EAX;
+  int in_ECX;
+  int iVar1;
+  int iVar2;
+  int unaff_EDI;
+  
+  while( true ) {
+    iVar1 = in_EAX * 2 + 2;
+    if (unaff_EDI <= iVar1) break;
+    iVar2 = (int)*(short *)(in_ECX + 2 + iVar1 * 8) - (int)*(short *)(in_ECX + -6 + iVar1 * 8);
+    if ((iVar2 == 0) &&
+       (iVar2 = (int)*(short *)(in_ECX + 4 + iVar1 * 8) - (int)*(short *)(in_ECX + -4 + iVar1 * 8),
+       iVar2 == 0)) {
+      iVar2 = (uint)*(byte *)(in_ECX + 6 + iVar1 * 8) - (uint)*(byte *)(in_ECX + -2 + iVar1 * 8);
+    }
+    if (iVar2 < 0) {
+      iVar1 = in_EAX * 2 + 1;
+    }
+    *(undefined4 *)(in_ECX + in_EAX * 8) = *(undefined4 *)(in_ECX + iVar1 * 8);
+    *(undefined4 *)(in_ECX + 4 + in_EAX * 8) = *(undefined4 *)(in_ECX + 4 + iVar1 * 8);
+    in_EAX = iVar1;
+  }
+  if (iVar1 == unaff_EDI) {
+    *(undefined4 *)(in_ECX + in_EAX * 8) = *(undefined4 *)(in_ECX + -8 + unaff_EDI * 8);
+    *(undefined4 *)(in_ECX + 4 + in_EAX * 8) = *(undefined4 *)(in_ECX + -4 + unaff_EDI * 8);
+  }
+  FUN_00510b20();
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_heap_sort.c
+====================================================================================================
+// sort_heap_sort  (Ghidra: FUN_005107e0)
+// address 0x5107e0, size 80 bytes (0x5107e0..0x51082f)
+// name confidence: 0.75   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::sort_heap(_First, _Last, _Pred) with std::_Pop_heap inlined: repeatedly moves the heap
+//   top to the end and re-heaps the rest with _Adjust_heap.
+// register convention: first in EBX, last in EAX (`mov esi,eax; sub esi,ebx` at entry; the caller 0x5104e9 loads
+//   EAX = last and keeps first in EBX), the functor on the stack.
+//   // blam-cc: EBX -> first, EAX -> last, stack -> predicate
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void sort_adjust_heap(rendered_particle_datum *first, int32_t hole, int32_t bottom,
+    rendered_particle_datum value, int32_t predicate); // 0x510a90, blam-cc: ECX first, EAX hole, EDI bottom, stack (value, predicate)
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Turns the heap [first, last) into a sorted range.
+void sort_heap_sort(rendered_particle_datum *first, rendered_particle_datum *last, int32_t predicate)
+{
+    for (; last - first > 1; last--) {
+        rendered_particle_datum value = last[-1];
+        last[-1] = *first;
+        sort_adjust_heap(first, 0, (int32_t)(last - 1 - first), value, predicate);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x5107e0):
+
+void FUN_005107e0(undefined4 param_1)
+
+{
+  undefined4 uVar1;
+  undefined4 uVar2;
+  int in_EAX;
+  undefined4 *unaff_EBX;
+  int iVar3;
+  
+  for (iVar3 = in_EAX - (int)unaff_EBX; 1 < iVar3 >> 3; iVar3 = iVar3 + -8) {
+    uVar1 = *(undefined4 *)((int)unaff_EBX + iVar3 + -4);
+    uVar2 = *(undefined4 *)((int)unaff_EBX + iVar3 + -8);
+    *(undefined4 *)((int)unaff_EBX + iVar3 + -8) = *unaff_EBX;
+    *(undefined4 *)((int)unaff_EBX + iVar3 + -4) = unaff_EBX[1];
+    FUN_00510a90(uVar2,uVar1,param_1);
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_insertion_sort.c
+====================================================================================================
+// sort_insertion_sort  (Ghidra: FUN_00510830)
+// address 0x510830, size 191 bytes (0x510830..0x5108ee)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Insertion_sort(_First, _Last, _Pred) of VC 7.1, which inserts with std::rotate instead
+//   of copy_backward: a new minimum is rotated to the front, anything else is rotated back to the
+//   insertion point an unguarded backward scan finds.
+// register convention: plain cdecl (0x5104ac..0x5104b3).
+//   // blam-cc: stack -> (first, last, predicate)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void sort_rotate(rendered_particle_datum *first, rendered_particle_datum *mid,
+    rendered_particle_datum *last); // 0x510ba0, blam-cc: EAX mid, EBX last, stack first
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Sorts the short range [first, last) by insertion.
+void sort_insertion_sort(rendered_particle_datum *first, rendered_particle_datum *last, int32_t predicate)
+{
+    rendered_particle_datum *next;
+    rendered_particle_datum *destination;
+    rendered_particle_datum *candidate;
+
+    if (first == last) {
+        return;
+    }
+    for (next = first + 1; next != last; next++) {
+        if (rendered_particle_compare(next, first) < 0) {
+            // a new earliest element: rotate it to the front (std::rotate's own guard inlined)
+            if (first != next && next != next + 1) {
+                sort_rotate(first, next, next + 1);
+            }
+        } else {
+            destination = next;
+            for (candidate = next - 1; rendered_particle_compare(next, candidate) < 0; candidate--) {
+                destination = candidate;
+            }
+            if (destination != next && next != next + 1) {
+                sort_rotate(destination, next, next + 1);
+            }
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x510830):
+
+void FUN_00510830(short *param_1,short *param_2)
+
+{
+  short *psVar1;
+  int iVar2;
+  short *psVar3;
+  short *psVar4;
+  
+  psVar1 = param_1;
+  if (param_1 != param_2) {
+    while (psVar1 = psVar1 + 4, psVar1 != param_2) {
+      iVar2 = (int)psVar1[1] - (int)param_1[1];
+      if ((iVar2 == 0) && (iVar2 = (int)psVar1[2] - (int)param_1[2], iVar2 == 0)) {
+        iVar2 = (uint)*(byte *)(psVar1 + 3) - (uint)*(byte *)(param_1 + 3);
+      }
+      if (iVar2 < 0) {
+        if ((param_1 != psVar1) && (psVar1 != psVar1 + 4)) {
+          FUN_00510ba0(param_1);
+        }
+      }
+      else {
+        psVar3 = psVar1 + 2;
+        psVar4 = psVar1;
+        while( true ) {
+          iVar2 = (int)psVar1[1] - (int)psVar3[-5];
+          if ((iVar2 == 0) && (iVar2 = (int)psVar1[2] - (int)psVar3[-4], iVar2 == 0)) {
+            iVar2 = (uint)*(byte *)(psVar1 + 3) - (uint)*(byte *)(psVar3 + -3);
+          }
+          if (-1 < iVar2) break;
+          psVar4 = psVar3 + -6;
+          psVar3 = psVar3 + -4;
+        }
+        if ((psVar4 != psVar1) && (psVar1 != psVar1 + 4)) {
+          FUN_00510ba0(psVar4);
+        }
+      }
+    }
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_introsort_loop.c
+====================================================================================================
+// sort_introsort_loop  (Ghidra: sort_introsort_loop, already named)
+// address 0x510410, size 235 bytes (0x510410..0x5104fa)
+// name confidence: 0.8 (Ghidra/phase-2 name, kept: it is exactly the std::_Sort introsort loop)   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Sort(_First, _Last, _Ideal, _Pred): quicksort while more than _ISORT_MAX (32) elements
+//   remain and the division budget lasts (_Ideal = _Ideal / 2 + _Ideal / 4 per split), recursing
+//   into the smaller half; heap sort once the budget runs out; insertion sort for 2..32 elements.
+// register convention: plain cdecl (render_particles pushes first, last, count, functor).
+//   // blam-cc: stack -> (first, last, ideal, predicate)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+typedef struct rendered_particle_range { // std::pair<iterator, iterator>, returned through a hidden pointer
+    rendered_particle_datum *first;
+    rendered_particle_datum *second;
+} rendered_particle_range;
+
+extern rendered_particle_range *sort_unguarded_partition(rendered_particle_range *result,
+    rendered_particle_datum *first, rendered_particle_datum *last, int32_t predicate); // 0x510500, cdecl
+extern void sort_heap_sort(rendered_particle_datum *first, rendered_particle_datum *last,
+    int32_t predicate); // 0x5107e0, blam-cc: EBX first, EAX last, stack predicate
+extern void sort_insertion_sort(rendered_particle_datum *first, rendered_particle_datum *last,
+    int32_t predicate); // 0x510830, cdecl
+extern void sort_make_heap(rendered_particle_datum *first, rendered_particle_datum *last,
+    int32_t predicate); // 0x510980, blam-cc: EAX last, stack (first, predicate)
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Sorts [first, last) by rendered_particle_compare. `ideal` is the remaining quicksort division
+// budget (the caller passes the element count).
+void sort_introsort_loop(rendered_particle_datum *first, rendered_particle_datum *last, int32_t ideal,
+    int32_t predicate)
+{
+    int32_t count;
+    rendered_particle_range mid;
+
+    for (count = (int32_t)(last - first); count > 32 && ideal > 0; count = (int32_t)(last - first)) {
+        sort_unguarded_partition(&mid, first, last, predicate);
+        ideal = ideal / 2;
+        ideal += ideal / 2;
+
+        if (mid.first - first < last - mid.second) {
+            sort_introsort_loop(first, mid.first, ideal, predicate);
+            first = mid.second;
+        } else {
+            sort_introsort_loop(mid.second, last, ideal, predicate);
+            last = mid.first;
+        }
+    }
+
+    if (count > 32) {
+        if (last - first > 1) {   // std::make_heap's own guard, inlined at 0x5104c8
+            sort_make_heap(first, last, predicate);
+        }
+        sort_heap_sort(first, last, predicate);
+    } else if (count > 1) {
+        sort_insertion_sort(first, last, predicate);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x510410):
+
+void sort_introsort_loop(int param_1,int param_2,int param_3,undefined4 param_4)
+
+{
+  int iVar1;
+  int local_8;
+  int local_4;
+  
+  iVar1 = param_2 - param_1;
+  do {
+    iVar1 = iVar1 >> 3;
+    if (iVar1 < 0x21) {
+LAB_005104a7:
+      if (1 < iVar1) {
+        FUN_00510830(param_1,param_2,param_4);
+      }
+      return;
+    }
+    if (param_3 < 1) {
+      if (0x20 < iVar1) {
+        if (8 < (int)(param_2 - param_1 & 0xfffffff8U)) {
+          FUN_00510980(param_1,param_4);
+        }
+        FUN_005107e0(param_4);
+        return;
+      }
+      goto LAB_005104a7;
+    }
+    FUN_00510500(&local_8,param_1,param_2,param_4);
+    iVar1 = local_4;
+    param_3 = param_3 / 2 + (param_3 / 2) / 2;
+    if ((int)(local_8 - param_1 & 0xfffffff8U) < (int)(param_2 - local_4 & 0xfffffff8U)) {
+      sort_introsort_loop(param_1,local_8,param_3,param_4);
+      param_1 = iVar1;
+    }
+    else {
+      sort_introsort_loop(local_4,param_2,param_3,param_4);
+      param_2 = local_8;
+    }
+    iVar1 = param_2 - param_1;
+  } while( true );
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_make_heap.c
+====================================================================================================
+// sort_make_heap  (Ghidra: FUN_00510980)
+// address 0x510980, size 70 bytes (0x510980..0x5109c5)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Make_heap(_First, _Last, _Pred): _Adjust_heap from the last parent down to the root.
+// register convention: last in EAX, first and the functor on the stack (0x5104d4..0x5104dc).
+//   // blam-cc: EAX -> last, stack -> (first, predicate)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void sort_adjust_heap(rendered_particle_datum *first, int32_t hole, int32_t bottom,
+    rendered_particle_datum value, int32_t predicate); // 0x510a90, blam-cc: ECX first, EAX hole, EDI bottom, stack (value, predicate)
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Arranges [first, last) into a heap.
+void sort_make_heap(rendered_particle_datum *first, rendered_particle_datum *last, int32_t predicate)
+{
+    int32_t bottom = (int32_t)(last - first);
+    int32_t hole;
+
+    for (hole = bottom / 2; hole > 0; ) {
+        hole--;
+        sort_adjust_heap(first, hole, bottom, first[hole], predicate);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x510980):
+
+void FUN_00510980(int param_1,undefined4 param_2)
+
+{
+  undefined4 *puVar1;
+  undefined4 *puVar2;
+  int in_EAX;
+  int iVar3;
+  
+  iVar3 = (in_EAX - param_1 >> 3) - (in_EAX - param_1 >> 0x1f) >> 1;
+  if (0 < iVar3) {
+    param_1 = param_1 + iVar3 * 8;
+    do {
+      puVar1 = (undefined4 *)(param_1 + -4);
+      puVar2 = (undefined4 *)(param_1 + -8);
+      param_1 = param_1 + -8;
+      iVar3 = iVar3 + -1;
+      FUN_00510a90(*puVar2,*puVar1,param_2);
+    } while (0 < iVar3);
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_median.c
+====================================================================================================
+// sort_median  (Ghidra: FUN_005108f0)
+// address 0x5108f0, size 140 bytes (0x5108f0..0x51097b)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Median(_First, _Mid, _Last, _Pred): Tukey's ninther for more than 40 elements
+//   (step = (count + 1) / 8, four _Med3 calls), else one _Med3.
+// register convention: first in ECX, mid in EBX, last and the functor on the stack (the partition 0x510522..0x510529:
+//   `push pred; lea ecx,[edi-0x8]; push ecx; mov ecx,esi` with EBX = mid).
+//   // blam-cc: ECX -> first, EBX -> mid, stack -> (last, predicate)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void sort_median_of_three(rendered_particle_datum *first, rendered_particle_datum *mid,
+    rendered_particle_datum *last, int32_t predicate); // 0x5109d0, blam-cc: ECX first, EAX mid, EDX last, stack predicate
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Orders first, mid and last (a ninther of nine samples for long ranges) so that *mid is the median.
+void sort_median(rendered_particle_datum *first, rendered_particle_datum *mid, rendered_particle_datum *last,
+    int32_t predicate)
+{
+    int32_t count = (int32_t)(last - first);
+
+    if (count > 40) {
+        int32_t step = (count + 1) / 8;
+
+        sort_median_of_three(first, first + step, first + 2 * step, predicate);
+        sort_median_of_three(mid - step, mid, mid + step, predicate);
+        sort_median_of_three(last - 2 * step, last - step, last, predicate);
+        sort_median_of_three(first + step, mid, last - step, predicate);
+    } else {
+        sort_median_of_three(first, mid, last, predicate);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x5108f0):
+
+void FUN_005108f0(int param_1,undefined4 param_2)
+
+{
+  int in_ECX;
+  
+  if (0x28 < param_1 - in_ECX >> 3) {
+    FUN_005109d0(param_2);
+    FUN_005109d0(param_2);
+    FUN_005109d0(param_2);
+    FUN_005109d0(param_2);
+    return;
+  }
+  FUN_005109d0(param_2);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_median_of_three.c
+====================================================================================================
+// sort_median_of_three  (Ghidra: FUN_005109d0)
+// address 0x5109d0, size 183 bytes (0x5109d0..0x510a86)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Med3(_First, _Mid, _Last, _Pred): three compare-and-swaps.
+// register convention: first in ECX, mid in EAX, last in EDX (moved to ESI at 0x5109d1), the functor on the stack
+//   (all five calls in sort_median set exactly these three registers).
+//   // blam-cc: ECX -> first, EAX -> mid, EDX -> last, stack -> predicate
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+// The inlined comparison of every function in this instantiation (see the file header).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+static void rendered_particle_swap(rendered_particle_datum *a, rendered_particle_datum *b)
+{
+    rendered_particle_datum temporary = *a;
+    *a = *b;
+    *b = temporary;
+}
+
+// Sorts the three elements *first, *mid, *last.
+void sort_median_of_three(rendered_particle_datum *first, rendered_particle_datum *mid,
+    rendered_particle_datum *last, int32_t predicate)
+{
+    if (rendered_particle_compare(mid, first) < 0) {
+        rendered_particle_swap(mid, first);
+    }
+    if (rendered_particle_compare(last, mid) < 0) {
+        rendered_particle_swap(last, mid);
+    }
+    if (rendered_particle_compare(mid, first) < 0) {
+        rendered_particle_swap(mid, first);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x5109d0):
+
+void FUN_005109d0(void)
+
+{
+  undefined4 uVar1;
+  undefined4 uVar2;
+  undefined4 *in_EAX;
+  undefined4 *in_ECX;
+  undefined4 *in_EDX;
+  int iVar3;
+  
+  iVar3 = (int)*(short *)((int)in_EAX + 2) - (int)*(short *)((int)in_ECX + 2);
+  if ((iVar3 == 0) &&
+     (iVar3 = (int)*(short *)(in_EAX + 1) - (int)*(short *)(in_ECX + 1), iVar3 == 0)) {
+    iVar3 = (uint)*(byte *)((int)in_EAX + 6) - (uint)*(byte *)((int)in_ECX + 6);
+  }
+  if (iVar3 < 0) {
+    uVar1 = *in_EAX;
+    uVar2 = in_EAX[1];
+    *in_EAX = *in_ECX;
+    in_EAX[1] = in_ECX[1];
+    *in_ECX = uVar1;
+    in_ECX[1] = uVar2;
+  }
+  iVar3 = (int)*(short *)((int)in_EDX + 2) - (int)*(short *)((int)in_EAX + 2);
+  if ((iVar3 == 0) &&
+     (iVar3 = (int)*(short *)(in_EDX + 1) - (int)*(short *)(in_EAX + 1), iVar3 == 0)) {
+    iVar3 = (uint)*(byte *)((int)in_EDX + 6) - (uint)*(byte *)((int)in_EAX + 6);
+  }
+  if (iVar3 < 0) {
+    uVar1 = *in_EDX;
+    uVar2 = in_EDX[1];
+    *in_EDX = *in_EAX;
+    in_EDX[1] = in_EAX[1];
+    *in_EAX = uVar1;
+    in_EAX[1] = uVar2;
+  }
+  iVar3 = (int)*(short *)((int)in_EAX + 2) - (int)*(short *)((int)in_ECX + 2);
+  if ((iVar3 == 0) &&
+     (iVar3 = (int)*(short *)(in_EAX + 1) - (int)*(short *)(in_ECX + 1), iVar3 == 0)) {
+    iVar3 = (uint)*(byte *)((int)in_EAX + 6) - (uint)*(byte *)((int)in_ECX + 6);
+  }
+  if (iVar3 < 0) {
+    uVar1 = *in_EAX;
+    uVar2 = in_EAX[1];
+    *in_EAX = *in_ECX;
+    in_EAX[1] = in_ECX[1];
+    *in_ECX = uVar1;
+    in_ECX[1] = uVar2;
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_push_heap.c
+====================================================================================================
+// sort_push_heap  (Ghidra: FUN_00510b20)
+// address 0x510b20, size 122 bytes (0x510b20..0x510b99)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Push_heap(_First, _Hole, _Top, _Val, _Pred): move parents down while they order before
+//   the value, then store it.
+// register convention: first in ESI (left there by sort_adjust_heap), hole in EAX, then top, the value and the
+//   functor on the stack (0x510afa..0x510b0a). The value arrives as two dwords: 0x510b45 reads
+//   definition_index as `[esp+0x14] sar 16` (signed), cluster_index as the low word of the second
+//   dword (`movsx edx,bx`) and first_person as its byte 2.
+//   // blam-cc: ESI -> first, EAX -> hole, stack -> (top, value, predicate)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+// The inlined comparison of every function in this instantiation (see the file header).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+// Moves `value` up from `hole` (no higher than `top`) to its heap position.
+void sort_push_heap(rendered_particle_datum *first, int32_t hole, int32_t top,
+    rendered_particle_datum value, int32_t predicate)
+{
+    int32_t index;
+
+    for (index = (hole - 1) / 2; top < hole && rendered_particle_compare(&first[index], &value) < 0;
+        index = (hole - 1) / 2) {
+        first[hole] = first[index];
+        hole = index;
+    }
+    first[hole] = value;
+}
+
+#if 0
+Original Ghidra decompilation (0x510b20):
+
+void FUN_00510b20(int param_1,int param_2,uint param_3)
+
+{
+  int in_EAX;
+  int iVar1;
+  int iVar2;
+  int unaff_ESI;
+  
+  while (param_1 < in_EAX) {
+    iVar1 = (in_EAX + -1) / 2;
+    iVar2 = (int)*(short *)(unaff_ESI + 2 + iVar1 * 8) - (param_2 >> 0x10);
+    if ((iVar2 == 0) &&
+       (iVar2 = (int)*(short *)(unaff_ESI + 4 + iVar1 * 8) - (int)(short)param_3, iVar2 == 0)) {
+      iVar2 = (uint)*(byte *)(unaff_ESI + 6 + iVar1 * 8) - (param_3 >> 0x10 & 0xff);
+    }
+    if (-1 < iVar2) break;
+    *(undefined4 *)(unaff_ESI + in_EAX * 8) = *(undefined4 *)(unaff_ESI + iVar1 * 8);
+    *(undefined4 *)(unaff_ESI + 4 + in_EAX * 8) = *(undefined4 *)(unaff_ESI + 4 + iVar1 * 8);
+    in_EAX = iVar1;
+  }
+  *(uint *)(unaff_ESI + 4 + in_EAX * 8) = param_3;
+  *(int *)(unaff_ESI + in_EAX * 8) = param_2;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_rotate.c
+====================================================================================================
+// sort_rotate  (Ghidra: FUN_00510ba0)
+// address 0x510ba0, size 173 bytes (0x510ba0..0x510c4f)
+// name confidence: 0.8   rewrite confidence: 0.85
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Rotate(_First, _Mid, _Last) for random-access iterators: gcd(shift, count) cycles, each
+//   percolated around once. No comparisons, so no functor argument.
+// register convention: mid in EAX, last in EBX, first as the one stack argument (0x510883..0x510886: `push edi;
+//   mov eax,esi` with EBX = esi + 8).
+//   // blam-cc: EAX -> mid, EBX -> last, stack -> first
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+// Rotates [first, last) so that *mid becomes the first element.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+void sort_rotate(rendered_particle_datum *first, rendered_particle_datum *mid, rendered_particle_datum *last)
+{
+    int32_t shift = (int32_t)(mid - first);
+    int32_t count = (int32_t)(last - first);
+    int32_t factor;
+
+    for (factor = shift; factor != 0; ) {
+        int32_t remainder = count % factor;
+        count = factor;
+        factor = remainder;
+    }
+
+    if (count < last - first) {
+        for (; count > 0; count--) {
+            rendered_particle_datum *hole = first + count;
+            rendered_particle_datum *next = hole;
+            rendered_particle_datum hole_value = *hole;
+            rendered_particle_datum *next1 = (next + shift == last) ? first : next + shift;
+
+            while (next1 != hole) {
+                *next = *next1;
+                next = next1;
+                next1 = (shift < last - next1) ? next1 + shift : first + (shift - (last - next1));
+            }
+            *next = hole_value;
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x510ba0):
+
+void FUN_00510ba0(undefined4 *param_1)
+
+{
+  undefined4 uVar1;
+  undefined4 uVar2;
+  int iVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  int iVar6;
+  undefined4 *puVar7;
+  int in_EAX;
+  int iVar8;
+  int iVar9;
+  undefined4 *unaff_EBX;
+  undefined4 *puVar10;
+  int iVar11;
+  
+  puVar5 = param_1;
+  iVar8 = (int)unaff_EBX - (int)param_1 >> 3;
+  iVar11 = in_EAX - (int)param_1 >> 3;
+  iVar6 = iVar11;
+  iVar9 = iVar8;
+  while (iVar3 = iVar6, iVar3 != 0) {
+    iVar6 = iVar9 % iVar3;
+    iVar9 = iVar3;
+  }
+  if ((iVar9 < iVar8) && (0 < iVar9)) {
+    puVar10 = param_1 + iVar9 * 2;
+    param_1 = (undefined4 *)iVar9;
+    do {
+      uVar1 = *puVar10;
+      uVar2 = puVar10[1];
+      puVar7 = puVar10 + iVar11 * 2;
+      puVar4 = puVar10;
+      if (puVar10 + iVar11 * 2 == unaff_EBX) {
+        puVar7 = puVar5;
+      }
+      while (puVar7 != puVar10) {
+        *puVar4 = *puVar7;
+        puVar4[1] = puVar7[1];
+        iVar9 = (int)unaff_EBX - (int)puVar7 >> 3;
+        puVar4 = puVar7;
+        if (iVar11 < iVar9) {
+          puVar7 = puVar7 + iVar11 * 2;
+        }
+        else {
+          puVar7 = puVar5 + (iVar11 - iVar9) * 2;
+        }
+      }
+      puVar4[1] = uVar2;
+      puVar10 = puVar10 + -2;
+      param_1 = (undefined4 *)((int)param_1 + -1);
+      *puVar4 = uVar1;
+    } while (param_1 != (undefined4 *)0x0);
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/sort_unguarded_partition.c
+====================================================================================================
+// sort_unguarded_partition  (Ghidra: FUN_00510500)
+// address 0x510500, size 734 bytes (0x510500..0x5107dd)
+// name confidence: 0.8   rewrite confidence: 0.8
+// evidence: objdump -d -M intel bin/halo.exe 0x510410..0x510c4f. The ten functions 0x510410..0x510ba0 are
+//   one MSVC 7.1 (Dinkumware 4.05) std::sort instantiation over rendered_particle_datum with a
+//   comparison functor, called once from render_particles (0x50fd90, src/render/render_particles.c).
+//   Every function was matched instruction by instruction against the 7.1 <algorithm> template it
+//   instantiates (named below). Following the project convention for the shell hwreq STL code, the
+//   instantiation is rewritten as plain C over the concrete element type.
+//   The comparison is inlined everywhere as `compare(a, b) < 0`, compare = the difference of the
+//   sign-extended words at +0x02 (definition_index, movsx), then +0x04 (cluster_index), then the
+//   zero-extended byte at +0x06 (first_person); types/render.h documents the same key.
+//   The functor itself is empty: it is passed by value as one never-read stack dword (`predicate`).
+// template: std::_Unguarded_partition(_First, _Last, _Pred): median (ninther) pivot, grows the run of
+//   elements equal to the pivot [pfirst, plast), partitions the rest around it and returns that
+//   equal run as a pair.
+// register convention: plain cdecl with MSVC's hidden return-slot pointer first (0x510449 reads the pair back out
+//   of the caller's frame; 0x5107cb..0x5107d7 stores [ecx] = pfirst, [ecx+4] = plast, returns ECX).
+//   // blam-cc: stack -> (result, first, last, predicate), returns result
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "effects.h"
+#include "interface.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+typedef struct rendered_particle_range { // std::pair<iterator, iterator>, returned through a hidden pointer
+    rendered_particle_datum *first;
+    rendered_particle_datum *second;
+} rendered_particle_range;
+
+extern void sort_median(rendered_particle_datum *first, rendered_particle_datum *mid,
+    rendered_particle_datum *last, int32_t predicate); // 0x5108f0, blam-cc: ECX first, EBX mid, stack (last, predicate)
+
+// The inlined comparison of every function in this instantiation (see the file header).
+static int32_t rendered_particle_compare(const rendered_particle_datum *a, const rendered_particle_datum *b)
+{
+    int32_t difference = (int32_t)(int16_t)a->definition_index - (int32_t)(int16_t)b->definition_index;
+
+    if (difference == 0) {
+        difference = (int32_t)a->cluster_index - (int32_t)b->cluster_index;
+        if (difference == 0) {
+            difference = (int32_t)a->first_person - (int32_t)b->first_person;
+        }
+    }
+    return difference;
+}
+
+static void rendered_particle_swap(rendered_particle_datum *a, rendered_particle_datum *b)
+{
+    rendered_particle_datum temporary = *a;
+    *a = *b;
+    *b = temporary;
+}
+
+// Partitions [first, last) around a median pivot and returns the range of elements equal to it.
+rendered_particle_range *sort_unguarded_partition(rendered_particle_range *result,
+    rendered_particle_datum *first, rendered_particle_datum *last, int32_t predicate)
+{
+    rendered_particle_datum *mid = first + (last - first) / 2;
+    rendered_particle_datum *pfirst;
+    rendered_particle_datum *plast;
+    rendered_particle_datum *gfirst;
+    rendered_particle_datum *glast;
+
+    sort_median(first, mid, last - 1, predicate);
+    pfirst = mid;
+    plast = pfirst + 1;
+
+    while (first < pfirst &&
+        !(rendered_particle_compare(pfirst - 1, pfirst) < 0) &&
+        !(rendered_particle_compare(pfirst, pfirst - 1) < 0)) {
+        pfirst--;
+    }
+    while (plast < last &&
+        !(rendered_particle_compare(plast, pfirst) < 0) &&
+        !(rendered_particle_compare(pfirst, plast) < 0)) {
+        plast++;
+    }
+
+    gfirst = plast;
+    glast = pfirst;
+    for (;;) {
+        for (; gfirst < last; gfirst++) {
+            if (rendered_particle_compare(pfirst, gfirst) < 0) {
+                continue;
+            } else if (rendered_particle_compare(gfirst, pfirst) < 0) {
+                break;
+            } else {
+                rendered_particle_swap(plast++, gfirst);
+            }
+        }
+        for (; first < glast; glast--) {
+            if (rendered_particle_compare(glast - 1, pfirst) < 0) {
+                continue;
+            } else if (rendered_particle_compare(pfirst, glast - 1) < 0) {
+                break;
+            } else {
+                rendered_particle_swap(--pfirst, glast - 1);
+            }
+        }
+        if (glast == first && gfirst == last) {
+            result->first = pfirst;
+            result->second = plast;
+            return result;
+        }
+
+        if (glast == first) {
+            // no room at the bottom: rotate the pivot run upward
+            if (plast != gfirst) {
+                rendered_particle_swap(pfirst, plast);
+            }
+            plast++;
+            rendered_particle_swap(pfirst++, gfirst++);
+        } else if (gfirst == last) {
+            // no room at the top: rotate the pivot run downward
+            if (--glast != --pfirst) {
+                rendered_particle_swap(glast, pfirst);
+            }
+            rendered_particle_swap(pfirst, --plast);
+        } else {
+            rendered_particle_swap(gfirst++, --glast);
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x510500):
+
+uint * FUN_00510500(uint *param_1,undefined4 *param_2,undefined4 *param_3,undefined4 param_4)
+
+{
+  undefined4 uVar1;
+  undefined4 uVar2;
+  undefined4 *puVar3;
+  undefined4 *puVar4;
+  undefined4 *puVar5;
+  int iVar6;
+  short *psVar7;
+  undefined4 *puVar8;
+  undefined4 *puVar9;
+  undefined4 *puVar10;
+  undefined4 *local_10;
+  undefined4 *local_c;
+  
+  puVar3 = param_2 + (((int)param_3 - (int)param_2 >> 3) - ((int)param_3 - (int)param_2 >> 0x1f) >>
+                     1) * 2;
+  FUN_005108f0(param_3 + -2,param_4);
+  puVar8 = puVar3 + 2;
+  if (param_2 < puVar3) {
+    psVar7 = (short *)(puVar3 + -1);
+    do {
+      iVar6 = (int)psVar7[-1] - (int)psVar7[3];
+      if ((iVar6 == 0) && (iVar6 = (int)*psVar7 - (int)psVar7[4], iVar6 == 0)) {
+        iVar6 = (uint)*(byte *)(psVar7 + 1) - (uint)*(byte *)(psVar7 + 5);
+      }
+      if (iVar6 < 0) break;
+      iVar6 = (int)psVar7[3] - (int)psVar7[-1];
+      if ((iVar6 == 0) && (iVar6 = (int)psVar7[4] - (int)*psVar7, iVar6 == 0)) {
+        iVar6 = (uint)*(byte *)(psVar7 + 5) - (uint)*(byte *)(psVar7 + 1);
+      }
+      if (iVar6 < 0) break;
+      puVar3 = puVar3 + -2;
+      psVar7 = psVar7 + -4;
+    } while (param_2 < puVar3);
+  }
+  puVar9 = puVar8;
+  local_10 = puVar8;
+  local_c = puVar3;
+  puVar4 = puVar3;
+  if (puVar8 < param_3) {
+    while( true ) {
+      iVar6 = (int)*(short *)((int)puVar8 + 2) - (int)*(short *)((int)puVar3 + 2);
+      if ((iVar6 == 0) &&
+         (iVar6 = (int)*(short *)(puVar8 + 1) - (int)*(short *)(puVar3 + 1), iVar6 == 0)) {
+        iVar6 = (uint)*(byte *)((int)puVar8 + 6) - (uint)*(byte *)((int)puVar3 + 6);
+      }
+      puVar9 = puVar8;
+      local_10 = puVar8;
+      if (iVar6 < 0) break;
+      iVar6 = (int)*(short *)((int)puVar3 + 2) - (int)*(short *)((int)puVar8 + 2);
+      if ((iVar6 == 0) &&
+         (iVar6 = (int)*(short *)(puVar3 + 1) - (int)*(short *)(puVar8 + 1), iVar6 == 0)) {
+        iVar6 = (uint)*(byte *)((int)puVar3 + 6) - (uint)*(byte *)((int)puVar8 + 6);
+      }
+      if ((iVar6 < 0) ||
+         (puVar8 = puVar8 + 2, puVar9 = puVar8, local_10 = puVar8, param_3 <= puVar8)) break;
+    }
+  }
+joined_r0x005105fc:
+  do {
+    if (param_3 <= puVar8) {
+LAB_00510678:
+      puVar10 = puVar3;
+      if (param_2 < puVar3) {
+        psVar7 = (short *)(puVar3 + -1);
+        puVar3 = puVar4;
+        do {
+          iVar6 = (int)psVar7[-1] - (int)*(short *)((int)puVar3 + 2);
+          if ((iVar6 == 0) &&
+             (iVar6 = (int)*psVar7 - (int)*(short *)(puVar3 + 1), puVar9 = local_10, iVar6 == 0)) {
+            iVar6 = (uint)*(byte *)(psVar7 + 1) - (uint)*(byte *)((int)puVar3 + 6);
+          }
+          puVar4 = puVar3;
+          if (-1 < iVar6) {
+            iVar6 = (int)*(short *)((int)puVar3 + 2) - (int)psVar7[-1];
+            if ((iVar6 == 0) && (iVar6 = (int)*(short *)(puVar3 + 1) - (int)*psVar7, iVar6 == 0)) {
+              iVar6 = (uint)*(byte *)((int)puVar3 + 6) - (uint)*(byte *)(psVar7 + 1);
+            }
+            puVar10 = local_c;
+            if (iVar6 < 0) break;
+            uVar1 = puVar3[-2];
+            uVar2 = puVar3[-1];
+            puVar4 = puVar3 + -2;
+            *puVar4 = *(undefined4 *)(psVar7 + -2);
+            puVar3[-1] = *(undefined4 *)psVar7;
+            *(undefined4 *)(psVar7 + -2) = uVar1;
+            *(undefined4 *)psVar7 = uVar2;
+          }
+          puVar10 = local_c + -2;
+          psVar7 = psVar7 + -4;
+          puVar3 = puVar4;
+          local_c = puVar10;
+        } while (param_2 < puVar10);
+      }
+      if (puVar10 == param_2) {
+        if (puVar8 == param_3) {
+          param_1[1] = (uint)puVar9;
+          *param_1 = (uint)puVar4;
+          return param_1;
+        }
+        if (puVar9 != puVar8) {
+          uVar1 = *puVar4;
+          uVar2 = puVar4[1];
+          *puVar4 = *puVar9;
+          puVar4[1] = puVar9[1];
+          *puVar9 = uVar1;
+          puVar9[1] = uVar2;
+        }
+        uVar1 = *puVar4;
+        uVar2 = puVar4[1];
+        *puVar4 = *puVar8;
+        puVar4[1] = puVar8[1];
+        puVar9 = puVar9 + 2;
+        *puVar8 = uVar1;
+        puVar8[1] = uVar2;
+        puVar8 = puVar8 + 2;
+        puVar3 = puVar10;
+        local_10 = puVar9;
+        puVar4 = puVar4 + 2;
+      }
+      else {
+        puVar3 = puVar10 + -2;
+        local_c = puVar3;
+        if (puVar8 == param_3) {
+          puVar5 = puVar4 + -2;
+          if (puVar3 != puVar5) {
+            uVar1 = *puVar3;
+            uVar2 = puVar10[-1];
+            *puVar3 = *puVar5;
+            puVar10[-1] = puVar4[-1];
+            *puVar5 = uVar1;
+            puVar4[-1] = uVar2;
+          }
+          uVar1 = *puVar5;
+          uVar2 = puVar4[-1];
+          local_10 = puVar9 + -2;
+          *puVar5 = puVar9[-2];
+          puVar4[-1] = puVar9[-1];
+          *local_10 = uVar1;
+          puVar9[-1] = uVar2;
+          puVar9 = local_10;
+          puVar4 = puVar5;
+        }
+        else {
+          uVar1 = *puVar8;
+          uVar2 = puVar8[1];
+          *puVar8 = *puVar3;
+          puVar8[1] = puVar10[-1];
+          *puVar3 = uVar1;
+          puVar10[-1] = uVar2;
+          puVar8 = puVar8 + 2;
+        }
+      }
+      goto joined_r0x005105fc;
+    }
+    iVar6 = (int)*(short *)((int)puVar4 + 2) - (int)*(short *)((int)puVar8 + 2);
+    if ((iVar6 == 0) &&
+       (iVar6 = (int)*(short *)(puVar4 + 1) - (int)*(short *)(puVar8 + 1), puVar3 = local_c,
+       iVar6 == 0)) {
+      iVar6 = (uint)*(byte *)((int)puVar4 + 6) - (uint)*(byte *)((int)puVar8 + 6);
+    }
+    if (-1 < iVar6) {
+      iVar6 = (int)*(short *)((int)puVar8 + 2) - (int)*(short *)((int)puVar4 + 2);
+      if ((iVar6 == 0) &&
+         (iVar6 = (int)*(short *)(puVar8 + 1) - (int)*(short *)(puVar4 + 1), iVar6 == 0)) {
+        iVar6 = (uint)*(byte *)((int)puVar8 + 6) - (uint)*(byte *)((int)puVar4 + 6);
+      }
+      local_10 = puVar9;
+      if (iVar6 < 0) goto LAB_00510678;
+      uVar1 = *puVar9;
+      uVar2 = puVar9[1];
+      *puVar9 = *puVar8;
+      puVar9[1] = puVar8[1];
+      puVar8[1] = uVar2;
+      puVar9 = puVar9 + 2;
+      *puVar8 = uVar1;
+      puVar3 = local_c;
+    }
+    puVar8 = puVar8 + 2;
+    local_10 = puVar9;
+  } while( true );
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

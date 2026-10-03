@@ -1,0 +1,28 @@
+// unit_get_grenade_count  (Ghidra: unit_get_grenade_count, already named)
+// address 0x56e030, size 44 bytes, name confidence 0.5, rewrite confidence 0.8
+// functions.md: "Returns the ammo count for a given grenade-type slot (index in CX) held by the
+// unit."
+// evidence: types/units.h unit_data.grenade_counts[2] (0x31e).
+// blam-cc: in_EAX -> unit_index, in_CX -> grenade_type.
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // blam-cc: in_EAX, in_CX | int32_t unit_get_grenade_count(uint32_t unit_index, int16_t grenade_type)
+
+#if 0
+Original Ghidra decompilation (0x56e030):
+
+uint unit_get_grenade_count(void)
+
+{
+  uint in_EAX;
+  short in_CX;
+
+  if (in_CX != -1) {
+    return CONCAT22((short)((in_EAX & 0xffff) * 3 >> 0x10),
+                    (short)*(char *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 +
+                                             (in_EAX & 0xffff) * 0xc) + 0x31e + (int)in_CX));
+  }
+  return in_EAX & 0xffff0000;
+}
+#endif

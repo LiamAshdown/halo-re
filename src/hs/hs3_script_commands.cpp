@@ -1,0 +1,159 @@
+#include "halo/hs/hs3_commands.hpp"
+#include "win32.h"
+
+extern "C" {
+extern void hs_thread_return(int32_t value, uint32_t thread_index);
+extern int16_t global_structure_bsp_index;
+extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
+    int16_t *expected_types, char first);
+extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index);
+extern void player_update_history_log_set_name_filter(char *name);
+extern uint8_t ui_widget_show_path_flag;
+extern void hs_unbind_control(const char *device_class_name, const char *input_name);
+extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
+extern data_array *hs_thread_data;
+extern data_array *hs_syntax_data;
+extern datum_index hs_thread_find_by_script_index(int16_t script_index);
+extern void hs_thread_restart(uint32_t thread_index);
+}
+
+namespace halo::hs::part3 {
+
+/**
+ * Evaluate handler of the hs script function `structure_bsp_index`: reads its typed arguments from the calling
+ * thread and hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x47f670
+ */
+void ScriptCommands::evaluate_structure_bsp_index(int16_t function_index, uint32_t thread_index, char first) const
+{
+    hs_thread_return((int32_t)(uint16_t)global_structure_bsp_index, thread_index);
+}
+
+/**
+ * Evaluate handler of the hs script function `switch_bsp`: reads its typed arguments from the calling thread and
+ * hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x47f620
+ */
+void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread_index, char first) const
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+    scenario_structure_bsp_switch(*(int16_t *)&arguments[0]);
+    hs_thread_return(0, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of the hs script function `thread_sleep`: reads its typed arguments from the calling thread
+ * and hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x482640
+ */
+void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thread_index, char first) const
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        Sleep((uint32_t)arguments[0]);
+        hs_thread_return(0, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of the hs script function `track_remote_player_position_updates`: reads its typed arguments
+ * from the calling thread and hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x482560
+ */
+void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t function_index, uint32_t thread_index, char first) const
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        player_update_history_log_set_name_filter((char *)arguments[0]);
+        hs_thread_return(0, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of the hs script function `ui_widget_show_path`: reads its typed arguments from the calling
+ * thread and hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x4814d0
+ */
+void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32_t thread_index, char first) const
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+    ui_widget_show_path_flag = *(uint8_t *)&arguments[0];
+    hs_thread_return(0, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of the hs script function `unbind`: reads its typed arguments from the calling thread and
+ * hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x482430
+ */
+void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_index, char first) const
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        hs_unbind_control((const char *)arguments[0], (const char *)arguments[1]);
+        hs_thread_return(0, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of the hs script function `version`: reads its typed arguments from the calling thread and
+ * hands the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x47f6a0
+ */
+void ScriptCommands::evaluate_version(int16_t function_index, uint32_t thread_index, char first) const
+{
+    console_print_error_va(0, "halo pc 01.00.10.0621 Apr 16 2014 15:54:48");
+    hs_thread_return(0, thread_index);
+}
+
+/**
+ * Evaluate handler of the hs script function `wake`: reads its typed arguments from the calling thread and hands
+ * the result back through the thread, exactly as the original handler did.
+ *
+ * @address 0x489a20
+ */
+void ScriptCommands::evaluate_wake(int16_t function_index, uint32_t thread_index, char first) const
+{
+    uint8_t *syntax = (uint8_t *)hs_syntax_data->data;
+    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218 + 0x10);
+    uint32_t call_node = *(uint32_t *)(frame + 4) & 0xffff;
+    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & 0xffff;
+    uint32_t argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & 0xffff;
+    datum_index thread = hs_thread_find_by_script_index(*(int16_t *)(syntax + argument * 0x14 + 0x10));
+
+    (void)function_index;
+    (void)first;
+    if (thread != k_datum_index_none) {
+        hs_thread_restart(thread);
+    }
+    hs_thread_return(0, thread_index);
+}
+
+}

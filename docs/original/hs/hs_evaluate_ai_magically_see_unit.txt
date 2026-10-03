@@ -1,0 +1,17 @@
+// hs_evaluate_ai_magically_see_unit  (not a Ghidra function; the evaluate handler of hs function 175 "ai_magically_see_unit" (ai, unit -> void))
+// address 0x47d5c0, size 68 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_47d5c0 trapped.
+// WRITTEN 2026-09-28 from objdump 0x47d5c0..0x47d603: ai_reference_respawn_member (0x432df0) with the ai and the
+//   unit; returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x432df0, blam-cc: EAX, EDI
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x432df0, blam-cc: EAX, EDI | extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);

@@ -1,0 +1,104 @@
+#include "halo/projectiles/network.hpp"
+
+extern "C" {
+extern network_id_table *object_network_id_table;
+extern uint8_t network_message_scratch[0x7ff8];
+extern int32_t hash_table_get(hash_table *table, uint32_t key);
+extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
+extern network_server_globals *network_server;
+extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
+extern data_array *object_data;
+extern void *network_object_index_cache;
+extern void network_index_cache_remove(void *globals, uint32_t object_index);
+void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index);
+void projectile_send_detonation(datum_index projectile_index);
+}
+
+namespace halo::projectiles {
+
+/**
+ * Broadcasts a projectile-attach network event: the projectile's own hash, the hash of the
+ * object it just stuck to, and the marker it attached at. Sent by the attach response
+ * (projectile_response, this batch) when both ends are authoritative.
+ *
+ * Register convention in the original: projectile index in ECX, parent object index in EDI
+ * (both confirmed by `cmp ecx,0xffffffff` / `cmp edi,0xffffffff` immediately guarding each
+ * hash lookup); the marker index is Ghidra's own recognized stack parameter (`param_1`, used
+ * only for its low 16 bits).
+ *
+ * @address 0x4bf120
+ */
+void ProjectileNetwork::send_attach(datum_index parent_object_index, int16_t marker_index)
+{
+    datum_index projectile_index = (datum_index)handle;
+
+    projectile_attach_message message;
+    void *items[1];
+
+    message.object_hash = 0;
+    if (projectile_index != (datum_index)0xffffffff) {
+        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
+        if (message.object_hash == -1) {
+            message.object_hash = 0;
+        }
+    }
+    message.parent_hash = 0;
+    if (parent_object_index != (datum_index)0xffffffff) {
+        message.parent_hash = hash_table_get(&object_network_id_table->id_to_index, parent_object_index);
+        if (message.parent_hash == -1) {
+            message.parent_hash = 0;
+        }
+    }
+    message.parent_marker_index = marker_index;
+
+    items[0] = &message;
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_attach, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+}
+
+/**
+ * Broadcasts a projectile-detonation network event (thrown-grenade projectiles only; see
+ * projectile_update's thrown_grenade check) with the projectile's own hash and its current
+ * position, forces the object into network_role 3 (the "waiting to be deleted by the network"
+ * role the receiver 0x4bdb40 also uses), and, unless the object is already pending delete,
+ * notifies the pooled-node globals of the role change.
+ *
+ * @address 0x4bda60
+ */
+void ProjectileNetwork::send_detonation()
+{
+    datum_index projectile_index = (datum_index)handle;
+
+    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
+    projectile_detonation_message message;
+    void *items[1];
+
+    message.object_hash = 0;
+    if (projectile_index != (datum_index)0xffffffff) {
+        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
+    }
+    message.position = obj->position;
+
+    items[0] = &message;
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+
+    obj->network_role = 3;
+    if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {
+        network_index_cache_remove(&network_object_index_cache, projectile_index); 
+    }
+}
+
+}
+
+extern "C" {
+
+void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index)
+{
+    halo::projectiles::ProjectileNetwork(projectile_index).send_attach(parent_object_index, marker_index);
+}
+
+void projectile_send_detonation(datum_index projectile_index)
+{
+    halo::projectiles::ProjectileNetwork(projectile_index).send_detonation();
+}
+
+}

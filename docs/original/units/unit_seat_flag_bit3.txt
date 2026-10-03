@@ -1,0 +1,33 @@
+// unit_seat_flag_bit3  (Ghidra: FUN_0056cd70)
+// address 0x56cd70, size 84 bytes, name confidence 0.3, rewrite confidence 0.5
+// functions.md: "Returns flag bit 3 from the unit's seat definition at index in_CX."
+// evidence: types/tags.h UnitSeat.flags bit 3 = "gunner" per UnitSeatFlags order.
+// blam-cc: in_EAX -> unit_index, in_CX -> seat_index.
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // blam-cc: in_EAX, in_CX | uint8_t unit_seat_flag_bit3(uint32_t unit_index, int16_t seat_index)
+
+#if 0
+Original Ghidra decompilation (0x56cd70):
+
+uint FUN_0056cd70(void)
+
+{
+  int iVar1;
+  uint in_EAX;
+  uint uVar2;
+  short in_CX;
+
+  iVar1 = *(int *)((**(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc) &
+                   0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+  uVar2 = DAT_0087bc14 & 0xffffff00;
+  if (-1 < in_CX) {
+    if ((int)in_CX < *(int *)(iVar1 + 0x2e4)) {
+      uVar2 = *(uint *)(in_CX * 0x11c + *(int *)(iVar1 + 0x2e8)) >> 3 & 0xffffff01;
+    }
+  }
+  return uVar2;
+}
+#endif

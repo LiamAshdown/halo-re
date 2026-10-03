@@ -1,0 +1,114 @@
+// unit_begin_throw_grenade  (Ghidra: unit_begin_throw_grenade, already named)
+// address 0x56e080, size 472 bytes, name confidence 0.5, rewrite confidence 0.6
+// functions.md: "Initiates the unit's grenade-throw sequence: validates the current mode,
+// records timing/aim data, and starts the throw animation state machine."
+// evidence: types/units.h unit_data.current_weapon_index (0x2f2), .weapons[4] (0x2f8),
+//   .current_grenade_index (0x31c), .grenade_counts[2] (0x31e), .animation_state (0x2a3),
+//   .unknown_2a4 (0x2a4), .overlays[0] (0x2aa), .throwing_grenade_state (0x28d),
+//   .throwing_grenade_counter (0x28e), .throwing_grenade_duration (0x290); types/objects.h
+//   object.animation_index (0xd0), .animation_frame (0xd2); ModelAnimationsAnimation
+//   (0xb4 stride, animations reflexive pointer at ModelAnimations+0x78, established in
+//   unit_update_stance_and_jump.c); .key_frame_index at +0x34 (confirmed via offsetof).
+// blam-cc: EDI -> unit_index, stack -> direction (a real_vector2d pointer or null; the draft read it as a flag).
+// UNSURE: weapon_prevents_grenade_throwing/weapon_reset_triggers/unit_invalidate_local_player_zoom_level/effect_new_on_object's real roles are not recovered;
+// the biped-extension byte at object+0x505 is out of this module's struct coverage.
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x4018e0, ECX | extern real vector2d_normalize_with_length(real_vector2d *v);
+  // 0x4507a0, blam-cc: EAX -> creator_object_index, ECX -> definition_index, stack -> the other six | 
+  // 0x4726f0, UNSURE signature | extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);
+  // 0x492730, EAX, stack | extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
+  // 0x4c2f30, ECX | extern uint32_t weapon_prevents_grenade_throwing(datum_index item_index);
+  // 0x4c4b50, UNSURE signature | extern void weapon_reset_triggers(datum_index weapon_index);
+  // 0x4f6ec0 | extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
+  // 0x565f90 | extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);
+  // 0x5704d0, EAX, ECX | extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy);
+  // blam-cc: EDI, stack | uint8_t unit_begin_throw_grenade(uint32_t unit_index, const real_vector2d *direction)
+  /* 0x56e11f: ECX = the weapon */ | if (weapon_prevents_grenade_throwing(current_weapon)   != 0) {
+  // UNSURE: biped-extension field, out of scope | *((uint8_t *)biped_check + 0x505) = 0;
+  // UNSURE: state value assumed = throwing_grenade | if (unit_try_set_animation_state(unit_index, 0x21) == 0) {
+  // 0x56e1b9: a given direction aims the throw; without one, the unit's aiming vector (+0x23c) flattened to | 
+  // 2D and normalized does, when it has any length. | 
+  // 0x56e22f..0x56e23c: EAX = the unit, ECX = the grenade entry's +0x10 effect, stack: unit, -1, 0.. | 
+
+#if 0
+Original Ghidra decompilation (0x56e080):
+
+undefined4 unit_begin_throw_grenade(int param_1)
+
+{
+  uint *puVar1;
+  int iVar2;
+  char cVar3;
+  int iVar4;
+  short sVar5;
+  uint uVar6;
+  uint unaff_EDI;
+  float10 fVar7;
+
+  iVar4 = (unaff_EDI & 0xffff) * 0xc;
+  puVar1 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar4);
+  iVar2 = *(int *)((*puVar1 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+  uVar6 = 0xffffffff;
+  if (*(short *)((int)puVar1 + 0x2f2) != -1) {
+    uVar6 = puVar1[*(short *)((int)puVar1 + 0x2f2) + 0xbe];
+  }
+  iVar4 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + iVar4);
+  sVar5 = (short)*(char *)(iVar4 + 0x31c);
+  if ((sVar5 != -1) && ('\0' < *(char *)(sVar5 + 0x31e + iVar4))) {
+    switch(*(undefined1 *)((int)puVar1 + 0x2a3)) {
+    case 0x17:
+    case 0x18:
+    case 0x19:
+    case 0x1a:
+    case 0x1b:
+    case 0x1d:
+    case 0x1e:
+    case 0x1f:
+    case 0x20:
+    case 0x21:
+    case 0x22:
+    case 0x23:
+    case 0x27:
+    case 0x29:
+      break;
+    default:
+      cVar3 = FUN_004c2f30();
+      if (cVar3 == '\0') {
+        if (uVar6 != 0xffffffff) {
+          FUN_004c4b50(uVar6);
+        }
+        iVar4 = object_try_and_get(1);
+        if (iVar4 != 0) {
+          *(undefined1 *)(iVar4 + 0x505) = 0;
+        }
+        *(undefined1 *)(puVar1 + 0xa9) = 0;
+        *(undefined2 *)((int)puVar1 + 0x2aa) = 0xffff;
+        cVar3 = unit_try_set_animation_state();
+        iVar4 = DAT_0087bc14;
+        if (cVar3 != '\0') {
+          *(undefined1 *)((int)puVar1 + 0x28d) = 1;
+          *(undefined2 *)((int)puVar1 + 0x28e) = 0;
+          *(short *)(puVar1 + 0xa4) =
+               (*(short *)(*(int *)(*(int *)((*(uint *)(iVar2 + 0x44) & 0xffff) * 0x20 + 0x14 +
+                                            iVar4) + 0x78) + 0x34 + (short)puVar1[0x34] * 0xb4) -
+               *(short *)((int)puVar1 + 0xd2)) + 1;
+          if ((param_1 != 0) ||
+             (fVar7 = (float10)vector2d_normalize_with_length(), (float10)0.0 < fVar7)) {
+            FUN_005704d0();
+          }
+          FUN_00492730(0x11);
+          FUN_004726f0();
+          if (*(int *)((char)puVar1[199] * 0x44 + *(int *)(DAT_00746fa0 + 300) + 0x10) != -1) {
+            FUN_004507a0();
+          }
+          return 1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+#endif

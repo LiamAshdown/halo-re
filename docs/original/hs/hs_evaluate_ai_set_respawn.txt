@@ -1,0 +1,19 @@
+// hs_evaluate_ai_set_respawn  (not a Ghidra function; the evaluate handler of hs function 170 "ai_set_respawn" (ai, boolean -> void))
+// address 0x47d3b0, size 133 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_47d3b0 trapped.
+// WRITTEN 2026-09-28 from objdump 0x47d3b0..0x47d434: with a valid encounter reference while encounters are live
+//   (ai_globals +1): the encounter's respawn byte (+0x3c) takes the boolean, its +0x0e word becomes 0x96 and it is
+//   activated. Returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x437710, blam-cc: ECX
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x008802c8 | extern data_array *encounter_data;
+  // 0x437710, blam-cc: ECX | extern uint8_t encounter_activate(datum_index encounter_index);

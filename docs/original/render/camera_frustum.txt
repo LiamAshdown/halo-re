@@ -1,0 +1,2026 @@
+====================================================================================================
+original file: src/render/chimera__render_camera_build_frustum.c
+====================================================================================================
+// chimera__render_camera_build_frustum  (Ghidra: chimera__render_camera_build_frustum, Chimera
+// signature name, kept; CEA render_camera_build_frustum(camera, frustum_bounds, frustum,
+// build_projection), hint only)
+// address 0x50cc40, size 2169 bytes
+// name confidence: 0.8   rewrite confidence: 0.75
+// evidence: objdump -d -M intel 0x50cc40..0x50d4b8, traced instruction by instruction (the
+//   Ghidra decompile has the right arithmetic but hides every math helper's operands).
+//   - arguments: ECX = camera (moved to EDI), EAX = frustum_bounds or NULL, ESI = frustum out,
+//     one stack byte build_projection; matches the render_types_notes register note and every
+//     caller in this module.
+//   - frustum_bounds = the argument or {-1, 1, -1, 1}; hw / hh = half extents, cx / cy =
+//     -(sum / half extent) * 0.5 (0x672bf4 = -0.5), t = tan(fov / 2) (fptan),
+//     sx = 1 / (t * hw * width / height) and sy = 1 / (t * hh) with width / height the
+//     camera viewport rectangle (+0x2c..+0x32, right - left and bottom - top).
+//   - view_to_world (+0x44): scale 1, forward = normalize(cross(camera.forward, camera.up)),
+//     left = normalize(cross(that, camera.forward)), up = normalize(-camera.forward), position =
+//     camera.position (the view basis is x left, y up, z backwards); world_to_view (+0x10) =
+//     matrix4x3_inverse 0x4cb7a0 (EAX out, ECX in).
+//   - the four side planes are built in view space as normalize(n) with d = n . *0x006966f8
+//     (a pointer to the zero point 0x0065c230) and taken to world space by
+//     matrix4x3_transform_plane 0x4cbf10 (EAX out, ECX view_to_world, EDX plane):
+//     [0] (-sx, 0, 1 + cx), [1] (sx, 0, 1 - cx), [2] (0, -sy, 1 + cy), [3] (0, sy, 1 - cy);
+//     near [4] ((0,0,1), -z_near) and far [5] ((0,0,-1), z_far). The two z planes reuse ECX
+//     and EDX from the previous call (0x4cbf10 leaves them alone).
+//   - world_vertices[0..3] are the far plane corners (x = (cx +- 1) * -z_far / sx, y = (cy +- 1)
+//     * -z_far / sy, z = -z_far, in the order (+,+) (-,+) (+,-) (-,-)), [4] the camera position;
+//     world_midpoint is the view point (-mid cx / sx, -mid cy / sy, -mid) with mid =
+//     (z_near + z_far) / 2; all through matrix4x3_transform_point 0x4cbde0 (EAX out, EDX point,
+//     stack matrix, caller cleans the five pushes at 0x50d202).
+//   - world_bounds: seeded from vertex 0, then min / max over vertices 1..4 (the camera position
+//     included).
+//   - build_projection == 0 clears projection_valid (+0x140) and returns.
+//   - projection: the clip plane P is the camera mirror plane in view space (0x4cbf10 with
+//     world_to_view, camera + 0x44) when z_near is exactly 0, else ((0,0,1), -z_near).
+//     With k' = 1 / P.k, e = -P.d * k' and q = z_far / ((z_far - e) * (1 + |P.i k'| + |P.j k'|))
+//     (the 1.0 is the double at 0x672af8): proj[2][2] = -q, proj[3][2] = q * P.d * k' (flipped
+//     with q, P.i, P.j when it is positive and z_near is 0), proj[0][2] = -q P.i k',
+//     proj[1][2] = -q P.j k', proj[0][0] = sx, proj[1][1] = sy, proj[2][0] = -cx,
+//     proj[2][1] = -cy, proj[2][3] = -1, everything else 0 (rep stosd of 0x10 dwords); the
+//     oblique near plane of a mirror pass.
+//   - projection_world_to_screen = (sx * width / 2, sy * height / 2).
+// register convention: ECX = camera, EAX = frustum_bounds (may be NULL), ESI = frustum,
+//   one stack byte.
+//   // blam-cc: EAX=frustum_bounds, ECX=camera, ESI=frustum, stack=build_projection
+// UNSURE: none of the arithmetic; the name of 0x006966f8 (global_zero_vector3d_pointer here) differs from
+//   the provisional names src/ai gives the same pointer.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern real_point3d *global_zero_vector3d_pointer; // 0x006966f8 -> {0,0,0} at 0x0065c230 (types/math.h
+                                                   // global_math_constant_pointers slot 10; slot 17,
+                                                   // 0x00696714, global_origin3d_pointer, points at the
+                                                   // same constant)
+
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math; blam-cc: ECX -> v
+extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
+    // 0x4cb7a0, math module; blam-cc: EAX -> out, ECX -> in
+extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane);
+    // 0x4cbf10, math module; blam-cc: EAX -> out, ECX -> m, EDX -> plane
+extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
+    // 0x4cbde0, math module; blam-cc: EAX -> out, EDX -> point, stack -> m
+extern double tan(double x); // x87 FPTAN
+extern double fabs(double x); // x87 FABS
+
+static void build_side_plane(render_frustum *frustum, int16_t index, real i, real j, real k)
+{
+    real_vector3d normal;
+    real_plane3d plane;
+
+    normal.i = i;
+    normal.j = j;
+    normal.k = k;
+    vector3d_normalize_with_length(&normal);
+    plane.normal = normal;
+    plane.d = normal.j * global_zero_vector3d_pointer->y + normal.k * global_zero_vector3d_pointer->z +
+              normal.i * global_zero_vector3d_pointer->x;
+    matrix4x3_transform_plane(&frustum->world_planes[index], &frustum->view_to_world, &plane);
+}
+
+// Builds the culling frustum of `camera` (view basis, world planes, far corners, bounds) and,
+// when build_projection is set, its projection matrix and world to screen scale.
+void chimera__render_camera_build_frustum(float *frustum_bounds, render_camera *camera,
+                                          render_frustum *frustum, uint8_t build_projection)
+    // blam-cc: EAX=frustum_bounds, ECX=camera, ESI=frustum, stack=build_projection
+{
+    real width;
+    real height;
+    real half_width;
+    real half_height;
+    real cx;
+    real cy;
+    real t;
+    real sx;
+    real sy;
+    real_vector3d left;
+    real_vector3d up;
+    real_vector3d backward;
+    real_plane3d plane;
+    real_point3d point;
+    real inverse_sx;
+    real inverse_sy;
+    real far_x;
+    real far_y;
+    real mid;
+    int16_t i;
+
+    width = (real)((int32_t)camera->viewport_bounds.right - (int32_t)camera->viewport_bounds.left);
+    height = (real)((int32_t)camera->viewport_bounds.bottom - (int32_t)camera->viewport_bounds.top);
+    if (frustum_bounds != 0) {
+        frustum->frustum_bounds[0] = frustum_bounds[0];
+        frustum->frustum_bounds[1] = frustum_bounds[1];
+        frustum->frustum_bounds[2] = frustum_bounds[2];
+        frustum->frustum_bounds[3] = frustum_bounds[3];
+    } else {
+        frustum->frustum_bounds[2] = -1.0f;
+        frustum->frustum_bounds[0] = -1.0f;
+        frustum->frustum_bounds[3] = 1.0f;
+        frustum->frustum_bounds[1] = 1.0f;
+    }
+    half_width = (frustum->frustum_bounds[1] - frustum->frustum_bounds[0]) * 0.5f;
+    half_height = (frustum->frustum_bounds[3] - frustum->frustum_bounds[2]) * 0.5f;
+    cx = (frustum->frustum_bounds[0] + frustum->frustum_bounds[1]) / half_width * -0.5f;
+    cy = (frustum->frustum_bounds[2] + frustum->frustum_bounds[3]) / half_height * -0.5f;
+    t = (real)tan(camera->vertical_field_of_view * 0.5f);
+    sx = 1.0f / (half_width / height * width * t);
+    sy = 1.0f / (t * half_height);
+
+    // view basis
+    left.i = camera->up.k * camera->forward.j - camera->up.j * camera->forward.k;
+    left.j = camera->forward.k * camera->up.i - camera->up.k * camera->forward.i;
+    left.k = camera->up.j * camera->forward.i - camera->forward.j * camera->up.i;
+    up.i = left.j * camera->forward.k - left.k * camera->forward.j;
+    up.j = left.k * camera->forward.i - left.i * camera->forward.k;
+    up.k = left.i * camera->forward.j - left.j * camera->forward.i;
+    backward.i = -camera->forward.i;
+    backward.j = -camera->forward.j;
+    backward.k = -camera->forward.k;
+    vector3d_normalize_with_length(&left);
+    vector3d_normalize_with_length(&up);
+    vector3d_normalize_with_length(&backward);
+    frustum->view_to_world.forward = left;
+    frustum->view_to_world.left = up;
+    frustum->view_to_world.up = backward;
+    frustum->view_to_world.position = camera->position;
+    frustum->view_to_world.scale = 1.0f;
+    matrix4x3_inverse(&frustum->world_to_view, &frustum->view_to_world);
+
+    // side planes, then near and far
+    build_side_plane(frustum, 0, -sx, 0.0f, cx + 1.0f);
+    build_side_plane(frustum, 1, sx, 0.0f, 1.0f - cx);
+    build_side_plane(frustum, 2, 0.0f, -sy, cy + 1.0f);
+    build_side_plane(frustum, 3, 0.0f, sy, 1.0f - cy);
+    plane.normal.i = 0.0f;
+    plane.normal.j = 0.0f;
+    plane.normal.k = 1.0f;
+    plane.d = -camera->z_near;
+    matrix4x3_transform_plane(&frustum->world_planes[4], &frustum->view_to_world, &plane);
+    plane.normal.i = 0.0f;
+    plane.normal.j = 0.0f;
+    plane.normal.k = -1.0f;
+    plane.d = camera->z_far;
+    matrix4x3_transform_plane(&frustum->world_planes[5], &frustum->view_to_world, &plane);
+    frustum->z_near = camera->z_near;
+    frustum->z_far = camera->z_far;
+
+    // far corners, camera position, midpoint
+    inverse_sx = 1.0f / sx;
+    far_x = -(inverse_sx * camera->z_far);
+    inverse_sy = 1.0f / sy;
+    far_y = -(inverse_sy * camera->z_far);
+    mid = (camera->z_far + camera->z_near) * 0.5f;
+    point.x = (cx + 1.0f) * far_x;
+    point.y = (cy + 1.0f) * far_y;
+    point.z = -camera->z_far;
+    matrix4x3_transform_point(&frustum->world_vertices[0], &point, &frustum->view_to_world);
+    point.x = (cx - 1.0f) * far_x;
+    point.y = (cy + 1.0f) * far_y;
+    point.z = -camera->z_far;
+    matrix4x3_transform_point(&frustum->world_vertices[1], &point, &frustum->view_to_world);
+    point.x = (cx + 1.0f) * far_x;
+    point.y = (cy - 1.0f) * far_y;
+    point.z = -camera->z_far;
+    matrix4x3_transform_point(&frustum->world_vertices[2], &point, &frustum->view_to_world);
+    point.x = (cx - 1.0f) * far_x;
+    point.y = (cy - 1.0f) * far_y;
+    point.z = -camera->z_far;
+    matrix4x3_transform_point(&frustum->world_vertices[3], &point, &frustum->view_to_world);
+    frustum->world_vertices[4] = camera->position;
+    point.x = -(inverse_sx * mid * cx);
+    point.y = -(inverse_sy * mid * cy);
+    point.z = -mid;
+    matrix4x3_transform_point(&frustum->world_midpoint, &point, &frustum->view_to_world);
+
+    frustum->world_bounds.x.lower = frustum->world_bounds.x.upper = frustum->world_vertices[0].x;
+    frustum->world_bounds.y.lower = frustum->world_bounds.y.upper = frustum->world_vertices[0].y;
+    frustum->world_bounds.z.lower = frustum->world_bounds.z.upper = frustum->world_vertices[0].z;
+    for (i = 1; i < 5; i++) {
+        real_point3d *v = &frustum->world_vertices[i];
+
+        frustum->world_bounds.x.lower = frustum->world_bounds.x.lower <= v->x ? frustum->world_bounds.x.lower : v->x;
+        frustum->world_bounds.y.lower = frustum->world_bounds.y.lower <= v->y ? frustum->world_bounds.y.lower : v->y;
+        frustum->world_bounds.z.lower = frustum->world_bounds.z.lower <= v->z ? frustum->world_bounds.z.lower : v->z;
+        frustum->world_bounds.x.upper = frustum->world_bounds.x.upper <= v->x ? v->x : frustum->world_bounds.x.upper;
+        frustum->world_bounds.y.upper = frustum->world_bounds.y.upper <= v->y ? v->y : frustum->world_bounds.y.upper;
+        frustum->world_bounds.z.upper = frustum->world_bounds.z.upper <= v->z ? v->z : frustum->world_bounds.z.upper;
+    }
+
+    if (!build_projection) {
+        frustum->projection_valid = 0;
+        return;
+    }
+
+    {
+        real_plane3d clip;
+        real inverse_k;
+        real e;
+        real q;
+        real qi;
+        real qj;
+        real qd;
+        int16_t row;
+        int16_t column;
+
+        if (camera->z_near == 0.0f) {
+            matrix4x3_transform_plane(&clip, &frustum->world_to_view, &camera->mirror_plane);
+        } else {
+            clip.normal.i = 0.0f;
+            clip.normal.j = 0.0f;
+            clip.normal.k = 1.0f;
+            clip.d = -camera->z_near;
+        }
+        inverse_k = 1.0f / clip.normal.k;
+        e = -(clip.d * inverse_k);
+        q = camera->z_far / ((camera->z_far - e) *
+                             ((real)fabs(clip.normal.j * inverse_k) +
+                              (real)fabs(clip.normal.i * inverse_k) + 1.0f));
+        qi = q * clip.normal.i * inverse_k;
+        qj = q * clip.normal.j * inverse_k;
+        qd = -(q * e);
+        if (qd > 0.0f && camera->z_near == 0.0f) {
+            qi = -qi;
+            qj = -qj;
+            q = -q;
+            qd = -qd;
+        }
+
+        for (row = 0; row < 4; row++) {
+            for (column = 0; column < 4; column++) {
+                frustum->projection[row][column] = 0.0f;
+            }
+        }
+        frustum->projection[0][2] = -qi;
+        frustum->projection[1][2] = -qj;
+        frustum->projection[2][0] = -cx;
+        frustum->projection[0][0] = sx;
+        frustum->projection[2][1] = -cy;
+        frustum->projection[1][1] = sy;
+        frustum->projection[2][3] = -1.0f;
+        frustum->projection_valid = 1;
+        frustum->projection[2][2] = -q;
+        frustum->projection[3][2] = qd;
+        frustum->projection_world_to_screen.i = sx * width * 0.5f;
+        frustum->projection_world_to_screen.j = sy * height * 0.5f;
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x50cc40):
+
+void chimera__render_camera_build_frustum(char param_1)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float fVar5;
+  float fVar6;
+  float fVar7;
+  float fVar8;
+  float fVar9;
+  float fVar10;
+  float fVar11;
+  float fVar12;
+  float fVar13;
+  short sVar14;
+  short sVar15;
+  float fVar16;
+  float fVar17;
+  float fVar18;
+  float *in_EAX;
+  float *in_ECX;
+  int iVar19;
+  float *pfVar20;
+  int iVar21;
+  float *unaff_ESI;
+  float10 fVar22;
+  float10 fVar23;
+  float10 fVar24;
+  float local_c;
+  
+  iVar19 = (int)*(short *)((int)in_ECX + 0x32) - (int)*(short *)((int)in_ECX + 0x2e);
+  sVar14 = *(short *)(in_ECX + 0xb);
+  sVar15 = *(short *)(in_ECX + 0xc);
+  if (in_EAX == (float *)0x0) {
+    unaff_ESI[2] = -1.0;
+    *unaff_ESI = -1.0;
+    unaff_ESI[3] = 1.0;
+    unaff_ESI[1] = 1.0;
+  }
+  else {
+    *unaff_ESI = *in_EAX;
+    unaff_ESI[1] = in_EAX[1];
+    unaff_ESI[2] = in_EAX[2];
+    unaff_ESI[3] = in_EAX[3];
+  }
+  fVar22 = ((float10)unaff_ESI[1] - (float10)*unaff_ESI) * (float10)0.5;
+  fVar23 = ((float10)unaff_ESI[3] - (float10)unaff_ESI[2]) * (float10)0.5;
+  fVar1 = (float)((((float10)*unaff_ESI + (float10)unaff_ESI[1]) / fVar22) * (float10)-0.5);
+  fVar2 = (float)((((float10)unaff_ESI[2] + (float10)unaff_ESI[3]) / fVar23) * (float10)-0.5);
+  fVar24 = (float10)fptan((float10)in_ECX[10] * (float10)0.5);
+  fVar3 = (float)((float10)1.0 /
+                 ((fVar22 / (float10)((int)sVar15 - (int)sVar14)) * (float10)iVar19 * fVar24));
+  fVar4 = (float)((float10)1.0 / (fVar24 * fVar23));
+  fVar16 = in_ECX[8] * in_ECX[4] - in_ECX[7] * in_ECX[5];
+  fVar17 = in_ECX[5] * in_ECX[6] - in_ECX[8] * in_ECX[3];
+  fVar18 = in_ECX[7] * in_ECX[3] - in_ECX[4] * in_ECX[6];
+  fVar5 = in_ECX[5];
+  fVar6 = in_ECX[4];
+  fVar7 = in_ECX[3];
+  fVar8 = in_ECX[5];
+  fVar9 = in_ECX[4];
+  fVar10 = in_ECX[3];
+  fVar11 = in_ECX[3];
+  fVar12 = in_ECX[4];
+  fVar13 = in_ECX[5];
+  vector3d_normalize_with_length();
+  vector3d_normalize_with_length();
+  vector3d_normalize_with_length();
+  unaff_ESI[0x12] = fVar16;
+  unaff_ESI[0x13] = fVar17;
+  unaff_ESI[0x14] = fVar18;
+  unaff_ESI[0x15] = fVar17 * fVar5 - fVar18 * fVar6;
+  unaff_ESI[0x16] = fVar18 * fVar7 - fVar16 * fVar8;
+  unaff_ESI[0x17] = fVar16 * fVar9 - fVar17 * fVar10;
+  unaff_ESI[0x18] = -fVar11;
+  unaff_ESI[0x19] = -fVar12;
+  unaff_ESI[0x1a] = -fVar13;
+  unaff_ESI[0x1b] = *in_ECX;
+  unaff_ESI[0x1c] = in_ECX[1];
+  pfVar20 = unaff_ESI + 0x11;
+  unaff_ESI[0x1d] = in_ECX[2];
+  *pfVar20 = 1.0;
+  matrix4x3_inverse();
+  vector3d_normalize_with_length();
+  matrix4x3_transform_plane();
+  vector3d_normalize_with_length();
+  matrix4x3_transform_plane();
+  vector3d_normalize_with_length();
+  matrix4x3_transform_plane();
+  vector3d_normalize_with_length();
+  matrix4x3_transform_plane();
+  matrix4x3_transform_plane();
+  matrix4x3_transform_plane();
+  unaff_ESI[0x36] = in_ECX[0xf];
+  unaff_ESI[0x37] = in_ECX[0x10];
+  fVar6 = (in_ECX[0x10] + in_ECX[0xf]) * 0.5;
+  fVar5 = (fVar2 - 1.0) * -((1.0 / fVar4) * in_ECX[0x10]);
+  matrix4x3_transform_point(pfVar20);
+  matrix4x3_transform_point(pfVar20);
+  matrix4x3_transform_point(pfVar20);
+  matrix4x3_transform_point(pfVar20);
+  unaff_ESI[0x44] = *in_ECX;
+  unaff_ESI[0x45] = in_ECX[1];
+  fVar7 = -((1.0 / fVar3) * fVar6 * fVar1);
+  unaff_ESI[0x46] = in_ECX[2];
+  local_c = -((1.0 / fVar4) * fVar6 * fVar2);
+  fVar6 = -fVar6;
+  matrix4x3_transform_point(pfVar20);
+  unaff_ESI[0x4b] = unaff_ESI[0x38];
+  pfVar20 = unaff_ESI + 0x3c;
+  unaff_ESI[0x4a] = unaff_ESI[0x38];
+  iVar21 = 4;
+  unaff_ESI[0x4d] = unaff_ESI[0x39];
+  unaff_ESI[0x4c] = unaff_ESI[0x39];
+  unaff_ESI[0x4f] = unaff_ESI[0x3a];
+  unaff_ESI[0x4e] = unaff_ESI[0x3a];
+  do {
+    if (unaff_ESI[0x4a] <= pfVar20[-1]) {
+      fVar8 = unaff_ESI[0x4a];
+    }
+    else {
+      fVar8 = pfVar20[-1];
+    }
+    unaff_ESI[0x4a] = fVar8;
+    if (unaff_ESI[0x4c] <= *pfVar20) {
+      fVar8 = unaff_ESI[0x4c];
+    }
+    else {
+      fVar8 = *pfVar20;
+    }
+    unaff_ESI[0x4c] = fVar8;
+    if (unaff_ESI[0x4e] <= pfVar20[1]) {
+      fVar8 = unaff_ESI[0x4e];
+    }
+    else {
+      fVar8 = pfVar20[1];
+    }
+    unaff_ESI[0x4e] = fVar8;
+    if (unaff_ESI[0x4b] <= pfVar20[-1]) {
+      fVar8 = pfVar20[-1];
+    }
+    else {
+      fVar8 = unaff_ESI[0x4b];
+    }
+    unaff_ESI[0x4b] = fVar8;
+    if (unaff_ESI[0x4d] <= *pfVar20) {
+      fVar8 = *pfVar20;
+    }
+    else {
+      fVar8 = unaff_ESI[0x4d];
+    }
+    unaff_ESI[0x4d] = fVar8;
+    if (unaff_ESI[0x4f] <= pfVar20[1]) {
+      fVar8 = pfVar20[1];
+    }
+    else {
+      fVar8 = unaff_ESI[0x4f];
+    }
+    pfVar20 = pfVar20 + 3;
+    unaff_ESI[0x4f] = fVar8;
+    iVar21 = iVar21 + -1;
+  } while (iVar21 != 0);
+  if (param_1 == '\0') {
+    *(undefined1 *)(unaff_ESI + 0x50) = 0;
+    return;
+  }
+  if (in_ECX[0xf] == 0.0) {
+    matrix4x3_transform_plane();
+  }
+  else {
+    local_c = 0.0;
+    fVar7 = 0.0;
+    fVar6 = 1.0;
+    fVar5 = -in_ECX[0xf];
+  }
+  fVar6 = 1.0 / fVar6;
+  fVar8 = in_ECX[0x10] /
+          ((in_ECX[0x10] - -(fVar5 * fVar6)) * (ABS(fVar7 * fVar6) + ABS(local_c * fVar6) + 1.0));
+  fVar7 = fVar8 * fVar7 * fVar6;
+  fVar9 = fVar8 * local_c * fVar6;
+  fVar5 = -(fVar8 * -(fVar5 * fVar6));
+  if ((0.0 < fVar5) && (in_ECX[0xf] == 0.0)) {
+    fVar7 = -fVar7;
+    fVar9 = -fVar9;
+    fVar8 = -fVar8;
+    fVar5 = -fVar5;
+  }
+  pfVar20 = unaff_ESI + 0x51;
+  for (iVar21 = 0x10; iVar21 != 0; iVar21 = iVar21 + -1) {
+    *pfVar20 = 0.0;
+    pfVar20 = pfVar20 + 1;
+  }
+  unaff_ESI[0x53] = -fVar7;
+  unaff_ESI[0x57] = -fVar9;
+  unaff_ESI[0x59] = -fVar1;
+  unaff_ESI[0x51] = fVar3;
+  unaff_ESI[0x5a] = -fVar2;
+  unaff_ESI[0x56] = fVar4;
+  unaff_ESI[0x5c] = -1.0;
+  *(undefined1 *)(unaff_ESI + 0x50) = 1;
+  unaff_ESI[0x5b] = -fVar8;
+  unaff_ESI[0x5f] = fVar5;
+  unaff_ESI[0x61] = fVar3 * (float)iVar19 * 0.5;
+  unaff_ESI[0x62] = fVar4 * (float)((int)sVar15 - (int)sVar14) * 0.5;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_camera_compute_frustum_bounds.c
+====================================================================================================
+// render_camera_compute_frustum_bounds  (Ghidra: render_camera_compute_frustum_bounds, already
+// named)
+// address 0x50cb70, size 207 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: out/phase4/render_functions.md's phase-2 summary: "Computes the asymmetric near-plane
+//   frustum extents (left/right/top/bottom) for a camera/viewport, validating the result."
+//   Disassembly (objdump -d -M intel, 0x50cb70..0x50cc1f) confirms EAX=camera, EDX=bounds_in,
+//   ECX=bounds_out (the leading "push ecx" only reserves a stack slot; ECX itself is never
+//   reassigned before its use as the output pointer) and pins the two "less-than xor/eq"
+//   comparisons as a strict less-than-or-equal and a strict greater-than respectively (the second
+//   one uses `==`, not `!=`, between the two boolean terms, which negates the idiom seen
+//   elsewhere in this module).
+// register convention: EAX = camera (render_camera*), ECX = bounds_out (float[4]),
+//   EDX = bounds_in (float[4], the asymmetric skew terms from
+//   render_camera_compute_projection_skew).
+//   // blam-cc: EAX=camera, ECX=bounds_out, EDX=bounds_in
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern double ftan(double x); // x87 FPTAN
+
+extern uint8_t render_asymmetric_frustum_disabled; // 0x00710321, UNSURE name/owner
+
+// Scales the camera's asymmetric projection skew terms (bounds_in) by the field of view and
+// viewport aspect ratio to produce near-plane frustum extents (bounds_out), validating both the
+// input ordering (bounds_in[0] < bounds_in[1] and bounds_in[2] < bounds_in[3]) and the result
+// before accepting it. Falls back to the symmetric unit bounds (-1, 1, -1, 1) and returns 0 when
+// the asymmetric computation is disabled or its input or output is out of order.
+uint32_t render_camera_compute_frustum_bounds(render_camera *camera, float bounds_out[4],
+                                               float bounds_in[4]) // blam-cc: EAX=camera, ECX=bounds_out, EDX=bounds_in
+{
+    if (!render_asymmetric_frustum_disabled && bounds_in[0] < bounds_in[1] && bounds_in[2] < bounds_in[3]) {
+        float inverse_tan_half_fov = 1.0f / (float)ftan((double)(camera->vertical_field_of_view * 0.5f));
+        float aspect_scale = ((float)(camera->viewport_bounds.bottom - camera->viewport_bounds.top) /
+                               (float)(camera->viewport_bounds.right - camera->viewport_bounds.left)) *
+                              inverse_tan_half_fov;
+
+        bounds_out[0] = aspect_scale * bounds_in[0];
+        bounds_out[1] = aspect_scale * bounds_in[1];
+        bounds_out[2] = inverse_tan_half_fov * bounds_in[2];
+        bounds_out[3] = inverse_tan_half_fov * bounds_in[3];
+
+        if (bounds_out[0] < bounds_out[1] && bounds_out[2] < bounds_out[3]) {
+            return 1;
+        }
+    }
+
+    bounds_out[3] = 1.0f;
+    bounds_out[1] = 1.0f;
+    bounds_out[2] = -1.0f;
+    bounds_out[0] = -1.0f;
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x50cb70):
+
+undefined4 render_camera_compute_frustum_bounds(void)
+
+{
+  int in_EAX;
+  float *in_ECX;
+  float *in_EDX;
+  float10 fVar1;
+  float10 fVar2;
+
+  if (((DAT_00710321 == '\0') && (*in_EDX < in_EDX[1])) && (in_EDX[2] < in_EDX[3])) {
+    fVar1 = (float10)fptan((float10)*(float *)(in_EAX + 0x28) * (float10)0.5);
+    fVar1 = (float10)1.0 / fVar1;
+    fVar2 = ((float10)((int)*(short *)(in_EAX + 0x30) - (int)*(short *)(in_EAX + 0x2c)) /
+            (float10)((int)*(short *)(in_EAX + 0x32) - (int)*(short *)(in_EAX + 0x2e))) * fVar1;
+    *in_ECX = (float)(fVar2 * (float10)*in_EDX);
+    in_ECX[1] = (float)(fVar2 * (float10)in_EDX[1]);
+    in_ECX[2] = (float)(fVar1 * (float10)in_EDX[2]);
+    fVar1 = fVar1 * (float10)in_EDX[3];
+    in_ECX[3] = (float)fVar1;
+    if ((*in_ECX < in_ECX[1]) && (fVar1 < (float10)in_ECX[2] == (fVar1 == (float10)in_ECX[2]))) {
+      return 1;
+    }
+  }
+  in_ECX[3] = 1.0;
+  in_ECX[1] = 1.0;
+  in_ECX[2] = -1.0;
+  *in_ECX = -1.0;
+  return 0;
+}
+
+The second validity comparison ((a<b)==(a==b)) is FALSE whenever a<b or a==b and TRUE only when
+a>b -- i.e. it is a strict ">", the opposite of the "(a<b)!=(a==b)" ("<=") idiom seen in
+render_player_frame.c. Substituting fVar1=bounds_out[3], b=bounds_out[2] gives bounds_out[3] >
+bounds_out[2], i.e. bounds_out[2] < bounds_out[3], which is what the rewrite above tests.
+
+Disassembly excerpt (objdump -d -M intel) confirming the register roles:
+
+0050cb70:
+  push   ecx                   ; reserves a stack slot; ecx itself keeps holding bounds_out
+  push   ebx
+  push   esi
+  mov    esi,eax               ; esi = camera
+  ...
+  fld    DWORD PTR [edx]       ; bounds_in[0]      (edx = bounds_in)
+  fcomp  DWORD PTR [edx+0x4]   ; vs bounds_in[1]
+  ...
+  fld    DWORD PTR [esi+0x28]  ; camera->vertical_field_of_view
+  ...
+  fld    st(0)
+  fmul   DWORD PTR [edx]
+  fstp   DWORD PTR [ecx]       ; bounds_out[0]
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_camera_compute_projection_skew.c
+====================================================================================================
+// render_camera_compute_projection_skew  (Ghidra: FUN_0050ca90; new name, evidence below)
+// address 0x50ca90, size 215 bytes
+// name confidence: 0.5   rewrite confidence: 0.65
+// evidence: out/phase4/render_functions.md's phase-2 summary: "Computes the projection-center
+//   offset/skew terms for an (asymmetric) viewport rectangle." Fully disassembled
+//   (objdump -d -M intel, 0x50ca90..0x50cb70) while tracing render_player_frame's calls into
+//   this function; confirmed there that EAX is the camera and ECX the 4-float output, and that
+//   the four outputs are exactly the asymmetric-frustum bounds render_player_frame threads
+//   through to chimera__render_camera_build_frustum.
+// register convention: EAX = camera (render_camera*), ECX = bounds_out (float[4]).
+//   // blam-cc: EAX=camera, ECX=bounds_out
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+
+// Computes the four asymmetric-projection skew terms for a camera whose viewport is a sub-
+// rectangle of its window (e.g. a split-screen pane): bounds_out[0..1] are the left/right terms
+// (scaled by the viewport's aspect ratio against its own width), and bounds_out[2..3] are the
+// (negated) bottom/top terms, all normalized by the window's height.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+void render_camera_compute_projection_skew(render_camera *camera, float bounds_out[4]) // blam-cc: EAX=camera, ECX=bounds_out
+{
+    float aspect = (float)(camera->viewport_bounds.bottom - camera->viewport_bounds.top) /
+                   (float)(camera->viewport_bounds.right - camera->viewport_bounds.left);
+    float inverse_window_height = 1.0f / (float)(camera->window_bounds.bottom - camera->window_bounds.top);
+    float left = (float)(camera->viewport_bounds.left * 2 - camera->window_bounds.left -
+                          camera->window_bounds.right) * inverse_window_height;
+    float right = (float)(camera->viewport_bounds.right * 2 - camera->window_bounds.left -
+                           camera->window_bounds.right) * inverse_window_height;
+    // Named for the viewport edge each is derived from, not for the output slot it ends up in --
+    // see the final assignments below, which swap and negate them exactly as the binary does.
+    float term_from_viewport_top = (float)(camera->viewport_bounds.top * 2 - camera->window_bounds.bottom -
+                                            camera->window_bounds.top) * inverse_window_height;
+    float term_from_viewport_bottom = (float)(camera->viewport_bounds.bottom * 2 - camera->window_bounds.bottom -
+                                               camera->window_bounds.top) * inverse_window_height;
+
+    bounds_out[0] = aspect * left;
+    bounds_out[1] = aspect * right;
+    bounds_out[2] = -term_from_viewport_bottom;
+    bounds_out[3] = -term_from_viewport_top;
+}
+
+#if 0
+Original Ghidra decompilation (0x50ca90):
+
+void FUN_0050ca90(void)
+
+{
+  float fVar1;
+  float fVar2;
+  int in_EAX;
+  float *in_ECX;
+
+  fVar2 = (float)((int)*(short *)(in_EAX + 0x30) - (int)*(short *)(in_EAX + 0x2c)) /
+          (float)((int)*(short *)(in_EAX + 0x32) - (int)*(short *)(in_EAX + 0x2e));
+  fVar1 = 1.0 / (float)((int)*(short *)(in_EAX + 0x38) - (int)*(short *)(in_EAX + 0x34));
+  *in_ECX = (float)((*(short *)(in_EAX + 0x2e) * 2 - (int)*(short *)(in_EAX + 0x36)) -
+                   (int)*(short *)(in_EAX + 0x3a)) * fVar1;
+  in_ECX[1] = (float)((*(short *)(in_EAX + 0x32) * 2 - (int)*(short *)(in_EAX + 0x36)) -
+                     (int)*(short *)(in_EAX + 0x3a)) * fVar1;
+  in_ECX[2] = (float)((*(short *)(in_EAX + 0x2c) * 2 - (int)*(short *)(in_EAX + 0x38)) -
+                     (int)*(short *)(in_EAX + 0x34)) * fVar1;
+  in_ECX[3] = (float)((*(short *)(in_EAX + 0x30) * 2 - (int)*(short *)(in_EAX + 0x38)) -
+                     (int)*(short *)(in_EAX + 0x34)) * fVar1;
+  *in_ECX = fVar2 * *in_ECX;
+  in_ECX[1] = fVar2 * in_ECX[1];
+  fVar1 = in_ECX[2];
+  in_ECX[2] = -in_ECX[3];
+  in_ECX[3] = -fVar1;
+  return;
+}
+
+Field mapping (render_camera, types/rasterizer.h): viewport_bounds (Rectangle2D: top,left,bottom,
+right) at +0x2c..+0x33, window_bounds at +0x34..+0x3b. So in_EAX+0x2c/0x2e/0x30/0x32 are
+viewport.top/left/bottom/right, and in_EAX+0x34/0x36/0x38/0x3a are window.top/left/bottom/right.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_camera_facing_frame_build.c
+====================================================================================================
+// render_camera_facing_frame_build  (orphan pass 4: FUN_00458990, no Ghidra name)
+// address 0x458990, size 250 bytes
+// name confidence: 0.3 (out/phase4/effects_types_notes.md: "builds a camera-facing matrix
+//   from the render globals at 0x007c3114..0x007c321c; no effects state at all". The output is
+//   really a facing plane (a direction vector plus a dot-product d, i.e. a real_plane3d) packed
+//   at the end of a 16-float block copied verbatim from a second render global table, not a
+//   single 4x3/4x4 matrix.)
+// rewrite confidence: 0.35 (arithmetic and copy confirmed against the decompilation; the
+//   output struct's real name/shape and the two render-global tables' meanings are not
+//   established -- see UNSURE)
+// evidence: out/phase4/effects_types_notes.md "0x458990 | render | ...". Moved to src/render
+//   per that note.
+// register convention: ECX = out (a 0x50-byte struct: 16 floats at 0x00 copied from
+//   render_camera_facing_basis, then a real_plane3d-shaped {normal, d} at 0x40), stack
+//   argument = float distance.
+// blam-cc: render_camera_facing_frame_build(void *out /*ECX*/, float distance /*stack*/)
+// UNSURE: render_camera_global (0x007c3114) and camera_forward_x (0x007c3120) are
+//   guessed names for a 3-float position and a 3-float direction; render_camera_facing_basis
+//   (0x007c31e0) is a 16-float block whose real shape (4x4 matrix? camera frustum corners?) is
+//   not established. The output struct is likewise not independently named/typed in
+//   types/rasterizer.h or types/render.h.
+
+#include "tags.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern float render_camera_global[3]; // 0x007c3114, UNSURE: guessed name
+extern float camera_forward_x[3];  // 0x007c3120, UNSURE: guessed name
+extern float render_camera_facing_basis[16]; // 0x007c31e0, UNSURE: guessed name/shape
+
+void render_camera_facing_frame_build(float *out, float distance)
+{
+    float px = camera_forward_x[0] * distance + render_camera_global[0];
+    float py = camera_forward_x[1] * distance + render_camera_global[1];
+    float pz = camera_forward_x[2] * distance + render_camera_global[2];
+    int32_t i;
+
+    out[0x10] = camera_forward_x[0];
+    out[0x11] = camera_forward_x[1];
+    out[0x12] = camera_forward_x[2];
+    out[0x13] = px * out[0x10] + py * out[0x11] + pz * out[0x12];
+
+    for (i = 0; i < 16; i++) {
+        out[i] = render_camera_facing_basis[i];
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x458990):
+
+void FUN_00458990(float param_1)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  undefined4 *in_ECX;
+
+  fVar1 = DAT_007c3120 * param_1 + DAT_007c3114;
+  fVar3 = DAT_007c3124 * param_1 + DAT_007c3118;
+  fVar2 = DAT_007c3128 * param_1 + DAT_007c311c;
+  in_ECX[0x10] = DAT_007c3120;
+  in_ECX[0x11] = DAT_007c3124;
+  in_ECX[0x12] = DAT_007c3128;
+  in_ECX[0x13] = fVar1 * (float)in_ECX[0x10] +
+                 fVar3 * (float)in_ECX[0x11] + fVar2 * (float)in_ECX[0x12];
+  *in_ECX = DAT_007c31e0;
+  in_ECX[1] = DAT_007c31e4;
+  in_ECX[2] = DAT_007c31e8;
+  in_ECX[3] = DAT_007c31ec;
+  in_ECX[4] = DAT_007c31f0;
+  in_ECX[5] = DAT_007c31f4;
+  in_ECX[6] = DAT_007c31f8;
+  in_ECX[7] = DAT_007c31fc;
+  in_ECX[8] = DAT_007c3200;
+  in_ECX[9] = DAT_007c3204;
+  in_ECX[10] = DAT_007c3208;
+  in_ECX[0xb] = DAT_007c320c;
+  in_ECX[0xc] = DAT_007c3210;
+  in_ECX[0xd] = DAT_007c3214;
+  in_ECX[0xe] = DAT_007c3218;
+  in_ECX[0xf] = DAT_007c321c;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_camera_mirror.c
+====================================================================================================
+// render_camera_mirror  (Ghidra: FUN_0050c660; named from out/phase4/render_types_notes.md,
+// which documents this exact address as "render_camera_mirror 0x50c660" and its
+// structure_bsp_mirror_result argument evidence)
+// address 0x50c660, size 818 bytes
+// name confidence: 0.55   rewrite confidence: 0.8
+// evidence: out/phase4/render_types_notes.md's structure_bsp_mirror_result row: "render_camera_
+//   mirror 0x50c660 reads the plane, +0x10 and +0x14"; types/structures.h's own note that those
+//   two floats come from the mirror shader (ShaderEnvironment +0x30c/+0x310) when it is a
+//   shadertype_environment. Disassembly (objdump -d -M intel, 0x50c660..0x50c991) confirms:
+//   EBX is a real register parameter (its own prologue rep-movsd's 0x15 dwords from ESI=EBX into
+//   EDI=the second stack argument, i.e. the whole render_camera), the "else" branch's
+//   vector3d_cross_product_length call takes EAX=&(the mirror plane's saved normal, spilled to
+//   the stack right after it is loaded) and ECX=&camera->forward, and the final three field
+//   writes (float* indices 0xf, 0x11-0x14) land on render_camera.z_near (+0x3c) and
+//   .mirror_plane (+0x44, a real_plane3d) respectively.
+// review fix (phase-4 gate, objdump 0x50c660..0x50c991): the nudged plane offset projects the
+//   camera along the mirror normal (fld [esp+0x28] = plane.i; fmul st,st(1); fadd [ebx]), not
+//   along the camera forward vector as the first draft had it.
+// register convention: EBX = source_camera (render_camera*), stack = (mirror, out_camera).
+//   // blam-cc: EBX=source_camera, stack=(mirror, out_camera)
+// UNSURE: the near-grazing-angle correction (the `< 0.0125` branch) and the portal-shift branch's
+//   formula are reproduced arithmetically exactly; their geometric intent (avoiding a degenerate
+//   reflection when the camera looks edge-on into the mirror, and a shader-driven parallax shift
+//   for portal-style mirrors) is inferred from shape, not confirmed against another source.
+// reconciled: R47 structure_bsp_mirror_result.unknown_10/_14 -> shader_mirror_value_0/_1 (ShaderEnvironment runtime_mirror_value_0/_1 at +0x30c/+0x310)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "structures.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern double sqrt(double x); // SQRT is a single x87 FSQRT instruction
+extern double fabs(double x); // ABS is a single x87 FABS instruction
+
+extern real vector3d_normalize_with_length(real_vector3d *v); // 0x401990, math module;
+                                                               // blam-cc: ECX -> v
+extern real vector3d_cross_product_length(real_vector3d *a, real_vector3d *b); // 0x4cd380, math
+                                                                               // module; blam-cc:
+                                                                               // EAX -> a, ECX -> b
+
+// Builds a mirrored copy of source_camera across the mirror's plane: for an ordinary mirror
+// (mirror->shader_mirror_value_0 == 0) this is a full reflection of position, forward and up (with a small
+// correction when the camera looks nearly edge-on into the plane, and an extra flip of the
+// reflected up vector to keep the basis right-handed for the rasterizer); for a portal-style
+// mirror it instead shifts the camera along the plane's normal by an amount driven by the mirror
+// shader's two runtime floats. Either way the mirror flag is set (or cleared) and the camera's
+// near clip plane and mirror_plane fields are stamped for the rasterizer.
+void render_camera_mirror(render_camera *source_camera, structure_bsp_mirror_result *mirror,
+                           render_camera *out_camera) // blam-cc: EBX=source_camera, stack=(mirror, out_camera)
+{
+    real_vector3d plane_normal = mirror->plane.normal;
+    float plane_d = mirror->plane.d;
+
+    *out_camera = *source_camera;
+
+    if (mirror->shader_mirror_value_0 == 0.0f) {
+        real_vector3d reflect_dir = plane_normal;
+        float baseline = plane_d;
+        float dot_forward;
+        float dot_up;
+        float dot_position;
+
+        if ((float)fabs((double)(plane_normal.i * source_camera->forward.i +
+                                  plane_normal.j * source_camera->forward.j +
+                                  plane_normal.k * source_camera->forward.k)) < 0.0125f) {
+            // Nudges the reflection normal toward the camera's forward direction (0.005859375,
+            // 0x672f38) when |n . forward| < 0.0125 (double 0x672f40) and re-derives the plane
+            // offset from the camera's projection onto the mirror plane.
+            float signed_offset = -((plane_normal.j * source_camera->position.y +
+                                      plane_normal.k * source_camera->position.z +
+                                      plane_normal.i * source_camera->position.x) - plane_d);
+            reflect_dir.i = source_camera->forward.i * 0.005859375f + plane_normal.i;
+            reflect_dir.j = source_camera->forward.j * 0.005859375f + plane_normal.j;
+            reflect_dir.k = source_camera->forward.k * 0.005859375f + plane_normal.k;
+            vector3d_normalize_with_length(&reflect_dir);
+            // the camera position projected onto the mirror plane (normal * offset + position,
+            // 0x50c6fa..0x50c71c), measured along the nudged normal
+            baseline = reflect_dir.k * (plane_normal.k * signed_offset + source_camera->position.z) +
+                       reflect_dir.j * (plane_normal.j * signed_offset + source_camera->position.y) +
+                       reflect_dir.i * (plane_normal.i * signed_offset + source_camera->position.x);
+        }
+
+        dot_forward = (reflect_dir.i * source_camera->forward.i + reflect_dir.j * source_camera->forward.j +
+                       reflect_dir.k * source_camera->forward.k) * 2.0f;
+        out_camera->forward.i = source_camera->forward.i - reflect_dir.i * dot_forward;
+        out_camera->forward.j = source_camera->forward.j - reflect_dir.j * dot_forward;
+        out_camera->forward.k = source_camera->forward.k - reflect_dir.k * dot_forward;
+
+        dot_up = (reflect_dir.i * source_camera->up.i + reflect_dir.j * source_camera->up.j +
+                  reflect_dir.k * source_camera->up.k) * 2.0f;
+        out_camera->up.i = source_camera->up.i - reflect_dir.i * dot_up;
+        out_camera->up.j = source_camera->up.j - reflect_dir.j * dot_up;
+        out_camera->up.k = source_camera->up.k - reflect_dir.k * dot_up;
+
+        dot_position = ((reflect_dir.j * source_camera->position.y + reflect_dir.k * source_camera->position.z +
+                         reflect_dir.i * source_camera->position.x) - baseline) * -2.0f;
+        out_camera->position.x = reflect_dir.i * dot_position + source_camera->position.x;
+        out_camera->position.y = reflect_dir.j * dot_position + source_camera->position.y;
+        out_camera->position.z = reflect_dir.k * dot_position + source_camera->position.z;
+
+        out_camera->mirrored = (uint8_t)(source_camera->mirrored == 0);
+
+        // Flips the just-reflected up vector again, to keep the mirrored camera's basis
+        // right-handed for the rasterizer.
+        out_camera->up.i = -out_camera->up.i;
+        out_camera->up.j = -out_camera->up.j;
+        out_camera->up.k = -out_camera->up.k;
+    } else {
+        // UNSURE: portal shift, driven by the mirror shader's two runtime floats
+        // (mirror->shader_mirror_value_0/unknown_14, ShaderEnvironment +0x30c/+0x310).
+        float inverse_forward_length =
+            1.0f / (float)sqrt((double)(source_camera->forward.k * source_camera->forward.k +
+                                         source_camera->forward.j * source_camera->forward.j +
+                                         source_camera->forward.i * source_camera->forward.i));
+        float sin_angle = vector3d_cross_product_length(&plane_normal, &source_camera->forward) *
+                           inverse_forward_length;
+        float shift = sin_angle * mirror->shader_mirror_value_0;
+
+        if (sin_angle == 0.0f) {
+            shift = 0.0f;
+        } else {
+            float dot_normal_forward = plane_normal.i * source_camera->forward.i +
+                                        plane_normal.j * source_camera->forward.j +
+                                        plane_normal.k * source_camera->forward.k;
+            shift = -((dot_normal_forward * inverse_forward_length * shift * mirror->shader_mirror_value_1) /
+                      ((float)sqrt((double)(1.0f - shift * shift)) * sin_angle));
+        }
+
+        out_camera->position.x = plane_normal.i * shift + source_camera->position.x;
+        out_camera->position.y = plane_normal.j * shift + source_camera->position.y;
+        out_camera->position.z = plane_normal.k * shift + source_camera->position.z;
+    }
+
+    out_camera->z_near = 0.0f;
+    out_camera->mirror_plane.normal = plane_normal;
+    out_camera->mirror_plane.d = plane_d;
+}
+
+#if 0
+Original Ghidra decompilation (0x50c660):
+
+void FUN_0050c660(float *param_1,float *param_2)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float fVar5;
+  float fVar6;
+  float fVar7;
+  float fVar8;
+  int iVar9;
+  float *unaff_EBX;
+  float *pfVar10;
+  float *pfVar11;
+  float10 fVar12;
+  float local_10;
+  float local_c;
+  float local_8;
+
+  fVar4 = *param_1;
+  fVar5 = param_1[1];
+  fVar6 = param_1[2];
+  fVar7 = param_1[3];
+  pfVar10 = unaff_EBX;
+  pfVar11 = param_2;
+  for (iVar9 = 0x15; iVar9 != 0; iVar9 = iVar9 + -1) {
+    *pfVar11 = *pfVar10;
+    pfVar10 = pfVar10 + 1;
+    pfVar11 = pfVar11 + 1;
+  }
+  if (param_1[4] == 0.0) {
+    fVar1 = fVar7;
+    local_10 = fVar4;
+    local_c = fVar5;
+    local_8 = fVar6;
+    if (ABS(fVar4 * unaff_EBX[3] + fVar5 * unaff_EBX[4] + fVar6 * unaff_EBX[5]) < 0.0125) {
+      fVar8 = -((fVar5 * unaff_EBX[1] + fVar6 * unaff_EBX[2] + fVar4 * *unaff_EBX) - fVar7);
+      fVar1 = *unaff_EBX;
+      fVar2 = unaff_EBX[1];
+      fVar3 = unaff_EBX[2];
+      local_10 = unaff_EBX[3] * 0.005859375 + fVar4;
+      local_c = unaff_EBX[4] * 0.005859375 + fVar5;
+      local_8 = unaff_EBX[5] * 0.005859375 + fVar6;
+      vector3d_normalize_with_length();
+      fVar1 = local_10 * (fVar4 * fVar8 + fVar1) +
+              local_c * (fVar5 * fVar8 + fVar2) + local_8 * (fVar6 * fVar8 + fVar3);
+    }
+    fVar2 = local_c * unaff_EBX[4] + local_8 * unaff_EBX[5] + local_10 * unaff_EBX[3];
+    fVar2 = fVar2 + fVar2;
+    param_2[3] = unaff_EBX[3] - local_10 * fVar2;
+    param_2[4] = unaff_EBX[4] - local_c * fVar2;
+    param_2[5] = unaff_EBX[5] - local_8 * fVar2;
+    fVar2 = local_c * unaff_EBX[7] + local_8 * unaff_EBX[8] + local_10 * unaff_EBX[6];
+    fVar2 = fVar2 + fVar2;
+    param_2[6] = unaff_EBX[6] - local_10 * fVar2;
+    param_2[7] = unaff_EBX[7] - local_c * fVar2;
+    param_2[8] = unaff_EBX[8] - local_8 * fVar2;
+    fVar1 = ((local_c * unaff_EBX[1] + local_8 * unaff_EBX[2] + local_10 * *unaff_EBX) - fVar1) *
+            -2.0;
+    *param_2 = local_10 * fVar1 + *unaff_EBX;
+    param_2[1] = local_c * fVar1 + unaff_EBX[1];
+    param_2[2] = local_8 * fVar1 + unaff_EBX[2];
+    *(bool *)(param_2 + 9) = *(char *)(unaff_EBX + 9) == '\0';
+    param_2[6] = -param_2[6];
+    param_2[7] = -param_2[7];
+    param_2[8] = -param_2[8];
+  }
+  else {
+    fVar1 = unaff_EBX[3];
+    fVar2 = 1.0 / SQRT(unaff_EBX[5] * unaff_EBX[5] + unaff_EBX[4] * unaff_EBX[4] + fVar1 * fVar1);
+    fVar12 = (float10)vector3d_cross_product_length();
+    fVar12 = fVar12 * (float10)fVar2;
+    fVar1 = (float)fVar12;
+    fVar12 = fVar12 * (float10)param_1[4];
+    if (fVar1 == 0.0) {
+      fVar12 = (float10)0.0;
+    }
+    else {
+      fVar12 = -((((float10)fVar4 * (float10)unaff_EBX[3] +
+                  (float10)fVar5 * (float10)unaff_EBX[4] + (float10)fVar6 * (float10)unaff_EBX[5]) *
+                  (float10)fVar2 * fVar12 * (float10)param_1[5]) /
+                (SQRT((float10)1.0 - fVar12 * fVar12) * (float10)fVar1));
+    }
+    *param_2 = (float)((float10)fVar4 * fVar12 + (float10)*unaff_EBX);
+    param_2[1] = (float)((float10)fVar5 * fVar12 + (float10)unaff_EBX[1]);
+    param_2[2] = (float)((float10)fVar6 * fVar12 + (float10)unaff_EBX[2]);
+  }
+  param_2[0xf] = 0.0;
+  param_2[0x11] = fVar4;
+  param_2[0x12] = fVar5;
+  param_2[0x13] = fVar6;
+  param_2[0x14] = fVar7;
+  return;
+}
+
+Key disassembly excerpts (objdump -d -M intel) confirming the register-passed EBX parameter and
+the vector3d_cross_product_length arguments:
+
+0050c660:
+  sub    esp,0x3c
+  mov    eax,DWORD PTR [esp+0x40]     ; stack arg 1 = mirror
+  ...
+  push   ebp
+  mov    ebp,DWORD PTR [esp+0x48]     ; stack arg 2 = out_camera
+  ...
+  mov    ecx,0x15
+  mov    esi,ebx                      ; source = EBX (source_camera)
+  mov    edi,ebp                      ; dest = out_camera
+  rep movs DWORD PTR es:[edi],DWORD PTR ds:[esi]   ; *out_camera = *source_camera
+  ...
+0050c8a1 (the mirror->unknown_10 != 0 branch):
+  lea    esi,[ebx+0xc]                ; &source_camera->forward
+  lea    eax,[esp+0x28]               ; &plane_normal (spilled to the stack earlier)
+  mov    ecx,esi                      ; ecx = &source_camera->forward
+  ...
+  call   0x4cd380                     ; vector3d_cross_product_length(EAX=&plane_normal, ECX=&forward)
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_camera_projection_zrange_push_pop_set.c
+====================================================================================================
+// render_camera_projection_zrange_push_pop_set  (Ghidra: render_camera_projection_zrange_push_pop_set,
+// already named)
+// address 0x50c9a0, size 235 bytes
+// name confidence: 0.55   rewrite confidence: 0.65
+// evidence: types/render.h's globals list: "global 0x006b8d84: float render_saved_projection_z[4]
+//   render_camera_hack_frustum_z 0x50c9a0 save / restore of projection[0..3][2]." The four
+//   offsets read/written (+0x14c/0x15c/0x16c/0x17c) are render_frustum.projection[0][2],
+//   [1][2], [2][2] and [3][2] (the 4x4 matrix is row-major from +0x144). Disassembly
+//   (objdump -d -M intel, 0x50c9a0..0x50c9cb) confirms both floats are stack arguments and ECX is
+//   the frustum.
+// register convention: ECX = frustum (render_frustum*), stack = (z_near, z_far).
+//   // blam-cc: ECX=frustum, stack=(z_near, z_far)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern float render_saved_projection_z[4]; // 0x006b8d84, this module
+
+// Three-way depth-range helper for the projection matrix's z column (projection[0..3][2]):
+// z_near == z_far == -1.0 saves the frustum's current z-column terms to render_saved_projection_z
+// ("push"); z_near == z_far == 0.0 restores them ("pop"); any other pair recomputes the z-column
+// terms for that near/far range (the standard perspective z-range terms, with this engine's own
+// sign convention), used to temporarily bias the depth range (e.g. for overlays/decals) without
+// touching the rest of the projection matrix.
+void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, float z_near,
+                                                   float z_far) // blam-cc: ECX=frustum, stack=(z_near, z_far)
+{
+    if (z_near == -1.0f && z_far == -1.0f) {
+        render_saved_projection_z[0] = frustum->projection[0][2];
+        render_saved_projection_z[1] = frustum->projection[1][2];
+        render_saved_projection_z[2] = frustum->projection[2][2];
+        render_saved_projection_z[3] = frustum->projection[3][2];
+        return;
+    }
+    if (z_near == 0.0f && z_far == 0.0f) {
+        frustum->projection[0][2] = render_saved_projection_z[0];
+        frustum->projection[1][2] = render_saved_projection_z[1];
+        frustum->projection[2][2] = render_saved_projection_z[2];
+        frustum->projection[3][2] = render_saved_projection_z[3];
+        return;
+    }
+    frustum->projection[0][2] = 0.0f;
+    frustum->projection[1][2] = 0.0f;
+    frustum->projection[2][2] = -((z_near + z_far) / (z_far - z_near));
+    frustum->projection[3][2] = (z_near * z_far * -2.0f) / (z_far - z_near);
+}
+
+#if 0
+Original Ghidra decompilation (0x50c9a0):
+
+void render_camera_projection_zrange_push_pop_set(float param_1,float param_2)
+
+{
+  int in_ECX;
+
+  if ((param_1 == -1.0) && (param_2 == -1.0)) {
+    DAT_006b8d84 = *(undefined4 *)(in_ECX + 0x14c);
+    DAT_006b8d88 = *(undefined4 *)(in_ECX + 0x15c);
+    DAT_006b8d8c = *(undefined4 *)(in_ECX + 0x16c);
+    DAT_006b8d90 = *(undefined4 *)(in_ECX + 0x17c);
+    return;
+  }
+  if ((param_1 == 0.0) && (param_2 == 0.0)) {
+    *(undefined4 *)(in_ECX + 0x14c) = DAT_006b8d84;
+    *(undefined4 *)(in_ECX + 0x15c) = DAT_006b8d88;
+    *(undefined4 *)(in_ECX + 0x16c) = DAT_006b8d8c;
+    *(undefined4 *)(in_ECX + 0x17c) = DAT_006b8d90;
+    return;
+  }
+  *(undefined4 *)(in_ECX + 0x14c) = 0;
+  *(undefined4 *)(in_ECX + 0x15c) = 0;
+  *(float *)(in_ECX + 0x16c) = -((param_1 + param_2) / (param_2 - param_1));
+  *(float *)(in_ECX + 0x17c) = (param_1 * param_2 * -2.0) / (param_2 - param_1);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_frustum_classify_point_side_planes.c
+====================================================================================================
+// render_frustum_classify_point_side_planes  (Ghidra: render_frustum_classify_point_side_planes,
+// already named)
+// address 0x50d4c0, size 237 bytes
+// name confidence: 0.5   rewrite confidence: 0.7
+// evidence: types/render.h's render_frustum_point_flags enum documents this exact function's four
+//   output bits against the four side planes' offsets (world_planes[0] +0x78 -> bit 0x01,
+//   world_planes[1] +0x88 -> bit 0x02, world_planes[3] +0xa8 -> bit 0x04, world_planes[2] +0x98
+//   -> bit 0x08), which matches the four dot-product tests below exactly.
+// register convention: ECX = frustum (render_frustum*), EDX = point (real_point3d*).
+//   // blam-cc: ECX=frustum, EDX=point
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "render.h"
+
+// Classifies a world-space point against the camera frustum's four side planes (not near/far),
+// returning a 4-bit outcode: one bit per plane the point is in front of (outside).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+uint8_t render_frustum_classify_point_side_planes(render_frustum *frustum, real_point3d *point) // blam-cc: ECX=frustum, EDX=point
+{
+    uint8_t flags = 0;
+
+    if ((frustum->world_planes[0].normal.i * point->x + frustum->world_planes[0].normal.k * point->z +
+         frustum->world_planes[0].normal.j * point->y) - frustum->world_planes[0].d > 0.0f) {
+        flags |= _render_frustum_point_plane0_bit;
+    }
+    if ((frustum->world_planes[1].normal.i * point->x + frustum->world_planes[1].normal.k * point->z +
+         frustum->world_planes[1].normal.j * point->y) - frustum->world_planes[1].d > 0.0f) {
+        flags |= _render_frustum_point_plane1_bit;
+    }
+    if ((frustum->world_planes[2].normal.i * point->x + frustum->world_planes[2].normal.k * point->z +
+         frustum->world_planes[2].normal.j * point->y) - frustum->world_planes[2].d > 0.0f) {
+        flags |= _render_frustum_point_plane2_bit;
+    }
+    if ((frustum->world_planes[3].normal.i * point->x + frustum->world_planes[3].normal.k * point->z +
+         frustum->world_planes[3].normal.j * point->y) - frustum->world_planes[3].d > 0.0f) {
+        flags |= _render_frustum_point_plane3_bit;
+    }
+
+    return flags;
+}
+
+#if 0
+Original Ghidra decompilation (0x50d4c0):
+
+byte render_frustum_classify_point_side_planes(void)
+
+{
+  byte bVar1;
+  int in_ECX;
+  float *in_EDX;
+  byte bVar2;
+
+  if ((*(float *)(in_ECX + 0x88) * *in_EDX +
+      *(float *)(in_ECX + 0x90) * in_EDX[2] + *(float *)(in_ECX + 0x8c) * in_EDX[1]) -
+      *(float *)(in_ECX + 0x94) <= 0.0) {
+    bVar1 = 0;
+  }
+  else {
+    bVar1 = 2;
+  }
+  if ((*in_EDX * *(float *)(in_ECX + 0x98) +
+      *(float *)(in_ECX + 0xa0) * in_EDX[2] + *(float *)(in_ECX + 0x9c) * in_EDX[1]) -
+      *(float *)(in_ECX + 0xa4) <= 0.0) {
+    bVar2 = 0;
+  }
+  else {
+    bVar2 = 8;
+  }
+  bVar2 = 0.0 < (*(float *)(in_ECX + 0x78) * *in_EDX +
+                *(float *)(in_ECX + 0x80) * in_EDX[2] + *(float *)(in_ECX + 0x7c) * in_EDX[1]) -
+                *(float *)(in_ECX + 0x84) | bVar1 | bVar2;
+  if (0.0 < (*(float *)(in_ECX + 0xa8) * *in_EDX +
+            *(float *)(in_ECX + 0xb0) * in_EDX[2] + *(float *)(in_ECX + 0xac) * in_EDX[1]) -
+            *(float *)(in_ECX + 0xb4)) {
+    return bVar2 | 4;
+  }
+  return bVar2;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_frustum_compute_box_overlap_area.c
+====================================================================================================
+// render_frustum_compute_box_overlap_area  (Ghidra: FUN_0050dac0; new name, evidence below)
+// address 0x50dac0, size 763 bytes
+// name confidence: 0.45   rewrite confidence: 0.85
+// evidence: out/phase4/render_functions.md's phase-2 summary: "Computes the projected screen-space
+//   overlap area of a portal-like rectangle against the current view, used for portal
+//   culling/visibility weighting." The box argument's six floats are read in exactly the
+//   real_rectangle3d order (x.lower/upper, y.lower/upper, z.lower/upper) and the frustum argument
+//   uses the same four projection fields (+0x144/0x158/0x164/0x168) as
+//   render_frustum_compute_screen_clip_bounds (0x50ddc0) and render_project_world_point_to_screen
+//   (0x50de30).
+// register convention: ECX = box (real_rectangle3d*, view-space), EDX = frustum (render_frustum*).
+//   // blam-cc: ECX=box, EDX=frustum
+// UNSURE: each of the four clamped screen-space bounds is computed twice in the decompiled code
+//   (once to decide whether to clamp, once more -- via an identical re-comparison -- to produce
+//   the actual value), which is exactly clamp(min(a,b), -1) / clamp(max(a,b), 1); the rewrite
+//   below computes each min/max once instead of reproducing the redundant recomputation, which
+//   does not change the result.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+
+// Projects a view-space axis-aligned box (as seen at both its nearest and farthest z) onto the
+// screen and returns the area of its clamped (-1..1) NDC bounding rectangle as a fraction of the
+// full 2x2 NDC area (0 when the box's projected x or y range does not overlap the screen at all).
+// If the box straddles or is behind the camera (z.lower < 0 <= z.upper) it is treated as fully
+// covering the view and this returns 1.0.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+real render_frustum_compute_box_overlap_area(real_rectangle3d *box, render_frustum *frustum) // blam-cc: ECX=box, EDX=frustum
+{
+    float inverse_z_near, inverse_z_far;
+    float candidate_a, candidate_b;
+    float x_lo, x_hi, y_lo, y_hi;
+    float area;
+
+    if (box->z.lower >= 0.0f) {
+        return 0.0f;
+    }
+    if (box->z.upper >= 0.0f) {
+        return 1.0f;
+    }
+
+    inverse_z_near = -1.0f / box->z.lower;
+    inverse_z_far = -1.0f / box->z.upper;
+
+    candidate_a = (frustum->projection[2][0] * box->z.lower + frustum->projection[0][0] * box->x.lower) * inverse_z_near;
+    candidate_b = (frustum->projection[2][0] * box->z.upper + frustum->projection[0][0] * box->x.lower) * inverse_z_far;
+    x_lo = (candidate_a < candidate_b) ? candidate_a : candidate_b;
+    if (x_lo < -1.0f) {
+        x_lo = -1.0f;
+    }
+
+    candidate_a = (frustum->projection[2][1] * box->z.lower + frustum->projection[1][1] * box->y.lower) * inverse_z_near;
+    candidate_b = (frustum->projection[2][1] * box->z.upper + frustum->projection[1][1] * box->y.lower) * inverse_z_far;
+    y_lo = (candidate_a < candidate_b) ? candidate_a : candidate_b;
+    if (y_lo < -1.0f) {
+        y_lo = -1.0f;
+    }
+
+    candidate_a = (frustum->projection[2][0] * box->z.lower + frustum->projection[0][0] * box->x.upper) * inverse_z_near;
+    candidate_b = (frustum->projection[2][0] * box->z.upper + frustum->projection[0][0] * box->x.upper) * inverse_z_far;
+    x_hi = (candidate_a > candidate_b) ? candidate_a : candidate_b;
+    if (x_hi > 1.0f) {
+        x_hi = 1.0f;
+    }
+
+    candidate_a = (frustum->projection[2][1] * box->z.lower + frustum->projection[1][1] * box->y.upper) * inverse_z_near;
+    candidate_b = (frustum->projection[2][1] * box->z.upper + frustum->projection[1][1] * box->y.upper) * inverse_z_far;
+    y_hi = (candidate_a > candidate_b) ? candidate_a : candidate_b;
+    if (y_hi > 1.0f) {
+        y_hi = 1.0f;
+    }
+
+    area = (x_hi - x_lo) * (y_hi - y_lo) * 0.25f;
+    return (area > 0.0f) ? area : 0.0f;
+}
+
+#if 0
+Original Ghidra decompilation (0x50dac0):
+
+float10 FUN_0050dac0(void)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float fVar5;
+  float fVar6;
+  float fVar7;
+  float fVar8;
+  float *in_ECX;
+  int in_EDX;
+  float10 fVar9;
+  float10 fVar10;
+  float10 fVar11;
+  float10 fVar12;
+  float10 fVar13;
+
+  if (in_ECX[4] < 0.0) {
+    if (0.0 <= in_ECX[5]) {
+      return (float10)1.0;
+    }
+    fVar2 = *(float *)(in_EDX + 0x144);
+    fVar3 = *(float *)(in_EDX + 0x164);
+    fVar4 = *(float *)(in_EDX + 0x158);
+    fVar6 = fVar2 * *in_ECX;
+    fVar1 = (float)-((float10)1.0 / (float10)in_ECX[4]);
+    fVar5 = -(1.0 / in_ECX[5]);
+    if ((fVar3 * in_ECX[4] + fVar6) * fVar1 <= (fVar3 * in_ECX[5] + fVar6) * fVar5) {
+      fVar7 = (fVar3 * in_ECX[4] + fVar6) * fVar1;
+    }
+    else {
+      fVar7 = (fVar3 * in_ECX[5] + fVar6) * fVar5;
+    }
+    if (fVar7 <= -1.0) {
+      fVar9 = (float10)-1.0;
+    }
+    else {
+      fVar9 = ((float10)fVar3 * (float10)in_ECX[4] + (float10)fVar6) * (float10)fVar1;
+      fVar6 = (fVar3 * in_ECX[5] + fVar6) * fVar5;
+      if ((float10)fVar6 < fVar9) {
+        fVar9 = (float10)fVar6;
+      }
+    }
+    fVar6 = *(float *)(in_EDX + 0x168) * in_ECX[4];
+    fVar7 = *(float *)(in_EDX + 0x168) * in_ECX[5];
+    fVar10 = (float10)fVar4 * (float10)in_ECX[2];
+    if ((fVar6 + fVar4 * in_ECX[2]) * fVar1 <= (fVar7 + fVar4 * in_ECX[2]) * fVar5) {
+      fVar11 = ((float10)fVar6 + fVar10) * (float10)fVar1;
+    }
+    else {
+      fVar11 = ((float10)fVar7 + fVar10) * (float10)fVar5;
+    }
+    if (fVar11 <= (float10)-1.0) {
+      fVar10 = (float10)-1.0;
+    }
+    else if ((fVar6 + fVar4 * in_ECX[2]) * fVar1 <= (fVar4 * in_ECX[2] + fVar7) * fVar5) {
+      fVar10 = (fVar10 + (float10)fVar6) * (float10)fVar1;
+    }
+    else {
+      fVar10 = (fVar10 + (float10)fVar7) * (float10)fVar5;
+    }
+    fVar8 = fVar3 * in_ECX[4];
+    fVar3 = fVar3 * in_ECX[5];
+    fVar11 = (float10)fVar2 * (float10)in_ECX[1];
+    if ((fVar8 + fVar2 * in_ECX[1]) * fVar1 <= (fVar2 * in_ECX[1] + fVar3) * fVar5) {
+      fVar12 = ((float10)fVar3 + fVar11) * (float10)fVar5;
+    }
+    else {
+      fVar12 = ((float10)fVar8 + fVar11) * (float10)fVar1;
+    }
+    if (fVar12 <= (float10)1.0) {
+      if ((fVar8 + fVar2 * in_ECX[1]) * fVar1 <= (fVar2 * in_ECX[1] + fVar3) * fVar5) {
+        fVar11 = (fVar11 + (float10)fVar3) * (float10)fVar5;
+      }
+      else {
+        fVar11 = (fVar11 + (float10)fVar8) * (float10)fVar1;
+      }
+    }
+    else {
+      fVar11 = (float10)1.0;
+    }
+    fVar12 = (float10)fVar4 * (float10)in_ECX[3];
+    if ((fVar6 + fVar4 * in_ECX[3]) * fVar1 <= (fVar4 * in_ECX[3] + fVar7) * fVar5) {
+      fVar13 = ((float10)fVar7 + fVar12) * (float10)fVar5;
+    }
+    else {
+      fVar13 = ((float10)fVar6 + fVar12) * (float10)fVar1;
+    }
+    if (fVar13 <= (float10)1.0) {
+      if ((fVar6 + fVar4 * in_ECX[3]) * fVar1 <= (fVar4 * in_ECX[3] + fVar7) * fVar5) {
+        fVar12 = (fVar12 + (float10)fVar7) * (float10)fVar5;
+      }
+      else {
+        fVar12 = (fVar12 + (float10)fVar6) * (float10)fVar1;
+      }
+    }
+    else {
+      fVar12 = (float10)1.0;
+    }
+    fVar9 = (fVar11 - fVar9) * (fVar12 - fVar10) * (float10)0.25;
+    if ((float10)0.0 < fVar9) {
+      return fVar9;
+    }
+  }
+  return (float10)0.0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_frustum_compute_screen_clip_bounds.c
+====================================================================================================
+// render_frustum_compute_screen_clip_bounds  (Ghidra: FUN_0050ddc0; new name, evidence below)
+// address 0x50ddc0, size 99 bytes
+// name confidence: 0.45   rewrite confidence: 0.7
+// evidence: out/phase4/render_functions.md's phase-2 summary: "Computes the normalized (-1..1)
+//   screen-space clip rectangle bounds for the current viewport/projection." The four fields read
+//   (+0x144, +0x158, +0x164, +0x168) are render_frustum.projection[0][0], [1][1], [2][0] and
+//   [2][1] (types/rasterizer.h; the 4x4 matrix is row-major from +0x144). This same function is
+//   already declared (still under its old name) as a dependency in
+//   src/structures/structure_bsp_mirror_query.c, with the note "render module, below this batch's
+//   assigned range" and the identical blam-cc mapping (EAX=out, ECX=camera/frustum) confirmed
+//   there from disassembly at 0x5536ba..0x5536e1; that file is outside this module and is not
+//   updated to the new name here.
+// register convention: EAX = out (float[4]), ECX = frustum (render_frustum*).
+//   // blam-cc: EAX=out, ECX=frustum
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+
+// Computes the normalized (-1..1) screen-space clip rectangle (left, right, bottom, top) implied
+// by the frustum's current projection matrix, from its two diagonal scale terms and its
+// (asymmetric) perspective shear terms.
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+void render_frustum_compute_screen_clip_bounds(float out[4], render_frustum *frustum) // blam-cc: EAX=out, ECX=frustum
+{
+    float shear_x = frustum->projection[2][0];
+    float shear_y = frustum->projection[2][1];
+    float inverse_scale_x = -1.0f / frustum->projection[0][0];
+    float inverse_scale_y = -1.0f / frustum->projection[1][1];
+
+    out[0] = (-shear_x - 1.0f) * inverse_scale_x;
+    out[1] = (-shear_x + 1.0f) * inverse_scale_x;
+    out[2] = (-shear_y - 1.0f) * inverse_scale_y;
+    out[3] = (-shear_y + 1.0f) * inverse_scale_y;
+}
+
+#if 0
+Original Ghidra decompilation (0x50ddc0):
+
+void FUN_0050ddc0(void)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float *in_EAX;
+  int in_ECX;
+
+  fVar1 = *(float *)(in_ECX + 0x164);
+  fVar2 = *(float *)(in_ECX + 0x168);
+  fVar3 = -1.0 / *(float *)(in_ECX + 0x144);
+  fVar4 = -1.0 / *(float *)(in_ECX + 0x158);
+  *in_EAX = (-fVar1 - 1.0) * fVar3;
+  in_EAX[1] = (-fVar1 + 1.0) * fVar3;
+  in_EAX[2] = (-fVar2 - 1.0) * fVar4;
+  in_EAX[3] = (-fVar2 + 1.0) * fVar4;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_frustum_test_bounding_box.c
+====================================================================================================
+// render_frustum_test_bounding_box  (Ghidra: render_frustum_test_bounding_box, already named)
+// address 0x50d5b0, size 731 bytes
+// name confidence: 0.5   rewrite confidence: 0.85
+// evidence: out/phase4/render_functions.md's phase-2 summary: "Classifies an axis-aligned
+// bounding box against the camera frustum as fully outside, intersecting, or fully inside."
+// Disassembly (objdump -d -M intel, 0x50d5b0..0x50d619) confirms ECX=frustum, EDI=box
+// (real_rectangle3d*: x.lower/upper, y.lower/upper, z.lower/upper at +0x00/04/08/0c/10/14) for
+// the leading world_bounds overlap test. The per-corner classification against the four side
+// planes reuses render_frustum_classify_point_side_planes's exact bit values (plane0 +0x78 ->
+// 0x01, plane1 +0x88 -> 0x02, plane3 +0xa8 -> 0x04, plane2 +0x98 -> 0x08), so this rewrite calls
+// that function instead of re-inlining the same four dot products. The optional validate pass
+// (param_1 != 0) re-derives its own six bits per frustum world_vertex from a careful reading of
+// the "(a<b)==(a==b)" ("a>b") and "(a<b)!=(a==b)" ("a<=b") idioms mixed with plain "<"/">="
+// comparisons in the decompile -- see the inline note at that loop.
+// register convention: ECX = frustum (render_frustum*), EDI = box (real_rectangle3d*),
+//   stack = validate (whether to also run the near/far vertex-separation pass).
+//   // blam-cc: ECX=frustum, EDI=box, stack=validate
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t render_frustum_classify_point_side_planes(render_frustum *frustum,
+                                                          real_point3d *point); // 0x50d4c0, this
+                                                                               // module
+
+// Classifies an axis-aligned world-space bounding box against the camera frustum: fully outside,
+// fully inside, or intersecting. First rejects boxes that do not even overlap the frustum's own
+// overall AABB (world_bounds), then classifies all 8 box corners against the four side planes
+// (via render_frustum_classify_point_side_planes) to decide outside/inside/intersecting. When
+// validate is set and the side-plane test says "intersecting", a further separating-axis check
+// against the frustum's own extreme vertices (world_vertices) can still reject the box.
+int16_t render_frustum_test_bounding_box(render_frustum *frustum, real_rectangle3d *box,
+                                           uint8_t validate) // blam-cc: ECX=frustum, EDI=box, stack=validate
+{
+    real_point3d corners[8];
+    uint8_t all_outside = 0x3f;
+    uint8_t any_outside = 0;
+    int i;
+
+    if (frustum->world_bounds.x.upper < box->x.lower || frustum->world_bounds.y.upper < box->y.lower ||
+        frustum->world_bounds.z.upper < box->z.lower || box->x.upper < frustum->world_bounds.x.lower ||
+        box->y.upper < frustum->world_bounds.y.lower || box->z.upper < frustum->world_bounds.z.lower) {
+        return _render_frustum_outside;
+    }
+
+    corners[0].x = box->x.lower; corners[0].y = box->y.lower; corners[0].z = box->z.lower;
+    corners[1].x = box->x.upper; corners[1].y = box->y.lower; corners[1].z = box->z.lower;
+    corners[2].x = box->x.lower; corners[2].y = box->y.upper; corners[2].z = box->z.lower;
+    corners[3].x = box->x.upper; corners[3].y = box->y.upper; corners[3].z = box->z.lower;
+    corners[4].x = box->x.lower; corners[4].y = box->y.lower; corners[4].z = box->z.upper;
+    corners[5].x = box->x.upper; corners[5].y = box->y.lower; corners[5].z = box->z.upper;
+    corners[6].x = box->x.lower; corners[6].y = box->y.upper; corners[6].z = box->z.upper;
+    corners[7].x = box->x.upper; corners[7].y = box->y.upper; corners[7].z = box->z.upper;
+
+    for (i = 0; i < 8; i++) {
+        uint8_t flags = render_frustum_classify_point_side_planes(frustum, &corners[i]);
+        all_outside &= flags;
+        any_outside |= flags;
+    }
+
+    if (any_outside == 0) {
+        return _render_frustum_inside;
+    }
+    if (all_outside != 0) {
+        return _render_frustum_outside;
+    }
+
+    if (validate) {
+        // Separating-axis check: for each of the frustum's 5 extreme vertices, set one bit per
+        // box side (x/y/z, lower/upper) the vertex lies outside of. If every vertex shares a
+        // common outside side, the box and frustum do not actually intersect.
+        uint8_t vertex_separates = 0x3f;
+
+        for (i = 0; i < 5; i++) {
+            real_point3d *v = &frustum->world_vertices[i];
+            uint8_t bits = 0;
+
+            if (v->x <= box->x.lower) bits |= 0x01;
+            if (v->x >= box->x.upper) bits |= 0x02;
+            if (v->y >= box->y.upper) bits |= 0x04;
+            if (v->y <= box->y.lower) bits |= 0x08;
+            if (v->z <= box->z.lower) bits |= 0x10;
+            if (v->z >= box->z.upper) bits |= 0x20;
+
+            vertex_separates &= bits;
+        }
+
+        if (vertex_separates != 0) {
+            return _render_frustum_outside;
+        }
+    }
+
+    return _render_frustum_partial;
+}
+
+#if 0
+Original Ghidra decompilation (0x50d5b0):
+
+undefined4 render_frustum_test_bounding_box(char param_1)
+
+{
+  byte bVar1;
+  byte bVar2;
+  byte bVar3;
+  byte bVar4;
+  byte bVar5;
+  int in_ECX;
+  float *pfVar6;
+  int iVar7;
+  byte bVar8;
+  float *unaff_EDI;
+  int local_64;
+  float local_5c;
+  float local_58;
+  float local_54;
+  float local_50;
+  float local_4c;
+  float local_48;
+  float local_44;
+  float local_40;
+  float local_3c;
+  float local_38;
+  float local_34;
+  float local_30;
+  float local_2c;
+  float local_28;
+  float local_24;
+  float local_20;
+  float local_1c;
+  float local_18;
+  float local_14;
+  float local_10;
+  float local_c;
+  float local_8;
+  float local_4;
+
+  if ((((*(float *)(in_ECX + 300) < *unaff_EDI) || (*(float *)(in_ECX + 0x134) < unaff_EDI[2])) ||
+      (*(float *)(in_ECX + 0x13c) < unaff_EDI[4])) ||
+     (((unaff_EDI[1] < *(float *)(in_ECX + 0x128) || (unaff_EDI[3] < *(float *)(in_ECX + 0x130))) ||
+      (unaff_EDI[5] < *(float *)(in_ECX + 0x138))))) {
+    return 0;
+  }
+  local_18 = *unaff_EDI;
+  local_30 = local_18;
+  bVar1 = 0x3f;
+  local_48 = local_18;
+  bVar8 = 0;
+  pfVar6 = &local_5c;
+  local_c = unaff_EDI[1];
+  local_64 = 8;
+  local_24 = local_c;
+  local_3c = local_c;
+  local_54 = local_c;
+  local_20 = unaff_EDI[2];
+  local_2c = local_20;
+  local_50 = local_20;
+  local_5c = local_20;
+  local_8 = unaff_EDI[3];
+  local_14 = local_8;
+  local_38 = local_8;
+  local_44 = local_8;
+  local_34 = unaff_EDI[4];
+  local_40 = local_34;
+  local_4c = local_34;
+  local_58 = local_34;
+  local_4 = unaff_EDI[5];
+  local_10 = local_4;
+  local_1c = local_4;
+  local_28 = local_4;
+  do {
+    /* inlined classify against the four side planes, same bit values as
+       render_frustum_classify_point_side_planes 0x50d4c0 */
+    bVar1 = bVar1 & bVar4;
+    bVar8 = bVar8 | bVar4;
+    pfVar6 = pfVar6 + 3;
+    local_64 = local_64 + -1;
+  } while (local_64 != 0);
+  if (bVar8 != 0) {
+    if (bVar1 != 0) {
+      return 0;
+    }
+    if (param_1 != '\0') {
+      bVar8 = 0x3f;
+      pfVar6 = (float *)(in_ECX + 0xe8);
+      iVar7 = 5;
+      do {
+        if (pfVar6[-2] < unaff_EDI[1]) {
+          bVar1 = 0;
+        }
+        else {
+          bVar1 = 2;
+        }
+        if (pfVar6[-1] < unaff_EDI[2] == (pfVar6[-1] == unaff_EDI[2])) {
+          bVar2 = 0;
+        }
+        else {
+          bVar2 = 8;
+        }
+        if (pfVar6[-1] < unaff_EDI[3]) {
+          bVar3 = 0;
+        }
+        else {
+          bVar3 = 4;
+        }
+        if (*pfVar6 < unaff_EDI[4] == (*pfVar6 == unaff_EDI[4])) {
+          bVar4 = 0;
+        }
+        else {
+          bVar4 = 0x10;
+        }
+        if (*pfVar6 < unaff_EDI[5]) {
+          bVar5 = 0;
+        }
+        else {
+          bVar5 = 0x20;
+        }
+        bVar8 = bVar8 & (bVar5 | pfVar6[-2] < *unaff_EDI != (pfVar6[-2] == *unaff_EDI) | bVar1 |
+                                 bVar2 | bVar3 | bVar4);
+        pfVar6 = pfVar6 + 3;
+        iVar7 = iVar7 + -1;
+      } while (iVar7 != 0);
+      if (bVar8 != 0) {
+        return 0;
+      }
+    }
+    return 1;
+  }
+  return 2;
+}
+
+Idiom key for the vertex loop (pfVar6[-2]=vertex.x, pfVar6[-1]=vertex.y, *pfVar6=vertex.z,
+unaff_EDI[0..5]=box.x.lower/upper,y.lower/upper,z.lower/upper):
+  bVar1 (plain "<"):            vertex.x <  box.x.upper ? 0 : 2      -> bit 0x02 = vertex.x >= box.x.upper
+  bVar2 ("(a<b)==(a==b)"="a>b"): vertex.y >  box.y.lower ? 0 : 8      -> bit 0x08 = vertex.y <= box.y.lower
+  bVar3 (plain "<"):            vertex.y <  box.y.upper ? 0 : 4      -> bit 0x04 = vertex.y >= box.y.upper
+  bVar4 ("a>b" idiom):          vertex.z >  box.z.lower ? 0 : 0x10   -> bit 0x10 = vertex.z <= box.z.lower
+  bVar5 (plain "<"):            vertex.z <  box.z.upper ? 0 : 0x20   -> bit 0x20 = vertex.z >= box.z.upper
+  last term ("(a<b)!=(a==b)"="a<=b"): vertex.x <= box.x.lower ? 1 : 0 -> bit 0x01 = vertex.x <= box.x.lower
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_frustum_test_sphere.c
+====================================================================================================
+// render_frustum_test_sphere  (Ghidra: render_frustum_test_sphere, already named)
+// address 0x50d890, size 555 bytes
+// name confidence: 0.5   rewrite confidence: 0.85
+// evidence: out/phase4/render_functions.md's phase-2 summary: "Classifies a sphere (center +
+//   radius) against the camera frustum planes as outside, partially inside, or fully inside."
+//   Disassembly (objdump -d -M intel, 0x50d890..0x50d8bf) confirms ECX=frustum, EDX=center
+//   (real_point3d*), stack=radius.
+// register convention: ECX = frustum (render_frustum*), EDX = center (real_point3d*),
+//   stack = radius.
+//   // blam-cc: ECX=frustum, EDX=center, stack=radius
+// UNSURE: the final "fully inside" refinement only re-checks 5 of the 6 plane distances (the
+// side plane at world_planes[4] is used for the initial outside gate but never retested here);
+// reproduced exactly rather than treated as an oversight to fix.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "render.h"
+
+// Classifies a world-space sphere against the camera frustum: outside, partially inside (straddles
+// at least one plane) or fully inside. First rejects spheres that do not even overlap the
+// frustum's own overall AABB (world_bounds) or that are entirely outside any one of the six
+// frustum planes by more than the radius; a sphere that passes is then fully inside only if it
+// also sits more than a radius on the inside of five of those six planes (see the UNSURE note
+// above for the sixth).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int16_t render_frustum_test_sphere(render_frustum *frustum, real_point3d *center,
+                                     float radius) // blam-cc: ECX=frustum, EDX=center, stack=radius
+{
+    float distance0, distance1, distance2, distance3, distance5;
+    float negative_radius;
+
+    if (center->x - radius > frustum->world_bounds.x.upper ||
+        center->y - radius > frustum->world_bounds.y.upper ||
+        center->z - radius > frustum->world_bounds.z.upper ||
+        frustum->world_bounds.x.lower > radius + center->x ||
+        frustum->world_bounds.y.lower > radius + center->y ||
+        frustum->world_bounds.z.lower > radius + center->z) {
+        return _render_frustum_outside;
+    }
+
+    distance0 = (frustum->world_planes[0].normal.i * center->x + frustum->world_planes[0].normal.j * center->y +
+                 frustum->world_planes[0].normal.k * center->z) - frustum->world_planes[0].d;
+    if (distance0 > radius) {
+        return _render_frustum_outside;
+    }
+    distance1 = (frustum->world_planes[1].normal.i * center->x + frustum->world_planes[1].normal.j * center->y +
+                 frustum->world_planes[1].normal.k * center->z) - frustum->world_planes[1].d;
+    if (distance1 > radius) {
+        return _render_frustum_outside;
+    }
+    distance2 = (frustum->world_planes[2].normal.i * center->x + frustum->world_planes[2].normal.j * center->y +
+                 frustum->world_planes[2].normal.k * center->z) - frustum->world_planes[2].d;
+    if (distance2 > radius) {
+        return _render_frustum_outside;
+    }
+    distance3 = (frustum->world_planes[3].normal.i * center->x + frustum->world_planes[3].normal.j * center->y +
+                 frustum->world_planes[3].normal.k * center->z) - frustum->world_planes[3].d;
+    if (distance3 > radius) {
+        return _render_frustum_outside;
+    }
+    if ((frustum->world_planes[4].normal.i * center->x + frustum->world_planes[4].normal.j * center->y +
+         frustum->world_planes[4].normal.k * center->z) - frustum->world_planes[4].d > radius) {
+        return _render_frustum_outside;
+    }
+    distance5 = (frustum->world_planes[5].normal.i * center->x + frustum->world_planes[5].normal.j * center->y +
+                 frustum->world_planes[5].normal.k * center->z) - frustum->world_planes[5].d;
+    if (distance5 > radius) {
+        return _render_frustum_outside;
+    }
+
+    negative_radius = -radius;
+    if (negative_radius <= distance0 || negative_radius <= distance1 || negative_radius <= distance2 ||
+        negative_radius <= distance3 || negative_radius <= distance5) {
+        return _render_frustum_partial;
+    }
+    return _render_frustum_inside;
+}
+
+#if 0
+Original Ghidra decompilation (0x50d890):
+
+undefined2 render_frustum_test_sphere(float param_1)
+
+{
+  float fVar1;
+  float fVar2;
+  float fVar3;
+  float fVar4;
+  float fVar5;
+  undefined2 uVar6;
+  int in_ECX;
+  float *in_EDX;
+
+  if (((((((*in_EDX - param_1 <= *(float *)(in_ECX + 300)) &&
+          (in_EDX[1] - param_1 <= *(float *)(in_ECX + 0x134))) &&
+         (in_EDX[2] - param_1 <= *(float *)(in_ECX + 0x13c))) &&
+        ((*(float *)(in_ECX + 0x128) <= param_1 + *in_EDX &&
+         (*(float *)(in_ECX + 0x130) <= param_1 + in_EDX[1])))) &&
+       ((*(float *)(in_ECX + 0x138) <= param_1 + in_EDX[2] &&
+        ((fVar1 = (*(float *)(in_ECX + 0x78) * *in_EDX +
+                  *(float *)(in_ECX + 0x7c) * in_EDX[1] + *(float *)(in_ECX + 0x80) * in_EDX[2]) -
+                  *(float *)(in_ECX + 0x84), fVar1 <= param_1 &&
+         (fVar2 = (*(float *)(in_ECX + 0x88) * *in_EDX +
+                  *(float *)(in_ECX + 0x8c) * in_EDX[1] + *(float *)(in_ECX + 0x90) * in_EDX[2]) -
+                  *(float *)(in_ECX + 0x94), fVar2 <= param_1)))))) &&
+      (fVar3 = (*(float *)(in_ECX + 0x98) * *in_EDX +
+               *(float *)(in_ECX + 0x9c) * in_EDX[1] + *(float *)(in_ECX + 0xa0) * in_EDX[2]) -
+               *(float *)(in_ECX + 0xa4), fVar3 <= param_1)) &&
+     (((fVar4 = (*in_EDX * *(float *)(in_ECX + 0xa8) +
+                *(float *)(in_ECX + 0xac) * in_EDX[1] + *(float *)(in_ECX + 0xb0) * in_EDX[2]) -
+                *(float *)(in_ECX + 0xb4), fVar4 <= param_1 &&
+       ((*in_EDX * *(float *)(in_ECX + 0xb8) +
+        *(float *)(in_ECX + 0xbc) * in_EDX[1] + *(float *)(in_ECX + 0xc0) * in_EDX[2]) -
+        *(float *)(in_ECX + 0xc4) <= param_1)) &&
+      (fVar5 = (*in_EDX * *(float *)(in_ECX + 200) +
+               *(float *)(in_ECX + 0xcc) * in_EDX[1] + *(float *)(in_ECX + 0xd0) * in_EDX[2]) -
+               *(float *)(in_ECX + 0xd4), fVar5 <= param_1)))) {
+    param_1 = -param_1;
+    if (((param_1 <= fVar1) || (param_1 <= fVar2)) ||
+       ((param_1 <= fVar3 || ((param_1 <= fVar4 || (uVar6 = 2, param_1 <= fVar5)))))) {
+      uVar6 = 1;
+    }
+    return uVar6;
+  }
+  return 0;
+}
+
+Note on control flow: due to short-circuit evaluation, uVar6 is only ever assigned via the
+`(uVar6 = 2, param_1 <= fVar5)` comma expression, which runs only once the first four OR terms
+have all failed; if that expression's own comparison is also false the enclosing `if` body never
+runs and uVar6=2 (fully inside) survives to the return, otherwise the `if` body overwrites it with
+1 (partial). The rewrite above expresses the same result directly as two returns instead of
+reproducing the uninitialized-until-touched local.
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_project_world_point_to_screen.c
+====================================================================================================
+// render_project_world_point_to_screen  (Ghidra: render_project_world_point_to_screen, already
+// named)
+// address 0x50de30, size 234 bytes
+// name confidence: 0.5   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x50de30..0x50df19: z / clip range tests, 640 x 480 virtual screen, viewport left/top at camera +0x2e/+0x2c)
+// evidence: src/interface/hud_waypoint_draw_one.c already documents this exact call site: "then
+//   projected by 0x50de30 (ECX screen point out, EDX view point, ESI 0x007c3168, EDI the camera at
+//   0x007c3114)", i.e. ECX=screen_out, EDX=world_point, ESI=frustum, EDI=camera. The projection
+//   fields (+0x144/0x158/0x164/0x168) are render_frustum.projection[0][0]/[1][1]/[2][0]/[2][1],
+//   the same four this module's render_frustum_compute_screen_clip_bounds (0x50ddc0) reads,
+//   and the final screen-space scale (640/480) matches
+//   k_render_virtual_screen_width/k_render_virtual_screen_height (types/render.h).
+// register convention: ECX = screen_out (real_point2d*), EDX = world_point (real_point3d*),
+//   ESI = frustum (render_frustum*), EDI = camera (render_camera*).
+//   // blam-cc: ECX=screen_out, EDX=world_point, ESI=frustum, EDI=camera
+// UNSURE: Ghidra renders every comparison as a packed x87-status "class" value (uVar4); every
+//   such value it can return has its low bit clear, and the one success path returns a value
+//   whose low byte is 1, so this is a plain boolean success/failure result -- reproduced as such.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "render.h"
+
+// Projects a world-space point into the camera's normalized device coordinates and then into
+// screen pixel coordinates, returning whether it lies within the view (in front of the camera,
+// i.e. negative view-space z, and inside the -1..1 clip range on both axes).
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+uint8_t render_project_world_point_to_screen(real_point2d *screen_out, real_point3d *world_point,
+                                               render_frustum *frustum, render_camera *camera)
+    // blam-cc: ECX=screen_out, EDX=world_point, ESI=frustum, EDI=camera
+{
+    float inverse_z;
+    float clip_x, clip_y;
+
+    if (world_point->z >= 0.0f) {
+        return 0;
+    }
+
+    inverse_z = -1.0f / world_point->z;
+    clip_x = (frustum->projection[2][0] * world_point->z + frustum->projection[0][0] * world_point->x) * inverse_z;
+    clip_y = -((frustum->projection[2][1] * world_point->z + frustum->projection[1][1] * world_point->y) * inverse_z);
+
+    // 0x50de66 / 0x50de8a: the clip-space point is stored before the range test, so a caller still gets it
+    // for a point off screen (the return value says whether it was converted to screen pixels)
+    screen_out->x = clip_x;
+    screen_out->y = clip_y;
+    if (clip_x < -1.0f || clip_x > 1.0f || clip_y < -1.0f || clip_y > 1.0f) {
+        return 0;
+    }
+
+    screen_out->x = (screen_out->x + 1.0f) * 0.5f * (float)k_render_virtual_screen_width +
+                    (float)camera->viewport_bounds.left;
+    screen_out->y = (screen_out->y + 1.0f) * 0.5f * (float)k_render_virtual_screen_height +
+                    (float)camera->viewport_bounds.top;
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x50de30):
+
+uint render_project_world_point_to_screen(void)
+
+{
+  float fVar1;
+  short sVar2;
+  float fVar3;
+  uint uVar4;
+  float *in_ECX;
+  float *in_EDX;
+  int unaff_ESI;
+  int unaff_EDI;
+
+  fVar1 = in_EDX[2];
+  uVar4 = (uint)(ushort)((ushort)(fVar1 < 0.0) << 8 | (ushort)NAN(fVar1) << 10 |
+                        (ushort)(fVar1 == 0.0) << 0xe);
+  if (fVar1 < 0.0) {
+    fVar1 = in_EDX[2];
+    *in_ECX = (*(float *)(unaff_ESI + 0x164) * in_EDX[2] + *(float *)(unaff_ESI + 0x144) * *in_EDX)
+              * (-1.0 / fVar1);
+    fVar3 = -((*(float *)(unaff_ESI + 0x168) * in_EDX[2] + *(float *)(unaff_ESI + 0x158) * in_EDX[1]
+              ) * (-1.0 / fVar1));
+    in_ECX[1] = fVar3;
+    fVar1 = *in_ECX;
+    uVar4 = (uint)(ushort)((ushort)(fVar1 < -1.0) << 8 | (ushort)NAN(fVar1) << 10 |
+                          (ushort)(fVar1 == -1.0) << 0xe);
+    if (fVar1 >= -1.0) {
+      fVar1 = *in_ECX;
+      uVar4 = (uint)(ushort)((ushort)(fVar1 < 1.0) << 8 | (ushort)NAN(fVar1) << 10 |
+                            (ushort)(fVar1 == 1.0) << 0xe);
+      if (fVar1 < 1.0 != (fVar1 == 1.0)) {
+        uVar4 = (uint)(ushort)((ushort)(fVar3 < -1.0) << 8 | (ushort)NAN(fVar3) << 10 |
+                              (ushort)(fVar3 == -1.0) << 0xe);
+        if (fVar3 >= -1.0) {
+          uVar4 = (uint)(ushort)((ushort)(fVar3 < 1.0) << 8 | (ushort)NAN(fVar3) << 10 |
+                                (ushort)(fVar3 == 1.0) << 0xe);
+          if (fVar3 < 1.0 != (fVar3 == 1.0)) {
+            *in_ECX = (*in_ECX + 1.0) * 0.5 * 640.0 + (float)(int)*(short *)(unaff_EDI + 0x2e);
+            sVar2 = *(short *)(unaff_EDI + 0x2c);
+            in_ECX[1] = (in_ECX[1] + 1.0) * 0.5 * 480.0 + (float)(int)sVar2;
+            return CONCAT31((int3)(char)((ushort)sVar2 >> 8),1);
+          }
+        }
+      }
+    }
+  }
+  return uVar4;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif

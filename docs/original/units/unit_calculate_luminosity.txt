@@ -1,0 +1,54 @@
+// unit_calculate_luminosity  (Ghidra: already named unit_calculate_luminosity)
+// address 0x56ec60, size 157 bytes
+// name confidence: 0.6 (functions.md summary matches the code exactly)
+// rewrite confidence: 0.45
+// evidence: types/units.h unit_data.illumination (0x2e0), .attached_light_luminosity (0x2e4);
+//   types/objects.h object.position (0x05c), object.location_leaf_index (0x098); standard
+//   NTSC luma weights (0.299/0.587/0.114) confirm the RGB sample is being reduced to a
+//   single brightness value.
+// register convention: unit object index in EDI (unaff_EDI).
+//   // blam-cc: EDI -> object_index
+// UNSURE: object_try_and_get(3) is called with only its stack argument (the type mask, 3 =
+//   biped|vehicle) visible; the object handle it queries (in ECX) is read here as
+//   obj->parent_object, matching the "inherit from a parent/attached object" summary.
+// UNSURE: object_sum_attached_light_luminance() has no visible argument at this call site;
+//   read as taking the same object_index, which is the only value in scope.
+
+Original comment above the definition:
+// Computes and caches the unit's current light/luminosity value from its RGB color state, or
+// inherits both cached values from a parent/attached object when one is present.
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x4f6ec0 | extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
+  // 0x4f1c20, cdecl (orphan pass 4) | real_vector3d *out_rgb);
+  // 0x4f1b30, UNSURE signature | extern real object_sum_attached_light_luminance(uint32_t object_index);
+
+#if 0
+Original Ghidra decompilation (0x56ec60):
+
+void unit_calculate_luminosity(void)
+
+{
+  int iVar1;
+  int iVar2;
+  uint unaff_EDI;
+  float10 fVar3;
+  float local_c;
+  float local_8;
+  float local_4;
+
+  iVar1 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (unaff_EDI & 0xffff) * 0xc);
+  iVar2 = object_try_and_get(3);
+  if (iVar2 == 0) {
+    object_sample_total_lighting_at_point(iVar1 + 0x5c,iVar1 + 0x98,&local_c);
+    *(float *)(iVar1 + 0x2e0) = local_c * 0.299 + local_8 * 0.587 + local_4 * 0.114;
+    fVar3 = (float10)object_sum_attached_light_luminance();
+    *(float *)(iVar1 + 0x2e4) = (float)fVar3;
+    return;
+  }
+  *(undefined4 *)(iVar1 + 0x2e0) = *(undefined4 *)(iVar2 + 0x2e0);
+  *(undefined4 *)(iVar1 + 0x2e4) = *(undefined4 *)(iVar2 + 0x2e4);
+  return;
+}
+#endif

@@ -1,0 +1,27 @@
+// vehicle_encode_network_create  (reached only through a .data code pointer; no C existed)
+// address 0x571f20, size 495 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x571f20..0x57210e: the vehicle object type  +0x64 hook (0x69b61c; the biped one
+//   is 0x55aed0): the creation message (type 0x1c) -- definition tag, the network key (a new index-cache slot
+//   0x6870d8 when unknown), the owner team, the machine and creator keys (0 when unknown), four seat keys (vehicle
+//   +0x2f8; 0 for none, -1 unknown), five vectors (+0x52c, +0x550, +0x55c, +0x538, +0x544) and the +0x526 byte --
+//   encoded with message_delta_encode_message into (buffer, bit budget).
+// blam-cc: stack -> vehicle_index, buffer, bit_budget
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x00687130 | extern network_id_table *object_network_id_table;
+  // 0x00687558, hash_table at +0x0c | extern uint8_t *machine_table;
+  // 0x006870d8 | extern uint8_t network_object_index_cache[];
+  // 0x4f05e0, ESI table, ECX key | extern int32_t hash_table_get(hash_table *table, int32_t key);
+  // 0x4e9c20, EAX container | extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
+  // 0x4ec940, EAX, EDX | int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
+  // 0x00 | datum_index definition;
+  // 0x04 | int32_t network_key;
+  // 0x08 | int16_t owner_team;
+  // 0x0c | int32_t machine_key;
+  // 0x10 | int32_t creator_key;
+  // 0x14 | int32_t seat_keys[4];
+  // 0x24 | uint8_t vectors[5][12];
+  // 0x60 | uint8_t unknown_526;
+  // size 0x64 | } vehicle_network_create_record;

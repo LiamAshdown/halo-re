@@ -1,0 +1,22 @@
+#pragma once
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+#include <wchar.h>
+#include <string.h>
+#include "objects.h"
+#include "units.h"
+#include "networking.h"
+#include "win32.h"
+#include <stdint.h>
+#include "items.h"
+#include "effects.h"
+#include "physics.h"
+#include "crt.h"
+#include "scenario.h"
+#include "camera.h"
+#include "ai.h"
+#include <stdio.h>

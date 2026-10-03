@@ -1,0 +1,44 @@
+// unit_choose_dialogue_variant  (Ghidra: unit_choose_dialogue_variant)
+// address 0x561990, size 104 bytes
+// rewrite confidence: 0.85 (VERIFIED 2026-09-27 against objdump 0x561990..0x5619f7 (EAX unit; EBX unit tag for the callee).)
+// name confidence: 0.3 (renamed from phase2's "unit_choose_random_permutation"; see
+//   unit_pick_random_dialogue_variant, 0x561a00, for the shared evidence)   
+// evidence: types/objects.h object_placement_data.permutation_group (0x16, "goes to object
+//   0xbe" -- the field this function prefers); types/units.h unit_data.dialogue_tag_index
+//   (0x384, the destination of the chosen tag id).
+// register convention: unit index in EAX.
+//   // blam-cc: in_EAX -> unit_index
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x561a00 | extern TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number);
+  // blam-cc: in_EAX -> unit_index | void unit_choose_dialogue_variant(uint32_t unit_index)
+  // object_placement_data.permutation_group | int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
+
+#if 0
+Original Ghidra decompilation (0x561990):
+
+void FUN_00561990(void)
+
+{
+  short sVar1;
+  int iVar2;
+  uint in_EAX;
+  int iVar3;
+
+  iVar2 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc);
+  sVar1 = *(short *)(iVar2 + 0xbe);
+  if (0 < sVar1) {
+    iVar3 = FUN_00561a00(sVar1);
+    if (iVar3 != -1) goto LAB_005619ef;
+  }
+  iVar3 = FUN_00561a00(0);
+  if (iVar3 == -1) {
+    iVar3 = FUN_00561a00(0xffffffff);
+  }
+LAB_005619ef:
+  *(int *)(iVar2 + 900) = iVar3;
+  return;
+}
+#endif

@@ -1,0 +1,107 @@
+// unit_process_melee_special_interaction  (Ghidra: FUN_0056ff40; renamed from the phase2 proposal)
+// address 0x56ff40, size 610 bytes
+// name confidence: 0.3 (phase2 proposal at 0.3, matches functions.md summary)
+// rewrite confidence: 0.9
+// REWRITTEN from objdump 0x56ff40..0x5701a1 (the whole function; 0x570140 "unit_detach_from_parent" is its tail).
+//   EAX: attacker, stack: (target, node word pair, region word pair, material dword, contact point, contact plane,
+//   contact leaf) as the biped lunge trace (0x55dfbe) builds them. A melee that dies on shields (Unit flag 0x2000,
+//   an infection form) against a shielded biped whose tag fries infection forms (0x400000) deals its melee damage
+//   and deletes the attacker. One that attaches (0x1000) to a biped or vehicle (not dying, not already carrying the
+//   attacker through a vehicle chain) stops, faces into the contact plane (forward = -normal, left from forward x up,
+//   falling back to global up then global forward), moves to the contact point in its leaf, attaches to the target at
+//   the struck node, is flagged (object 0x20, unit 0x8000) and readies its weapon.
+// blam-cc: EAX -> attacker_index, stack -> target_index, node_pair, region_pair, material, contact_point,
+//   contact_plane, contact_leaf
+
+// FIXED 2026-09-28: global_origin3d_pointer here is the global at its address comment, global_zero_vector3d_pointer (the name belonged to another
+// global at a different address, so the link bound it there).
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x00696714 | extern real_vector3d *global_origin3d_pointer;
+  // 0x00696718 | extern real_vector3d *global_forward3d_pointer;
+  // 0x00696720 | extern real_vector3d *global_up3d_pointer;
+  // 0x56f2d0 | int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7);
+  // 0x4eda20, EAX | extern void object_set_health_frozen_flag(uint32_t object_index);
+  // 0x4f5bd0, EAX | extern void object_delete(uint32_t object_index);
+  // 0x4052c0 | extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
+  // 0x401990, ECX | extern real vector3d_normalize_with_length(real_vector3d *v);
+  // 0x4f5350, ESI, EDI, stack | bsp_leaf_reference *location);
+  // 0x4f6440 | extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
+  // 0x569a20, EDI, stack | extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_vector2d *direction);
+  // 0x56ffc6: an infection form touching a frying shield | 
+
+#if 0
+Original Ghidra decompilation (0x56ff40):
+
+void FUN_0056ff40(uint param_1)
+
+{
+  float *pfVar1;
+  uint *puVar2;
+  uint *puVar3;
+  int iVar4;
+  undefined *puVar5;
+  uint in_EAX;
+  uint uVar6;
+  float10 fVar7;
+  float *in_stack_00000018;
+  undefined4 in_stack_0000001c;
+
+  puVar5 = PTR_DAT_00696714;
+  puVar2 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc);
+  uVar6 = *(uint *)(*(int *)((*puVar2 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14) + 0x17c);
+  puVar3 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_1 & 0xffff) * 0xc);
+  if (((((uVar6 & 0x2000) != 0) && ((short)puVar3[0x2d] == 0)) && (0.0 < (float)puVar3[0x39])) &&
+     ((*(uint *)(*(int *)((*puVar3 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14) + 0x17c) & 0x400000) != 0
+     )) {
+    unit_cause_melee_damage();
+    object_set_health_frozen_flag();
+    object_delete();
+    return;
+  }
+  if ((((uVar6 & 0x1000) != 0) && ((1 << ((byte)puVar3[0x2d] & 0x1f) & 3U) != 0)) &&
+     ((*(byte *)((int)puVar3 + 0x106) & 4) == 0)) {
+    uVar6 = puVar3[0x47];
+    if (uVar6 != 0xffffffff) {
+      do {
+        iVar4 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (uVar6 & 0xffff) * 0xc);
+        if (uVar6 == in_EAX) {
+          return;
+        }
+        if (*(short *)(iVar4 + 0xb4) != 1) {
+          return;
+        }
+        uVar6 = *(uint *)(iVar4 + 0x11c);
+      } while (uVar6 != 0xffffffff);
+    }
+    puVar2[0x1a] = *(uint *)PTR_DAT_00696714;
+    puVar2[0x1b] = *(uint *)(puVar5 + 4);
+    puVar2[0x1c] = *(uint *)(puVar5 + 8);
+    puVar2[0x23] = *(uint *)puVar5;
+    puVar2[0x24] = *(uint *)(puVar5 + 4);
+    puVar2[0x25] = *(uint *)(puVar5 + 8);
+    pfVar1 = (float *)(puVar2 + 0x1d);
+    *pfVar1 = *in_stack_00000018;
+    puVar2[0x1e] = (uint)in_stack_00000018[1];
+    puVar2[0x1f] = (uint)in_stack_00000018[2];
+    *pfVar1 = -*pfVar1;
+    puVar2[0x1e] = (uint)-(float)puVar2[0x1e];
+    puVar2[0x1f] = (uint)-(float)puVar2[0x1f];
+    vector3d_cross_product(puVar2 + 0x20);
+    fVar7 = (float10)vector3d_normalize_with_length();
+    if ((float10)0.0 == fVar7) {
+      vector3d_cross_product(PTR_DAT_00696720);
+      vector3d_normalize_with_length();
+    }
+    vector3d_cross_product(pfVar1);
+    object_set_position_and_relink(in_stack_0000001c);
+    object_attach_to_object(param_1);
+    puVar2[4] = puVar2[4] | 0x20;
+    puVar2[0x81] = puVar2[0x81] | 0x8000;
+    FUN_00569a20(1,0);
+  }
+  return;
+}
+#endif

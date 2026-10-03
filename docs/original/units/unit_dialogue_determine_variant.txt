@@ -1,0 +1,59 @@
+// unit_dialogue_determine_variant  (Ghidra: FUN_005618e0; named in unit_new.c)
+// address 0x5618e0, size 164 bytes
+// name confidence: 0.5   rewrite confidence: 0.85
+// evidence: objdump -d 0x5618e0..0x561983. unit_new (0x56239d) calls it with the new unit's
+//   datum index in EAX. When object +0xbe (the permutation group copied from
+//   object_placement_data.permutation_group) is still 0, it collects up to 16 variant numbers
+//   below 100 from the unit tag's dialogue_variants (Unit +0x2b4, 0x18-byte
+//   UnitDialogueVariant), picks one with a round-robin counter (0x00722794, incremented on
+//   every pick) and stores it back at +0xbe.
+// register convention: object index in EAX (only the low 16 bits are used).
+//   // blam-cc: EAX -> object_index
+// UNSURE: the counter's name; it is only touched here.
+
+Original comment above the definition:
+// blam-cc: EAX -> object_index
+// Gives a new unit a dialogue variant when its placement did not choose one.
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x00722794 UNSURE name, only used here | extern int32_t unit_dialogue_variant_counter;
+
+#if 0
+Original Ghidra decompilation (0x5618e0):
+
+int FUN_005618e0(void)
+{
+  short *psVar1; short sVar2; uint *puVar3; int iVar4; uint in_EAX; int iVar5;
+  ushort uVar6; int iVar7; short sVar8; short asStack_20 [16];
+  puVar3 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc);
+  iVar5 = (*puVar3 & 0xffff) * 0x20;
+  iVar7 = *(int *)(iVar5 + 0x14 + DAT_0087bc14);
+  if (*(short *)((int)puVar3 + 0xbe) == 0) {
+    iVar4 = *(int *)(iVar7 + 0x2b4);
+    uVar6 = 0; sVar8 = 0;
+    if (0 < iVar4) {
+      iVar7 = *(int *)(iVar7 + 0x2b8);
+      iVar5 = 0;
+      do {
+        psVar1 = (short *)(iVar7 + iVar5 * 0x18);
+        sVar2 = *psVar1;
+        if (sVar2 < 100) {
+          if (0xf < uVar6) break;
+          asStack_20[(short)uVar6] = sVar2;
+          uVar6 = uVar6 + 1;
+        }
+        sVar8 = sVar8 + 1;
+        iVar5 = (int)sVar8;
+      } while (iVar5 < iVar4);
+      if (0 < (short)uVar6) {
+        iVar7 = DAT_00722794 % (int)(short)uVar6;
+        DAT_00722794 = DAT_00722794 + 1;
+        *(short *)((int)puVar3 + 0xbe) = asStack_20[iVar7];
+      }
+    }
+  }
+  return iVar5;
+}
+#endif
