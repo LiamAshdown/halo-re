@@ -24,7 +24,7 @@ void ActorView::mode_uncover_tick()
 {
     using namespace actor_mode_uncover_tick_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag;
+    Actor *actor_tag;
     int16_t kind;
     uint8_t keep_going = 1;
     uint8_t target_visible = 0;
@@ -33,19 +33,19 @@ void ActorView::mode_uncover_tick()
     if (act->mode_data.uncover.done) {
         return;
     }
-    actor_tag = TAG_DATA(act->actor_definition_tag);
+    actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     kind = act->mode_data.uncover.stage;
     act->mode_data.uncover.crouch = 0;
     if (kind == 0) {
-        if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
+        if (*(int16_t *)&actor_tag->defensive_crouch_type == 4) {
             act->mode_data.uncover.crouch = (uint8_t)(act->target_combat_status != 6);
-        } else if ((actor_tag[0] & 2) && act->target_combat_status == 5 &&
+        } else if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->target_combat_status == 5 &&
                    (int8_t)PROP(act->target_unit_index)[0x121] <= 2) {
             act->mode_data.uncover.crouch = 1;
         }
     } else if (kind == 1) {
-        if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
-            ((actor_tag[0] & 4) &&
+        if (*(int16_t *)&actor_tag->defensive_crouch_type == 4 ||
+            ((static_cast<uint8_t>(actor_tag->flags) & 4) &&
              halo::math::vector3d_distance_squared(*(&act->mode_data.uncover.position), act->body_position) < 100.0f)) {
             act->mode_data.uncover.crouch = 1;
         }
@@ -99,7 +99,7 @@ void ActorView::mode_uncover_update()
 {
     using namespace actor_mode_uncover_update_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     datum_index target = act->target_unit_index;
 
     if (target != k_datum_index_none) {
@@ -113,7 +113,7 @@ void ActorView::mode_uncover_update()
                 act->unknown_455[0] = 1;
                 forced = 1;
             } else {
-                act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
+                act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((static_cast<uint8_t>(actor_tag->flags) & 0x10) ? 5 : 6));
             }
         }
         if ((act->wants_to_fire && (kind == 0 || kind == 1)) || forced) {

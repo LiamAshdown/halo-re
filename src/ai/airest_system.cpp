@@ -728,7 +728,7 @@ void AiSystem::recompute_all_relationship_flags()
             prop_cursor = p->next_in_actor;
 
             tracked_object = halo::ai::object_at(p->object_index);
-            object_team = ((struct object *)tracked_object)->owner_team;
+            object_team = tracked_object->owner_team;
             p->team = object_team;
             actor_team = a->team;
 
@@ -1053,7 +1053,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;
 
                 linked_object = halo::ai::object_at(linked_unit_index);
-                linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & halo::k_slot_mask].data;
+                linked_unit_tag = halo::ai::tag_data<Unit>(linked_object->definition_tag);
 
                 skip_close_check = 0;
                 if ((linked_unit_tag->unit_flags & 0x80000) != 0) { // "inconsequential"

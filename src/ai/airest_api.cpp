@@ -1485,7 +1485,7 @@ int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16
  *
  * @address 0x4333d0
  */
-int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index)
+int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, const Actor *requested_actor_data, const ActorVariant *requested_actor_variant_data, char match_by_index)
 {
     return halo::ai::Encounters::find_best_matching_member(packed_reference, requested_squad_index, requested_actor_data, requested_actor_variant_data, match_by_index);
 }

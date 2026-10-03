@@ -58,8 +58,8 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else {
         object *occupant_obj = halo::ai::object_at(occupant);
         object *self_obj = halo::ai::object_at(self_object_index);
-        reason = halo::game::teams_are_enemies(((struct object *)occupant_obj)->owner_team,
-                               ((struct object *)self_obj)->owner_team) ? 3 : 2;
+        reason = halo::game::teams_are_enemies(occupant_obj->owner_team,
+                               self_obj->owner_team) ? 3 : 2;
     }
 
     halo::ai::ai_communication_broadcast(0, self_object_index, occupant, reason, seat_selector,

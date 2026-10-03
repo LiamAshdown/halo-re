@@ -717,18 +717,18 @@ void halo::ai::search_mode::enter()
     using namespace c_actor_mode_search_enter;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     float lo;
     float hi;
     float t;
     int32_t ticks;
 
     if (act->mode_data.search.stage == 0) {
-        lo = *(float *)(actor_tag + 0x344);
-        hi = *(float *)(actor_tag + 0x348);
+        lo = actor_tag->target_search_time[0];
+        hi = actor_tag->target_search_time[1];
     } else {
-        lo = *(float *)(actor_tag + 0x34c);
-        hi = *(float *)(actor_tag + 0x350);
+        lo = actor_tag->pursuit_position_time[0];
+        hi = actor_tag->pursuit_position_time[1];
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
@@ -852,7 +852,7 @@ uint8_t halo::ai::search_mode::process()
 
             act->mode_data.search.finished = 1;
             if (act->target_unit_index != k_datum_index_none) {
-                last_seen = *(datum_index *)(PROP(act->target_unit_index) + 0x7c);
+                last_seen = static_cast<datum_index>(halo::ai::prop_at(act->target_unit_index)->last_perceived_time);
             }
             if (act->encounter_index != k_datum_index_none) {
                 halo::ai::ai_pursuit_note_object(actor_index, act->encounter_index, act->mode_data.search.firing_position, last_seen);
@@ -908,18 +908,18 @@ void halo::ai::search_mode::tick()
     using namespace c_actor_mode_search_tick;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag;
+    Actor *actor_tag;
     datum_index unit_index;
 
     if (act->mode_data.search.finished) {
         return;
     }
-    actor_tag = TAG_DATA(act->actor_definition_tag);
-    if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
+    actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
+    if (*(int16_t *)&actor_tag->defensive_crouch_type == 4) {
         act->mode_data.search.unknown_03 = 1;
     } else {
         act->mode_data.search.unknown_03 = 0;
-        if ((actor_tag[0] & 2) && act->mode_data.search.stage == 0 && act->target_combat_status == 5 &&
+        if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->mode_data.search.stage == 0 && act->target_combat_status == 5 &&
             (int8_t)((uint8_t *)halo::ai::globals().prop_data->data + (act->target_unit_index & halo::k_slot_mask) * k_prop_size)[0x121] <= 2) {
             act->mode_data.search.unknown_03 = 1;
         }
@@ -982,7 +982,7 @@ void halo::ai::search_mode::update()
     using namespace c_actor_mode_search_update;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
 
     if (act->moving) {
         act->flee_reason = 3;
@@ -1007,7 +1007,7 @@ void halo::ai::search_mode::update()
     }
     act->look_posture = 3;
     if (act->mode_data.search.stage == 0) {
-        act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
+        act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((static_cast<uint8_t>(actor_tag->flags) & 0x10) ? 5 : 6));
     }
     act->unknown_41a[12] = act->mode_data.search.unknown_03;
     act->unknown_41a[13] = act->mode_data.search.unknown_03;
@@ -1040,7 +1040,7 @@ void halo::ai::sleep_mode::update()
 {
     using namespace c_actor_mode_sleep_update;
     datum_index actor_index = datum;
-    *(int16_t *)(ACTOR(actor_index) + 0x3fc) = 0;
+    halo::ai::actor_at(actor_index)->look_posture = 0;
 }
 
 namespace halo::ai {

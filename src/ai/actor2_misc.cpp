@@ -40,13 +40,13 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
         return (datum_index)k_datum_index_none;
     }
 
-    variant = (ActorVariant *)(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
+    variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
     actor_definition_tag = *(datum_index *)&variant->actor_definition.tag_id;
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return (datum_index)k_datum_index_none;
     }
 
-    actor_tag = (Actor *)(halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data);
+    actor_tag = halo::ai::tag_data<Actor>(actor_definition_tag);
 
     actor_index = halo::memory::datum_new(halo::ai::globals().actor_data);
     if (actor_index == (datum_index)k_datum_index_none) {
@@ -263,7 +263,7 @@ attach:
     if (halo::ai::actor_link_to_unit_cluster(actor_index, unit_index) != 0) {
         return actor_index;
     }
-    if (*(int16_t *)(ACTOR_AT(actor_index) + 0x1e) == 0) {
+    if (halo::ai::actor_at(actor_index)->cluster_count == 0) {
         halo::ai::actor_delete(actor_index, 0);
     }
     return k_datum_index_none;
@@ -333,10 +333,10 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     halo::ai::actor_apply_unit_definition_properties(variant_tag, unit_index);
     if (encounter_index != k_datum_index_none) {
         uint8_t *encounter = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) + (encounter_index & halo::k_slot_mask) * 0xb0;
-        uint8_t *squad = *(uint8_t **)(encounter + 0x84) + squad_index * 0xe8;
+        ScenarioSquad *squad = (ScenarioSquad *)(*(uint8_t **)(encounter + 0x84) + squad_index * 0xe8);
 
-        initial_state = *(uint16_t *)(squad + 0x24);
-        return_state = *(uint16_t *)(squad + 0x26);
+        initial_state = static_cast<uint16_t>(squad->initial_state);
+        return_state = static_cast<uint16_t>(squad->return_state);
         start_active = (char)((*(uint32_t *)(encounter + 0x20) >> 4) & 1);
     }
     if (((struct actor_placement_request *)request)->initial_state_override > 0) {
@@ -939,14 +939,14 @@ void ActorView::propagate_unit_field(int16_t value)
     if (self->swarm == 0) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
             object *unit_object = halo::ai::object_at(self->unit_index);
-            ((struct object *)unit_object)->owner_team = value;
+            unit_object->owner_team = value;
         }
     } else if (self->swarm_index == (datum_index)k_datum_index_none) {
         datum_index unit_index = self->cluster_unit_index;
         if (unit_index != (datum_index)k_datum_index_none) {
             do {
                 object *unit_object = halo::ai::object_at(unit_index);
-                ((struct object *)unit_object)->owner_team = value;
+                unit_object->owner_team = value;
                 unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
             } while (unit_index != (datum_index)k_datum_index_none);
         }
@@ -955,7 +955,7 @@ void ActorView::propagate_unit_field(int16_t value)
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
             object *unit_object = halo::ai::object_at(s->unit_index[i]);
-            ((struct object *)unit_object)->owner_team = value;
+            unit_object->owner_team = value;
         }
     }
 }
@@ -1020,8 +1020,8 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
     }
 
     extra = 0.0f;
-    actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
-    variant_def = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
+    actor_def = halo::ai::tag_data<Actor>(self->actor_definition_tag);
+    variant_def = halo::ai::tag_data<ActorVariant>(self->actor_variant_tag);
     bonus_b = 0;
     bonus_c = 0;
 
@@ -1034,7 +1034,7 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
 
             if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                 if (target->relationship_object_index == -1) {
-                    if (target->flying == 0 || ((struct Actor *)actor_def)->melee_leap_velocity != 0.0f) {
+                    if (target->flying == 0 || actor_def->melee_leap_velocity != 0.0f) {
                         if (target->in_water == self->in_water) {
                             bonus_a = (target->distance >= threshold) ? 2 : 3;
                         } else {
@@ -1058,7 +1058,7 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
                 if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                     if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
                         bonus_a = 2;
-                        if (target->distance >= ((struct ActorVariant *)variant_def)->maximum_firing_distance) {
+                        if (target->distance >= variant_def->maximum_firing_distance) {
                             bonus_a = 1;
                         }
                     } else {
@@ -1263,12 +1263,12 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
         }
     }
 
-    if (self->active_movement.type == 5 && *(uint32_t *)&((struct actor *)self)->active_movement.destination.x == old_reference) {
+    if (self->active_movement.type == 5 && *(uint32_t *)&self->active_movement.destination.x == old_reference) {
         if (new_reference == halo::k_dword_none) {
             self->active_movement.type = 0;
             self->active_movement.extra = halo::k_dword_none;
         } else {
-            *(uint32_t *)&((struct actor *)self)->active_movement.destination.x = new_reference;
+            *(uint32_t *)&self->active_movement.destination.x = new_reference;
         }
     }
 
@@ -1278,7 +1278,7 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     if (self->idle_major_direction_type == 1 && self->idle_major_prop_index == old_reference) {
         self->idle_major_prop_index = new_reference;
     }
-    if (((struct actor *)self)->idle_look_direction_type == 1 && self->idle_look_prop_index == old_reference) {
+    if (self->idle_look_direction_type == 1 && self->idle_look_prop_index == old_reference) {
         self->idle_look_prop_index = new_reference;
     }
 
@@ -1355,7 +1355,7 @@ int32_t ActorView::report_command_status()
             if (p->enemy == 0) {
                 target_state = 2;
             } else {
-                target_state = (halo::game::team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3;
+                target_state = (halo::game::team_pair_flag_test(a->team, p->team) != 0) + 3;
             }
         }
         halo::ai::ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, halo::k_dword_none, halo::k_dword_none, 0);
@@ -1376,7 +1376,7 @@ uint8_t ActorView::request_move_and_face()
 {
     using namespace actor_request_move_and_face_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
 
     if (actor->swarm != 0) {
         actor->mode_data.guard.stage = 1;
@@ -1424,8 +1424,8 @@ uint8_t ActorView::request_move_and_face()
             actor->mode_data.guard.firing_position = claimed;
         }
     }
-    actor->mode_data.guard.countdown_00 = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
-        *(float *)(actor_tag + 0x3bc)) * 30.0f);
+    actor->mode_data.guard.countdown_00 = (int16_t)(int32_t)(halo::math::random_real_range(actor_tag->guard_position_time[0],
+        actor_tag->guard_position_time[1]) * 30.0f);
     return 0;
 }
 
@@ -1457,7 +1457,7 @@ void ActorView::reseed_movement_pause_timer()
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
-    pause = halo::game::weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
+    pause = halo::game::weapon_get_zoom_fov_resolved(0xe, self->team) * pause;
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
         pause = pause * *(float *)(entry_b + 4);
     }
@@ -1554,7 +1554,7 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
     int32_t wait_ticks;
 
     self = halo::ai::actor_at(actor_index);
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     out_in_front = 0;
     self->idle_major_active = 0;
 
@@ -1905,7 +1905,7 @@ uint8_t ActorView::select_facing_target_prop(uint8_t require_trust, uint8_t skip
     float best_score;
 
     self = halo::ai::actor_at(actor_index);
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     now = halo::game::globals().game_time->game_time;
 
     if (self->awareness_level == 3) {

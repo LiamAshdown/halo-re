@@ -242,7 +242,7 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
         const real_point3d *position = (const real_point3d *)candidate->position;
 
         if (halo::ai::actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
-            halo::ai::path_find_test_direct_reachability(position, &((struct actor *)self)->body_position, 0,
+            halo::ai::path_find_test_direct_reachability(position, &self->body_position, 0,
                 halo::scenario::globals().structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
@@ -288,7 +288,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
             halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
             candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
                 *(int16_t *)((uint8_t *)self + 0x148), *(int16_t *)((uint8_t *)candidate->position + 0xe),
-                &marker_point, &((struct actor *)self)->aim_origin, 0, 0, halo::k_dword_none,
+                &marker_point, &self->aim_origin, 0, 0, halo::k_dword_none,
                 self->active_unit_index != (datum_index)halo::k_dword_none);
             return;
         }
@@ -323,7 +323,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
     candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-        *(int16_t *)((uint8_t *)candidate->position + 0xe), ((struct actor_firing_position_query *)query)->target_cluster_index,
+        *(int16_t *)((uint8_t *)candidate->position + 0xe), query->target_cluster_index,
         (real_point3d *)((uint8_t *)query + 0x61c), &marker_point, (int16_t)kind, 1,
         (uint32_t)query->target_relationship_object, self->active_unit_index != (datum_index)halo::k_dword_none);
 }
@@ -440,7 +440,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
     actor *self;
     ActorVariant *variant;
     actor_firing_position_candidate *c;
-    void *weapon_definition;
+    Weapon *weapon_definition;
     real_point3d *p;
     float distance;
     float threshold;
@@ -476,12 +476,12 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
                 distance < variant->desired_combat_range[1]) {
                 preferred_range = (self->berserking != 0) ? variant->berserk_firing_ranges[1]
                                                            : variant->desired_combat_range[1];
-                weapon_definition = halo::ai::actor_get_threat_weapon_definition(actor_index);
+                weapon_definition = (Weapon *)halo::ai::actor_get_threat_weapon_definition(actor_index);
                 minimum_range = 0.0f;
                 if (weapon_definition != (void *)0 &&
-                    *(float *)((uint8_t *)weapon_definition + 0x40c) > 0.0f &&
-                    minimum_range <= *(float *)((uint8_t *)weapon_definition + 0x40c)) {
-                    minimum_range = *(float *)((uint8_t *)weapon_definition + 0x40c);
+                    weapon_definition->minimum_target_range > 0.0f &&
+                    minimum_range <= weapon_definition->minimum_target_range) {
+                    minimum_range = weapon_definition->minimum_target_range;
                 }
                 margin = preferred_range - distance;
                 if (minimum_range > 0.0f && distance - minimum_range < margin) {

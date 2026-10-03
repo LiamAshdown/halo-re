@@ -71,7 +71,7 @@ public:
     static void release_actors_and_swarms();
     static int32_t release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t *state);
     static int release_inactive_swarms(char *buffer, uint8_t *has_more);
-    static int32_t find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index);
+    static int32_t find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, const Actor *requested_actor_data, const ActorVariant *requested_actor_variant_data, char match_by_index);
     static int __cdecl priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
     static int16_t resolve_actor_type(ScenarioSquad *squad);
     static void merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge);

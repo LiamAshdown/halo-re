@@ -131,7 +131,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
 {
     using namespace actor_squad_action_execute_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     uint8_t *variant_tag = TAG_DATA(act->actor_variant_tag);
     ScenarioCommandList *list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[command_list_index];
     int32_t command_count = (int32_t)list->commands.count;
@@ -252,7 +252,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             if (p1 >= 0 && p1 < point_count && p2 >= 0 && p2 < point_count) {
                 look_point = halo::math::random_int_range(p1, (int16_t)(p2 + 1));
                 if (entry->parameter1 == 0.0f && entry->parameter2 == 0.0f) {
-                    duration = halo::math::random_real_range(*(float *)(actor_tag + 0xec), *(float *)(actor_tag + 0xf0));
+                    duration = halo::math::random_real_range(actor_tag->noncombat_idle_looking[0], actor_tag->noncombat_idle_looking[1]);
                 } else {
                     duration = halo::math::random_real_range(entry->parameter1, entry->parameter2);
                 }

@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+struct Actor;
+struct ActorVariant;
 struct ai_globals;
 struct data_array;
 struct encounter_platoon_state;
@@ -633,7 +635,7 @@ void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius
 uint8_t ai_search_run(ai_search_context *context, uint8_t ignores_glass, ai_search_obstacle_list *obstacles, uint32_t search_radius_bits, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
 uint8_t ai_search_step(ai_search_context *context);
 int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight);
-int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index);
+int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, const Actor *requested_actor_data, const ActorVariant *requested_actor_variant_data, char match_by_index);
 int __cdecl ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
 int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad);
 void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge);

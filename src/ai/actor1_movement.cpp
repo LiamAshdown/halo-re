@@ -358,7 +358,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
     real_point3d step_point;
 
     self = halo::ai::actor_at(actor_index);
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->flying == 0) {
         uint8_t trace_ok;
@@ -367,7 +367,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
         step_point.y = step_distance * direction->j + self->body_position.y;
         halo::ai::actor_update_target_lead_position(actor_index);
 
-        trace_ok = halo::ai::path_find_test_segment_unobstructed(halo::scenario::globals().structure_bsp, &((struct actor *)self)->pathfinding_point,
+        trace_ok = halo::ai::path_find_test_segment_unobstructed(halo::scenario::globals().structure_bsp, &self->pathfinding_point,
             self->ignores_glass, (int32_t)self->pathfinding_surface_index, &step_point, -1, definition->pathfinding_radius, 0,
             (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {
@@ -501,7 +501,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
             if (s->unit_index[i] == unit_index) {
                 object *unit_object = halo::ai::object_at(unit_index);
                 swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[s->component_index[i] & halo::k_slot_mask];
-                uint16_t flags = *(uint16_t *)&((struct swarm_component *)component)->flags;
+                uint16_t flags = *(uint16_t *)&component->flags;
                 datum_index target = component->leap_target_index;
 
                 if ((flags & 1) == 0 || target == (datum_index)k_datum_index_none) {
@@ -512,8 +512,8 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                             dir.i = unit_object->forward.i;
                             dir.j = unit_object->forward.j;
                             if (halo::math::vector2d_normalize_with_length(dir) == 0.0f) {
-                                dir.i = ((struct object *)unit_object)->up.i;
-                                dir.j = ((struct object *)unit_object)->up.j;
+                                dir.i = unit_object->up.i;
+                                dir.j = unit_object->up.j;
                                 if (halo::math::vector2d_normalize_with_length(dir) == 0.0f) {
                                     dir.i = global_forward2d_pointer->i;
                                     dir.j = global_forward2d_pointer->j;
@@ -546,7 +546,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                         float x, y, sum_sq;
 
                         if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&leap)) == 0.0f) {
-                            leap = *(real_vector3d *)&((struct actor *)self)->facing.i;
+                            leap = *(real_vector3d *)&self->facing.i;
                             if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&leap)) == 0.0f) {
                                 leap = *halo::math::globals().global_forward3d_pointer;
                             }
@@ -718,7 +718,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     using namespace c_actor_evaluate_search_node;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = TAG_DATA(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     real_point3d entry;
     real_point3d seat;
     real_point3d hint;
@@ -786,7 +786,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     facing = (uint8_t)(dot > 0.6f);
     in_front = (uint8_t)(distance < 1.1f && dot > 0.0f);
     score = 10.0f / (distance + 1.0f);
-    if ((halo::units::unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != ((variant[0] & 0x80) != 0)) {
+    if ((halo::units::unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != ((static_cast<uint8_t>(variant->flags) & 0x80) != 0)) {
         score = score + 3.5f;
     }
     if (out_entry != 0) {

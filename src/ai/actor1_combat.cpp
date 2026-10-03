@@ -172,7 +172,7 @@ uint8_t halo::ai::combat_ops::check_vehicle_target_available(datum_index vehicle
     }
     self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
-    if (halo::game::teams_are_enemies(((struct actor *)self)->team, ((struct object *)vehicle_object)->owner_team) != 0) {
+    if (halo::game::teams_are_enemies(self->team, vehicle_object->owner_team) != 0) {
         return 0;
     }
     if (flag_pursue) {
@@ -1177,7 +1177,7 @@ float halo::ai::combat_ops::get_consideration_wait_threshold(int16_t mode, actor
     float result = 0.0f;
 
     if (mode == 2 || mode == 3) {
-        Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
+        Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
 
         if (mode == 3 && actor_def->melee_leap_range[1] >= 0.0f) {
             result = actor_def->melee_leap_range[1];
@@ -1426,7 +1426,7 @@ void halo::ai::combat_ops::get_target_state_flags(int16_t ax_mode, int16_t cx_mo
 
                     halo::ai::actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = halo::ai::actor_firing_position_near_point(actor_index, &p->pathfinding_point, *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
+                *out_f = halo::ai::actor_firing_position_near_point(actor_index, &p->pathfinding_point, *(uint32_t *)&p->pathfinding_surface_index, 1);
             }
         } else {
             *out_a = 0;

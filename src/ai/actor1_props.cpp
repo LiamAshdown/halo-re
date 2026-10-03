@@ -130,19 +130,19 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
 void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index)
 {
     using namespace c_actor_apply_unit_definition_properties;
-    uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data;
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
     uint8_t *unit = object_get(unit_index);
-    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((ActorVariant *)variant)->actor_definition.tag_id & halo::k_slot_mask].data;
+    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&variant->actor_definition.tag_id & halo::k_slot_mask].data;
     int16_t i;
 
-    if (((ActorVariant *)variant)->body_vitality > 0.0f || ((ActorVariant *)variant)->shield_vitality > 0.0f) {
-        halo::objects::object_initialize_shield_stun_thresholds(unit_index, (float *)(variant + 0x200), (float *)(variant + 0x204));
+    if (variant->body_vitality > 0.0f || variant->shield_vitality > 0.0f) {
+        halo::objects::object_initialize_shield_stun_thresholds(unit_index, &variant->body_vitality, &variant->shield_vitality);
     }
-    if (*(int16_t *)&((ActorVariant *)variant)->forced_shader_permutation != 0) {
-        *(int16_t *)&((unit_object *)unit)->base.forced_shader_permutation = *(int16_t *)&((ActorVariant *)variant)->forced_shader_permutation;
+    if (*(int16_t *)&variant->forced_shader_permutation != 0) {
+        *(int16_t *)&((unit_object *)unit)->base.forced_shader_permutation = *(int16_t *)&variant->forced_shader_permutation;
     }
-    for (i = 0; i < *(int32_t *)&((ActorVariant *)variant)->change_colors.count; i++) {
-        uint8_t *change_color = *(uint8_t **)&((ActorVariant *)variant)->change_colors.pointer + i * 0x20;
+    for (i = 0; i < *(int32_t *)&variant->change_colors.count; i++) {
+        uint8_t *change_color = *(uint8_t **)&variant->change_colors.pointer + i * 0x20;
 
         if (i < 4) {
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
@@ -153,8 +153,8 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
         }
     }
-    if (*(datum_index *)&((ActorVariant *)variant)->weapon.tag_id != k_datum_index_none) {
-        datum_index weapon = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->weapon.tag_id, unit_index);
+    if (*(datum_index *)&variant->weapon.tag_id != k_datum_index_none) {
+        datum_index weapon = actor_create_unit_item(*(datum_index *)&variant->weapon.tag_id, unit_index);
 
         if (weapon != k_datum_index_none && !halo::units::unit_pickup_weapon(2, weapon, unit_index)) {
             int32_t role = *(int32_t *)(object_get(weapon) + 4);
@@ -167,10 +167,10 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             }
         }
     }
-    if (*(int16_t *)&((ActorVariant *)variant)->grenade_type != -1) {
-        int16_t type = *(int16_t *)&((ActorVariant *)variant)->grenade_type;
-        int16_t minimum = *(int16_t *)(variant + 0x1d0);
-        int32_t range = (int16_t)(*(int16_t *)(variant + 0x1d2) + 1) - minimum;
+    if (*(int16_t *)&variant->grenade_type != -1) {
+        int16_t type = *(int16_t *)&variant->grenade_type;
+        int16_t minimum = variant->grenade_count[0];
+        int32_t range = (int16_t)(variant->grenade_count[1] + 1) - minimum;
         uint8_t *object = object_get(unit_index);
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -179,12 +179,12 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         object[0x31d] = (uint8_t)type;
         object[0x31c] = (uint8_t)type;
     }
-    if (*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id != k_datum_index_none) {
-        int16_t equipment_kind = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id & halo::k_slot_mask].data
+    if (*(datum_index *)&variant->equipment.tag_id != k_datum_index_none) {
+        int16_t equipment_kind = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&variant->equipment.tag_id & halo::k_slot_mask].data
             + 0x308);
 
         if (equipment_kind != 0 && equipment_kind != 6) {
-            datum_index equipment = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id, unit_index);
+            datum_index equipment = actor_create_unit_item(*(datum_index *)&variant->equipment.tag_id, unit_index);
 
             if (equipment != k_datum_index_none && !halo::units::unit_try_select_equipment(unit_index, equipment, 1)) {
                 halo::objects::object_delete(equipment);
@@ -505,7 +505,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
                 if (driver_field != -1) {
 
                     if (halo::game::teams_are_enemies(*(int16_t *)((uint8_t *)halo::ai::object_at(driver_field) + 0xb8),
-                                          ((struct actor *)self)->team) == 0) {
+                                          self->team) == 0) {
                         self->danger_owner_relation = 1;
                     }
                 }
@@ -901,7 +901,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
                 uint8_t scratch[56];
 
                 result = halo::ai::actor_find_or_allocate_prop(actor_index, object_index,
-                    (char)halo::game::teams_are_enemies(((struct object *)object)->owner_team, ((struct actor *)self)->team));
+                    (char)halo::game::teams_are_enemies(((struct object *)object)->owner_team, self->team));
                 if (result != (datum_index)halo::k_dword_none) {
                     prop *p = halo::ai::prop_at(result);
 
@@ -1059,9 +1059,9 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
 
         p->team = ((struct object *)object)->owner_team;
 
-        p->enemy = halo::game::teams_are_enemies(p->team, ((struct actor *)self)->team);
-        p->allegiance = halo::game::team_pair_flag_test(((struct actor *)self)->team, p->team);
-        p->team_pair_status = halo::game::team_pair_override_get_flag(((struct actor *)self)->team, p->team);
+        p->enemy = halo::game::teams_are_enemies(p->team, self->team);
+        p->allegiance = halo::game::team_pair_flag_test(self->team, p->team);
+        p->team_pair_status = halo::game::team_pair_override_get_flag(self->team, p->team);
 
         is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1;
         p->dead = is_vault;

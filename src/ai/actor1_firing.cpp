@@ -134,8 +134,8 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         return halo::k_dword_none;
     }
 
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
-    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
+    variant = halo::ai::tag_data<ActorVariant>(self->actor_variant_tag);
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                 [self->encounter_index & halo::k_slot_mask];
 
@@ -168,24 +168,24 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             }
             query->have_target = 1;
             query->target_position = target->last_known_position;
-            query->target_surface_index = *(uint32_t *)&((struct prop *)target)->pathfinding_surface_index;
-            query->target_surface_point = *(real_point3d *)&((struct prop *)target)->pathfinding_point.x;
-            query->target_cluster_index = ((struct prop *)target)->cluster_index;
+            query->target_surface_index = *(uint32_t *)&target->pathfinding_surface_index;
+            query->target_surface_point = *(real_point3d *)&target->pathfinding_point.x;
+            query->target_cluster_index = target->cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
-            query->target_aim_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
+            query->target_aim_position = *(real_point3d *)&target->head_position_x;
             query->target_relationship_object = target->relationship_object_index;
             query->target_danger_radius = target->danger_radius;
 
-            if (query->use_last_seen_position == 0 || ((struct prop *)target)->last_seen_time == -1) {
-                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
+            if (query->use_last_seen_position == 0 || target->last_seen_time == -1) {
+                query->target_lead_position = *(real_point3d *)&target->head_position_x;
             } else {
-                query->target_lead_position = *(real_point3d *)&((struct prop *)target)->last_seen_position_x;
+                query->target_lead_position = *(real_point3d *)&target->last_seen_position_x;
             }
 
             if (target->state > 3 && target->state < 6) {
                 query->have_target_vault_point = 1;
-                query->target_vault_point = *(real_point3d *)&((struct prop *)target)->perceived_to_known_delta;
+                query->target_vault_point = *(real_point3d *)&target->perceived_to_known_delta;
             }
 
             query->target_is_large = (uint8_t)(query->goal_kind == 4 || query->goal_kind == 6);
@@ -759,7 +759,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
     int32_t n;
 
     self = halo::ai::actor_at(actor_index);
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if ((self->flying == 0 && start_surface_index == -1) ||
         self->encounter_index == (datum_index)halo::k_dword_none) {
@@ -813,7 +813,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
         }
         if (self->flying == 0) {
 
-            halo::ai::path_find_compute_heuristic(&context, ((struct ScenarioFiringPosition *)fp)->surface_index, (real_point3d *)fp, &path_distance, 0, 0);
+            halo::ai::path_find_compute_heuristic(&context, fp->surface_index, (real_point3d *)fp, &path_distance, 0, 0);
             if (path_distance < 4.0f) {
                 return 1;
             }

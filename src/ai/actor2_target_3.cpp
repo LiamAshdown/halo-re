@@ -56,7 +56,7 @@ void ActorView::target_relationship_think()
     struct { int16_t team; int16_t object_type; char is_enemy; } payload;
 
     self = halo::ai::actor_at(actor_index);
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     reaction_ticks = 1;
     danger_reacted = 0;

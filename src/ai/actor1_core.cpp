@@ -126,9 +126,9 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
         halo::ai::ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
-        ((struct object *)unit_object)->owner_team = enc->team;
+        unit_object->owner_team = enc->team;
     }
-    self->team = ((struct object *)unit_object)->owner_team;
+    self->team = unit_object->owner_team;
 
     if (*(int16_t *)((uint8_t *)unit_object + 0xbe) > 99) {
         self->counts_toward_encounter = 1;
@@ -606,9 +606,9 @@ void * halo::ai::actor_ref::get_actor_definition()
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (weapon_object & halo::k_slot_mask);
         object *obj = hdr->data;
-        void *weapon_definition = halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
+        Weapon *weapon_definition = halo::ai::tag_data<Weapon>(obj->definition_tag);
         if (weapon_definition != 0) {
-            uint32_t override_index = *(uint32_t *)((uint8_t *)weapon_definition + 0x3c8);
+            uint32_t override_index = static_cast<uint32_t>(halo::ai::tag_handle(weapon_definition->actor_firing_parameters));
             if (override_index != (uint32_t)-1) {
                 return halo::cache::globals().tag_instances[override_index & halo::k_slot_mask].data;
             }
@@ -1030,9 +1030,9 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
         halo::ai::ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
-        ((struct object *)unit_object)->owner_team = enc->team;
+        unit_object->owner_team = enc->team;
     }
-    self->team = ((struct object *)unit_object)->owner_team;
+    self->team = unit_object->owner_team;
 
     {
         uint8_t flags_before = header->flags;

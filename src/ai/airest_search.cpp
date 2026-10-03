@@ -660,7 +660,7 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
 void AiSearch::heap_sift_down(int16_t index)
 {
     ai_search_context * context = ptr;
-    int16_t count = ((struct ai_search_context *)context)->heap_count;
+    int16_t count = context->heap_count;
     int16_t left, right, smallest;
 
     if (index < count) {

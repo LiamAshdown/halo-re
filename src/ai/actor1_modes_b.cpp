@@ -63,9 +63,9 @@ uint8_t halo::ai::charge_mode::process()
     using namespace c_actor_mode_charge_process;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     uint8_t *variant = TAG_DATA(act->actor_variant_tag);
-    uint8_t *definition = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
+    ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t *md = (uint8_t *)act + 0x9c;
     prop *target = 0;
     uint32_t actor_flags = *(uint32_t *)actor_tag;
@@ -95,7 +95,7 @@ uint8_t halo::ai::charge_mode::process()
                 range = use_retreat_range ? ((ActorVariant *)variant)->berserk_melee_abort_range : ((ActorVariant *)variant)->melee_abort_range;
             }
             if (act->charge_disallowed) {
-                float limit = (0.0f > ((Actor *)actor_tag)->melee_fudge_factor ? 0.0f : ((Actor *)actor_tag)->melee_fudge_factor) + 0.8f;
+                float limit = (0.0f > actor_tag->melee_fudge_factor ? 0.0f : actor_tag->melee_fudge_factor) + 0.8f;
 
                 if (range > limit) {
                     range = limit;
@@ -108,16 +108,16 @@ uint8_t halo::ai::charge_mode::process()
                 md[0x28] = 1;
                 if (check_range) {
                     if (*(int16_t *)(md + 0x4) == 2) {
-                        if (*(float *)(actor_tag + 0x388) == 0.0f || ((Actor *)actor_tag)->melee_leap_chance == 0.0f) {
+                        if (actor_tag->melee_leap_range[1] == 0.0f || actor_tag->melee_leap_chance == 0.0f) {
                             md[0xa] = 0;
                         } else if (target->flying || target->engaged_ticks > 0) {
                             md[0xa] = 1;
                         }
                         if (md[0xa] && (target->engaged_ticks > 0 ||
-                                        *(float *)(actor_tag + 0x384) * 1.5f < target->distance)) {
+                                        actor_tag->melee_leap_range[0] * 1.5f < target->distance)) {
                             *(int16_t *)(md + 0x4) = 3;
                         }
-                    } else if (target->distance < *(float *)(actor_tag + 0x384)) {
+                    } else if (target->distance < actor_tag->melee_leap_range[0]) {
                         *(int16_t *)(md + 0x4) = 2;
                         md[0xa] = 1;
                     }
@@ -139,8 +139,8 @@ uint8_t halo::ai::charge_mode::process()
                 md[0x25] = 0;
                 if (!weak && (int8_t)target->closing_speed_class <= 1) {
                     md[0x25] = 1;
-                } else if (((Actor *)actor_tag)->stalking_max_distance > 0.0f &&
-                           !(target->distance < ((Actor *)actor_tag)->stalking_max_distance)) {
+                } else if (actor_tag->stalking_max_distance > 0.0f &&
+                           !(target->distance < actor_tag->stalking_max_distance)) {
                     md[0x25] = 1;
                 }
             } else if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index) || act->in_water) {
@@ -151,11 +151,11 @@ uint8_t halo::ai::charge_mode::process()
                 uint8_t *weapon;
 
                 if (act->berserking) {
-                    range_hi = *(float *)(definition + 0x16c);
-                    range_lo = *(float *)(definition + 0x168);
+                    range_hi = definition->berserk_firing_ranges[1];
+                    range_lo = definition->berserk_firing_ranges[0];
                 } else {
-                    range_hi = *(float *)(definition + 0xa0);
-                    range_lo = *(float *)(definition + 0x9c);
+                    range_hi = definition->desired_combat_range[1];
+                    range_lo = definition->desired_combat_range[0];
                 }
                 weapon = (uint8_t *)halo::ai::actor_get_threat_weapon_definition(actor_index);
                 if (weapon != 0 && *(float *)(weapon + 0x40c) > 0.0f && !(range_lo > *(float *)(weapon + 0x40c))) {
@@ -218,16 +218,16 @@ uint8_t halo::ai::charge_mode::process()
             }
             have_along = 1;
             if (*(int16_t *)(md + 0x4) == 3 && !md[0xb]) {
-                if (along < *(float *)(actor_tag + 0x384) && target->engaged_ticks == 0 && !target->flying) {
+                if (along < actor_tag->melee_leap_range[0] && target->engaged_ticks == 0 && !target->flying) {
                     md[0x8] = 1;
                     *(int32_t *)&act->last_melee_time = -1;
-                } else if (along < *(float *)(actor_tag + 0x388)) {
+                } else if (along < actor_tag->melee_leap_range[1]) {
                     real_vector3d leap;
                     real half_gravity;
                     real horizontal_speed;
 
                     if (halo::ai::projectile_solve_ballistic_arc(&target->last_known_position, &act->body_position,
-                                                       ((Actor *)actor_tag)->melee_leap_velocity, 1.0f, (real *)(actor_tag + 0x394),
+                                                       actor_tag->melee_leap_velocity, 1.0f, &actor_tag->melee_leap_ballistic,
                                                        0, &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
                         if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&leap)) == 0.0f) {
                             leap = *(real_vector3d *)&act->facing.i;
@@ -243,9 +243,9 @@ uint8_t halo::ai::charge_mode::process()
                     }
                 }
             } else if (md[0x30]) {
-                if (along < ((Actor *)actor_tag)->melee_fudge_factor) {
+                if (along < actor_tag->melee_fudge_factor) {
                     strike = 1;
-                } else if (along < ((Actor *)actor_tag)->suicide_sensing_dist) {
+                } else if (along < actor_tag->suicide_sensing_dist) {
                     float closing = (velocity->j - ((unit_object *)unit)->base.velocity.j) * direction.j +
                                     (velocity->i - ((unit_object *)unit)->base.velocity.i) * direction.i +
                                     (velocity->k - ((unit_object *)unit)->base.velocity.k) * direction.k;
@@ -259,7 +259,7 @@ uint8_t halo::ai::charge_mode::process()
                     along -= (direction.j * ((unit_object *)unit)->base.velocity.j + direction.k * ((unit_object *)unit)->base.velocity.k +
                               direction.i * ((unit_object *)unit)->base.velocity.i) * lead_ticks;
                 }
-                if (along < ((Actor *)actor_tag)->melee_fudge_factor + *(float *)(md + 0x34)) {
+                if (along < actor_tag->melee_fudge_factor + *(float *)(md + 0x34)) {
                     strike = 1;
                 }
             }
@@ -303,8 +303,8 @@ uint8_t halo::ai::charge_mode::process()
             if (*(int16_t *)(md + 0xe) > 15) {
                 md[0x8] = 1;
             }
-        } else if (((Actor *)actor_tag)->melee_charge_time > 0.0f &&
-                   !((float)*(int32_t *)(md + 0x0) + ((Actor *)actor_tag)->melee_charge_time * 30.0f > (float)now)) {
+        } else if (actor_tag->melee_charge_time > 0.0f &&
+                   !((float)*(int32_t *)(md + 0x0) + actor_tag->melee_charge_time * 30.0f > (float)now)) {
             md[0x8] = 1;
         }
     }
@@ -632,7 +632,7 @@ void halo::ai::flee_mode::get_look_weights(float *out_weights)
 {
     using namespace c_actor_mode_flee_get_look_weights;
     datum_index actor_index = datum;
-    const float *source = *(int16_t *)(ACTOR(actor_index) + 0xa8) > 0 ? hud_text_message_normal_color
+    const float *source = halo::ai::actor_at(actor_index)->mode_data.wait.countdown_0c > 0 ? hud_text_message_normal_color
                                                                         : actor_mode_default_look_weights;
 
     out_weights[0] = source[0];
@@ -1421,18 +1421,18 @@ void halo::ai::uncover_mode::enter()
     using namespace c_actor_mode_uncover_enter;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
-    float lo = *(float *)(actor_tag + 0x33c);
-    float hi = *(float *)(actor_tag + 0x340);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
+    float lo = actor_tag->uncover_delay_time[0];
+    float hi = actor_tag->uncover_delay_time[1];
     float t;
     int32_t ticks;
 
     if (!act->mode_data.uncover.unknown_03) {
-        if (!(lo > *(float *)(actor_tag + 0x344))) {
-            lo = *(float *)(actor_tag + 0x344);
+        if (!(lo > actor_tag->target_search_time[0])) {
+            lo = actor_tag->target_search_time[0];
         }
-        if (!(hi > *(float *)(actor_tag + 0x348))) {
-            hi = *(float *)(actor_tag + 0x348);
+        if (!(hi > actor_tag->target_search_time[1])) {
+            hi = actor_tag->target_search_time[1];
         }
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -1478,7 +1478,7 @@ void halo::ai::uncover_mode::get_look_weights(float *out_weights)
 {
     using namespace c_actor_mode_uncover_get_look_weights;
     datum_index actor_index = datum;
-    const float *source = ACTOR(actor_index)[0x9c] ? actor_mode_uncover_look_weights_active
+    const float *source = halo::ai::actor_at(actor_index)->mode_data.wait.finished ? actor_mode_uncover_look_weights_active
                                                     : hud_text_message_hold_color;
 
     out_weights[0] = source[0];

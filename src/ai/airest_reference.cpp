@@ -1431,14 +1431,14 @@ void ReferenceView::units_exit_vehicles()
     halo::ai::ai_reference_actor_iterator_new(packed_reference, &iterator);
     for (actor_record = halo::ai::ai_reference_actor_iterator_next(&iterator); actor_record != 0;
          actor_record = halo::ai::ai_reference_actor_iterator_next(&iterator)) {
-        datum_index unit_index = ((struct actor *)actor_record)->unit_index;
+        datum_index unit_index = actor_record->unit_index;
         int16_t index = (int16_t)unit_index;
         int16_t salt = (int16_t)(unit_index >> 16);
         uint8_t *header;
         uint8_t *self;
         datum_index vehicle_index;
 
-        if (((struct actor *)actor_record)->active_unit_index == k_datum_index_none ||
+        if (actor_record->active_unit_index == k_datum_index_none ||
             unit_index == k_datum_index_none || index < 0 || index >= halo::objects::globals().object_data->maximum_count) {
             continue;
         }

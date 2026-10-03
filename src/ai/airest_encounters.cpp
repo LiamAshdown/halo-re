@@ -280,7 +280,7 @@ int Encounters::release_inactive_swarms(char *buffer, uint8_t *has_more)
  *
  * @address 0x4333d0
  */
-int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index)
+int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, const Actor *requested_actor_data, const ActorVariant *requested_actor_variant_data, char match_by_index)
 {
     ScenarioEncounter *encounter_definition;
     ai_reference_squad_iterator iterator;
@@ -299,8 +299,8 @@ int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t
         do {
             ScenarioSquad *squad = &((ScenarioSquad *)encounter_definition->squads.pointer)[iterator.cursor];
             int16_t actor_palette_index = (int16_t)squad->actor_type;
-            uint8_t *actor_variant_data = 0;
-            uint8_t *squad_actor_data = 0;
+            ActorVariant *actor_variant_data = 0;
+            Actor *squad_actor_data = 0;
 
             if (actor_palette_index >= 0 && actor_palette_index < halo::scenario::globals().scenario->actor_palette.count) {
                 TagDependency *entry =
@@ -308,10 +308,10 @@ int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t
                 datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
                 if (actor_variant_tag != (datum_index)k_datum_index_none &&
                     halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].group_tag == 0x61637476 /* 'actv' */) {
-                    actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data;
-                    if (*(uint32_t *)(actor_variant_data + 0x10) != (uint32_t)k_datum_index_none) {
-                        datum_index actor_tag = *(datum_index *)(actor_variant_data + 0x10);
-                        squad_actor_data = (uint8_t *)halo::cache::globals().tag_instances[actor_tag & halo::k_slot_mask].data;
+                    actor_variant_data = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
+                    if (static_cast<uint32_t>(halo::ai::tag_handle(actor_variant_data->actor_definition)) != (uint32_t)k_datum_index_none) {
+                        datum_index actor_tag = halo::ai::tag_handle(actor_variant_data->actor_definition);
+                        squad_actor_data = halo::ai::tag_data<Actor>(actor_tag);
                     }
                 }
             }
@@ -328,7 +328,7 @@ int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t
                 best_by_variant = iterator.cursor;
             }
             if (best_by_type == -1 && requested_actor_data != 0 && squad_actor_data != 0 &&
-                *(int16_t *)(requested_actor_data + 0x14) == *(int16_t *)(squad_actor_data + 0x14)) {
+                *(int16_t *)(requested_actor_data + 0x14) == squad_actor_data->type) {
                 best_by_type = iterator.cursor;
             }
             if (first_any == -1) {
@@ -383,11 +383,11 @@ int16_t Encounters::resolve_actor_type(ScenarioSquad *squad)
         TagDependency *entry = &((TagDependency *)halo::scenario::globals().scenario->actor_palette.pointer)[actor_palette_index];
         datum_index actor_variant_tag = *(datum_index *)&entry->tag_id;
         if (actor_variant_tag != (datum_index)k_datum_index_none) {
-            uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data;
-            datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
+            ActorVariant *actor_variant_data = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
+            datum_index actor_definition_tag = halo::ai::tag_handle(actor_variant_data->actor_definition);
             if (actor_definition_tag != (datum_index)k_datum_index_none) {
-                uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data;
-                return *(int16_t *)(actor_tag_data + 0x14);
+                Actor *actor_tag_data = halo::ai::tag_data<Actor>(actor_definition_tag);
+                return actor_tag_data->type;
             }
         }
     }
@@ -435,16 +435,16 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
     halo::ai::ai_reference_squad_iterator_new(source_reference, &iterator);
     for (state = halo::ai::ai_reference_squad_iterator_next(&iterator); state != 0;
          state = halo::ai::ai_reference_squad_iterator_next(&iterator)) {
-        uint8_t *squad;
+        ScenarioSquad *squad;
         int16_t palette_index;
-        uint8_t *variant_data = 0;
-        uint8_t *actor_tag_data = 0;
+        ActorVariant *variant_data = 0;
+        Actor *actor_tag_data = 0;
 
         if (!(state->living_count > 0) && source_enc->squads_carried_over == 0) {
             continue;
         }
-        squad = *(uint8_t **)&((struct ScenarioEncounter *)source_definition)->squads.pointer + iterator.cursor * 0xe8;
-        palette_index = *(int16_t *)(squad + 0x20);
+        squad = (ScenarioSquad *)(*(uint8_t **)&source_definition->squads.pointer + iterator.cursor * 0xe8);
+        palette_index = static_cast<int16_t>(squad->actor_type);
         if (palette_index >= 0 && (int32_t)palette_index < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x420)) {
             uint8_t *entry = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x424) + palette_index * 0x10;
             datum_index variant_tag = *(datum_index *)(entry + 0xc);
@@ -453,10 +453,10 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
                 halo::cache::globals().tag_instances[(int16_t)variant_tag].group_tag == 0x61637476 /* 'actv' */) {
                 datum_index actor_tag;
 
-                variant_data = (uint8_t *)halo::cache::globals().tag_instances[variant_tag & halo::k_slot_mask].data;
-                actor_tag = *(datum_index *)(variant_data + 0x10);
+                variant_data = halo::ai::tag_data<ActorVariant>(variant_tag);
+                actor_tag = halo::ai::tag_handle(variant_data->actor_definition);
                 if (actor_tag != (datum_index)k_datum_index_none) {
-                    actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_tag & halo::k_slot_mask].data;
+                    actor_tag_data = halo::ai::tag_data<Actor>(actor_tag);
                 }
             }
         }
@@ -533,7 +533,7 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
         }
         *(uint32_t *)&((struct actor *)raw)->original_encounter_index = target_index;
         ((struct actor *)raw)->original_squad_index = remapped;
-        if (merging_into_self || *(int16_t *)&((struct ScenarioEncounter *)target_definition)->precomputed_bsp_index != halo::scenario::globals().structure_bsp_index) {
+        if (merging_into_self || *(int16_t *)&target_definition->precomputed_bsp_index != halo::scenario::globals().structure_bsp_index) {
             continue;
         }
         halo::ai::ai_actor_unlink_from_unassigned_list(current);
@@ -558,7 +558,7 @@ void EncounterView::starting_location_derive_placement_flags(int16_t starting_lo
     ScenarioEncounter *encounter_definition =
         &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index & halo::k_slot_mask];
     ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
-    int16_t category = *(int16_t *)&((struct ScenarioEncounter *)encounter_definition)->search_behavior;
+    int16_t category = *(int16_t *)&encounter_definition->search_behavior;
 
     if ((*((uint8_t *)squads + starting_location_index * 0xe8 + 0x28) & 2) != 0) {
         category = 1;
@@ -1536,7 +1536,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                 do {
                     root_index = object_index;
                     obj = halo::ai::object_at(root_index);
-                    object_index = ((object *)obj)->parent_object;
+                    object_index = obj->parent_object;
                 } while (object_index != (datum_index)k_datum_index_none);
             }
             obj = halo::ai::object_at(root_index);
@@ -1559,7 +1559,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                             squad = &((ScenarioSquad *)
                                 ((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                     [a->encounter_index & halo::k_slot_mask].squads.pointer)[a->squad_index];
-                            extra = *(uint32_t *)&((struct ScenarioSquad *)squad)->pursuing;
+                            extra = *(uint32_t *)&squad->pursuing;
                         }
                         zone_mask = zone_mask | extra;
                     }
@@ -2007,7 +2007,7 @@ void EncounterView::recompute_morale()
             sample = (float)(int32_t)weight / (float)(int32_t)a->total_cluster_count;
         } else {
             obj = halo::ai::object_at(a->unit_index);
-            sample = ((object *)obj)->body_vitality;
+            sample = obj->body_vitality;
             weight = 1;
         }
 
@@ -3008,7 +3008,7 @@ void Encounters::note_hostile_object(datum_index object_index)
     char hostile;
 
     obj = halo::ai::object_at(object_index);
-    object_team = ((object *)obj)->owner_team;
+    object_team = obj->owner_team;
     if (object_team == -1) {
         return;
     }
@@ -3032,7 +3032,7 @@ void Encounters::note_hostile_object(datum_index object_index)
             return;
         }
 
-        object_team = ((object *)obj)->owner_team;
+        object_team = obj->owner_team;
         encounter_team = enc->team;
         if (halo::game::globals().current_engine == 0) {
             hostile = 0;
@@ -3280,7 +3280,7 @@ void Encounters::update_activation()
                 do {
                     root_index = object_index;
                     obj = halo::ai::object_at(root_index);
-                    object_index = ((object *)obj)->parent_object;
+                    object_index = obj->parent_object;
                 } while (object_index != (datum_index)k_datum_index_none);
             }
             obj = halo::ai::object_at(root_index);

@@ -246,7 +246,7 @@ uint8_t ConversationView::current_line_is_ready()
 {
     datum_index instance_handle = handle;
     uint8_t *inst = (uint8_t *)halo::ai::globals().conversation_data->data + (instance_handle & halo::k_slot_mask) * k_ai_conversation_size;
-    uint8_t *definition = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + ((struct ai_conversation *)inst)->definition_index * 0x74;
+    ActorVariant *definition = (ActorVariant *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + ((struct ai_conversation *)inst)->definition_index * 0x74);
 
     if (inst[0x63]) {
         return inst[0x63];
@@ -261,7 +261,7 @@ uint8_t ConversationView::current_line_is_ready()
             if (flags & 0x30) {
                 int16_t i;
 
-                for (i = 0; (int32_t)i < *(int32_t *)(definition + 0x50); i++) {
+                for (i = 0; (int32_t)i < static_cast<int32_t>(definition->initial_crouch_chance); i++) {
                     datum_index actor_index = *(datum_index *)(inst + 0x28 + i * 4);
                     actor *a;
 
@@ -639,7 +639,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
     }
 
     if ((int16_t)participant->use_this_object == -1) {
-        if (*(int32_t *)&((struct ScenarioAIConversationParticipant *)participant)->encounter_index == -1) {
+        if (*(int32_t *)&participant->encounter_index == -1) {
             if (halo::ai::globals().state->actors_valid) {
                 actor_iterator.filter_array = halo::ai::globals().encounter_data;
                 actor_iterator.next_index = 0;
@@ -652,7 +652,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             }
         } else {
             halo::ai::ai_reference_actor_iterator_new(
-                ((struct ScenarioAIConversationParticipant *)participant)->encounter_index, &reference_iterator);
+                participant->encounter_index, &reference_iterator);
             use_reference = 1;
         }
     } else if ((int16_t)participant->use_this_object < 0 ||
@@ -743,7 +743,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             case 0:
             case 6:
                 if (player_object != 0 &&
-                    halo::game::teams_are_enemies(((struct object *)player_object)->owner_team,
+                    halo::game::teams_are_enemies(player_object->owner_team,
                                       candidate->team) != 0) {
                     continue;
                 }

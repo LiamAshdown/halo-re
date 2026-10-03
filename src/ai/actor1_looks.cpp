@@ -109,7 +109,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     self = halo::ai::actor_at(actor_index);
     awareness = self->awareness_level;
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if ((awareness < 2 && line < 13) || line < self->vocalization_line) {
         return 0;
@@ -230,8 +230,8 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
 {
     using namespace c_actor_dispatch_look_handler_by_posture;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
-    uint8_t *definition;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
+    ActorVariant *definition;
     float *from = (float *)origin;
     float *to = (float *)target;
     float base;
@@ -244,10 +244,10 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
     if (posture != 0 && posture != 1) {
         return 0;
     }
-    definition = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
-    base = ((Actor *)actor_tag)->max_vision_distance;
-    if (*(float *)(definition + 0x150) > 0.0f) {
-        base = *(float *)(definition + 0x150);
+    definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
+    base = actor_tag->max_vision_distance;
+    if (definition->modified_vision_range > 0.0f) {
+        base = definition->modified_vision_range;
     }
     range = base * k_perception_range_class_scale[(int16_t)range_class & 3];
     dx = to[0] - from[0];
@@ -258,7 +258,7 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
         return 0;
     }
     scale = 1.0f;
-    if ((actor_tag[0] & 1) == 0) {
+    if ((static_cast<uint8_t>(actor_tag->flags) & 1) == 0) {
         if ((int8_t)stance_a == 0) {
             scale = 0.3f;
         } else if ((int8_t)stance_a == 1) {
@@ -360,7 +360,7 @@ float * halo::ai::look_ops::get_idle_facing_range()
 
     self = halo::ai::actor_at(actor_index);
     state = self->look_posture;
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (state == 2) {
         return definition->guard_idle_facing;
@@ -641,7 +641,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     real_point3d look_point;
 
     self = halo::ai::actor_at(actor_index);
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     out_in_front = 0;
     self->idle_look_state[1] = 0;
 

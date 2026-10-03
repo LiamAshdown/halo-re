@@ -37,7 +37,7 @@ void ActorView::update_firing_state()
     using namespace actor_update_firing_state_local;
     actor *a = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = TAG_DATA(a->actor_definition_tag);
-    uint8_t *variant = TAG_DATA(a->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
     uint8_t *def = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t *weapon_tag = 0;
     datum_index weapon;
@@ -188,7 +188,7 @@ void ActorView::update_firing_state()
         if (!forced && a->firing_delay_timer > 0) goto idle;
         if (halo::ai::actor_action_has_queued_secondary(actor_index)) goto idle;
         if (!forced) {
-            if (a->airborne && !a->flying && !(variant[0] & 1)) goto idle;
+            if (a->airborne && !a->flying && !(static_cast<uint8_t>(variant->flags) & 1)) goto idle;
             if ((*(uint32_t *)actor_tag & 0x200) && !a->crouching) goto idle;
             if ((actor_tag[4] & 2) && a->crouching) goto idle;
             if ((actor_tag[4] & 4) && a->moving) goto idle;

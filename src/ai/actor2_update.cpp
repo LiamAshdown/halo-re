@@ -499,7 +499,7 @@ void ActorView::update_crouch_state()
     uint8_t want_crouch;
 
     self = halo::ai::actor_at(actor_index);
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     threat_level           = &self->threat_level;
     threat_level_smoothed  = &self->danger_meter;
@@ -658,7 +658,7 @@ void ActorView::update_crouch_state()
             *countdown_360 = (int16_t)(*countdown_360 - 1);
         }
     } else {
-        halo::ai::actor_push_recognition_entry(actor_index, ((struct actor *)self)->firing_position_index, 1);
+        halo::ai::actor_push_recognition_entry(actor_index, self->firing_position_index, 1);
         *countdown_360 = 0x16;
     }
 
@@ -1720,19 +1720,19 @@ uint8_t ActorView::update_movement_destination()
 {
     using namespace actor_update_movement_destination_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag;
-    uint8_t *definition;
+    Actor *actor_tag;
+    ActorVariant *definition;
 
     if (actor->needs_new_path == 0) {
         return 0;
     }
-    actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
-    definition = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
+    actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
+    definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     if (actor->order_committed == 0) {
         uint8_t follow_lead = 0;
 
-        if (actor->crouch_active != 0 && (actor_tag[0] & 0x20) != 0) {
+        if (actor->crouch_active != 0 && (static_cast<uint8_t>(actor_tag->flags) & 0x20) != 0) {
             halo::ai::actor_update_target_lead_position(actor_index);
             follow_lead = halo::ai::actor_firing_position_near_point(actor_index, &actor->pathfinding_point,
                 (int32_t)(uint32_t)actor->pathfinding_surface_index, 0);
@@ -1753,7 +1753,7 @@ uint8_t ActorView::update_movement_destination()
                 if (actor->target_unit_index != halo::k_dword_none) {
                     prop *target = halo::ai::prop_at(actor->target_unit_index);
 
-                    drop = target->distance < *(float *)(definition + 0xa0);
+                    drop = target->distance < definition->desired_combat_range[1];
                 }
             } else {
                 drop = !at_position;
@@ -1781,7 +1781,7 @@ uint8_t ActorView::update_movement_destination()
             if (claimed == -1) {
                 A_W(0x9c) = 0;
             } else if (claimed != previous) {
-                float wait = halo::math::random_real_range(*(float *)(actor_tag + 0x3c0), *(float *)(actor_tag + 0x3c4));
+                float wait = halo::math::random_real_range(actor_tag->combat_position_time[0], actor_tag->combat_position_time[1]);
 
                 if (actor->vehicle_driving_type > 0) {
                     uint8_t *vehicle = (uint8_t *)halo::ai::object_at(actor->active_unit_index);
@@ -1929,11 +1929,11 @@ uint8_t ActorView::update_squad_link_state()
             uint8_t movement_done = self->movement_action_complete;
             if (movement_done != 0) {
                 if (self->active_movement.type == 3) {
-                    if (self->mode == 6 && enc != 0 && ((struct encounter *)enc)->follow_target_type == 1) {
+                    if (self->mode == 6 && enc != 0 && enc->follow_target_type == 1) {
                         return 1;
                     }
                 } else if (self->active_movement.type == 5) {
-                    prop *p = &((prop *)halo::ai::globals().prop_data->data)[*(datum_index *)&((struct actor *)self)->active_movement.destination.x & halo::k_slot_mask];
+                    prop *p = &((prop *)halo::ai::globals().prop_data->data)[*(datum_index *)&self->active_movement.destination.x & halo::k_slot_mask];
                     if (p->is_parented != 0) {
                         return 1;
                     }

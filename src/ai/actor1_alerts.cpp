@@ -239,13 +239,13 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     using namespace c_actor_alert_from_squad_attack;
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *definition;
+    Actor *definition;
 
     if (actor->unknown_2e8[4] == 0) {
         return 0;
     }
-    definition = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
-    if (!(actor->recent_body_damage > *(float *)(definition + 0x2ac))) {
+    definition = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
+    if (!(actor->recent_body_damage > definition->panic_damage_threshold)) {
         return 0;
     }
     if (actor->pending_panic_type == 0 || actor->pending_panic_prop_index == halo::k_dword_none) {
@@ -398,7 +398,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
     using namespace c_actor_consider_combat_mode;
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
     uint8_t *record = (uint8_t *)out;
     int16_t mode = consideration_mode;
     uint8_t result = 1;
@@ -430,16 +430,16 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
             goto done;
         }
         target = halo::ai::prop_at(actor->target_unit_index);
-        if (*(float *)(actor_tag + 0x388) == 0.0f || ((Actor *)actor_tag)->melee_leap_chance == 0.0f) {
+        if (actor_tag->melee_leap_range[1] == 0.0f || actor_tag->melee_leap_chance == 0.0f) {
             record[0xa] = 0;
         } else if (target->flying != 0 || target->engaged_ticks > 0) {
             record[0xa] = 1;
             leap = 1;
             mode = 3;
         } else {
-            leap = halo::math::random_real() < ((Actor *)actor_tag)->melee_leap_chance;
+            leap = halo::math::random_real() < actor_tag->melee_leap_chance;
             record[0xa] = leap;
-            if (target->distance < *(float *)(actor_tag + 0x384)) {
+            if (target->distance < actor_tag->melee_leap_range[0]) {
                 leap = 0;
             } else if (leap) {
                 mode = 3;
@@ -680,12 +680,12 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
-    uint8_t *definition = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
+    ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     if (*(datum_index *)&act->stuck_projectile_index == k_datum_index_none || act->combat_status < 5) {
         return 0;
     }
-    if (!(((struct prop *)PROP(act->target_unit_index))->distance < *(float *)(definition + 0x16c))) {
+    if (!(((struct prop *)PROP(act->target_unit_index))->distance < definition->berserk_firing_ranges[1])) {
         return 0;
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -772,7 +772,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     actor *a = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = TAG_DATA(a->actor_definition_tag);
     uint8_t *variant = TAG_DATA(a->actor_variant_tag);
-    uint8_t *definition = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
+    ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t changed = 0;
     uint8_t fallback = 0;
     prop *p = 0;
@@ -793,7 +793,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 engaged = 1;
             }
             if (engaged) {
-                if (!(distance <= *(float *)(definition + 0xa0))) {
+                if (!(distance <= definition->desired_combat_range[1])) {
                     changed = halo::ai::actor_handle_death(actor_index, 0, 0);
                     if (!changed) {
                         halo::ai::actor_set_combat_alert_flag(actor_index, 1);
@@ -861,7 +861,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     ready = (float)game_time->game_time >
                         *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&a->last_vehicle_charge_time;
                 }
-                if (ready && seat_kind == 4 && distance > *(float *)(definition + 0x160) &&
+                if (ready && seat_kind == 4 && distance > definition->melee_range &&
                     p->obstruction == 0 &&
                     halo::ai::actor_consider_combat_mode(actor_index, 4, &consideration)) {
                     halo::ai::actor_set_mode(actor_index, 0xa, &consideration);

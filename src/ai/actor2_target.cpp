@@ -402,17 +402,17 @@ void TargetView::target_get_relationship_object()
     datum_index resolved;
 
     target = halo::ai::prop_at(target_prop_index);
-    cache = &((struct prop *)target)->pathfinding_surface_index;
+    cache = &target->pathfinding_surface_index;
 
     if (*cache == -1) {
         if (target->relationship_object_index != -1) {
             *cache = halo::units::unit_predict_aim_target_position(target->relationship_object_index,
-                                                      &((struct prop *)target)->pathfinding_point);
+                                                      &target->pathfinding_point);
             return;
         }
         resolved = target->object_index;
         if (halo::objects::object_try_and_get(resolved, 1) != (void *)0) {
-            resolved = halo::units::biped_get_cached_look_at_position(resolved, &((struct prop *)target)->pathfinding_point);
+            resolved = halo::units::biped_get_cached_look_at_position(resolved, &target->pathfinding_point);
             *cache = (int32_t)resolved;
         }
     }
@@ -1186,7 +1186,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         return;
     }
 
-    actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_def = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     enc = (self->encounter_index == (datum_index)k_datum_index_none)
               ? (encounter *)0
               : &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
@@ -1424,23 +1424,23 @@ after_engage:
                     p->just_sighted = (p->visual_perception == 0 && result > 0);
                     p->visual_perception = result;
                     if (result != 0) {
-                        p->last_seen_position_x = ((struct prop *)p)->head_position_x;
-                        p->last_seen_position_y = ((struct prop *)p)->head_position_y;
-                        p->last_seen_position_z = ((struct prop *)p)->head_position_z;
+                        p->last_seen_position_x = p->head_position_x;
+                        p->last_seen_position_y = p->head_position_y;
+                        p->last_seen_position_z = p->head_position_z;
                         p->last_seen_time = tick;
                     }
                 }
             }
             if (enc == (encounter *)0 || enc->deaf == 0) {
                 if (p->stimulus_type == 1 || p->stimulus_type == 2) {
-                    *(int16_t *)&((struct prop *)p)->auditory_perception = 3;
+                    *(int16_t *)&p->auditory_perception = 3;
                 } else {
-                    *(int16_t *)&((struct prop *)p)->auditory_perception =
+                    *(int16_t *)&p->auditory_perception =
                         halo::ai::actor_target_hearing_check((uint8_t *)p + 0xfc, p->obstruction, actor_index,
                                                     scratch,  0, &p->last_known_position);
                 }
             } else {
-                *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
+                *(int16_t *)&p->auditory_perception = 0;
             }
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             if (p->stimulus_type == 0) {
@@ -1453,7 +1453,7 @@ after_engage:
                 *(int16_t *)((uint8_t *)p + 0x36) = v;
             }
             {
-                int16_t a = *(int16_t *)&((struct prop *)p)->auditory_perception;
+                int16_t a = *(int16_t *)&p->auditory_perception;
                 int16_t b = *(int16_t *)((uint8_t *)p + 0x36);
                 int16_t best = (a <= b) ? b : a;
                 int16_t chosen = p->visual_perception;
@@ -1468,7 +1468,7 @@ after_engage:
         } else {
             p->perception_level = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
+            *(int16_t *)&p->auditory_perception = 0;
             p->visual_perception = 0;
         }
 
@@ -1497,13 +1497,13 @@ after_engage:
         if (p->disregarded || team_gate) {
             p->perception_level = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
-            *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
+            *(int16_t *)&p->auditory_perception = 0;
             p->visual_perception = 0;
         } else {
             int16_t result = halo::ai::actor_dispatch_look_handler_by_posture(p->obstruction, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                            p->perception_range_class, 1, 2);
             p->visual_perception = result;
-            *(int16_t *)&((struct prop *)p)->auditory_perception = 0;
+            *(int16_t *)&p->auditory_perception = 0;
             *(int16_t *)((uint8_t *)p + 0x36) = 0;
             p->perception_level = result;
         }

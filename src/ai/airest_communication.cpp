@@ -81,7 +81,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
         datum_index actor_index = iterator.actor_index;
         uint32_t block[14];
 
-        if (((struct actor *)a)->combat_status >= 7) {
+        if (a->combat_status >= 7) {
             continue;
         }
         halo::ai::actor_get_firing_positions(actor_index, block, point);
@@ -575,7 +575,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             }
             near = (uint8_t)!(proximity >= 2.0f);
             if (speaker_actor != k_datum_index_none) {
-                uint16_t type_flags = *(uint16_t *)(actor_type_procs[*(int16_t *)(ACTOR_DATA(speaker_actor) + 0x4)] + 0x4);
+                uint16_t type_flags = *(uint16_t *)(actor_type_procs[halo::ai::actor_at(speaker_actor)->type] + 0x4);
                 int16_t type_side = (type_flags & 2) ? 0 : ((type_flags & 4) ? 1 : -1);
 
                 if (type_side != -1) {
@@ -681,7 +681,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 if (speaker_actor == k_datum_index_none) {
                     animation_factor = 2.0f;
                 } else {
-                    int16_t mode = *(int16_t *)(ACTOR_DATA(speaker_actor) + 0x6c);
+                    int16_t mode = halo::ai::actor_at(speaker_actor)->mode;
 
                     if (actor_mode_definitions[mode].combat_grade != 2 /* 0x42e3cb */ &&
                         speaker->awareness_level != 1) {
@@ -1369,12 +1369,12 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                                 goto check_b;
                             }
                             if (allow_unreachable == 0 &&
-                                *(int16_t *)&((struct prop *)p)->auditory_perception < 2 &&
+                                *(int16_t *)&p->auditory_perception < 2 &&
                                 *(int16_t *)((uint8_t *)p + 0x36) < 2) {
-                                if (((struct prop *)p)->flashlight_on == 0) {
+                                if (p->flashlight_on == 0) {
                                     reach_mode = (int32_t)*(int8_t *)&p->perception_range_class;
                                 }
-                                reach = halo::ai::actor_dispatch_look_handler_by_posture(((struct prop *)p)->obstruction,
+                                reach = halo::ai::actor_dispatch_look_handler_by_posture(p->obstruction,
                                                      actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
                                                      (uint8_t)reach_mode, 1,
                                                      halo::ai::actor_target_get_priority_class(actor_index, prop_index));
@@ -2086,7 +2086,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
             uint32_t firing[0x18];
 
             halo::ai::actor_get_firing_positions(actor_index, firing, &position);
-            if ((int16_t)halo::ai::actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->obstruction, actor_index,
+            if ((int16_t)halo::ai::actor_target_hearing_check(location, (int16_t)*(uint16_t *)&p->obstruction, actor_index,
                                            firing, gate, &position) >= 2) {
                 halo::ai::actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
                 halo::ai::ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);

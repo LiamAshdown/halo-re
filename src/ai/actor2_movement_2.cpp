@@ -407,7 +407,7 @@ void ActorView::movement_update()
     using namespace actor_movement_update_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffffu];
     uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
 
     uint8_t sidestep_mode = 0;
     uint8_t face_along_heading = 0;
@@ -456,7 +456,7 @@ void ActorView::movement_update()
         } else {
             desired = (const real_vector3d *)&a->desired_movement_vector;
         }
-        halo::ai::actor_movement_choose_avoidance_direction(actor_index, (real_vector3d *)desired, &sampled, &sampled_scale);
+        halo::ai::actor_movement_choose_avoidance_direction(actor_index, const_cast<real_vector3d *>(desired), &sampled, &sampled_scale);
 
         if (sampled.j * sampled.j + sampled.k * sampled.k + sampled.i * sampled.i <=
             a->avoidance_direction.k * a->avoidance_direction.k +
@@ -589,7 +589,7 @@ void ActorView::movement_update()
         }
     } else {
         object *unit_object = halo::ai::object_at(a->active_unit_index);
-        Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+        Vehicle *vehicle_def = halo::ai::tag_data<Vehicle>(unit_object->definition_tag);
         uint8_t take_sideslip = 0;
 
         steering_maximum = vehicle_def->ai_steering_maximum;

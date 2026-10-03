@@ -58,7 +58,7 @@ void ActorOps::notify_squad_of_threat_direction(const real_point3d *point, datum
 {
     using namespace actor_notify_squad_of_threat_direction_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     datum_index unit_index = self->unit_index;
 
     if (unit_index == (datum_index)k_datum_index_none) {
@@ -377,7 +377,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
         payload = 0;
     }
 
-    actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0) &&
@@ -427,7 +427,7 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->awareness_level != 1) {
-        Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+        Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
             (self->mode != 11 || self->mode_data.raw[3] != 0) &&
@@ -474,7 +474,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
 {
     using namespace actor_queue_recognized_target_dialogue_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
@@ -650,7 +650,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
         goto broadcast_check;
     }
 
-    actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 5 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
@@ -750,7 +750,7 @@ broadcast_check:
             while (cluster_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)halo::objects::globals().object_data->data)[cluster_index & halo::k_slot_mask];
                 struct object *unit_object = header->data;
-                ((struct object *)unit_object)->vitality_flags |= 0x20;
+                unit_object->vitality_flags |= 0x20;
                 cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
             }
         }
@@ -795,7 +795,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 {
     using namespace actor_react_to_flee_point_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     real_vector3d direction;
     float length;
 
@@ -862,7 +862,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
 {
     using namespace actor_react_to_registered_danger_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     real_vector3d direction;
 
     if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_reaction_ticks >= 1) {
@@ -961,7 +961,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
                                     halo::k_dword_none, 0, 90, target_prop_index, 150, 0);
     }
 
-    actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 8 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
@@ -1079,7 +1079,7 @@ void ActorView::scan_allies_for_backup_request()
 {
     using namespace actor_scan_allies_for_backup_request_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_def = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     prop *props = (prop *)halo::ai::globals().prop_data->data;
 
     ai_group_bucket_entry buckets[16];
@@ -1247,7 +1247,7 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
 {
     using namespace actor_scan_ally_death_panic_reaction_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     prop *target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
 
     if (target->enemy == 0 && halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_tag->more_flags), halo::tags::actor_more_tag_flag::panic_in_groups)  &&
@@ -1297,7 +1297,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
     using namespace actor_scan_backup_and_panic_reaction_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     prop *target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     datum_index relevant;
 
     self->witnessed_death = 1;

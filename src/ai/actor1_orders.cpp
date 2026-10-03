@@ -464,7 +464,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
     o[0x0a] = need_random_duration ? 0 : 1;
 
     if (need_random_duration) {
-        Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
+        Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
         float min, max;
 
         if (o[0x09] == 0) {
@@ -747,10 +747,10 @@ int32_t halo::ai::order_builder::search_wait(actor_order *order)
 
         halo::ai::actor_target_get_relationship_object(a->post_combat_prop_index);
         *(int16_t *)((uint8_t *)order + 0x24) = 2;
-        *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->pathfinding_point.x;
-        *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->pathfinding_point.y;
-        *(float *)((uint8_t *)order + 0x30) = ((struct prop *)p)->pathfinding_point.z;
-        *(int32_t *)((uint8_t *)order + 0x34) = ((struct prop *)p)->pathfinding_surface_index;
+        *(float *)((uint8_t *)order + 0x28) = p->pathfinding_point.x;
+        *(float *)((uint8_t *)order + 0x2c) = p->pathfinding_point.y;
+        *(float *)((uint8_t *)order + 0x30) = p->pathfinding_point.z;
+        *(int32_t *)((uint8_t *)order + 0x34) = p->pathfinding_surface_index;
     }
     return 1;
 }
@@ -826,13 +826,13 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
 
     self = halo::ai::actor_at(actor_index);
     unit_index = self->unit_index;
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     radius = actor_definition->pathfinding_radius;
 
     if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
         unit_object = halo::ai::object_at(unit_index);
-        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+        vehicle_definition = halo::ai::tag_data<Vehicle>(unit_object->definition_tag);
         if (vehicle_definition->ai_pathfinding_radius > 0.0f) {
             radius = vehicle_definition->ai_pathfinding_radius;
         }

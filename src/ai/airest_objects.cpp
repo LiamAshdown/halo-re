@@ -523,7 +523,7 @@ int16_t ObjectListView::max_flee_grade()
                         if (component_index < component_count &&
                             (((swarm_component *)halo::ai::globals().swarm_component_data->data)
                                  [sw->component_index[component_index] & halo::k_slot_mask].flags & 8) != 0) {
-                            grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(*(int16_t *)&((struct actor *)a)->mode_data,
+                            grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(*(int16_t *)&a->mode_data,
                                 (uint8_t *)&((swarm_component *)halo::ai::globals().swarm_component_data->data)
                                     [sw->component_index[component_index] & halo::k_slot_mask] + 0x1c);
                             goto have_grade;
@@ -1189,9 +1189,9 @@ void AiUnitView::clear_actor_vocalization()
 
     if (unit->actor_index != (datum_index)k_datum_index_none) {
         actor *a = &((actor *)halo::ai::globals().actor_data->data)[unit->actor_index & halo::k_slot_mask];
-        ((actor *)a)->vocalization_variant = 0;
-        ((actor *)a)->vocalization_line = 0;
-        ((actor *)a)->vocalization_state = 0;
+        a->vocalization_variant = 0;
+        a->vocalization_line = 0;
+        a->vocalization_state = 0;
     }
 }
 
@@ -1245,7 +1245,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     a->pending_command_list = -1;
     a->sequence_id = 0;
 
-    if (*((uint8_t *)a + 0x6) != actor_type_procs[((actor *)a)->type][0xd]) {
+    if (*((uint8_t *)a + 0x6) != actor_type_procs[a->type][0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return;
     }
@@ -1312,8 +1312,8 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
     if (actor_index != (datum_index)k_datum_index_none && packed_reference != (uint32_t)k_datum_index_none) {
         actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
         char already_in_target = (a->encounter_index & halo::k_slot_mask) == (packed_reference & halo::k_slot_mask);
-        uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
-        uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & halo::k_slot_mask].data;
+        Actor *actor_tag_data = halo::ai::tag_data<Actor>(a->actor_definition_tag);
+        ActorVariant *actor_variant_data = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
         int32_t best_squad = halo::ai::ai_squad_find_best_matching_member(packed_reference, a->squad_index, actor_tag_data,
                                                                   actor_variant_data, already_in_target);
 
@@ -1471,7 +1471,7 @@ void AiActorView::get_move_speed_for_range(float param_a, float param_b, float p
     float low_break_08;
 
     self = halo::ai::actor_at(actor_index);
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (definition->peripheral_vision_angle < param_dist) {
         *out_b = 0.0f;
