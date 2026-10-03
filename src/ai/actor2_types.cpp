@@ -658,7 +658,7 @@ void ActorView::type_infection_swarm_update()
 
                 prop_handle = prop->next_in_actor;
                 if (prop->desirability > 0.0f) {
-                    float dx = F(component, 0x4) - F(prop, 0xbc);
+                    float dx = F(component, 0x4) - prop->last_known_position.x;
                     float dy = F(component, 0x8) - prop->last_known_position.y;
                     float dz = F(component, 0xc) - prop->last_known_position.z;
                     float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
@@ -820,7 +820,7 @@ void ActorView::type_infection_swarm_update()
                     float angle;
 
                     component[0x1d] = (uint8_t)halo::ai::actor_pick_dialogue_variant_b(behaviour);
-                    to_goal.i = F(swarm, 0xc) - F(component, 0x4);
+                    to_goal.i = swarm->aggregate_position.x - F(component, 0x4);
                     to_goal.j = swarm->aggregate_position.y - F(component, 0x8);
                     to_goal.k = swarm->aggregate_position.z - F(component, 0xc);
                     distance_squared = to_goal.k * to_goal.k + to_goal.j * to_goal.j + to_goal.i * to_goal.i;
@@ -848,7 +848,7 @@ void ActorView::type_infection_swarm_update()
         case 5: {
             struct prop *prop = halo::ai::prop_at(target);
 
-            desired.i = F(prop, 0xbc) - F(component, 0x4);
+            desired.i = prop->last_known_position.x - F(component, 0x4);
             desired.j = prop->last_known_position.y - F(component, 0x8);
             desired.k = prop->last_known_position.z - F(component, 0xc);
             if (behaviour == 5) {
