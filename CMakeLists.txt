@@ -138,3 +138,10 @@ else()
     message(WARNING "HALO_FX_OVERRIDE (${HALO_FX_OVERRIDE}) not found: convert shaders\\fx.bin with "
                     "tools/convert_fx.py and put it in override/shaders/ next to halo_rebuilt.exe")
 endif()
+
+# ---- module equivalence tests (C++ conversion): build with -DHALO_BUILD_TESTS=ON, run with ctest -C Release
+option(HALO_BUILD_TESTS "Build the module difftests (tests/)" OFF)
+if(HALO_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests/math)
+endif()
