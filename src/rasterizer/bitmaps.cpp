@@ -482,11 +482,6 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
 
 }  // namespace rasterizer_bitmap_create_hardware_texture_impl
 
-typedef struct locked_rect {
-    int32_t pitch;
-    uint8_t *bits;
-} locked_rect;
-
 static int32_t sample_texel_coordinate(int32_t size, float uv)
 {
     float scaled = (float)size * uv - 0.5f;
@@ -575,7 +570,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
     int32_t x;
     int32_t y;
     int32_t texel;
-    locked_rect locked;
+    d3d_locked_rect locked;
 
     if (texture == 0) {
         return -1;

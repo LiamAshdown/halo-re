@@ -402,7 +402,7 @@ typedef struct d3d_gamma_ramp {
 // the texel sampler 0x524590.
 typedef struct d3d_locked_rect {
     int32_t pitch;                  // 0x00
-    uint32_t bits;                  // 0x04 void*
+    uint8_t *bits;                  // 0x04 first byte of the locked rectangle
 } d3d_locked_rect;                  // size 0x08
 
 // D3DSURFACE_DESC, filled by IDirect3DSurface9::GetDesc (+0x30) in rasterizer_end_frame 0x517b90.

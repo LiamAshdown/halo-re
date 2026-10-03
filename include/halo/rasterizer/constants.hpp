@@ -39,10 +39,26 @@ inline constexpr uint32_t k_locale_english_us = 1033;
 /** Values of the force_shader setting with a special meaning. */
 inline constexpr uint32_t k_force_shader_fallback = 9997;
 inline constexpr uint32_t k_force_shader_ps_2_a = 9998;
+inline constexpr uint32_t k_force_shader_disabled = 9999;
 
 /** Size of the loading screen surface and the id of its bitmap resource. */
 inline constexpr uint32_t k_loading_screen_width = 640;
 inline constexpr uint32_t k_loading_screen_height = 480;
 inline constexpr uint32_t k_loading_screen_resource_id = 134;
+
+/** The signed 16 bit halves a packed screen coordinate pair carries (low half first). */
+constexpr int16_t low_half(uint32_t packed) noexcept
+{
+    return static_cast<int16_t>(packed);
+}
+
+constexpr int16_t high_half(uint32_t packed) noexcept
+{
+    return static_cast<int16_t>(packed >> 16);
+}
+
+/** Frustum depth range the decal and model passes switch to, as the float bit patterns the depth setup takes. */
+inline constexpr float k_decal_frustum_z_near = 1.0f / 256.0f;
+inline constexpr float k_decal_frustum_z_far = 4096.0f;
 
 }  // namespace halo::rasterizer

@@ -429,6 +429,21 @@ inline constexpr uint32_t k_fvf_tex1 = 0x100;
 inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = k_fvf_xyzrhw | k_fvf_diffuse | k_fvf_tex1;
 inline constexpr uint32_t k_fvf_xyzrhw_diffuse_specular_tex1 = k_fvf_xyzrhw | k_fvf_diffuse | k_fvf_specular | k_fvf_tex1;
 
+/**
+ * D3DPS_VERSION: the pixel shader version word the device caps report (0xffff in the high half, then major and
+ * minor). The major number is merged into the low byte of the 0xff pattern before the shift, as the original does.
+ */
+constexpr uint32_t pixel_shader_version(uint32_t major, uint32_t minor) noexcept
+{
+    return ((major | ~0xffu) << 8) | minor;
+}
+
+/** The major and minor part of a pixel shader version word. */
+constexpr uint32_t pixel_shader_version_major_minor(uint32_t version) noexcept
+{
+    return version & 0xffffu;
+}
+
 /** D3DCLEAR_TARGET, D3DCLEAR_ZBUFFER and D3DCLEAR_STENCIL. */
 inline constexpr uint32_t k_clear_target = 1;
 inline constexpr uint32_t k_clear_zbuffer = 2;
