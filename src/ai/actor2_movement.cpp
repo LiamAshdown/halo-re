@@ -39,7 +39,7 @@ void ActorView::movement_action_cancel()
     }
 
     {
-        uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x24);
+        uint32_t proc = actor_mode_definitions[self->mode].carry_over_proc;
         if (proc != 0) {
             ((void (*)(datum_index))proc)(actor_index);
         }

@@ -393,7 +393,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         }
 
         c = &candidates[candidate_count];
-        c->position = (uint32_t)(uint8_t *)fp;
+        c->position = (uint32_t)(uintptr_t)fp;
         c->firing_position_index = (int16_t)i;
         c->request_result = 0;
         c->distance_from_actor = 3.4028235e+38f;
@@ -445,15 +445,15 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                 for (i = 0; i < candidate_count; i++) {
                     actor_firing_position_candidate *c = &candidates[i];
 
-                    halo::ai::path_find_compute_heuristic(&target_context, *(uint32_t *)((uint8_t *)c->position + 0x14),
-                                 (real_point3d *)c->position, &c->distance_from_target, (float *)0,
+                    halo::ai::path_find_compute_heuristic(&target_context, halo::ai::candidate_firing_position(*c)->surface_index,
+                                 halo::ai::candidate_point(*c), &c->distance_from_target, (float *)0,
                                  (query->want_direction_from_target != 0) ? &c->direction_from_target : 0);
                 }
             }
         } else {
             for (i = 0; i < candidate_count; i++) {
                 actor_firing_position_candidate *c = &candidates[i];
-                real_point3d *p = (real_point3d *)c->position;
+                real_point3d *p = halo::ai::candidate_point(*c);
                 delta.i = p->x - query->target_position.x;
                 delta.j = p->y - query->target_position.y;
                 delta.k = p->z - query->target_position.z;
@@ -499,7 +499,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
 
     for (i = 0; i < candidate_count; i++) {
         actor_firing_position_candidate *c = &candidates[i];
-        real_point3d *p = (real_point3d *)c->position;
+        real_point3d *p = halo::ai::candidate_point(*c);
 
         if (query->have_target != 0) {
             c->distance_squared_to_target =
@@ -516,7 +516,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         if (distance_squared < query->search_radius * query->search_radius) {
             if (query->flying == 0) {
 
-                halo::ai::path_find_compute_heuristic(path_context, *(uint32_t *)((uint8_t *)p + 0x14), p,
+                halo::ai::path_find_compute_heuristic(path_context, halo::ai::candidate_firing_position(*c)->surface_index, p,
                              &c->distance_from_actor, &c->segment_distance,
                              (query->danger_active != 0) ? &c->direction_from_actor : 0);
             } else {

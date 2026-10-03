@@ -117,6 +117,18 @@ static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && offsetof(
 static_assert(offsetof(ModelAnimations, units) == 0xc);
 static_assert(offsetof(Object, animation_graph) == 0x38);
 
+/** The scenario firing position a firing position candidate refers to (the candidate stores its address in a 32 bit field). */
+inline ScenarioFiringPosition *candidate_firing_position(const actor_firing_position_candidate &candidate)
+{
+    return reinterpret_cast<ScenarioFiringPosition *>(static_cast<uintptr_t>(candidate.position));
+}
+
+/** The world position of the firing position a candidate refers to. */
+inline real_point3d *candidate_point(const actor_firing_position_candidate &candidate)
+{
+    return reinterpret_cast<real_point3d *>(&candidate_firing_position(candidate)->position);
+}
+
 /** The path record that overlays the actor's movement_action_complete .. waypoint run (what path_find_reconstruct_path fills). */
 inline path_find_result *path_result(actor *a)
 {

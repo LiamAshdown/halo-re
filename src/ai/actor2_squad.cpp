@@ -52,13 +52,13 @@ namespace actor_obey_member_enter_local {
 void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
     using namespace actor_obey_member_enter_local;
-    uint8_t *list = (uint8_t *)halo::scenario::globals().scenario->command_lists.pointer + (int16_t)command_list_index * 0x60;
+    ScenarioCommandList *list = &halo::ai::reflexive_data<ScenarioCommandList>(halo::scenario::globals().scenario->command_lists)[(int16_t)command_list_index];
 
     (void)actor_index;
     (void)action;
     (void)aim;
     (void)callback_extra;
-    if (list[0x20] & 0x10) {
+    if (list->flags & 0x10) {
         unit_object *unit = (unit_object *)halo::ai::object_at(unit_index);
 
         ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_1000);
@@ -480,7 +480,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         uint8_t interpolate = 1;
         uint8_t flag_4 = 0;
         uint8_t flag_8 = 0;
-        uint8_t *biped;
+        biped_object *biped;
 
         if ((int16_t)entry->animation == -1) {
             return 0;
@@ -501,9 +501,9 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         if (!halo::units::unit_start_user_animation(check_object_index, graph, (const char *)reference, interpolate)) {
             return 0;
         }
-        biped = (uint8_t *)halo::objects::object_try_and_get(check_object_index, 1);
+        biped = (biped_object *)halo::objects::object_try_and_get(check_object_index, 1);
         if (biped != 0) {
-            uint32_t *flags = (uint32_t *)(biped + 0x4cc);
+            uint32_t *flags = &biped->biped.flags;
 
             *flags = flag_4 ? (*flags | 4) : (*flags & ~4u);
             *flags = flag_8 ? (*flags | 8) : (*flags & ~8u);
@@ -594,9 +594,9 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
     }
 
     case 0x15: {
-        uint8_t *obj = halo::ai::object_bytes(check_object_index);
+        object *obj = halo::ai::object_at(check_object_index);
 
-        obj[0x106] |= entry->atom_modifier == 1 ? 0x40 : 0x20;
+        obj->vitality_flags |= halo::to_bits(entry->atom_modifier == 1 ? halo::objects::vitality_flag::unknown_40 : halo::objects::vitality_flag::unknown_20);
         return 1;
     }
 
@@ -787,7 +787,7 @@ uint8_t ActorOps::squad_action_is_complete(actor_command_aim *aim_state, uint32_
             return 1;
         }
         if (aim_state->grenade_thrown) {
-            int16_t ticks = halo::ai::object_bytes(check_object_index)[0x28d] != 0 ? 0x1e : 0;
+            int16_t ticks = halo::units::unit_data_of(halo::ai::object_at(check_object_index))->throwing_grenade_state != 0 ? 0x1e : 0;
 
             state->timer_ticks = ticks;
             return ticks == 0;
@@ -820,7 +820,7 @@ uint8_t ActorOps::squad_action_is_complete(actor_command_aim *aim_state, uint32_
     }
 
     case 0xd:
-        return halo::ai::object_bytes(check_object_index)[0x2a3] != 0x1c;
+        return halo::units::unit_data_of(halo::ai::object_at(check_object_index))->animation_state != 0x1c;
 
     case 0xe:
         return halo::cutscene::recorded_animation_object_is_playing(check_object_index) == 0;
@@ -832,7 +832,7 @@ uint8_t ActorOps::squad_action_is_complete(actor_command_aim *aim_state, uint32_
         return 1;
 
     case 0x10:
-        return *(int16_t *)(halo::ai::object_bytes(check_object_index) + 0x388) != 6;
+        return halo::units::unit_data_of(halo::ai::object_at(check_object_index))->current_speech.priority != 6;
 
     case 0x13:
         switch (entry->atom_modifier) {
@@ -925,7 +925,7 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, actor_squa
     }
 
     {
-        ScenarioCommand *entry = (ScenarioCommand *)((uint8_t *)list->commands.pointer + current_action_index * sizeof(ScenarioCommand));
+        ScenarioCommand *entry = &halo::ai::reflexive_data<ScenarioCommand>(list->commands)[current_action_index];
 
         switch (entry->atom_type) {
         case 1:
@@ -964,10 +964,9 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, actor_squa
             state->axis = 0;
             return;
         case 0xd: {
-            uint32_t *obj = (uint32_t *)halo::objects::object_try_and_get(check_object_index, 1);
+            biped_object *obj = (biped_object *)halo::objects::object_try_and_get(check_object_index, 1);
             if (obj != 0) {
-                uint32_t *flags = (uint32_t *)((uint8_t *)obj + 0x4cc);
-                *flags &= 0xfffffff3;
+                obj->biped.flags &= 0xfffffff3;
                 return;
             }
             break;
@@ -983,7 +982,7 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, actor_squa
                 state->flags = (flags & 0xf7) | 0x10;
             }
             if ((int16_t)entry->command != (int32_t)current_action_index && state->retry_count < 10) {
-                *next_action_index_out = *((uint8_t *)entry + 0x16);
+                *next_action_index_out = (uint8_t)entry->command;
                 state->retry_count = state->retry_count + 1;
                 return;
             }
@@ -1063,7 +1062,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
-        encounter_forbids = *((uint8_t *)enc + 0x41) != 0;
+        encounter_forbids = enc->deaf != 0;
     }
 
     if (target->stimulus_type == -1 || target->stimulus_type <= grenade_type) {

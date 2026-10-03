@@ -286,9 +286,9 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 
     if (query->goal_kind == 5) {
         if (candidate->distance_from_actor < 6.0f) {
-            halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
+            halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)halo::ai::candidate_point(*candidate), 0, 0, &marker_point);
             candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-                self->location.cluster_index, *(int16_t *)((uint8_t *)candidate->position + 0xe),
+                self->location.cluster_index, (int16_t)halo::ai::candidate_firing_position(*candidate)->cluster_index,
                 &marker_point, &self->aim_origin, 0, 0, halo::k_dword_none,
                 self->active_unit_index != (datum_index)halo::k_dword_none);
             return;
@@ -319,7 +319,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
         mode = 1;
     }
 
-    halo::units::unit_add_marker_relative_offset(self->unit_index, mode, (float *)candidate->position, (uint32_t)direction,
+    halo::units::unit_add_marker_relative_offset(self->unit_index, mode, (float *)halo::ai::candidate_point(*candidate), (uint32_t)direction,
         (uint32_t)offset, &marker_point);
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
@@ -725,8 +725,8 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             }
         }
 
-        p = (real_point3d *)c->position;
-        if ((query->marked_group_mask & (1u << (((uint8_t *)p)[12] & 0x1f))) != 0) {
+        p = halo::ai::candidate_point(*c);
+        if ((query->marked_group_mask & (1u << ((uint8_t)halo::ai::candidate_firing_position(*c)->group_index & 0x1f))) != 0) {
             c->score = query->marked_group_penalty + c->score;
         }
 
@@ -938,7 +938,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
         firing_positions =
             (ScenarioFiringPosition *)encounter_definition->firing_positions.pointer;
 
-        out_candidate->position = (uint32_t)(uint8_t *)&firing_positions[held];
+        out_candidate->position = (uint32_t)(uintptr_t)&firing_positions[held];
         out_candidate->distance_from_actor = 3.4028235e+38f;
         out_candidate->distance_from_target = 3.4028235e+38f;
         out_candidate->segment_distance = 3.4028235e+38f;
@@ -966,7 +966,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
         return held;
     }
 
-    if ((own_mask & (1u << (((uint8_t *)out_candidate->position)[0xc] & 0x1f))) == 0) {
+    if ((own_mask & (1u << ((uint8_t)halo::ai::candidate_firing_position(*out_candidate)->group_index & 0x1f))) == 0) {
         self->search_firing_positions = (uint8_t)(self->search_firing_positions == 0);
     }
     return result;
@@ -988,7 +988,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
     using namespace actor_select_move_position_local;
     struct actor *a = halo::ai::actor_at(actor_index);
     ScenarioSquad *squad;
-    uint8_t *positions;
+    ScenarioMovePosition *positions;
     int32_t count;
     uint32_t mask = 0;
     uint8_t found = 0;
@@ -1010,23 +1010,23 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
     if (count <= 0) {
         return -1;
     }
-    positions = halo::ai::reflexive_data<uint8_t>(squad->move_positions);
+    positions = halo::ai::reflexive_data<ScenarioMovePosition>(squad->move_positions);
     for (i = 0; (int32_t)i < count; i++) {
-        float *pos = (float *)(positions + i * 0x50);
+        ScenarioMovePosition *pos = &positions[i];
         uint8_t eligible = (i != current);
         uint8_t occupied = 0;
         datum_index prop_index;
 
         if (current != -1) {
-            float dx = pos[0] - a->body_position.x;
-            float dy = pos[1] - a->body_position.y;
-            float dz = pos[2] - a->body_position.z;
+            float dx = pos->position.x - a->body_position.x;
+            float dy = pos->position.y - a->body_position.y;
+            float dz = pos->position.z - a->body_position.z;
 
             if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
                 eligible = 0;
             }
         }
-        if (((uint8_t *)pos)[0x1e] && ((uint8_t *)pos)[0x1e] != a->sequence_id) {
+        if ((uint8_t)pos->sequence_id && (uint8_t)pos->sequence_id != a->sequence_id) {
             eligible = 0;
         }
         for (prop_index = a->first_prop; prop_index != k_datum_index_none;) {
@@ -1035,9 +1035,9 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
 
             prop_index = pr->next_in_actor;
             if (kind >= 2 && kind <= 3) {
-                float dx = pos[0] - pr->last_known_position.x;
-                float dy = pos[1] - pr->last_known_position.y;
-                float dz = pos[2] - pr->last_known_position.z;
+                float dx = pos->position.x - pr->last_known_position.x;
+                float dy = pos->position.y - pr->last_known_position.y;
+                float dz = pos->position.z - pr->last_known_position.z;
 
                 if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
                     occupied = 1;
