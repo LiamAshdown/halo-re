@@ -50,6 +50,21 @@ inline swarm *swarm_at(uint32_t handle)
     return reinterpret_cast<swarm *>(static_cast<uint8_t *>(globals().swarm_data->data) + (handle & k_slot_mask) * k_swarm_size);
 }
 
+static_assert(sizeof(ai_conversation) == k_ai_conversation_size);
+static_assert(sizeof(swarm_component) == k_swarm_component_size);
+
+/** Returns the conversation record that `handle` indexes. */
+inline ai_conversation *conversation_at(uint32_t handle)
+{
+    return reinterpret_cast<ai_conversation *>(static_cast<uint8_t *>(globals().conversation_data->data) + (handle & k_slot_mask) * k_ai_conversation_size);
+}
+
+/** Returns the swarm component record that `handle` indexes. */
+inline swarm_component *swarm_component_at(uint32_t handle)
+{
+    return reinterpret_cast<swarm_component *>(static_cast<uint8_t *>(globals().swarm_component_data->data) + (handle & k_slot_mask) * k_swarm_component_size);
+}
+
 /** Returns the object record that `handle` indexes in the object data array (slot bits only, no validity check). */
 inline object *object_at(uint32_t handle)
 {

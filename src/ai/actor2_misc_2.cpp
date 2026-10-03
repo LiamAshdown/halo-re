@@ -95,7 +95,7 @@ void ActorView::refresh_combat_context()
     actor *self = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *unit;
-    uint8_t *parent = 0;
+    unit_object *parent = 0;
     datum_index parent_index;
     datum_index child;
 
@@ -139,7 +139,7 @@ void ActorView::refresh_combat_context()
     unit = object_get((int32_t)self->unit_index);
     parent_index = ((unit_object *)unit)->base.parent_object;
     if (parent_index != k_datum_index_none) {
-        parent = object_get(parent_index);
+        parent = (unit_object *)object_get(parent_index);
     }
     halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, (actor_unit_position_context *)((uint8_t *)self + 0x120));
     {
@@ -152,7 +152,7 @@ void ActorView::refresh_combat_context()
     }
     self->flying = (uint8_t)((*(uint32_t *)actor_tag >> 21) & 1);
 
-    if (parent != 0 && *(int16_t *)(parent + 0xb4) == 1) {
+    if (parent != 0 && parent->base.type == 1) {
         uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & halo::k_slot_mask].data;
         uint32_t vehicle_flags;
 
@@ -160,7 +160,7 @@ void ActorView::refresh_combat_context()
         self->vehicle_gunner_bombards[0] = 0;
         self->vehicle_driving_type = 0;
         self->active_unit_index = parent_index;
-        if (*(int32_t *)(parent + 0x324) == self->unit_index) {
+        if (static_cast<int32_t>(parent->unit.driver_unit_index) == self->unit_index) {
             self->vehicle_driving_type = 1;
             vehicle_flags = *(uint32_t *)(vehicle_tag + 0x2f0);
             if (vehicle_flags & 0x800) {
@@ -172,15 +172,15 @@ void ActorView::refresh_combat_context()
                 }
             }
         }
-        if (*(int32_t *)(parent + 0x328) == self->unit_index) {
+        if (static_cast<int32_t>(parent->unit.gunner_unit_index) == self->unit_index) {
             self->vehicle_gunner = 1;
             self->vehicle_gunner_bombards[0] = *(float *)((uint8_t *)halo::ai::actor_get_actor_definition(actor_index) + 0x14c) > 0.0f;
         }
         self->order_committed = self->vehicle_driving_type <= 1;
-        if (*(int16_t *)(parent + 0x334) != -1) {
+        if (parent->unit.encounter_index != -1) {
             datum_index encounter = (int32_t)self->encounter_index;
-            int16_t wanted_encounter = *(int16_t *)(parent + 0x334);
-            int16_t wanted_squad = *(int16_t *)(parent + 0x336);
+            int16_t wanted_encounter = parent->unit.encounter_index;
+            int16_t wanted_squad = parent->unit.squad_index;
             uint8_t move = 1;
 
             if ((encounter & halo::k_slot_mask) == (uint32_t)(int32_t)wanted_encounter) {

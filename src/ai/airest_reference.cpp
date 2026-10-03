@@ -1174,7 +1174,7 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
                 datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
-                    uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data;
+                    Actor *actor_tag_data = halo::ai::tag_data<Actor>(actor_definition_tag);
                     uint32_t actor_tag_flags = *(uint32_t *)actor_tag_data;
                     char reuse_existing = (char)((actor_tag_flags >> 0x1a) & 1); // Actor.flags bit 26, "swarm"
                     char start_active =

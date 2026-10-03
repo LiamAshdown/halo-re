@@ -727,8 +727,8 @@ void ActorView::type_infection_swarm_update()
                 component[0x1a]--;
             }
         } else {
-            uint8_t *parent = OBJECT(U32(object, 0x11c));
-            uint8_t parent_dead = (uint8_t)((parent[0x106] >> 2) & 1);
+            unit_object *parent = (unit_object *)OBJECT(U32(object, 0x11c));
+            uint8_t parent_dead = (uint8_t)((static_cast<uint8_t>(parent->base.vitality_flags) >> 2) & 1);
             uint8_t detach = 0;
 
             if (component[0x18] != 0xff) {

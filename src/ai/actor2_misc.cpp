@@ -755,19 +755,19 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
 }
-static void biped_free_local_player_history(uint8_t *self)
+static void biped_free_local_player_history(const unit_object *self)
 {
-    datum_index player_index = *(datum_index *)(self + 0x218);
+    datum_index player_index = self->unit.controlling_player;
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
-    uint8_t *player;
+    data_array *players = halo::game::globals().player_data;
+    player *record;
 
-    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= *(int16_t *)((uint8_t *)halo::game::globals().player_data + 0x20)) {
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 || index >= players->maximum_count) {
         return;
     }
-    player = (uint8_t *)halo::game::globals().player_data->data + *(int16_t *)((uint8_t *)halo::game::globals().player_data + 0x22) * index;
-    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
+    record = reinterpret_cast<player *>(static_cast<uint8_t *>(players->data) + players->size * index);
+    if (record->identifier == 0 || (salt != 0 && record->identifier != salt) || record->local_player_index == -1) {
         return;
     }
     if (halo::networking::globals().client != 0) {
@@ -830,9 +830,9 @@ uint8_t ActorView::process_vehicle_seat_exit()
         datum_index vehicle_index = *(datum_index *)(rider + 0x11c);
 
         if (*(int16_t *)(rider + 0xb4) == 1) {
-            uint8_t *self = OBJECT_DATA(rider_index);
+            unit_object *self = (unit_object *)OBJECT_DATA(rider_index);
 
-            if (((struct object *)self)->parent_object != k_datum_index_none && *(int16_t *)(self + 0x2f0) != -1) {
+            if (((struct object *)self)->parent_object != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(rider_index, ((struct object *)self)->parent_object);
             }
             biped_free_local_player_history(self);
@@ -2375,7 +2375,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
         {
             const uint8_t *variant_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
             const uint32_t *variant = (const uint32_t *)variant_tag_data;
-            const uint8_t *actor_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[variant[4] & halo::k_slot_mask].data);
+            const Actor *actor_tag_data = halo::ai::tag_data<Actor>(variant[4]);
             int16_t i;
 
             for (i = 0; i < spawn_count; i++) {
