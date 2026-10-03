@@ -411,6 +411,9 @@ enum class surface_method : uint32_t {
 /** D3DFMT_X8R8G8B8. */
 inline constexpr uint32_t k_format_x8r8g8b8 = 22;
 
+/** D3DERR_NOTAVAILABLE. */
+inline constexpr int32_t k_error_not_available = static_cast<int32_t>(0x8876086a);
+
 /** D3DERR_DEVICENOTRESET. */
 inline constexpr int32_t k_error_device_not_reset = static_cast<int32_t>(0x88760869);
 

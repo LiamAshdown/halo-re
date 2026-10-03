@@ -82,6 +82,18 @@ inline constexpr uint32_t k_dynamic_index_buffer_bytes = 0x30000;
 inline constexpr uint32_t k_decal_vertex_buffer_bytes = 0x3c000;
 inline constexpr uint32_t k_detail_object_vertex_buffer_bytes = 0x78000;
 
+/** The alpha byte and the colour channels of an ARGB colour word. */
+inline constexpr uint32_t k_color_alpha_mask = 0xffu << 24;
+inline constexpr uint32_t k_color_rgb_mask = ~k_color_alpha_mask;
+
+/** Frustum depth range the lens flare occlusion pass draws with. */
+inline constexpr float k_lens_flare_frustum_z_near = 0.0312519073f;
+inline constexpr float k_lens_flare_frustum_z_far = 4096.0f;
+
+/** Bit 15 of a BSP lens flare's visibility word marks it as a marker flare; the rest holds the marker offset. */
+inline constexpr uint16_t k_lens_flare_marker_flag = 1u << 15;
+inline constexpr uint32_t k_lens_flare_marker_offset_mask = k_lens_flare_marker_flag - 1u;
+
 /** Quads one frame of detail objects may fill the vertex buffer with. */
 inline constexpr int32_t k_detail_object_maximum_quads = 0x1000;
 
