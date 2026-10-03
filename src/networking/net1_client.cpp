@@ -584,6 +584,7 @@ int8_t ClientView::client_update()
     char service_ok;
     int8_t result;
     network_connection_endpoint *endpoint;
+    bool finished = false;
 
     channel = client->channel;
     flags = channel->flags;
@@ -604,20 +605,22 @@ int8_t ClientView::client_update()
             if (halo::networking::network_game_process_incoming_messages(client)) {
                 result = halo::networking::network_channel_service_retransmit_only(channel);
             }
-            goto tail;
-        }
-        channel = client->channel;
-        if ((~(uint8_t)(channel->flags >> 4) & 1) != 0 && (channel->flags & 6) != 0 &&
-            channel->endpoint != 0 && (channel->endpoint->flags & 1) != 0) {
-            result = 0;
-            goto tail;
+            finished = true;
+        } else {
+            channel = client->channel;
+            if ((~(uint8_t)(channel->flags >> 4) & 1) != 0 && (channel->flags & 6) != 0 &&
+                channel->endpoint != 0 && (channel->endpoint->flags & 1) != 0) {
+                result = 0;
+                finished = true;
+            }
         }
     }
-    if (network_join_error_code == -1) {
-        network_join_error_code = 4;
+    if (!finished) {
+        if (network_join_error_code == -1) {
+            network_join_error_code = 4;
+        }
+        result = 0;
     }
-    result = 0;
-tail:
     halo::networking::network_connection_send_keepalive(client);
 
     endpoint = &client->connection;
@@ -1306,7 +1309,14 @@ int32_t JoinView::connect_retry_tick()
     network_channel *channel;
     network_receive_queue *endpoint;
     network_connection_attempt_state *attempt;
-    int32_t ok;
+    auto service_channel = [client]() -> int32_t {
+        int32_t ok = halo::networking::network_channel_service(client->channel, 5000, 0);
+
+        if (ok != 0) {
+            return halo::networking::network_game_process_incoming_messages(client);
+        }
+        return 0;
+    };
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
@@ -1330,11 +1340,11 @@ int32_t JoinView::connect_retry_tick()
                     if (3000 < (uint32_t)((now_ms + (int32_t)attempt->elapsed_counter * -3000) - attempt->started_ms)) {
                         halo::networking::network_join_status_text_update(1, client);
                     }
-                    goto service_channel;
+                    return service_channel();
                 }
             } else {
                 if ((uint32_t)(now_ms - attempt->started_ms) <= (uint32_t)network_connect_timeout_ms) {
-                    goto service_channel;
+                    return service_channel();
                 }
                 attempt->unknown_00 = 0;
             }
@@ -1358,25 +1368,19 @@ int32_t JoinView::connect_retry_tick()
                 }
                 join_ui_state = 8;
                 attempt->loading_started = 1;
-                goto service_channel;
+                return service_channel();
             }
         } else if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
                 attempt->loading_started = 1;
-                goto service_channel;
+                return service_channel();
             }
             join_ui_state = 7;
         }
         attempt->loading_started = 1;
     }
-service_channel:
-
-    ok = halo::networking::network_channel_service(client->channel, 5000, 0);
-    if (ok != 0) {
-        return halo::networking::network_game_process_incoming_messages(client);
-    }
-    return 0;
+    return service_channel();
 }
 
 /**
@@ -1396,6 +1400,7 @@ uint32_t JoinView::handshake_tick()
     uint32_t *fill;
     int32_t i;
     int32_t loopback_ip;
+    bool failed = false;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     channel = client->channel;
@@ -1408,11 +1413,12 @@ uint32_t JoinView::handshake_tick()
 
         result = (uint32_t)halo::networking::network_channel_service(client->channel, 5000, 0);
         if ((char)result == 0) {
-            goto retry_limit_check;
-        }
-        result = halo::networking::network_game_process_incoming_messages(client);
-        if (result) {
-            halo::networking::network_connection_send_keepalive(client);
+            failed = true;
+        } else {
+            result = halo::networking::network_game_process_incoming_messages(client);
+            if (result) {
+                halo::networking::network_connection_send_keepalive(client);
+            }
         }
     } else if (network_server->state == 1) {
         *(int32_t *)(frame + 72) = 0;
@@ -1441,16 +1447,12 @@ uint32_t JoinView::handshake_tick()
         result = (uint32_t)halo::networking::network_connection_initiate(client, (const uint32_t *)(frame + 72),
                                                          (const uint32_t *)(frame + 36), (const uint32_t *)(frame + 12));
         if ((char)result == 0) {
-            goto retry_limit_check;
+            failed = true;
         }
     }
-    return result;
-
-retry_limit_check:
-    if (network_join_error_code != -1) {
-        return result;
+    if (failed && network_join_error_code == -1) {
+        network_join_error_code = 7;
     }
-    network_join_error_code = 7;
     return result;
 }
 
