@@ -438,14 +438,15 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 
     if (browser_state::scroll_arrow_flash < 0) {
         browser_state::scroll_arrow_flash = browser_state::scroll_arrow_flash + 4;
-        if (browser_state::scroll_arrow_flash < 1) {
-            goto scroll_fade_settled;
+        if (browser_state::scroll_arrow_flash >= 1) {
+            browser_state::scroll_arrow_flash = 0;
         }
-    } else if (browser_state::scroll_arrow_flash < 1 || (browser_state::scroll_arrow_flash = browser_state::scroll_arrow_flash - 4, -1 < browser_state::scroll_arrow_flash)) {
-        goto scroll_fade_settled;
+    } else if (browser_state::scroll_arrow_flash >= 1) {
+        browser_state::scroll_arrow_flash = browser_state::scroll_arrow_flash - 4;
+        if (browser_state::scroll_arrow_flash <= -1) {
+            browser_state::scroll_arrow_flash = 0;
+        }
     }
-    browser_state::scroll_arrow_flash = 0;
-scroll_fade_settled:
     if (server_list_scroll_offset < 1 || player_count < 1) {
         bVar11 = 0;
     } else {
@@ -1012,7 +1013,6 @@ int32_t ServerBrowser::filter_widget_clicked(network_ui_widget *clicked)
     network_ui_widget *w5;
     network_ui_widget *w6;
     network_ui_widget *w7;
-    uint8_t new_sort_column;
 
     w1 = clicked->parent->first_child;
     w2 = w1->next_sibling;
@@ -1022,63 +1022,50 @@ int32_t ServerBrowser::filter_widget_clicked(network_ui_widget *clicked)
     w6 = w5->next_sibling;
     w7 = w6->next_sibling;
 
+    auto query_mode_changed = []() {
+        halo::interface::widget_play_sound_effect(2);
+        server_browser_query_pending = 1;
+        return 1;
+    };
+    auto sort_by = [](uint8_t column) {
+        if (server_browser_sort_column == column) {
+            server_browser_sort_ascending = (server_browser_sort_ascending == 0);
+        } else {
+            server_browser_sort_column = column;
+            server_browser_sort_ascending = 1;
+        }
+        halo::interface::widget_play_sound_effect(2);
+        server_browser_query_elapsed_ms = 9999;
+        return 1;
+    };
+
     if (clicked == w1) {
         server_browser_allow_password = (server_browser_allow_password == 0);
-        goto play_and_set_query_mode;
+        return query_mode_changed();
     }
     if (clicked == w2) {
         server_browser_filter_dedicated_only = (server_browser_filter_dedicated_only == 0);
-        goto play_and_set_query_mode;
+        return query_mode_changed();
     }
     if (clicked == w3) {
-        if (server_browser_sort_column == 0) {
-        toggle_direction:
-            server_browser_sort_ascending = (server_browser_sort_ascending == 0);
-            goto play_and_reset_query_timer;
-        }
-        server_browser_sort_column = 0;
-        new_sort_column = server_browser_sort_column;
-    } else if (clicked == w4) {
-        if (server_browser_sort_column == 1) {
-            server_browser_sort_ascending = (server_browser_sort_ascending == 0);
-            goto play_and_reset_query_timer;
-        }
-        server_browser_sort_column = 1;
-        new_sort_column = server_browser_sort_column;
-    } else if (clicked == w5) {
-        server_browser_filter_classic_only = (server_browser_filter_classic_only == 0);
-        goto play_and_set_query_mode;
-    } else if (clicked == w6) {
-        if (server_browser_sort_column == 2) {
-            server_browser_sort_ascending = (server_browser_sort_ascending == 0);
-        } else {
-            server_browser_sort_column = 2;
-            server_browser_sort_ascending = 1;
-        }
-        goto play_and_reset_query_timer;
-    } else if (clicked == w7) {
-        new_sort_column = 4;
-        if (server_browser_sort_column == 4) {
-            server_browser_sort_ascending = (server_browser_sort_ascending == 0);
-            goto play_and_reset_query_timer;
-        }
-    } else if (clicked == w7->next_sibling) {
-        new_sort_column = 3;
-        if (server_browser_sort_column == 3) {
-            goto toggle_direction;
-        }
-    } else {
-        return 1;
+        return sort_by(0);
     }
-    server_browser_sort_column = new_sort_column;
-    server_browser_sort_ascending = 1;
-play_and_reset_query_timer:
-    halo::interface::widget_play_sound_effect(2);
-    server_browser_query_elapsed_ms = 9999;
-    return 1;
-play_and_set_query_mode:
-    halo::interface::widget_play_sound_effect(2);
-    server_browser_query_pending = 1;
+    if (clicked == w4) {
+        return sort_by(1);
+    }
+    if (clicked == w5) {
+        server_browser_filter_classic_only = (server_browser_filter_classic_only == 0);
+        return query_mode_changed();
+    }
+    if (clicked == w6) {
+        return sort_by(2);
+    }
+    if (clicked == w7) {
+        return sort_by(4);
+    }
+    if (clicked == w7->next_sibling) {
+        return sort_by(3);
+    }
     return 1;
 }
 
@@ -1723,14 +1710,16 @@ uint8_t ServerBrowser::server_passes_filter(void *entry)
             gametype_filter_name = "Race";
             break;
         default:
-            goto skip_gametype_check;
+            gametype_filter_name = 0;
+            break;
         }
-        probe = _stricmp(gametype_name, gametype_filter_name);
-        if (probe != 0) {
-            return 0;
+        if (gametype_filter_name != 0) {
+            probe = _stricmp(gametype_name, gametype_filter_name);
+            if (probe != 0) {
+                return 0;
+            }
         }
     }
-skip_gametype_check:
     if (is_teamplay == 1) {
         teamplay_mismatch = (server_browser_filter_teamplay == 1);
     } else {
@@ -1762,15 +1751,13 @@ void ServerBrowser::total_players_compute(server_list_globals *array)
                 num_players = SBServerGetIntValue(array->list[i], "numplayers", -1);
                 if (num_players < 0x11) {
                     num_players = SBServerGetIntValue(array->list[i], "numplayers", -1);
-                    if (num_players == -1) {
-                        goto next;
-                    }
                 } else {
                     num_players = 0x10;
                 }
-                server_browser_total_players = server_browser_total_players + num_players;
+                if (num_players != -1) {
+                    server_browser_total_players = server_browser_total_players + num_players;
+                }
             }
-next:
             i = i + 1;
         } while (i < array->result_count);
     }
@@ -2072,12 +2059,10 @@ void ServerBrowser::scroll_page_down(uint8_t jump_to_bottom)
     count = halo::networking::server_list_result_count_get();
     max_scroll = (count - 0xf < 0) ? 0 : (count - 0xf);
     if (server_list_scroll_offset < 0) {
-        max_scroll = 0;
-    } else if (server_list_scroll_offset <= max_scroll) {
-        goto after_clamp;
+        server_list_scroll_offset = 0;
+    } else if (server_list_scroll_offset > max_scroll) {
+        server_list_scroll_offset = max_scroll;
     }
-    server_list_scroll_offset = max_scroll;
-after_clamp:
     if (old_offset != server_list_scroll_offset) {
         browser_state::scroll_arrow_flash = 0x10;
         if (server_list_scroll_offset <= server_browser_selected_index &&
@@ -2104,12 +2089,10 @@ void ServerBrowser::scroll_page_up(uint8_t jump_to_top)
     count = halo::networking::server_list_result_count_get();
     max_scroll = (count - 0xf < 0) ? 0 : (count - 0xf);
     if (server_list_scroll_offset < 0) {
-        max_scroll = 0;
-    } else if (server_list_scroll_offset <= max_scroll) {
-        goto after_clamp;
+        server_list_scroll_offset = 0;
+    } else if (server_list_scroll_offset > max_scroll) {
+        server_list_scroll_offset = max_scroll;
     }
-    server_list_scroll_offset = max_scroll;
-after_clamp:
     if (old_offset != server_list_scroll_offset) {
         browser_state::scroll_arrow_flash = 0xfffffff0;
         if (server_list_scroll_offset <= server_browser_selected_index &&
