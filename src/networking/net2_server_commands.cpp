@@ -3,6 +3,7 @@
  * Server console commands.
  */
 #include "tags.h"
+#include "halo/core/time_constants.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
@@ -141,11 +142,11 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
                 break;
             }
             {
-                int32_t days = (seconds % 0x15180) / 0xe10;
-                int32_t rem = (seconds % 0x15180) % 0xe10;
+                int32_t days = (seconds % halo::k_seconds_per_day) / halo::k_seconds_per_hour;
+                int32_t rem = (seconds % halo::k_seconds_per_day) % halo::k_seconds_per_hour;
                 int32_t hours = rem / 0x3c;
                 rem = rem % 0x3c;
-                if (seconds / 0x15180 == 0) {
+                if (seconds / halo::k_seconds_per_day == 0) {
                     if (days == 0) {
                         if (hours == 0) {
                             if (rem == 0) {
@@ -160,7 +161,7 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
                         sprintf(buf, "%dh %dm %ds", days, hours, rem);
                     }
                 } else {
-                    sprintf(buf, "%dd %dh %dm %ds", seconds / 0x15180, days, hours, rem);
+                    sprintf(buf, "%dd %dh %dm %ds", seconds / halo::k_seconds_per_day, days, hours, rem);
                 }
             }
             i = i + 1;

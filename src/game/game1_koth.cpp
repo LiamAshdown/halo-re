@@ -592,7 +592,7 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
                 uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
                 if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0) {
                     int32_t score = king_alt_player_score[idx];
-                    if (score > 0 && score % 0x96 == 0 && score < king_alt_score_target) {
+                    if (score > 0 && score % halo::game::seconds_to_ticks(5) == 0 && score < king_alt_score_target) {
                         halo::game::game_engine_queue_multiplayer_sound(0x2a, halo::k_dword_none, 0);
                     }
 
@@ -769,7 +769,7 @@ void Koth::player_tick(uint32_t player_index)
                     ? 4 + 2 * (p->team != 0) : 2, halo::k_dword_none, 1);
             }
             bucket = king_bucket_credit_ticks[p->team];
-            if (bucket > 0 && bucket % 0x96 == 0 && bucket < limit_ticks) {
+            if (bucket > 0 && bucket % halo::game::seconds_to_ticks(5) == 0 && bucket < limit_ticks) {
                 halo::game::game_engine_queue_multiplayer_sound(0x2a, player_index, 1);
             }
             if (limit_ticks <= king_bucket_credit_ticks[p->team]) {

@@ -31,7 +31,7 @@ game_variant * VariantDefaults::assault(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 5;
@@ -46,7 +46,7 @@ game_variant * VariantDefaults::assault(game_variant *variant_options)
     defaults.engine.ctf.assault = 1;
     defaults.engine.ctf.flag_must_reset = 0;
     defaults.engine.ctf.flag_at_home_to_score = 0;
-    defaults.engine.ctf.single_flag_time = 0xe10;
+    defaults.engine.ctf.single_flag_time = halo::game::seconds_to_ticks(120);
     defaults.variant_flags = 1;
 
     *variant_options = defaults;
@@ -76,8 +76,8 @@ game_variant * VariantDefaults::classic_accumulation(game_variant *variant_optio
     defaults.objective_indicator = 2;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 5;
@@ -125,7 +125,7 @@ game_variant * VariantDefaults::classic_crazy_king(game_variant *variant_options
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 0;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -168,7 +168,7 @@ game_variant * VariantDefaults::classic_ctf(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 3;
@@ -310,7 +310,7 @@ game_variant * VariantDefaults::classic_invasion(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 0;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 5;
     defaults.health = 1.0f;
     defaults.score_limit = 3;
@@ -357,7 +357,7 @@ game_variant * VariantDefaults::classic_iron_ctf(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = halo::game::k_ticks_per_fifteen_seconds;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 2.0f;
     defaults.score_limit = 3;
@@ -403,8 +403,8 @@ game_variant * VariantDefaults::classic_juggernaut(game_variant *variant_options
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 10;
@@ -451,8 +451,8 @@ game_variant * VariantDefaults::classic_king(game_variant *variant_options)
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -526,8 +526,8 @@ game_variant * VariantDefaults::classic_oddball(game_variant *out)
     out->game_engine_index = _game_engine_oddball;
     out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
-    out->respawn_time = 0x96;
-    out->suicide_penalty = 0x96;
+    out->respawn_time = halo::game::seconds_to_ticks(5);
+    out->suicide_penalty = halo::game::seconds_to_ticks(5);
     out->health = 1.0f;
     out->score_limit = 2;
     out->weapon_set = 0x0b;
@@ -552,8 +552,8 @@ game_variant * VariantDefaults::classic_phantoms(game_variant *out)
     out->game_engine_index = _game_engine_slayer;
     out->flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::invisible_players | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
-    out->respawn_time = 0x96;
-    out->suicide_penalty = 0x96;
+    out->respawn_time = halo::game::seconds_to_ticks(5);
+    out->suicide_penalty = halo::game::seconds_to_ticks(5);
     out->health = 1.0f;
     out->score_limit = 10;
     out->weapon_set = 0x0b;
@@ -678,8 +678,8 @@ game_variant * VariantDefaults::classic_reverse_tag(game_variant *variant_option
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -785,7 +785,7 @@ game_variant * VariantDefaults::classic_snipers(game_variant *out)
     out->game_engine_index = _game_engine_slayer;
     out->flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
-    out->respawn_time_growth = 0x96;
+    out->respawn_time_growth = halo::game::seconds_to_ticks(5);
     out->suicide_penalty = 300;
     out->health = 1.0f;
     out->score_limit = 0x0f;
@@ -820,8 +820,8 @@ game_variant * VariantDefaults::classic_stalker(game_variant *variant_options)
     defaults.objective_indicator = 0;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 10;
@@ -870,7 +870,7 @@ game_variant * VariantDefaults::classic_team_king(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -905,7 +905,7 @@ game_variant * VariantDefaults::classic_team_oddball(game_variant *out)
     out->respawn_time = 300;
     out->health = 1.0f;
     out->score_limit = 2;
-    out->suicide_penalty = 0x96;
+    out->suicide_penalty = halo::game::seconds_to_ticks(5);
     out->weapon_set = 0x0b;
     out->red_vehicle_set = 1;
     out->blue_vehicle_set = 1;
@@ -1050,8 +1050,8 @@ game_variant * VariantDefaults::crazy_king(game_variant *variant_options)
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -1093,8 +1093,8 @@ game_variant * VariantDefaults::juggernaut(game_variant *variant_options)
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 0xf;
@@ -1141,8 +1141,8 @@ game_variant * VariantDefaults::king(game_variant *variant_options)
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -1184,8 +1184,8 @@ game_variant * VariantDefaults::oddball(game_variant *variant_options)
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -1277,7 +1277,7 @@ game_variant * VariantDefaults::slayer(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 0;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 0x19;
@@ -1322,7 +1322,7 @@ game_variant * VariantDefaults::stalker(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 3;
@@ -1368,7 +1368,7 @@ game_variant * VariantDefaults::team_king(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -1410,8 +1410,8 @@ game_variant * VariantDefaults::team_oddball(game_variant *variant_options)
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x96;
-    defaults.suicide_penalty = 0x96;
+    defaults.respawn_time = halo::game::seconds_to_ticks(5);
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -1503,7 +1503,7 @@ game_variant * VariantDefaults::team_slayer(game_variant *variant_options)
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x96;
+    defaults.suicide_penalty = halo::game::seconds_to_ticks(5);
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 0x32;

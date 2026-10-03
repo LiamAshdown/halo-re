@@ -7,6 +7,9 @@ namespace halo::game {
 /** Game ticks per second. */
 inline constexpr int32_t k_ticks_per_second = 30;
 
+/** Game ticks in a number of seconds. */
+constexpr int32_t seconds_to_ticks(int32_t seconds) noexcept { return seconds * k_ticks_per_second; }
+
 /** Game ticks in one minute (the multiplayer clock and score-limit unit). */
 inline constexpr int32_t k_ticks_per_minute = 0x708;
 

@@ -766,7 +766,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         {
             int32_t packed_low_high = *(int32_t *)&engine_extra.ctf.low;
-            if (packed_low_high == 0x1518 || packed_low_high == halo::game::k_ticks_per_minute || packed_low_high == 0xe10 ||
+            if (packed_low_high == halo::game::seconds_to_ticks(180) || packed_low_high == halo::game::k_ticks_per_minute || packed_low_high == halo::game::seconds_to_ticks(120) ||
                 packed_low_high == 9000 || packed_low_high == 18000) {
                 label_text = halo::game::unicode_string_list_get_string(
                     halo::tag_paths::join_game_rules_strings, 30);
@@ -1064,10 +1064,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     {
 
         int show_pair = 0;
-        if (options.respawn_time == 0 || options.respawn_time == 0x96 ||
-            options.respawn_time == 0x12c || options.respawn_time == halo::game::k_ticks_per_fifteen_seconds) {
-            show_pair = (options.respawn_time_growth == 0 || options.respawn_time_growth == 0x96 ||
-                         options.respawn_time_growth == 0x12c || options.respawn_time_growth == halo::game::k_ticks_per_fifteen_seconds);
+        if (options.respawn_time == 0 || options.respawn_time == halo::game::seconds_to_ticks(5) ||
+            options.respawn_time == halo::game::seconds_to_ticks(10) || options.respawn_time == halo::game::k_ticks_per_fifteen_seconds) {
+            show_pair = (options.respawn_time_growth == 0 || options.respawn_time_growth == halo::game::seconds_to_ticks(5) ||
+                         options.respawn_time_growth == halo::game::seconds_to_ticks(10) || options.respawn_time_growth == halo::game::k_ticks_per_fifteen_seconds);
         } else {
             line[0] = 0;
         }
@@ -1081,7 +1081,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
     }
 
-    if (options.suicide_penalty == 0x96 || options.suicide_penalty == 300 || options.suicide_penalty == halo::game::k_ticks_per_fifteen_seconds) {
+    if (options.suicide_penalty == halo::game::seconds_to_ticks(5) || options.suicide_penalty == 300 || options.suicide_penalty == halo::game::k_ticks_per_fifteen_seconds) {
         label_text = halo::game::unicode_string_list_get_string(
             halo::tag_paths::join_game_rules_strings, 5);
         swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.suicide_penalty / 30);
@@ -1124,10 +1124,10 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (int16_t)options.friendly_fire);
             wcscat(line, suffix_text);
             if ((options.friendly_fire == 1 || options.friendly_fire == 3) &&
-                (options.betrayal_penalty == 0x96 || options.betrayal_penalty == 300 || options.betrayal_penalty == halo::game::k_ticks_per_fifteen_seconds)) {
+                (options.betrayal_penalty == halo::game::seconds_to_ticks(5) || options.betrayal_penalty == 300 || options.betrayal_penalty == halo::game::k_ticks_per_fifteen_seconds)) {
 
                 int16_t penalty_display_index =
-                    (options.betrayal_penalty == 0x96) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
+                    (options.betrayal_penalty == halo::game::seconds_to_ticks(5)) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
                 wcscat(line, L" (+");
                 suffix_text = halo::game::unicode_string_list_get_string(
                     halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty"),
@@ -1177,12 +1177,12 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         int32_t vehicle_respawn_index = -1;
         switch (options.vehicle_respawn_time) {
         case 0:      vehicle_respawn_index = 0; break;
-        case 0x384:  vehicle_respawn_index = 1; break;
+        case halo::game::seconds_to_ticks(30):  vehicle_respawn_index = 1; break;
         case halo::game::k_ticks_per_minute:  vehicle_respawn_index = 2; break;
-        case 0xa8c:  vehicle_respawn_index = 3; break;
-        case 0xe10:  vehicle_respawn_index = 4; break;
-        case 0x1518: vehicle_respawn_index = 5; break;
-        case 0x2328: vehicle_respawn_index = 6; break;
+        case halo::game::seconds_to_ticks(90):  vehicle_respawn_index = 3; break;
+        case halo::game::seconds_to_ticks(120):  vehicle_respawn_index = 4; break;
+        case halo::game::seconds_to_ticks(180): vehicle_respawn_index = 5; break;
+        case halo::game::seconds_to_ticks(300): vehicle_respawn_index = 6; break;
         default: break;
         }
         if (vehicle_respawn_index >= 0) {
