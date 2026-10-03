@@ -13,6 +13,10 @@ extern int64_t performance_frequency;
 
 namespace halo::cseries {
 
+namespace {
+constexpr uint32_t k_invalid_file_attributes = 0xffffffffu;
+}
+
 /**
  * Reads the performance counter and converts it to milliseconds using the frequency the shell cached
  * at start-up.
@@ -69,7 +73,7 @@ char directory_create_recursive(char *path)
     cursor = buffer;
     previous_error_mode = SetErrorMode(k_sem_noopenfileerrorbox);
     attributes = GetFileAttributesA(path);
-    if (attributes != 0xffffffff) {
+    if (attributes != k_invalid_file_attributes) {
         return 1;
     }
 
@@ -89,7 +93,7 @@ char directory_create_recursive(char *path)
             saved_char = *cursor;
             *cursor = '\0';
             attributes = GetFileAttributesA(buffer);
-            if (attributes == 0xffffffff && CreateDirectoryA(buffer, 0) == 0) {
+            if (attributes == k_invalid_file_attributes && CreateDirectoryA(buffer, 0) == 0) {
                 all_created = 0;
             }
             *cursor = saved_char;

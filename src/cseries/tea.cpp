@@ -6,6 +6,12 @@
 
 namespace halo::cseries {
 
+namespace {
+constexpr uint32_t k_tea_delta = 0x9e3779b9;
+constexpr uint32_t k_tea_negative_delta = 0u - k_tea_delta;
+constexpr uint32_t k_tea_decrypt_start_sum = k_tea_delta * 32u;
+}
+
 /**
  * Encrypts one 8 byte block in place with 32 TEA rounds.
  *
@@ -19,7 +25,7 @@ void tea_key::encrypt_block(uint32_t *block) const
     int32_t round;
 
     for (round = 32; round != 0; round--) {
-        sum += 0x9e3779b9;
+        sum += k_tea_delta;
         v0 += ((v1 << 4) + this->words[0]) ^ (v1 + sum) ^ ((v1 >> 5) + this->words[1]);
         v1 += ((v0 << 4) + this->words[2]) ^ (v0 + sum) ^ ((v0 >> 5) + this->words[3]);
     }
@@ -36,13 +42,13 @@ void tea_key::decrypt_block(uint32_t *block) const
 {
     uint32_t v0 = block[0];
     uint32_t v1 = block[1];
-    uint32_t sum = 0xc6ef3720;
+    uint32_t sum = k_tea_decrypt_start_sum;
     int32_t round;
 
     for (round = 0; round < 32; round++) {
         v1 -= ((v0 << 4) + this->words[2]) ^ (v0 + sum) ^ ((v0 >> 5) + this->words[3]);
         v0 -= ((v1 << 4) + this->words[0]) ^ (v1 + sum) ^ ((v1 >> 5) + this->words[1]);
-        sum += 0x61c88647;
+        sum += k_tea_negative_delta;
     }
     block[0] = v0;
     block[1] = v1;
