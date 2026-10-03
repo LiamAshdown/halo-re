@@ -266,14 +266,14 @@ void sound_cache_manager::initialize()
     int32_t scaled_megabytes;
     void *cache_memory;
 
-    globals().sound_cache_entries = halo::memory::data_array_view::create(sizeof(sound_cache_entry), (char *)"pc sound", k_sound_cache_maximum_entries);
+    globals().sound_cache_entries = halo::memory::data_array_view::create(sizeof(sound_cache_entry), "pc sound", k_sound_cache_maximum_entries);
 
     scaled_megabytes = (int32_t)*(int16_t *)&globals().sound_cache_size_megabytes * 0x100000;
     globals().sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);
     if (cache_memory != nullptr) {
-        halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc sound cache", globals().sound_cache_page_count, k_sound_cache_page_shift, k_sound_cache_maximum_entries, (void *)&sound_cache_manager::entry_release, (void *)&sound_cache_manager::entry_in_use);
+        halo::memory::view((struct cache *)cache_memory)->initialize("pc sound cache", globals().sound_cache_page_count, k_sound_cache_page_shift, k_sound_cache_maximum_entries, (void *)&sound_cache_manager::entry_release, (void *)&sound_cache_manager::entry_in_use);
     }
     globals().sound_cache = (struct cache *)cache_memory;
     globals().sound_cache_base = globals().sound_cache_memory;

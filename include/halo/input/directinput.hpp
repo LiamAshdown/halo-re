@@ -37,6 +37,6 @@ struct DirectInput {
 };
 
 /** Logs a DirectInput error once per distinct error code (printf-style description). @address 0x492150 */
-void input_error_log_once(int32_t error_code, char *description, ...);
+void input_error_log_once(int32_t error_code, const char *description, ...);
 
 }

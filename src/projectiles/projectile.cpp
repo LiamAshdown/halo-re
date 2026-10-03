@@ -360,7 +360,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
-    char *effect_names[2];
+    const char *effect_names[2];
     datum_index effect_tag_id;
     real_point3d position_block[2];   
     real_point3d relink_position;      
@@ -369,7 +369,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
                                        
 
     effect_names[0] = k_empty_string;
-    effect_names[1] = (char *)"gravity";
+    effect_names[1] = "gravity";
     effect_tag_id = halo::objects::tag_handle(tag->effect);
 
     if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0 &&

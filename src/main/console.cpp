@@ -69,7 +69,8 @@ void Console::chimera__exec_init(void)
     }
     ran_script = halo::main::console_exec_file_run(exec_file_name);
     if (!ran_script && halo::rasterizer::globals().window_requested != 0) {
-        halo::main::console_process_command((char *)"map_name b30", 0);
+        char command[] = "map_name b30";
+        halo::main::console_process_command(command, 0);
     }
 }
 
@@ -386,7 +387,7 @@ void halo::main::console_out_printf(uint8_t clear_first, const char *format, ...
     vsprintf(formatted, format, args);
     va_end(args);
 
-    halo::interface::chimera__console_out(0, (char *)"%s", formatted);
+    halo::interface::chimera__console_out(0, "%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
         halo::cseries::write_to_error_file(formatted, 1);
@@ -443,7 +444,7 @@ void halo::main::console_print_error_va(uint8_t clear_first, const char *format,
     vsprintf(formatted, format, args);
     va_end(args);
 
-    halo::interface::console_printf_verbose(0, (char *)"%s", formatted);
+    halo::interface::console_printf_verbose(0, "%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
         halo::cseries::write_to_error_file(formatted, 1);
@@ -467,7 +468,7 @@ void halo::main::console_print_va(const char *format, ...)
     vsprintf(formatted, format, args);
     va_end(args);
 
-    halo::interface::console_printf_verbose(console_message_default_color, (char *)"%s", formatted);
+    halo::interface::console_printf_verbose(console_message_default_color, "%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
         halo::cseries::write_to_error_file(formatted, 1);

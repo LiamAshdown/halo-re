@@ -682,7 +682,7 @@ void decal_ref::initialize()
 {
     uint32_t block_size = sizeof(decal_grid);
 
-    decal_data = (data_array *)halo::saved_games::game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
+    decal_data = (data_array *)halo::saved_games::game_state_new("decals", k_maximum_decals, sizeof(decal));
     ((uint8_t *)decal_data)[0x25] = 1;
 
     decal_grid_block = (decal_grid *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);

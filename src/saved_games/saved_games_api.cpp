@@ -206,7 +206,7 @@ uint8_t game_checkpoint_print_list_entry(int32_t index, const char *name, int32_
     return halo::saved_games::checkpoint::print_list_entry(index, name, level_index, difficulty, game_time_ticks, time, user_data);
 }
 
-int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, char *name, int32_t *out_game_time,
+int16_t game_checkpoint_read_stats_file(int32_t *out_difficulty, const char *name, int32_t *out_game_time,
     win32_systemtime *out_time)
 {
     return halo::saved_games::checkpoint::read_stats_file(out_difficulty, name, out_game_time, out_time);
@@ -479,7 +479,7 @@ int32_t saved_game_checkpoint_compare(const checkpoint_file_entry *a, const chec
     return halo::saved_games::checkpoint::compare(a, b);
 }
 
-uint8_t saved_game_copy_files_to_target(char *source_directory, char *source_name, char *target_name)
+uint8_t saved_game_copy_files_to_target(char *source_directory, const char *source_name, const char *target_name)
 {
     return halo::saved_games::saved_game::copy_files_to_target(source_directory, source_name, target_name);
 }
@@ -520,7 +520,7 @@ void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t b
     halo::saved_games::saved_game::enumerate_by_type(type, out_handles, builtin_only, capacity_and_count);
 }
 
-uint8_t saved_game_file_exists(char *name)
+uint8_t saved_game_file_exists(const char *name)
 {
     return halo::saved_games::saved_game::file_exists(name);
 }
@@ -610,7 +610,7 @@ uint8_t saved_game_load_checkpoint(char *name)
     return halo::saved_games::saved_game::load_checkpoint(name);
 }
 
-uint8_t saved_game_load_checkpoint_by_name(char *name)
+uint8_t saved_game_load_checkpoint_by_name(const char *name)
 {
     return halo::saved_games::saved_game::load_checkpoint_by_name(name);
 }

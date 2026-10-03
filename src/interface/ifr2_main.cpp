@@ -347,7 +347,7 @@ void InterfaceMain::string_replace_all_in_place(char *buffer, char *search, char
  */
 void InterfaceMain::initialize_terminal()
 {
-    halo::main::globals().terminal_messages = halo::memory::data_new(sizeof(console_message), (char *)"terminal output", 0x20);
+    halo::main::globals().terminal_messages = halo::memory::data_new(sizeof(console_message), "terminal output", 0x20);
     halo::main::globals().terminal_initialized = 1;
     halo::main::globals().terminal_messages->valid = 1;
     halo::memory::data_delete_all(halo::main::globals().terminal_messages);

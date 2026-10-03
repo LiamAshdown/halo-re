@@ -520,7 +520,7 @@ void network_session_host_qr2_server_key(int32_t key_id, void *buffer, void *use
 void network_session_host_qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data);
 uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip, int32_t local_id);
 int32_t network_session_host_start(void *user_data);
-void network_session_host_start_info_set(char *host_name, char *map_name, char *variant_name, int32_t game_type);
+void network_session_host_start_info_set(const char *host_name, char *map_name, char *variant_name, int32_t game_type);
 void network_session_host_update(void);
 char network_session_info_packet_send(const uint32_t *source, network_client_globals *client);
 void network_session_player_join_notify(network_client_globals *client, const uint32_t *source);

@@ -75,7 +75,7 @@ inline crc32_table_view *view(::crc32_table *record) { return static_cast<crc32_
  */
 struct data_array_view : ::data_array {
     void delete_all();
-    static data_array *create(int16_t element_size, char *name, int16_t maximum_count);
+    static data_array *create(int16_t element_size, const char *name, int16_t maximum_count);
     void delete_datum(datum_index handle);
     void initialize_element(void *element);
     void *get(datum_index handle);
@@ -134,7 +134,7 @@ inline heap_view *view(::heap *record) { return static_cast<heap_view *>(record)
  * viewed as a cache_view in place and the C layout is unchanged.
  */
 struct cache_view : ::cache {
-    void initialize(char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure);
+    void initialize(const char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure);
     datum_index allocate_block(uint32_t requested_bytes);
     void build_status_bitmap(uint8_t *bitmap);
     void evict_entry(datum_index handle);

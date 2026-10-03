@@ -16,7 +16,7 @@ inline datum_index tag_iterator_next(tag_iterator *iterator)
     return halo::cache::view(iterator)->next();
 }
 
-inline datum_index tag_lookup(tag_group group, char *path)
+inline datum_index tag_lookup(tag_group group, const char *path)
 {
     return halo::cache::tag_table::lookup(group, path);
 }

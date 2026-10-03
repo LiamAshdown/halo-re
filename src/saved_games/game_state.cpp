@@ -593,8 +593,8 @@ void save_thread_proc(void)
                 game_state_write_buffer, k_game_state_header_size, k_game_state_size);
             halo::saved_games::game_checkpoint_write_stats_file(((game_state_header *)game_state_write_buffer)->scenario_name,
                 ((game_state_header *)game_state_write_buffer)->difficulty);
-            halo::saved_games::saved_game_copy_files_to_target(directory, (char *)"checkpoints\\autosave", (char *)"checkpoints\\autosave1");
-            halo::saved_games::saved_game_copy_files_to_target(directory, (char *)"savegame", (char *)"checkpoints\\autosave");
+            halo::saved_games::saved_game_copy_files_to_target(directory, "checkpoints\\autosave", "checkpoints\\autosave1");
+            halo::saved_games::saved_game_copy_files_to_target(directory, "savegame", "checkpoints\\autosave");
         }
 
         game_state_write_completed = 1;

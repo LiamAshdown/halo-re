@@ -49,7 +49,7 @@ datum_index tag_iterator_view::next()
  *
  * @address 0x442550
  */
-datum_index tag_table::lookup(tag_group group, char *path)
+datum_index tag_table::lookup(tag_group group, const char *path)
 {
     int16_t index;
 

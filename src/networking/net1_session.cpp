@@ -1354,10 +1354,10 @@ int32_t HostSession::start(void *user_data)
  *
  * @address 0x576100
  */
-void HostSession::start_info_set(char *host_name, char *map_name, char *variant_name, int32_t game_type)
+void HostSession::start_info_set(const char *host_name, char *map_name, char *variant_name, int32_t game_type)
 {
     char *dest;
-    char *src;
+    const char *src;
 
     dest = network_session_start_host_name;
     src = host_name;

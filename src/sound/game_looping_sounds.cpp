@@ -35,7 +35,7 @@ void initialize(void)
     int32_t size = sizeof(game_sound_globals);
     game_sound_globals *globals = (game_sound_globals *)(game_state_base + game_state_cursor);
 
-    game_looping_sound_data = (data_array *)halo::saved_games::game_state_new((char *)"object looping sounds", k_maximum_game_looping_sounds, sizeof(game_looping_sound));
+    game_looping_sound_data = (data_array *)halo::saved_games::game_state_new("object looping sounds", k_maximum_game_looping_sounds, sizeof(game_looping_sound));
 
     game_state_cursor = game_state_cursor + size;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);

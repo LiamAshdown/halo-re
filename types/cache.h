@@ -274,7 +274,7 @@ typedef struct data_file {
     void *data;                    // 0x20 GlobalAlloc of data_size bytes
     uint32_t unknown_24;           // 0x24 zeroed by data_file_open, never read
     uint8_t unknown_28[16];        // 0x28
-    char *name;                    // 0x38 "bitmaps" or "sounds", a literal, not copied
+    const char *name;              // 0x38 "bitmaps" or "sounds", a literal, not copied
     void *file;                    // 0x3c HANDLE, -1 when the open failed
 } data_file;                       // size 0x40
 

@@ -175,7 +175,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             if (new_profile_name_flag_0071916e != 0) {
                 halo::interface::saved_item_select(-1);
             }
-            halo::main::main_queue_map_change((char *)"");
+            halo::main::main_queue_map_change("");
             new_profile_name_entry_player_00692b00 = -1;
             network_wait_flag_00719739 = 0;
             return 1;

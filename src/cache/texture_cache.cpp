@@ -163,11 +163,11 @@ void texture_cache_manager::initialize()
 {
     void *cache_memory;
 
-    globals().texture_cache_entries = halo::memory::data_array_view::create(sizeof(texture_cache_entry), (char *)"pc texture", k_texture_cache_maximum_entries);
+    globals().texture_cache_entries = halo::memory::data_array_view::create(sizeof(texture_cache_entry), "pc texture", k_texture_cache_maximum_entries);
 
     cache_memory = GlobalAlloc(0, 0x1c07c);
     if (cache_memory != nullptr) {
-        halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
+        halo::memory::view((struct cache *)cache_memory)->initialize("pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
     }
     globals().texture_cache = (struct cache *)cache_memory;
     globals().texture_cache_base = globals().texture_cache_memory;

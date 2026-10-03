@@ -134,7 +134,7 @@ void console_position_cursor(void)
  *
  * @address 0x496a80
  */
-void console_printf_verbose(ColorARGB *color, char *format, ...)
+void console_printf_verbose(ColorARGB *color, const char *format, ...)
 {
     va_list args;
     va_start(args, format);

@@ -17,7 +17,7 @@ struct LevelControl {
     static void start_new_single_player_map(void);
     static void level_transition_update(void);
     static void queue_cache_file_open(char *name);
-    static void queue_map_change(char *map_name);
+    static void queue_map_change(const char *map_name);
     static uint8_t queue_map_change_by_name_or_clear(char *name);
     static void save_map_private(void);
     static void switch_structure_bsp_and_notify(void);

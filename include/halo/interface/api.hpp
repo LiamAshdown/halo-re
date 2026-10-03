@@ -126,7 +126,7 @@ void console_message_expire_old(void);
 datum_index console_message_new(void);
 uint8_t console_open(terminal_console *console);
 void console_position_cursor(void);
-void console_printf_verbose(ColorARGB *color, char *format, ...);
+void console_printf_verbose(ColorARGB *color, const char *format, ...);
 void console_process_input_events(void);
 uint8_t console_process_queued_input(void);
 void console_restore_cursor(void);

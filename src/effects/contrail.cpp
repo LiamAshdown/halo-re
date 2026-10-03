@@ -574,8 +574,8 @@ void contrail_ref::update(real delta_time)
  */
 void contrail_ref::initialize()
 {
-    contrail_data = (data_array *)halo::saved_games::game_state_new((char *)"contrail", k_maximum_contrails, sizeof(contrail));
-    contrail_point_data = (data_array *)halo::saved_games::game_state_new((char *)"contrail point", k_maximum_contrail_points, sizeof(contrail_point));
+    contrail_data = (data_array *)halo::saved_games::game_state_new("contrail", k_maximum_contrails, sizeof(contrail));
+    contrail_point_data = (data_array *)halo::saved_games::game_state_new("contrail point", k_maximum_contrail_points, sizeof(contrail_point));
 
     if (contrail_data == 0) {
         if (contrail_point_data != 0) {

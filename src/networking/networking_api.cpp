@@ -2740,7 +2740,7 @@ int32_t network_session_host_start(void *user_data)
  *
  * @address 0x576100
  */
-void network_session_host_start_info_set(char *host_name, char *map_name, char *variant_name, int32_t game_type)
+void network_session_host_start_info_set(const char *host_name, char *map_name, char *variant_name, int32_t game_type)
 {
     halo::networking::HostSession::start_info_set(host_name, map_name, variant_name, game_type);
 }

@@ -115,7 +115,7 @@ public:
      *
      * @address 0x43fe60
      */
-    char * targa_export(file_reference_record *destination);
+    const char * targa_export(file_reference_record *destination);
 
 private:
     BitmapData *self;

@@ -38,7 +38,7 @@ void data_array_view::delete_all()
  *
  * @address 0x4d0370
  */
-data_array *data_array_view::create(int16_t element_size, char *name, int16_t maximum_count)
+data_array *data_array_view::create(int16_t element_size, const char *name, int16_t maximum_count)
 {
     data_array *array;
     uint8_t *zero;

@@ -225,7 +225,7 @@ void DirectInput::device_list_print(void)
         }
         name_ascii[i] = '\0';
 
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
+        halo::interface::console_printf_verbose((ColorARGB *)0, "%d) deviceid %s - %s", index, guid_ascii_trimmed, name_ascii);
     }
 }
 
@@ -288,7 +288,7 @@ void DirectInput::directinput_acquire_devices(void)
         vtable = *(void ***)input_state().keyboard_device;
         hr = ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().keyboard_device);
         if (hr < 0) {
-            input_error_log_once(hr, (char *)"Acquire (keyboard)");
+            input_error_log_once(hr, "Acquire (keyboard)");
         }
     }
 
@@ -296,7 +296,7 @@ void DirectInput::directinput_acquire_devices(void)
         vtable = *(void ***)input_state().mouse_device;
         hr = ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().mouse_device);
         if (hr < 0) {
-            input_error_log_once(hr, (char *)"Acquire (mouse)");
+            input_error_log_once(hr, "Acquire (mouse)");
         } else {
             granularity.header.size = 0x14;
             granularity.header.header_size = 0x10;
@@ -316,7 +316,7 @@ void DirectInput::directinput_acquire_devices(void)
             vtable = *(void ***)device;
             hr = ((idirectinputdevice8_acquire_proc)vtable[7])(device);
             if (hr < 0) {
-                input_error_log_once(hr, (char *)"Acquire (gamepad)");
+                input_error_log_once(hr, "Acquire (gamepad)");
             }
         }
     }
@@ -340,7 +340,7 @@ uint8_t DirectInput::directinput_initialize(void)
     hr = ((directinput8create_proc)input_state().direct_input8_create)(halo::shell::globals().instance, k_directinput_version,
         &input_state().iid_directinput8a, &input_state().direct_input, (void *)0);
     if (hr < 0) {
-        input_error_log_once(hr, (char *)"DirectInputCreate");
+        input_error_log_once(hr, "DirectInputCreate");
         halo::input::DirectInput::directinput_release_devices();
     } else {
         halo::input::DirectInput::keyboard_device_create();
@@ -403,12 +403,12 @@ void DirectInput::directinput_poll_devices(void)
 
             if (hr > 0) {
                 if (hr == 1) {
-                    input_error_log_once(1, (char *)"keyboard_buffer_overflow");
+                    input_error_log_once(1, "keyboard_buffer_overflow");
                     event_count = 0xffffffff;
                     ((idirectinputdevice8_getdevicedata_proc)vtable[10])(input_state().keyboard_device, 0x14,
                         (di_device_object_data *)0, &event_count, 0);
                 } else {
-                    input_error_log_once(hr, (char *)"IDirectInputDevice_GetDeviceData (mouse)");
+                    input_error_log_once(hr, "IDirectInputDevice_GetDeviceData (mouse)");
                 }
                 break;
             }
@@ -436,7 +436,7 @@ void DirectInput::directinput_poll_devices(void)
             if (hr == halo::input::k_dierr_input_lost || hr == halo::input::k_dierr_not_acquired) {
                 ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().keyboard_device);
             } else {
-                input_error_log_once(hr, (char *)"IDirectInputDevice_GetDeviceData (mouse)");
+                input_error_log_once(hr, "IDirectInputDevice_GetDeviceData (mouse)");
             }
             break;
         }
@@ -451,7 +451,7 @@ void DirectInput::directinput_poll_devices(void)
             halo::input::DirectInput::mouse_state_process(&input_state().live_mouse_state, &mouse_raw);
             goto joystick_poll;
         } else {
-            input_error_log_once(hr, (char *)"GetDeviceState (mouse)");
+            input_error_log_once(hr, "GetDeviceState (mouse)");
         }
         if (hr < 0) {
             memset(&input_state().live_mouse_state, 0, sizeof(input_state().live_mouse_state));
@@ -480,7 +480,7 @@ joystick_poll:
                 halo::input::DirectInput::joystick_state_process(&joystick_raw, &input_state().joystick_states[slot], &input_state().input_devices[i]);
                 continue;
             } else {
-                input_error_log_once(hr, (char *)"Poll/GetDeviceState (gamepad)");
+                input_error_log_once(hr, "Poll/GetDeviceState (gamepad)");
             }
 
             if (hr < 0) {
@@ -569,7 +569,7 @@ void DirectInput::directinput_unacquire_devices(void)
             vtable = *(void ***)device;
             hr = ((idirectinputdevice8_unacquire_proc)vtable[8])(device);
             if (hr < 0) {
-                input_error_log_once(hr, (char *)"Unacquire (gamepad)");
+                input_error_log_once(hr, "Unacquire (gamepad)");
             }
         }
     }
@@ -578,7 +578,7 @@ void DirectInput::directinput_unacquire_devices(void)
         vtable = *(void ***)input_state().mouse_device;
         hr = ((idirectinputdevice8_unacquire_proc)vtable[8])(input_state().mouse_device);
         if (hr < 0) {
-            input_error_log_once(hr, (char *)"Unacquire (mouse)");
+            input_error_log_once(hr, "Unacquire (mouse)");
         }
     }
 
@@ -588,7 +588,7 @@ void DirectInput::directinput_unacquire_devices(void)
         vtable = *(void ***)input_state().keyboard_device;
         hr = ((idirectinputdevice8_unacquire_proc)vtable[8])(input_state().keyboard_device);
         if (hr < 0) {
-            input_error_log_once(hr, (char *)"Unacquire (keyboard)");
+            input_error_log_once(hr, "Unacquire (keyboard)");
         }
     }
 }
@@ -615,31 +615,31 @@ int32_t DirectInput::enumerate_gamepad_callback(const di_device_instance *instan
     void **vtable;
     di_device_caps caps;
     int32_t hr;
-    char *failed;
+    const char *failed;
 
     (void)reference;
     hr = ((idirectinput8_createdevice_proc)(*(void ***)input_state().direct_input)[3])(input_state().direct_input,
         (input_guid *)&instance->instance_guid, &handle, 0);
     if (hr < 0) {
-        failed = (char *)"CreateDevice (gamepad)";
+        failed = "CreateDevice (gamepad)";
         goto fail;
     }
     vtable = *(void ***)handle;
     hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(handle, GetActiveWindow(), 5);
     if (hr < 0) {
-        failed = (char *)"SetCooperativeLevel (gamepad)";
+        failed = "SetCooperativeLevel (gamepad)";
         goto fail;
     }
     hr = ((idirectinputdevice8_setdataformat_proc)(*(void ***)handle)[11])(handle, &input_state().joystick_data_format);
     if (hr < 0) {
-        failed = (char *)"SetDataFormat (gamepad)";
+        failed = "SetDataFormat (gamepad)";
         goto fail;
     }
     memset(&caps, 0, sizeof(caps));
     caps.size = sizeof(caps);
     hr = ((idirectinputdevice8_getcapabilities_proc)(*(void ***)handle)[3])(handle, &caps);
     if (hr < 0) {
-        failed = (char *)"GetCapabilities (gamepad)";
+        failed = "GetCapabilities (gamepad)";
         goto fail;
     }
     device->record.product_instance = (uint8_t)halo::input::DirectInput::device_count_by_guid((const uint32_t *)&instance->product_guid);
@@ -660,7 +660,7 @@ int32_t DirectInput::enumerate_gamepad_callback(const di_device_instance *instan
     hr = ((idirectinputdevice8_enumobjects_proc)(*(void ***)handle)[4])(handle,
         (void *)halo::input::input_enumerate_gamepad_object_callback, (void *)(intptr_t)index, 0);
     if (hr < 0) {
-        failed = (char *)"EnumObjects (gamepad)";
+        failed = "EnumObjects (gamepad)";
         goto fail;
     }
     input_state().input_device_count = index + 1;
@@ -702,7 +702,7 @@ int32_t DirectInput::enumerate_gamepad_object_callback(const di_device_object_in
     range.maximum = k_joystick_axis_range;
     hr = set_property(device, 4, (di_property_dword *)&range);
     if (hr < 0) {
-        input_error_log_once(hr, (char *)"InitializeObject range %d - %s", object->type, object->name);
+        input_error_log_once(hr, "InitializeObject range %d - %s", object->type, object->name);
         return 1;
     }
     deadzone.header.size = sizeof(deadzone);
@@ -712,7 +712,7 @@ int32_t DirectInput::enumerate_gamepad_object_callback(const di_device_object_in
     deadzone.data = 1000;
     hr = set_property(device, 5, &deadzone);
     if (hr < 0) {
-        input_error_log_once(hr, (char *)"InitializeObject deadzone %d - %s", object->type, object->name);
+        input_error_log_once(hr, "InitializeObject deadzone %d - %s", object->type, object->name);
     }
     return 1;
 }
@@ -727,7 +727,7 @@ int32_t DirectInput::enumerate_gamepad_object_callback(const di_device_object_in
  *
  * @address 0x492150
  */
-void halo::input::input_error_log_once(int32_t error_code, char *description, ...)
+void halo::input::input_error_log_once(int32_t error_code, const char *description, ...)
 {
     char message[4092];
     va_list args;
@@ -1001,7 +1001,7 @@ uint8_t DirectInput::keyboard_device_create(void)
 {
     void **vtable;
     int32_t hr;
-    char *description;
+    const char *description;
     di_property_dword buffer_size;
     int32_t i;
 
@@ -1020,17 +1020,17 @@ uint8_t DirectInput::keyboard_device_create(void)
     hr = ((idirectinput8_createdevice_proc)vtable[3])(input_state().direct_input, &input_state().guid_sys_keyboard,
         &input_state().keyboard_device, (void *)0);
     if (hr < 0) {
-        description = (char *)"CreateDevice (keyboard)";
+        description = "CreateDevice (keyboard)";
     } else {
         vtable = *(void ***)input_state().keyboard_device;
         hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(input_state().keyboard_device, halo::shell::globals().window, 0x16);
         if (hr < 0) {
-            description = (char *)"SetCooperativeLevel (keyboard)";
+            description = "SetCooperativeLevel (keyboard)";
         } else {
             vtable = *(void ***)input_state().keyboard_device;
             hr = ((idirectinputdevice8_setdataformat_proc)vtable[11])(input_state().keyboard_device, &input_state().c_dfDIKeyboard);
             if (hr < 0) {
-                description = (char *)"SetDataFormat (keyboard)";
+                description = "SetDataFormat (keyboard)";
             } else {
                 buffer_size.header.size = 0x14;
                 buffer_size.header.header_size = 0x10;
@@ -1043,7 +1043,7 @@ uint8_t DirectInput::keyboard_device_create(void)
                 if (hr >= 0) {
                     return 1;
                 }
-                description = (char *)"SetProperty (keyboard)";
+                description = "SetProperty (keyboard)";
             }
         }
     }
@@ -1101,7 +1101,7 @@ uint8_t DirectInput::mouse_device_create(void)
 {
     void **vtable;
     int32_t hr;
-    char *description;
+    const char *description;
 
     if (GetSystemMetrics(0x17) == 0) {
         input_state().mouse_button_map[0] = 0;
@@ -1115,19 +1115,19 @@ uint8_t DirectInput::mouse_device_create(void)
     hr = ((idirectinput8_createdevice_proc)vtable[3])(input_state().direct_input, &input_state().guid_sys_mouse,
         &input_state().mouse_device, (void *)0);
     if (hr < 0) {
-        description = (char *)"CreateDevice (mouse)";
+        description = "CreateDevice (mouse)";
     } else {
         vtable = *(void ***)input_state().mouse_device;
         hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(input_state().mouse_device, halo::shell::globals().window, 5);
         if (hr < 0) {
-            description = (char *)"SetCooperativeLevel (mouse)";
+            description = "SetCooperativeLevel (mouse)";
         } else {
             vtable = *(void ***)input_state().mouse_device;
             hr = ((idirectinputdevice8_setdataformat_proc)vtable[11])(input_state().mouse_device, &input_state().c_dfDIMouse2);
             if (hr >= 0) {
                 return 1;
             }
-            description = (char *)"SetDataFormat (mouse)";
+            description = "SetDataFormat (mouse)";
         }
     }
 

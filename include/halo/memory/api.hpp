@@ -101,7 +101,7 @@ inline void data_delete_all(data_array *array)
     halo::memory::view(array)->delete_all();
 }
 
-inline data_array * data_new(int16_t element_size, char *name, int16_t maximum_count)
+inline data_array * data_new(int16_t element_size, const char *name, int16_t maximum_count)
 {
     return halo::memory::data_array_view::create(element_size, name, maximum_count);
 }
@@ -216,7 +216,7 @@ inline void heap_unlink_block(heap_block *block, heap *self)
     halo::memory::view(self)->unlink_block(block);
 }
 
-inline void cache_new(char *name, ::cache *self, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
+inline void cache_new(const char *name, ::cache *self, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
 {
     halo::memory::view(self)->initialize(name, block_count, block_shift, maximum_count, release_procedure, in_use_procedure);
 }

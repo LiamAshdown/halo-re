@@ -532,7 +532,7 @@ void rasterizer_decals_initialize(void)
     game_state_cursor = game_state_cursor + k_decal_cache_region_bytes;
     halo::memory::crc32_update(&game_state_crc, &region_size, 4);
 
-    halo::memory::cache_new((char *)"decal vertex cache", (::cache *)block, k_decal_cache_block_count, 6, k_decal_cache_maximum_count, reinterpret_cast<void *>(decal_vertex_cache_release),
+    halo::memory::cache_new("decal vertex cache", (::cache *)block, k_decal_cache_block_count, 6, k_decal_cache_maximum_count, reinterpret_cast<void *>(decal_vertex_cache_release),
               reinterpret_cast<void *>(decal_vertex_cache_in_use));
     rasterizer_decal_vertex_cache_handle = (::cache *)block;
 }

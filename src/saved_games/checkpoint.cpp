@@ -179,7 +179,7 @@ uint8_t print_list_entry(int32_t index, const char *name, int32_t level_index, i
         level_name = campaign_level_paths[level_index];
     }
 
-    halo::interface::chimera__console_out(actor_mode_default_look_weights, (char *)"%-15s %-20s %02d:%02d:%02d", name, level_name, hours, minutes, seconds);
+    halo::interface::chimera__console_out(actor_mode_default_look_weights, "%-15s %-20s %02d:%02d:%02d", name, level_name, hours, minutes, seconds);
     return 1;
 }
 
@@ -191,7 +191,7 @@ uint8_t print_list_entry(int32_t index, const char *name, int32_t level_index, i
  *
  * @address 0x00538c60
  */
-int16_t read_stats_file(int32_t *out_difficulty, char *name, int32_t *out_game_time, win32_systemtime *out_time)
+int16_t read_stats_file(int32_t *out_difficulty, const char *name, int32_t *out_game_time, win32_systemtime *out_time)
 {
     char directory[264];
     char path[264];
@@ -364,7 +364,7 @@ uint8_t load_checkpoint(char *name)
  *
  * @address 0x005391a0
  */
-uint8_t load_checkpoint_by_name(char *name)
+uint8_t load_checkpoint_by_name(const char *name)
 {
     char directory[264];
     char path[264];

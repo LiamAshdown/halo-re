@@ -9,7 +9,7 @@
 
 namespace halo::bitmaps {
 
-char * targa_export(BitmapData *bitmap, file_reference_record *destination)
+const char * targa_export(BitmapData *bitmap, file_reference_record *destination)
 {
     return halo::bitmaps::bitmap_data_view(bitmap).targa_export(destination);
 }

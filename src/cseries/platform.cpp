@@ -58,7 +58,7 @@ void *global_memory::release(void *handle)
  *
  * @address 0x449250
  */
-char halo::cseries::directory_create_recursive(char *path)
+char halo::cseries::directory_create_recursive(const char *path)
 {
     char buffer[k_directory_create_buffer_size];
     uint8_t all_created;

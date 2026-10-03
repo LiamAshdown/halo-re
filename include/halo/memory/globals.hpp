@@ -20,7 +20,7 @@ namespace halo::memory {
 struct Globals {
     crc32_table &crc32_lookup_table;
     uint8_t &crc32_lookup_table_initialized;
-    char *&data_packet_group_error;
+    const char *&data_packet_group_error;
     byte_swap_definition &packet_header_byte_swap_definition;
     uint8_t (&bit_mask_keep)[9];
     uint8_t (&bit_mask_clear)[8];

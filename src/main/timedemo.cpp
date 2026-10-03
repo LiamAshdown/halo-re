@@ -150,17 +150,26 @@ void Timedemo::benchmark_update(void)
 
     switch (step) {
     case _timedemo_step_load_a30:
-        halo::main::main_queue_map_change((char *)"a30");
+        halo::main::main_queue_map_change("a30");
         halo::game::globals().time_force_single_tick++;
         return;
     case _timedemo_step_load_b30:
-        halo::hs::hs_compile_and_evaluate((char *)"map_name b30");
+        {
+            char command[] = "map_name b30";
+            halo::hs::hs_compile_and_evaluate(command);
+        }
         break;
     case _timedemo_step_load_c10:
-        halo::hs::hs_compile_and_evaluate((char *)"map_name c10");
+        {
+            char command[] = "map_name c10";
+            halo::hs::hs_compile_and_evaluate(command);
+        }
         break;
     case _timedemo_step_load_d20:
-        halo::hs::hs_compile_and_evaluate((char *)"map_name d20");
+        {
+            char command[] = "map_name d20";
+            halo::hs::hs_compile_and_evaluate(command);
+        }
         break;
     case _timedemo_step_report:
         main_globals_data.quit = 1;

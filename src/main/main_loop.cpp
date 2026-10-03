@@ -934,7 +934,7 @@ namespace halo::main {
 void MainLoop::menu_music_stop(void)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = halo::cache::tag_lookup(k_looping_sound_group, (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::cache::tag_lookup(k_looping_sound_group, "sound\\music\\title1\\title1");
         if (sound_tag != k_datum_index_none) {
             halo::sound::sound_looping_stop(sound_tag);
         }

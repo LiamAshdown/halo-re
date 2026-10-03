@@ -52,7 +52,7 @@ void game_scenario_session_begin(network_scenario_load_request *request);
 void game_start_new_single_player_map();
 void main_level_transition_update();
 void main_queue_cache_file_open(char *name);
-void main_queue_map_change(char *map_name);
+void main_queue_map_change(const char *map_name);
 uint8_t main_queue_map_change_by_name_or_clear(char *name);
 void main_save_map_private();
 void main_switch_structure_bsp_and_notify();
