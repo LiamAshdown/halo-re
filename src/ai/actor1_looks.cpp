@@ -9,6 +9,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -29,41 +30,41 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
 {
     using namespace c_actor_apply_queued_look_to_unit;
     datum_index actor_index = datum;
-    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    uint32_t unit_index = *(uint32_t *)&((struct actor *)actor)->unit_index;
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint32_t unit_index = *(uint32_t *)&actor->unit_index;
     uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
     unit_control_data control;
 
-    control.animation_state = (int8_t)actor_control_animation_state_table[((struct actor *)actor)->control_animation_mode * 2];
-    control.aiming_speed = (int8_t)actor[0x6f8];
-    control.control_flags = *(uint16_t *)&((struct actor *)actor)->control_flags;
+    control.animation_state = (int8_t)actor_control_animation_state_table[actor->control_animation_mode * 2];
+    control.aiming_speed = (int8_t)((uint8_t *)actor)[0x6f8];
+    control.control_flags = *(uint16_t *)&actor->control_flags;
     control.weapon_index = -1;
     control.grenade_index = -1;
     control.zoom_level = -1;
     control.unknown_0a = 0;
-    control.throttle = *(real_vector3d *)&((struct actor *)actor)->throttle.i;
-    control.primary_trigger = *(float *)&((struct actor *)actor)->override_target;
-    control.facing_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_facing.i;
-    control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->aiming_vector_snapshot.i;
-    control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->looking_vector_snapshot.i;
+    control.throttle = *(real_vector3d *)&actor->throttle.i;
+    control.primary_trigger = *(float *)&actor->override_target;
+    control.facing_vector = *(real_vector3d *)&actor->snapshot_facing.i;
+    control.aiming_vector = *(real_vector3d *)&actor->aiming_vector_snapshot.i;
+    control.looking_vector = *(real_vector3d *)&actor->looking_vector_snapshot.i;
 
     if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != halo::k_dword_none && local_player_globals->input_disabled == 0) {
         return;
     }
-    if (actor[0x07] != 0) {
+    if (actor->unit_control_pending != 0) {
         halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
-        actor[0x07] = 0;
+        actor->unit_control_pending = 0;
     }
-    halo::units::unit_apply_control_block(*(uint32_t *)&((struct actor *)actor)->unit_index, &control, -1);
-    if (((struct actor *)actor)->control_animation_impulse != -1) {
-        halo::units::unit_try_start_scripted_action_animation(*(uint32_t *)&((struct actor *)actor)->unit_index, ((struct actor *)actor)->control_animation_impulse,
-            (const real_vector2d *)(actor + 0x6f0));
+    halo::units::unit_apply_control_block(*(uint32_t *)&actor->unit_index, &control, -1);
+    if (actor->control_animation_impulse != -1) {
+        halo::units::unit_try_start_scripted_action_animation(*(uint32_t *)&actor->unit_index, actor->control_animation_impulse,
+            (const real_vector2d *)((uint8_t *)actor + 0x6f0));
     }
-    if (((struct actor *)actor)->persistent_control_ticks > 0) {
-        uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & halo::k_slot_mask].data;
+    if (actor->persistent_control_ticks > 0) {
+        uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[*(uint32_t *)&actor->unit_index & halo::k_slot_mask].data;
 
-        *(int32_t *)(object + 0x210) = ((struct actor *)actor)->persistent_control_ticks;
-        *(uint32_t *)(object + 0x214) = ((struct actor *)actor)->persistent_control_flags;
+        *(int32_t *)(object + 0x210) = actor->persistent_control_ticks;
+        *(uint32_t *)(object + 0x214) = actor->persistent_control_flags;
     }
 }
 
@@ -227,8 +228,8 @@ static const float k_perception_range_class_scale[4] = {0.4f, 0.6f, 0.8f, 1.0f};
 int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
 {
     using namespace c_actor_dispatch_look_handler_by_posture;
-    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *definition;
     float *from = (float *)origin;
     float *to = (float *)target;
@@ -268,10 +269,10 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
         return 0;
     }
 
-    if (actor[6] == 0 && check_facing != 0) {
-        float forward = dz * ((struct actor *)actor)->unit_looking_vector.k + dy * ((struct actor *)actor)->unit_looking_vector.j + dx * ((struct actor *)actor)->unit_looking_vector.i;
-        float left = dz * ((struct actor *)actor)->looking_left_vector.k + dy * ((struct actor *)actor)->looking_left_vector.j + dx * ((struct actor *)actor)->looking_left_vector.i;
-        float up = dz * ((struct actor *)actor)->looking_up_vector.k + dy * ((struct actor *)actor)->looking_up_vector.j + dx * ((struct actor *)actor)->looking_up_vector.i;
+    if (actor->swarm == 0 && check_facing != 0) {
+        float forward = dz * actor->unit_looking_vector.k + dy * actor->unit_looking_vector.j + dx * actor->unit_looking_vector.i;
+        float left = dz * actor->looking_left_vector.k + dy * actor->looking_left_vector.j + dx * actor->looking_left_vector.i;
+        float up = dz * actor->looking_up_vector.k + dy * actor->looking_up_vector.j + dx * actor->looking_up_vector.i;
         float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));
 
         if (elevation > 0.5235988f || !(elevation > -0.78539819f)) {
