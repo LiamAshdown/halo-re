@@ -486,9 +486,9 @@ void particle_system_ref::render()
         if (*(int16_t *)type_state == -1 || (*(uint32_t *)(type + 0x20) & 0x100)) {
             continue;
         }
-        for (particle_index = *(uint16_t *)(type_state + 0x3c); particle_index != halo::k_word_none; ) {
+        for (particle_index = ((struct particle_system_type_state *)type_state)->first_particle; particle_index != halo::k_word_none; ) {
             uint8_t *particle = (uint8_t *)particle_system_particle_data->data + particle_index * 0x80;
-            int16_t cluster = *(int16_t *)(particle + 0x18);
+            int16_t cluster = ((struct particle_system_particle *)particle)->location.cluster_index;
 
             if (particle[3] && (halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
                 uint8_t *states = *(uint8_t **)(type + 0x78);
@@ -515,26 +515,26 @@ void particle_system_ref::render()
                 direction.j = vx * m[2] + vy * m[5] + vz * m[8];
                 direction.k = vx * m[3] + vy * m[6] + vz * m[9];
 
-                if (*(int16_t *)(particle + 0xa) == -1) {
-                    scale = *(float *)(particle + 0x48) * *(float *)(type_state + 0xc);
-                    color[0] = *(float *)(particle + 0x54) * *(float *)(type_state + 0x18);
-                    color[1] = *(float *)(particle + 0x58) * *(float *)(type_state + 0x1c);
-                    color[2] = *(float *)(particle + 0x5c) * *(float *)(type_state + 0x20);
-                    color[3] = *(float *)(particle + 0x60) * *(float *)(type_state + 0x24);
+                if (((struct particle_system_particle *)particle)->next_state_index == -1) {
+                    scale = ((struct particle_system_particle *)particle)->values.scale * ((struct particle_system_type_state *)type_state)->scale;
+                    color[0] = ((struct particle_system_particle *)particle)->values.color.alpha * ((struct particle_system_type_state *)type_state)->color.alpha;
+                    color[1] = ((struct particle_system_particle *)particle)->values.color.red * ((struct particle_system_type_state *)type_state)->color.red;
+                    color[2] = ((struct particle_system_particle *)particle)->values.color.green * ((struct particle_system_type_state *)type_state)->color.green;
+                    color[3] = ((struct particle_system_particle *)particle)->values.color.blue * ((struct particle_system_type_state *)type_state)->color.blue;
                 } else {
-                    next = states + *(int16_t *)(particle + 0xa) * 0x178;
-                    fraction = particle_clamp01(*(float *)(particle + 0xc) / *(float *)(particle + 0x10));
+                    next = states + ((struct particle_system_particle *)particle)->next_state_index * 0x178;
+                    fraction = particle_clamp01(((struct particle_system_particle *)particle)->state_time_remaining / ((struct particle_system_particle *)particle)->state_duration);
                     inverse = 1.0f - fraction;
-                    scale = (inverse * *(float *)(particle + 0x64) + fraction * *(float *)(particle + 0x48)) *
-                        *(float *)(type_state + 0xc);
-                    color[0] = (inverse * *(float *)(particle + 0x70) + fraction * *(float *)(particle + 0x54)) *
-                        *(float *)(type_state + 0x18);
-                    color[1] = (inverse * *(float *)(particle + 0x74) + fraction * *(float *)(particle + 0x58)) *
-                        *(float *)(type_state + 0x1c);
-                    color[2] = (inverse * *(float *)(particle + 0x78) + fraction * *(float *)(particle + 0x5c)) *
-                        *(float *)(type_state + 0x20);
-                    color[3] = (inverse * *(float *)(particle + 0x7c) + fraction * *(float *)(particle + 0x60)) *
-                        *(float *)(type_state + 0x24);
+                    scale = (inverse * ((struct particle_system_particle *)particle)->next_values.scale + fraction * ((struct particle_system_particle *)particle)->values.scale) *
+                        ((struct particle_system_type_state *)type_state)->scale;
+                    color[0] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.alpha + fraction * ((struct particle_system_particle *)particle)->values.color.alpha) *
+                        ((struct particle_system_type_state *)type_state)->color.alpha;
+                    color[1] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.red + fraction * ((struct particle_system_particle *)particle)->values.color.red) *
+                        ((struct particle_system_type_state *)type_state)->color.red;
+                    color[2] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.green + fraction * ((struct particle_system_particle *)particle)->values.color.green) *
+                        ((struct particle_system_type_state *)type_state)->color.green;
+                    color[3] = (inverse * ((struct particle_system_particle *)particle)->next_values.color.blue + fraction * ((struct particle_system_particle *)particle)->values.color.blue) *
+                        ((struct particle_system_type_state *)type_state)->color.blue;
                     if (*(int16_t *)(current + 0xb8 + 0x2a) == *(int16_t *)(next + 0xb8 + 0x2a) &&
                         *(int16_t *)(current + 0xb8 + 0x2e) == *(int16_t *)(next + 0xb8 + 0x2e) &&
                         *(int16_t *)(current + 0x40) == *(int16_t *)(next + 0x40)) {
@@ -549,16 +549,16 @@ void particle_system_ref::render()
                     sequence_index++;
                 }
                 sequence = *(uint8_t **)(bitmap + 0x58) + sequence_index * 0x40;
-                if (*(uint32_t *)(particle + 0x44) == 0xbf800000) {
+                if (((struct particle_system_particle *)particle)->frame == 0xbf800000) {
                     int16_t count = *(int16_t *)(sequence + 0x34);
                     int16_t picked;
 
                     halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
                     picked = (int16_t)(((uint32_t)count * (halo::math::globals().effect_random_seed >> 0x10)) >> 0x10);
-                    *(float *)(particle + 0x44) = (float)picked;
+                    ((struct particle_system_particle *)particle)->frame = (float)picked;
                     frame = picked;
                 } else {
-                    int32_t value = (int16_t)(int32_t)*(float *)(particle + 0x44);
+                    int32_t value = (int16_t)(int32_t)((struct particle_system_particle *)particle)->frame;
                     int32_t remainder = value % *(int32_t *)(sequence + 0x34);
 
                     frame = remainder;
@@ -575,11 +575,11 @@ void particle_system_ref::render()
                     drawn[3] = color[3];
                     if (*(int16_t *)(current + 0xe2) == 0) {
                         drawn[1] *= *(float *)&((particle_system *)system)->ambient_color;
-                        drawn[2] *= *(float *)(system + 0x4c);
-                        drawn[3] *= *(float *)(system + 0x50);
+                        drawn[2] *= ((struct particle_system *)system)->ambient_color.green;
+                        drawn[3] *= ((struct particle_system *)system)->ambient_color.blue;
                     }
                     particle_build_state_sprite(type, current, current, frame, &position, &direction,
-                        *(float *)(particle + 0x40), scale, (ColorARGB *)drawn, fraction);
+                        ((struct particle_system_particle *)particle)->rotation, scale, (ColorARGB *)drawn, fraction);
                 }
                 if (inverse > 0.01f) {
                     drawn[0] = color[0];
@@ -588,12 +588,12 @@ void particle_system_ref::render()
                     drawn[3] = color[3];
                     if (*(int16_t *)(current + 0xe2) == 0) {
                         drawn[1] *= *(float *)&((particle_system *)system)->ambient_color;
-                        drawn[2] *= *(float *)(system + 0x4c);
-                        drawn[3] *= *(float *)(system + 0x50);
+                        drawn[2] *= ((struct particle_system *)system)->ambient_color.green;
+                        drawn[3] *= ((struct particle_system *)system)->ambient_color.blue;
                     }
                     position.z += 0.001f;
                     particle_build_state_sprite(type, next, current, frame, &position, &direction,
-                        *(float *)(particle + 0x40), scale, (ColorARGB *)drawn, inverse);
+                        ((struct particle_system_particle *)particle)->rotation, scale, (ColorARGB *)drawn, inverse);
                 }
             }
             particle_index = *(uint16_t *)(particle + 4);
@@ -743,21 +743,21 @@ void particle_system_view::spawn(int32_t type_index, float dt)
             target = *(int16_t *)(type + 0x24);
         }
     } else {
-        double amount = (double)dt * *(float *)(type_state + 0x30);
+        double amount = (double)dt * ((struct particle_system_type_state *)type_state)->particle_creation_rate;
         int32_t whole = (int32_t)amount;
-        double accumulated = amount - (double)whole + *(float *)(type_state + 0x34);
+        double accumulated = amount - (double)whole + ((struct particle_system_type_state *)type_state)->creation_fraction;
 
-        target = (int16_t)(*(uint16_t *)(type_state + 0x3a) + whole);
-        *(float *)(type_state + 0x34) = (float)accumulated;
+        target = (int16_t)(((struct particle_system_type_state *)type_state)->particle_count + whole);
+        ((struct particle_system_type_state *)type_state)->creation_fraction = (float)accumulated;
         if (accumulated > 1.0) {
             target = (int16_t)(target + 1);
-            *(float *)(type_state + 0x34) = (float)(accumulated - 1.0);
+            ((struct particle_system_type_state *)type_state)->creation_fraction = (float)(accumulated - 1.0);
         }
     }
     if (particle_systems_enabled == 1) {
         target = (int16_t)(int32_t)((double)target * 0.5);
     }
-    if (*(int16_t *)(type_state + 0x3a) >= target) {
+    if (((struct particle_system_type_state *)type_state)->particle_count >= target) {
         goto done;
     }
 
@@ -782,7 +782,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
         marker_count = 1;
     }
 
-    if (((struct particle_system *)system)->location.cluster_index == -1 || *(int16_t *)(type_state + 0x3a) >= target) {
+    if (((struct particle_system *)system)->location.cluster_index == -1 || ((struct particle_system_type_state *)type_state)->particle_count >= target) {
         goto done;
     }
     for (spawned = 0; marker_count != 0 && spawned < 0x80; ) {
@@ -808,20 +808,20 @@ void particle_system_view::spawn(int32_t type_index, float dt)
             &markers[marker_index]);
         halo::scenario::scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));
         if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
-            *(int16_t *)(type_state + 0x3a) += 1;
-            ((struct particle_system_particle *)particle)->next_particle = *(datum_index *)(type_state + 0x3c);
-            *(datum_index *)(type_state + 0x3c) = handle;
+            ((struct particle_system_type_state *)type_state)->particle_count += 1;
+            ((struct particle_system_particle *)particle)->next_particle = ((struct particle_system_type_state *)type_state)->first_particle;
+            ((struct particle_system_type_state *)type_state)->first_particle = handle;
         } else {
             halo::memory::datum_delete(particle_system_particle_data, handle);
         }
         spawned++;
-        if (*(int16_t *)(type_state + 0x3a) >= target) {
+        if (((struct particle_system_type_state *)type_state)->particle_count >= target) {
             break;
         }
     }
 
 done:
-    if ((float)*(int16_t *)(type_state + 0x3a) < *(float *)(type_state + 0x2c)) {
+    if ((float)((struct particle_system_type_state *)type_state)->particle_count < ((struct particle_system_type_state *)type_state)->minimum_particle_count) {
         *(float *)(type_state + 4) = *(float *)(type_state + 4) * 0.3f;
     }
 }
