@@ -21,7 +21,6 @@ extern "C" {
 extern int16_t network_join_error_code;
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
-extern void console_printf_verbose(const char *text);
 extern void * rcon_out_channel_key;
 extern uint8_t network_message_scratch[0x7ff8];
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
@@ -43,9 +42,7 @@ extern int32_t update_server_last_tick_ms;
 extern void update_server_new(void);
 extern void update_queues_dispose(void);
 extern void update_server_dispose(void);
-extern void update_client_stage_entry(uint32_t *source);
 extern void ui_network_wait_timeout_check(void);
-extern void ui_network_wait_timeout_start(void);
 }
 
 typedef struct rcon_request_record {
@@ -119,7 +116,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
 
     client->state = k_network_client_state_connecting;
     attempt->elapsed_counter = 0;
-    console_printf_verbose("Connecting");
+    halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"Connecting");
     memset(&client->connection, 0, 10 * sizeof(uint32_t));
     memcpy(&client->connection.address, target_address, 6 * sizeof(uint32_t));
     interface_loading_screen_progress = 0;
@@ -321,7 +318,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
         return result;
     }
     if (network_client->state != k_network_client_state_playing) {
-        halo::interface::ui_network_wait_timeout_start();
+        halo::interface::ui_network_wait_timeout_check();
         return result;
     }
 
@@ -367,8 +364,8 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
                     fallback.weapon_index = network_client->last_update_sent.weapon_index;
                     fallback.grenade_index = network_client->last_update_sent.grenade_index;
                     fallback.zoom_level = network_client->last_update_sent.zoom_level;
-                    update_client_stage_entry((uint32_t *)&fallback);
-                    ui_network_wait_timeout_start();
+                    halo::game::update_client_stage_entry((uint32_t *)&fallback);
+                    halo::interface::ui_network_wait_timeout_start();
                     goto note_pending_flush;
                 }
             } else {
@@ -410,7 +407,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
                 }
                 if (result != 0) {
                     halo::networking::player_update_history_log_write(8, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
-                        game_time->game_time, (int32_t)history_byte, tick_count);
+                        halo::game::globals().game_time->game_time, (int32_t)history_byte, tick_count);
                 }
             } else {
                 halo::networking::network_game_client_apply_position_update(
@@ -429,7 +426,7 @@ note_pending_flush:
         }
     }
     update_server_last_tick_ms = now_ms;
-    halo::interface::ui_network_wait_timeout_start();
+    halo::interface::ui_network_wait_timeout_check();
     return result;
 }
 
