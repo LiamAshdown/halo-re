@@ -299,8 +299,8 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
         halo::objects::flag_cloth_update(self, tag, 5.0f);
         self->unknown_03 = 1;
     }
-    *(int16_t *)(self + 6) = 0;
-    if (self[2] == 0) {
+    self->update_counter = 0;
+    if (self->invalid == 0) {
         halo::objects::flag_render(tag, (flag *)self, (const render_lighting *)(uintptr_t)arg3, (const uint32_t *)(uintptr_t)arg4);
     }
 }

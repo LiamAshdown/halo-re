@@ -5,6 +5,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/api.hpp"
 
 
 namespace halo::units {
