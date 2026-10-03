@@ -4,28 +4,16 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *encounter_data;
 extern int32_t object_cluster_stamp;
 extern game_time_globals *game_time;
 extern double sqrt(double x);
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
-extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index,
-    char stamp_group);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern uint8_t actor_danger_register_point(datum_index actor_index, datum_index source_object_index, float radius,
-    float distance, char accept_flag, uint8_t unknown_byte);
-extern uint8_t actor_danger_register_stationary_object(const float *reference, datum_index actor_index,
-    datum_index object_index, uint8_t unknown_byte);
-extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
-extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind);
-extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
-    char allow_reassign);
 #define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
@@ -62,10 +50,10 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
     uint8_t *list;
 
     halo::objects::object_get_position(&position, object_index);
-    actor_get_firing_positions(actor_index, block, &position);
+    halo::ai::actor_get_firing_positions(actor_index, block, &position);
     if (*(datum_index *)(object + 0x1f8) != k_datum_index_none) {
         target_actor_index = *(datum_index *)(object + 0x1f8);
-        target = object_find_nearest_squad_member(target_actor_index, block, k_datum_index_none, 1);
+        target = halo::ai::object_find_nearest_squad_member(target_actor_index, block, k_datum_index_none, 1);
         if (target == k_datum_index_none) {
             return;
         }
@@ -99,10 +87,10 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
         distance_squared = dz * dz + dy * dy + dx * dx;
     }
     if (radius > 0.0f && (firing || (int8_t)unit[0x2a3] == 0x1e)) {
-        actor_danger_register_point(actor_index, target, radius, (float)sqrt((double)distance_squared), (char)enemies, 0);
+        halo::ai::actor_danger_register_point(actor_index, target, radius, (float)sqrt((double)distance_squared), (char)enemies, 0);
     }
     if (target_actor_index != k_datum_index_none) {
-        target_actor = (uint8_t *)actor_data->data + (target_actor_index & halo::k_slot_mask) * k_actor_size;
+        target_actor = (uint8_t *)halo::ai::globals().actor_data->data + (target_actor_index & halo::k_slot_mask) * k_actor_size;
     }
 
     if (!controlled) {
@@ -118,7 +106,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             if (encounter_index == k_datum_index_none) {
                 goto check_radius;
             } else {
-                uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size;
+                uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size;
                 uint8_t *target_unit = OBJ(target);
                 int32_t reference = ((struct encounter *)encounter)->last_idle_time;
                 uint8_t counts = 1;
@@ -170,7 +158,7 @@ check_radius:
             if (enemies && since_fired > 0x96) {
                 return;
             }
-            if (actor_get_current_mode_combat_grade(actor_index) > 1) {
+            if (halo::ai::actor_get_current_mode_combat_grade(actor_index) > 1) {
                 return;
             }
             limit = 16.0f;
@@ -191,12 +179,12 @@ add:
         return;
     }
     {
-        datum_index prop_index = actor_find_or_allocate_prop(actor_index, target, (char)enemies);
+        datum_index prop_index = halo::ai::actor_find_or_allocate_prop(actor_index, target, (char)enemies);
 
         if (prop_index == k_datum_index_none) {
             return;
         }
-        actor_target_data_refresh(actor_index, prop_index, block, 0, 0);
+        halo::ai::actor_target_data_refresh(actor_index, prop_index, block, 0, 0);
         if (!firing) {
             *(int16_t *)list = (int16_t)(*(int16_t *)list + 1);
         }
@@ -220,7 +208,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
         return;
     }
     halo::objects::object_get_position(&position, object_index);
-    actor_get_firing_positions(actor_index, block, &position);
+    halo::ai::actor_get_firing_positions(actor_index, block, &position);
     {
         float dx = position.x - block_point->x;
         float dy = position.y - block_point->y;
@@ -261,7 +249,6 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     }
     ((actor *)self)->danger_owner_unit = owner_unit;
 }
-extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a, int16_t *candidates_b);
 }
 }
 
@@ -273,7 +260,7 @@ extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index o
 void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *candidates_a, int16_t *candidates_b)
 {
     using namespace actor_target_evaluate_squad_link_local;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *self = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     while (object_index != k_datum_index_none) {
         uint8_t *object = OBJ(object_index);
@@ -287,7 +274,7 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
                 break;
             case 1:
                 if (*(datum_index *)(object + 0x324) == k_datum_index_none) {
-                    actor_danger_register_stationary_object(0, actor_index, object_index, 0);
+                    halo::ai::actor_danger_register_stationary_object(0, actor_index, object_index, 0);
                 }
                 break;
             case 5:
@@ -298,7 +285,7 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
             }
         }
         if (((struct object *)object)->first_child_object != k_datum_index_none) {
-            actor_target_evaluate_squad_link(actor_index, ((struct object *)object)->first_child_object, candidates_a, candidates_b);
+            halo::ai::actor_target_evaluate_squad_link(actor_index, ((struct object *)object)->first_child_object, candidates_a, candidates_b);
         }
         object_index = ((struct object *)object)->next_object;
     }
@@ -307,11 +294,6 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
 #undef OBJ
 
 namespace actor_target_is_close_and_recognized_local {
-extern "C" {
-extern data_array *prop_data;
-extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
-    char create_if_missing, uint32_t flag);
-}
 }
 
 /**
@@ -329,11 +311,11 @@ uint8_t ActorOps::target_is_close_and_recognized(datum_index object_index, uint3
     if (actor_index == (datum_index)k_datum_index_none) {
         return 0;
     }
-    prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
+    prop_index = halo::ai::actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
     if (prop_index == (datum_index)k_datum_index_none) {
         return 0;
     }
-    p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
+    p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
     if (p->distance < 5.0f && (p->obstruction == 0 || p->obstruction == 1)) {
         return 1;
     }

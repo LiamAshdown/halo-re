@@ -18,6 +18,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -38,7 +39,6 @@ extern void unit_set_local_player_weapon_index(datum_index unit, int16_t weapon_
 extern game_time_globals *game_time;
 extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
-extern uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position, real_vector3d *out_vector);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
@@ -1278,7 +1278,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
         real_point3d position;
 
         halo::objects::object_get_position(&position, ((unit_object *)unit)->unit.throwing_grenade_projectile);
-        actor_compute_grenade_throw_vector(((unit_object *)unit)->unit.actor_index, &position, &velocity);
+        halo::ai::actor_compute_grenade_throw_vector(((unit_object *)unit)->unit.actor_index, &position, &velocity);
     } else {
         if (((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
             uint8_t *info = (uint8_t *)global_globals->player_information.pointer;

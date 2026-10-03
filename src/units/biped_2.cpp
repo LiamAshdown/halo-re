@@ -14,6 +14,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -27,7 +28,6 @@ extern double sin(double x);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t ignore_object_index, void *out_record);
@@ -312,7 +312,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     }
 
     if (test_flag(biped->flags, units::biped_flag::airborne) && biped->airborne_ticks < 0x16 &&
-        unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
+        unit->actor_index != k_datum_index_none && halo::ai::actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
         solve.steep_landing_maximum_slide = 0.1f;
         solve.steep_landing_minimum_penetration = 0.5f;
     }
@@ -709,7 +709,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     }
 
     if (test_flag(biped->flags, units::biped_flag::airborne) && biped->airborne_ticks < 0x16 &&
-        unit->actor_index != k_datum_index_none && actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
+        unit->actor_index != k_datum_index_none && halo::ai::actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
         solve.steep_landing_maximum_slide = 0.1f;
         solve.steep_landing_minimum_penetration = 0.5f;
     }

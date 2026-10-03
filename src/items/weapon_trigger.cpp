@@ -5,13 +5,12 @@
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
-extern data_array *actor_data;
 extern char s_primary_trigger_marker[];
 extern char s_secondary_trigger_marker[];
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
-extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 extern double fabs(double x);
 extern double sqrt(double x);
@@ -23,7 +22,6 @@ extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern int16_t network_game_mode;
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
-extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag, real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override, uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed, real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
 void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
 void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
 void halo::items::weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);
@@ -126,7 +124,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             }
             use_aiming_vector = (uint8_t)((*(uint32_t *)(holder_tag + 0x17c) >> 3) & 1);
             if (actor != k_datum_index_none &&
-                W((uint8_t *)actor_data->data + (actor & 0xffff) * 0x724, 0x5f2) == 4) {
+                W((uint8_t *)halo::ai::globals().actor_data->data + (actor & 0xffff) * 0x724, 0x5f2) == 4) {
                 project_point = 0;
             }
             if (D(holder_object, 0x328) != k_datum_index_none) {
@@ -151,7 +149,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 origin.z = origin.z + forward.k * x + left.k * y + up.k * z;
                 target = camera_observer_update(player, &origin, &forward);
             } else if (actor != k_datum_index_none) {
-                target = actor_compute_grenade_aim_direction(actor, &origin, &forward, &error);
+                target = halo::ai::actor_compute_grenade_aim_direction(actor, &origin, &forward, &error);
             }
         }
         if (*(uint32_t *)trigger & 0x20) {
@@ -629,7 +627,7 @@ uint8_t weapon_trigger_ref::get_aiming_vector(int16_t trigger_index, real_point3
         Projectile *projectile_tag =
             (Projectile *)halo::cache::globals().tag_instances[(uint16_t)(*(datum_index *)&trigger->projectile.tag_id)].data;
 
-        projectile_get_aiming_vector(target, 0, projectile_tag, origin, 0, 0, 0, use_high_arc,
+        halo::ai::projectile_get_aiming_vector(target, 0, projectile_tag, origin, 0, 0, 0, use_high_arc,
             out_direction, 0, out_time, out_range, out_used_straight_line);
         return 1;
     }

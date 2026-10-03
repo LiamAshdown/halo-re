@@ -4,17 +4,13 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void ai_object_list_set_unit_flag_800000(datum_index object_list_header_handle, char flag);
-extern void ai_object_list_update_vitality_fractions(datum_index object_list_header_handle, float body_delta,
-    float shield_delta);
-extern void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_header_handle, float override_max_body_vitality,
-    float override_max_shield_vitality);
 }
 
 namespace halo::hs::part3 {
@@ -325,7 +321,7 @@ void UnitCommands::evaluate_unit_impervious(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_set_unit_flag_800000((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::ai::ai_object_list_set_unit_flag_800000((datum_index)arguments[0], *(char *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -620,7 +616,7 @@ void UnitCommands::evaluate_units_set_current_vitality(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_object_list_update_vitality_fractions((datum_index)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
+    halo::ai::ai_object_list_update_vitality_fractions((datum_index)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -657,7 +653,7 @@ void UnitCommands::evaluate_units_set_maximum_vitality(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_initialize_shield_stun_thresholds((datum_index)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
+        halo::ai::ai_object_list_initialize_shield_stun_thresholds((datum_index)arguments[0], *(float *)&arguments[1], *(float *)&arguments[2]);
         hs_thread_return(0, thread_index);
     }
 }

@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/ai/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/saved_games/api.hpp"
@@ -269,7 +270,7 @@ int16_t global_structure_bsp_index = -1;
 /* 0x0069e8dc size 52: structure_bsp_activate_procedures */
 void * structure_bsp_activate_procedures[13] = {
     &halo::objects::objects_recompute_cluster_membership, &halo::objects::object_lights_refresh_transforms,
-    ai_unassigned_actors_attach_to_structure_bsp, halo::effects::effects_refresh_structure_locations,
+    &halo::ai::ai_unassigned_actors_attach_to_structure_bsp, halo::effects::effects_refresh_structure_locations,
     halo::effects::particles_refresh_structure_locations, halo::effects::particle_system_resolve_local_players,
     halo::effects::contrail_refresh_lightmap, halo::effects::decal_rehash_object_decals,
     halo::structures::structure_runtime_decals_mark_dirty, &halo::camera::observer_update_location,
@@ -280,7 +281,7 @@ void * structure_bsp_activate_procedures[13] = {
 /* 0x0069e910 size 40: structure_bsp_deactivate_procedures */
 void * structure_bsp_deactivate_procedures[10] = {
     &halo::objects::objects_delete_unparented_of_type_mask, &halo::objects::object_sweep_refresh_cluster_membership,
-    &halo::objects::object_lights_detach_from_structure_bsp, ai_reset_fire_group_assignments,
+    &halo::objects::object_lights_detach_from_structure_bsp, &halo::ai::ai_reset_fire_group_assignments,
     &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
     &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
     halo::structures::structure_runtime_decals_evict, halo::effects::decals_detach_from_structure_bsp,

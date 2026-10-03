@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern uint8_t weapon_infinite_ammo;
@@ -16,7 +17,6 @@ extern void unit_update_active_camouflage_depower(datum_index player_handle);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
-extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
 uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
 
@@ -261,7 +261,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             if (create_locally) {
                 halo::items::trigger_create_projectiles(item_index, trigger_index, role);
             }
-            ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)&((struct WeaponTrigger *)tag_trigger)->firing_noise, 1);
+            halo::ai::ai_refresh_unit_stimulus_and_alert(holder_index, *(int16_t *)&((struct WeaponTrigger *)tag_trigger)->firing_noise, 1);
         }
     }
 

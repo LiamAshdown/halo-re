@@ -20,6 +20,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
@@ -27,21 +28,13 @@ extern int16_t unit_speech_fallback_index[];
 extern int16_t unit_speech_priority_table[];
 extern float unit_speech_repeat_seconds[];
 extern char *unit_base_animation_state_names[6];
-extern data_array *actor_data;
-extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
 extern game_time_globals *game_time;
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern void console_print_va(const char *format, ...);
 extern int16_t network_game_mode;
-extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
-extern void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record, datum_index object_index);
-extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
-extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);
 }
 
 namespace halo::units {
@@ -347,7 +340,7 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
         if (actor == k_datum_index_none) {
             past_distance_bias = (distance_bias + 0.2f) < recent_damage;
         } else {
-            past_distance_bias = *(int16_t *)((uint8_t *)actor_data->data + halo::datum_slot(actor) * 0x724 + 0x6e) > 2;
+            past_distance_bias = *(int16_t *)((uint8_t *)halo::ai::globals().actor_data->data + halo::datum_slot(actor) * 0x724 + 0x6e) > 2;
         }
 
         if (source_category == 1) {
@@ -403,7 +396,7 @@ have_reaction_id:
 
 done:
     if (chain != -1) {
-        ai_refresh_unit_stimulus_and_alert(unit_index, (int16_t)out_communication_hold_tick, (int16_t)chain);
+        halo::ai::ai_refresh_unit_stimulus_and_alert(unit_index, (int16_t)out_communication_hold_tick, (int16_t)chain);
     }
     return success;
 }
@@ -504,15 +497,15 @@ void UnitView::evaluate_flee_reaction()
             if (!(halo::math::vector3d_normalize_with_length(direction) > 0.0f) ||
                 UnitView(object_index).test_placement_candidate(&direction, &normal, 8.0f, 0) == -1 ||
                 !(normal.k > 0.3f)) {
-                ai_communication_broadcast(0x28, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
+                halo::ai::ai_communication_broadcast(0x28, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
                 return;
             }
         }
         if (parent->up.k > 0.6f && halo::math::vector3d_length(parent->angular_velocity) < 0.05235988f) {
-            ai_communication_broadcast(0x26, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
+            halo::ai::ai_communication_broadcast(0x26, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
             return;
         }
-        ai_communication_broadcast(0x27, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
+        halo::ai::ai_communication_broadcast(0x27, object_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
     }
 }
 
@@ -693,7 +686,7 @@ void UnitView::play_default_reaction_sound(datum_index sound_tag, datum_index so
     unit->speech_started = 1;
     unit->speech_delay_ticks = 0;
     if (unit->current_speech.suppress_line_record == 0) {
-        ai_communication_record_line_played(unit_index, 6, (int16_t)unit->current_speech.ai_line_index, -1);
+        halo::ai::ai_communication_record_line_played(unit_index, 6, (int16_t)unit->current_speech.ai_line_index, -1);
     }
 }
 
@@ -1232,7 +1225,7 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
         }
     }
     ((struct unit_object *)self)->unit.animation_state = 0x1b;
-    actor_notify_weapon_pickup_once(unit_index);
+    halo::ai::actor_notify_weapon_pickup_once(unit_index);
     if (((unit_object *)self)->base.network_role == 0) {
         ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
     }
@@ -1475,7 +1468,7 @@ void UnitView::update_animation_timers()
                 ((unit_object *)obj)->unit.speech_sound_handle = halo::sound::sound_start_at_object_marker(unit_index, &position, &forward,
                     ((unit_object *)obj)->unit.current_speech.sound_tag, node, 1.0f, 0);
             }
-            ai_communication_gate_line_played(((unit_object *)obj)->unit.current_speech.priority, (ai_communication_record *)&((struct unit_object *)obj)->unit.current_speech.unknown_10,
+            halo::ai::ai_communication_gate_line_played(((unit_object *)obj)->unit.current_speech.priority, (ai_communication_record *)&((struct unit_object *)obj)->unit.current_speech.unknown_10,
                 unit_index);
             ((struct unit_object *)obj)->unit.speech_started = 1;
         }
@@ -1490,7 +1483,7 @@ void UnitView::update_animation_timers()
             goto tail;
         }
         if ((uint8_t)((struct unit_object *)obj)->unit.speech_finished == 0) {
-            ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)&((unit_object *)obj)->unit.current_speech.scream_type, 0, k_datum_index_none,
+            halo::ai::ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)&((unit_object *)obj)->unit.current_speech.scream_type, 0, k_datum_index_none,
                 (uint32_t *)&((struct unit_object *)obj)->unit.current_speech.unknown_10);
             ((struct unit_object *)obj)->unit.speech_finished = 1;
         }
@@ -1501,7 +1494,7 @@ void UnitView::update_animation_timers()
     }
 tail:
     if (((unit_object *)obj)->unit.speech_lipsync_ticks == 0 && (uint8_t)((struct unit_object *)obj)->unit.speech_lipsync_stopped == 0) {
-        ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&((struct unit_object *)obj)->unit.current_speech.unknown_10);
+        halo::ai::ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&((struct unit_object *)obj)->unit.current_speech.unknown_10);
         ((struct unit_object *)obj)->unit.speech_lipsync_stopped = 1;
     }
     if (((unit_object *)obj)->unit.current_speech.priority > 0 && ((unit_object *)obj)->unit.speech_duration_ticks == 0 && ((unit_object *)obj)->unit.speech_tail_ticks == 0) {

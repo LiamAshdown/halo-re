@@ -4,22 +4,17 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_seek_vehicle_to_board_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 extern uint8_t *ai_globals_ptr;
-extern uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index vehicle_index);
-extern uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a,
-                                               float radius_b, uint8_t *order);
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
 }
 }
 
@@ -61,7 +56,7 @@ uint8_t ActorView::seek_vehicle_to_board()
 
             prop_index = ((struct prop *)p)->next_in_actor;
             if (kind < 2 || kind > 3 || !p[0x12e] || p[0x60] || vehicle == k_datum_index_none ||
-                !actor_vehicle_not_recently_left(actor_index, vehicle)) {
+                !halo::ai::actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
             vehicle_object = (uint8_t *)halo::objects::object_try_and_get(vehicle, 2);
@@ -98,7 +93,7 @@ uint8_t ActorView::seek_vehicle_to_board()
             float dz;
             float distance_squared;
 
-            if (halo::objects::object_try_and_get(vehicle, 2) == 0 || !actor_vehicle_not_recently_left(actor_index, vehicle)) {
+            if (halo::objects::object_try_and_get(vehicle, 2) == 0 || !halo::ai::actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
             halo::objects::object_get_position(&position, vehicle);
@@ -163,8 +158,8 @@ uint8_t ActorView::seek_vehicle_to_board()
             return 0;
         }
     }
-    if (actor_build_order_search_object(best_vehicle, actor_index, radius_a, radius_b, order)) {
-        actor_set_mode(actor_index, 9, order);
+    if (halo::ai::actor_build_order_search_object(best_vehicle, actor_index, radius_a, radius_b, order)) {
+        halo::ai::actor_set_mode(actor_index, 9, order);
         return 1;
     }
     return 0;

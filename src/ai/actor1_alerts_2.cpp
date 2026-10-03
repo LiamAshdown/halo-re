@@ -4,25 +4,15 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_investigate_disturbance_update {
 extern "C" {
-extern data_array *actor_data;
 extern game_time_globals *game_time;
 
-extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index);
-extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
-    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
-    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
-extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
-    real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index);
-extern void actor_movement_action_stop(datum_index actor_index);
-extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra);
 }
 }
 
-extern "C" int32_t actor_investigate_disturbance_update(uint32_t actor_index);
 
 /**
  * actor_investigate_disturbance_update: behaviour unchanged from the original routine. The original author notes and decompile
@@ -34,7 +24,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
 {
     using namespace c_actor_investigate_disturbance_update;
     uint32_t actor_index = datum;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     void *vehicle = halo::objects::object_try_and_get(*(datum_index *)&((struct actor *)act)->mode_data, 2);
 
     if (((actor *)act)->active_unit_index != k_datum_index_none) {
@@ -43,7 +33,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
         if (vehicle == 0) {
             *(datum_index *)&((struct actor *)act)->mode_data = k_datum_index_none;
             act[0xa6] = 1;
-        } else if (!actor_is_within_alert_range(act[0xa2] == 0, *(float *)(act + 0xbc), *(float *)(act + 0xc0), 0, 1,
+        } else if (!halo::ai::actor_is_within_alert_range(act[0xa2] == 0, *(float *)(act + 0xbc), *(float *)(act + 0xc0), 0, 1,
                                                 actor_index, *(datum_index *)&((struct actor *)act)->mode_data)) {
             act[0xa6] = 1;
         } else {
@@ -64,7 +54,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                 }
             }
             if (*(int16_t *)(act + 0xaa) >= 8 ||
-                !actor_evaluate_search_node(actor_index, *(datum_index *)&((struct actor *)act)->mode_data, *(int16_t *)(act + 0xa0), &entry,
+                !halo::ai::actor_evaluate_search_node(actor_index, *(datum_index *)&((struct actor *)act)->mode_data, *(int16_t *)(act + 0xa0), &entry,
                                             &direction, &hint, 0, &close, &facing, &in_front)) {
                 act[0xa6] = 1;
             } else {
@@ -83,13 +73,13 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                                                 ((actor *)act)->unit_index);
                         act[0xa4] = 1;
                     } else {
-                        actor_movement_action_stop(actor_index);
+                        halo::ai::actor_movement_action_stop(actor_index);
                     }
                 } else if (act[0x4c] != 0) {
-                    if (actor_avoid_obstacle_and_project(actor_index, *(datum_index *)&((struct actor *)act)->mode_data, &entry, &hint,
+                    if (halo::ai::actor_avoid_obstacle_and_project(actor_index, *(datum_index *)&((struct actor *)act)->mode_data, &entry, &hint,
                                                          act + 0xa3, (real_point3d *)(act + 0xcc),
                                                          (int32_t *)(act + 0xe4)) &&
-                        actor_movement_set_destination_point((real_point3d *)(act + 0xcc), actor_index,
+                        halo::ai::actor_movement_set_destination_point((real_point3d *)(act + 0xcc), actor_index,
                                                              *(int32_t *)(act + 0xe4), *(datum_index *)&((struct actor *)act)->mode_data)) {
                         *(int16_t *)(act + 0xa8) = 0;
                     } else {
@@ -109,8 +99,10 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
     return act[0xa5] != 0 || act[0xa6] != 0;
 }
 
-extern "C" int32_t actor_investigate_disturbance_update(uint32_t actor_index)
+namespace halo::ai {
+int32_t actor_investigate_disturbance_update(uint32_t actor_index)
 {
     return halo::ai::alert_ops(actor_index).investigate_disturbance_update();
+}
 }
 

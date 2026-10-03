@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -16,7 +17,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
-extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern double cos(double x);
 extern double sin(double x);
@@ -295,7 +295,7 @@ int ProjectileHandle::update()
                 self->projectile.ignore_object_index = k_datum_index_none;
                 projectile_response(projectile_index, &hit, &swept, &vel);
                 collisions++;
-                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, definition->impact_noise, 1);
+                halo::ai::ai_accumulate_repeated_event(projectile_index, &hit.point, 1, (int16_t)definition->impact_noise);
                 if (self->projectile.flags & to_bits(projectile_flag::attached)) {
                     goto next_step;
                 }

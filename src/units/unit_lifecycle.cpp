@@ -18,6 +18,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -33,14 +34,11 @@ extern uint8_t object_collision_context_test_pill(object_collision_context *cont
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
-extern ai_globals *ai_globals_ptr;
 extern char *s_stand;
-extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
 extern double sqrt(double x);
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
 extern uint8_t unit_updates_suppressed;
-extern uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit);
 }
 
 namespace halo::units {
@@ -439,9 +437,9 @@ uint8_t UnitView::new_()
                 goto done_seat_scan;
             }
         }
-        if (ai_globals_ptr->actors_valid != 0 && ai_globals_ptr->vehicle_entry_count < 8) {
-            ai_globals_ptr->vehicle_entry_queue[ai_globals_ptr->vehicle_entry_count] = (datum_index)object_index;
-            ai_globals_ptr->vehicle_entry_count = ai_globals_ptr->vehicle_entry_count + 1;
+        if (halo::ai::globals().state->actors_valid != 0 && halo::ai::globals().state->vehicle_entry_count < 8) {
+            halo::ai::globals().state->vehicle_entry_queue[halo::ai::globals().state->vehicle_entry_count] = (datum_index)object_index;
+            halo::ai::globals().state->vehicle_entry_count = halo::ai::globals().state->vehicle_entry_count + 1;
         }
     }
 done_seat_scan:
@@ -502,7 +500,7 @@ int32_t UnitView::pick_random_spawned_actor_count()
             result = (int32_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> halo::k_random_high_shift)) >> 0x10) +
                      (int32_t)((((uint32_t)halo::cache::globals().tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
-                result = actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
+                result = halo::ai::actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
                     unit_index, ((struct Unit *)unit_tag)->spawned_velocity * 0.033333335f);
             }
             unit->flags |= _unit_flag_permutation_chosen;
@@ -689,7 +687,7 @@ uint32_t UnitView::snap_to_min_ground_height()
     if (actor_index != k_datum_index_none) {
         uint8_t skip_clamp = ((uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x27 || (uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x28) ? 1 : 0;
 
-        result = actor_get_requested_velocity(skip_clamp, actor_index, &velocity, object_index, jump_speed);
+        result = halo::ai::actor_get_requested_velocity(skip_clamp, actor_index, &velocity, object_index, jump_speed);
         if (!result) {
             return 0;
         }

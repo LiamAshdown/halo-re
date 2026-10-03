@@ -7,23 +7,20 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
-extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point, int32_t start_surface_index,
-    int16_t kind);
 }
 }
 
-extern "C" uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out);
 
 /**
  * actor_build_guard_mode_data: behaviour unchanged from the original routine. The original author notes and decompile
@@ -42,7 +39,7 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
     if (B(0x160) != 0 || B(6) != 0) {
         *(int16_t *)(out + 0x24) = 1;
     } else if (B(0x314) != 0 &&
-               actor_firing_position_near_point(actor_index, &((struct actor *)actor)->search_position, (int32_t)D(0x324), 1)) {
+               halo::ai::actor_firing_position_near_point(actor_index, &((struct actor *)actor)->search_position, (int32_t)D(0x324), 1)) {
         *(int16_t *)(out + 0x24) = 2;
         memcpy(out + 0x28, actor + 0x318, 12);
         *(uint32_t *)(out + 0x34) = D(0x324);
@@ -73,9 +70,11 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
     return 1;
 }
 
-extern "C" uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out)
+namespace halo::ai {
+uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out)
 {
     return halo::ai::order_builder(actor_index).build_guard_mode_data(out);
+}
 }
 
 #undef ACTOR
@@ -85,12 +84,8 @@ extern "C" uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t 
 #undef W
 
 namespace c_actor_build_order_default {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" int32_t actor_build_order_default(uint32_t actor_index, int16_t order_code, actor_order *order, int16_t parameter);
 
 /**
  * actor_build_order_default: behaviour unchanged from the original routine. The original author notes and decompile
@@ -102,7 +97,7 @@ int32_t halo::ai::order_builder::default_(int16_t order_code, actor_order *order
 {
     using namespace c_actor_build_order_default;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = (uint32_t *)order;
     int32_t i;
 
@@ -124,18 +119,16 @@ int32_t halo::ai::order_builder::default_(int16_t order_code, actor_order *order
     return 1;
 }
 
-extern "C" int32_t actor_build_order_default(uint32_t actor_index, int16_t order_code, actor_order *order, int16_t parameter)
+namespace halo::ai {
+int32_t actor_build_order_default(uint32_t actor_index, int16_t order_code, actor_order *order, int16_t parameter)
 {
     return halo::ai::order_builder(actor_index).default_(order_code, order, parameter);
 }
+}
 
 namespace c_actor_build_order_face_seat_marker {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" uint32_t actor_build_order_face_seat_marker(uint32_t actor_index, int16_t firing_position_index, uint32_t *order);
 
 /**
  * actor_build_order_face_seat_marker: behaviour unchanged from the original routine. The original author notes and decompile
@@ -147,7 +140,7 @@ uint32_t halo::ai::order_builder::face_seat_marker(int16_t firing_position_index
 {
     using namespace c_actor_build_order_face_seat_marker;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = order;
     int32_t i;
     uint32_t result = 0;
@@ -176,18 +169,16 @@ uint32_t halo::ai::order_builder::face_seat_marker(int16_t firing_position_index
     return result;
 }
 
-extern "C" uint32_t actor_build_order_face_seat_marker(uint32_t actor_index, int16_t firing_position_index, uint32_t *order)
+namespace halo::ai {
+uint32_t actor_build_order_face_seat_marker(uint32_t actor_index, int16_t firing_position_index, uint32_t *order)
 {
     return halo::ai::order_builder(actor_index).face_seat_marker(firing_position_index, order);
 }
+}
 
 namespace c_actor_build_order_face_seat_marker_committed {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" uint32_t actor_build_order_face_seat_marker_committed(uint32_t actor_index, int16_t firing_position_index, uint8_t byte_a, uint32_t *order);
 
 /**
  * actor_build_order_face_seat_marker_committed: behaviour unchanged from the original routine. The original author notes and decompile
@@ -199,7 +190,7 @@ uint32_t halo::ai::order_builder::face_seat_marker_committed(int16_t firing_posi
 {
     using namespace c_actor_build_order_face_seat_marker_committed;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = order;
     int32_t i;
     uint32_t result = 0;
@@ -227,18 +218,16 @@ uint32_t halo::ai::order_builder::face_seat_marker_committed(int16_t firing_posi
     return result;
 }
 
-extern "C" uint32_t actor_build_order_face_seat_marker_committed(uint32_t actor_index, int16_t firing_position_index, uint8_t byte_a, uint32_t *order)
+namespace halo::ai {
+uint32_t actor_build_order_face_seat_marker_committed(uint32_t actor_index, int16_t firing_position_index, uint8_t byte_a, uint32_t *order)
 {
     return halo::ai::order_builder(actor_index).face_seat_marker_committed(firing_position_index, byte_a, order);
 }
+}
 
 namespace c_actor_build_order_flee {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *order);
 
 /**
  * actor_build_order_flee: behaviour unchanged from the original routine. The original author notes and decompile
@@ -250,7 +239,7 @@ int32_t halo::ai::order_builder::flee(uint8_t byte_a, uint32_t *order)
 {
     using namespace c_actor_build_order_flee;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = order;
     int32_t i;
 
@@ -268,23 +257,16 @@ int32_t halo::ai::order_builder::flee(uint8_t byte_a, uint32_t *order)
     return 0;
 }
 
-extern "C" int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *order)
+namespace halo::ai {
+int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *order)
 {
     return halo::ai::order_builder(actor_index).flee(byte_a, order);
 }
+}
 
 namespace c_actor_build_order_grenade_or_melee {
-extern "C" {
-extern data_array *actor_data;
-
-extern uint16_t actor_consider_target_candidate(datum_index actor_index,
-                                                datum_index candidate_prop_index);
-
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order);
-}
 }
 
-extern "C" int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base, uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order);
 
 /**
  * actor_build_order_grenade_or_melee: behaviour unchanged from the original routine. The original author notes and decompile
@@ -295,7 +277,7 @@ extern "C" int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, 
 int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base, uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order)
 {
     using namespace c_actor_build_order_grenade_or_melee;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     int32_t i;
     uint16_t *body = order;
 
@@ -316,7 +298,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
     *((uint8_t *)order + 5) = byte_b;
     *(uint32_t *)(order + 0xe) = resolved_target;
     if (resolved_target != halo::k_dword_none) {
-        actor_consider_target_candidate(actor_index, (datum_index)resolved_target);
+        halo::ai::actor_consider_target_candidate(actor_index, (datum_index)resolved_target);
     }
 
     if ((int16_t)order_code > 8 && (int16_t)order_code < 0xd) {
@@ -327,7 +309,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
         }
     }
     if (a->swarm == 0) {
-        actor_check_melee_target_reachable(actor_index, (int16_t *)order);
+        halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)order);
         if (order[4] != halo::k_word_none) {
             return 1;
         }
@@ -336,18 +318,16 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
     return 0;
 }
 
-extern "C" int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base, uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order)
+namespace halo::ai {
+int32_t actor_build_order_grenade_or_melee(uint32_t resolved_target, uint8_t use_alt_base, uint32_t actor_index, uint16_t order_code, uint8_t byte_a, uint8_t byte_b, uint16_t *order)
 {
     return halo::ai::order_builder::grenade_or_melee(resolved_target, use_alt_base, actor_index, order_code, byte_a, byte_b, order);
 }
+}
 
 namespace c_actor_build_order_guard {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position);
 
 /**
  * actor_build_order_guard: behaviour unchanged from the original routine. The original author notes and decompile
@@ -359,7 +339,7 @@ int32_t halo::ai::order_builder::guard(actor_order *order, int16_t guard_at_curr
 {
     using namespace c_actor_build_order_guard;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     int16_t *body = (int16_t *)order;
     int32_t i;
 
@@ -392,26 +372,16 @@ int32_t halo::ai::order_builder::guard(actor_order *order, int16_t guard_at_curr
     return 1;
 }
 
-extern "C" int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position)
+namespace halo::ai {
+int32_t actor_build_order_guard(uint32_t actor_index, actor_order *order, int16_t guard_at_current_position)
 {
     return halo::ai::order_builder(actor_index).guard(order, guard_at_current_position);
 }
+}
 
 namespace c_actor_build_order_investigate_encounter_point {
-extern "C" {
-extern data_array *actor_data;
-
-extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
-    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
-    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
-extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
-    real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index);
-extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra);
-}
 }
 
-extern "C" uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index, uint8_t *order);
 
 /**
  * actor_build_order_investigate_encounter_point: behaviour unchanged from the original routine. The original author notes and decompile
@@ -422,7 +392,7 @@ extern "C" uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicl
 uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index, uint8_t *order)
 {
     using namespace c_actor_build_order_investigate_encounter_point;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *vehicle;
     real_point3d entry;
     real_vector3d direction;
@@ -442,33 +412,30 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     if (!halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat_index)) {
         return 0;
     }
-    if (!actor_evaluate_search_node(actor_index, vehicle_index, seat_index, &entry, &direction, &hint, 0, 0, 0, 0)) {
+    if (!halo::ai::actor_evaluate_search_node(actor_index, vehicle_index, seat_index, &entry, &direction, &hint, 0, 0, 0, 0)) {
         return 0;
     }
-    if (!actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),
+    if (!halo::ai::actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),
                                           (int32_t *)(order + 0x48))) {
         return 0;
     }
-    if (!actor_movement_set_destination_point((real_point3d *)(order + 0x30), actor_index, *(int32_t *)(order + 0x48),
+    if (!halo::ai::actor_movement_set_destination_point((real_point3d *)(order + 0x30), actor_index, *(int32_t *)(order + 0x48),
                                               vehicle_index)) {
         return 0;
     }
     return 1;
 }
 
-extern "C" uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index, uint8_t *order)
+namespace halo::ai {
+uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index, uint8_t *order)
 {
     return halo::ai::order_builder::investigate_encounter_point(vehicle_index, actor_index, seat_index, order);
 }
+}
 
 namespace c_actor_build_order_look {
-extern "C" {
-extern data_array *actor_data;
-
-}
 }
 
-extern "C" int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_look_request *request);
 
 /**
  * actor_build_order_look: behaviour unchanged from the original routine. The original author notes and decompile
@@ -480,7 +447,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
 {
     using namespace c_actor_build_order_look;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint8_t *o = (uint8_t *)order;
     uint32_t *body = (uint32_t *)order;
     int32_t i;
@@ -550,18 +517,16 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
     return 1;
 }
 
-extern "C" int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_look_request *request)
+namespace halo::ai {
+int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_look_request *request)
 {
     return halo::ai::order_builder(actor_index).look(order, request);
 }
+}
 
 namespace c_actor_build_order_minimal_stop {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order);
 
 /**
  * actor_build_order_minimal_stop: behaviour unchanged from the original routine. The original author notes and decompile
@@ -573,7 +538,7 @@ int32_t halo::ai::order_builder::minimal_stop(uint32_t *order)
 {
     using namespace c_actor_build_order_minimal_stop;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = order;
     int32_t i;
 
@@ -590,19 +555,19 @@ int32_t halo::ai::order_builder::minimal_stop(uint32_t *order)
     return 0;
 }
 
-extern "C" int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order)
+namespace halo::ai {
+int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t *order)
 {
     return halo::ai::order_builder(actor_index).minimal_stop(order);
+}
 }
 
 namespace c_actor_build_order_random_wait {
 extern "C" {
-extern data_array *actor_data;
 extern game_time_globals *game_time;
 }
 }
 
-extern "C" int32_t actor_build_order_random_wait(uint32_t actor_index, uint8_t byte_a, uint32_t *order);
 
 /**
  * actor_build_order_random_wait: behaviour unchanged from the original routine. The original author notes and decompile
@@ -614,7 +579,7 @@ int32_t halo::ai::order_builder::random_wait(uint8_t byte_a, uint32_t *order)
 {
     using namespace c_actor_build_order_random_wait;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = order;
     int32_t i;
 
@@ -636,18 +601,16 @@ int32_t halo::ai::order_builder::random_wait(uint8_t byte_a, uint32_t *order)
     return 0;
 }
 
-extern "C" int32_t actor_build_order_random_wait(uint32_t actor_index, uint8_t byte_a, uint32_t *order)
+namespace halo::ai {
+int32_t actor_build_order_random_wait(uint32_t actor_index, uint8_t byte_a, uint32_t *order)
 {
     return halo::ai::order_builder(actor_index).random_wait(byte_a, order);
 }
+}
 
 namespace c_actor_build_order_return_to_anchor {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" int32_t actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order);
 
 /**
  * actor_build_order_return_to_anchor: behaviour unchanged from the original routine. The original author notes and decompile
@@ -659,7 +622,7 @@ int32_t halo::ai::order_builder::return_to_anchor(actor_order *order)
 {
     using namespace c_actor_build_order_return_to_anchor;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = (uint32_t *)order;
     int32_t i;
 
@@ -676,26 +639,16 @@ int32_t halo::ai::order_builder::return_to_anchor(actor_order *order)
     return 1;
 }
 
-extern "C" int32_t actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order)
+namespace halo::ai {
+int32_t actor_build_order_return_to_anchor(uint32_t actor_index, actor_order *order)
 {
     return halo::ai::order_builder(actor_index).return_to_anchor(order);
 }
+}
 
 namespace c_actor_build_order_search_object {
-extern "C" {
-extern data_array *actor_data;
-
-extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index);
-extern int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry,
-                                           real_vector3d *out_direction, real_point3d *out_hint);
-extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry,
-    real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index);
-extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
-                                                    int32_t parameter, uint32_t extra);
-}
 }
 
-extern "C" uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b, uint8_t *order);
 
 /**
  * actor_build_order_search_object: behaviour unchanged from the original routine. The original author notes and decompile
@@ -706,7 +659,7 @@ extern "C" uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint3
 uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b, uint8_t *order)
 {
     using namespace c_actor_build_order_search_object;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     real_point3d entry;
     real_vector3d direction;
     real_point3d hint;
@@ -718,11 +671,11 @@ uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t 
     if (((actor *)act)->active_unit_index != k_datum_index_none || act[0x6] != 0 || ((actor *)act)->mode == 9) {
         return 0;
     }
-    if (!actor_is_within_alert_range(0, radius_a, radius_b, 0, 0, actor_index, vehicle_index)) {
+    if (!halo::ai::actor_is_within_alert_range(0, radius_a, radius_b, 0, 0, actor_index, vehicle_index)) {
         return 0;
     }
     *(datum_index *)(order + 0x0) = vehicle_index;
-    seat = actor_find_best_search_node(actor_index, vehicle_index, &entry, &direction, &hint);
+    seat = halo::ai::actor_find_best_search_node(actor_index, vehicle_index, &entry, &direction, &hint);
     *(int16_t *)(order + 0x4) = seat;
     if (seat == -1) {
         return 0;
@@ -731,32 +684,27 @@ uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t 
     if (!halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
         return 0;
     }
-    if (!actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),
+    if (!halo::ai::actor_avoid_obstacle_and_project(actor_index, vehicle_index, &entry, &hint, 0, (real_point3d *)(order + 0x30),
                                           (int32_t *)(order + 0x48))) {
         return 0;
     }
-    if (!actor_movement_set_destination_point((real_point3d *)(order + 0x30), actor_index, *(int32_t *)(order + 0x48),
+    if (!halo::ai::actor_movement_set_destination_point((real_point3d *)(order + 0x30), actor_index, *(int32_t *)(order + 0x48),
                                               vehicle_index)) {
         return 0;
     }
     return 1;
 }
 
-extern "C" uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b, uint8_t *order)
+namespace halo::ai {
+uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a, float radius_b, uint8_t *order)
 {
     return halo::ai::order_builder::search_object(vehicle_index, actor_index, radius_a, radius_b, order);
 }
+}
 
 namespace c_actor_build_order_search_wait {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-
-extern void actor_target_get_relationship_object(datum_index target_prop_index);
-}
 }
 
-extern "C" int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order);
 
 /**
  * actor_build_order_search_wait: behaviour unchanged from the original routine. The original author notes and decompile
@@ -768,7 +716,7 @@ int32_t halo::ai::order_builder::search_wait(actor_order *order)
 {
     using namespace c_actor_build_order_search_wait;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = (uint32_t *)order;
     int32_t i;
 
@@ -787,7 +735,7 @@ int32_t halo::ai::order_builder::search_wait(actor_order *order)
     }
 
     if (a->order_committed == 0 && a->swarm == 0 && a->post_combat_prop_index != (datum_index)k_datum_index_none) {
-        prop *p = &((prop *)prop_data->data)[a->post_combat_prop_index & halo::k_slot_mask];
+        prop *p = &((prop *)halo::ai::globals().prop_data->data)[a->post_combat_prop_index & halo::k_slot_mask];
 
         *(int32_t *)((uint8_t *)order + 0x3c) = a->post_combat_prop_index;
         order->unknown_02 = 0x78;
@@ -808,7 +756,7 @@ int32_t halo::ai::order_builder::search_wait(actor_order *order)
             return 1;
         }
 
-        actor_target_get_relationship_object(a->post_combat_prop_index);
+        halo::ai::actor_target_get_relationship_object(a->post_combat_prop_index);
         *(int16_t *)((uint8_t *)order + 0x24) = 2;
         *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->pathfinding_point.x;
         *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->pathfinding_point.y;
@@ -818,18 +766,16 @@ int32_t halo::ai::order_builder::search_wait(actor_order *order)
     return 1;
 }
 
-extern "C" int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
+namespace halo::ai {
+int32_t actor_build_order_search_wait(uint32_t actor_index, actor_order *order)
 {
     return halo::ai::order_builder(actor_index).search_wait(order);
 }
+}
 
 namespace c_actor_build_order_wait_byte {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" int32_t actor_build_order_wait_byte(uint32_t actor_index, uint8_t byte_a, uint32_t *order);
 
 /**
  * actor_build_order_wait_byte: behaviour unchanged from the original routine. The original author notes and decompile
@@ -841,7 +787,7 @@ int32_t halo::ai::order_builder::wait_byte(uint8_t byte_a, uint32_t *order)
 {
     using namespace c_actor_build_order_wait_byte;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint32_t *body = order;
     int32_t i;
 
@@ -858,20 +804,16 @@ int32_t halo::ai::order_builder::wait_byte(uint8_t byte_a, uint32_t *order)
     return 0;
 }
 
-extern "C" int32_t actor_build_order_wait_byte(uint32_t actor_index, uint8_t byte_a, uint32_t *order)
+namespace halo::ai {
+int32_t actor_build_order_wait_byte(uint32_t actor_index, uint8_t byte_a, uint32_t *order)
 {
     return halo::ai::order_builder(actor_index).wait_byte(byte_a, order);
 }
+}
 
 namespace c_actor_build_path_find_request {
-extern "C" {
-extern data_array *actor_data;
-
-extern void actor_update_target_lead_position(datum_index actor_index);
-}
 }
 
-extern "C" void actor_build_path_find_request(datum_index actor_index, path_find_request *request);
 
 /**
  * actor_build_path_find_request: behaviour unchanged from the original routine. The original author notes and decompile
@@ -893,7 +835,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     uint32_t *clear;
     int32_t i;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     unit_index = self->unit_index;
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     radius = actor_definition->pathfinding_radius;
@@ -907,7 +849,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
         }
     }
 
-    actor_update_target_lead_position(actor_index);
+    halo::ai::actor_update_target_lead_position(actor_index);
     ignores_glass = self->ignores_glass;
 
     clear = (uint32_t *)request;
@@ -925,8 +867,10 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     request->start_surface_index = (uint32_t)self->pathfinding_surface_index;
 }
 
-extern "C" void actor_build_path_find_request(datum_index actor_index, path_find_request *request)
+namespace halo::ai {
+void actor_build_path_find_request(datum_index actor_index, path_find_request *request)
 {
     halo::ai::order_builder(actor_index).build_path_find_request(request);
+}
 }
 

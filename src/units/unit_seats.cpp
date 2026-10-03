@@ -17,6 +17,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
@@ -28,20 +29,14 @@ extern void player_update_history_free_all(void *history);
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern uint8_t unit_updates_suppressed;
 extern real_point3d *global_origin3d_pointer;
-extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern uint8_t network_object_index_cache[];
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern double sqrt(double x);
-extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern char *unit_base_animation_state_names[6];
-extern data_array *actor_data;
-extern void actor_attempt_grenade_throw(uint32_t actor_index);
-extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
 extern void player_reset_after_unit_change(uint32_t controlling_player);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
@@ -756,7 +751,7 @@ uint32_t halo::units::unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t se
     }
 
     if (((struct unit_object *)OBJECT_DATA(unit_index))->unit.actor_index != k_datum_index_none) {
-        ai_communication_broadcast(0x24, unit_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
+        halo::ai::ai_communication_broadcast(0x24, unit_index, k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
     }
     UnitView(unit_index).validate_and_clear_weapon_switch();
     {
@@ -893,7 +888,7 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
                     }
                     object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(occupant)].data;
                     unit_data *occupant_unit = (unit_data *)((uint8_t *)occupant_obj + k_unit_data_offset);
-                    if (occupant_unit->actor_index == k_datum_index_none || actor_check_vehicle_target_available(unit_index, occupant_unit->actor_index, 0) == 0) {
+                    if (occupant_unit->actor_index == k_datum_index_none || halo::ai::actor_check_vehicle_target_available(unit_index, occupant_unit->actor_index, 0) == 0) {
                         continue;
                     }
                     rank = 1;
@@ -1355,17 +1350,17 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
             unit->controlling_player = k_datum_index_none;
         }
         if (unit->actor_index != k_datum_index_none) {
-            uint8_t *actor_rec = (uint8_t *)actor_data->data + halo::datum_slot(unit->actor_index) * 0x724;
+            uint8_t *actor_rec = (uint8_t *)halo::ai::globals().actor_data->data + halo::datum_slot(unit->actor_index) * 0x724;
             ((struct unit_object *)self_obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_rec)->encounter_index;
             ((struct unit_object *)self_obj)->unit.squad_index = ((actor *)actor_rec)->squad_index;
-            actor_attempt_grenade_throw(unit->actor_index);
+            halo::ai::actor_attempt_grenade_throw(unit->actor_index);
             unit->actor_index = k_datum_index_none;
         }
         if (unit->swarm_actor_index != k_datum_index_none) {
-            uint8_t *actor_rec = (uint8_t *)actor_data->data + halo::datum_slot(unit->swarm_actor_index) * 0x724;
+            uint8_t *actor_rec = (uint8_t *)halo::ai::globals().actor_data->data + halo::datum_slot(unit->swarm_actor_index) * 0x724;
             ((struct unit_object *)self_obj)->unit.encounter_index = *(int16_t *)&((actor *)actor_rec)->encounter_index;
             ((struct unit_object *)self_obj)->unit.squad_index = ((actor *)actor_rec)->squad_index;
-            actor_release_from_cluster_or_delete(unit->swarm_actor_index, unit_index);
+            halo::ai::actor_release_from_cluster_or_delete(unit->swarm_actor_index, unit_index);
             unit->swarm_actor_index = k_datum_index_none;
         }
         unit->death_time = game_time->game_time;
@@ -2013,7 +2008,7 @@ void UnitView::try_exit_controlled_seat()
                 }
             }
             ((struct unit_object *)self)->unit.animation_state = 0x1b;
-            actor_notify_weapon_pickup_once(unit_index);
+            halo::ai::actor_notify_weapon_pickup_once(unit_index);
             if (((unit_object *)self)->base.network_role == 0) {
                 ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
             }

@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern char hs_parse_primitive(datum_index node_index);
@@ -17,7 +18,6 @@ extern data_array *hs_syntax_data;
 extern char *hs_compiled_source;
 extern char *hs_compile_error;
 extern int32_t hs_compile_error_offset;
-extern uint8_t ai_reference_parse(char *reference_string, Scenario *scenario, uint32_t *out_packed_reference);
 extern char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagReflexive *array, int32_t stride);
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern char hs_parse(datum_index node_index, hs_type_t expected_type);
@@ -110,7 +110,7 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
 char Parser::parse_ai(datum_index node_index) const
 {
     hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    uint8_t found = ai_reference_parse(hs_compiled_source + node->source_offset, halo::scenario::globals().scenario,
+    uint8_t found = halo::ai::ai_reference_parse(hs_compiled_source + node->source_offset, halo::scenario::globals().scenario,
         (uint32_t *)&node->data);
 
     if (!found) {

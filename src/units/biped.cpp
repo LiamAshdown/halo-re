@@ -16,6 +16,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern uint8_t *cinematic_globals_ptr;
@@ -36,14 +37,12 @@ extern data_array *player_data;
 extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern real_point3d *global_origin3d_pointer;
-extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
 extern void player_update_history_free_all(void *history);
 extern double sqrt(double x);
-extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 }
@@ -570,7 +569,7 @@ uint8_t BipedView::update()
                             }
                         }
                         ((struct unit_object *)self)->unit.animation_state = 0x1b;
-                        actor_notify_weapon_pickup_once(object_index);
+                        halo::ai::actor_notify_weapon_pickup_once(object_index);
                         if (((unit_object *)self)->base.network_role == 0) {
                             ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)object_index);
                         }
@@ -854,7 +853,7 @@ void halo::units::biped_update_target_lock_timer(datum_index target, uint32_t ob
         return;
     }
     target_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(target)].data;
-    actor_squad_react_to_grenade_for_vehicle_occupants(target, object_index);
+    halo::ai::actor_squad_react_to_grenade_for_vehicle_occupants(target, object_index);
     if (unit->controlling_player == k_datum_index_none && !halo::cutscene::recorded_animation_object_is_playing(object_index)) {
         return;
     }
