@@ -1,12 +1,11 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
 extern data_array *contrail_point_data;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern datum_index datum_next(int16_t after_index, data_array *array);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 void contrail_refresh_lightmap();
 }
 
@@ -33,7 +32,7 @@ void contrail_ref::refresh_lightmap()
                 contrail_point *point = &((contrail_point *)contrail_point_data->data)[(uint16_t)point_index];
 
                 if (point->location.cluster_index != -1) {
-                    int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &point->position);
+                    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &point->position);
 
                     point->location.leaf_index = leaf;
                     if (leaf == -1) {

@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -73,7 +74,6 @@ extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
 extern uint8_t console_debug_toggle_6893ee;
 extern void first_person_weapon_update_lighting(void);
-extern int32_t object_cluster_stamp;
 extern object_globals *object_globals_pointer;
 extern uint8_t rendered_objects_full_warning;
 extern int16_t structure_bsp_collect_visible_objects(datum_index *out_handles, int16_t max_count, void *iterate_begin,
@@ -951,7 +951,7 @@ void s_collect(void)
 {
     int16_t count;
 
-    object_cluster_stamp++;
+    halo::physics::globals().object_cluster_stamp++;
     object_globals_pointer->collecting_in_clusters = 1;
 
     count = structure_bsp_collect_visible_objects(rendered_objects, 0x100,

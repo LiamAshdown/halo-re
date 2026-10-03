@@ -1,10 +1,10 @@
 #include "halo/units/unit.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern double fmod(double x, double y);
-extern void object_physics_tick(uint32_t unit_index, uint32_t powered_states, void *transform, uint32_t extra_force, uint32_t extra_torque);
 extern double cos(double x);
 extern double sin(double x);
 }
@@ -38,7 +38,7 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
     }
 
     if (*(int32_t *)(physics_tag + 0x68) != 2) {
-        object_physics_tick(unit_index, 0, mass_points, 0, 0);
+        halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }
 
@@ -58,7 +58,7 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
         out_transform[0x21] = -s;
         out_transform[0x22] = c;
     }
-    object_physics_tick(unit_index, (uint32_t)out_transform, mass_points, 0, 0);
+    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)((uint32_t)out_transform), (uint32_t)mass_points, 0, 0);
 }
 
 /**
@@ -97,7 +97,7 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
     }
 
     if (*(int32_t *)(physics_tag + 0x68) != 2) {
-        object_physics_tick(unit_index, 0, mass_points, 0, 0);
+        halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }
 
@@ -111,7 +111,7 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
     out_transform[0x20] = 0.0f;
     out_transform[0x21] = 0.0f;
     out_transform[0x22] = 1.0f;
-    object_physics_tick(unit_index, (uint32_t)out_transform, mass_points, 0, 0);
+    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)((uint32_t)out_transform), (uint32_t)mass_points, 0, 0);
 }
 
 }

@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -13,7 +14,6 @@ extern void matrix4x3_transform_vector(real_matrix4x3 *m);
 extern void vector3d_clamp_length(float max_length);
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
 extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern float fabsf(float x);
@@ -52,7 +52,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
     }
 
     if (bank_lookup >= 0.5f || obj->up.k <= -0.2f) {
-        object_physics_tick(unit_index, node_output, contact_points, &push, &angular);
+        halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)node_output, (uint32_t)contact_points, &push, &angular);
         goto ground_lean_update;
     }
 
@@ -212,7 +212,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
         angular.i *= unit->driver_seat_power; angular.j *= unit->driver_seat_power; angular.k *= unit->driver_seat_power;
     }
 
-    object_physics_tick(unit_index, node_output, contact_points, &push, &angular);
+    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)node_output, (uint32_t)contact_points, &push, &angular);
 
 ground_lean_update:
     {

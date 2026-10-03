@@ -1,9 +1,9 @@
 #include "halo/objects/flag.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
 extern int32_t __ftol(double);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void data_delete_all(data_array *array);
 extern void datum_delete(data_array *array, datum_index index);
 extern datum_index datum_new(data_array *array);
@@ -17,13 +17,11 @@ extern data_array *flag_data;
 extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_point3d *global_origin3d_pointer;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *object_data;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern uint32_t point_physics_tick(real_vector3d *velocity , uint32_t mode, void *physics_tag_data, bsp_leaf_reference *node_ref, uint32_t flags, real_point3d *position, real_vector3d *wind_direction, void *unused_c, void *unused_d, float damping_constant, float dt);
 extern int32_t rasterizer_dynamic_index_cache_reserve(void);
 extern void *rasterizer_dynamic_index_slot_lock(void);
 extern void *rasterizer_dynamic_vertex_cache_lock(void);
@@ -33,8 +31,6 @@ extern void rasterizer_model_draw_restore_states(void);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
 extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, void *h);
 extern int8_t scenario_location_get_water_and_weather(int32_t *a, void *b);
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern double sqrt(double x);
 extern tag_instance *tag_instances;
 }
@@ -442,8 +438,8 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                     effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
                     {
                         int16_t idx = (int16_t)(((effect_random_seed >> 16) *
-                                                  (uint32_t)sphere_point_table_count) >> 16);
-                        real_point3d *dir = &sphere_point_table[idx];
+                                                  (uint32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+                        real_point3d *dir = &halo::physics::globals().sphere_point_table[idx];
                         wind_dir.i = dir->x * wind_scale;
                         wind_dir.j = dir->y * wind_scale;
                         wind_dir.k = dir->z * wind_scale;
@@ -451,8 +447,8 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
 
                     target = *vertex;
 
-                    point_physics_tick((real_vector3d *)((uint8_t *)vertex + 0x0c)  , mode,
-                        tag_instances[tag->physics.tag_id.index].data, &node_ref,
+                    halo::physics::point_physics_tick((real_vector3d *)((uint8_t *)vertex + 0x0c)  , mode,
+                        (PointPhysics *)tag_instances[tag->physics.tag_id.index].data, &node_ref,
                         physics_b, &target, &wind_dir, 0, 0, 0.02f, dt);
 
                     if (col == 0 && column_marker_index[row_cursor] != -1) {
@@ -550,7 +546,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
 
     {
 
-        int32_t node_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &marker_positions[0]);
+        int32_t node_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &marker_positions[0]);
 
         node_ref->leaf_index = node_index;
         if (node_index == -1) {

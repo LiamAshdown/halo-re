@@ -5,6 +5,7 @@
 #include "ai.h"
 #include "crt.h"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -27,7 +28,6 @@ extern real vector3d_normalize_with_length(real_vector3d *v);
 extern real vector3d_length(real_vector3d *v);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
-extern float k_physics_gravity;
 extern void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
@@ -510,7 +510,7 @@ void UnitView::evaluate_flee_reaction()
         if (UnitView(object_index).test_placement_candidate(global_down3d_pointer, 0, 8.0f, 0) == -1) {
             direction.i = parent->velocity.i * 60.0f;
             direction.j = parent->velocity.j * 60.0f;
-            direction.k = parent->velocity.k * 60.0f - k_physics_gravity * 1800.0f;
+            direction.k = parent->velocity.k * 60.0f - halo::physics::globals().gravity * 1800.0f;
             if (!(vector3d_normalize_with_length(&direction) > 0.0f) ||
                 UnitView(object_index).test_placement_candidate(&direction, &normal, 8.0f, 0) == -1 ||
                 !(normal.k > 0.3f)) {

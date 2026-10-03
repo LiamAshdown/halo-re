@@ -1,4 +1,5 @@
 #include "halo/ai/actor_combat.hpp"
+#include "halo/physics/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -11,10 +12,6 @@ extern const real_vector3d *global_down3d_pointer;
 extern uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
-    uint32_t exclude_object, void *result);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
-    uint32_t flags, uint32_t exclude_object_index, void *result);
 }
 }
 
@@ -48,7 +45,7 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
     delta.i = target_position->x - self_position->x;
     delta.j = target_position->y - self_position->y;
     delta.k = target_position->z - self_position->z;
-    if (!collision_test_movement_segment(mask, self_position, &delta, exclude_object_index, result)) {
+    if (!halo::physics::collision_test_movement_segment(mask, self_position, &delta, exclude_object_index, (collision_result *)result)) {
         direct_clear = 1;
     } else {
         direct_clear = 0;
@@ -75,14 +72,14 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
             b.y = self_position->y - offset.j;
             b.z = self_position->z - offset.k;
             if (direct_clear) {
-                if (collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, result) ||
-                    collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, result)) {
+                if (halo::physics::collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, (collision_result *)result) ||
+                    halo::physics::collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, (collision_result *)result)) {
                     return 1;
                 }
                 return 0;
             }
-            if (!collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, result) ||
-                !collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, result)) {
+            if (!halo::physics::collision_test_movement_segment_between_points(&a, target_position, mask, exclude_object_index, (collision_result *)result) ||
+                !halo::physics::collision_test_movement_segment_between_points(&b, target_position, mask, exclude_object_index, (collision_result *)result)) {
                 return 1;
             }
         } else if (direct_clear) {
@@ -99,9 +96,9 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
             b.y = target_position->y - offset.j;
             b.z = target_position->z - offset.k;
             point3d_add_scaled(&raised, (real_vector3d *)global_down3d_pointer, target_position, 0.1f);
-            if (collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, result) ||
-                collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, result) ||
-                collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, result)) {
+            if (halo::physics::collision_test_movement_segment_between_points(&a, self_position, mask, exclude_object_index, (collision_result *)result) ||
+                halo::physics::collision_test_movement_segment_between_points(&b, self_position, mask, exclude_object_index, (collision_result *)result) ||
+                halo::physics::collision_test_movement_segment_between_points(&raised, self_position, mask, exclude_object_index, (collision_result *)result)) {
                 return 1;
             }
             return 0;

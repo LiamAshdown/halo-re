@@ -1,4 +1,5 @@
 #include "halo/ai/actor_looks.hpp"
+#include "halo/physics/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -552,7 +553,6 @@ extern double sqrt(double x);
 
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 }
 }
 
@@ -611,7 +611,7 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
             scaled.j = direction.j * 3.0f;
             scaled.k = direction.k * 3.0f;
 
-            if (!collision_test_movement_segment(0x21, (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, trace_buffer)) {
+            if (!halo::physics::collision_test_movement_segment(0x21, (real_point3d *)origin, &scaled, (uint32_t)k_datum_index_none, (collision_result *)trace_buffer)) {
                 break;
             }
         }

@@ -1,4 +1,5 @@
 #include "halo/ai/actor_movement.hpp"
+#include "halo/physics/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -10,11 +11,6 @@ extern const real_vector3d *global_up3d_pointer;
 extern const real_vector3d *global_down3d_pointer;
 
 extern real vector2d_normalize_with_length(real_vector2d *v);
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-                                                ModelCollisionGeometryBSP *bsp,
-                                                int16_t breakable_surface_count,
-                                                uint32_t *breakable_surfaces, real_point3d *origin,
-                                                real_vector3d *delta, float max_fraction);
 
 extern double sqrt(double x);
 
@@ -162,7 +158,7 @@ project:
     delta.i = global_down3d_pointer->i * 4.0f;
     delta.j = global_down3d_pointer->j * 4.0f;
     delta.k = global_down3d_pointer->k * 4.0f;
-    if (!collision_bsp_query_segment_init(1, &result, global_structure_collision_bsp, 0, 0, &start, &delta,
+    if (!halo::physics::collision_bsp_query_segment_init(1, &result, global_structure_collision_bsp, 0, 0, &start, &delta,
                                           3.4028235e38f)) {
         return 0;
     }
@@ -341,11 +337,6 @@ extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *poin
     int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
     path_find_boundary_crossing *out_result);
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-                                                ModelCollisionGeometryBSP *bsp,
-                                                int16_t breakable_surface_count,
-                                                uint32_t *breakable_surfaces, real_point3d *origin,
-                                                real_vector3d *delta, float max_fraction);
 
 extern int32_t global_structure_collision_bsp;
 }
@@ -406,7 +397,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
             scaled_dir.j = step_distance * direction->j;
             scaled_dir.k = 0.0f;
 
-            clear1 = collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &mid, &scaled_dir, 3.4028235e+38f);
+            clear1 = halo::physics::collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &mid, &scaled_dir, 3.4028235e+38f);
             if (!clear1) {
                 obstructed = 1;
                 used_point_check = 1;
@@ -422,7 +413,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
                     down_step.j = step_up * global_down3d_pointer->j;
                     down_step.k = step_up * global_down3d_pointer->k;
 
-                    clear2 = collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &far_point, &down_step, 3.4028235e+38f);
+                    clear2 = halo::physics::collision_bsp_query_segment_init(3, &probe, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0, 0, &far_point, &down_step, 3.4028235e+38f);
 
                     if (!clear2) {
                         obstructed = 0;

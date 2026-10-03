@@ -5,6 +5,7 @@
  */
 
 #include "halo/scenario/scenario.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern structure_bsp_procedure structure_bsp_activate_procedures[k_structure_bsp_activate_procedure_count];
@@ -14,8 +15,6 @@ extern Scenario *global_scenario;
 extern uint8_t unknown_00719769;
 extern uint8_t unknown_0071976a;
 extern scenario_game_globals *global_scenario_game_globals;
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;
 extern uint32_t structure_bsp_load(ScenarioBSP *bsp);
@@ -23,7 +22,6 @@ extern void structure_bsp_dispose(ScenarioBSP *bsp);
 extern void *structure_bsp_data;
 extern void structure_bsp_dispose_material_vertex_buffers(
     ScenarioStructureBSPCompiledHeader *compiled_header);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 }
 
 namespace halo::scenario {
@@ -83,9 +81,9 @@ uint8_t structure_bsp_switcher::switch_to(int16_t structure_bsp_index)
 
     tag_index = new_entry->structure_bsp.tag_id.index;
     global_structure_bsp = (ScenarioStructureBSP *)tag_instances[tag_index].data;
-    global_structure_collision_bsp =
+    halo::physics::globals().structure_collision_bsp =
         (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
-    global_collision_bsp = (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
+    halo::physics::globals().collision_bsp = (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
     global_scenario_game_globals->structure_bsp_index = structure_bsp_index;
     global_structure_bsp_index = structure_bsp_index;
 
@@ -127,12 +125,12 @@ uint8_t structure_bsp_switcher::locate_point_nudge_up(real_point3d *point)
     int16_t attempts;
     uint32_t leaf;
 
-    leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     attempts = 0;
     while (leaf == 0xffffffff && attempts < k_scenario_location_nudge_attempts) {
         attempts++;
         point->z = point->z + 0.05f;
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     }
     return attempts == 0;
 }

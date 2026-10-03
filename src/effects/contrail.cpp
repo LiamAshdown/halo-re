@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
@@ -8,14 +9,11 @@ extern data_array *contrail_point_data;
 extern tag_instance *tag_instances;
 extern random_seed effect_random_seed;
 extern void datum_delete(data_array *array, datum_index handle);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern data_array *object_data;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern datum_index datum_new(data_array *array);
 extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
-extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed, real lo, real hi);
 extern void contrail_next_sequence(contrail *self);
 extern datum_index datum_next(int16_t after_index, data_array *array);
@@ -154,7 +152,7 @@ render:
                 ContrailPointState *current_state = &states[point->state_index];
 
                 if (current_state->physics.tag_id.index != 0xffff || current_state->physics.tag_id.id != 0xffff) {
-                    point_physics_tick(&point->velocity, 0,
+                    halo::physics::point_physics_tick(&point->velocity, 0,
                         (PointPhysics *)tag_instances[current_state->physics.tag_id.index].data,
                         &point->location, 0xffffffff, &point->position, 0, 0, 0,
                         current_state->width * 0.5f, delta_time);
@@ -302,7 +300,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
                             point->position = marker->node_transform.position;
 
                             {
-                                int32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &point->position);
+                                int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &point->position);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
                                     *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
@@ -328,7 +326,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
 
                                 point->scale = fraction * point->scale + inverse_fraction * previous->scale;
 
-                                leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &point->position);
+                                leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &point->position);
                                 point->location.leaf_index = leaf;
                                 point->location.cluster_index = (leaf == -1) ? -1 :
                                     *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +

@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -6,8 +7,6 @@ extern const real_vector3d *global_up3d_pointer;
 extern void effect_random_direction_from_table(real_point3d *out);
 extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
 extern random_seed effect_random_seed;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
@@ -22,9 +21,7 @@ extern const ColorRGB *global_white_color;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern real random_real_range_seeded(random_seed *seed, real min, real max);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern uint32_t cluster_visible_bits[];
@@ -45,11 +42,9 @@ extern int32_t player_weapon_locality_for_object(datum_index weapon_object_index
 extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern void particle_system_update_physics_default(particle_system *system, real dt);
 extern player_globals *local_player_globals;
 extern void particle_system_render(datum_index particle_system_handle);
-extern void point_physics_interpolate(PointPhysics *out, const PointPhysics *from, const PointPhysics *to, float fraction);
 void particle_creation_physics_default(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
 void particle_creation_physics_explosion(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
 void particle_creation_physics_jet(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
@@ -160,13 +155,13 @@ void particle_system_view::creation_physics_jet(int32_t type_index, particle_sys
 
     effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
     table_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-        (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+        (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
 
-    particle->velocity.x = sphere_point_table[table_index].x * random_weight +
+    particle->velocity.x = halo::physics::globals().sphere_point_table[table_index].x * random_weight +
         forward_weight * marker->node_transform.forward.i + system->velocity.i;
-    particle->velocity.y = sphere_point_table[table_index].y * random_weight +
+    particle->velocity.y = halo::physics::globals().sphere_point_table[table_index].y * random_weight +
         forward_weight * marker->node_transform.forward.j + system->velocity.j;
-    particle->velocity.z = sphere_point_table[table_index].z * random_weight +
+    particle->velocity.z = halo::physics::globals().sphere_point_table[table_index].z * random_weight +
         forward_weight * marker->node_transform.forward.k + system->velocity.k;
 
     particle->position.x = marker->node_transform.position.x;
@@ -415,7 +410,7 @@ uint8_t particle_system_ref::new_type_states()
     int32_t leaf_index;
     int32_t i;
 
-    leaf_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &system->position);
+    leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
         *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
@@ -666,7 +661,7 @@ void particle_system_ref::resolve_local_players()
         if (((particle_system *)system)->object_index != k_datum_index_none) {
             object_get_root_location((int32_t *)(system + 0x18), ((particle_system *)system)->object_index);
         } else {
-            uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(system + 0x20));
+            uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(system + 0x20));
             int16_t cluster = particle_leaf_cluster(leaf);
 
             *(uint32_t *)&((particle_system *)system)->location.leaf_index = leaf;
@@ -681,7 +676,7 @@ void particle_system_ref::resolve_local_players()
 
             while (*link != k_datum_index_none) {
                 uint8_t *particle = (uint8_t *)particle_system_particle_data->data + (*link & 0xffff) * 0x80;
-                uint32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(particle + 0x1c));
+                uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(particle + 0x1c));
                 int16_t cluster = particle_leaf_cluster(leaf);
 
                 *(uint32_t *)&((particle_system_particle *)particle)->location.leaf_index = leaf;
@@ -886,7 +881,7 @@ void particle_system_view::update_physics_default(real dt)
         return;
     }
 
-    point_physics_tick(&system->velocity, 0,
+    halo::physics::point_physics_tick(&system->velocity, 0,
         (PointPhysics *)tag_instances[point_physics_tag_id & 0xffff].data,
         &system->location, (uint32_t)-1, &system->position, (real_vector3d *)0,
         (real_vector3d *)0, (int16_t *)0, 1.0f, dt);
@@ -1008,14 +1003,14 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
 
             radius = ((1.0f - fraction) * next_state->radius_multiplier + fraction * state->radius_multiplier) *
                      type_state->radius * particle_type->radius;
-            point_physics_interpolate(&blended,
+            halo::physics::point_physics_interpolate(&blended,
                 (PointPhysics *)tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)state)->point_physics.tag_id & 0xffff].data,
                 (PointPhysics *)tag_instances[*(uint32_t *)&((struct ParticleSystemTypeParticleState *)next_state)->point_physics.tag_id & 0xffff].data,
                 fraction);
             physics = &blended;
         }
 
-        collision_flags = point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
+        collision_flags = halo::physics::point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
             &particle->location, (uint32_t)-1, &particle->position, (real_vector3d *)0,
             (real_vector3d *)0, (int16_t *)0, radius, dt);
 

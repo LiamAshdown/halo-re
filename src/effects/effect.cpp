@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -26,9 +27,7 @@ extern void effect_stop(datum_index effect_handle, uint8_t stop_immediately);
 extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
 extern void effect_spawn_particles(effect *self);
 extern void object_change_color_evaluate(effect *self);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void effect_update(datum_index effect_handle, real delta_time);
 uint32_t effect_check_object_collisions();
 uint8_t effect_first_person_screen_timer_active(datum_index object_index);
@@ -487,7 +486,7 @@ void effect_ref::refresh_structure_locations()
             effect_delete(handle);
             continue;
         }
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)((uint8_t *)location + 0x30));
+        leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)((uint8_t *)location + 0x30));
         entry->location.leaf_index = (int32_t)leaf;
         if (leaf == 0xffffffff) {
             entry->location.cluster_index = -1;

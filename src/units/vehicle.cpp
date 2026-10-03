@@ -2,6 +2,7 @@
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -17,9 +18,6 @@ extern double atan2(double y, double x);
 extern double fabs(double x);
 extern real vector3d_distance(real_point3d *a, real_point3d *b);
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step);
-extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target, float rate);
-extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points, real_vector3d *extra_force, real_vector3d *extra_torque);
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern char s_blur_permutation[];
@@ -250,10 +248,10 @@ uint32_t VehicleView::update()
         }
 
         if (obj[0x4cc] & 8) {
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4d4), 0.0f, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)(obj + 0x4d4), 0.0f, 1.0f);
         } else {
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4d4), F(obj, 0x278), 1.0f);
-            physics_scalar_step_to_target_clamped(tag + 0x330, (float *)(obj + 0x4d8), F(obj, 0x27c), 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)(obj + 0x4d4), F(obj, 0x278), 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x330), (float *)(obj + 0x4d8), F(obj, 0x27c), 1.0f);
         }
         if (*(int16_t *)(tag + 0x2f4) != 0) {
             float target = F(obj, 0x4d4) >= 0.0f ? angle : -angle;
@@ -268,10 +266,10 @@ uint32_t VehicleView::update()
                     target = high;
                 }
             }
-            physics_scalar_move_toward_target(tag + 0x308, (float *)(obj + 0x4dc), 0, target,
+            halo::physics::physics_scalar_move_toward_target((physics_scalar_range *)(tag + 0x308), (float *)(obj + 0x4dc), 0, target,
                                               F(tag, 0x314) * 0.017453292f * 0.033333335f);
         } else if (F(obj, 0x4d4) == 0.0f) {
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), 0.0f, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)(obj + 0x4dc), 0.0f, 1.0f);
         } else {
             float target = angle * 0.63661975f;
 
@@ -280,7 +278,7 @@ uint32_t VehicleView::update()
             } else if (!(target <= 1.0f)) {
                 target = 1.0f;
             }
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), target * F(tag, 0x2f8), 2.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)(obj + 0x4dc), target * F(tag, 0x2f8), 2.0f);
         }
 
         if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none) {
@@ -301,7 +299,7 @@ uint32_t VehicleView::update()
             case 3: VehicleView(object_index).calculate_ground_lean_controls(contact_points); break;
             case 4: VehicleView(object_index).calculate_wing_flex_controls(angle, node_output, contact_points); break;
             case 5: VehicleView(object_index).calculate_mounted_controls_dispatch(contact_points, node_output); break;
-            case 6: object_physics_tick(object_index, 0, contact_points, 0, 0); break;
+            case 6: halo::physics::object_physics_tick(object_index, 0, (uint32_t)contact_points, 0, 0); break;
             default: break;
             }
             if (!unit_updates_suppressed) {

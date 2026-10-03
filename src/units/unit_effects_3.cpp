@@ -1,6 +1,7 @@
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -14,7 +15,6 @@ extern data_array *object_data;
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold);
 }
 
@@ -123,7 +123,7 @@ uint32_t UnitView::update_marker_traction_effects()
         delta.i = normal.i * range;
         delta.j = normal.j * range;
         delta.k = normal.k * range;
-        collision_test_movement_segment(0xc0a0, &origin, &delta, object_index, &result);
+        halo::physics::collision_test_movement_segment(0xc0a0, &origin, &delta, object_index, &result);
         v = (1.0f - result.t) + (1.0f - result.t);
         if (!(v >= 0.0f)) {
             v = 0.0f;

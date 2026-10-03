@@ -1,4 +1,5 @@
 #include "halo/ai/actor_grenade.hpp"
+#include "halo/physics/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
@@ -839,7 +840,6 @@ namespace c_actor_get_grenade_launch_velocity {
 extern "C" {
 extern tag_instance *tag_instances;
 extern Globals *global_globals;
-extern float k_physics_gravity;
 
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
     real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
@@ -897,7 +897,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
         if (used_straight_line) {
             *out_gravity = 0.0f;
         } else {
-            *out_gravity = -(k_physics_gravity *
+            *out_gravity = -(halo::physics::globals().gravity *
                              *(float *)((uint8_t *)projectile_definition + 0x1cc));
         }
     }
@@ -987,8 +987,6 @@ namespace c_actor_grenade_parabolic_path_clear {
 extern "C" {
 extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
                                                      ai_grenade_avoidance_entry *out_entries);
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch);
 extern int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_start, real_vector3d *a_direction, real_vector3d *b_direction, real radius);
 }
 }
@@ -1034,7 +1032,7 @@ uint8_t halo::ai::grenade_ops::parabolic_path_clear(real_vector3d *initial_veloc
         segment_delta.j = next_position.y - position.y;
         segment_delta.k = next_position.z - position.z;
 
-        clear = (collision_test_movement_segment(collision_mask, &position, &segment_delta, exclude_object_index, scratch) == 0);
+        clear = (halo::physics::collision_test_movement_segment(collision_mask, &position, &segment_delta, exclude_object_index, (collision_result *)scratch) == 0);
         if (!clear) {
             return 0;
         }
@@ -1075,7 +1073,6 @@ extern data_array *actor_data;
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 }
 }
 
@@ -1110,7 +1107,7 @@ int32_t halo::ai::grenade_ops::trace_from_source(real_point3d *target_point)
     delta.i = target_point->x - source.x;
     delta.j = target_point->y - source.y;
     delta.k = target_point->z - source.z;
-    collision_test_movement_segment(0x33, &source, &delta, 0xffffffff, trace_result);
+    halo::physics::collision_test_movement_segment(0x33, &source, &delta, 0xffffffff, (collision_result *)trace_result);
     return 1;
 }
 

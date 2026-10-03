@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <wchar.h>
 #include "halo/input/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -78,8 +79,6 @@ extern Scenario *global_scenario;
 extern int16_t global_structure_bsp_index;
 extern real_vector3d *global_origin3d_pointer;
 extern uint32_t random_seed_global;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern real_point3d player_placement_ring[9];
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
@@ -188,11 +187,8 @@ extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index);
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching);
@@ -914,8 +910,8 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
                 int16_t index;
 
                 random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                index = (int16_t)(((random_seed_global >> 16) * (int32_t)sphere_point_table_count) >> 16);
-                facing = *(real_vector3d *)&sphere_point_table[index];
+                index = (int16_t)(((random_seed_global >> 16) * (int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+                facing = *(real_vector3d *)&halo::physics::globals().sphere_point_table[index];
                 jittered.x = facing.i * collision_radius + spot.x;
                 jittered.y = facing.j * collision_radius + spot.y;
                 jittered.z = facing.k * collision_radius + spot.z;
@@ -2886,7 +2882,7 @@ void StructureBsp::switch_regroup()
     if (flag_index != -1) {
         target = *(real_point3d *)((uint8_t *)global_scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
         offset = 0.0f;
-        while (object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
+        while (halo::physics::object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
             double sum;
 
             target.z = target.z + 0.05f;
@@ -2924,7 +2920,7 @@ void StructureBsp::switch_regroup()
         }
         unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);
         offset = radius;
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, &probe);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
         if (leaf == 0xffffffff ||
             *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
             continue;

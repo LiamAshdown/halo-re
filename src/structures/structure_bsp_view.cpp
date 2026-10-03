@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int32_t render_cluster_index;
@@ -16,7 +17,6 @@ extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
 extern int16_t visible_surface_count;
 extern uint16_t render_frustum_classify_point_side_planes(void *frustum_or_camera, void *vertex);
 extern int16_t render_frustum_test_bounding_box(void *frustum_or_camera, void *box, int32_t flags);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern int16_t vector3d_major_axis_index(real_vector3d *v);
 extern const projection_axis_pair k_projection_axes[6];
 extern uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count,
@@ -156,7 +156,7 @@ uint8_t structure_bsp_view::portal_sphere_test(real_point3d *point, int16_t port
         return 0;
     }
 
-    Vector3D *normal_raw = &((ModelCollisionGeometryBSPPlane *)global_collision_bsp->planes
+    Vector3D *normal_raw = &((ModelCollisionGeometryBSPPlane *)halo::physics::globals().collision_bsp->planes
                                   .pointer)[portal->plane_index]
                                  .plane.vector;
     real_vector3d *normal = (real_vector3d *)normal_raw;

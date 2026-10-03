@@ -1,6 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,7 +16,6 @@ extern float fabsf(float x);
 extern real_vector3d *global_up3d_pointer;
 extern real_vector3d *global_forward3d_pointer;
 extern uint8_t *global_identity_quaternion_pointer;
-extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points, real_vector3d *extra_force, real_vector3d *extra_torque);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_delta_toward_gravity_biased_clamp_length(real_point3d *origin, real_point3d *target, real_vector3d *out_delta, real max_length_aligned, real max_length_default);
 extern void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out);
@@ -39,7 +39,6 @@ extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern random_seed effect_random_seed;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed, real lo, real hi);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 }
 
@@ -350,7 +349,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     uint8_t *rider;
 
     if (*(int32_t *)(physics + 0x68) != 2) {
-        object_physics_tick(unit_index, 0, out_transform, 0, 0);
+        halo::physics::object_physics_tick(unit_index, 0, (uint32_t)out_transform, 0, 0);
         return;
     }
 
@@ -426,7 +425,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     memcpy(powered + 0x1c, global_identity_quaternion_pointer, 16);
     *(real *)(powered + 0x78) = throttle;
     memcpy(powered + 0x7c, global_identity_quaternion_pointer, 16);
-    object_physics_tick(unit_index, out_record, out_transform, &force, &torque);
+    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)out_record, (uint32_t)out_transform, &force, &torque);
 }
 
 /**
@@ -457,7 +456,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     real dot, x_force, y_force, angle, per_tick, torque_scale;
 
     if (*(int32_t *)(physics + 0x68) != 2) {
-        object_physics_tick(unit_index, 0, out_transform, 0, 0);
+        halo::physics::object_physics_tick(unit_index, 0, (uint32_t)out_transform, 0, 0);
         return;
     }
 
@@ -511,7 +510,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     torque.i = throttle * torque.i;
     torque.j = throttle * torque.j;
     torque.k = throttle * torque.k;
-    object_physics_tick(unit_index, out_record, out_transform, &force, &torque);
+    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)out_record, (uint32_t)out_transform, &force, &torque);
 }
 
 /**
@@ -605,7 +604,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     torque.i = throttle * torque.i;
     torque.j = throttle * torque.j;
     torque.k = throttle * torque.k;
-    object_physics_tick(unit_index, 0, out_transform, &force, &torque);
+    halo::physics::object_physics_tick(unit_index, 0, (uint32_t)out_transform, &force, &torque);
     VehicleView(unit_index).create_hover_thruster_effects();
 }
 
@@ -652,7 +651,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     real speed_factor, half_turn, steer;
 
     if (*(int32_t *)(physics + 0x68) != 3) {
-        object_physics_tick(unit_index, 0, mass_points, 0, 0);
+        halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }
 
@@ -717,7 +716,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
         torque.j = w * forward->j;
         torque.k = w * forward->k;
     }
-    object_physics_tick(unit_index, powered_states, mass_points, &zero_force, &torque);
+    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)powered_states, (uint32_t)mass_points, &zero_force, &torque);
 }
 
 /**
@@ -780,7 +779,7 @@ void VehicleView::create_hover_thruster_effects()
         delta.i = direction.i * length;
         delta.j = direction.j * length;
         delta.k = direction.k * length;
-        if (collision_test_movement_segment(0x61, (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
+        if (halo::physics::collision_test_movement_segment(0x61, (real_point3d *)(marker + 0x60), &delta, unit_index, &result)) {
             real_point3d points[3];
             real_vector3d vectors[3];
             real twice_dot;
@@ -838,7 +837,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
 
         vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f, 15.0f);
         delta = direction;
-        if (!collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
+        if (!halo::physics::collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
             continue;
         }
         v = -*(real *)(marker + 0x44) * (1.0f - result.t) * ((struct vehicle_object *)obj)->unit.driver_seat_power;

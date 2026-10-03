@@ -2,6 +2,7 @@
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -12,7 +13,6 @@ extern real object_sum_attached_light_luminance(uint32_t object_index);
 extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
-extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
@@ -161,7 +161,7 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
     if (mask == 0) {
         return 0;
     }
-    if (!object_physics_context_build(unit_index, &ctx)) {
+    if (!halo::physics::object_physics_context_build(unit_index, &ctx)) {
         return 0;
     }
 

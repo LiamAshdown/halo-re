@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int16_t geometry_buffer_warning;
@@ -14,7 +15,6 @@ extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
 extern tag_instance *tag_instances;
-extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern real_vector3d fog_plane_vector;
 extern const real_point3d *global_origin3d_pointer;
@@ -162,7 +162,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (breakable_surface_state->active[global_structure_bsp_index][material->breakable_surface >> 5] &
+                            (halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][material->breakable_surface >> 5] &
                              (1u << (material->breakable_surface & 0x1f))) != 0) {
                             if (shader->shader_type == 1 || (shader->shader_type > 4 && shader->shader_type < 0xc)) {
                                 if (transparent_material_cb != 0) {

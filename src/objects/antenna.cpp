@@ -2,6 +2,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -11,7 +12,6 @@ extern void antenna_render_geometry(Antenna *antenna_tag, antenna *ant);
 extern uint8_t antenna_sprite_shader[];
 extern void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt);
 extern void *bitmap_group_get_bitmap_data(void);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
@@ -21,13 +21,11 @@ extern datum_index datum_new(data_array *array);
 extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint32_t effect_random_seed;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_left3d_pointer;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern uint32_t point_physics_tick(real_vector3d *velocity , uint32_t mode, void *physics_tag_data, bsp_leaf_reference *node_ref, uint32_t flags, real_point3d *position, real_vector3d *wind_direction, void *unused_c, void *unused_d, float damping_constant, float dt);
 extern double sin(double x);
 extern double sqrt(double x);
 extern tag_instance *tag_instances;
@@ -281,8 +279,8 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
 
                     new_position = vertex->position;
 
-                    point_physics_tick(&vertex->velocity, 0,
-                        tag_instances[antenna_tag->physics.tag_id.index].data,
+                    halo::physics::point_physics_tick(&vertex->velocity, 0,
+                        (PointPhysics *)tag_instances[antenna_tag->physics.tag_id.index].data,
                         &node_ref, 0xffffffff, &new_position, 0, 0, 0, 0.02f, dt);
 
                     {
@@ -376,7 +374,7 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
 
     {
 
-        int32_t node_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &marker.node_transform.position);
+        int32_t node_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &marker.node_transform.position);
 
         node_ref->leaf_index = node_index;
         if (node_index == -1) {

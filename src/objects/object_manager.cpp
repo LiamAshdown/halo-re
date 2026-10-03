@@ -3,16 +3,13 @@
 #include "physics.h"
 #include "structures.h"
 #include "hs.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
 extern void block_list_compact(memory_pool *arena);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void cluster_partition_new(cluster_reference_group *out, char *name);
-extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern data_array *collideable_object_references;
-extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern void console_print_error_va(const char *format, ...);
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void data_delete_all(data_array *array);
@@ -23,7 +20,6 @@ extern int32_t game_state_cursor;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern memory_pool *game_state_new_pool(char *name, int32_t pool_size);
 extern game_time_globals *game_time;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
@@ -41,7 +37,6 @@ extern void *noncollideable_cluster_partition;
 extern data_array *noncollideable_object_references;
 extern void object_block_data_free(data_array *array, datum_index object_index);
 extern void object_clear_pending_delete_flag(uint32_t object_index);
-extern int32_t object_cluster_stamp;
 extern data_array *object_data;
 extern void object_delete(uint32_t object_index);
 extern void object_delete_4f9030(uint32_t object_index, char recurse_siblings);
@@ -114,7 +109,7 @@ void halo::objects::ObjectManager::delete_unparented_of_type_mask()
 }
 
 namespace {
-static cluster_reference_group &collideable_cluster_first__as_objects_initialize = reinterpret_cast<cluster_reference_group &>(collideable_cluster_first);
+static cluster_reference_group &collideable_cluster_first__as_objects_initialize = reinterpret_cast<cluster_reference_group &>(halo::physics::globals().collideable_cluster_first);
 static cluster_reference_group &noncollideable_cluster_first__as_objects_initialize = reinterpret_cast<cluster_reference_group &>(noncollideable_cluster_first);
 }
 
@@ -189,7 +184,7 @@ void halo::objects::ObjectManager::reset()
         slot++;
     }
 
-    slot = collideable_cluster_first;
+    slot = halo::physics::globals().collideable_cluster_first;
     for (i = k_maximum_clusters; i != 0; i--) {
         *slot = k_datum_index_none;
         slot++;
@@ -197,8 +192,8 @@ void halo::objects::ObjectManager::reset()
 
     ((data_array *)collideable_cluster_partition)->valid = 1;
     data_delete_all((data_array *)collideable_cluster_partition);
-    collideable_object_references->valid = 1;
-    data_delete_all(collideable_object_references);
+    halo::physics::globals().collideable_object_references->valid = 1;
+    data_delete_all(halo::physics::globals().collideable_object_references);
 
     slot = noncollideable_cluster_first;
     for (i = k_maximum_clusters; i != 0; i--) {
@@ -219,7 +214,7 @@ void halo::objects::ObjectManager::reset()
     }
     object_globals_pointer->ambient_cluster_mode = 0;
     object_globals_pointer->collecting_in_clusters = 0;
-    object_cluster_stamp = 0;
+    halo::physics::globals().object_cluster_stamp = 0;
     object_globals_pointer->active_garbage_object_count = 0;
     object_globals_pointer->last_garbage_collection_time = 0;
     object_globals_pointer->first_tracked_object = k_datum_index_none;
@@ -265,8 +260,8 @@ void halo::objects::ObjectManager::flush_dirty_state()
     if (((data_array *)collideable_cluster_partition)->valid != 0) {
         ((data_array *)collideable_cluster_partition)->valid = 0;
     }
-    if (collideable_object_references->valid != 0) {
-        collideable_object_references->valid = 0;
+    if (halo::physics::globals().collideable_object_references->valid != 0) {
+        halo::physics::globals().collideable_object_references->valid = 0;
     }
     if (((data_array *)noncollideable_cluster_partition)->valid != 0) {
         ((data_array *)noncollideable_cluster_partition)->valid = 0;
@@ -315,14 +310,14 @@ void halo::objects::ObjectManager::dispose()
     if (object_memory_pool != 0) {
         object_memory_pool = 0;
     }
-    if (collideable_cluster_first != 0) {
-        collideable_cluster_first = 0;
+    if (halo::physics::globals().collideable_cluster_first != 0) {
+        halo::physics::globals().collideable_cluster_first = 0;
     }
     if (collideable_cluster_partition != 0) {
         collideable_cluster_partition = 0;
     }
-    if (collideable_object_references != 0) {
-        collideable_object_references = 0;
+    if (halo::physics::globals().collideable_object_references != 0) {
+        halo::physics::globals().collideable_object_references = 0;
     }
     if (noncollideable_cluster_first != 0) {
         noncollideable_cluster_first = 0;
@@ -508,16 +503,16 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
             obj->location_cluster_index = -1;
             header->cluster_index = -1;
 
-            leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->bounding_center);
+            leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
                 *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             if (leaf == -1 || cluster == -1) {
-                collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
+                halo::physics::collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
                 if (sphere.leaf_count != 0) {
                     leaf = sphere.leaves[0];
                 } else {
-                    leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->position);
+                    leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
                     *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
@@ -580,7 +575,7 @@ void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_pl
     if (local_player_index != -1) {
         uint8_t *player_base = *(uint8_t **)(global_scenario + 0x4f4);
         real_point3d *point = (real_point3d *)(player_base + local_player_index * 0x68 + 0x28);
-        int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, point);
+        int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, point);
 
         if (leaf != -1) {
 

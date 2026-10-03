@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int32_t render_cluster_index;
@@ -25,13 +26,11 @@ extern uint8_t debug_render_cluster_pvs;
 extern int16_t cluster_visible_index[0x200];
 extern uint8_t no_subcluster_path_taken;
 extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, float radius);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern Scenario *global_scenario;
 extern tag_instance *tag_instances;
 extern int32_t render_leaf_index;
 extern uint8_t render_cluster_has_sky;
 extern int16_t render_cluster_sky_index;
-extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point);
 extern int16_t polygon2d_clip_to_planes(int16_t vertex_count, real_point2d *vertices,
                                          int16_t clip_point_count, real_point2d *clip_points,
                                          int16_t maximum_count, real_point2d *out,
@@ -153,7 +152,7 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
 
 void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *camera_position)
 {
-    int32_t leaf = bsp3d_node_find_leaf(0, *(void **)((uint8_t *)global_structure_bsp + 0xb4), camera_position);
+    int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)(*(void **)((uint8_t *)global_structure_bsp + 0xb4)), camera_position);
 
     if (leaf == -1 && render_leaf_index < global_structure_bsp->leaves.count) {
         leaf = render_leaf_index;

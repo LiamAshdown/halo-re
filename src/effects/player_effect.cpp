@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -32,8 +33,6 @@ extern uint8_t message_delta_decode_compound_field(void **context, void *destina
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern void *data_iterator_next(data_iterator *iterator);
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern random_seed effect_random_seed;
 extern double cos(double x);
 extern double sin(double x);
@@ -432,8 +431,8 @@ void player_effect_ref::random_shake_offset(real_matrix4x3 *out, real magnitude,
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         axis_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-            (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-        axis = *(real_vector3d *)&sphere_point_table[axis_index];
+            (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+        axis = *(real_vector3d *)&halo::physics::globals().sphere_point_table[axis_index];
 
         {
             real sin_angle = (real)sin((double)angle);
@@ -446,11 +445,11 @@ void player_effect_ref::random_shake_offset(real_matrix4x3 *out, real magnitude,
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-            (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+            (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
 
-        out->position.x = sphere_point_table[index].x * magnitude;
-        out->position.y = sphere_point_table[index].y * magnitude;
-        out->position.z = sphere_point_table[index].z * magnitude;
+        out->position.x = halo::physics::globals().sphere_point_table[index].x * magnitude;
+        out->position.y = halo::physics::globals().sphere_point_table[index].y * magnitude;
+        out->position.z = halo::physics::globals().sphere_point_table[index].z * magnitude;
     }
 }
 

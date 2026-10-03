@@ -10,13 +10,13 @@
 #include "physics.h"
 
 #include "halo/physics/breakable_surface.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
 extern "C" { extern int16_t global_structure_bsp_index; }
 extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern real random_real_range(real min, real max); }
 extern "C" { extern GlobalsMaterial *globals_material_get(int16_t material_type); }
-extern "C" { extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); }
 namespace halo::physics {
 
 /**
@@ -55,7 +55,7 @@ void BreakableSurfaces::apply_damage(damage_data *damage, int32_t surface_index,
                     breakable_surface_state->active[global_structure_bsp_index][index >> 5] &=
                         ~(1u << (index & 0x1f));
 
-                    breakable_surface_shatter((uint16_t)index, damage, collision_surface_index);
+                    halo::physics::breakable_surface_shatter((uint16_t)index, damage, collision_surface_index);
                 }
             }
         }
@@ -99,7 +99,7 @@ void BreakableSurfaces::damage_in_blast_radius(damage_data *damage)
                         breakable_surface_state->health[global_structure_bsp_index][index] = 0.0f;
                         breakable_surface_state->active[global_structure_bsp_index][index >> 5] &=
                             ~(1u << (index & 0x1f));
-                        breakable_surface_shatter((uint16_t)surface_index, damage,
+                        halo::physics::breakable_surface_shatter((uint16_t)surface_index, damage,
                                                             surface->collision_surface_index);
                     }
                 }

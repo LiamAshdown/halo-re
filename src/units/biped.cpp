@@ -2,6 +2,7 @@
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -16,16 +17,11 @@ extern double fcos(double x);
 extern double fsin(double x);
 extern game_time_globals *game_time;
 extern Globals *global_globals;
-extern float k_physics_gravity;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern real_vector3d *global_down3d_pointer;
 extern int16_t network_game_mode;
 extern uint32_t k_default_resting_plane[4];
-extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
-extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
-extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern int32_t k_biped_minimum_age_ticks;
 extern data_array *player_data;
 extern network_client_globals *network_client;
@@ -178,7 +174,7 @@ void BipedView::check_evade_reaction()
             float v = obj->velocity.k;
 
             object_get_position(&position, object_index);
-            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * k_physics_gravity * 2.0f + v * v)) {
+            if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * halo::physics::globals().gravity * 2.0f + v * v)) {
                 UnitView((int32_t)object_index).dispatch_reaction_animation(0);
             }
         }
@@ -273,7 +269,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
         biped->cached_ground_surface_index = k_datum_index_none;
         object_get_position(out_position, object_index);
     } else if (biped->cached_ground_surface_index == k_datum_index_none && game_time->game_time > (int32_t)biped->cached_ground_point_tick) {
-        ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
+        ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
         int32_t surface = (int32_t)biped->ground_surface_index;
         real_point3d point = biped->cached_ground_point;
         real_point2d closest;
@@ -285,17 +281,17 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
             const real_plane3d *plane = (const real_plane3d *)((uint8_t *)bsp->planes.pointer +
                 (surfaces[surface].plane & 0x7fffffff) * 0x10);
 
-            collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
+            halo::physics::collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
                 (real_point2d *)&biped->cached_ground_point, &closest);
             decal_plane_solve_third_axis(&point, 1, 2, plane, &closest);
             biped->cached_ground_surface_index = biped->ground_surface_index;
         } else {
             int32_t previous = (int32_t)biped->last_ground_surface_index;
             if (previous != -1 &&
-                collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->cached_ground_point,
+                halo::physics::collision_bsp_surface_test_point_side_2d(bsp, (real_point2d *)&biped->cached_ground_point,
                     previous, 2, 1)) {
                 biped->cached_ground_surface_index = (datum_index)previous;
-                collision_bsp_surface_solve_third_axis(bsp, previous, 1, &point, 2,
+                halo::physics::collision_bsp_surface_solve_third_axis(bsp, previous, 1, &point, 2,
                     (const real_point2d *)&biped->cached_ground_point);
                 biped->cached_ground_surface_index = (datum_index)previous;
             }

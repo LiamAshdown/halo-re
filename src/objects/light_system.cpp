@@ -5,9 +5,9 @@
 #include "rasterizer.h"
 #include "hs.h"
 #include <string.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void cluster_partition_new(cluster_reference_group *out, char *name);
 extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position, float radius, void *leaf_and_cluster, void *cluster_list);
 extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list);
@@ -30,7 +30,6 @@ extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern float *global_white_color;
 extern void lens_flare_add_instance(lens_flare_instance *candidate);
@@ -760,7 +759,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
 
         if (entry->owner_object == k_datum_index_none ||
             object_try_and_get(entry->owner_object, _object_mask_all) == 0) {
-            leaf_reference.leaf_index = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &position);
+            leaf_reference.leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &position);
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
             } else {

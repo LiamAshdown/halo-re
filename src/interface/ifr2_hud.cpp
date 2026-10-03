@@ -1,5 +1,6 @@
 #include "halo/interface/ifr2_hud.hpp"
 #include <string.h>
+#include "halo/physics/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -8,7 +9,6 @@
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern HUDGlobals *hud_globals_tag_data;
 extern hud_waypoint_state *hud_waypoints;
 extern Scenario *global_scenario;
@@ -136,7 +136,7 @@ int16_t HudWaypoints::visibility(const real_point3d *eye, const real_point3d *ta
     delta.i = target->x - eye->x;
     delta.j = target->y - eye->y;
     delta.k = target->z - eye->z;
-    if (collision_test_movement_segment(0xc2ad, (real_point3d *)eye, &delta, unit_index, &result) != 0) {
+    if (halo::physics::collision_test_movement_segment(0xc2ad, (real_point3d *)eye, &delta, unit_index, &result) != 0) {
         if (result.type != 3 || result.object_index != ignore_object) {
             return 2;
         }

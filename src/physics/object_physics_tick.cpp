@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "halo/physics/object_physics.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern double sqrt(double x); }
@@ -24,16 +25,12 @@ extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
 extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
 extern "C" { extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); }
 extern "C" { extern void matrix4x3_from_quaternion(void *quaternion, void *out_matrix); }
 extern "C" { extern void matrix4x3_multiply(void *a, void *b, void *out); }
 extern "C" { extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle); }
-extern "C" { extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index, mass_point_state *mass_point, PhysicsMassPoint *definition); }
 extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
 extern "C" { extern float real_inverse_lerp_clamped(float value, float ref_k0, float ref_k1); }
-extern "C" { extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
-extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 extern "C" { extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); }
 extern "C" { extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location); }
 namespace halo::physics {
@@ -148,7 +145,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             mp->up_k = (mp_def->up.k * basis->up.k + mp_def->up.j * basis->left.k) + mp_def->up.i * basis->forward.k;
         }
 
-        mp->leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
+        mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
             ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
 
@@ -169,7 +166,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
         mp->velocity_j = velocity.j;
         mp->velocity_k = velocity.k;
 
-        object_physics_mass_point_resolve_ground_contact(object_index, mp, mp_def);
+        halo::physics::object_physics_mass_point_resolve_ground_contact(object_index, mp, mp_def);
         mp->water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
             (real_point3d *)&mp->position_x);
 
@@ -217,11 +214,11 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             }
 
             if (mp->material_type == 0x1f) {
-                object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale * 0.125f,
+                halo::physics::object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale * 0.125f,
                     mp_def->friction_perpendicular_scale * 0.125f, mp->ground_friction_force,
                     (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
             } else {
-                object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
+                halo::physics::object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
                     mp_def->friction_perpendicular_scale, mp->ground_friction_force,
                     (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
             }
@@ -254,7 +251,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                 mp->water_friction_force[2] = t2 * d;
             }
 
-            object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
+            halo::physics::object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
                 mp_def->friction_perpendicular_scale, mp->water_friction_force,
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
@@ -281,7 +278,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             mp->air_friction_force[1] = d * mp->velocity_j;
             mp->air_friction_force[2] = d * mp->velocity_k;
         }
-        object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
+        halo::physics::object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
             mp_def->friction_perpendicular_scale, mp->air_friction_force,
             (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
@@ -320,7 +317,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                 delta.j = probe_length * global_down3d_pointer->j;
                 delta.k = probe_length * global_down3d_pointer->k;
 
-                if (collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
+                if (halo::physics::collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
                         object_index, &probe_result)) {
                     float clearance = probe_length * probe_result.t - mp_def->radius;
                     float lean = real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0, powered_def->antigrav_normal_k1);
@@ -417,7 +414,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             new_position.y = self->position.y + self->velocity.j;
             new_position.z = self->position.z + self->velocity.k;
 
-            location.leaf_index = bsp3d_node_find_leaf(0, global_collision_bsp, &new_position);
+            location.leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, &new_position);
             location.cluster_index = (location.leaf_index == -1) ? -1 :
                 ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
 

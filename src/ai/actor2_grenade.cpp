@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::ai {
 
@@ -256,7 +257,6 @@ extern "C" {
 extern data_array *actor_data;
 extern tag_instance *tag_instances;
 extern Globals *global_globals;
-extern float k_physics_gravity;
 extern double sqrt(double x);
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
     real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
@@ -326,7 +326,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     velocity.j = direction.j * speed;
     velocity.k = direction.k * speed;
     gravity = (flat != 0) ? 0.0f
-                          : -(k_physics_gravity *
+                          : -(halo::physics::globals().gravity *
                               *(float *)((uint8_t *)projectile_definition + 0x1cc));
 
     if (actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,

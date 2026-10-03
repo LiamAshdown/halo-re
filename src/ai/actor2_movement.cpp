@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::ai {
 
@@ -1314,11 +1315,6 @@ uint8_t ActorOps::movement_set_destination_point(real_point3d *destination, datu
 namespace actor_movement_test_obstacle_ray_local {
 extern "C" {
 extern const real_vector3d *global_origin3d_pointer;
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-                                                ModelCollisionGeometryBSP *bsp,
-                                                int16_t breakable_surface_count,
-                                                uint32_t *breakable_surfaces, real_point3d *origin,
-                                                real_vector3d *delta, float max_fraction);
 extern uint8_t ray_intersects_cylinder(real height, real radius, real_vector3d *hit_out, real *t_out,
     real_point3d *center, real_point3d *origin, real_vector3d *direction);
 }
@@ -1369,12 +1365,12 @@ int16_t ActorOps::movement_test_obstacle_ray(real_vector3d *out_elevation, const
     segment.j = out_end_point->y - context->position.y;
     segment.k = out_end_point->z - context->position.z;
 
-    if (collision_bsp_query_segment_init(3, &bsp_result,
+    if (halo::physics::collision_bsp_query_segment_init(3, &bsp_result,
                                          (ModelCollisionGeometryBSP *)context->collision_bsp,
                                          0, 0, &context->position, &segment, 1.0f) != 0) {
         result = 2;
         *out_distance = 0.0f;
-    } else if (collision_bsp_query_segment_init(3, &bsp_result,
+    } else if (halo::physics::collision_bsp_query_segment_init(3, &bsp_result,
                                                 (ModelCollisionGeometryBSP *)context->collision_bsp,
                                                 0, 0, out_end_point, out_elevation, 1.0f) != 0) {
         result = 2;

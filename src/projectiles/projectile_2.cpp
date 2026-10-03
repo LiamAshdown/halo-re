@@ -1,5 +1,6 @@
 #include "halo/projectiles/projectile.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -9,7 +10,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
-extern float k_physics_gravity;
 extern void contrail_delete(datum_index attachment_handle);
 extern void projectile_update_function_values(datum_index projectile_index);
 extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
@@ -253,7 +253,7 @@ int ProjectileHandle::update()
         }
 
         
-        gravity = k_physics_gravity * ((((projectile_object *)obj)->base.flags & 0x10) ? ((Projectile *)tag)->water_gravity_scale : ((Projectile *)tag)->air_gravity_scale);
+        gravity = halo::physics::globals().gravity * ((((projectile_object *)obj)->base.flags & 0x10) ? ((Projectile *)tag)->water_gravity_scale : ((Projectile *)tag)->air_gravity_scale);
         vel.k = vel_k - gravity * remaining;
         step_k = step.k - gravity * remaining * 0.5f;
 

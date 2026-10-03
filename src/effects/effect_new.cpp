@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -20,10 +21,8 @@ extern uint8_t effect_first_person_screen_timer_active(datum_index object_index)
 extern data_array *object_data;
 extern void *effect_marker_callback_context;
 extern int32_t effect_marker_node_table_resolver(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
 datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
@@ -256,7 +255,7 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
         context.node_index = 0xffff;
         context.node_table_entry = 0;
 
-        leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, position);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, position);
         self->location.leaf_index = leaf;
         self->location.cluster_index = (leaf == -1) ? -1 :
             *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);

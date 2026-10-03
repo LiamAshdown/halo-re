@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -76,7 +77,6 @@ extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index);
 extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index, uint8_t keep_team);
 extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin, real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc, real_vector3d *out_direction, real *max_speed_override, real *out_speed, real *out_time_of_flight, real *out_range, real *out_half_gravity_term, real *out_horizontal_speed);
 extern uint8_t projectile_solve_straight_line(real_point3d *target, real_point3d *origin, real speed, real *out_time_of_flight, real_vector3d *out_direction, real *out_speed_echo, real *out_length);
-extern float k_physics_gravity;
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern const real_vector3d *global_up3d_pointer;
 extern double sqrt(double x);
@@ -1354,7 +1354,7 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
     dz = target->z - origin->z;
     dxy2 = (real)((double)dy * dy + (double)dx * dx);
 
-    g = (double)k_physics_gravity * (double)gravity_scale;
+    g = (double)halo::physics::globals().gravity * (double)gravity_scale;
     if (g < 0.0) {
         g = 0.0;
     }

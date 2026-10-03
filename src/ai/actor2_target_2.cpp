@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::ai {
 
@@ -7,7 +8,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *encounter_data;
-extern int32_t object_cluster_stamp;
 extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern double sqrt(double x);
@@ -277,8 +277,8 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
     while (object_index != k_datum_index_none) {
         uint8_t *object = OBJ(object_index);
 
-        if (((struct object *)object)->cluster_stamp != object_cluster_stamp) {
-            ((struct object *)object)->cluster_stamp = object_cluster_stamp;
+        if (((struct object *)object)->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
+            ((struct object *)object)->cluster_stamp = halo::physics::globals().object_cluster_stamp;
             switch (((struct object *)object)->type) {
             case 0:
                 squad_link_evaluate_biped(actor_index, self, object_index, object, (uint8_t *)candidates_a,

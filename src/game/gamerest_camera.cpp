@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -8,8 +9,6 @@ extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern ScenarioStructureBSP *global_structure_bsp;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern int16_t camera_observer_generate_target_candidates(observer_target_cone *cone, int16_t start_cluster, real_point3d *observer_position, real_vector3d *facing, datum_index exclude_object, int16_t team, int16_t capacity, observer_target_candidate *out);
 extern int32_t camera_observer_target_compare(const observer_target_candidate *a, const observer_target_candidate *b);
 extern char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *observer_position, real_point3d *target_position, datum_index target_object);
@@ -31,7 +30,6 @@ extern double sqrt(double x);
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector, real_point3d *reference_point, real_point3d *out_closest);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double acos(double x);
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern datum_index object_get_root_object_index(datum_index object_index);
 extern Globals *global_globals;
 extern real distance_falloff_fraction(real value, real max_range);
@@ -112,7 +110,7 @@ char CameraObserver::find_best_target(real_point3d *observer_position, observer_
     int16_t candidate_count;
     int16_t i;
 
-    cluster = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, observer_position);
+    cluster = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, observer_position);
     if (cluster != -1) {
 
         start_cluster = *(int16_t *)((cluster & 0x7fffffff) * 0x10 + 8 +
@@ -347,7 +345,7 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     delta.j = target_position->y - observer_position->y;
     delta.k = target_position->z - observer_position->z;
 
-    if (collision_test_movement_segment(0xc2ad, observer_position, &delta, root, scratch) == 0) {
+    if (halo::physics::collision_test_movement_segment(0xc2ad, observer_position, &delta, root, (collision_result *)scratch) == 0) {
         return 1;
     }
     if (*(int16_t *)scratch != 3) {

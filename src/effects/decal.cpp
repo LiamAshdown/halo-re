@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern const projection_axis_pair k_projection_axes[6];
@@ -8,7 +9,6 @@ extern void *data_iterator_next(data_iterator *iterator);
 extern void datum_delete(data_array *array, datum_index handle);
 extern cache *rasterizer_decal_vertex_cache_handle;
 extern void cache_evict_entry(datum_index handle, cache *self);
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern real_point2d decal_clip_buffers[2][12];
 extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
 extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
@@ -20,13 +20,10 @@ extern const decal_type_parameters k_decal_type_parameters[4];
 extern random_seed effect_random_seed;
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
 extern tag_instance *tag_instances;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern game_time_globals *game_time;
 extern long lrint(double x);
@@ -259,9 +256,9 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
         return;
     }
 
-    surfaces = (ModelCollisionGeometryBSPSurface *)global_structure_collision_bsp->surfaces.pointer;
-    edges = (ModelCollisionGeometryBSPEdge *)global_structure_collision_bsp->edges.pointer;
-    bsp_vertices = (ModelCollisionGeometryBSPVertex *)global_structure_collision_bsp->vertices.pointer;
+    surfaces = (ModelCollisionGeometryBSPSurface *)halo::physics::globals().structure_collision_bsp->surfaces.pointer;
+    edges = (ModelCollisionGeometryBSPEdge *)halo::physics::globals().structure_collision_bsp->edges.pointer;
+    bsp_vertices = (ModelCollisionGeometryBSPVertex *)halo::physics::globals().structure_collision_bsp->vertices.pointer;
     surface = &surfaces[surface_index];
 
     if (is_first_surface != 0) {
@@ -269,7 +266,7 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
         fallback_count = (int16_t)*fallback_queue_count;
     }
 
-    structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
+    structure_bsp_plane_fetch_signed(&surface_plane, halo::physics::globals().structure_collision_bsp, (int32_t)surface->plane);
     angle = vector3d_angle_between_4cd5e0((const real_vector3d *)&projection->transformed_i, &surface_plane.normal);
 
     axes = &k_projection_axes[projection->major_axis * 2 + projection->normal_positive];
@@ -560,7 +557,7 @@ void decal_ref::rehash_object_decals()
         while (decal_index != k_datum_index_none) {
             decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
             datum_index next = self->next_decal;
-            int32_t leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &self->position);
+            int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &self->position);
 
             if (leaf != -1) {
                 int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
@@ -610,7 +607,7 @@ void decal_ref::spawn_for_response(datum_index response_tag_index, uint8_t deter
         saved_seed = effect_random_seed;
         effect_random_seed = words[2] ^ words[1] ^ words[0] ^ 0xdeadc0de;
     }
-    if (collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
+    if (halo::physics::collision_test_movement_segment(0x100061, origin, direction, 0xffffffff, &result) &&
         result.type == 2 &&
         (*(uint8_t *)tag_instances[response_tag_index & 0xffff].data & 0x10) == 0) {
         decal_place(response_tag_index, &result, direction, radius, deterministic, (int16_t)marker_index);

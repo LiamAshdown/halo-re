@@ -1,7 +1,7 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern tag_instance *tag_instances;
 extern data_array *decal_data;
 extern random_seed effect_random_seed;
@@ -110,7 +110,7 @@ static void decal_place_snap_basis(real_vector3d *axis_source, const real_vector
  */
 static void decal_place_surface_plane(real_plane3d *out, uint32_t signed_plane_index)
 {
-    const real_plane3d *plane = &((const real_plane3d *)global_structure_collision_bsp->planes.pointer)
+    const real_plane3d *plane = &((const real_plane3d *)halo::physics::globals().structure_collision_bsp->planes.pointer)
         [signed_plane_index & 0x7fffffff];
 
     if ((int32_t)signed_plane_index < 0) {
@@ -143,7 +143,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
     decal_flood_accumulator *accumulator, real_vector3d *normal_min, real_vector3d *normal_max)
 {
     ModelCollisionGeometryBSPSurface *surfaces =
-        (ModelCollisionGeometryBSPSurface *)global_structure_collision_bsp->surfaces.pointer;
+        (ModelCollisionGeometryBSPSurface *)halo::physics::globals().structure_collision_bsp->surfaces.pointer;
     ModelCollisionGeometryBSPEdge *edges;
     ModelCollisionGeometryBSPVertex *vertices;
     real maximum_angle = k_decal_type_parameters[definition->type].maximum_edge_angle * 0.017453292f;
@@ -179,8 +179,8 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
         }
     }
 
-    edges = (ModelCollisionGeometryBSPEdge *)global_structure_collision_bsp->edges.pointer;
-    vertices = (ModelCollisionGeometryBSPVertex *)global_structure_collision_bsp->vertices.pointer;
+    edges = (ModelCollisionGeometryBSPEdge *)halo::physics::globals().structure_collision_bsp->edges.pointer;
+    vertices = (ModelCollisionGeometryBSPVertex *)halo::physics::globals().structure_collision_bsp->vertices.pointer;
     for (g = 0; g < group_count; g++) {
         int32_t surface_index = group[g];
         ModelCollisionGeometryBSPSurface *surface = &surfaces[surface_index];

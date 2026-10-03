@@ -5,10 +5,9 @@
  */
 
 #include "halo/scenario/scenario.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
@@ -28,7 +27,7 @@ void location_view::from_point(real_point3d *point)
 {
     ScenarioStructureBSPLeaf *leaves;
 
-    self->leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    self->leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     if (self->leaf_index == -1) {
         self->cluster_index = -1;
         return;

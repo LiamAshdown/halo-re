@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::ai {
 
@@ -767,13 +768,10 @@ extern data_array *prop_data;
 extern data_array *swarm_data;
 extern data_array *object_data;
 extern data_array *encounter_data;
-extern datum_index *collideable_cluster_first;
-extern data_array *collideable_object_references;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern object_globals *object_globals_pointer;
-extern int32_t object_cluster_stamp;
 extern int ai_target_distance_qsort_compare(void *record_a, void *record_b);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern int16_t object_get_root_parent_placement(uint32_t object_index,
@@ -847,9 +845,9 @@ void ActorView::target_scan_potential_targets()
         }
     }
 
-    object_cluster_stamp++;
+    halo::physics::globals().object_cluster_stamp++;
     object_globals_pointer->collecting_in_clusters = 1;
-    stamp = object_cluster_stamp;
+    stamp = halo::physics::globals().object_cluster_stamp;
 
     next = self->first_prop;
     while (current = next, current != k_datum_index_none) {
@@ -1036,12 +1034,12 @@ merged:
                 datum_index head;
                 int32_t owner_cluster_ref, chain_object;
 
-                head = collideable_cluster_first[cluster];
+                head = halo::physics::globals().collideable_cluster_first[cluster];
                 if (head == k_datum_index_none) {
                     owner_cluster_ref = -1; chain_object = -1;
                 } else {
                     object_cluster_reference *node =
-                        (object_cluster_reference *)collideable_object_references->data + (head & 0xffff);
+                        (object_cluster_reference *)halo::physics::globals().collideable_object_references->data + (head & 0xffff);
                     owner_cluster_ref = node->next_reference;
                     chain_object = node->object_index;
                 }
@@ -1052,7 +1050,7 @@ merged:
                         chain_object = -1;
                     } else {
                         object_cluster_reference *node =
-                            (object_cluster_reference *)collideable_object_references->data +
+                            (object_cluster_reference *)halo::physics::globals().collideable_object_references->data +
                             (owner_cluster_ref & 0xffff);
                         owner_cluster_ref = node->next_reference;
                         chain_object = node->object_index;

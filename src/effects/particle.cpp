@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -17,11 +18,9 @@ extern data_array *object_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern int32_t render_frame_index;
 extern datum_index datum_new(data_array *array);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern real random_range_real(real minimum, real maximum);
 extern uint16_t effect_random_uint16(void);
 extern int effect_random_int_between(int16_t minimum, int16_t maximum);
@@ -33,7 +32,6 @@ extern double sqrt(double x);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t any_local_player_within_10_units(real_point3d *position);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
 extern uint8_t particle_update_motion(datum_index particle_handle, real delta_time);
@@ -254,7 +252,7 @@ void particle_ref::create(particle_creation_data *creation_data)
         matrix4x3_transform_point(&position, &creation_data->position, marker);
     }
 
-    leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &position);
+    leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &position);
     if (leaf == -1) {
         return;
     }
@@ -475,7 +473,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         uint32_t collision_flags;
         uint8_t collided;
 
-        collision_flags = point_physics_tick(&self->velocity, 0, physics, &self->location,
+        collision_flags = halo::physics::point_physics_tick(&self->velocity, 0, physics, &self->location,
             0xffffffff, &self->position, (real_vector3d *)0, &out_normal, &out_material_type,
             radius, delta_time);
 
@@ -624,7 +622,7 @@ void particle_ref::refresh_structure_locations()
             }
             point = (real_point3d *)(owner + ((struct object *)owner)->nodes.offset + entry->marker_index * 0x34 + 0x28);
         }
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, point);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
         entry->location.leaf_index = (int32_t)leaf;
         if (leaf == 0xffffffff) {
             cluster = -1;

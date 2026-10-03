@@ -1,6 +1,7 @@
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -13,7 +14,6 @@ extern scenario_game_globals *global_scenario_game_globals;
 extern uint8_t *hs_camera_control_pointer;
 extern data_array *object_render_state_cache;
 extern void *runtime_decals_suppressed;
-extern breakable_surface_globals *breakable_surface_state;
 extern data_array *particle_data;
 extern data_array *effect_data;
 extern data_array *effect_location_data;
@@ -130,7 +130,7 @@ void GameLifecycle::initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = 0x4204;
-    breakable_surface_state = (breakable_surface_globals *)(game_state_cursor + game_state_base);
+    halo::physics::globals().breakable_surface_state = (breakable_surface_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x4204;
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 

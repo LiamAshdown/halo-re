@@ -1,4 +1,5 @@
 #include "halo/camera/observer.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -8,11 +9,9 @@ extern void observer_compute_spline_coefficients(int16_t local_player_index);
 extern void observer_evaluate_spline_acceleration(int16_t local_player_index);
 extern void observer_evaluate_spline_velocity(int16_t local_player_index);
 extern void observer_evaluate_spline_value_and_orthonormalize(int16_t local_player_index);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point);
 extern void predicted_resource_list_touch(TagReflexive *resources);
 extern void observer_avoid_collision(real_vector3d *forward, real_point3d *position, real_vector3d *up, float *distance, float radius_scale);
@@ -36,7 +35,6 @@ extern void observer_advance(int16_t local_player_index);
 extern void observer_commit(int16_t local_player_index);
 extern uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t observer_collision_test_ray(real_point3d *origin, uint8_t use_alternate_mask, real_point3d *target, float *out_fraction);
 extern double atan2(double y, double x);
 extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
@@ -160,7 +158,7 @@ void ObserverHandle::commit()
     camera->position.y = position.y - distance * o->parameters.forward.j;
     camera->position.z = position.z - distance * o->parameters.forward.k;
 
-    leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&camera->position);
+    leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
             ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
@@ -698,7 +696,7 @@ void ObserverSystem::update_location()
     if (local_player_globals->local_players[0] == k_datum_index_none) {
         return;
     }
-    leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp,
+    leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp,
         (real_point3d *)&observers[0].camera.position);
     observers[0].camera.leaf_index = leaf_index;
     if (leaf_index == -1) {
@@ -733,7 +731,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
     collision_result collision;
 
     unobstructed_fraction = 1.0f;
-    location.leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, position);
+    location.leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, position);
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {
@@ -785,7 +783,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
             delta.i = probe.x - position->x;
             delta.j = probe.y - position->y;
             delta.k = probe.z - position->z;
-            hit = collision_test_movement_segment(mask, position, &delta, 0xffffffff, &collision);
+            hit = halo::physics::collision_test_movement_segment(mask, position, &delta, 0xffffffff, &collision);
         }
         if (hit) {
             hit_fraction = collision.t;
@@ -830,7 +828,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
             delta.i = probe.x - position->x;
             delta.j = probe.y - position->y;
             delta.k = probe.z - position->z;
-            hit = collision_test_movement_segment(mask, position, &delta, 0xffffffff, &collision);
+            hit = halo::physics::collision_test_movement_segment(mask, position, &delta, 0xffffffff, &collision);
 
             if (!hit) {
 mark_clear:
@@ -882,7 +880,7 @@ uint8_t ObserverSystem::collision_test_ray(real_point3d *origin, uint8_t use_alt
     delta.j = target->y - origin->y;
     delta.k = target->z - origin->z;
 
-    if (collision_test_movement_segment(flags, origin, &delta, 0xffffffff, &collision) != 0) {
+    if (halo::physics::collision_test_movement_segment(flags, origin, &delta, 0xffffffff, &collision) != 0) {
         *out_fraction = collision.t;
         return 1;
     }

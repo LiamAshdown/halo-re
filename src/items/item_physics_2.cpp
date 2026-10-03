@@ -1,5 +1,6 @@
 #include "halo/items/items.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -13,12 +14,10 @@ extern real_vector3d *global_origin3d_pointer;
 extern real_vector3d *global_forward3d_pointer;
 extern real_vector3d *global_up3d_pointer;
 extern real_vector3d *global_down3d_pointer;
-extern float k_physics_gravity;
 extern char s_ground_point_marker[];
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
@@ -27,7 +26,6 @@ extern real_matrix4x3 *object_get_node_marker_address(uint32_t object_index, int
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
 extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void item_compute_rotation(uint32_t object_index);
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -52,9 +50,9 @@ static void item_start_falling(uint32_t item_index)
 {
     real_vector3d fall;
 
-    fall.i = k_physics_gravity * global_down3d_pointer->i;
-    fall.j = k_physics_gravity * global_down3d_pointer->j;
-    fall.k = k_physics_gravity * global_down3d_pointer->k;
+    fall.i = halo::physics::globals().gravity * global_down3d_pointer->i;
+    fall.j = halo::physics::globals().gravity * global_down3d_pointer->j;
+    fall.k = halo::physics::globals().gravity * global_down3d_pointer->k;
     item_accelerate(item_index, &fall, 0);
 }
 
@@ -89,12 +87,12 @@ uint8_t item_ref::update()
             collision_result hit;
 
             if (!(((Item *)tag)->item_flags & 4)) {
-                velocity.k -= k_physics_gravity;
+                velocity.k -= halo::physics::globals().gravity;
             }
             target.x = ((item_object *)obj)->base.position.x + velocity.i;
             target.y = ((item_object *)obj)->base.position.y + velocity.j;
             target.z = ((item_object *)obj)->base.position.z + velocity.k;
-            if (collision_test_movement_segment_between_points(&((item_object *)obj)->base.position, &target, 0x1ff3e9,
+            if (halo::physics::collision_test_movement_segment_between_points(&((item_object *)obj)->base.position, &target, 0x1ff3e9,
                                                                ((item_object *)obj)->item.ignore_object_index, &hit)) {
                 real speed_factor;
                 int16_t hit_type = *(int16_t *)&hit;
@@ -169,12 +167,12 @@ uint8_t item_ref::update()
                     velocity.j += hit.plane.normal.j * impulse;
                     velocity.k += hit.plane.normal.k * impulse;
                     target = hit.point;
-                    if (object_collision_test_cluster_group(0x1ff3e9, &target, item_index)) {
+                    if (halo::physics::object_collision_test_cluster_group(0x1ff3e9, &target, item_index)) {
                         target.x = hit.plane.normal.i * 0.05f + hit.point.x;
                         target.y = hit.plane.normal.j * 0.05f + hit.point.y;
                         target.z = hit.plane.normal.k * 0.05f + hit.point.z;
                     }
-                    object_collision_test_cluster_group(0x1ff3e9, &target, item_index);
+                    halo::physics::object_collision_test_cluster_group(0x1ff3e9, &target, item_index);
                 }
             }
             ((item_object *)obj)->base.velocity = velocity;

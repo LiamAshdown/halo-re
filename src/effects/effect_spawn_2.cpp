@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern uint8_t particle_spawn_debug_mode;
@@ -6,8 +7,6 @@ extern tag_instance *tag_instances;
 extern data_array *object_data;
 extern random_seed effect_random_seed;
 extern uint8_t *first_person_weapon_interfaces;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern const real_point3d *global_origin3d_pointer;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern real effect_distribution_function_evaluate(EffectDistributionFunction_t type, real fraction);
@@ -173,8 +172,8 @@ void effect_view::spawn_particles()
                 effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
                 radius_word = effect_random_seed;
                 effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                sample_index = (int16_t)(((effect_random_seed >> 16) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-                sample = sphere_point_table[sample_index];
+                sample_index = (int16_t)(((effect_random_seed >> 16) * (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+                sample = halo::physics::globals().sphere_point_table[sample_index];
                 radius = (real)(int32_t)(radius_word >> 16) * 1.5259022e-05f * radius_span + base_radius;
 
                 effect_spawn_particles_transform_point(&record.position, *(real *)(pt + 0x14),

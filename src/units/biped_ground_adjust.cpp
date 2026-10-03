@@ -1,6 +1,7 @@
 #include "halo/units/unit.hpp"
 #include "physics.h"
 #include "projectiles.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -14,10 +15,6 @@ extern double acos(double x);
 extern double sin(double x);
 extern double fabs(double x);
 extern physics_model ground_adjust_physics_model;
-extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model);
-extern int16_t physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta, physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts, physics_model_contact *contacts);
-extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern double sqrt(double x);
 extern void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point);
 extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
@@ -146,7 +143,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
         return;
     }
 
-    physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)(obj + 0x5c), ((unit_object *)obj)->base.bounding_radius + 0.0625f,
+    halo::physics::physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)(obj + 0x5c), ((unit_object *)obj)->base.bounding_radius + 0.0625f,
         0.0f, tolerance, object_index, &ground_adjust_physics_model);
 
     success_bits[0] = 0;
@@ -178,8 +175,8 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 delta.i = 0.0f;
                 delta.j = 0.0f;
                 delta.k = progress * -0.03208661451935768f;
-                if (pass == 0 && !physics_point_refresh_leaf(self, tolerance)) {
-                    physics_model_slide_along_contacts(self, &delta, &ground_adjust_physics_model, &fitted_position,
+                if (pass == 0 && !halo::physics::physics_point_refresh_leaf(self, tolerance)) {
+                    halo::physics::physics_model_slide_along_contacts(self, &delta, &ground_adjust_physics_model, &fitted_position,
                         &fitted_velocity, 3, contacts);
                     if (biped_ground_adjust_near_zero(fitted_velocity.i) &&
                         biped_ground_adjust_near_zero(fitted_velocity.j)) {
@@ -196,13 +193,13 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 bone.i = bone.i * 1.03f;
                 bone.j = bone.j * 1.03f;
                 bone.k = bone.k * 1.03f;
-                if (collision_test_movement_segment(0xc0a8, &segment_start, &bone, object_index, &hit)) {
+                if (halo::physics::collision_test_movement_segment(0xc0a8, &segment_start, &bone, object_index, &hit)) {
                     uint8_t embedded[2];
                     float push[2];
                     real_plane3d *plane = &hit.plane;
 
-                    embedded[0] = physics_point_refresh_leaf(self, 0.03f);
-                    embedded[1] = physics_point_refresh_leaf(parent, 0.03f);
+                    embedded[0] = halo::physics::physics_point_refresh_leaf(self, 0.03f);
+                    embedded[1] = halo::physics::physics_point_refresh_leaf(parent, 0.03f);
                     if ((int32_t)embedded[0] + (int32_t)embedded[1] != 0) {
                         int32_t side;
 
@@ -264,8 +261,8 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                         correction.i = bone.i * stretch;
                         correction.j = bone.j * stretch;
                         correction.k = bone.k * stretch;
-                        if (!physics_point_refresh_leaf(self, tolerance)) {
-                            physics_model_slide_along_contacts(self, &correction, &ground_adjust_physics_model, self,
+                        if (!halo::physics::physics_point_refresh_leaf(self, tolerance)) {
+                            halo::physics::physics_model_slide_along_contacts(self, &correction, &ground_adjust_physics_model, self,
                                 &correction, 3, contacts);
                         }
                     } else {
@@ -274,12 +271,12 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                         correction.i = bone.i * -half;
                         correction.j = bone.j * -half;
                         correction.k = bone.k * -half;
-                        physics_model_slide_along_contacts(parent, &correction, &ground_adjust_physics_model, parent,
+                        halo::physics::physics_model_slide_along_contacts(parent, &correction, &ground_adjust_physics_model, parent,
                             &correction, 3, contacts);
                         correction.i = bone.i * half;
                         correction.j = bone.j * half;
                         correction.k = bone.k * half;
-                        physics_model_slide_along_contacts(self, &correction, &ground_adjust_physics_model, self,
+                        halo::physics::physics_model_slide_along_contacts(self, &correction, &ground_adjust_physics_model, self,
                             &correction, 3, contacts);
                     }
                 }
@@ -389,7 +386,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
                 if (!biped_ground_adjust_is_one(local_direction.j * base[1] + local_direction.k * base[2] +
                         local_direction.i * base[0])) {
                     biped_ground_adjust_mark(success_bits, node_index);
-                    if (!(own_position->z < projected.z) && !physics_point_refresh_leaf(&projected, tolerance)) {
+                    if (!(own_position->z < projected.z) && !halo::physics::physics_point_refresh_leaf(&projected, tolerance)) {
                         *own_position = projected;
                     }
                     updated = 1;

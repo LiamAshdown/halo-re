@@ -5,21 +5,17 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
 extern float k_cluster_query_radius_threshold;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
-                                      real_point3d *point);
 extern real_point3d render_camera_global;
 extern real_vector3d camera_forward_x;
 extern uint8_t triangle_point_barycentric_2d(real_point3d *a, real_point3d *v_ecx, real_point3d *v_edx, real_point3d *p,
     real *out_u, real *out_v);
 extern float k_surface_resolve_step;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
-    real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 }
 
 namespace halo::structures {
@@ -195,7 +191,7 @@ int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_po
             return (int16_t)structure_bsp_query::collect_surfaces_in_clusters(out_surfaces, (int16_t)max_count, query_box, plane_count, planes, visited_bits, cluster_count, cluster_indices);
         }
 
-        int32_t leaf = bsp3d_node_find_leaf(0, global_collision_bsp,
+        int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp,
                                              query_point);
         if (leaf != -1) {
             int32_t leaf_index = leaf & 0x7fffffff;
@@ -301,7 +297,7 @@ uint8_t structure_bsp_query::resolve_position_to_surface(real_point3d *start_pos
     for (;;) {
         ScenarioStructureBSPLightmap *lightmaps;
 
-        if (!collision_test_movement_segment(0x21, position, direction, 0xffffffff, &result)) {
+        if (!halo::physics::collision_test_movement_segment(0x21, position, direction, 0xffffffff, &result)) {
             return 0;
         }
         *position = result.point;

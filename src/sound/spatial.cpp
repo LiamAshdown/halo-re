@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::sound {
 
@@ -175,7 +176,7 @@ void refresh_structure_locations(void)
         if (entry->location.type != 1) {
             continue;
         }
-        leaf = bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&entry->location.position);
+        leaf = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&entry->location.position);
         entry->location.leaf_index = (int32_t)leaf;
         if (leaf == 0xffffffff) {
             entry->location.cluster_index = -1;
@@ -425,7 +426,7 @@ void Location::compute_obstruction_occlusion(int16_t listener_index, float refer
             delta.j = this->position.y - listener->position.y;
             delta.k = this->position.z - listener->position.z;
 
-            if (collision_test_movement_segment(0xc0e1, (real_point3d *)&listener->position, &delta, 0xffffffff,
+            if (halo::physics::collision_test_movement_segment(0xc0e1, (real_point3d *)&listener->position, &delta, 0xffffffff,
                     &result) == 0) {
                 this->obstruction = 0.0f;
                 this->occlusion = 0.0f;

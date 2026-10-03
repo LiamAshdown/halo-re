@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int16_t weather_particle_system_count;
@@ -11,8 +12,6 @@ extern void ambient_color_sample(ColorRGB *out, real_point3d *position, real has
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
 extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags, real_vector3d *out);
 extern ambient_noise_grid ambient_noise;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern random_seed random_seed_global;
 extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
 extern int32_t weather_frame_counter;
@@ -122,8 +121,8 @@ void ambient_color::randomize()
             int16_t index;
 
             random_seed_global = random_seed_global * k_random_multiplier + k_random_increment;
-            index = (int16_t)(((random_seed_global >> 16) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-            ambient_noise.entries[band][row][0] = *(real_vector3d *)&sphere_point_table[index];
+            index = (int16_t)(((random_seed_global >> 16) * (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+            ambient_noise.entries[band][row][0] = *(real_vector3d *)&halo::physics::globals().sphere_point_table[index];
         }
     }
 

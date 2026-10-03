@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -24,7 +25,6 @@ extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed, real lo, real hi);
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
-extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags, int32_t surface_index);
 void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position, real_vector3d *velocity);
 }
 
@@ -213,7 +213,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         *(uint32_t *)&breakable_surface_damage.location_cluster_index =
             *(uint32_t *)((uint8_t *)&hit->leaf + 4);
 
-        breakable_surface_apply_damage(&breakable_surface_damage,
+        halo::physics::breakable_surface_apply_damage(&breakable_surface_damage,
             (*(uint32_t *)&hit->leaf & 0xffff0000u) | (uint32_t)hit->breakable_surface_index,
             hit->surface_index);
     }

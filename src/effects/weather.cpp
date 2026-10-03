@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
@@ -28,10 +29,7 @@ extern double fmod(double x, double y);
 extern datum_index datum_new(data_array *array);
 extern void effect_random_direction_from_table(real_point3d *out);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern real vector3d_normalize_with_length(real_vector3d *v);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern int32_t weather_frame_counter;
 extern int16_t weather_particle_system_count;
 extern weather_particle_system_state weather_wind_states[8];
@@ -361,8 +359,8 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
 
         effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
         index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-            (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-        direction = &sphere_point_table[index];
+            (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+        direction = &halo::physics::globals().sphere_point_table[index];
 
         p->acceleration.i = old_weight * p->acceleration.i + direction->x * type->acceleration_turning_rate;
         p->acceleration.j = old_weight * p->acceleration.j + direction->y * type->acceleration_turning_rate;
@@ -382,7 +380,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
         PointPhysics *physics = (PointPhysics *)tag_instances[type->physics.tag_id.index].data;
         int16_t material_type;
 
-        point_physics_tick(&p->velocity, flags_arg, physics,
+        halo::physics::point_physics_tick(&p->velocity, flags_arg, physics,
             (bsp_leaf_reference *)((uint8_t *)instance + 0x10), (uint32_t)instance->cluster_index,
             &p->position, (real_vector3d *)0, (real_vector3d *)0, &material_type, p->radius,
             instance->delta_time);
@@ -391,8 +389,8 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
     {
         uint32_t seed = (uint16_t)weather_particle_handle * k_random_multiplier + k_random_increment;
         int16_t index = (int16_t)(((seed >> k_random_value_shift) *
-            (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-        real_point3d *direction = &sphere_point_table[index];
+            (uint32_t)(int32_t)halo::physics::globals().sphere_point_table_count) >> 16);
+        real_point3d *direction = &halo::physics::globals().sphere_point_table[index];
 
         p->position.x = direction->x * 0.001f + p->position.x;
         p->position.y = direction->y * 0.001f + p->position.y;

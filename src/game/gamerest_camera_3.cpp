@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_camera.hpp"
 #include <string.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -12,7 +13,6 @@ extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int1
 extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);
 extern void first_person_camera_deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction);
 extern void first_person_camera_apply_weapon_offset(real_point3d *position, datum_index unit, real_vector3d *aiming_direction);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, void *result);
 extern void vector3d_normalize(real_vector3d *v);
 extern double sqrt(double x);
 extern double sin(double x);
@@ -93,7 +93,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         probe_delta.i = camera_direction.i * 128.0f;
         probe_delta.j = camera_direction.j * 128.0f;
         probe_delta.k = camera_direction.k * 128.0f;
-        collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, record);
+        halo::physics::collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, (collision_result *)record);
 
         look_direction.i = *(real *)(record + 0x18) - observer_position->x;
         look_direction.j = *(real *)(record + 0x1c) - observer_position->y;

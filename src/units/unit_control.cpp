@@ -3,6 +3,7 @@
 #include "hs.h"
 #include "physics.h"
 #include "projectiles.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -26,14 +27,12 @@ extern char ai_marker_name_a[];
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction);
 extern data_array *player_data;
 extern real_vector3d *global_forward3d_pointer;
 extern void * data_iterator_next(data_iterator *iterator);
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern uint8_t *global_scenario;
 extern int32_t control_binding_device_type;
@@ -444,7 +443,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
 
         {
             uint32_t flt_max_bits = 0x7f7fffff;
-            hit = collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
+            hit = halo::physics::collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                 (uint32_t *)0, &base_position, &delta, *(float *)&flt_max_bits);
         }
         hit_fraction = segment_result.t;
@@ -689,7 +688,7 @@ void UnitView::sample_camera_shake_from_velocity()
     delta.i = ((unit_object *)obj)->unit.aiming_vector.i * 25.0f;
     delta.j = ((unit_object *)obj)->unit.aiming_vector.j * 25.0f;
     delta.k = ((unit_object *)obj)->unit.aiming_vector.k * 25.0f;
-    if (collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
+    if (halo::physics::collision_test_movement_segment(0x22, &camera_position, &delta, unit_index, &hit) &&
         hit.plane.normal.k > 0.95f) {
         real_point3d position = hit.point;
 

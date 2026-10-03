@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -17,8 +18,6 @@ extern uint32_t effect_random_seed;
 extern double cos(double x);
 extern double sin(double x);
 extern void decal_evict_object_decals(int32_t cluster_slot);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
-    real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction,
     real radius_scale, uint8_t object_attached, int16_t sequence_index);
 }
@@ -100,7 +99,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
 
                         effect_random_seed = *(uint32_t *)&decal->position.z ^
                             *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ 0xdeadc0de;
-                        if (collision_test_movement_segment(0x100061,
+                        if (halo::physics::collision_test_movement_segment(0x100061,
                                 (real_point3d *)&decal->position, &orientation, 0xffffffff,
                                 &placement) != 0 &&
                             placement.type == _collision_result_type_structure &&

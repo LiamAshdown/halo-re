@@ -5,19 +5,18 @@
 #include "networking.h"
 #include "cutscene.h"
 #include "halo/input/api.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern int32_t animation_state_advance(uint32_t animation_graph_tag_index, void *state, int32_t *sound_tag_id, int32_t random_stream);
 extern void block_list_compact(memory_pool *arena);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern cinematic_globals *cinematic_globals_ptr;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void euler_angles_to_basis_vectors(real_euler_angles3d *angles, real_vector3d *up_out, real_vector3d *forward_out);
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_forward3d_pointer;
 extern uint8_t *global_scenario;
 extern int16_t global_structure_bsp_index;
@@ -35,7 +34,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
 extern void object_block_data_free(data_array *array, datum_index object_index);
 extern uint8_t object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size);
 extern datum_index object_block_data_new(int32_t specific_index, data_array *array, int16_t size);
-extern int32_t object_cluster_stamp;
 extern void object_create_attachments(uint32_t object_index);
 extern data_array *object_data;
 extern void object_delete(uint32_t object_index);
@@ -233,8 +231,8 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
                 definition_data = (uint8_t *)tag_instances[tag & 0xffff].data;
                 matrix4x3_transform_point(&origin, (real_point3d *)(definition_data + 8), &basis);
-                if (bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == 0xffffffff &&
-                    bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == 0xffffffff) {
+                if (halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(placement + 8)) == 0xffffffff &&
+                    halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &origin) == 0xffffffff) {
                     *(uint16_t *)(placement + 0x20) &= (uint16_t)~bsp_bit;
                 } else {
                     *(uint16_t *)(placement + 0x20) |= bsp_bit;
@@ -401,7 +399,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
 
     obj->location_cluster_index = -1;
     header->cluster_index = -1;
-    obj->cluster_stamp = object_cluster_stamp - 1;
+    obj->cluster_stamp = halo::physics::globals().object_cluster_stamp - 1;
     obj->damage_owner = k_datum_index_none;
     obj->placement_id = k_datum_index_none;
     obj->animation_index = -1;

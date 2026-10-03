@@ -11,10 +11,11 @@
 #include "projectiles.h"
 
 #include "halo/physics/motion.hpp"
+#include "halo/physics/api.hpp"
 
-extern "C" { void physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
-extern "C" { void physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
-extern "C" { float physics_scalar_approach_direction(physics_scalar_range *range, float value, uint8_t wrap, float target); }
+extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
+extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
+extern "C" { float halo::physics::physics_scalar_approach_direction(physics_scalar_range *range, float value, uint8_t wrap, float target); }
 
 extern "C" { extern double fabs(double x); }
 namespace halo::physics {
@@ -183,10 +184,10 @@ namespace halo::physics {
  */
 uint8_t PhysicsMotion::scalar_move_toward_target(physics_scalar_range *range, float *value, uint8_t wrap, float target, float rate)
 {
-    float direction = physics_scalar_approach_direction(range, *value, wrap, target);
+    float direction = halo::physics::physics_scalar_approach_direction(range, *value, wrap, target);
     if (direction != 0.0f) {
-        physics_scalar_advance_and_wrap(range, value, wrap, direction * rate);
-        if (physics_scalar_approach_direction(range, *value, wrap, target) == direction) {
+        halo::physics::physics_scalar_advance_and_wrap(range, value, wrap, direction * rate);
+        if (halo::physics::physics_scalar_approach_direction(range, *value, wrap, target) == direction) {
             return 0;
         }
     }
@@ -209,7 +210,7 @@ uint8_t PhysicsMotion::scalar_step_to_target_clamped(physics_scalar_rates *rates
 {
     if (*value <= target) {
         if (*value < target) {
-            physics_clamp_value_to_spring_range(value, rates, step);
+            halo::physics::physics_clamp_value_to_spring_range(value, rates, step);
             if (*value < target) {
                 return 0;
             }
@@ -218,7 +219,7 @@ uint8_t PhysicsMotion::scalar_step_to_target_clamped(physics_scalar_rates *rates
         }
 
     } else {
-        physics_clamp_value_to_spring_range(value, rates, -step);
+        halo::physics::physics_clamp_value_to_spring_range(value, rates, -step);
         if (*value > target) {
             return 0;
         }
@@ -260,7 +261,6 @@ extern "C" { extern float k_water_density; }
 extern "C" { extern float k_air_density; }
 extern "C" { extern uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position, real_vector3d *out, uint32_t filter_flags); }
 extern "C" { extern void ambient_color_for_marker(int16_t weather_row, real_point3d *position, uint8_t flags, real_vector3d *out); }
-extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 namespace halo::physics {
 
 /**
@@ -378,7 +378,7 @@ uint32_t PhysicsMotion::tick(real_vector3d *velocity, uint32_t flags_arg, PointP
         delta.j = dt * velocity->j;
         delta.k = dt * velocity->k;
 
-        collided = collision_test_movement_segment(collision_flags, position, &delta, 0xffffffff, &hit);
+        collided = halo::physics::collision_test_movement_segment(collision_flags, position, &delta, 0xffffffff, &hit);
         if (collided == 0) {
             if (hit.leaf.leaf_index != -1) {
                 *out_leaf = hit.leaf;

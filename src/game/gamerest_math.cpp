@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_math.hpp"
 #include <stdint.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern void unit_get_look_origin_and_direction(uint32_t object_index, uint32_t *out_status, real_vector3d *out_direction, real_point3d *out_origin);
@@ -15,8 +16,6 @@ extern int16_t weapon_zoom_index_substitutions[];
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern int32_t __ftol(void);
 extern random_seed random_seed_global;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern tag_instance *tag_instances;
 extern int32_t random_advance_draws(TagReflexive *reflexive);
 }
@@ -336,8 +335,8 @@ void RandomTable::get_table_point(real_point3d *out)
 
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     index = (int16_t)(((random_seed_global >> 16) *
-                       (uint32_t)(int32_t)(int16_t)sphere_point_table_count) >> 16);
-    *out = sphere_point_table[index];
+                       (uint32_t)(int32_t)(int16_t)halo::physics::globals().sphere_point_table_count) >> 16);
+    *out = halo::physics::globals().sphere_point_table[index];
 }
 
 /**

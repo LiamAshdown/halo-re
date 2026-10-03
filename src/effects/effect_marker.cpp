@@ -1,9 +1,9 @@
 #include "halo/effects/effects.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
 extern const real_vector3d *global_down3d_pointer;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
@@ -55,7 +55,7 @@ void effect_view::environment_probe(uint32_t definition_index, int16_t location_
         delta.j = global_down3d_pointer->j * 0.3f;
         delta.k = global_down3d_pointer->k * 0.3f;
 
-        hit = collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
+        hit = halo::physics::collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
         if (hit) {
             uint8_t in_sky = scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
             int16_t material_type = in_sky ? 0x1c : result.material_type;

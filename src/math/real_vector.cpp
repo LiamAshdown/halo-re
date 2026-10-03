@@ -8,13 +8,13 @@
 #include "halo/math/glm_interop.hpp"
 
 #include "tags.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
 extern double fmod(double x, double y);
 extern double acos(double x);
-extern float k_physics_gravity;
 extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 }
 
@@ -314,7 +314,7 @@ void vector3d_delta_toward_gravity_biased_clamp_length(const real_point3d &origi
 
     out_delta->i = target.x - origin.x;
     out_delta->j = target.y - origin.y;
-    out_delta->k = (target.z - origin.z) + k_physics_gravity;
+    out_delta->k = (target.z - origin.z) + halo::physics::globals().gravity;
 
     dot_delta_target = target.y * out_delta->j + out_delta->k * target.z + target.x * out_delta->i;
 

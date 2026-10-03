@@ -2,14 +2,13 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position);
 extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index);
@@ -66,7 +65,6 @@ extern real random_real(void);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *player_data;
 extern void * data_iterator_next(data_iterator *iterator);
-extern int8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern data_array *prop_data;
 extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
 extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
@@ -103,7 +101,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     int32_t leaf;
 
     (void)unused;
-    leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, point);
     location.leaf_index = leaf;
     location.cluster_index = leaf == -1 ? -1 :
         *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
@@ -1252,8 +1250,8 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                         to_self.k = dz;
                         line_of_sight_clear =
                             (distance_squared < 9.0f ||
-                             collision_test_movement_segment(0x27, &player_position, &to_self,
-                                                   (uint32_t)k_datum_index_none, trace_scratch) == 0)
+                             halo::physics::collision_test_movement_segment(0x27, &player_position, &to_self,
+                                                   (uint32_t)k_datum_index_none, (collision_result *)trace_scratch) == 0)
                                 ? 1 : 0;
                     }
 

@@ -7,12 +7,10 @@
 #include "hs.h"
 #include "projectiles.h"
 #include <stdint.h>
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
-extern void breakable_surface_damage_in_blast_radius(damage_data *dd);
-extern breakable_surface_globals *breakable_surface_state;
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern game_engine_definition *current_game_engine;
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
 extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal, real_vector3d *incident, real_point3d *impact_position, uint32_t object_index);
@@ -452,7 +450,7 @@ void halo::objects::DamageDataView::apply_area_effect()
         }
     }
 
-    breakable_surface_damage_in_blast_radius(dd);
+    halo::physics::breakable_surface_damage_in_blast_radius(dd);
 }
 
 namespace {
@@ -511,12 +509,12 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 offset.i = side->i * radius;
                 offset.j = side->j * radius;
                 offset.k = side->k * radius;
-                collision_test_movement_segment(0xc221, origin, &offset, object_get_root_object_index(target_index), &hit);
+                halo::physics::collision_test_movement_segment(0xc221, origin, &offset, object_get_root_object_index(target_index), &hit);
                 sample = hit.point;
                 back.i = ((struct object *)target)->bounding_center.x - sample.x;
                 back.j = ((struct object *)target)->bounding_center.y - sample.y;
                 back.k = ((struct object *)target)->bounding_center.z - sample.z;
-                if (!collision_test_movement_segment(0xc221, &sample, &back, object_get_root_object_index(target_index), &hit)) {
+                if (!halo::physics::collision_test_movement_segment(0xc221, &sample, &back, object_get_root_object_index(target_index), &hit)) {
                     blocked = 0;
                 }
             }
@@ -534,7 +532,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             to_center.i = ((struct object *)target)->bounding_center.x - origin->x;
             to_center.j = ((struct object *)target)->bounding_center.y - origin->y;
             to_center.k = ((struct object *)target)->bounding_center.z - origin->z;
-            blocked = collision_test_movement_segment(0xc221, origin, &to_center, root, &hit);
+            blocked = halo::physics::collision_test_movement_segment(0xc221, origin, &to_center, root, &hit);
         }
         if (blocked) {
             apply = 0;
@@ -1695,7 +1693,7 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
  */
 void halo::objects::DamageSystem::breakable_surfaces_reset()
 {
-    breakable_surface_globals *table = breakable_surface_state;
+    breakable_surface_globals *table = halo::physics::globals().breakable_surface_state;
     int32_t group, i;
 
     table->initialized = 1;
@@ -1720,7 +1718,7 @@ void halo::objects::DamageSystem::breakable_surfaces_reset()
 int8_t halo::objects::DamageSystem::breakable_surface_is_intact(int16_t bit_index)
 {
     if (bit_index != -1) {
-        uint32_t word = breakable_surface_state->active[global_structure_bsp_index][bit_index >> 5];
+        uint32_t word = halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][bit_index >> 5];
         if ((word & (1 << (bit_index & 0x1f))) == 0) {
             return 0;
         }

@@ -4,6 +4,7 @@
 #include "hs.h"
 #include "networking.h"
 #include "physics.h"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -39,12 +40,9 @@ extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_ta
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern void object_delete(uint32_t object_index);
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern void damage_apply_area_effect(damage_data *request, uint32_t param_2);
 extern random_seed random_seed_global;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
-extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane);
 extern real_vector3d *global_origin3d_pointer;
 extern real_vector3d *global_forward3d_pointer;
@@ -545,7 +543,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         delta.j = target_pos.y - origin_pos.y;
         delta.k = target_pos.z - origin_pos.z;
 
-        if (collision_test_movement_segment(0x1000e9, &origin_pos, &delta, 0xffffffff, scratch) != 0) {
+        if (halo::physics::collision_test_movement_segment(0x1000e9, &origin_pos, &delta, 0xffffffff, (collision_result *)scratch) != 0) {
             target_pos = origin_pos;
         }
     } else {
@@ -651,7 +649,7 @@ void UnitView::melee_lunge_damage_tick()
     if (obj[0x289] != 4 || target == k_datum_index_none || *(datum_index *)&((Unit *)tag)->melee_damage.tag_id == k_datum_index_none) {
         return;
     }
-    if (obj[0x28a] == 0 && object_collision_context_build(target, &context)) {
+    if (obj[0x28a] == 0 && halo::physics::object_collision_context_build(target, &context)) {
         object_get_position(&start, unit_index);
         plane.normal.i = ((unit_object *)obj)->base.forward.i * 0.2f;
         plane.normal.j = ((unit_object *)obj)->base.forward.j * 0.2f;
@@ -659,7 +657,7 @@ void UnitView::melee_lunge_damage_tick()
         start.x -= plane.normal.i * 0.5f;
         start.y -= plane.normal.j * 0.5f;
         start.z -= plane.normal.k * 0.5f;
-        if (object_collision_context_test_segment(&context, 3, &start, &plane.normal, &record)) {
+        if (halo::physics::object_collision_context_test_segment(&context, 3, &start, &plane.normal, &record)) {
             float fraction = *(float *)((uint8_t *)&record + 0x08);
 
             hit_point.x = plane.normal.i * fraction + start.x;

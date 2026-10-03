@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/physics/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -18,8 +19,6 @@ extern real_vector3d *global_up3d_pointer;
 extern real_vector3d *global_left3d_pointer;
 extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
 extern real vector3d_normalize_with_length(real_vector3d *v);
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask, uint32_t ignore_object_index, void *out_record);
 extern char k_empty_string[1];
 extern game_engine_definition *current_game_engine;
 extern ProjectileMaterialResponse projectile_default_material_response;
@@ -308,8 +307,8 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
     sweep_delta.j = target->y - obj->position.y;
     sweep_delta.k = target->z - obj->position.z;
 
-    hit = collision_test_movement_segment(k_projectile_collision_mask_point, &obj->position, &sweep_delta,
-                        (uint32_t)proj->ignore_object_index, out_record);
+    hit = halo::physics::collision_test_movement_segment(k_projectile_collision_mask_point, &obj->position, &sweep_delta,
+                        (uint32_t)proj->ignore_object_index, (collision_result *)out_record);
     if (hit != 0) {
         return 1;
     }
@@ -350,11 +349,11 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
         minus_target.y = perpendicular.j * radius + target->y;
         minus_target.z = perpendicular.k * radius + target->z;
 
-        hit = collision_test_movement_segment(k_projectile_collision_mask_radius, &plus_origin, &plus_delta,
-                            (uint32_t)proj->ignore_object_index, out_record);
+        hit = halo::physics::collision_test_movement_segment(k_projectile_collision_mask_radius, &plus_origin, &plus_delta,
+                            (uint32_t)proj->ignore_object_index, (collision_result *)out_record);
         if (hit == 0) {
-            hit = collision_test_movement_segment_between_points(&minus_origin, &minus_target, k_projectile_collision_mask_radius, 
-                                   (uint32_t)proj->ignore_object_index, out_record);
+            hit = halo::physics::collision_test_movement_segment_between_points(&minus_origin, &minus_target, k_projectile_collision_mask_radius, 
+                                   (uint32_t)proj->ignore_object_index, (collision_result *)out_record);
             if (hit == 0) {
                 return 0;
             }
