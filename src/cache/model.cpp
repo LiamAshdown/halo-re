@@ -11,7 +11,6 @@
 #include "halo/rasterizer/api.hpp"
 
 extern "C" {
-extern void *rasterizer_device;
 extern uint32_t rasterizer_device_version;
 extern int16_t rasterizer_vertex_sizes[];
 }
@@ -52,7 +51,7 @@ void model_vertex_buffers::dispose()
                 part = (GBXModelGeometryPart *)(geometry->parts.pointer +
                     part_index * sizeof(GBXModelGeometryPart));
 
-                if (rasterizer_device != 0 && (void *)part != (void *)-0x54) {
+                if (halo::rasterizer::globals().device != 0 && (void *)part != (void *)-0x54) {
                     object = (void **)part->base.vertex_offset;
                     if (object != 0) {
                         vtable = *(void (__stdcall ***)(void *))object;
@@ -60,7 +59,7 @@ void model_vertex_buffers::dispose()
                         part->base.vertex_offset = 0;
                     }
                 }
-                if (rasterizer_device != 0 && (void *)part != (void *)-0x44) {
+                if (halo::rasterizer::globals().device != 0 && (void *)part != (void *)-0x44) {
                     object = (void **)part->base.triangle_offset_2;
                     if (object != 0) {
                         vtable = *(void (__stdcall ***)(void *))object;

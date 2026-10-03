@@ -9,10 +9,6 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 
-extern "C" {
-extern void *rasterizer_device;
-extern d3d_caps9 rasterizer_caps;
-}
 
 namespace halo::cache {
 
@@ -56,7 +52,7 @@ void structure_bsp_loader::dispose_material_vertex_buffers(ScenarioStructureBSPC
             material = (ScenarioStructureBSPMaterial *)(lightmap->materials.pointer +
                 material_index * sizeof(ScenarioStructureBSPMaterial));
 
-            if (rasterizer_device != 0 && (void *)material != (void *)-0xc4) {
+            if (halo::rasterizer::globals().device != 0 && (void *)material != (void *)-0xc4) {
                 object = (void **)material->lightmap_vertices_index_pointer;
                 if (object != 0) {
                     vtable = *(void (__stdcall ***)(void *))object;
@@ -64,7 +60,7 @@ void structure_bsp_loader::dispose_material_vertex_buffers(ScenarioStructureBSPC
                     material->lightmap_vertices_index_pointer = 0;
                 }
             }
-            if (rasterizer_device != 0 && (void *)material != (void *)-0xb0) {
+            if (halo::rasterizer::globals().device != 0 && (void *)material != (void *)-0xb0) {
                 object = (void **)material->rendered_vertices_index_pointer;
                 if (object != 0) {
                     vtable = *(void (__stdcall ***)(void *))object;
@@ -138,11 +134,11 @@ void structure_bsp_loader::load_material_vertex_buffers(ScenarioStructureBSPComp
             lightmap_vertex_data = (void *)(material->uncompressed_vertices.pointer +
                 material->rendered_vertices_count * 0x38);
 
-            if (rasterizer_caps.pixel_shader_version < 0xffff0101 &&
+            if (halo::rasterizer::globals().caps.pixel_shader_version < 0xffff0101 &&
                 (material->shader.tag_fourcc == _tag_group_shader_environment ||
                  material->shader.tag_fourcc == _tag_group_shader_transparent_water ||
                  material->shader.tag_fourcc == _tag_group_shader_transparent_glass)) {
-                if ((int32_t)rasterizer_caps.max_streams < 2 && material->lightmap_vertices_count != 0) {
+                if ((int32_t)halo::rasterizer::globals().caps.max_streams < 2 && material->lightmap_vertices_count != 0) {
                     halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&material->rendered_vertices_type), 0x13,
                         material->rendered_vertices_count,
                         (uint32_t *)((void *)material->uncompressed_vertices.pointer), (int32_t)lightmap_vertex_data,

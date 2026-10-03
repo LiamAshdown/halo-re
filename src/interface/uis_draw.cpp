@@ -24,7 +24,6 @@ extern Globals *global_globals;
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern uint16_t *ui_button_caption[0x28];
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
@@ -184,9 +183,9 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
     state.framebuffer_blend_function = 0;
     state.single_local_player = 0;
 
-    rasterizer_vertex_buffer_lock_state = 8;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 8;
     halo::rasterizer::rasterizer_ui_quad_draw(&state, (hud_quad_vertex *)vertices);
-    rasterizer_vertex_buffer_lock_state = 0;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
 
 /**

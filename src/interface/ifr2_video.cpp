@@ -1,6 +1,7 @@
 #include "win32.h"
 #include "halo/interface/ifr2_video.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -12,8 +13,6 @@ extern uint32_t d3d_adapter;
 extern int32_t shell_argc;
 extern char **shell_argv;
 extern uint32_t video_memory;
-extern uint8_t rasterizer_fullscreen;
-extern void *rasterizer_device;
 extern int _stricmp(const char *a, const char *b);
 extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate);
 }
@@ -69,7 +68,7 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
                 continue;
             }
         }
-        if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
+        if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
             if (mode.width >= (uint32_t)desktop.right || mode.height >= (uint32_t)desktop.bottom) {
                 continue;
             }

@@ -34,13 +34,11 @@ extern void ui_draw_trouble_brewing_indicator(void);
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
-extern rasterizer_window_parameters rasterizer_window;
 extern void ui_error_modal_update(void);
 extern void hud_timer_draw(void);
 extern void chimera__do_show_loading_screen(void);
 extern void console_draw_overlay(void);
 extern void game_engine_maybe_render_post_game(void);
-extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern render_fog render_fog_state;
 extern uint8_t render_clip_warning;
 extern uint32_t rasterizer_device_version;
@@ -166,8 +164,8 @@ void nonplayer_frame(uint32_t nonplayer, render_view *view)
         game_engine_maybe_render_post_game();
     }
 
-    if (rasterizer_window.window_index == -1) {
-        halo::render::rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
+    if (halo::rasterizer::globals().window.window_index == -1) {
+        halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);
         halo::render::rasterizer_frame_statistics_draw();
     }
 }
@@ -311,8 +309,8 @@ void pregame_frame(render_view *view)
     widget_draw_fullscreen_region(0);
     chimera__do_show_loading_screen();
 
-    if (rasterizer_window.window_index == -1) {
-        halo::render::rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
+    if (halo::rasterizer::globals().window.window_index == -1) {
+        halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);
         halo::render::rasterizer_frame_statistics_draw();
     }
 

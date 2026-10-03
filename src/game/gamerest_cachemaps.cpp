@@ -6,9 +6,9 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
-extern char *rasterizer_shader_file_name;
 extern int16_t local_player_count;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
@@ -36,7 +36,7 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
                 if (apply_state == 0) {
                     return;
                 }
-                rasterizer_shader_file_name = path;
+                halo::rasterizer::globals().shader_file_name = path;
                 halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             }
         } else {

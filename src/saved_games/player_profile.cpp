@@ -43,7 +43,6 @@ extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root
     uint32_t out_path_size);
 extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);
 extern uint16_t empty_string[];
-extern int32_t rasterizer_gamma_exponent;
 extern uint32_t rasterizer_device_version;
 extern uint32_t video_memory;
 extern uint8_t width640;
@@ -463,7 +462,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
     long override_refresh;
     rasterizer_display_mode mode;
 
-    gamma = (uint8_t)rasterizer_gamma_exponent;
+    gamma = (uint8_t)halo::rasterizer::globals().gamma_exponent;
     profile->unknown_a6e = 2;
     profile->unknown_a75 = 2;
     profile->gamma = (int8_t)gamma;

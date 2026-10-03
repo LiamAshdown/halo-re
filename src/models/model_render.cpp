@@ -21,7 +21,6 @@ extern float model_render_default_function_values[4];
 extern int16_t console_model_lod_override;
 extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
-extern rasterizer_window_parameters rasterizer_window;
 extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context;
 extern uint8_t rasterizer_object_shadow_model_active;
 extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
@@ -259,7 +258,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if ((flags & _model_render_immediate_bit) == 0) {
         halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
-    } else if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0) {
+    } else if (halo::rasterizer::globals().window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0) {
         halo::rasterizer::chimera__rasterizer_set_model_skinning((uint8_t)(~(context.flags >> 8) & 1),
                                                 (rasterizer_node_matrices *)&context.node_matrices);
         rasterizer_object_shadow_model_context = &context;

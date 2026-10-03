@@ -25,9 +25,9 @@
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 
-extern "C" { extern int32_t rasterizer_window_requested; }
 namespace halo::main {
 
 /**
@@ -52,7 +52,7 @@ void Console::chimera__exec_init(void)
         strncpy(exec_file_name, "init.txt", 0x7f);
     }
     ran_script = halo::main::console_exec_file_run(exec_file_name);
-    if (!ran_script && rasterizer_window_requested != 0) {
+    if (!ran_script && halo::rasterizer::globals().window_requested != 0) {
         halo::main::console_process_command((char *)"map_name b30", 0);
     }
 }

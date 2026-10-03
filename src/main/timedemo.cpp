@@ -18,19 +18,16 @@
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
 extern "C" { extern int32_t game_time_force_single_tick; }
 extern "C" { extern int32_t timedemo_last_frame_index; }
-extern "C" { extern int32_t rasterizer_present_counter_low; }
-extern "C" { extern int32_t rasterizer_present_counter_high; }
 extern "C" { extern uint8_t local_player_input_frozen[]; }
 extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern uint8_t console_debug_flag_5; }
 extern "C" { extern char timedemo_pixel_shader_version[0x14]; }
-extern "C" { extern d3d_caps9 rasterizer_caps; }
-extern "C" { extern d3d_present_parameters rasterizer_present_parameters; }
 extern "C" { extern int32_t os_platform_refresh_default; }
 extern "C" { extern char *graphics_vendor_name; }
 extern "C" { extern char *graphics_device_name; }
@@ -92,9 +89,9 @@ void Timedemo::benchmark_update(void)
         return;
     }
 
-    if (rasterizer_present_counter_low != timedemo_last_frame_index ||
-        rasterizer_present_counter_high != (timedemo_last_frame_index >> 31)) {
-        timedemo_last_frame_index = rasterizer_present_counter_low;
+    if (halo::rasterizer::globals().present_counter_low != timedemo_last_frame_index ||
+        halo::rasterizer::globals().present_counter_high != (timedemo_last_frame_index >> 31)) {
+        timedemo_last_frame_index = halo::rasterizer::globals().present_counter_low;
         timedemo_globals_data.current_time_ms = halo::cseries::time_query_performance_counter_ms();
         frame_time = timedemo_globals_data.current_time_ms - timedemo_globals_data.previous_time_ms;
         timedemo_globals_data.previous_time_ms = timedemo_globals_data.current_time_ms;
@@ -173,12 +170,12 @@ void Timedemo::benchmark_update(void)
 
         if (halo::shell::globals().force_shader == 9999) {
             shader = "2.0a";
-        } else if (rasterizer_caps.pixel_shader_version < 0xffff0101u) {
+        } else if (halo::rasterizer::globals().caps.pixel_shader_version < 0xffff0101u) {
             shader = "Fixed Function";
         } else {
             sprintf(timedemo_pixel_shader_version, "%d.%d",
-                (rasterizer_caps.pixel_shader_version >> 8) & 0xff,
-                rasterizer_caps.pixel_shader_version & 0xff);
+                (halo::rasterizer::globals().caps.pixel_shader_version >> 8) & 0xff,
+                halo::rasterizer::globals().caps.pixel_shader_version & 0xff);
             shader = timedemo_pixel_shader_version;
         }
         if (graphics_device_id != 0) {
@@ -292,8 +289,8 @@ void Timedemo::benchmark_update(void)
             "Framerate throttle= No Vsync\nSpecular= %s\nShadows= %s\nDecals= %s\nParticles= %s\n"
             "Texture Quality= %s\n\nFor further information, please visit the timedemo FAQ at: "
             "http://halo.bungie.net/site/halo/features/hpcperformancefaq.html \n",
-            rasterizer_present_parameters.back_buffer_width,
-            rasterizer_present_parameters.back_buffer_height,
+            halo::rasterizer::globals().present_parameters.back_buffer_width,
+            halo::rasterizer::globals().present_parameters.back_buffer_height,
             os_platform_refresh_default, specular, shadows, decals, particles, texture_quality);
         fclose(file);
         break;

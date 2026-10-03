@@ -24,7 +24,6 @@ extern void ***rasterizer_device;
 extern uint32_t renderer_unknown_6e1af0;
 extern uint32_t renderer_unknown_6e1af8;
 extern uint32_t renderer_unknown_69e468;
-extern uint8_t rasterizer_software_vertex_processing;
 extern network_screen_point network_stats_overlay_text_rect_min;
 extern network_screen_point network_stats_overlay_text_rect_max;
 extern float hud_text_draw_color_a;
@@ -704,7 +703,7 @@ void BandwidthGraphView::overlay_draw()
     device_call1(device, 0x15c, (int32_t)renderer_unknown_6e1af0);
 
     {
-        uint32_t flag = ((rasterizer_software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
+        uint32_t flag = ((halo::rasterizer::globals().software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
         flag = (flag | renderer_unknown_6e1af8) & 0x10u;
         device_call1(device, 0x134, (int32_t)flag);
     }
@@ -767,7 +766,7 @@ void BandwidthGraphView::overlay_draw()
         halo::rasterizer::chimera__draw_8_bit_text(0, 0, 0, 0, text);
     }
 
-    device_call1(device, 0x134, (int32_t)rasterizer_software_vertex_processing);
+    device_call1(device, 0x134, (int32_t)halo::rasterizer::globals().software_vertex_processing);
 }
 
 }

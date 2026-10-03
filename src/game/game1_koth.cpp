@@ -101,7 +101,6 @@ extern void game_engine_koth_find_marker_position(real_point3d *out_position, in
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position);
 extern const real_vector3d *global_white_color;
 extern king_hill_marker_history king_hill_markers;
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern void **rasterizer_dynamic_index_buffer;
 extern int16_t rasterizer_dynamic_vertex_slots[];
 extern int32_t render_unknown_d98f0[];
@@ -110,7 +109,6 @@ extern void *k_render_identity_matrix_ptr;
 extern const ColorARGB *global_white_argb;
 extern real_vector3d default_axis_b;
 extern uint8_t console_debug_toggle_6893ec;
-extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
 extern uint32_t rasterizer_device_version;
 extern void **rasterizer_device;
@@ -915,7 +913,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
     float fStack_e8;
     int32_t iStack_fc = 0;
 
-    rasterizer_vertex_buffer_lock_state = 9;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 9;
     fVar5 = *(float *)halo::rasterizer::rasterizer_dynamic_index_cache_reserve(0);
     local_f0 = fVar5;
     iVar6 = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0);
@@ -1031,7 +1029,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             *(float *)(record + 0xa0) = fStack_e8;
 
             if (console_debug_toggle_6893ec != 0) {
-                rasterizer_render_states_dirty = 1;
+                halo::rasterizer::globals().render_states_dirty = 1;
                 unknown_0071d1fa = 0;
                 if (rasterizer_device_version < 0xffff0101) {
                     ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
@@ -1057,10 +1055,10 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
         }
 
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
-    rasterizer_vertex_buffer_lock_state = 0;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
 
 /**

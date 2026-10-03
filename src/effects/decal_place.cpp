@@ -14,7 +14,6 @@ extern game_time_globals *game_time;
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern cache *rasterizer_decal_vertex_cache_handle;
 extern void *rasterizer_decal_vertex_cache;
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern long lrint(double x);
 extern double floor(double x);
 extern double sqrt(double x);
@@ -603,7 +602,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
 
         inherit_geometry = (uint8_t)(*(const uint8_t *)&definition->flags & 1);
         decal_tag_index = *(datum_index *)&definition->next_decal_in_chain.tag_id;
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         if (decal_tag_index == k_datum_index_none) {
             return;
         }

@@ -33,10 +33,8 @@ extern real_point3d *global_zero_vector3d_pointer;
 extern real_matrix4x3 *k_render_identity_matrix_ptr;
 extern ColorRGB *global_white_color;
 extern uint8_t console_debug_toggle_6893ec;
-extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
 extern uint32_t rasterizer_device_version;
-extern void *rasterizer_device;
 extern void model_nodes_get_default_transforms(GBXModel *model, void *nodes);
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame,
     void *out_orientations);
@@ -60,8 +58,6 @@ extern int16_t current_local_player_index;
 extern int16_t render_window_index;
 extern render_frustum render_frustum_global;
 extern render_fog render_fog_state;
-extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
-extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t console_debug_toggle_69c614;
 extern int16_t console_debug_toggle_6893e4;
 extern uint8_t decals_for_all_responses;
@@ -71,7 +67,6 @@ extern uint32_t rasterizer_active_environment_effect;
 extern int32_t transparent_geometry_group_last_drawn_key;
 extern uint8_t rasterizer_secondary_groups_drawn;
 extern int16_t rasterizer_decal_layer;
-extern d3d_caps9 rasterizer_caps;
 extern game_engine_definition *current_game_engine;
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
 extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled);
@@ -107,7 +102,7 @@ typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, state, value);
+    ((d3d_call2_fn)(*(void ***)halo::rasterizer::globals().device)[0xe4 / 4])(halo::rasterizer::globals().device, state, value);
 }
 
 /**
@@ -128,10 +123,10 @@ static void draw_visible_cluster_decals(void)
 static void reset_decal_fog_and_depth_bias(void)
 {
     set_render_state(0x1c, 0);
-    if ((rasterizer_caps.raster_caps & 0x04000000) != 0) {
+    if ((halo::rasterizer::globals().caps.raster_caps & 0x04000000) != 0) {
         set_render_state(0xc3, 0);
     }
-    if ((rasterizer_caps.raster_caps & 0x02000000) != 0) {
+    if ((halo::rasterizer::globals().caps.raster_caps & 0x02000000) != 0) {
         set_render_state(0xaf, 0);
     }
     if (rasterizer_decal_layer == 3) {
@@ -286,7 +281,7 @@ void sky(void)
     }
 
     if (console_debug_toggle_6893ec) {
-        rasterizer_render_states_dirty = 1;
+        halo::rasterizer::globals().render_states_dirty = 1;
         unknown_0071d1fa = 1;
     }
     {
@@ -303,9 +298,9 @@ void sky(void)
 
     if (console_debug_toggle_6893ec && rasterizer_device_version < 0xffff0101) {
         d3d_set_render_state_fn set_render_state =
-            (d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4];
+            (d3d_set_render_state_fn)(*(void ***)halo::rasterizer::globals().device)[0xe4 / 4];
 
-        set_render_state(rasterizer_device, 0x89, 0);
+        set_render_state(halo::rasterizer::globals().device, 0x89, 0);
     }
 }
 
@@ -458,8 +453,8 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     first_person_weapon_update_screen_effects();
     halo::rasterizer::rasterizer_screen_flash_render();
     widget_draw_fullscreen_region(local_player_index);
-    if (rasterizer_window.window_index == -1) {
-        halo::render::rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
+    if (halo::rasterizer::globals().window.window_index == -1) {
+        halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);
         halo::render::rasterizer_frame_statistics_draw();
     }
 }

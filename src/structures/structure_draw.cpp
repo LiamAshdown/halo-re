@@ -17,7 +17,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern const real_point3d *global_origin3d_pointer;
-extern int32_t rasterizer_device_version;
 extern void ***rasterizer_device;
 extern void *unknown_007c048c;
 }
@@ -251,7 +250,7 @@ void structure_draw::picked_polygon_draw(void)
 
     structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)halo::cseries::function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
 
-    if (rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals().device_version < 0xffff0101) {
         void **device = *rasterizer_device;
         (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
     }

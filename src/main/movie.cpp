@@ -65,8 +65,6 @@ void MoviePlayer::capture_frame_export(void)
 }
 
 extern "C" { extern int32_t movie_playback_abort; }
-extern "C" { extern void *rasterizer_device; }
-extern "C" { extern d3d_present_parameters rasterizer_present_parameters; }
 extern "C" { extern uint8_t rasterizer_device_lost; }
 typedef int32_t (__stdcall *d3d_test_cooperative_level_fn)(void *device);
 
@@ -120,13 +118,13 @@ void MoviePlayer::play_bink(const char *movie_path)
         return;
     }
 
-    if (((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(rasterizer_device)[0x90 / 4])(
-            rasterizer_device, 0x280, 0x1e0, 0x16 , 0 ,
+    if (((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(halo::rasterizer::globals().device)[0x90 / 4])(
+            halo::rasterizer::globals().device, 0x280, 0x1e0, 0x16 , 0 ,
             &offscreen_surface, 0) != 0) {
         return;
     }
-    if (((d3d_get_render_target_fn)D3D_VTABLE(rasterizer_device)[0x98 / 4])(
-            rasterizer_device, 0, &render_target) != 0) {
+    if (((d3d_get_render_target_fn)D3D_VTABLE(halo::rasterizer::globals().device)[0x98 / 4])(
+            halo::rasterizer::globals().device, 0, &render_target) != 0) {
         ((d3d_release_fn)D3D_VTABLE(render_target)[0x08 / 4])(render_target);
         return;
     }
@@ -158,8 +156,8 @@ void MoviePlayer::play_bink(const char *movie_path)
                 }
             }
 
-            result = ((d3d_test_cooperative_level_fn)D3D_VTABLE(rasterizer_device)[0x0c / 4])(
-                rasterizer_device);
+            result = ((d3d_test_cooperative_level_fn)D3D_VTABLE(halo::rasterizer::globals().device)[0x0c / 4])(
+                halo::rasterizer::globals().device);
             if (result == (int32_t)0x88760869) {
                 if (bink->paused == 0) {
                     BinkPause(bink, 1);
@@ -172,13 +170,13 @@ void MoviePlayer::play_bink(const char *movie_path)
                     ((d3d_release_fn)D3D_VTABLE(offscreen_surface)[0x08 / 4])(offscreen_surface);
                     offscreen_surface = 0;
                 }
-                present_parameters = rasterizer_present_parameters;
+                present_parameters = halo::rasterizer::globals().present_parameters;
                 halo::rasterizer::rasterizer_device_reset(&present_parameters);
                 rasterizer_device_lost = 0;
-                ((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(rasterizer_device)[0x90 / 4])(
-                    rasterizer_device, 0x280, 0x1e0, 0x16, 0, &offscreen_surface, 0);
-                ((d3d_get_render_target_fn)D3D_VTABLE(rasterizer_device)[0x98 / 4])(
-                    rasterizer_device, 0, &render_target);
+                ((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(halo::rasterizer::globals().device)[0x90 / 4])(
+                    halo::rasterizer::globals().device, 0x280, 0x1e0, 0x16, 0, &offscreen_surface, 0);
+                ((d3d_get_render_target_fn)D3D_VTABLE(halo::rasterizer::globals().device)[0x98 / 4])(
+                    halo::rasterizer::globals().device, 0, &render_target);
             } else if (result != 0) {
                 if (bink->paused == 0) {
                     BinkPause(bink, 1);
@@ -198,8 +196,8 @@ void MoviePlayer::play_bink(const char *movie_path)
                         ((d3d_unlock_rect_fn)D3D_VTABLE(offscreen_surface)[0x38 / 4])(offscreen_surface);
                     }
                     BinkNextFrame(bink);
-                    ((d3d_stretch_rect_fn)D3D_VTABLE(rasterizer_device)[0x88 / 4])(
-                        rasterizer_device, offscreen_surface, 0, render_target, 0, 0);
+                    ((d3d_stretch_rect_fn)D3D_VTABLE(halo::rasterizer::globals().device)[0x88 / 4])(
+                        halo::rasterizer::globals().device, offscreen_surface, 0, render_target, 0, 0);
                     halo::rasterizer::rasterizer_capture_and_present(0, 0);
                 }
             }

@@ -34,6 +34,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -227,7 +228,6 @@ extern "C" { extern growable_array network_buffer_pair_pool; }
 extern "C" { extern int32_t shell_nosound; }
 extern "C" { extern int32_t novideo_or_connect; }
 extern "C" { extern int32_t safe_mode; }
-extern "C" { extern int32_t rasterizer_window_requested; }
 extern "C" { extern int32_t checkfpu; }
 extern "C" { extern game_state_proc game_state_before_save_proc; }
 extern "C" { extern uint8_t game_state_revert_available; }
@@ -248,9 +248,6 @@ extern "C" { extern int32_t update_client_unknown_ec4; }
 extern "C" { extern int32_t update_client_staged_count; }
 extern "C" { extern uint32_t player_update_log_flags; }
 extern "C" { extern int32_t main_render_skip_threshold_ms; }
-extern "C" { extern int32_t rasterizer_present_counter_low; }
-extern "C" { extern int32_t rasterizer_present_counter_high; }
-extern "C" { extern rasterizer_frame_statistics rasterizer_frame_statistics_state; }
 extern "C" { extern uint32_t network_bandwidth_graph_reset(void); }
 extern "C" { extern void ui_chat_window_reset_position(void); }
 extern "C" { extern void game_initialize(void); }
@@ -359,7 +356,7 @@ void MainLoop::loop(void)
     network_autojoin_from_command_line();
     halo::sound::globals().disabled = (uint8_t)shell_nosound;
     if (game_time_force_single_tick == 0 && novideo_or_connect == 0 && safe_mode == 0 &&
-        rasterizer_window_requested == 0) {
+        halo::rasterizer::globals().window_requested == 0) {
         halo::main::movie_play_bink("bungie.bik");
         halo::main::movie_play_bink("gearbox.bik");
         halo::main::movie_play_bink("mgs.bik");
@@ -689,11 +686,11 @@ void MainLoop::loop(void)
             timedemo_globals_data.last_game_time = game_time->game_time;
             halo::main::timedemo_benchmark_update();
         } else if (render_frame == 0) {
-            present_counter = ((uint64_t)(uint32_t)rasterizer_present_counter_high << 32 |
-                (uint32_t)rasterizer_present_counter_low) + 1;
-            rasterizer_present_counter_low = (int32_t)(uint32_t)present_counter;
-            rasterizer_present_counter_high = (int32_t)(uint32_t)(present_counter >> 32);
-            halo::render::rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 1);
+            present_counter = ((uint64_t)(uint32_t)halo::rasterizer::globals().present_counter_high << 32 |
+                (uint32_t)halo::rasterizer::globals().present_counter_low) + 1;
+            halo::rasterizer::globals().present_counter_low = (int32_t)(uint32_t)present_counter;
+            halo::rasterizer::globals().present_counter_high = (int32_t)(uint32_t)(present_counter >> 32);
+            halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 1);
             goto frame_end;
         }
 

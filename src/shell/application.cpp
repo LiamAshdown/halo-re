@@ -21,7 +21,6 @@ extern void *shell_window;
 extern void *shell_instance;
 extern int32_t shell_show_command;
 extern uint32_t shell_window_proc;
-extern void *rasterizer_window_handle;
 extern uint8_t shell_window_maximized;
 extern uint8_t shell_window_minimized;
 extern char shell_window_class_name[k_shell_window_name_length];
@@ -245,7 +244,7 @@ void Application::initialize_window_state(void *instance, char *command_line, in
     shell_instance = instance;
     shell_show_command = show_command;
     shell_window_proc = (uint32_t)&GameWindow::procedure;
-    rasterizer_window_handle = 0;
+    halo::rasterizer::globals().window_handle = 0;
     shell_window_maximized = 0;
     shell_window_minimized = 0;
     memcpy(shell_window_class_name, "Halo", 5);

@@ -62,15 +62,12 @@ extern uint8_t controls_device_sensitivity_b[];
 extern uint8_t ui_flag_007196d1;
 extern uint8_t ui_flag_007196d2;
 extern void video_options_menu_populate(uint8_t *context, uint8_t *settings);
-extern int32_t rasterizer_gamma_exponent;
 extern int32_t video_resolution_count;
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_gamma_setting;
 extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
 extern int32_t game_time_force_single_tick;
 extern d3d_display_mode rasterizer_desktop_display_mode;
-extern uint8_t rasterizer_needs_reset;
-extern void *rasterizer_device;
 extern float sound_master_gain;
 }
 
@@ -542,7 +539,7 @@ uint8_t UiEventHandlers::event_4bb300(widget_instance *widget, int16_t *event, u
     if (ui_flag_007196d1 == 0) {
         uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
 
-        rasterizer_gamma_exponent = profile[0xa76];
+        halo::rasterizer::globals().gamma_exponent = profile[0xa76];
         halo::rasterizer::chimera__gamma();
     }
     first->first_child->next_sibling->list_items = 0;
@@ -633,11 +630,11 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
 
             halo::rasterizer::rasterizer_build_present_parameters(&parameters, &mode);
             halo::rasterizer::rasterizer_device_reset(&parameters);
-            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)rasterizer_device)[0x20 / 4])(rasterizer_device, 0,
+            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
                 &rasterizer_desktop_display_mode);
             changed = 1;
             halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
-            rasterizer_needs_reset = 0;
+            halo::rasterizer::globals().needs_reset = 0;
         }
         halo::sound::sound_set_master_gain(gain);
         widget->creation_time = (int32_t)halo::cseries::time_query_performance_counter_ms();
@@ -696,10 +693,10 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
 
         halo::rasterizer::rasterizer_build_present_parameters(&parameters, &ui_video_requested_display_mode_006b7010);
         halo::rasterizer::rasterizer_device_reset(&parameters);
-        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)rasterizer_device)[0x20 / 4])(rasterizer_device, 0,
+        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
             &rasterizer_desktop_display_mode);
         halo::rasterizer::rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
-        rasterizer_needs_reset = 0;
+        halo::rasterizer::globals().needs_reset = 0;
     }
     halo::sound::sound_set_master_gain(gain);
     return 1;

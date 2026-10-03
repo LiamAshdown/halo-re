@@ -32,9 +32,6 @@ extern int32_t nowindowskey;
 
 extern int32_t game_time_force_single_tick;
 
-extern int32_t rasterizer_window_requested;
-extern uint8_t rasterizer_fullscreen;
-extern void *rasterizer_device;
 extern void *rasterizer_window_icon_dc;
 extern void *rasterizer_window_icon_bitmap;
 
@@ -60,7 +57,7 @@ void GameWindow::suspend_focus()
 {
     if (shell_application_inactive != 1) {
         shell_application_inactive = 1;
-        if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
+        if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
             if (sound_paused != 1) {
                 sound_paused = 1;
                 if (halo::sound::globals().current_driver != 0) {
@@ -72,7 +69,7 @@ void GameWindow::suspend_focus()
         }
         halo::input::input_directinput_unacquire_devices();
         halo::input::input_reset_state_and_axis_configs();
-        if (shell_window != 0 && rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+        if (shell_window != 0 && halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
             ShowWindow((HWND)shell_window, 6);
         }
         chat_close();
@@ -102,7 +99,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
 
     if (message <= 0x84) {
         if (message == 0x84) {
-            if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+            if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
                 return 0;
             }
             return DefWindowProcA(hwnd, message, wparam, lparam);
@@ -133,7 +130,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                         ShowWindow((HWND)shell_window, 9);
                     }
                     if (shell_window_proc_bypass == 0) {
-                        if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+                        if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
                             halo::sound::sound_resume();
                             shell_window_minimized = 0;
                             shell_window_maximized = 1;
@@ -167,7 +164,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                         ShowWindow((HWND)shell_window, 9);
                     }
                     if (shell_window_proc_bypass == 0) {
-                        if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+                        if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
                             halo::sound::sound_resume();
                             shell_window_minimized = 0;
                             return DefWindowProcA(hwnd, message, wparam, lparam);
@@ -202,7 +199,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                     ShowWindow((HWND)shell_window, 9);
                 }
                 if (shell_window_proc_bypass == 0) {
-                    if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+                    if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
                     resume_focus_fast_path:
                         halo::sound::sound_resume();
                         return DefWindowProcA(hwnd, message, wparam, lparam);
@@ -226,8 +223,8 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             break;
 
         case 0xf:
-            if (halo::render::render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
-                if (rasterizer_device == 0) {
+            if (halo::render::render_device_is_ready() == 0 && halo::rasterizer::globals().window_requested == 0) {
+                if (halo::rasterizer::globals().device == 0) {
                     if (rasterizer_window_icon_bitmap != 0) {
                         dc = GetDC(hwnd);
                         GetClientRect(hwnd, &client_rect);
@@ -246,7 +243,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                 ValidateRect(hwnd, (win32_rect *)0);
                 return 0;
             }
-            if (rasterizer_device != 0) {
+            if (halo::rasterizer::globals().device != 0) {
                 halo::rasterizer::rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)((void *)0));
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
@@ -256,14 +253,14 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             return 1;
 
         case 0x1c:
-            if (rasterizer_window_requested == 0 && game_time_force_single_tick == 0 && shell_window != 0) {
+            if (halo::rasterizer::globals().window_requested == 0 && game_time_force_single_tick == 0 && shell_window != 0) {
                 handle_activate_app(wparam == 0);
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;
 
         case 0x20:
-            if (halo::render::render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
+            if (halo::render::render_device_is_ready() == 0 && halo::rasterizer::globals().window_requested == 0) {
                 if ((int16_t)lparam == 1 && GetForegroundWindow() == hwnd) {
                     SetCursor((HCURSOR)0);
                     return 1;
@@ -417,7 +414,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
         halo::input::input_directinput_acquire_devices();
     } else {
         if (shell_window_proc_bypass == 0) {
-            if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+            if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
                 halo::sound::sound_pause();
             } else if (sound_paused != 1) {
                 sound_paused = 1;
@@ -431,7 +428,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
     halo::input::input_reset_state_and_axis_configs();
 
     if (shell_window != 0) {
-        fullscreen_device = rasterizer_fullscreen != 0 && rasterizer_device != 0;
+        fullscreen_device = halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0;
         if (fullscreen_device) {
             ShowWindow((HWND)shell_window, inactive != 0 ? 6 : 9);
         } else if (inactive == 0) {
@@ -446,7 +443,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
     if (shell_window_proc_bypass != 0) {
         return;
     }
-    if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+    if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
         halo::sound::sound_resume();
         return;
     }

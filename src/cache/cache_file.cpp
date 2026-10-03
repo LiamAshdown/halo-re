@@ -10,12 +10,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern char map_path_prefix[];
 extern void interface_handle_quit_request(void);
 extern int32_t os_platform;
-extern char *rasterizer_shader_file_name;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
@@ -413,7 +413,7 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
 
     if (halo::cache::cache_files::exists(basename, &header) == 0) {
         if (report_fatal_error != 0) {
-            rasterizer_shader_file_name = name;
+            halo::rasterizer::globals().shader_file_name = name;
             halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             interface_handle_quit_request();
         }
@@ -578,7 +578,7 @@ validate_header:
         }
     }
 
-    rasterizer_shader_file_name = path;
+    halo::rasterizer::globals().shader_file_name = path;
     halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
     slot->file = (void *)0xffffffff;
     return;

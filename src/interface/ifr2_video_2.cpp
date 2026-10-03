@@ -16,12 +16,10 @@ extern int32_t os_platform;
 extern int32_t os_platform_refresh_default;
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_resolution_count;
-extern uint8_t rasterizer_fullscreen;
 extern uint32_t rasterizer_device;
 extern uint32_t rasterizer_device_version;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int32_t video_gamma_setting;
-extern int32_t rasterizer_gamma_exponent;
 extern void video_resolution_list_build(void);
 extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t refresh_rate);
 extern heap *widget_memory_pool;
@@ -110,7 +108,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         *(int16_t *)(refresh_field + 0x40) = 0;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 1;
         *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3eaa7efa;
-    } else if (video_force_mode_flag == 0 && rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+    } else if (video_force_mode_flag == 0 && halo::rasterizer::globals().fullscreen != 0 && rasterizer_device != 0) {
         *(int16_t *)(refresh_field + 0x40) = (int16_t)refresh_index;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 0;
         *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3f800000;
@@ -178,13 +176,13 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         uint8_t gamma = *(uint8_t *)(settings + 0xa76);
         if (gamma == 0) {
             video_gamma_setting = 1;
-            rasterizer_gamma_exponent = 1;
+            halo::rasterizer::globals().gamma_exponent = 1;
         } else if (gamma == 0xff) {
             video_gamma_setting = 0xfe;
-            rasterizer_gamma_exponent = 0xfe;
+            halo::rasterizer::globals().gamma_exponent = 0xfe;
         } else {
             video_gamma_setting = gamma;
-            rasterizer_gamma_exponent = gamma;
+            halo::rasterizer::globals().gamma_exponent = gamma;
         }
         halo::rasterizer::chimera__gamma();
     }
@@ -255,7 +253,7 @@ uint8_t VideoOptions::update(widget_instance *screen)
             video_gamma_setting = 0xfe;
         }
     }
-    rasterizer_gamma_exponent = video_gamma_setting;
+    halo::rasterizer::globals().gamma_exponent = video_gamma_setting;
     halo::rasterizer::chimera__gamma();
     widget_extended_description_sync_selection(screen);
     return 1;

@@ -30,11 +30,8 @@ extern GlobalsRasterizerData *rasterizer_globals_data;
 extern ColorRGB *default_axis_b;
 extern ColorRGB *global_real_rgb_green_pointer;
 extern frame_graph frame_graphs[1];
-extern void *rasterizer_device;
-extern rasterizer_window_parameters rasterizer_window;
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count];
 extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders];
-extern uint8_t rasterizer_software_vertex_processing;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
@@ -42,7 +39,6 @@ extern float hud_text_draw_color_b;
 extern int16_t hud_text_draw_background_mode;
 extern void hud_text_draw_configure(int16_t font_table_index, uint16_t color_or_flags, int16_t column,
     uint32_t unknown_4730, int16_t color_table_index, int16_t color_index);
-extern void *rasterizer_dynamic_index_buffer;
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[];
 extern void **rasterizer_effect_pool_scratch;
 extern uint8_t console_debug_toggle_6893e0;
@@ -53,10 +49,7 @@ extern int32_t frame_graph_render_infos;
 extern int32_t frame_statistics_last_time;
 extern int64_t frame_statistics_unknown_d0;
 extern int64_t frame_statistics_unknown_d8;
-extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern Rectangle2D game_screen_rect;
-extern int32_t rasterizer_present_counter_low;
-extern int32_t rasterizer_present_counter_high;
 extern int16_t text_tab_stops[6];
 extern void network_bandwidth_graph_update(void);
 extern Rectangle2D game_window_top_left;
@@ -69,10 +62,7 @@ extern int16_t frame_statistics_count;
 extern lens_flare_batch_key lens_flare_current_key;
 extern uint32_t lens_flare_vertex_specular;
 extern float text_color_scale;
-extern float rasterizer_default_z_near;
-extern float rasterizer_default_z_far;
 extern uint32_t rasterizer_frustum_z_values[2];
-extern uint8_t rasterizer_fullscreen;
 }
 
 /**
@@ -113,7 +103,7 @@ typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primi
  */
 static void **device_vtable(void)
 {
-    return *(void ***)rasterizer_device;
+    return *(void ***)halo::rasterizer::globals().device;
 }
 
 /**
@@ -121,7 +111,7 @@ static void **device_vtable(void)
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(halo::rasterizer::globals().device, state, value);
 }
 
 /**
@@ -129,7 +119,7 @@ static void set_render_state(uint32_t state, uint32_t value)
  */
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    ((d3d_call3_fn)device_vtable()[0x10c / 4])(halo::rasterizer::globals().device, stage, type, value);
 }
 
 typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
@@ -412,17 +402,17 @@ void draw(uint8_t render_graph, uint8_t render_infos)
         return;
     }
 
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
+    ((d3d_call1_fn)device_vtable()[0x15c / 4])(halo::rasterizer::globals().device,
         rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-        ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+    ((d3d_call1_fn)device_vtable()[0x134 / 4])(halo::rasterizer::globals().device,
+        ((halo::rasterizer::globals().software_vertex_processing != 0 ? 0x10 : 0) |
          rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[35].shader);
+    ((d3d_call1_fn)device_vtable()[0x170 / 4])(halo::rasterizer::globals().device, rasterizer_vertex_shaders[35].shader);
 
-    width = (int16_t)(rasterizer_window.camera.viewport_bounds.right -
-                      rasterizer_window.camera.viewport_bounds.left);
-    height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom -
-                       rasterizer_window.camera.viewport_bounds.top);
+    width = (int16_t)(halo::rasterizer::globals().window.camera.viewport_bounds.right -
+                      halo::rasterizer::globals().window.camera.viewport_bounds.left);
+    height = (int16_t)(halo::rasterizer::globals().window.camera.viewport_bounds.bottom -
+                       halo::rasterizer::globals().window.camera.viewport_bounds.top);
     inverse = 1.0f / (float)width;
     constants[0] = inverse + inverse;
     constants[1] = 0.0f;
@@ -445,9 +435,9 @@ void draw(uint8_t render_graph, uint8_t render_infos)
     constants[17] = 1.0f;
     constants[18] = 0.0f;
     constants[19] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 13, constants, 5);
+    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(halo::rasterizer::globals().device, 13, constants, 5);
 
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(halo::rasterizer::globals().device, 0);
     halo::rasterizer::rasterizer_set_shader_stage_config(0);
     set_render_state(0x16, 1);
     set_render_state(0xa8, 0xf);
@@ -462,14 +452,14 @@ void draw(uint8_t render_graph, uint8_t render_infos)
     set_texture_stage_state(0, 6, 0);
     set_texture_stage_state(1, 1, 1);
     set_texture_stage_state(1, 4, 1);
-    ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, 0, 0);
+    ((d3d_call2_fn)device_vtable()[0x104 / 4])(halo::rasterizer::globals().device, 0, 0);
     set_render_state(0x9c, 1);
     set_render_state(0x9d, 0);
 
     if (render_graph) {
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 3, 0x1ff,
+        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(halo::rasterizer::globals().device, 3, 0x1ff,
             frame_graphs[0].vertices, sizeof(rasterizer_dynamic_screen_vertex));
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 3, 4,
+        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(halo::rasterizer::globals().device, 3, 4,
             frame_graphs[0].frame_vertices, sizeof(rasterizer_dynamic_screen_vertex));
     }
 
@@ -489,7 +479,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
         halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&frame_graphs[0].average_bounds, 0, 0, text);
     }
 
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    ((d3d_call1_fn)device_vtable()[0x134 / 4])(halo::rasterizer::globals().device, halo::rasterizer::globals().software_vertex_processing);
 }
 
 }  // namespace halo::render::fg
@@ -513,8 +503,8 @@ void *dynamic_index_slot_lock(int32_t slot_index)
     }
 
     slot = &rasterizer_dynamic_index_slots[slot_index];
-    lock = *(d3d_lock_fn *)((uint8_t *)*(void **)rasterizer_dynamic_index_buffer + 0x2c);
-    lock(rasterizer_dynamic_index_buffer, slot->first_index * 6, slot->index_count * 6,
+    lock = *(d3d_lock_fn *)((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x2c);
+    lock(halo::rasterizer::globals().dynamic_index_buffer, slot->first_index * 6, slot->index_count * 6,
          (void **)&slot->locked_indices, 0x1000);
     return (void *)slot->locked_indices;
 }
@@ -538,8 +528,8 @@ void effect_slot_release_active(void)
     }
     rasterizer_effect_pool_scratch = 0;
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_clear_state_slot_fn)vtable[0x164 / 4])(rasterizer_device, 0);
+    vtable = *(void ***)halo::rasterizer::globals().device;
+    ((d3d_clear_state_slot_fn)vtable[0x164 / 4])(halo::rasterizer::globals().device, 0);
 }
 
 /**
@@ -643,7 +633,7 @@ void draw(void)
         return;
     }
 
-    presents = (int64_t)(((uint64_t)(uint32_t)rasterizer_present_counter_high << 32) | (uint32_t)rasterizer_present_counter_low) -
+    presents = (int64_t)(((uint64_t)(uint32_t)halo::rasterizer::globals().present_counter_high << 32) | (uint32_t)halo::rasterizer::globals().present_counter_low) -
                frame_statistics_unknown_d8;
     left = game_screen_rect.left;
     tab_stops[0] = 100;
@@ -679,19 +669,19 @@ void draw(void)
 
     hud_text_draw_configure(1, 0xffff, 0, 0, 5, 0);
     sprintf(text, "|n|tframerate|taverage (of %d)|tmin|tmax|tdropped",
-            (int32_t)rasterizer_frame_statistics_state.sample_count);
+            (int32_t)halo::rasterizer::globals().frame_statistics.sample_count);
     tab_stops[0] = left;
     set_text_state(header_color, tab_stops);
     halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&bounds, (uint32_t)&cursor, -4, text);
 
     bounds.top = (int16_t)(cursor.y - 1);
     sprintf(text, "|t%.0f|t%.0f/%.0f|t%.0f|t%.0f|t%5.1f%%|n",
-            (double)rasterizer_frame_statistics_state.framerate,
-            (double)rasterizer_frame_statistics_state.average_framerate,
+            (double)halo::rasterizer::globals().frame_statistics.framerate,
+            (double)halo::rasterizer::globals().frame_statistics.average_framerate,
             (double)(((float)presents * 1000.0f) / (float)elapsed),
-            (double)rasterizer_frame_statistics_state.minimum_framerate,
-            (double)rasterizer_frame_statistics_state.maximum_framerate,
-            (double)rasterizer_frame_statistics_state.dropped_percentage);
+            (double)halo::rasterizer::globals().frame_statistics.minimum_framerate,
+            (double)halo::rasterizer::globals().frame_statistics.maximum_framerate,
+            (double)halo::rasterizer::globals().frame_statistics.dropped_percentage);
     tab_stops[0] = left;
     set_text_state(value_color, tab_stops);
     halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&bounds, (uint32_t)&cursor, -4, text);
@@ -891,11 +881,11 @@ namespace halo::render::frame {
  */
 void cinematic_screen_effect_update(rasterizer_frame_time *time_source)
 {
-    if (rasterizer_default_z_near == 0.0f) {
-        rasterizer_default_z_near = 0.0625f;
+    if (halo::rasterizer::globals().default_z_near == 0.0f) {
+        halo::rasterizer::globals().default_z_near = 0.0625f;
     }
-    if (rasterizer_default_z_far == 0.0f) {
-        rasterizer_default_z_far = 1024.0f;
+    if (halo::rasterizer::globals().default_z_far == 0.0f) {
+        halo::rasterizer::globals().default_z_far = 1024.0f;
     }
     if (*(float *)&rasterizer_frustum_z_values[0] == 0.0f) {
         *(float *)&rasterizer_frustum_z_values[0] = 0.01171875f;
@@ -914,7 +904,7 @@ void cinematic_screen_effect_update(rasterizer_frame_time *time_source)
  */
 int device_is_ready(void)
 {
-    if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
+    if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
         return 1;
     }
     return 0;

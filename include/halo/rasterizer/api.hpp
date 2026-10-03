@@ -7,6 +7,9 @@
 
 #include <stdint.h>
 
+struct d3d_caps9;
+struct rasterizer_frame_statistics;
+
 struct BitmapData;
 struct ColorARGB;
 struct ColorRGB;
@@ -54,6 +57,36 @@ typedef uint32_t datum_index;
 typedef uint8_t rasterizer_gamma_settings;
 
 namespace halo::rasterizer {
+
+/**
+ * The engine globals the rasterizer module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    void *&device;
+    int32_t &device_version;
+    uint8_t &fullscreen;
+    int32_t &gamma_exponent;
+    int32_t &window_requested;
+    float &default_z_near;
+    float &default_z_far;
+    int32_t &present_counter_high;
+    int32_t &present_counter_low;
+    uint8_t &needs_reset;
+    int16_t &vertex_buffer_lock_state;
+    char *&shader_file_name;
+    void *&dynamic_index_buffer;
+    uint32_t &decal_vertex_cache_handle;
+    uint8_t &render_states_dirty;
+    rasterizer_window_parameters &window;
+    rasterizer_frame_statistics &frame_statistics;
+    d3d_caps9 &caps;
+    d3d_present_parameters &present_parameters;
+    uint8_t &software_vertex_processing;
+    void *&window_handle;
+};
+
+Globals &globals();
 
 int16_t bitmap_compute_mipmap_count(BitmapData *bitmap);
 int32_t bitmap_compute_texture_data_size(BitmapData *bitmap);

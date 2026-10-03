@@ -24,7 +24,6 @@ extern data_array *lightning_instances;
 extern uint8_t *object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern float render_camera_global;
 extern real_vector3d *shared_constant_vector_696704;
 }
@@ -508,7 +507,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                     }
                     node_count = node_count + (1 << (marker_tag[0x24] & 0x1f));
                 } else {
-                    rasterizer_vertex_buffer_lock_state = 0xc;
+                    halo::rasterizer::globals().vertex_buffer_lock_state = 0xc;
                     if (node_count > 2) {
                         int32_t n = node_count + 1;
                         int32_t frame = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0);
@@ -587,7 +586,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                         }
                         first_marker = 1;
                     }
-                    rasterizer_vertex_buffer_lock_state = 0;
+                    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
                 }
             }
         }

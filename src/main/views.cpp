@@ -47,8 +47,6 @@ extern "C" { extern uint8_t render_view_local_player_sticky; }
 extern "C" { extern int32_t screenshots; }
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern const real_point3d *global_zero_vector3d_pointer; }
-extern "C" { extern float rasterizer_default_z_near; }
-extern "C" { extern float rasterizer_default_z_far; }
 extern "C" { extern uint8_t unknown_00873d30; }
 extern "C" { extern double tan(double x); }
 extern "C" { extern double atan2(double y, double x); }
@@ -139,9 +137,9 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     view->rasterizer_camera.up.i = halo::math::globals().global_up3d_pointer->i;
     view->rasterizer_camera.up.j = halo::math::globals().global_up3d_pointer->j;
     view->rasterizer_camera.up.k = halo::math::globals().global_up3d_pointer->k;
-    view->rasterizer_camera.z_near = rasterizer_default_z_near;
+    view->rasterizer_camera.z_near = halo::rasterizer::globals().default_z_near;
     view->rasterizer_camera.mirrored = 0;
-    view->rasterizer_camera.z_far = rasterizer_default_z_far;
+    view->rasterizer_camera.z_far = halo::rasterizer::globals().default_z_far;
     view->rasterizer_camera.vertical_field_of_view =
         (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
     if (unknown_00873d30 == 0) {
@@ -308,9 +306,9 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
             (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
     }
 
-    camera->z_far = rasterizer_default_z_far;
+    camera->z_far = halo::rasterizer::globals().default_z_far;
     camera->mirrored = 0;
-    camera->z_near = rasterizer_default_z_near;
+    camera->z_near = halo::rasterizer::globals().default_z_near;
 
     if (unknown_00873d30 == 0) {
         view->source_camera = view->rasterizer_camera;

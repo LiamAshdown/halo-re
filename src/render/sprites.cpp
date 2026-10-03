@@ -35,7 +35,6 @@ extern real_rectangle3d *global_null_rectangle3d_pointer;
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern double sin(double x);
 extern double cos(double x);
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern uint8_t build_sprite_group_warning;
 extern double fmod(double x, double y);
 extern double atan2(double y, double x);
@@ -49,7 +48,6 @@ extern float unknown_00672f20;
 extern data_array *contrail_point_data;
 extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void *rasterizer_dynamic_index_buffer;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern data_array *contrail_data;
 extern uint8_t particle_spawn_debug_mode;
@@ -125,7 +123,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
                                       _rasterizer_vertex_type_dynamic_unlit;
             int32_t slot;
 
-            rasterizer_vertex_buffer_lock_state = 0x10;
+            halo::rasterizer::globals().vertex_buffer_lock_state = 0x10;
             slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(vertex_type, vertex_count);
             group->vertex_slot = slot;
             if (slot == -1) {
@@ -133,10 +131,10 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
                     build_sprite_group_warning = 1;
                 }
                 group->vertices = 0;
-                rasterizer_vertex_buffer_lock_state = 0;
+                halo::rasterizer::globals().vertex_buffer_lock_state = 0;
             } else {
                 group->vertices = (uint32_t)(uintptr_t)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(slot);
-                rasterizer_vertex_buffer_lock_state = 0;
+                halo::rasterizer::globals().vertex_buffer_lock_state = 0;
             }
         }
         group->quad_count = 0;
@@ -691,9 +689,9 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     bitmap = bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
                                                    c->frame_index, c->sequence_index);
-    rasterizer_vertex_buffer_lock_state = 0xf;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0xf;
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
 
@@ -704,7 +702,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
     vertex_slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_dynamic_unlit,
                                                           vertex_count);
     if (index_slot == -1 || vertex_slot == -1) {
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
     indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
@@ -906,8 +904,8 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         centroid.x = centroid.x * inverse;
         centroid.y = centroid.y * inverse;
         centroid.z = inverse * centroid.z;
-        ((d3d_unlock_fn)(*(void ***)rasterizer_dynamic_index_buffer)[0x30 / 4])(
-            rasterizer_dynamic_index_buffer);
+        ((d3d_unlock_fn)(*(void ***)halo::rasterizer::globals().dynamic_index_buffer)[0x30 / 4])(
+            halo::rasterizer::globals().dynamic_index_buffer);
         buffer_handle = rasterizer_dynamic_vertex_caches[
             rasterizer_dynamic_vertex_slots[vertex_slot].vertex_type].buffer_handle;
         if (buffer_handle != 0) {
@@ -917,7 +915,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         halo::rasterizer::rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
                                              primitive_count, 0, &centroid, shader);
     }
-    rasterizer_vertex_buffer_lock_state = 0;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
 
 /**

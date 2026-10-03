@@ -82,7 +82,6 @@ extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern ai_globals *ai_globals_ptr;
-extern uint32_t rasterizer_decal_vertex_cache_handle;
 extern data_array *player_data;
 extern data_array *team_data;
 extern uint32_t text_localization_strings;
@@ -378,9 +377,9 @@ void GameLifecycle::stop_current_map(void)
     if (halo::effects::globals().weather_particle_data->valid != 0) {
         halo::effects::globals().weather_particle_data->valid = 0;
     }
-    if (rasterizer_decal_vertex_cache_handle != 0) {
+    if (halo::rasterizer::globals().decal_vertex_cache_handle != 0) {
         halo::effects::decal_clear_flags(1);
-        halo::memory::cache_flush((::cache *)rasterizer_decal_vertex_cache_handle);
+        halo::memory::cache_flush((::cache *)halo::rasterizer::globals().decal_vertex_cache_handle);
     }
     halo::effects::globals().decal_data->valid = 0;
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {
