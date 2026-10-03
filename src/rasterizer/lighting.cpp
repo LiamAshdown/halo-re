@@ -5,13 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
 
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
-extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 
 }  // extern "C"
@@ -88,7 +88,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     color[0] = *(float *)&((struct ShaderEnvironment *)raw)->material_color;

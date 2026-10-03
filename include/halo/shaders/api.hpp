@@ -1,15 +1,20 @@
 /**
- * @file include/halo/shaders/shaders_c_api.h
- * The C ABI of the shaders module: every original function with its original signature and C linkage.
- * Defined in src/shaders/shaders_c_api.cpp; documented on the halo::shaders C++ API.
+ * @file include/halo/shaders/api.hpp
+ * Functions of the shaders module that other modules and the data tables call (namespace halo::shaders). The record types are
+ * forward-declared, so the header is light enough for every caller and for the data tables.
  */
 #pragma once
 
-#include "halo/shaders/shaders.hpp"
+#include <stdarg.h>
+#include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef float real;
+struct Shader;
+struct ShaderEnvironment;
+struct render_animation;
+struct shader_texture_animation;
+
+namespace halo::shaders {
 
 int16_t chimera__shader_get_vertex_shader_permutation(Shader *shader);
 uint8_t shader_is_decal(Shader *shader);
@@ -19,6 +24,4 @@ void shader_environment_texture_scrolling_evaluate(float *u_out, float *v_out, d
 int16_t numeric_countdown_timer_get_digit(int16_t digit_index);
 void numeric_countdown_timer_update(void);
 
-#ifdef __cplusplus
 }
-#endif

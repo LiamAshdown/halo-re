@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
@@ -15,7 +16,6 @@ extern void debug_fp_dispatch_note(int32_t toggle, int32_t mode, int32_t shader_
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
-extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader);
 
 }  // extern "C"
 
@@ -717,7 +717,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     vectors[0] = real_negate_pinned(rasterizer_window.camera.forward.i);
@@ -809,7 +809,7 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     constants[9] = 1.0f;
     constants[10] = sv3 * *(float *)(shader + 0xf8);
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], (*(double *)&rasterizer_time), (const ShaderEnvironment *)shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], (*(double *)&rasterizer_time), const_cast<ShaderEnvironment *>((const ShaderEnvironment *)shader));
 
     render_device().set_vertex_shader_constant_f(10, constants, 3);
     render_device().set_vertex_declaration((*(uint32_t *)&rasterizer_vertex_declarations));
@@ -1052,7 +1052,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     pixel_constants[0] = ((struct ShaderEnvironment *)raw)->brightness;
@@ -1186,7 +1186,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     if (effect_slot->constant_handles != 0) {
@@ -1353,7 +1353,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     if (effect_slot->constant_handles != 0) {
@@ -1548,7 +1548,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
     render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[2].declaration);
     render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[13].shader);
@@ -1880,7 +1880,7 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
     constants[9] = 1.0f;
     constants[10] = 0.0f;
     constants[11] = 0.0f;
-    shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
+    halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     if (render_device().set_vertex_shader_constant_f(0xa, constants, 3) < 0) {
         return;
     }
