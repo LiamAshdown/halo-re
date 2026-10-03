@@ -7,7 +7,21 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/scenario/api.hpp"
 
+extern "C" {
+extern Scenario *global_scenario;
+extern datum_index global_scenario_index;
+extern ScenarioStructureBSP *global_structure_bsp;
+extern int16_t global_structure_bsp_index;
+extern scenario_game_globals *global_scenario_game_globals;
+}
+
 namespace halo::scenario {
+
+Globals &globals()
+{
+    static Globals instance{::global_scenario, ::global_scenario_index, ::global_structure_bsp, ::global_structure_bsp_index, ::global_scenario_game_globals};
+    return instance;
+}
 
 void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point)
 {

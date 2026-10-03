@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -49,7 +50,6 @@ extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_ind
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern void actor_dispatch_perception_reset(datum_index actor_index);
-extern Scenario *global_scenario;
 extern player_globals *local_player_globals;
 extern actor_mode_definition actor_mode_definitions[16];
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
@@ -68,7 +68,6 @@ extern void ai_conversation_update(void);
 extern void encounters_update(void);
 extern void ai_release_actors_and_swarms(void);
 extern void ai_reset_all_actors_perception(void);
-extern int16_t global_structure_bsp_index;
 extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index);
 extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, datum_index encounter_index, uint8_t keep_team);
 extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin, real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc, real_vector3d *out_direction, real *max_speed_override, real *out_speed, real *out_time_of_flight, real *out_range, real *out_half_gravity_term, real *out_horizontal_speed);
@@ -941,7 +940,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
  */
 void AiSystem::reset_fire_group_assignments()
 {
-    int32_t encounter_count = *(int32_t *)&global_scenario->encounters.count;
+    int32_t encounter_count = *(int32_t *)&halo::scenario::globals().scenario->encounters.count;
     int16_t e;
     datum_index actor_index;
 
@@ -1195,7 +1194,7 @@ void AiSystem::tick_dispatcher()
  */
 void AiSystem::unassigned_actors_attach_to_structure_bsp()
 {
-    int16_t bsp_index = global_structure_bsp_index;
+    int16_t bsp_index = halo::scenario::globals().structure_bsp_index;
     datum_index actor_index = ai_globals_ptr->first_encounterless_actor;
 
     while (actor_index != k_datum_index_none) {
@@ -1204,7 +1203,7 @@ void AiSystem::unassigned_actors_attach_to_structure_bsp()
         datum_index next = entry->next_in_encounter;
 
         if (encounter_index != k_datum_index_none &&
-            *(int16_t *)((uint8_t *)global_scenario->encounters.pointer + (encounter_index & 0xffff) * 0xb0 + 0x7e) ==
+            *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (encounter_index & 0xffff) * 0xb0 + 0x7e) ==
                 bsp_index) {
             ai_actor_unlink_from_unassigned_list(actor_index);
             encounter_add_actor(entry->original_squad_index, actor_index, entry->original_encounter_index, 1);

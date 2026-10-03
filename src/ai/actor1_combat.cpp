@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 extern "C" {
@@ -39,7 +40,6 @@ namespace c_actor_check_melee_target_reachable {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern ScenarioStructureBSP *global_structure_bsp;
 
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
 extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
@@ -128,7 +128,7 @@ void halo::ai::combat_ops::check_melee_target_reachable(int16_t *order)
         *(real_point3d *)&request[5] = *(real_point3d *)&((prop *)target)->pathfinding_point.x;
         request[8] = *(uint32_t *)&((prop *)target)->pathfinding_surface_index;
         memset(&target_context, 0, sizeof(target_context));
-        target_context.structure_bsp = (uint32_t)global_structure_bsp;
+        target_context.structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
         memcpy(&target_context, request, sizeof(request));
         target_context.obstacle_cache = 0;
         target_context.have_goal = 1;
@@ -202,7 +202,6 @@ namespace c_actor_check_weapon_pickup_reachable {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern Scenario *global_scenario;
 
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
@@ -235,7 +234,7 @@ uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(uint8_t *record)
 
     {
         prop *p = &((prop *)prop_data->data)[target_prop_index & 0xffff];
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+        ScenarioEncounter *encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
         ScenarioFiringPosition *positions = (ScenarioFiringPosition *)encounters[a->encounter_index & 0xffff].firing_positions.pointer;
         int16_t status;
         real_point3d self_position;
@@ -1603,7 +1602,6 @@ namespace c_actor_is_target_within_engagement_range {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern Scenario *global_scenario;
 
 extern float actor_compute_accuracy_scale(datum_index actor_index);
 }
@@ -1634,7 +1632,7 @@ uint8_t halo::ai::combat_ops::is_target_within_engagement_range()
     }
 
     {
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+        ScenarioEncounter *encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
         ScenarioFiringPosition *positions = (ScenarioFiringPosition *)encounters[a->encounter_index & 0xffff].firing_positions.pointer;
         fp = &positions[a->firing_position_index];
     }

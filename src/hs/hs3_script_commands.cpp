@@ -5,7 +5,6 @@
 
 extern "C" {
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern int16_t global_structure_bsp_index;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
@@ -28,7 +27,7 @@ namespace halo::hs::part3 {
  */
 void ScriptCommands::evaluate_structure_bsp_index(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_thread_return((int32_t)(uint16_t)global_structure_bsp_index, thread_index);
+    hs_thread_return((int32_t)(uint16_t)halo::scenario::globals().structure_bsp_index, thread_index);
 }
 
 /**

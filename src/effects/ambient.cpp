@@ -9,7 +9,6 @@
 extern "C" {
 extern int16_t weather_particle_system_count;
 extern weather_particle_system_state weather_wind_states[8];
-extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
 extern ambient_noise_grid ambient_noise;
 extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
@@ -30,7 +29,7 @@ void ambient_color::for_marker(int16_t weather_row, real_point3d *position, uint
     if (weather_row >= 0 && weather_row < weather_particle_system_count &&
         *((uint8_t *)&weather_wind_states[0] + weather_row * 0x20) != 0) {
         ScenarioStructureBSPWeatherPalette *palette_row =
-            (ScenarioStructureBSPWeatherPalette *)((uint8_t *)global_structure_bsp->weather_palette.pointer) +
+            (ScenarioStructureBSPWeatherPalette *)((uint8_t *)halo::scenario::globals().structure_bsp->weather_palette.pointer) +
             weather_row;
         Wind *wind_tag = (Wind *)halo::cache::globals().tag_instances[palette_row->wind.tag_id.index].data;
         weather_particle_system_state *wind = &weather_wind_states[weather_row];
@@ -72,14 +71,14 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
         uint32_t skip_non_water = filter_flags & 4;
         int16_t region = halo::scenario::scenario_location_fog_region(location, skip_non_water ? (real_point3d *)0 : position);
 
-        weather_row = *(int16_t *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster * 0x68 + 8);
+        weather_row = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster * 0x68 + 8);
         if (region != -1) {
-            uint8_t *fog_region = (uint8_t *)global_structure_bsp->fog_regions.pointer + region * 0x28;
+            uint8_t *fog_region = (uint8_t *)halo::scenario::globals().structure_bsp->fog_regions.pointer + region * 0x28;
             int16_t fog = *(int16_t *)(fog_region + 0x24);
             int16_t region_weather = *(int16_t *)(fog_region + 0x26);
 
             if (fog != -1 && region_weather != -1) {
-                datum_index fog_tag = *(datum_index *)((uint8_t *)global_structure_bsp->fog_palette.pointer + fog * 0x88 + 0x2c);
+                datum_index fog_tag = *(datum_index *)((uint8_t *)halo::scenario::globals().structure_bsp->fog_palette.pointer + fog * 0x88 + 0x2c);
 
                 if (fog_tag != k_datum_index_none) {
                     uint8_t *fog_data = (uint8_t *)halo::cache::globals().tag_instances[fog_tag & 0xffff].data;

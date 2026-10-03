@@ -13,7 +13,6 @@ extern void observer_compute_spline_coefficients(int16_t local_player_index);
 extern void observer_evaluate_spline_acceleration(int16_t local_player_index);
 extern void observer_evaluate_spline_velocity(int16_t local_player_index);
 extern void observer_evaluate_spline_value_and_orthonormalize(int16_t local_player_index);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
 extern void observer_avoid_collision(real_vector3d *forward, real_point3d *position, real_vector3d *up, float *distance, float radius_scale);
@@ -157,12 +156,12 @@ void ObserverHandle::commit()
     leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
                 halo::cache::predicted_resource_list_touch(
-                    &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[new_cluster]
+                    &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[new_cluster]
                         .predicted_resources);
             }
             camera->leaf_index = leaf_index;
@@ -699,7 +698,7 @@ void ObserverSystem::update_location()
         observers[0].camera.cluster_index = -1;
     } else {
         observers[0].camera.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)
-            global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
+            halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
     }
 }
 
@@ -731,7 +730,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {
-        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)
+        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)
             [location.leaf_index & halo::k_leaf_index_mask].cluster;
     }
     use_alternate_mask = halo::scenario::scenario_location_get_water_and_weather(position, &location, 0); 

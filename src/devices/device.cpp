@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern datum_index sound_start_at_object_marker(datum_index object_index, Point3
 extern object *object_iterator_next(object_iterator *iterator);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void device_groups_initialize(void);
-extern Scenario *global_scenario;
 void device_new(uint32_t object_index, device_placement_data *placement);
 uint8_t device_create(datum_index object_index);
 void device_delete(datum_index object_index);
@@ -694,7 +694,7 @@ void DeviceGroupPool::dispose()
  */
 void DeviceGroupPool::initialize()
 {
-    Scenario *scenario = global_scenario;
+    Scenario *scenario = halo::scenario::globals().scenario;
     ScenarioDeviceGroup *scenario_groups = (ScenarioDeviceGroup *)scenario->device_groups.pointer;
     int32_t i;
 

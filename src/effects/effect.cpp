@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -19,7 +20,6 @@ extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern player_globals *local_player_globals;
 extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
-extern ScenarioStructureBSP *global_structure_bsp;
 }
 
 namespace halo::effects {
@@ -478,7 +478,7 @@ void effect_ref::refresh_structure_locations()
             entry->location.cluster_index = -1;
         } else {
             entry->location.cluster_index =
-                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
+                *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
         }
     }
 }

@@ -1,12 +1,11 @@
 #include "halo/hs/hs1_effects.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void *memset(void *dst, int32_t value, uint32_t size);
 extern void damage_apply_area_effect(void *request, uint32_t param_2);
-extern Scenario *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void object_apply_damage(void *dd, uint32_t object_index, int16_t hit_node_index, int16_t hit_region_index, int16_t hit_material_index, uint32_t hit_plane);
 extern double fcos(double x);
@@ -32,7 +31,7 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
     hs_damage_request request;
     int32_t impulse;
 
-    location = (ScenarioCutsceneFlag *)((uint8_t *)global_scenario->cutscene_flags.pointer +
+    location = (ScenarioCutsceneFlag *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer +
         location_index * 0x5c);
 
     memset(&request, 0, sizeof(request));
@@ -54,7 +53,7 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
         damage_apply_area_effect(&request, 0xffffffff);
         return;
     }
-    request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
+    request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
     damage_apply_area_effect(&request, 0xffffffff);
 }
 
@@ -88,7 +87,7 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
         if (impulse == -1) {
             request.sound_index = 0xffff;
         } else {
-            request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
+            request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
         }
         object_apply_damage(&request, object_index, -1, -1, -1, 0);
     }
@@ -104,7 +103,7 @@ void ScriptEffects::effect_spawn_at_location(int16_t location_index, uint32_t ef
     ScenarioCutsceneFlag *location;
     real_vector3d forward;
 
-    location = (ScenarioCutsceneFlag *)((uint8_t *)global_scenario->cutscene_flags.pointer +
+    location = (ScenarioCutsceneFlag *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer +
         location_index * 0x5c);
     forward.i = (float)(fcos((double)location->facing.yaw) *
         fcos((double)location->facing.pitch));

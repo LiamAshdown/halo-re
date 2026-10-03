@@ -11,6 +11,7 @@
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -23,7 +24,6 @@ extern uint8_t g_control_binding_state;
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_scenario;
-extern int16_t global_structure_bsp_index;
 extern const real_vector3d *global_white_color;
 extern uint8_t network_action_apply_active;
 extern int32_t network_client;
@@ -194,10 +194,10 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
     int16_t type;
     uint16_t bsp_bit;
 
-    if (global_structure_bsp_index == -1) {
+    if (halo::scenario::globals().structure_bsp_index == -1) {
         return;
     }
-    bsp_bit = (uint16_t)(1 << global_structure_bsp_index);
+    bsp_bit = (uint16_t)(1 << halo::scenario::globals().structure_bsp_index);
     for (type = 0; type < k_maximum_object_types; type++) {
         object_type_definition *definition = object_type_definitions[type];
         TagReflexive *placements;

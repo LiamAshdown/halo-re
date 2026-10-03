@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index);
@@ -23,7 +24,6 @@ extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask, int16_t start_index);
 extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
 extern uint8_t ai_search_step(ai_search_context *context);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern void ai_search_heap_sift_down(ai_search_context *context, int16_t index);
 extern void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_index, int16_t start_point_id);
 extern uint8_t path_find_heights_are_close(ScenarioStructureBSP *structure_bsp, real_point2d *point, int32_t surface_a, int32_t surface_b);
@@ -770,7 +770,7 @@ uint8_t AiSearch::run(uint8_t unknown_04, ai_search_obstacle_list *obstacles, ui
 {
     ai_search_context * context = ptr;
     ai_search_context_init(context, unknown_04, unknown_00, obstacles, origin,
-        (uint32_t)global_structure_bsp, position, surface_index, unknown_18, unknown_29, unknown_2a);
+        (uint32_t)halo::scenario::globals().structure_bsp, position, surface_index, unknown_18, unknown_29, unknown_2a);
 
     while (ai_search_step(context) != 0) {
     }

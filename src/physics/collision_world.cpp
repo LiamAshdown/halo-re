@@ -119,14 +119,13 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
 }
 
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
-extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
 static int16_t pill_leaf_cluster(int32_t leaf)
 {
     if (leaf == -1) {
         return -1;
     }
-    return (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
+    return (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
 }
 
 namespace halo::physics {
@@ -203,7 +202,6 @@ extern "C" { extern datum_index *collideable_cluster_first; }
 extern "C" { extern data_array *collideable_object_references; }
 extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
-extern "C" { extern int16_t global_structure_bsp_index; }
 extern "C" { extern double fabs(double x); }
 namespace halo::physics {
 
@@ -252,7 +250,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
         }
 
         last_leaf_ref->cluster_index =
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
         return 0;
     }
 
@@ -270,7 +268,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
 
         found_surface = halo::physics::collision_bsp_query_segment_init(segment_flags, &seg_result,
             global_structure_collision_bsp, k_maximum_breakable_surfaces_per_bsp,
-            breakable_surface_state->active[global_structure_bsp_index],
+            breakable_surface_state->active[halo::scenario::globals().structure_bsp_index],
             origin, delta, 3.4028235e+38f );
 
         if (found_surface && (flags & _collision_test_flag_structure_bsp) != 0) {
@@ -290,7 +288,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                 result->material_type = -1;
             } else {
                 result->material_type = ((ScenarioStructureBSPCollisionMaterial *)
-                    global_structure_bsp->collision_materials.pointer)[seg_result.material_index].material;
+                    halo::scenario::globals().structure_bsp->collision_materials.pointer)[seg_result.material_index].material;
             }
             result->surface_index = seg_result.surface_index;
             result->plane_index = (uint32_t)seg_result.plane_index;
@@ -307,29 +305,29 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
 
             first_leaf_ref->leaf_index = first_leaf;
             first_leaf_ref->cluster_index = (first_leaf == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[first_leaf & 0x7fffffff].cluster;
+                ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[first_leaf & 0x7fffffff].cluster;
 
             last_leaf_ref->leaf_index = last_leaf;
             last_leaf_ref->cluster_index = (last_leaf == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[last_leaf & 0x7fffffff].cluster;
+                ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[last_leaf & 0x7fffffff].cluster;
         }
 
         if ((flags & _collision_test_flag_water_surface) != 0 && last_leaf_ref->cluster_index != -1) {
             ScenarioStructureBSPCluster *cluster = &((ScenarioStructureBSPCluster *)
-                global_structure_bsp->clusters.pointer)[last_leaf_ref->cluster_index];
+                halo::scenario::globals().structure_bsp->clusters.pointer)[last_leaf_ref->cluster_index];
             int16_t fog = (int16_t)cluster->fog;
             if (fog != -1 && fog < 0) {
                 ScenarioStructureBSPFogPlane *fog_plane = &((ScenarioStructureBSPFogPlane *)
-                    global_structure_bsp->fog_planes.pointer)[fog & 0x7fff];
+                    halo::scenario::globals().structure_bsp->fog_planes.pointer)[fog & 0x7fff];
                 if (fog_plane->material_type != -1) {
                     float ni = fog_plane->plane.vector.i;
                     float nj = fog_plane->plane.vector.j;
                     float nk = fog_plane->plane.vector.k;
 
                     uint16_t fog_palette_index = ((ScenarioStructureBSPFogRegion *)
-                        global_structure_bsp->fog_regions.pointer)[fog_plane->front_region].fog;
+                        halo::scenario::globals().structure_bsp->fog_regions.pointer)[fog_plane->front_region].fog;
                     ScenarioStructureBSPFogPalette *palette = &((ScenarioStructureBSPFogPalette *)
-                        global_structure_bsp->fog_palette.pointer)[fog_palette_index];
+                        halo::scenario::globals().structure_bsp->fog_palette.pointer)[fog_palette_index];
                     uint32_t fog_tag_index = palette->fog.tag_id.index;
                     float world_offset = *(float *)((uint8_t *)halo::cache::globals().tag_instances[fog_tag_index].data + 0x74);
                     float d = fog_plane->plane.w - world_offset;
@@ -379,7 +377,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
             for (i = 0; i < seg_result.leaf_count; i++) {
                 int32_t leaf = seg_result.leaves[i];
                 int16_t cluster_index = (leaf == -1) ? -1 :
-                    ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
+                    ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
 
                 if (halo::structures::globals().cluster_visit_stamp[cluster_index] != halo::structures::globals().cluster_flood_stamp) {
                     datum_index ref;
@@ -444,7 +442,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                             resolved_leaf = halo::physics::bsp3d_node_find_leaf(0, global_structure_collision_bsp, point);
                             last_leaf_ref->leaf_index = resolved_leaf;
                             last_leaf_ref->cluster_index = (resolved_leaf == -1) ? -1 :
-                                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[resolved_leaf & 0x7fffffff].cluster;
+                                ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[resolved_leaf & 0x7fffffff].cluster;
                             if (result->t <= 0.0f) {
                                 break;
                             }
@@ -786,7 +784,7 @@ uint8_t CollisionWorld::test_cluster_group(uint32_t flags, real_point3d *positio
         }
         if ((flags >> 7 & 1) != 0) {
             ScenarioStructureBSPLeaf *leaves =
-                (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
+                (ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer;
             datum_index next_reference;
             datum_index object_index =
                 object_resolve_collideable_reference(&next_reference,

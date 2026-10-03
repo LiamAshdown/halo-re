@@ -15,6 +15,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -70,7 +71,6 @@ extern uint8_t saved_game_index_file_open;
 extern uint32_t game_state_crc;
 extern int16_t local_player_count;
 extern uint32_t cache_file_current_header_crc32;
-extern datum_index global_scenario_index;
 extern char *rasterizer_shader_file_name;
 extern int32_t strcmp(const char *a, const char *b);
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
@@ -1638,7 +1638,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
         return 0;
     }
 
-    tag_path = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
+    tag_path = halo::cache::globals().tag_instances[(int16_t)halo::scenario::globals().scenario_index].path;
     if (strcmp(header->scenario_name, tag_path) == 0 &&
         header->allocation_checksum == game_state_crc &&
         header->local_player_count == local_player_count &&

@@ -4,6 +4,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -57,7 +58,6 @@ extern void flying_camera_attach_to_object(datum_index object_index);
 extern orbiting_camera_data flying_camera_saved_orbiting;
 extern uint8_t flying_camera_saved_orbiting_valid;
 extern editor_camera_data flying_camera_saved_flying;
-extern Scenario *global_scenario;
 extern uint8_t flying_camera_home_initialized;
 extern flying_camera_home flying_camera_home_location;
 extern float flying_camera_speed;
@@ -992,8 +992,8 @@ void FlyingCamera::initialize(editor_camera_data *data, int16_t local_player_ind
     if (!flying_camera_home_initialized) {
         ScenarioPlayerStartingLocation *start = 0;
 
-        if (global_scenario->player_starting_locations.count != 0) {
-            start = (ScenarioPlayerStartingLocation *)global_scenario->player_starting_locations.pointer;
+        if (halo::scenario::globals().scenario->player_starting_locations.count != 0) {
+            start = (ScenarioPlayerStartingLocation *)halo::scenario::globals().scenario->player_starting_locations.pointer;
         }
         if (start != 0) {
             flying_camera_home_location.position = start->position;

@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace halo::ai {
 
@@ -100,8 +101,6 @@ namespace actor_movement_action_resolve_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern Scenario *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t actor_movement_check_arrival(datum_index actor_index);
 extern void actor_movement_action_complete(datum_index actor_index);
 extern void actor_build_path_find_request(datum_index actor_index, path_find_request *request);
@@ -183,7 +182,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             actor_movement_action_complete(actor_index);
             return result;
         }
-        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                    [self->encounter_index & 0xffff];
         firing_position = &((ScenarioFiringPosition *)encounter_definition->firing_positions.pointer)
                               [*(int16_t *)&self->active_movement.destination];
@@ -198,7 +197,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             actor_movement_action_complete(actor_index);
             return result;
         }
-        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                    [self->encounter_index & 0xffff];
         squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)
                                [self->squad_index];
@@ -263,7 +262,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
     distance = halo::math::vector3d_distance(self->destination, self->body_position);
 
     if (self->flying != 0) {
-        result = path_find_validate_and_record_goal((uint8_t *)self + 0x4a8, (void *)global_structure_bsp,
+        result = path_find_validate_and_record_goal((uint8_t *)self + 0x4a8, (void *)halo::scenario::globals().structure_bsp,
             (uint32_t)&self->body_position, 0, &self->destination);
     } else if (context != (path_find_context *)0) {
         path_find_set_goal(context, &self->destination, self->destination_surface_index, self->destination_radius);
@@ -475,7 +474,6 @@ void ActorView::movement_advance_waypoint()
 namespace actor_movement_apply_steering_local {
 extern "C" {
 extern data_array *actor_data;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_vector3d *global_origin3d_pointer;
 extern double acos(double x);
 extern double sqrt(double x);
@@ -626,7 +624,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                     point.x = probe.i * 0.4f + ((actor *)act)->body_position.x;
                     point.y = probe.j * 0.4f + ((actor *)act)->body_position.y;
                     point.z = ((actor *)act)->body_position.z;
-                    if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], (real_point3d *)(act + 0x12c),
+                    if (path_find_trace_bsp_boundary(halo::scenario::globals().structure_bsp, act[0x376], (real_point3d *)(act + 0x12c),
                                                      surface, &point, -1, &crossing) &&
                         !(max_turn_cos > 0.95f)) {
                         max_turn_cos = 0.95f;

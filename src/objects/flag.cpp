@@ -18,7 +18,6 @@ extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_point3d *global_origin3d_pointer;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *object_data;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
@@ -552,7 +551,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
         if (node_index == -1) {
             node_ref->cluster_index = -1;
         } else {
-            node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+            node_ref->cluster_index = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                                                  (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
         }
     }

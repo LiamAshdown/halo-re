@@ -20,9 +20,9 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern ctf_globals ctf_globals_live;
 extern ctf_globals ctf_globals_network;
 extern int32_t ctf_neutral_flag_id;
@@ -105,8 +105,8 @@ namespace halo::game::engine1 {
  */
 void Ctf::assign_flag_ids(void)
 {
-    int32_t flag_count = (int32_t)global_scenario->netgame_flags.count;
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    int32_t flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
     uint32_t used_mask = 0;
     int32_t i;
 
@@ -385,8 +385,8 @@ int32_t Ctf::get_team_score(int32_t team)
 int32_t Ctf::initialize_flags(void)
 {
     int32_t lowest_usage_id = 0x20;
-    int32_t flag_count = (int32_t)global_scenario->netgame_flags.count;
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    int32_t flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
     int32_t i;
 
     game_engine_ctf_assign_flag_ids();
@@ -484,7 +484,7 @@ uint8_t Ctf::initialize_for_new_game(void)
         slot = game_engine_variant.engine.ctf.assault != 0 ? (team + 1) % 2 : team;
         ctf_team_flag_stand_position[slot] = 0;
         if (index != -1) {
-            ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)global_scenario->netgame_flags.pointer + index * 0x94);
+            ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + index * 0x94);
         }
     }
     if (network_game_mode == 2) {
@@ -519,14 +519,14 @@ uint8_t Ctf::initialize_for_new_game(void)
         halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
     }
     ctf_flag_capture_limit_006b0ea0 = game_engine_variant.score_limit;
-    count = *(int16_t *)&global_scenario->player_starting_locations.count;
+    count = *(int16_t *)&halo::scenario::globals().scenario->player_starting_locations.count;
     for (i = 0; i < count; i++) {
         uint8_t *equipment = (uint8_t *)0;
         int16_t type;
         uint8_t belongs;
 
-        if (i >= 0 && i < *(int32_t *)&global_scenario->player_starting_locations.count) {
-            equipment = (uint8_t *)global_scenario->player_starting_locations.pointer + i * 0x34;
+        if (i >= 0 && i < *(int32_t *)&halo::scenario::globals().scenario->player_starting_locations.count) {
+            equipment = (uint8_t *)halo::scenario::globals().scenario->player_starting_locations.pointer + i * 0x34;
         }
         type = *(int16_t *)&((struct equipment_object *)equipment)->base.flags;
         if (type != 0 && type != 1) {

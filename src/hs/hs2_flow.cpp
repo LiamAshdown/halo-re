@@ -2,6 +2,7 @@
 
 #include "game.h"
 #include "halo/math/api.hpp"
+#include "halo/scenario/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +23,6 @@ extern void hs_global_write_value(hs_global_reference reference);
 extern data_array *hs_globals_data;
 extern data_array *object_list_header_data;
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
-extern Scenario *global_scenario;
 extern game_time_globals *game_time;
 extern datum_index hs_thread_find_by_script_index(int16_t script_index);
 #ifdef __cplusplus
@@ -322,7 +322,7 @@ void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, c
     if ((reference & k_hs_global_builtin_bit) != 0) {
         type = hs_global_definitions[index]->type;
     } else {
-        type = ((ScenarioGlobal *)global_scenario->globals.pointer)[index].type;
+        type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[index].type;
     }
 
     if (first != 0) {

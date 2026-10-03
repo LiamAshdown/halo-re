@@ -1,11 +1,10 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
-extern Scenario *global_scenario;
-extern datum_index global_scenario_index;
 extern void hs_global_read_value(hs_global_reference reference);
 extern data_array *hs_globals_data;
 extern char *hs_empty_string;
@@ -35,10 +34,10 @@ hs_global_reference GlobalTable::find_global_by_name(char *name) const
         index = index + 1;
     } while ((int16_t)index < k_hs_builtin_global_count);
 
-    if (global_scenario_index != k_datum_index_none) {
-        count = (int32_t)global_scenario->globals.count;
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        count = (int32_t)halo::scenario::globals().scenario->globals.count;
         if (0 < count) {
-            globals = (ScenarioGlobal *)global_scenario->globals.pointer;
+            globals = (ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer;
             for (i = 0; i < count; i++) {
                 if (_stricmp(name, globals[i].name.string) == 0) {
                     return (hs_global_reference)(i & k_hs_global_index_mask);
@@ -64,7 +63,7 @@ char *GlobalTable::get_name(hs_global_reference global) const
         definition = hs_global_definitions[global & k_hs_global_index_mask];
         return definition->name;
     }
-    scenario_global = (ScenarioGlobal *)global_scenario->globals.pointer + (global & k_hs_global_index_mask);
+    scenario_global = (ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer + (global & k_hs_global_index_mask);
     return scenario_global->name.string;
 }
 
@@ -83,7 +82,7 @@ hs_type_t GlobalTable::get_type(hs_global_reference global) const
         definition = hs_global_definitions[global & k_hs_global_index_mask];
         return definition->type;
     }
-    scenario_global = (ScenarioGlobal *)global_scenario->globals.pointer + (global & k_hs_global_index_mask);
+    scenario_global = (ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer + (global & k_hs_global_index_mask);
     return scenario_global->type;
 }
 

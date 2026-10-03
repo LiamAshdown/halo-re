@@ -962,7 +962,6 @@ void MainLoop::menu_music_stop(void)
 
 }
 
-extern "C" { extern Scenario *global_scenario; }
 extern "C" { extern int32_t interface_loading_screen_address_a; }
 extern "C" { extern int32_t interface_loading_screen_address_b; }
 extern "C" { extern int32_t join_ui_state; }
@@ -1000,8 +999,8 @@ void MainLoop::menu_return_and_reset(void)
         chimera__load_ui_map(0);
     }
     chimera__load_main_menu();
-    if (global_scenario != 0) {
-        halo::cache::predicted_resource_list_touch(&global_scenario->predicted_resources);
+    if (halo::scenario::globals().scenario != 0) {
+        halo::cache::predicted_resource_list_touch(&halo::scenario::globals().scenario->predicted_resources);
     }
 
     interface_loading_screen_address_a = -1;

@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "halo/memory/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hs_global_reference hs_find_global_by_name(char *name);
@@ -17,7 +18,6 @@ extern char *hs_compile_error;
 extern int32_t hs_compile_error_offset;
 extern int16_t hs_script_find_by_name(char *name);
 extern char *hs_script_type_names[k_hs_script_type_count];
-extern Scenario *global_scenario;
 extern char *hs_source_buffer_append(char *text, uint32_t length);
 extern void skip_whitespace(char **cursor);
 extern datum_index hs_tokenize(char **cursor);
@@ -35,7 +35,6 @@ extern uint8_t hs_compiling;
 extern uint8_t hs_compile_release_source;
 extern uint8_t hs_compiled_source_owned;
 extern uint8_t hs_reload_pending;
-extern datum_index global_scenario_index;
 extern char hs_verify_source_offset(int32_t offset);
 extern int16_t hs_find_function_by_name(char *name);
 extern hs_type_t hs_global_get_type(hs_global_reference global);
@@ -206,7 +205,7 @@ char ScriptCompiler::add_script(datum_index node_index)
                     hs_compile_error_offset = node->source_offset;
                     return 0;
                 }
-                existing_script = (ScenarioScript *)global_scenario->scripts.pointer + existing_index;
+                existing_script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + existing_index;
                 if ((existing_script->script_type == _hs_script_stub) &&
                     (existing_script->return_type == return_type) &&
                     (script_type == _hs_script_static)) {
@@ -459,13 +458,13 @@ datum_index ScriptCompiler::compile_expression(char *text, uint32_t length, char
     char ok;
 
     if ((int32_t)length < k_hs_maximum_expression_length) {
-        if (global_scenario_index == k_datum_index_none) {
+        if (halo::scenario::globals().scenario_index == k_datum_index_none) {
             start = 0;
             hs_compiled_source = (char *)GlobalAlloc(0, length + 1);
             hs_compiled_source_owned = 1;
         } else {
-            hs_compiled_source = (char *)global_scenario->script_string_data.pointer;
-            start = (int32_t)global_scenario->script_string_data.size - 0x400;
+            hs_compiled_source = (char *)halo::scenario::globals().scenario->script_string_data.pointer;
+            start = (int32_t)halo::scenario::globals().scenario->script_string_data.size - 0x400;
         }
         dest = (uint8_t *)hs_compiled_source + start;
         src = text;
@@ -548,8 +547,8 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
     int16_t function_index;
 
     nodes = hs_syntax_data;
-    hs_compiled_source = (char *)global_scenario->script_string_data.pointer;
-    hs_compiled_source_length = (int32_t)global_scenario->script_string_data.size - 0x400;
+    hs_compiled_source = (char *)halo::scenario::globals().scenario->script_string_data.pointer;
+    hs_compiled_source_length = (int32_t)halo::scenario::globals().scenario->script_string_data.size - 0x400;
     success = 1;
     hs_compile_error = 0;
     hs_postprocessing = 1;
@@ -581,8 +580,8 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
         if ((node->flags & _hs_syntax_node_primitive_bit) == 0) {
             if ((node->flags & _hs_syntax_node_script_call_bit) != 0) {
                 node_type = node->index_union;
-                if ((((-1 < node_type) && (node_type < (int32_t)global_scenario->scripts.count)) &&
-                     (stale_script_pointer = node_type * 0x5c + (int32_t)global_scenario->scripts.pointer,
+                if ((((-1 < node_type) && (node_type < (int32_t)halo::scenario::globals().scenario->scripts.count)) &&
+                     (stale_script_pointer = node_type * 0x5c + (int32_t)halo::scenario::globals().scenario->scripts.pointer,
                       *(int16_t *)(stale_script_pointer + 0x20) == _hs_script_static)) ||
                     (*(int16_t *)(stale_script_pointer + 0x20) == _hs_script_stub)) {
                     node_type = *(int16_t *)(stale_script_pointer + 0x22);
@@ -704,7 +703,7 @@ char ScriptCompiler::compile_source(void)
     int32_t error_offset;
     char *newline;
 
-    scenario = global_scenario;
+    scenario = halo::scenario::globals().scenario;
     all_ok = 1;
     hs_compiling = 1;
     hs_compiled_source = 0;

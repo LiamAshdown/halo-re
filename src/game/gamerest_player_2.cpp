@@ -16,7 +16,6 @@ extern player_globals *local_player_globals;
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern Globals *global_globals;
-extern Scenario *global_scenario;
 extern uint8_t network_message_scratch;
 extern network_server_globals *network_server;
 extern observer observers[];
@@ -70,7 +69,6 @@ extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern uint8_t object_update(uint32_t object_index);
 extern uint8_t unit_update(uint32_t unit_index);
 extern uint32_t biped_update(uint32_t object_index);
-extern int16_t global_structure_bsp_index;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t global_007102d8;
 extern uint8_t network_join_error_reason;
@@ -211,7 +209,7 @@ void PlayerView::respawn()
             game_engine_init_player_look_state_from_object(new_unit, ((player *)p)->local_player_index);
         }
         if (current_game_engine == 0) {
-            int32_t profile_count = *(int32_t *)&global_scenario->player_starting_profile.count;
+            int32_t profile_count = *(int32_t *)&halo::scenario::globals().scenario->player_starting_profile.count;
 
             if (profile_count > 1 && ((player *)p)->deaths > 0) {
                 LocalPlayerUnit(((player *)p)->unit).apply_starting_profile(1, 1);
@@ -329,13 +327,13 @@ int16_t PlayerView::pick_random_starting_location()
     ScenarioPlayerStartingLocation *location;
     int32_t current_engine_index;
 
-    count = (int16_t)global_scenario->player_starting_locations.count;
+    count = (int16_t)halo::scenario::globals().scenario->player_starting_locations.count;
     index = 0;
     best_index = -1;
     best_score = 0.0f;
 
     if (0 < count) {
-        location = (ScenarioPlayerStartingLocation *)global_scenario->player_starting_locations.pointer;
+        location = (ScenarioPlayerStartingLocation *)halo::scenario::globals().scenario->player_starting_locations.pointer;
         do {
             float suitability;
             uint8_t matches;
@@ -652,15 +650,15 @@ void StructureBsp::switch_structure_bsp()
             } while (walk != (datum_index)-1);
             root_obj = ((object_header *)object_data->data)[root & 0xffff].data;
 
-            if ((root_obj->flags & 0x200000) == 0 && global_scenario->bsp_switch_trigger_volumes.count > 0) {
+            if ((root_obj->flags & 0x200000) == 0 && halo::scenario::globals().scenario->bsp_switch_trigger_volumes.count > 0) {
                 ScenarioBSPSwitchTriggerVolume *volumes =
-                    (ScenarioBSPSwitchTriggerVolume *)global_scenario->bsp_switch_trigger_volumes.pointer;
-                int32_t count = global_scenario->bsp_switch_trigger_volumes.count;
+                    (ScenarioBSPSwitchTriggerVolume *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer;
+                int32_t count = halo::scenario::globals().scenario->bsp_switch_trigger_volumes.count;
                 int32_t i;
 
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
-                    if (entry->source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
+                    if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != (datum_index)-1 &&
                         halo::scenario::scenario_trigger_volume_contains_point((int16_t)entry->trigger_volume,
                             (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
 
@@ -673,9 +671,9 @@ void StructureBsp::switch_structure_bsp()
                             *stage_byte = (uint8_t)((((uint8_t)plr->local_player_index ^ low) & 0xf) ^ low);
                         }
                         local_player_globals->bsp_switch_trigger_volume_index = (int16_t)i;
-                        if (destination < 0 || destination >= global_scenario->structure_bsps.count) {
+                        if (destination < 0 || destination >= halo::scenario::globals().scenario->structure_bsps.count) {
                             console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
-                        } else if (destination == global_structure_bsp_index) {
+                        } else if (destination == halo::scenario::globals().structure_bsp_index) {
                             console_print_va("tried to switch to current structure-bsp %d", (int32_t)destination);
                         } else {
 

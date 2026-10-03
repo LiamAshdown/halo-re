@@ -4,6 +4,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void game_engine_cleanup_stray_projectiles(void);
@@ -18,7 +19,6 @@ extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern ui_pending_error ui_pending_errors[4];
 extern int32_t ROUND(float x);
 extern float fabsf(float x);
-extern Scenario *global_scenario;
 extern HUDGlobals *hud_globals_tag_data;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
@@ -224,8 +224,8 @@ void CutsceneDirector::letterbox()
 
         {
             ScenarioCutsceneTitle *title =
-                &((ScenarioCutsceneTitle *)global_scenario->cutscene_titles.pointer)[slot->title_index];
-            datum_index help_text_list = *(datum_index *)&global_scenario->ingame_help_text.tag_id;
+                &((ScenarioCutsceneTitle *)halo::scenario::globals().scenario->cutscene_titles.pointer)[slot->title_index];
+            datum_index help_text_list = *(datum_index *)&halo::scenario::globals().scenario->ingame_help_text.tag_id;
 
             
             

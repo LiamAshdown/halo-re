@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/scenario/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -13,7 +14,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern HUDGlobals *hud_globals_tag_data;
 extern hud_waypoint_state *hud_waypoints;
-extern Scenario *global_scenario;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_get_center_of_mass_and_scale(real_point3d *out_center, uint32_t object_index, float *out_radius);
 extern void custom_waypoint_get_position(real_point3d *out, int16_t slot);
@@ -179,7 +179,7 @@ void HudWaypoints::draw_for_player()
         type_word = (uint16_t)waypoint->type;
         switch ((int16_t)(type_word << 12) >> 12) {
         case 0:
-            position = *(real_point3d *)&((ScenarioCutsceneFlag *)global_scenario->cutscene_flags.pointer +
+            position = *(real_point3d *)&((ScenarioCutsceneFlag *)halo::scenario::globals().scenario->cutscene_flags.pointer +
                                           waypoint->object_index)->position;
             break;
         case 1:
@@ -257,7 +257,7 @@ void HudWaypoints::update_for_player()
         type_word = (uint16_t)waypoint->type;
         switch ((int16_t)(type_word << 12) >> 12) {
         case 0:
-            target = *(real_point3d *)&((ScenarioCutsceneFlag *)global_scenario->cutscene_flags.pointer +
+            target = *(real_point3d *)&((ScenarioCutsceneFlag *)halo::scenario::globals().scenario->cutscene_flags.pointer +
                                         waypoint->object_index)->position;
             break;
         case 1: {
@@ -307,7 +307,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
         return;
     }
     crosshair_state = (int32_t *)((uint8_t *)hud_weapon_state + p->local_player_index * 0x50 + 0x28);
-    view_mask = (*(int16_t *)((uint8_t *)global_scenario + 0x3c) != 2 ? 1 : 0) |
+    view_mask = (*(int16_t *)((uint8_t *)halo::scenario::globals().scenario + 0x3c) != 2 ? 1 : 0) |
                 (local_player_globals->local_player_count == 1 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
     if (p->unit == (datum_index)-1) {
         return;
@@ -620,7 +620,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
                                            state_flags, overlay_types, numbers);
     }
 
-    view_mask = (*(int16_t *)((uint8_t *)global_scenario + 0x3c) != 2 ? 1 : 0) |
+    view_mask = (*(int16_t *)((uint8_t *)halo::scenario::globals().scenario + 0x3c) != 2 ? 1 : 0) |
                 (local_player_globals->local_player_count == 1 ? 2 : 0) | (local_player_globals->local_player_count > 1 ? 4 : 0);
 
     for (i = 0; (int32_t)i < (int32_t)hud->static_elements.count; i++) {

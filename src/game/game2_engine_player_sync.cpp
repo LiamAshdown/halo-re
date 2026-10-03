@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/scenario/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -73,7 +74,6 @@ extern player_profile player_profile_cache[16];
 extern int32_t player_profile_cache_count;
 extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
 extern void game_engine_capture_player_profile(int32_t slot, int32_t commit);
-extern Scenario *global_scenario;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count, int32_t current_engine_index);
 extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id);
@@ -1001,7 +1001,7 @@ void EnginePlayerSync::player_profile_cache_sync_all(int32_t commit, void *callb
  */
 void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment_index, int32_t *frag_count, int32_t *plasma_count)
 {
-    int32_t count = (int32_t)global_scenario->starting_equipment.count;
+    int32_t count = (int32_t)halo::scenario::globals().scenario->starting_equipment.count;
     int32_t i;
     ScenarioStartingEquipment *equipment;
 
@@ -1009,7 +1009,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
         return;
     }
 
-    equipment = (ScenarioStartingEquipment *)global_scenario->starting_equipment.pointer;
+    equipment = (ScenarioStartingEquipment *)halo::scenario::globals().scenario->starting_equipment.pointer;
     i = 0;
     for (;;) {
         if (netgame_equipment_game_type_matches(&equipment->type_0, 4,

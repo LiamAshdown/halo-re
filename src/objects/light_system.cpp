@@ -11,6 +11,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -25,7 +26,6 @@ extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern float *global_white_color;
 extern void lens_flare_add_instance(lens_flare_instance *candidate);
 extern datum_index light_active_list[0x80];
@@ -747,7 +747,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
             } else {
-                uint8_t *leaves = (uint8_t *)global_structure_bsp->leaves.pointer;
+                uint8_t *leaves = (uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer;
                 leaf_reference.cluster_index =
                     *(int16_t *)(leaves + (leaf_reference.leaf_index & 0x7fffffff) * 0x10 + 8);
             }

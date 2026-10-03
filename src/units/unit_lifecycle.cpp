@@ -16,7 +16,6 @@ extern game_time_globals *game_time;
 extern void object_set_shield_depleted_flag(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern int16_t global_structure_bsp_index;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
@@ -122,7 +121,7 @@ void UnitView::find_nearest_valid_surface_plane()
 
     ::halo::units::unit_get_crouch_height_offset(&position, unit_index, &pill_height, &pill_radius);
     if (!(uint8_t)halo::physics::collision_bsp_query_sphere_init(bsp, 0x100, &result,
-            halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index], &position, pill_radius + 0.05f)) {
+            halo::physics::globals().breakable_surface_state->active[halo::scenario::globals().structure_bsp_index], &position, pill_radius + 0.05f)) {
         return;
     }
     if (result.surface_count <= 0) {

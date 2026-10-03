@@ -6,11 +6,8 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
-extern "C" {
-extern Scenario *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
-}
 
 namespace halo::structures {
 
@@ -21,7 +18,7 @@ uint32_t structure_fog::resolve_fog_tag(int16_t cluster_index, ScenarioStructure
     }
 
     if (use_sky) {
-        Scenario *scenario = global_scenario;
+        Scenario *scenario = halo::scenario::globals().scenario;
         uint32_t sky_tag_id = 0xffffffff;
         if (scenario->skies.count > 0) {
             sky_tag_id = ((ScenarioSky *)scenario->skies.pointer)[0].sky.tag_id.index |
@@ -72,10 +69,10 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
     out->fog_flags = 0;
     out->screen_parameters = 0;
 
-    uint32_t fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, global_structure_bsp, 0);
+    uint32_t fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, halo::scenario::globals().structure_bsp, 0);
     uint8_t from_sky;
     if (fog_tag_id == 0xffffffff) {
-        fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, global_structure_bsp, 1);
+        fog_tag_id = structure_fog::resolve_fog_tag(cluster_index, halo::scenario::globals().structure_bsp, 1);
         from_sky = 1;
         if (fog_tag_id == 0xffffffff) {
             return;
@@ -86,7 +83,7 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
 
     Fog *fog = (Fog *)halo::cache::globals().tag_instances[fog_tag_id & 0xffff].data;
     ScenarioStructureBSPCluster *cluster =
-        &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
+        &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[cluster_index];
 
     if (from_sky) {
         out->flags |= 1;
@@ -96,7 +93,7 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
         } else {
             out->plane_mode = _structure_fog_plane_bounded;
             ScenarioStructureBSPFogPlane *fog_plane =
-                &((ScenarioStructureBSPFogPlane *)global_structure_bsp->fog_planes.pointer)
+                &((ScenarioStructureBSPFogPlane *)halo::scenario::globals().structure_bsp->fog_planes.pointer)
                     [cluster->fog & 0x7fff];
             out->plane.normal.i = fog_plane->plane.vector.i;
             out->plane.normal.j = fog_plane->plane.vector.j;

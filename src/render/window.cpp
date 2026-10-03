@@ -21,9 +21,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern float render_time_since_frame;
 extern float sky_animation_times[9];
 extern render_camera render_camera_global;
@@ -52,7 +52,6 @@ extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t console_debug_toggle_69c614;
 extern int16_t console_debug_toggle_6893e4;
 extern uint8_t decals_for_all_responses;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t render_force_flag;
 extern uint32_t rasterizer_active_environment_effect;
 extern int32_t transparent_geometry_group_last_drawn_key;
@@ -200,8 +199,8 @@ void sky(void)
     }
     sky_tag = 0xffffffff;
     if (halo::structures::globals().render_cluster_sky_index >= 0 &&
-        (int32_t)halo::structures::globals().render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
-        sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[halo::structures::globals().render_cluster_sky_index].sky.tag_id);
+        (int32_t)halo::structures::globals().render_cluster_sky_index < (int32_t)halo::scenario::globals().scenario->skies.count) {
+        sky_tag = tag_id_of(((ScenarioSky *)halo::scenario::globals().scenario->skies.pointer)[halo::structures::globals().render_cluster_sky_index].sky.tag_id);
     }
     sky = 0;
     if (sky_tag != 0xffffffff) {
@@ -416,7 +415,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
 
     if (halo::structures::globals().picked_surfaces_valid) {
         saved_69c67c = render_force_flag;
-        if (*(int32_t *)&global_structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
+        if (*(int32_t *)&halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
             render_force_flag = 1;
         }
         rasterizer_dynamic_light_technique_ps2_set_states();

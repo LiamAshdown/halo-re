@@ -23,7 +23,6 @@ extern "C" { extern double sqrt(double x); }
 extern "C" { extern double sin(double x); }
 extern "C" { extern double cos(double x); }
 extern "C" { extern data_array *object_data; }
-extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
@@ -147,7 +146,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
         mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
 
         offset.i = mp->position_x - self->position.x;
         offset.j = mp->position_y - self->position.y;
@@ -416,7 +415,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
             location.leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, &new_position);
             location.cluster_index = (location.leaf_index == -1) ? -1 :
-                ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
+                ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
 
             object_unlink_cluster_or_notify_parent(object_index);
             self->position = new_position;

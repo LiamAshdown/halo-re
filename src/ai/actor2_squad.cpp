@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace halo::ai {
 
@@ -25,7 +26,6 @@ void ActorView::obey_member_advance(datum_index unit_index, uint16_t command_lis
 namespace actor_obey_member_enter_local {
 extern "C" {
 extern data_array *object_data;
-extern Scenario *global_scenario;
 }
 }
 
@@ -37,7 +37,7 @@ extern Scenario *global_scenario;
 void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
     using namespace actor_obey_member_enter_local;
-    uint8_t *list = (uint8_t *)global_scenario->command_lists.pointer + (int16_t)command_list_index * 0x60;
+    uint8_t *list = (uint8_t *)halo::scenario::globals().scenario->command_lists.pointer + (int16_t)command_list_index * 0x60;
 
     (void)actor_index;
     (void)component_record;
@@ -118,7 +118,6 @@ extern double fsin(double x);
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *player_data;
-extern Scenario *global_scenario;
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
                                                    char *seat_name, int16_t seat_flags, int16_t count);
@@ -171,7 +170,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint8_t *variant_tag = TAG_DATA(((actor *)act)->actor_variant_tag);
-    ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
+    ScenarioCommandList *list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[command_list_index];
     int32_t command_count = (int32_t)list->commands.count;
     int32_t command_index = state[0];
     ScenarioCommand *entry;
@@ -335,7 +334,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         } else if (entry->atom_type == 0x19) {
             int16_t name = (int16_t)entry->object_name;
 
-            if (name >= 0 && name < *(int32_t *)((uint8_t *)global_scenario + 0x204)) {
+            if (name >= 0 && name < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x204)) {
                 datum_index object_index = object_lookup_table_get(name);
 
                 if (object_try_and_get(object_index, 3) != 0) {
@@ -506,10 +505,10 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
     case 0xc: {
         int16_t script = (int16_t)entry->script;
 
-        if (script < 0 || script >= *(int32_t *)((uint8_t *)global_scenario + 0x450)) {
+        if (script < 0 || script >= *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x450)) {
             return 0;
         }
-        return hs_call_script_by_name(*(char **)((uint8_t *)global_scenario + 0x454) + script * 0x28);
+        return hs_call_script_by_name(*(char **)((uint8_t *)halo::scenario::globals().scenario + 0x454) + script * 0x28);
     }
 
     case 0xd: {
@@ -523,7 +522,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         if ((int16_t)entry->animation == -1) {
             return 0;
         }
-        reference = *(uint8_t **)((uint8_t *)global_scenario + 0x448) + (int16_t)entry->animation * 0x3c;
+        reference = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x448) + (int16_t)entry->animation * 0x3c;
         graph = *(datum_index *)(reference + 0x2c);
         if (graph == k_datum_index_none) {
             graph = *(datum_index *)(TAG_DATA(*(datum_index *)OBJECT_DATA(check_object_index)) + 0x44);
@@ -553,11 +552,11 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         int16_t recording = (int16_t)entry->recording;
         int16_t animation_index;
 
-        if (recording < 0 || recording >= *(int32_t *)((uint8_t *)global_scenario + 0x45c)) {
+        if (recording < 0 || recording >= *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x45c)) {
             return 0;
         }
         animation_index = recorded_animation_find_by_name(
-            *(char **)((uint8_t *)global_scenario + 0x460) + recording * 0x28, global_scenario);
+            *(char **)((uint8_t *)halo::scenario::globals().scenario + 0x460) + recording * 0x28, halo::scenario::globals().scenario);
         if (animation_index == -1) {
             return 0;
         }
@@ -708,7 +707,6 @@ namespace actor_squad_action_is_complete_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern Scenario *global_scenario;
 extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle,
                                           uint32_t exclude_object_index);
 extern void actor_movement_action_stop(datum_index actor_index);
@@ -732,7 +730,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
 {
     using namespace actor_squad_action_is_complete_local;
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
+    ScenarioCommandList *list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[command_list_index];
     datum_index unit_index = ((actor *)act)->unit_index;
     ScenarioCommand *entry;
     uint8_t done;
@@ -917,7 +915,6 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
 
 namespace actor_squad_action_list_process_local {
 extern "C" {
-extern Scenario *global_scenario;
 extern char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state);
 extern uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state);
 extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state, int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out);
@@ -934,7 +931,7 @@ extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_
 void ActorView::squad_action_list_process(uint32_t check_object_index, int16_t command_list_index, uint8_t *state, uint8_t *aim_state, uint8_t *out)
 {
     using namespace actor_squad_action_list_process_local;
-    ScenarioCommandList *lists = (ScenarioCommandList *)global_scenario->command_lists.pointer;
+    ScenarioCommandList *lists = (ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer;
     ScenarioCommandList *list = &lists[command_list_index];
     uint8_t have_current_entry;
     uint8_t next_action_index;
@@ -972,7 +969,6 @@ finish:
 namespace actor_squad_action_reset_entry_local {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
 extern void actor_clear_vocalization(uint32_t actor_index);
 extern void actor_movement_action_stop(datum_index actor_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -988,7 +984,7 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, uint8_t *s
 {
     using namespace actor_squad_action_reset_entry_local;
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    ScenarioCommandList *lists = (ScenarioCommandList *)global_scenario->command_lists.pointer;
+    ScenarioCommandList *lists = (ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer;
     ScenarioCommandList *list = &lists[command_list_index];
     uint32_t current_action_index = state[0];
 
@@ -1071,7 +1067,6 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, uint8_t *s
 namespace actor_squad_action_status_broadcast_local {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
 extern uint16_t global_structure_bsp_index;
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record);
 extern void actor_clear_vocalization(uint32_t actor_index);
@@ -1098,12 +1093,12 @@ int32_t ActorView::squad_action_status_broadcast(int16_t command_list_index, int
         zero_cursor += 2;
     }
 
-    if (command_list_index < 0 || command_list_index >= (int32_t)global_scenario->command_lists.count) {
+    if (command_list_index < 0 || command_list_index >= (int32_t)halo::scenario::globals().scenario->command_lists.count) {
         return 0;
     }
 
     {
-        ScenarioCommandList *lists = (ScenarioCommandList *)global_scenario->command_lists.pointer;
+        ScenarioCommandList *lists = (ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer;
         ScenarioCommandList *list = &lists[command_list_index];
 
         if (a->swarm == 0 || a->swarm_index != (datum_index)k_datum_index_none) {

@@ -6,13 +6,13 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
 extern int32_t weather_instance_count;
 extern data_array *weather_particle_data;
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern float render_camera_global;
 extern float camera_position_y;
 extern float camera_position_z;
@@ -423,9 +423,9 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
  */
 void weather_system::update()
 {
-    int32_t palette_count = *(int32_t *)&global_structure_bsp->weather_palette.count;
+    int32_t palette_count = *(int32_t *)&halo::scenario::globals().structure_bsp->weather_palette.count;
     ScenarioStructureBSPWeatherPalette *palette =
-        (ScenarioStructureBSPWeatherPalette *)global_structure_bsp->weather_palette.pointer;
+        (ScenarioStructureBSPWeatherPalette *)halo::scenario::globals().structure_bsp->weather_palette.pointer;
     int32_t i;
 
     weather_frame_counter++;

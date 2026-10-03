@@ -515,7 +515,6 @@ extern "C" {
 extern double sqrt(double x);
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
-extern ScenarioStructureBSP *global_structure_bsp;
 }
 }
 
@@ -580,7 +579,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (!(range * range > distance_squared)) {
         return 0;
     }
-    pas = halo::structures::cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
+    pas = halo::structures::cluster_sound_distance_lookup(listener_cluster, source_cluster, halo::scenario::globals().structure_bsp);
     if (pas & 0x80) {
         return 0;
     }
@@ -767,7 +766,6 @@ extern data_array *object_data;
 extern data_array *encounter_data;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern object_globals *object_globals_pointer;
 extern int ai_target_distance_qsort_compare(void *record_a, void *record_b);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
@@ -807,12 +805,12 @@ void ActorView::target_scan_potential_targets()
     list_b.seen_count = 0;
     list_b.entry_count = 0;
 
-    row_dwords = (global_structure_bsp->clusters.count + 0x1f) >> 5;
+    row_dwords = (halo::scenario::globals().structure_bsp->clusters.count + 0x1f) >> 5;
 
     if (!self->swarm) {
         int16_t cluster_ref = *(int16_t *)&self->unknown_138[0x148 - 0x138];
         if (cluster_ref != -1) {
-            pvs_bitmap = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
+            pvs_bitmap = (uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                        row_dwords * cluster_ref * 4);
         }
     } else {
@@ -830,7 +828,7 @@ void ActorView::target_scan_potential_targets()
             if (cluster != -1) {
                 int32_t j;
                 for (j = row_dwords - 1; j >= 0; j--) {
-                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
+                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                                    row_dwords * cluster * 4 + j * 4);
                 }
                 any = 1;
@@ -1023,9 +1021,9 @@ merged:
         }
     }
 
-    if (pvs_bitmap != 0 && global_structure_bsp->clusters.count > 0) {
+    if (pvs_bitmap != 0 && halo::scenario::globals().structure_bsp->clusters.count > 0) {
         int32_t cluster;
-        for (cluster = 0; cluster < global_structure_bsp->clusters.count; cluster++) {
+        for (cluster = 0; cluster < halo::scenario::globals().structure_bsp->clusters.count; cluster++) {
             if (pvs_bitmap[cluster >> 5] & (1u << (cluster & 0x1f))) {
                 datum_index head;
                 int32_t owner_cluster_ref, chain_object;

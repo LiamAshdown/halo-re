@@ -1,6 +1,7 @@
 #include "halo/ai/actor_modes.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -39,7 +40,6 @@ namespace c_actor_mode_alert_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -96,7 +96,7 @@ uint8_t halo::ai::alert_mode::process()
         return 0;
     }
     if (D(0x34) != 0xffffffff) {
-        uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (D(0x34) & 0xffff) * 0xb0;
+        uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (D(0x34) & 0xffff) * 0xb0;
         uint8_t *squad = *(uint8_t **)(encounter + 0x84) + W(0x3a) * 0xe8;
         int16_t next = W(0xa4);
 
@@ -168,7 +168,6 @@ namespace c_actor_mode_alert_tick {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -213,7 +212,7 @@ void halo::ai::alert_mode::tick()
         return;
     }
     if (W(0xc4) != -1) {
-        uint8_t *animation = (uint8_t *)global_scenario->ai_animation_references.pointer + W(0xc4) * 0x3c;
+        uint8_t *animation = (uint8_t *)halo::scenario::globals().scenario->ai_animation_references.pointer + W(0xc4) * 0x3c;
         datum_index graph = *(datum_index *)(animation + 0x2c);
 
         if (graph == k_datum_index_none) {
@@ -240,7 +239,6 @@ namespace c_actor_mode_alert_update {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern Scenario *global_scenario;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -579,7 +577,6 @@ extern "C" void actor_mode_obey_exit(uint32_t actor_index)
 namespace c_actor_mode_obey_process {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
 extern game_time_globals *game_time;
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
     uint32_t callback_extra, uint16_t *caller_record);
@@ -607,7 +604,7 @@ uint8_t halo::ai::obey_mode::process()
     actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)actor_squad_action_list_process,
         (uint32_t)&still_running, (uint16_t *)mode_data);
     if (still_running && mode_data[5] == 0) {
-        uint8_t *list = (uint8_t *)global_scenario->command_lists.pointer + *(int16_t *)mode_data * 0x60;
+        uint8_t *list = (uint8_t *)halo::scenario::globals().scenario->command_lists.pointer + *(int16_t *)mode_data * 0x60;
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor[0x15c] != 0) {

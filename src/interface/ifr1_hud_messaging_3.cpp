@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern cinematic_globals *cinematic_globals_ptr;
@@ -13,7 +14,6 @@ extern HUDGlobals *hud_globals_tag_data;
 extern hud_messaging_globals *hud_messaging;
 extern hud_globals_flags *hud_flags;
 extern game_time_globals *game_time;
-extern Scenario *global_scenario;
 extern int16_t current_local_player_index;
 extern int32_t hud_splitscreen_message_raise;
 extern int16_t render_viewport_left;
@@ -192,11 +192,11 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
         if (objective_shown) {
             int32_t remaining = hud_messaging->objective_text_ticks - game_time->ticks_this_frame;
-            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&global_scenario->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & 0xffff].data;
             message = hud_messaging->objective_text;
             hud_messaging->objective_text_ticks = (int16_t)(remaining > 0 ? remaining : 0);
         } else if (help_shown) {
-            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&global_scenario->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & 0xffff].data;
             message = hud_messaging->help_text;
         } else if (record->message != 0) {
             messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id & 0xffff].data;
@@ -244,7 +244,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                             hud_draw_message_text_span(&cursor, &line, hud_text_unknown, 0);
                         } else if (reference[2] != 0) {
                             hud_draw_message_text_span(&cursor, &line,
-                                halo::text::text_string_list_get_string(*(datum_index *)&global_scenario->custom_object_names.tag_id,
+                                halo::text::text_string_list_get_string(*(datum_index *)&halo::scenario::globals().scenario->custom_object_names.tag_id,
                                                             (int16_t)string_index), 0);
                         } else {
                             hud_draw_message_text_span(&cursor, &line,

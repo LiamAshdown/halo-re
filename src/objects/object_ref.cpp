@@ -24,7 +24,6 @@ extern double cos(double x);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern uint8_t *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern player_globals *local_player_globals;
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern int32_t network_index_cache_get(hash_table *table, int32_t key);
@@ -329,7 +328,7 @@ void halo::objects::ObjectRef::set_position_and_recalculate(real_point3d *positi
         location.cluster_index = -1;
     } else {
         location.cluster_index =
-            (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
+            (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
     }
     obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
     object_unlink_cluster_or_notify_parent(object_index);
@@ -377,7 +376,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
                 local_location.cluster_index = -1;
             } else {
 
-                local_location.cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+                local_location.cluster_index = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                                                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
             local_location.leaf_index = leaf;

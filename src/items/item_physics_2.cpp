@@ -5,13 +5,13 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
-extern int16_t global_structure_bsp_index;
 extern uint8_t *global_structure_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern real_vector3d *global_down3d_pointer;
@@ -145,7 +145,7 @@ uint8_t item_ref::update()
                     } else {
                         ((item_object *)obj)->item.flags |= 8;
                         ((item_object *)obj)->item.resting_surface_index = *(int16_t *)((uint8_t *)&hit + 0x44);
-                        ((item_object *)obj)->item.resting_bsp_index = global_structure_bsp_index;
+                        ((item_object *)obj)->item.resting_bsp_index = halo::scenario::globals().structure_bsp_index;
                     }
                     ((item_object *)obj)->item.rotation_axis = hit.plane.normal;
                     halo::items::item_compute_rotation(item_index);
@@ -176,7 +176,7 @@ uint8_t item_ref::update()
             uint32_t flags = ((item_object *)obj)->item.flags;
 
             object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1);
-            if ((flags & 8) && ((item_object *)obj)->item.resting_surface_index != -1 && ((item_object *)obj)->item.resting_bsp_index == global_structure_bsp_index) {
+            if ((flags & 8) && ((item_object *)obj)->item.resting_surface_index != -1 && ((item_object *)obj)->item.resting_bsp_index == halo::scenario::globals().structure_bsp_index) {
                 uint8_t *surface = *(uint8_t **)(global_structure_collision_bsp + 0x40) + ((item_object *)obj)->item.resting_surface_index * 0xc;
 
                 if ((surface[8] & 8) && !breakable_surface_is_intact((int16_t)surface[9])) {

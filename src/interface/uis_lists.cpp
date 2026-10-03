@@ -21,6 +21,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -37,7 +38,6 @@ extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_pr
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
 extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
-extern Scenario *global_scenario;
 extern void *ui_event_function_table[0xbe];
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
@@ -616,7 +616,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         int16_t script_index = hs_script_find_by_name(handler->script.string);
 
         if (script_index != -1) {
-            uint8_t *scripts = *(uint8_t **)((uint8_t *)global_scenario + 0x4a0);
+            uint8_t *scripts = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x4a0);
 
             hs_evaluate_expression(*(int32_t *)(scripts + (int32_t)script_index * 0x5c + 0x24));
         }

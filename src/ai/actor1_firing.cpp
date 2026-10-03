@@ -1,6 +1,7 @@
 #include "halo/ai/actor_firing.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -72,8 +73,6 @@ namespace c_actor_find_best_firing_position {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern Scenario *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_vector3d *global_origin3d_pointer;
 
 extern int16_t qsort_candidate_count;
@@ -159,7 +158,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
 
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                 [self->encounter_index & 0xffff];
 
     candidate_count = 0;
@@ -473,7 +472,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                 for (n = 0; n < 0x4023; n++) {
                     clear[n] = 0;
                 }
-                target_context.structure_bsp = (uint32_t)global_structure_bsp;
+                target_context.structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
                 for (n = 0; n < 0x12; n++) {
                     ((uint32_t *)&target_context)[n] = ((uint32_t *)&request)[n];
                 }
@@ -496,7 +495,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                 delta.j = p->y - query->target_position.y;
                 delta.k = p->z - query->target_position.z;
                 if (delta.j * delta.j + delta.k * delta.k + delta.i * delta.i < 400.0f &&
-                    path_find_test_direct_reachability(p, &query->target_position, 0, global_structure_bsp, 0) != 0) {
+                    path_find_test_direct_reachability(p, &query->target_position, 0, halo::scenario::globals().structure_bsp, 0) != 0) {
                     c->distance_from_target = halo::math::vector3d_normalize_with_length(delta);
                     if (query->want_direction_from_target != 0) {
                         c->direction_from_target = delta;
@@ -533,7 +532,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         for (n = 0; n < 0x4023; n++) {
             clear[n] = 0;
         }
-        path_context->structure_bsp = (uint32_t)global_structure_bsp;
+        path_context->structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
         for (n = 0; n < 0x12; n++) {
             ((uint32_t *)path_context)[n] = ((uint32_t *)&request)[n];
         }
@@ -758,8 +757,6 @@ extern "C" uint8_t actor_firing_position_evaluate(actor_firing_position_candidat
 namespace c_actor_firing_position_near_point {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
 extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
@@ -803,7 +800,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
         return 0;
     }
 
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                 [self->encounter_index & 0xffff];
     group_mask = actor_get_firing_position_group_mask(actor_index, kind, 0);
 
@@ -828,7 +825,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
         for (n = 0; n < 0x4023; n++) {
             clear[n] = 0;
         }
-        context.structure_bsp = (uint32_t)global_structure_bsp;
+        context.structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
         for (n = 0; n < 0x12; n++) {
             ((uint32_t *)&context)[n] = ((uint32_t *)&request)[n];
         }
@@ -856,7 +853,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
             }
         } else {
 
-            if (path_find_test_direct_reachability((real_point3d *)fp, point, 0, global_structure_bsp, 0) != 0) {
+            if (path_find_test_direct_reachability((real_point3d *)fp, point, 0, halo::scenario::globals().structure_bsp, 0) != 0) {
                 return 1;
             }
         }
@@ -1001,7 +998,6 @@ extern "C" void actor_firing_position_run_score_rules(datum_index actor_index, u
 namespace c_actor_get_firing_position_group_mask {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
 }
 }
 
@@ -1028,7 +1024,7 @@ uint32_t halo::ai::firing_position_ops::get_firing_position_group_mask(int16_t k
         return 0;
     }
 
-    encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+    encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
     squad = &((ScenarioSquad *)encounters[self->encounter_index & 0xffff].squads.pointer)
                  [self->squad_index];
     groups = &squad->attacking;

@@ -297,7 +297,6 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
-extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
 extern "C" { extern uint8_t material_table_warning_issued; }
@@ -384,7 +383,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
         mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
 
         offset.i = mp->position_x - obj->position.x;
         offset.j = mp->position_y - obj->position.y;

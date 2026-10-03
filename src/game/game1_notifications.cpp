@@ -17,6 +17,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -37,7 +38,6 @@ extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table;
 extern uint8_t player_execute_pending_interaction(uint32_t handle);
 extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
-extern Scenario *global_scenario;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
@@ -338,10 +338,10 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         }
 
                         if (current_game_engine == 0 &&
-                            ((global_scenario->player_starting_profile.count > 1 && p->deaths > 0) ||
-                             global_scenario->player_starting_profile.count != 0)) {
+                            ((halo::scenario::globals().scenario->player_starting_profile.count > 1 && p->deaths > 0) ||
+                             halo::scenario::globals().scenario->player_starting_profile.count != 0)) {
                             int16_t starting_profile_index =
-                                (global_scenario->player_starting_profile.count > 1 && p->deaths > 0) ? 1 : 0;
+                                (halo::scenario::globals().scenario->player_starting_profile.count > 1 && p->deaths > 0) ? 1 : 0;
                             unit_apply_starting_profile(starting_profile_index, new_unit, 1);
                         }
 

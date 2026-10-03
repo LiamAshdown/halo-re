@@ -15,6 +15,7 @@
 #include "halo/game/game1_king.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -24,7 +25,6 @@ extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t te
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern uint16_t missing_string_text[];
-extern Scenario *global_scenario;
 extern int32_t king_team_hill_seconds_network[16];
 extern int16_t game_engine_recent_location_count;
 extern int16_t game_engine_recent_location_table[];
@@ -214,8 +214,8 @@ uint8_t King::initialize_for_new_game(void)
     memset(king_bucket_credit_ticks, 0, 0x6b * 4);
     memset(king_team_hill_seconds_network, 0, 0x6b * 4);
     game_engine_recent_location_count = 0;
-    for (i = 0; i < *(int32_t *)&global_scenario->netgame_flags.count; i++) {
-        uint8_t *location = (uint8_t *)global_scenario->netgame_flags.pointer + i * 0x94;
+    for (i = 0; i < *(int32_t *)&halo::scenario::globals().scenario->netgame_flags.count; i++) {
+        uint8_t *location = (uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + i * 0x94;
         int16_t k;
 
         if (*(int16_t *)(location + 0x10) != 8) {
@@ -231,7 +231,7 @@ uint8_t King::initialize_for_new_game(void)
             count++;
         }
     }
-    if (*(int32_t *)&global_scenario->netgame_flags.count > 0) {
+    if (*(int32_t *)&halo::scenario::globals().scenario->netgame_flags.count > 0) {
         game_engine_recent_location_count = count;
     }
     king_starting_location_type = 0;

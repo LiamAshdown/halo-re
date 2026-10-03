@@ -9,10 +9,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern ScenarioStructureBSP *global_structure_bsp;
-extern Scenario *global_scenario;
 extern uint8_t decals_enabled;
 extern double cos(double x);
 extern double sin(double x);
@@ -26,7 +25,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
     int32_t bit_index = 0;
     int16_t slot;
 
-    if (global_structure_bsp->runtime_decals.count == 0) {
+    if (halo::scenario::globals().structure_bsp->runtime_decals.count == 0) {
         *globals().runtime_decals_suppressed = 0;
         return;
     }
@@ -38,7 +37,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
     for (slot = 0; ; slot = slot + 1) {
         uint32_t saved_seed = halo::math::globals().effect_random_seed;
         ScenarioStructureBSPCluster *cluster =
-            (ScenarioStructureBSPCluster *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster_offset);
+            (ScenarioStructureBSPCluster *)((uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster_offset);
         int cluster_has_decals = cluster->first_decal_index != (uint16_t)-1 && cluster->decal_count != 0;
         int entering;
         int leaving;
@@ -67,10 +66,10 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                 int32_t i;
                 for (i = 0; i < cluster->decal_count; i = i + 1) {
                     ScenarioStructureBSPRuntimeDecal *decal =
-                        (ScenarioStructureBSPRuntimeDecal *)global_structure_bsp->runtime_decals.pointer +
+                        (ScenarioStructureBSPRuntimeDecal *)halo::scenario::globals().structure_bsp->runtime_decals.pointer +
                         cluster->first_decal_index + i;
                     ScenarioDecalPalette *decal_palette =
-                        (ScenarioDecalPalette *)global_scenario->decal_palette.pointer;
+                        (ScenarioDecalPalette *)halo::scenario::globals().scenario->decal_palette.pointer;
                     TagID shader_tag_id = decal_palette[decal->decal_type].reference.tag_id;
                     int spawn_ok = 1;
                     real_vector3d orientation;
@@ -122,12 +121,12 @@ void structure_decals::runtime_decals_evict(void)
     int16_t cluster_count;
     int16_t cluster_index;
 
-    if (global_structure_bsp->runtime_decals.count == 0) {
+    if (halo::scenario::globals().structure_bsp->runtime_decals.count == 0) {
         return;
     }
-    cluster_count = *(int16_t *)&global_structure_bsp->clusters.count;
+    cluster_count = *(int16_t *)&halo::scenario::globals().structure_bsp->clusters.count;
     for (cluster_index = 0; cluster_index < cluster_count; cluster_index++) {
-        uint8_t *cluster = (uint8_t *)global_structure_bsp->clusters.pointer + cluster_index * 0x68;
+        uint8_t *cluster = (uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster_index * 0x68;
 
         if (*(uint16_t *)(cluster + 0xc) != 0xffff && *(int16_t *)(cluster + 0xe) != 0) {
             halo::effects::decal_evict_object_decals(cluster_index);

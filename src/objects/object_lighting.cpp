@@ -6,10 +6,10 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern real_vector3d *default_axis_b;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *light_data;
 extern int32_t light_frame_counter;
 extern uint8_t light_render_unknown_7c0;
@@ -91,7 +91,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
 
     if (halo::structures::structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
             &object_lightmap_probe_direction, &material_index, &surface_index, &weight_1)) {
-        bsp = global_structure_bsp;
+        bsp = halo::scenario::globals().structure_bsp;
         lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
         material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
 
@@ -198,7 +198,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
         return;
     }
 
-    bsp = global_structure_bsp;
+    bsp = halo::scenario::globals().structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
     shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;

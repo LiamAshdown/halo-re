@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -20,7 +21,6 @@ extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern double sin(double x);
@@ -373,7 +373,7 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
         if (node_index == -1) {
             node_ref->cluster_index = -1;
         } else {
-            node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+            node_ref->cluster_index = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                                                  (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
         }
     }

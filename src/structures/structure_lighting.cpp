@@ -8,10 +8,10 @@
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern render_lighting object_lighting_default;
 extern real_vector3d object_lightmap_probe_direction[1];
 extern real_vector3d object_lighting_probe_sideways[4];
@@ -112,7 +112,7 @@ void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weig
 
 uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting)
 {
-    ScenarioStructureBSP *bsp = global_structure_bsp;
+    ScenarioStructureBSP *bsp = halo::scenario::globals().structure_bsp;
     real_vector3d *directions;
     int16_t direction_count;
     int16_t direction_index;
@@ -162,7 +162,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
         return 0;
     }
 
-    bsp = global_structure_bsp;
+    bsp = halo::scenario::globals().structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
     shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;

@@ -73,8 +73,6 @@ extern void device_control_touched(uint32_t object_index);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
-extern Scenario *global_scenario;
-extern int16_t global_structure_bsp_index;
 extern real_vector3d *global_origin3d_pointer;
 extern real_point3d player_placement_ring[9];
 extern uint32_t object_get_root_object_index(uint32_t object_index);
@@ -171,7 +169,6 @@ extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index);
@@ -906,15 +903,15 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
     }
     ((struct player *)player)->bsp_cluster = -1;
     if (placed) {
-        uint8_t *volumes = *(uint8_t **)((uint8_t *)global_scenario + 0x3a0);
+        uint8_t *volumes = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0);
         int16_t v;
 
-        for (v = 0; (int32_t)v < *(int32_t *)((uint8_t *)global_scenario + 0x39c); v++) {
-            uint8_t *volume = *(uint8_t **)((uint8_t *)global_scenario + 0x3a0) + v * 8;
+        for (v = 0; (int32_t)v < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x39c); v++) {
+            uint8_t *volume = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + v * 8;
             datum_index player_unit = ((struct player *)player)->unit;
 
             (void)volumes;
-            if (*(int16_t *)(volume + 0x2) == global_structure_bsp_index && player_unit != k_datum_index_none &&
+            if (*(int16_t *)(volume + 0x2) == halo::scenario::globals().structure_bsp_index && player_unit != k_datum_index_none &&
                 halo::scenario::scenario_trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(OBJECT_DATA(player_unit) + 0xa0))) {
                 placed = 0;
                 break;
@@ -2862,9 +2859,9 @@ void StructureBsp::switch_regroup()
         return;
     }
 
-    flag_index = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + volume * 8 + 6);
+    flag_index = *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer + volume * 8 + 6);
     if (flag_index != -1) {
-        target = *(real_point3d *)((uint8_t *)global_scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
+        target = *(real_point3d *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
         offset = 0.0f;
         while (halo::physics::object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
             double sum;
@@ -2898,7 +2895,7 @@ void StructureBsp::switch_regroup()
             continue;
         }
         unit_object = (uint8_t *)((object_header *)object_data->data)[entry->unit & 0xffff].data;
-        trigger_volume = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
+        trigger_volume = *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
         if (!halo::scenario::scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }
@@ -2906,7 +2903,7 @@ void StructureBsp::switch_regroup()
         offset = radius;
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
         if (leaf == 0xffffffff ||
-            *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
+            *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
             continue;
         }
         if (!have_flag) {

@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace halo::ai {
 
@@ -283,7 +284,6 @@ attach:
 namespace actor_place_new_unit_local {
 extern "C" {
 extern data_array *object_data;
-extern Scenario *global_scenario;
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern double cos(double x);
@@ -355,7 +355,7 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     swarm = (char)((*(uint32_t *)actor_definition >> 0x1a) & 1);
     actor_apply_unit_definition_properties(variant_tag, unit_index);
     if (encounter_index != k_datum_index_none) {
-        uint8_t *encounter = *(uint8_t **)((uint8_t *)global_scenario + 0x430) + (encounter_index & 0xffff) * 0xb0;
+        uint8_t *encounter = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) + (encounter_index & 0xffff) * 0xb0;
         uint8_t *squad = *(uint8_t **)(encounter + 0x84) + squad_index * 0xe8;
 
         initial_state = *(uint16_t *)(squad + 0x24);

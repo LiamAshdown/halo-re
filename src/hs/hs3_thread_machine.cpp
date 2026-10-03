@@ -2,6 +2,7 @@
 #include "game.h"
 #include "crt.h"
 #include "halo/memory/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -9,7 +10,6 @@ extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern Scenario *global_scenario;
 extern int16_t hs_current_thread_index;
 extern uint8_t hs_runtime_active;
 extern game_time_globals *game_time;
@@ -50,7 +50,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
     hs_current_thread_index = (int16_t)thread_index;
 
     if (thread->type == _hs_thread_script) {
-        script = &((ScenarioScript *)global_scenario->scripts.pointer)[thread->script_index];
+        script = &((ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer)[thread->script_index];
     }
 
     thread->wake_tick = 0;
@@ -85,7 +85,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
                 thread_index, first);
         } else {
 
-            called_script = &((ScenarioScript *)global_scenario->scripts.pointer)[node->index_union];
+            called_script = &((ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer)[node->index_union];
             frame = thread->stack;
             scratch = (uint8_t *)frame + 0x0e + frame->size;
             frame->size = frame->size + 4;
@@ -145,7 +145,7 @@ datum_index ThreadMachine::find_by_script_name(char *name) const
     hs_thread *thread;
     ScenarioScript *scripts;
 
-    scripts = (ScenarioScript *)global_scenario->scripts.pointer;
+    scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
     thread_handle = halo::memory::datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
         thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
@@ -182,7 +182,7 @@ datum_index ThreadMachine::create(int32_t script_index, uint8_t type) const
         thread->script_index = script_index;
         thread->flags = 0;
 
-        scripts = (ScenarioScript *)global_scenario->scripts.pointer;
+        scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
         if (script_index != -1 && scripts[script_index].script_type == _hs_script_dormant) {
             thread->wake_tick = -2;
             return handle;
@@ -245,7 +245,7 @@ void ThreadMachine::push(datum_index node, uint32_t thread_index, void *result_a
         if ((reference & k_hs_global_builtin_bit) != 0) {
             source_type = hs_global_definitions[index]->type;
         } else {
-            source_type = ((ScenarioGlobal *)global_scenario->globals.pointer)[index].type;
+            source_type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[index].type;
         }
         value = hs_global_get_value(reference);
         value = hs_coerce_value(value, syntax_node->type, source_type);
@@ -333,7 +333,7 @@ void ThreadMachine::return_value(int32_t value, uint32_t thread_index) const
     if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
         actual_type = hs_function_definitions[node->index_union]->return_type;
     } else {
-        scripts = (ScenarioScript *)global_scenario->scripts.pointer;
+        scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
         actual_type = scripts[node->index_union].return_type;
     }
 

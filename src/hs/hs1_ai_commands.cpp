@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_ai_commands.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -40,7 +41,6 @@ extern void ai_reference_notify_squad_index(uint32_t packed_reference);
 extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index, uint8_t is_dead);
 extern void ai_reference_units_exit_vehicles(uint32_t packed_reference);
 extern data_array *encounter_data;
-extern Scenario *global_scenario;
 extern void ai_unit_set_actor_unknown_0a(datum_index unit_index, uint8_t value);
 extern void ai_reference_detach_actors_from_encounters(uint32_t packed_reference);
 extern void ai_object_list_detach_actors_from_encounters(datum_index object_list_header_handle);
@@ -407,7 +407,7 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (ai_globals_ptr->actors_valid && reference != 0xffffffff && (int32_t)(reference & 0xffff) < *(int32_t *)&global_scenario->encounters.count) {
+    if (ai_globals_ptr->actors_valid && reference != 0xffffffff && (int32_t)(reference & 0xffff) < *(int32_t *)&halo::scenario::globals().scenario->encounters.count) {
         ((uint8_t *)encounter_data->data)[(reference & 0xffff) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
     }
     hs_thread_return(0, thread_index);

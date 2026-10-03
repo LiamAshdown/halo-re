@@ -8,6 +8,7 @@
 #include "halo/models/flags.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices);
@@ -21,7 +22,6 @@ extern transparent_geometry_group *rasterizer_transparent_geometry_group_build(
     transparent_geometry_group_link *link, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
     int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
     int32_t dynamic_vertex_slot, const real_point3d *position);
-extern Scenario *global_scenario;
 extern uint8_t model_render_first_person;
 extern uint8_t model_render_default_region_permutations[8];
 extern render_model_effect model_render_default_effect;
@@ -182,7 +182,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     model = (GBXModel *)halo::cache::globals().tag_instances[model_tag_id.index].data;
 
     if ((model->node_list_checksum == (int32_t)k_model_first_person_node_list_checksum) &&
-        ((global_scenario->flags & 1) != 0)) {
+        ((halo::scenario::globals().scenario->flags & 1) != 0)) {
         model_render_first_person = 1;
     } else {
         model_render_first_person = 0;

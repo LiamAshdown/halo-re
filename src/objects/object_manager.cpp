@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
@@ -21,7 +22,6 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 extern memory_pool *game_state_new_pool(char *name, int32_t pool_size);
 extern game_time_globals *game_time;
 extern uint8_t *global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern datum_index *light_cluster_first;
 extern data_array *light_cluster_references;
@@ -350,7 +350,7 @@ void halo::objects::ObjectManager::update()
 
     globals->active_garbage_object_count = 0;
 
-    cluster_count = *(int16_t *)&global_structure_bsp->clusters.count;
+    cluster_count = *(int16_t *)&halo::scenario::globals().structure_bsp->clusters.count;
     word_count = (cluster_count + 0x1f) >> 5;
 
     for (i = 0; i < word_count; i++) {
@@ -503,7 +503,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
 
             leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             if (leaf == -1 || cluster == -1) {
                 halo::physics::collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
@@ -513,7 +513,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
                     leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
-                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                    *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             }
 
             location.leaf_index = leaf;
@@ -577,7 +577,7 @@ void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_pl
 
         if (leaf != -1) {
 
-            int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+            int16_t cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                                            (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;

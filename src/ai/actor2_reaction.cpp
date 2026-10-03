@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace halo::ai {
 
@@ -295,7 +296,6 @@ uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index 
 namespace actor_push_recognition_entry_local {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
 }
 }
 
@@ -325,7 +325,7 @@ void ActorView::push_recognition_entry(int16_t firing_position_index, uint8_t ty
     self->recognition[cursor].firing_position_index = firing_position_index;
     self->recognition_cursor = (int16_t)((cursor + 1) % 4);
 
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                [self->encounter_index & 0xffff];
     firing_positions = (ScenarioFiringPosition *)encounter_definition->firing_positions.pointer;
 

@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -46,7 +47,6 @@ extern network_machine *network_machine_find_by_id(network_server_globals *serve
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, int32_t unknown_0,
                                                void *data, int32_t bits, int32_t reliable, int32_t unknown_a,
                                                int32_t unknown_b, int32_t priority);
-extern Scenario *global_scenario;
 extern hud_globals_flags *hud_flags;
 }
 
@@ -476,7 +476,7 @@ void HudMessaging::set_help_text(int16_t message_index)
     if (hud_flags->help_text_shown == 0) {
         return;
     }
-    tag_id = *(datum_index *)&global_scenario->hud_messages.tag_id;
+    tag_id = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
     if (tag_id == (datum_index)-1) {
         return;
     }
@@ -536,7 +536,7 @@ void HudMessaging::set_objective_text(int16_t message_index)
     HUDMessageTextMessage *message;
     datum_index tag_id;
 
-    tag_id = *(datum_index *)&global_scenario->hud_messages.tag_id;
+    tag_id = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
     if (tag_id == (datum_index)-1) {
         return;
     }

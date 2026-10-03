@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -27,7 +28,6 @@ extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle);
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern uint8_t game_engine_map_table_value;
-extern Scenario *global_scenario;
 extern data_array *object_data;
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
 extern void message_delta_decode_compound_field_staged(void *event);
@@ -477,14 +477,14 @@ int32_t EnginePlacement::resolve_netgame_flag_role(uint32_t handle)
  */
 void EnginePlacement::scan_netgame_flags_noop(int16_t needle)
 {
-    int32_t count = (int32_t)global_scenario->netgame_flags.count;
+    int32_t count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
     int32_t i;
 
     if (0 < count) {
         int16_t next = 1;
         for (i = 0; i < count; ) {
             int16_t j = next;
-            if (needle == ((ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer)[i].type) {
+            if (needle == ((ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer)[i].type) {
                 for (; j < count; j++) {
                 }
             }
@@ -516,7 +516,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
         return;
     }
 
-    equipment = &((ScenarioNetgameEquipment *)global_scenario->netgame_equipment.pointer)[decoded.equipment_index];
+    equipment = &((ScenarioNetgameEquipment *)halo::scenario::globals().scenario->netgame_equipment.pointer)[decoded.equipment_index];
     if (equipment == 0) {
         return;
     }
@@ -551,7 +551,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
 void EnginePlacement::update_netgame_equipment(char force_respawn)
 {
     int16_t loop_index;
-    int32_t count = global_scenario->netgame_equipment.count;
+    int32_t count = halo::scenario::globals().scenario->netgame_equipment.count;
 
     if (count <= 0) {
         return;
@@ -559,7 +559,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
     for (loop_index = 0; loop_index < count; loop_index++) {
         ScenarioNetgameEquipment *equipment =
-            &((ScenarioNetgameEquipment *)global_scenario->netgame_equipment.pointer)[loop_index];
+            &((ScenarioNetgameEquipment *)halo::scenario::globals().scenario->netgame_equipment.pointer)[loop_index];
         datum_index item_collection_tag = *(datum_index *)&equipment->item_collection.tag_id;
 
         if (!netgame_equipment_game_type_matches((int16_t *)&equipment->type_0, 4,
@@ -666,7 +666,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
     unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
 
     if (p->teleporter_flag_index != (datum_index)0xffffffff) {
-        ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer
+        ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer
             + (int32_t)p->teleporter_flag_index;
         float dx = unit_object->position.x - cached->position.x;
         float dy = unit_object->position.y - cached->position.y;
@@ -680,7 +680,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
     game_engine_find_valid_starting_locations(&unit_object->position, 0.5f, 0.0f, 6, -1, 1, &found_index);
 
     if (found_index != -1 && found_index != (int32_t)p->teleporter_flag_index) {
-        ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+        ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
         ScenarioNetgameFlags *entrance = &flags[found_index];
         int16_t entrance_usage_id = (int16_t)entrance->usage_id;
 
@@ -814,7 +814,7 @@ void EnginePlacement::validate_scenario_placements_noop(void)
 
     game_engine_scan_netgame_flags_noop(0);
 
-    netgame_flags_count = (int32_t)global_scenario->netgame_flags.count;
+    netgame_flags_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
     i = 0;
     if (0 < netgame_flags_count) {
         do {
@@ -824,7 +824,7 @@ void EnginePlacement::validate_scenario_placements_noop(void)
 
     game_engine_scan_netgame_flags_noop(0);
 
-    netgame_equipment_count = (int32_t)global_scenario->netgame_equipment.count;
+    netgame_equipment_count = (int32_t)halo::scenario::globals().scenario->netgame_equipment.count;
     for (pass = 0; pass < 5; pass++) {
         i = 0;
         if (0 < netgame_equipment_count) {

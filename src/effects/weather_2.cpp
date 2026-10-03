@@ -6,7 +6,6 @@
 extern "C" {
 extern uint8_t weather_enabled;
 extern int16_t current_local_player_index;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern weather_instance weather_instances[1];
 extern real_point3d render_camera_global;
 }
@@ -35,7 +34,7 @@ void weather_system::update_local_player()
         cluster_index = instance->cluster_index;
 
         if (cluster_index != -1) {
-            new_definition_index = *(int32_t *)((uint8_t *)global_structure_bsp->weather_palette.pointer +
+            new_definition_index = *(int32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->weather_palette.pointer +
                 (uint32_t)cluster_index * 0xf0 + 0x2c);
         }
 

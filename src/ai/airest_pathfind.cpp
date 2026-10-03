@@ -4,9 +4,9 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
 extern void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *center, float radius, real_vector3d *direction, uint32_t self_object_a, uint32_t self_object_b);
@@ -28,7 +28,6 @@ extern float path_find_vertex_distance(ScenarioStructureBSP *structure_bsp, int3
 extern int16_t path_find_gather_adjacent_edges(void *map, int32_t vertex_id, path_find_adjacent_edge *out_edges);
 extern float path_find_score_avoidance_penalty(path_find_context *context, const real_point3d *segment_start, const real_point3d *segment_end, float *out_distance);
 extern uint8_t *breakable_surface_state;
-extern int16_t global_structure_bsp_index;
 extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission, int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags, path_find_boundary_crossing *out_result);
 extern uint8_t path_find_trace_cluster_boundary(void *map, int32_t edge_index, real_point2d *origin, float radius, uint8_t side, uint8_t ignore_permission, real_point2d *out_point);
 extern uint8_t ai_search_choose_shorter_corner(real_point2d *p, real_point2d *corner_a, real_point2d *q, real_point2d *corner_b, real_point2d *r, real_point2d *out_point);
@@ -137,7 +136,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
         }
 
         ai_search_context_init(search, request->ignores_glass, *(uint32_t *)&radius, obstacles, (real_point2d *)to,
-            (uint32_t)(uintptr_t)global_structure_bsp, (real_point2d *)from, from_surface, (uint32_t)surface, last, 0);
+            (uint32_t)(uintptr_t)halo::scenario::globals().structure_bsp, (real_point2d *)from, from_surface, (uint32_t)surface, last, 0);
         while (ai_search_step(search) != 0) {
         }
         if (search->result_node != -1) {
@@ -317,7 +316,7 @@ void PathFinder::context_init(const path_find_request *request, uint32_t second_
         clear = clear + 1;
     }
 
-    context->structure_bsp = (uint32_t)global_structure_bsp;
+    context->structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
 
     src = (const uint32_t *)request;
     dst = (uint32_t *)context;
@@ -767,7 +766,7 @@ static uint8_t path_find_search(path_find_context *context)
                 if ((record[8] & 8) != 0) {
                     uint32_t bit = record[9];
                     uint32_t word = *(uint32_t *)(breakable_surface_state + 1 +
-                        ((bit >> 5) + global_structure_bsp_index * 8) * 4);
+                        ((bit >> 5) + halo::scenario::globals().structure_bsp_index * 8) * 4);
 
                     if ((word & (1u << (bit & 0x1f))) == 0) {
                         continue; // 0x43aa82: the glass is still intact
@@ -1275,7 +1274,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
 {
     uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
     uint8_t *walkable = *(uint8_t **)((uint8_t *)map + 0x1e8);
-    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + global_structure_bsp_index * 32);
+    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + halo::scenario::globals().structure_bsp_index * 32);
     float dx = end->x - start->x;
     float dy = end->y - start->y;
     uint8_t retried = 0;
@@ -1424,7 +1423,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
 {
     uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
     uint8_t *walkable = *(uint8_t **)((uint8_t *)map + 0x1e8);
-    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + global_structure_bsp_index * 32);
+    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + halo::scenario::globals().structure_bsp_index * 32);
     int32_t first_pivot = -1;
     int32_t previous = -1;
     int32_t current = edge_index;
@@ -1531,7 +1530,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint
 {
     ModelCollisionGeometryBSP *bsp = *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4);
     uint8_t *surface_permissions = *(uint8_t **)((uint8_t *)context + 0x1e8);
-    uint32_t *intact_row = breakable_surface_state->active[global_structure_bsp_index];
+    uint32_t *intact_row = breakable_surface_state->active[halo::scenario::globals().structure_bsp_index];
     int32_t surface_index = start_index;
     collision_bsp_boundary_clip clip;
 

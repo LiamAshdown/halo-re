@@ -9,7 +9,6 @@
 
 extern "C" {
 extern data_array *object_data;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t network_game_mode;
 extern double sqrt(double x);
 extern double fsin(double x);
@@ -127,10 +126,10 @@ uint8_t ProjectileHandle::construct()
                                                &obj->bounding_center);
     if (fog_region != -1) {
         ScenarioStructureBSPFogRegion *region =
-            &((ScenarioStructureBSPFogRegion *)global_structure_bsp->fog_regions.pointer)[fog_region];
+            &((ScenarioStructureBSPFogRegion *)halo::scenario::globals().structure_bsp->fog_regions.pointer)[fog_region];
         if (region->fog != (uint16_t)-1) {
             ScenarioStructureBSPFogPalette *fog_entry =
-                &((ScenarioStructureBSPFogPalette *)global_structure_bsp->fog_palette.pointer)[region->fog];
+                &((ScenarioStructureBSPFogPalette *)halo::scenario::globals().structure_bsp->fog_palette.pointer)[region->fog];
             datum_index fog_tag_id = *(datum_index *)&fog_entry->fog.tag_id;
             if (fog_tag_id != (datum_index)k_datum_index_none) {
                 Fog *fog_tag = (Fog *)halo::cache::globals().tag_instances[halo::datum_slot(fog_tag_id)].data;

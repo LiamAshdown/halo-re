@@ -110,7 +110,6 @@ int LevelControl::campaign_level_find_index_for_path(char *path)
 
 }
 
-extern "C" { extern Scenario *global_scenario; }
 extern "C" { extern game_engine_definition *current_game_engine; }
 extern "C" { extern uint8_t player_profile_cache_initialized; }
 extern "C" { extern uint8_t player_profile_cache[0xc0 * 4]; }
@@ -177,8 +176,8 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     ui_split_screen = 1;
     main_globals_data.unknown_06b = 1;
 
-    if (play_title_music != 0 && global_scenario != 0) {
-        halo::cache::predicted_resource_list_touch(&global_scenario->predicted_resources);
+    if (play_title_music != 0 && halo::scenario::globals().scenario != 0) {
+        halo::cache::predicted_resource_list_touch(&halo::scenario::globals().scenario->predicted_resources);
     }
 }
 

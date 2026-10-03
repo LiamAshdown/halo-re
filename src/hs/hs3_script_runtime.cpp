@@ -24,8 +24,6 @@ extern void hs_global_write_value(hs_global_reference reference);
 extern datum_index hs_thread_new(int32_t script_index, uint8_t type);
 extern data_array *object_list_header_data;
 extern int16_t hs_current_thread_index;
-extern datum_index global_scenario_index;
-extern Scenario *global_scenario;
 extern void hs_allocate_script_node_table(void);
 extern char hs_compile_source(void);
 extern char hs_compile_postprocess(char **error_message, int32_t *error_offset);
@@ -172,13 +170,13 @@ void ScriptRuntime::scenario_scripts_initialize() const
         init_thread->wake_tick = 0;
     }
 
-    if (global_scenario_index == k_datum_index_none) {
+    if (halo::scenario::globals().scenario_index == k_datum_index_none) {
         return;
     }
 
     if (init_thread != 0) {
-        globals = (ScenarioGlobal *)global_scenario->globals.pointer;
-        for (i = 0; i < (int32_t)global_scenario->globals.count; i++) {
+        globals = (ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer;
+        for (i = 0; i < (int32_t)halo::scenario::globals().scenario->globals.count; i++) {
 
             reference = (hs_global_reference)i;
             slot = (int16_t)(reference & k_hs_global_index_mask) +
@@ -218,8 +216,8 @@ void ScriptRuntime::scenario_scripts_initialize() const
         halo::memory::datum_delete(hs_thread_data, thread_handle);
     }
 
-    scripts = (ScenarioScript *)global_scenario->scripts.pointer;
-    for (i = 0; i < (int32_t)global_scenario->scripts.count; i++) {
+    scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
+    for (i = 0; i < (int32_t)halo::scenario::globals().scenario->scripts.count; i++) {
         if (scripts[i].script_type != 3 && scripts[i].script_type != 4) {
             hs_thread_new(i, 0);
         }
@@ -243,7 +241,7 @@ char ScriptRuntime::scripts_compile_and_link(char restore_previous) const
     int32_t error_offset;
 
     saved_syntax_data = hs_syntax_data;
-    scenario = global_scenario;
+    scenario = halo::scenario::globals().scenario;
     success = 1;
     hs_allocate_script_node_table();
     no_scripts_but_source_files = (scenario->scripts.count == 0) && (0 < scenario->source_files.count);
@@ -303,7 +301,7 @@ void ScriptRuntime::scripts_reload() const
 {
     Scenario *scenario;
 
-    scenario = (global_scenario_index != k_datum_index_none) ? global_scenario : 0;
+    scenario = (halo::scenario::globals().scenario_index != k_datum_index_none) ? halo::scenario::globals().scenario : 0;
     hs_allocate_script_node_table();
     if ((scenario != 0) && (scenario->script_syntax_data.size != 0)) {
         hs_scripts_compile_and_link(0);

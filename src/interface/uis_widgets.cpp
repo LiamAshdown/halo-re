@@ -16,6 +16,7 @@
 #include "halo/interface/uis_widgets.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern int16_t profile_slot_id[];
@@ -23,7 +24,6 @@ extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_pr
 extern uint16_t global_text_field_00719278[0x40];
 extern heap *widget_memory_pool;
 extern hud_messaging_globals *hud_messaging;
-extern Scenario *global_scenario;
 }
 
 namespace halo::ui {
@@ -100,7 +100,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (entry == 0) {
         return;
     }
-    text_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)((uint8_t *)global_scenario + 0x5a0) & 0xffff].data;
+    text_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x5a0) & 0xffff].data;
     text = (uint16_t *)(*(uint8_t **)(text_tag + 0xc) + (uint32_t)*(uint16_t *)(entry + 0x20) * 2);
     if (text == 0 || *text == 0) {
         return;

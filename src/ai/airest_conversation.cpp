@@ -5,9 +5,9 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t allow_eviction);
 extern int8_t ai_conversation_resolve_participants(datum_index instance_index, uint8_t *out_flag);
 extern void ai_conversation_stop(datum_index instance_handle, uint8_t reason_a, uint8_t reason_b);
@@ -57,7 +57,7 @@ uint8_t ConversationDefinitionView::activate(uint8_t allow_eviction)
     if (conversation_definition_index < 0) {
         return 0;
     }
-    if (conversation_definition_index < global_scenario->ai_conversations.count) {
+    if (conversation_definition_index < halo::scenario::globals().scenario->ai_conversations.count) {
         instance = ai_conversation_new(conversation_definition_index, allow_eviction);
         if (instance != (datum_index)k_datum_index_none) {
             out_flag = 0;
@@ -85,7 +85,7 @@ uint8_t ConversationView::activate_next_participant()
     datum_index instance_handle = handle;
     ai_conversation *instance = &((ai_conversation *)ai_conversation_data->data)[instance_handle & 0xffff];
     ScenarioAIConversation *definition =
-        &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+        &((ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer)[instance->definition_index];
     ScenarioAIConversationLine *line =
         &((ScenarioAIConversationLine *)definition->lines.pointer)[instance->line_index];
     int16_t participant_index = line->participant;
@@ -167,7 +167,7 @@ void Conversations::clear_object_references(datum_index object_index, uint8_t fo
 
     instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
-        definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+        definition = &((ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer)[instance->definition_index];
         referenced = 0;
 
         if (instance->speaker_unit_index == (int32_t)object_index) {
@@ -232,7 +232,7 @@ void Conversations::clear_participant(datum_index actor_index)
 
     instance = (ai_conversation *)halo::memory::data_iterator_next(&iterator);
     while (instance != 0) {
-        definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+        definition = &((ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer)[instance->definition_index];
         participant_count = definition->participants.count;
 
         for (i = 0; i < participant_count; i++) {
@@ -261,7 +261,7 @@ uint8_t ConversationView::current_line_is_ready()
 {
     datum_index instance_handle = handle;
     uint8_t *inst = (uint8_t *)ai_conversation_data->data + (instance_handle & 0xffff) * 0x64;
-    uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
+    uint8_t *definition = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
 
     if (inst[0x63]) {
         return inst[0x63];
@@ -375,7 +375,7 @@ uint8_t ConversationView::current_line_is_ready()
 int32_t Conversations::get_run_to_player_range(ai_conversation_range_lookup *out, uint32_t conversation_index)
 {
     ai_conversation *conv = &((ai_conversation *)ai_conversation_data->data)[conversation_index & 0xffff];
-    ScenarioAIConversation *conversations = (ScenarioAIConversation *)global_scenario->ai_conversations.pointer;
+    ScenarioAIConversation *conversations = (ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer;
     ScenarioAIConversation *def = &conversations[conv->definition_index];
     float distance = def->run_to_player_dist;
 
@@ -616,7 +616,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
 
     instance = (ai_conversation *)((uint8_t *)ai_conversation_data->data +
                                    (conversation_index & 0xffff) * k_ai_conversation_size);
-    definition = (ScenarioAIConversation *)((uint8_t *)(uintptr_t)global_scenario->ai_conversations.pointer +
+    definition = (ScenarioAIConversation *)((uint8_t *)(uintptr_t)halo::scenario::globals().scenario->ai_conversations.pointer +
                                             (int32_t)instance->definition_index * 0x74);
     participant = (ScenarioAIConversationParticipant *)
         ((uint8_t *)(uintptr_t)definition->participants.pointer + (int32_t)participant_index * 0x54);
@@ -932,7 +932,7 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
     instance = (ai_conversation *)((uint8_t *)ai_conversation_data->data +
                                    (conversation_index & 0xffff) * k_ai_conversation_size);
     definition = (ScenarioAIConversation *)((uint8_t *)(uintptr_t)
-                                                global_scenario->ai_conversations.pointer +
+                                                halo::scenario::globals().scenario->ai_conversations.pointer +
                                             (int32_t)instance->definition_index * 0x74);
     participants = (ScenarioAIConversationParticipant *)(uintptr_t)definition->participants.pointer;
     variant_slots = (int16_t *)((uint8_t *)instance + 0x18);
@@ -1142,7 +1142,7 @@ apply:
 
         object_name = (int16_t)participants[i].set_new_name;
         if (object_name != -1 && object_name >= 0 &&
-            (int32_t)object_name < (int32_t)global_scenario->object_names.count) {
+            (int32_t)object_name < (int32_t)halo::scenario::globals().scenario->object_names.count) {
             object_name_list[object_name] = unit_index;
         }
         if ((definition->flags & 0x20) != 0) {
@@ -1183,7 +1183,7 @@ void ConversationView::stop(uint8_t reason_a, uint8_t reason_b)
         return;
     }
     instance = &((ai_conversation *)ai_conversation_data->data)[instance_handle & 0xffff];
-    definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+    definition = &((ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer)[instance->definition_index];
 
     cursor = ai_globals_ptr->conversation_event_cursor;
     ai_globals_ptr->conversation_event_cursor = (cursor + 1) & 0xf;
@@ -1257,7 +1257,7 @@ void Conversations::update()
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (inst = (uint8_t *)halo::memory::data_iterator_next(&iterator); inst != 0; inst = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
         datum_index handle = iterator.index;
-        uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
+        uint8_t *definition = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
         int32_t line_count = *(int32_t *)(definition + 0x5c);
 
         if (!inst[0x6]) {

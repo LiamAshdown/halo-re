@@ -7,9 +7,9 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern ScenarioStructureBSP *global_structure_bsp;
 extern float portal_visibility_tolerance;
 extern real_plane3d near_clip_plane;
 extern double k_plane_side_epsilon;
@@ -27,7 +27,7 @@ namespace halo::structures {
 void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon2d *view_polygon)
 {
     ScenarioStructureBSPCluster *cluster =
-        &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
+        &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[cluster_index];
 
     uint32_t bit = 1u << (cluster_index & 0x1f);
     int32_t word = cluster_index >> 5;
@@ -49,14 +49,14 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
     ScenarioStructureBSPClusterPortalIndex *portal_refs =
         (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
     ScenarioStructureBSPClusterPortal *portals =
-        (ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer;
+        (ScenarioStructureBSPClusterPortal *)halo::scenario::globals().structure_bsp->cluster_portals.pointer;
 
     for (int32_t i = 0; i < (int32_t)cluster->portals.count; i++) {
         ScenarioStructureBSPClusterPortal *portal = &portals[portal_refs[i].portal];
         uint8_t same_side = (portal->front_cluster == (uint16_t)cluster_index);
         int16_t neighbor = same_side ? (int16_t)portal->back_cluster
                                       : (int16_t)portal->front_cluster;
-        if (neighbor < 0 || neighbor >= global_structure_bsp->clusters.count) {
+        if (neighbor < 0 || neighbor >= halo::scenario::globals().structure_bsp->clusters.count) {
             continue;
         }
         uint32_t neighbor_bit = 1u << (neighbor & 0x1f);
@@ -65,8 +65,8 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
             continue;
         }
 
-        int32_t row_dwords = (global_structure_bsp->clusters.count + 0x1f) >> 5;
-        uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
+        int32_t row_dwords = (halo::scenario::globals().structure_bsp->clusters.count + 0x1f) >> 5;
+        uint32_t *pvs_row = (uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                           globals().render_cluster_index * row_dwords * 4);
         if ((pvs_row[neighbor_word] & neighbor_bit) == 0) {
             continue;
@@ -126,13 +126,13 @@ int16_t cluster_flood::fill_with_predicate(real_point3d *position, real_vector3d
             break;
         }
         cluster_index = stack[--stack_top];
-        cluster = (uint8_t *)global_structure_bsp->clusters.pointer + (int32_t)cluster_index * 0x68;
+        cluster = (uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + (int32_t)cluster_index * 0x68;
         output[written++] = cluster_index;
         portal_count = *(int32_t *)(cluster + 0x5c);
         portal_indices = *(int16_t **)(cluster + 0x60);
 
         for (i = 0; i < portal_count; i++) {
-            uint8_t *portal = (uint8_t *)global_structure_bsp->cluster_portals.pointer +
+            uint8_t *portal = (uint8_t *)halo::scenario::globals().structure_bsp->cluster_portals.pointer +
                               (int32_t)portal_indices[i] * 0x40;
             int16_t neighbor = (*(int16_t *)portal == cluster_index) ? *(int16_t *)(portal + 2) : *(int16_t *)portal;
 
@@ -155,7 +155,7 @@ int16_t cluster_flood::fill_with_predicate(real_point3d *position, real_vector3d
 int32_t cluster_flood::fill_within_radius(int16_t cluster_index, real_point3d *point, float tolerance, int32_t remaining_budget, int16_t *output)
 {
     ScenarioStructureBSPCluster *cluster =
-        &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
+        &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[cluster_index];
 
     if (remaining_budget > 0) {
         *output++ = cluster_index;
@@ -169,7 +169,7 @@ int32_t cluster_flood::fill_within_radius(int16_t cluster_index, real_point3d *p
     ScenarioStructureBSPClusterPortalIndex *portal_refs =
         (ScenarioStructureBSPClusterPortalIndex *)cluster->portals.pointer;
     ScenarioStructureBSPClusterPortal *portals =
-        (ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer;
+        (ScenarioStructureBSPClusterPortal *)halo::scenario::globals().structure_bsp->cluster_portals.pointer;
 
     for (int32_t i = 0; i < (int32_t)cluster->portals.count; i++) {
         ScenarioStructureBSPClusterPortal *portal = &portals[portal_refs[i].portal];
@@ -179,7 +179,7 @@ int32_t cluster_flood::fill_within_radius(int16_t cluster_index, real_point3d *p
         if (globals().cluster_visit_stamp[neighbor] == globals().cluster_flood_stamp) {
             continue;
         }
-        if (!structure_bsp_view(global_structure_bsp).portal_sphere_test(point, portal_refs[i].portal, tolerance)) {
+        if (!structure_bsp_view(halo::scenario::globals().structure_bsp).portal_sphere_test(point, portal_refs[i].portal, tolerance)) {
             continue;
         }
         int32_t child_count =
@@ -262,10 +262,10 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
 uint8_t cluster_flood::portal_test_and_project(char same_side, int16_t portal_index, polygon2d *out)
 {
     ScenarioStructureBSPClusterPortal *portal =
-        &((ScenarioStructureBSPClusterPortal *)global_structure_bsp->cluster_portals.pointer)[portal_index];
+        &((ScenarioStructureBSPClusterPortal *)halo::scenario::globals().structure_bsp->cluster_portals.pointer)[portal_index];
 
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
+        (ModelCollisionGeometryBSP *)halo::scenario::globals().structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSPPlane *plane =
         &((ModelCollisionGeometryBSPPlane *)collision_bsp->planes.pointer)[portal->plane_index];
     return cluster_flood::portal_project((real_plane3d *)&plane->plane, &render_camera_global, (real_point3d *)portal->vertices.pointer, &render_frustum_global, portal->vertices.count, (int16_t)((same_side == 0) * 2 - 1), out);
@@ -273,7 +273,7 @@ uint8_t cluster_flood::portal_test_and_project(char same_side, int16_t portal_in
 
 int16_t cluster_flood::weather_polyhedra_find_within_radius(int16_t *out, float radius)
 {
-    ScenarioStructureBSP *bsp = global_structure_bsp;
+    ScenarioStructureBSP *bsp = halo::scenario::globals().structure_bsp;
     int16_t found = 0;
     int16_t index;
 

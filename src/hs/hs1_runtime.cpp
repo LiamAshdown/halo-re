@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
-extern datum_index global_scenario_index;
 extern data_array *hs_syntax_data;
 extern uint8_t hs_syntax_data_is_local;
 extern datum_index hs_thread_find_by_script_name(char *name);
@@ -32,7 +31,7 @@ void ScriptRuntime::allocate_script_node_table(void)
 {
     Scenario *scenario;
 
-    scenario = (global_scenario_index != k_datum_index_none) ? global_scenario : 0;
+    scenario = (halo::scenario::globals().scenario_index != k_datum_index_none) ? halo::scenario::globals().scenario : 0;
     if ((scenario == 0) || (scenario->script_syntax_data.size != k_hs_syntax_node_table_size)) {
         hs_syntax_data = halo::memory::data_new(sizeof(hs_syntax_node), (char *)"script node", k_hs_syntax_node_maximum_count);
         if (hs_syntax_data != 0) {

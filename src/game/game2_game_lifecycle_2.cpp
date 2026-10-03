@@ -6,6 +6,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -39,7 +40,6 @@ extern uint32_t player_profile_cache[0xc0];
 extern game_variant game_engine_active_variant;
 extern game_time_globals *game_time;
 extern uint32_t unknown_00746280_block[0x343];
-extern scenario_game_globals *global_scenario_game_globals;
 extern uint32_t k_default_sound_environment[0x12];
 extern data_array *object_render_state_cache;
 extern void *decal_grid_block;
@@ -55,7 +55,6 @@ extern uint32_t *player_effect_globals_pointer;
 extern void *recorded_animations;
 extern uint32_t cinematic_saved_music_gain;
 extern uint32_t *cinematic_globals_ptr;
-extern Scenario *global_scenario;
 extern uint8_t *object_globals_pointer;
 extern void ai_reset_for_new_map(void);
 extern void encounters_spawn_initial(void);
@@ -233,7 +232,7 @@ void GameLifecycle::start_new_map(void)
     *(uint8_t *)unknown_00746280_block = 1;
     halo::effects::ambient_color_randomize();
 
-    tag_cache_bytes = (uint8_t *)global_scenario_game_globals;
+    tag_cache_bytes = (uint8_t *)halo::scenario::globals().game_globals;
     cursor = (uint32_t *)tag_cache_bytes;
     for (i = 1; i <= 0xb; i = i + 1) {
         cursor[i] = 0;
@@ -350,7 +349,7 @@ void GameLifecycle::start_new_map(void)
 
     main_game_globals->active = 1;
     *object_globals_pointer = 1;
-    scenario_objects_place(global_scenario);
+    scenario_objects_place(halo::scenario::globals().scenario);
     *object_globals_pointer = 0;
     encounters_spawn_initial();
 }
@@ -456,10 +455,10 @@ void GameLifecycle::unload_map(void)
     }
     if (main_game_globals->map_loaded != 0) {
         halo::cache::cache_file_unload();
-        global_scenario_game_globals->structure_bsp_index = -1;
+        halo::scenario::globals().game_globals->structure_bsp_index = -1;
         global_scenario_index = 0xffffffff;
         global_structure_bsp_index = 0xffff;
-        global_scenario = (Scenario *)0;
+        halo::scenario::globals().scenario = (Scenario *)0;
         global_structure_bsp = (void *)0;
         global_structure_collision_bsp = (void *)0;
         global_collision_bsp = (void *)0;

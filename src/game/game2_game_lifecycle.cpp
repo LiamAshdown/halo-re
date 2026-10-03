@@ -7,15 +7,14 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern int32_t game_state_cursor;
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern void *main_game_globals;
 extern game_variant game_engine_active_variant;
-extern scenario_game_globals *global_scenario_game_globals;
 extern uint8_t *hs_camera_control_pointer;
 extern data_array *object_render_state_cache;
 extern breakable_surface_globals *breakable_surface_state;
@@ -64,8 +63,8 @@ namespace halo::game {
  */
 ScenarioPlayerStartingLocation * GameLifecycle::get_player_starting_location(int16_t index)
 {
-    if (index >= 0 && index < global_scenario->player_starting_locations.count) {
-        return &((ScenarioPlayerStartingLocation *)global_scenario->player_starting_locations.pointer)[index];
+    if (index >= 0 && index < halo::scenario::globals().scenario->player_starting_locations.count) {
+        return &((ScenarioPlayerStartingLocation *)halo::scenario::globals().scenario->player_starting_locations.pointer)[index];
     }
     return (ScenarioPlayerStartingLocation *)0;
 }
@@ -106,7 +105,7 @@ void GameLifecycle::initialize(void)
     interface_globals_allocate();
 
     size = 0x7c;
-    global_scenario_game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
+    halo::scenario::globals().game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x7c;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 

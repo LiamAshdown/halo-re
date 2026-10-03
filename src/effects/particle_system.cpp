@@ -19,7 +19,6 @@ extern const ColorRGB *global_white_color;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern real_matrix4x3 render_camera_world_to_view;
@@ -388,7 +387,7 @@ uint8_t particle_system_ref::new_type_states()
     leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &system->position);
     system->location.leaf_index = leaf_index;
     system->location.cluster_index = (leaf_index == -1) ? (int16_t)0xffff :
-        *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+        *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                       (leaf_index & 0x7fffffff) * 0x10 + 8);
     system->flags |= _particle_system_in_update_bit;
 
@@ -615,7 +614,7 @@ static int16_t particle_leaf_cluster(uint32_t leaf)
     if (leaf == 0xffffffff) {
         return -1;
     }
-    return *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
+    return *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8);
 }
 
 /**

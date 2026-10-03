@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace halo::ai {
 
@@ -1817,7 +1818,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
-extern Scenario *global_scenario;
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
     int32_t start_surface_index, int16_t kind);
@@ -1837,7 +1837,7 @@ extern float actor_compute_accuracy_scale(datum_index actor_index);
 #define A_F(o) (*(float *)(actor + (o)))
 static real_point3d *actor_held_firing_position(uint8_t *actor)
 {
-    uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (A_D(0x34) & 0xffff) * 0xb0;
+    uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (A_D(0x34) & 0xffff) * 0xb0;
 
     return (real_point3d *)(*(uint8_t **)(encounter + 0x9c) + A_W(0x3b8) * 0x18);
 }

@@ -19,6 +19,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -60,7 +61,6 @@ extern int32_t king_alt_team_scores_network[16];
 extern int32_t king_alt_player_scores_network[16];
 extern int32_t king_alt_team_scores_network2[16];
 extern int32_t king_alt_scores_network_tail[16];
-extern Scenario *global_scenario;
 extern int32_t king_starting_location_type;
 extern int32_t king_starting_location_count;
 extern real_point3d king_hill_boundary_points[12];
@@ -414,7 +414,7 @@ void Koth::build_hill_boundary(void)
 
     for (i = 0; i < count; i++) {
         ScenarioNetgameFlags *loc =
-            &((ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer)[indices[i]];
+            &((ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer)[indices[i]];
         points[i].x = loc->position.x;
         points[i].y = loc->position.y;
         points[i].z = loc->position.z;
@@ -669,8 +669,8 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
     }
 
     if (index == -1) {
-        int32_t flag_count = (int32_t)global_scenario->netgame_flags.count;
-        ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+        int32_t flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+        ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
         int32_t matching = 0;
         int32_t i;
 
@@ -699,7 +699,7 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
     }
 
     if (index != -1) {
-        ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+        ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
 
         found.x = flags[index].position.x;
         found.y = flags[index].position.y;

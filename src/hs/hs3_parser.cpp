@@ -15,7 +15,6 @@ extern data_array *hs_syntax_data;
 extern char *hs_compiled_source;
 extern char *hs_compile_error;
 extern int32_t hs_compile_error_offset;
-extern Scenario *global_scenario;
 extern uint8_t ai_reference_parse(char *reference_string, Scenario *scenario, uint32_t *out_packed_reference);
 extern char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagReflexive *array, int32_t stride);
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -109,7 +108,7 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
 char Parser::parse_ai(datum_index node_index) const
 {
     hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & 0xffff) * 0x14);
-    uint8_t found = ai_reference_parse(hs_compiled_source + node->source_offset, global_scenario,
+    uint8_t found = ai_reference_parse(hs_compiled_source + node->source_offset, halo::scenario::globals().scenario,
         (uint32_t *)&node->data);
 
     if (!found) {
@@ -126,7 +125,7 @@ char Parser::parse_ai(datum_index node_index) const
  */
 char Parser::parse_ai_command_list(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &global_scenario->command_lists, 0x60);
+    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->command_lists, 0x60);
 }
 
 /**
@@ -369,7 +368,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
  */
 char Parser::parse_conversation(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &global_scenario->ai_conversations, 0x74);
+    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->ai_conversations, 0x74);
 }
 
 /**
@@ -379,7 +378,7 @@ char Parser::parse_conversation(datum_index node_index) const
  */
 char Parser::parse_cutscene_camera_point(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &global_scenario->cutscene_camera_points, 0x68);
+    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_camera_points, 0x68);
 }
 
 /**
@@ -389,7 +388,7 @@ char Parser::parse_cutscene_camera_point(datum_index node_index) const
  */
 char Parser::parse_cutscene_flag(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &global_scenario->cutscene_flags, 0x5c);
+    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_flags, 0x5c);
 }
 
 /**
@@ -399,7 +398,7 @@ char Parser::parse_cutscene_flag(datum_index node_index) const
  */
 char Parser::parse_cutscene_recording(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &global_scenario->recorded_animations, 0x40);
+    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->recorded_animations, 0x40);
 }
 
 /**
@@ -409,7 +408,7 @@ char Parser::parse_cutscene_recording(datum_index node_index) const
  */
 char Parser::parse_cutscene_title(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &global_scenario->cutscene_titles, 0x60);
+    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_titles, 0x60);
 }
 
 /**
@@ -419,7 +418,7 @@ char Parser::parse_cutscene_title(datum_index node_index) const
  */
 char Parser::parse_device_group(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &global_scenario->device_groups, 0x34);
+    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->device_groups, 0x34);
 }
 
 /**
@@ -466,7 +465,7 @@ char Parser::parse_function_arguments(int16_t function_index, datum_index node_i
  */
 char Parser::parse_hud_message(datum_index node_index) const
 {
-    datum_index hud_messages = *(datum_index *)&global_scenario->hud_messages.tag_id;
+    datum_index hud_messages = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
 
     if (hud_messages == k_datum_index_none) {
         return 0;
@@ -732,7 +731,7 @@ char Parser::parse_nonprimitive(datum_index node_index) const
             return parse(resolved_index, node_index);
         }
 
-        script = (ScenarioScript *)global_scenario->scripts.pointer + resolved_index;
+        script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + resolved_index;
         if ((script->script_type != _hs_script_static) && (script->script_type != _hs_script_stub)) {
             hs_compile_error = (char *)"this is not a static script.";
             hs_compile_error_offset = node->source_offset;
@@ -820,7 +819,7 @@ char Parser::parse_object_name(datum_index node_index) const
     ScenarioObjectName *object_names;
     int16_t match_index;
 
-    scenario = global_scenario;
+    scenario = halo::scenario::globals().scenario;
     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & 0xffff) * 0x14);
 
     match_index = halo::scenario::scenario_object_name_find_index(scenario, hs_compiled_source + node->source_offset);
@@ -1119,7 +1118,7 @@ char Parser::parse_sleep_until(int16_t function_index, datum_index node_index) c
  */
 char Parser::parse_starting_profile(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &global_scenario->player_starting_profile, 0x68);
+    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->player_starting_profile, 0x68);
 }
 
 /**
@@ -1167,10 +1166,10 @@ char Parser::parse_tag_reference(datum_index node_index) const
     char *token_text;
 
     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & 0xffff) * hs_syntax_data->size);
-    count = (int32_t)global_scenario->references.count;
+    count = (int32_t)halo::scenario::globals().scenario->references.count;
     token_text = hs_compiled_source + node->source_offset;
     for (i = 0; i < count; i = i + 1) {
-        reference = (ScenarioReference *)global_scenario->references.pointer + i;
+        reference = (ScenarioReference *)halo::scenario::globals().scenario->references.pointer + i;
         if ((strcmp((char *)reference->reference.path_pointer, token_text) == 0) &&
             (reference->reference.tag_fourcc == hs_tag_group_for_type[node->type - 0x18])) {
             node->data.tag_reference = *(datum_index *)&reference->reference.tag_id;
@@ -1187,7 +1186,7 @@ char Parser::parse_tag_reference(datum_index node_index) const
  */
 char Parser::parse_trigger_volume(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &global_scenario->trigger_volumes, 0x60);
+    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->trigger_volumes, 0x60);
 }
 
 /**
@@ -1336,7 +1335,7 @@ char Parser::parse_variable(datum_index node_index) const
     }
 
     if ((global & k_hs_global_builtin_bit) == 0) {
-        global_type = ((ScenarioGlobal *)global_scenario->globals.pointer)[global & k_hs_global_index_mask].type;
+        global_type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[global & k_hs_global_index_mask].type;
     } else {
         global_type = hs_global_definitions[global & k_hs_global_index_mask]->type;
     }
@@ -1378,7 +1377,7 @@ char Parser::parse_wake(int16_t function_index, datum_index node_index) const
     if (!hs_parse(argument, 0xa)) {
         return 0;
     }
-    script = (ScenarioScript *)global_scenario->scripts.pointer + node->data.short_value;
+    script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + node->data.short_value;
     if (script->script_type == 3 || script->script_type == 4) {
         hs_compile_error = (char *)"this static script cannot be awakened.";
         hs_compile_error_offset = node->source_offset;

@@ -2,13 +2,13 @@
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
-extern Scenario *global_scenario;
 extern Globals *global_globals;
 extern int32_t race_used_locations[8];
 extern int32_t race_used_location_count;
@@ -140,7 +140,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     }
     race_used_locations[count] = location_index;
     race_used_location_count = count + 1;
-    location = (uint8_t *)global_scenario->netgame_flags.pointer + location_index * 0x94;
+    location = (uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + location_index * 0x94;
     tag = race_pick_vehicle_tag(count);
     if (tag == 0xffffffff) {
         return;

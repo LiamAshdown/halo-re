@@ -8,6 +8,10 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+struct ScenarioStructureBSP;
+struct scenario_game_globals;
+typedef uint32_t datum_index;
+
 struct GlobalsMaterial;
 struct Scenario;
 struct bsp_leaf_reference;
@@ -15,6 +19,20 @@ struct real_point3d;
 struct render_fog;
 
 namespace halo::scenario {
+
+/**
+ * The engine globals the scenario module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    Scenario *&scenario;
+    datum_index &scenario_index;
+    ScenarioStructureBSP *&structure_bsp;
+    int16_t &structure_bsp_index;
+    scenario_game_globals *&game_globals;
+};
+
+Globals &globals();
 
 void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);

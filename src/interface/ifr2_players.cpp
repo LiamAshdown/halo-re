@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/scenario/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -28,7 +29,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern data_array *object_data;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern datum_index global_scenario_index;
 extern int16_t profile_slot_id[];
 extern char player_help_name_a10[];
 extern char player_help_name_a30[];
@@ -277,10 +277,10 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
     char *tag_path;
     widget_instance *dialog;
 
-    if (global_scenario_index == (datum_index)-1) {
+    if (halo::scenario::globals().scenario_index == (datum_index)-1) {
         return;
     }
-    strncpy(name, halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path, 0xff);
+    strncpy(name, halo::cache::globals().tag_instances[(int16_t)halo::scenario::globals().scenario_index].path, 0xff);
 
     for (p = name; *p != 0; p++) {
         *p = (char)tolower((uint8_t)*p);

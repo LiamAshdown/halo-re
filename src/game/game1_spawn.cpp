@@ -14,9 +14,9 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *object_data;
 extern int16_t objects_get_ambient_cluster(void);
 extern data_array *player_data;
@@ -25,7 +25,6 @@ extern game_variant game_engine_variant;
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player,
     int32_t slot_index);
-extern Scenario *global_scenario;
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results);
@@ -42,7 +41,7 @@ namespace halo::game::engine1 {
  */
 void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_t local_players_only)
 {
-    uint8_t *bsp_info = (uint8_t *)global_structure_bsp;
+    uint8_t *bsp_info = (uint8_t *)halo::scenario::globals().structure_bsp;
     int32_t i;
     data_iterator iterator;
     void *p;
@@ -138,8 +137,8 @@ int16_t SpawnLocations::collect_matching_waypoints(int32_t candidate, float *out
  */
 int32_t SpawnLocations::find_nearest_unused_type4_location(int32_t *excluded_indices, int32_t excluded_count, real_point3d *reference_point)
 {
-    int32_t flag_count = (int32_t)global_scenario->netgame_flags.count;
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    int32_t flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
     float best_distance = 1e+06f;
     int32_t best_index = -1;
     int32_t i;
@@ -205,9 +204,9 @@ int SpawnLocations::find_valid_starting_locations(real_point3d *origin, float ma
 {
     int32_t found = 0;
     int16_t i;
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
 
-    for (i = 0; i < (int32_t)global_scenario->netgame_flags.count; i++) {
+    for (i = 0; i < (int32_t)halo::scenario::globals().scenario->netgame_flags.count; i++) {
         ScenarioNetgameFlags *f = &flags[i];
 
         if ((team == -1 || team == (int16_t)f->type) &&
@@ -248,7 +247,7 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {
-        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
+        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
     }
 
     count = object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);

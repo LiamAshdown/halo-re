@@ -2,14 +2,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void game_variant_list_matching_substring(uint32_t argument_count, int32_t *arguments);
 extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride);
-extern datum_index global_scenario_index;
-extern Scenario *global_scenario;
 extern int16_t hs_autocomplete_maximum_count;
 extern char *hs_autocomplete_prefix;
 extern int16_t hs_autocomplete_count;
@@ -71,8 +70,8 @@ void ScriptAutocomplete::game_variant_list_matching_substring_evaluate(int16_t f
  */
 void ScriptAutocomplete::autocomplete_add_command_list_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->command_lists, 0, 0x60);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->command_lists, 0, 0x60);
     }
 }
 
@@ -83,8 +82,8 @@ void ScriptAutocomplete::autocomplete_add_command_list_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_conversation_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->ai_conversations, 0, 0x74);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->ai_conversations, 0, 0x74);
     }
 }
 
@@ -95,8 +94,8 @@ void ScriptAutocomplete::autocomplete_add_conversation_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_cutscene_camera_point_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->cutscene_camera_points, 4, 0x68);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_camera_points, 4, 0x68);
     }
 }
 
@@ -107,8 +106,8 @@ void ScriptAutocomplete::autocomplete_add_cutscene_camera_point_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_cutscene_flag_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->cutscene_flags, 4, 0x5c);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_flags, 4, 0x5c);
     }
 }
 
@@ -119,8 +118,8 @@ void ScriptAutocomplete::autocomplete_add_cutscene_flag_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_cutscene_title_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->cutscene_titles, 4, 0x60);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_titles, 4, 0x60);
     }
 }
 
@@ -131,8 +130,8 @@ void ScriptAutocomplete::autocomplete_add_cutscene_title_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_encounter_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->encounters, 0, 0xb0);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->encounters, 0, 0xb0);
     }
 }
 
@@ -170,8 +169,8 @@ void ScriptAutocomplete::autocomplete_add_global_names(void)
             autocomplete_offer(definition->name);
         }
     }
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->globals, 0, 0x5c);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->globals, 0, 0x5c);
     }
 }
 
@@ -182,7 +181,7 @@ void ScriptAutocomplete::autocomplete_add_global_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_hud_message_names(void)
 {
-    datum_index hud_messages = *(datum_index *)&global_scenario->hud_messages.tag_id;
+    datum_index hud_messages = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
 
     if (hud_messages != k_datum_index_none) {
         hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & 0xffff].data + 0x20),
@@ -214,8 +213,8 @@ void ScriptAutocomplete::autocomplete_add_navpoint_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_object_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->object_names, 0, 0x24);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->object_names, 0, 0x24);
     }
 }
 
@@ -226,8 +225,8 @@ void ScriptAutocomplete::autocomplete_add_object_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_recorded_animation_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->recorded_animations, 0, 0x40);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->recorded_animations, 0, 0x40);
     }
 }
 
@@ -238,8 +237,8 @@ void ScriptAutocomplete::autocomplete_add_recorded_animation_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_script_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->scripts, 0, 0x5c);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->scripts, 0, 0x5c);
     }
 }
 
@@ -250,8 +249,8 @@ void ScriptAutocomplete::autocomplete_add_script_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_starting_profile_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->player_starting_profile, 0, 0x68);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->player_starting_profile, 0, 0x68);
     }
 }
 
@@ -273,8 +272,8 @@ void ScriptAutocomplete::autocomplete_add_startup(void)
  */
 void ScriptAutocomplete::autocomplete_add_trigger_volume_names(void)
 {
-    if (global_scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&global_scenario->trigger_volumes, 4, 0x60);
+    if (halo::scenario::globals().scenario_index != k_datum_index_none) {
+        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->trigger_volumes, 4, 0x60);
     }
 }
 

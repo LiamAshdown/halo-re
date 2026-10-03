@@ -5,6 +5,7 @@
 #include "models.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
@@ -16,7 +17,6 @@ extern double fmod(double x, double y);
 extern double fpatan(double y, double x);
 extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
-extern Scenario *global_scenario;
 extern int16_t network_game_mode;
 extern data_array *object_data;
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
@@ -231,7 +231,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
                 value = *output;
             } else {
                 float yaw = (float)fpatan(forward[0], forward[1]);
-                value = angle_delta_wrapped(global_scenario->local_north, yaw) * 0.15915494f + 0.5f;
+                value = angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
             break;
@@ -245,7 +245,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
 }
 
 namespace {
-static uint8_t * &global_scenario__as_object_function_evaluate_input = reinterpret_cast<uint8_t * &>(global_scenario);
+static uint8_t * &global_scenario__as_object_function_evaluate_input = reinterpret_cast<uint8_t * &>(halo::scenario::globals().scenario);
 }
 
 /**
