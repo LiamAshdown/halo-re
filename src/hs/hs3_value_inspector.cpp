@@ -1,5 +1,6 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern hs_enum_definition hs_enum_definitions[5];

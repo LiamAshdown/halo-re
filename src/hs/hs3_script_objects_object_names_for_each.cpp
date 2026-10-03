@@ -1,5 +1,6 @@
 #include "halo/hs/hs3_objects.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern int32_t strstr(ScenarioObjectName *entry, uint32_t predicate_arg);
