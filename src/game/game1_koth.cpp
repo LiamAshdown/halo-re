@@ -586,9 +586,7 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
     }
 
     if (p->unit != (datum_index)halo::k_dword_none) {
-        unit_data *unit = (unit_data *)((uint8_t *)
-            halo::game::object_at((uint32_t)p->unit) +
-            k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(halo::game::object_at((uint32_t)p->unit));
         if (unit->current_weapon_index != -1) {
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)halo::k_dword_none) {

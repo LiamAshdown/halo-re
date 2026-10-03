@@ -34,6 +34,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/units/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
@@ -220,7 +221,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
                 if (objects::object_mask_has_type(objects::object_mask::unit, obj->type)) {
                     object *unit_object =
                         ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
-                    unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+                    unit_data *unit = halo::units::unit_data_of(unit_object);
 
                     if (unit->active_camouflage_power > 0.0f) {
                         effect.centroid = obj->bounding_center;
@@ -304,7 +305,7 @@ uint8_t halo::render::ObjectRenderData::shadow_begin(float fade)
 
     o = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)data->object_index].data;
     if (((1 << (uint8_t)o->type) & 3) != 0) {
-        unit_data *unit = (unit_data *)((uint8_t *)o + k_unit_data_offset);
+        unit_data *unit = halo::units::unit_data_of(o);
         if (unit->active_camouflage_power > 0.0f) {
             t = (1.0f - unit->active_camouflage_power) * fade;
         } else {
@@ -789,7 +790,7 @@ int16_t local_player_gunner_seat_visible(int16_t local_player_index)
     if (parent_index == k_datum_index_none) {
         return 0;
     }
-    unit_ext = (unit_data *)((uint8_t *)unit + k_unit_data_offset);
+    unit_ext = halo::units::unit_data_of(unit);
     seat_index = unit_ext->vehicle_seat_index;
     if (seat_index == -1) {
         return 0;

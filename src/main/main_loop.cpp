@@ -48,6 +48,7 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/units/records.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
@@ -332,7 +333,7 @@ void frame_log_player_update_history()
     player *local_player;
     player_update_history *update_history;
     object_header *unit_header;
-    uint8_t *unit;
+    object *unit;
 
     if (main_globals_data.game_connection == _game_connection_network_client &&
         player_update_log_flags != 0) {
@@ -348,15 +349,15 @@ void frame_log_player_update_history()
             if (local_player->unit != k_datum_index_none && update_history != 0 &&
                 update_history->tail != 0) {
                 unit_header = (object_header *)halo::objects::globals().object_data->data + datum_slot(local_player->unit);
-                unit = (uint8_t *)unit_header->data;
+                unit = unit_header->data;
                 halo::networking::player_update_history_log_write(0x10, 0,
                     "[%d]: Update [%d] ([%d]): ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
                     halo::game::globals().game_time->game_time, update_history->tail->update_id,
                     update_history->tail->tick_count,
-                    (double)((object *)unit)->position.x, (double)((object *)unit)->position.y,
-                    (double)((object *)unit)->position.z, (double)((unit_data *)(unit + k_unit_data_offset))->throttle.i,
-                    (double)((unit_data *)(unit + k_unit_data_offset))->throttle.j, (double)((object *)unit)->velocity.i,
-                    (double)((object *)unit)->velocity.j);
+                    (double)unit->position.x, (double)unit->position.y,
+                    (double)unit->position.z, (double)halo::units::unit_data_of(unit)->throttle.i,
+                    (double)halo::units::unit_data_of(unit)->throttle.j, (double)unit->velocity.i,
+                    (double)unit->velocity.j);
             }
             break;
         }
