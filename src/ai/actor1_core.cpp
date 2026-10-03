@@ -9,6 +9,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 }
