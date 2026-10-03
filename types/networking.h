@@ -761,6 +761,48 @@ typedef struct network_game_announcement {
 // The node body is a straight copy of unit and vehicle object fields, so it is
 // left opaque; only the fields this module itself reads are named.
 // ---------------------------------------------------------------------------
+typedef struct unit_state_snapshot {
+    real_point3d position;          // 0x00 object position
+    real_vector3d velocity;         // 0x0c
+    real_vector3d forward;          // 0x18
+    datum_index animation_graph;    // 0x24
+    int16_t animation_index;        // 0x28
+    int16_t animation_frame;        // 0x2a
+    int16_t interpolation_frame_index; // 0x2c
+    int16_t node_function_count;    // 0x2e
+    uint8_t animation_state[0x48];  // 0x30 the unit's animation state block
+    uint8_t seat_acceleration[0x30]; // 0x78 seat_acceleration_last_position and the block after it
+    uint32_t biped_flags;           // 0xa8
+    uint8_t stop_moving_ticks;      // 0xac
+    uint8_t airborne_ticks;         // 0xad
+    uint8_t slipping_ticks;         // 0xae
+    uint8_t jump_ticks;             // 0xaf
+    int16_t landing_type;           // 0xb0
+    uint8_t pad_b2[2];              // 0xb2
+    float crouch_fraction;          // 0xb4
+    real_vector3d ground_normal;    // 0xb8
+    uint32_t ground_plane_distance; // 0xc4
+    uint8_t landing_ticks;          // 0xc8
+    uint8_t landing_duration_ticks; // 0xc9
+    uint8_t movement_state;         // 0xca
+    uint8_t pad_cb;                 // 0xcb
+    datum_index ground_surface_index; // 0xcc
+} unit_state_snapshot;              // size 0xd0
+
+typedef struct vehicle_state_snapshot {
+    real_point3d position;          // 0x000
+    real_vector3d velocity;         // 0x00c
+    real_vector3d angular_velocity; // 0x018
+    uint8_t body_024[0x94 - 0x24];  // 0x024 vehicle object bytes 0x04..
+    real_vector3d forward;          // 0x094
+    real_vector3d up;               // 0x0a0
+    uint8_t body_0ac[0x214 - 0x0ac]; // 0x0ac ..0x1f4 of the vehicle object
+    float driver_seat_power;        // 0x214
+    float gunner_seat_power;        // 0x218
+    uint32_t pad_21c;               // 0x21c
+    uint8_t tail[0xf4];             // 0x220 vehicle object bytes 0x4cc..
+} vehicle_state_snapshot;           // size 0x314
+
 typedef struct player_update_history_node {
     int32_t update_id;            // 0x000 wraps modulo 0x40
     int32_t tick_count;           // 0x004 summed when the log reports "== %d ticks"
@@ -768,8 +810,8 @@ typedef struct player_update_history_node {
     uint8_t has_vehicle;          // 0x028 set when the unit is in a seat
     uint8_t pad_029[3];           // 0x029
     datum_index vehicle_object;   // 0x02c copied from unit+0x11c
-    uint8_t unit_state[0x0d0];    // 0x030 unit fields 0x5c..0x520
-    uint8_t vehicle_state[0x314]; // 0x100 vehicle object fields, valid only with has_vehicle
+    unit_state_snapshot unit_state; // 0x030 unit fields 0x5c..0x520
+    vehicle_state_snapshot vehicle_state; // 0x100 vehicle object fields, valid only with has_vehicle
     struct player_update_history_node *next; // 0x414
 } player_update_history_node;     // size 0x418
 
