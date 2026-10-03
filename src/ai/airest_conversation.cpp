@@ -264,8 +264,8 @@ void Conversations::clear_participant(datum_index actor_index)
 uint8_t ConversationView::current_line_is_ready()
 {
     datum_index instance_handle = handle;
-    uint8_t *inst = (uint8_t *)ai_conversation_data->data + (instance_handle & halo::k_slot_mask) * 0x64;
-    uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + *(int16_t *)(inst + 0x2) * 0x74;
+    uint8_t *inst = (uint8_t *)ai_conversation_data->data + (instance_handle & halo::k_slot_mask) * k_ai_conversation_size;
+    uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + ((struct ai_conversation *)inst)->definition_index * 0x74;
 
     if (inst[0x63]) {
         return inst[0x63];
@@ -352,7 +352,7 @@ uint8_t ConversationView::current_line_is_ready()
             return inst[0x63];
         }
     }
-    if (*(int16_t *)(inst + 0x4c) > 0) {
+    if (((struct ai_conversation *)inst)->line_delay_ticks > 0) {
         *(int16_t *)(inst + 0x4c) = (int16_t)(*(int16_t *)(inst + 0x4c) - 1);
         return inst[0x63];
     }

@@ -120,7 +120,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             if (encounter_index == k_datum_index_none) {
                 goto check_radius;
             } else {
-                uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * 0x6c;
+                uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size;
                 uint8_t *target_unit = OBJ(target);
                 int32_t reference = ((struct encounter *)encounter)->last_idle_time;
                 uint8_t counts = 1;

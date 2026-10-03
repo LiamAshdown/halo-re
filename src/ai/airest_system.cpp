@@ -893,7 +893,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
     if (((struct actor *)actor)->swarm_index == k_datum_index_none) {
         return 0;
     }
-    swarm = (uint8_t *)swarm_data->data + (((struct actor *)actor)->swarm_index & halo::k_slot_mask) * 0x98;
+    swarm = (uint8_t *)swarm_data->data + (((struct actor *)actor)->swarm_index & halo::k_slot_mask) * k_swarm_size;
     count = *(int16_t *)(swarm + 2);
     for (i = 0; i < count; i++) {
         datum_index unit_index = *(datum_index *)(swarm + 0x18 + i * 4);
@@ -950,7 +950,7 @@ void AiSystem::reset_fire_group_assignments()
     datum_index actor_index;
 
     for (e = 0; e < encounter_count; e++) {
-        uint8_t *encounter = (uint8_t *)encounter_data->data + (e & halo::k_slot_mask) * 0x6c;
+        uint8_t *encounter = (uint8_t *)encounter_data->data + (e & halo::k_slot_mask) * k_encounter_size;
         datum_index next;
 
         if (encounter[0xd] == 0 || ((struct encounter *)encounter)->living_count <= 0) {
@@ -998,7 +998,7 @@ void AiSystem::reset_fire_group_assignments()
             *(int16_t *)(actor + 0x10) = actor[8] != 0 ? 0x5a : 0;
             actor_movement_action_cancel(actor_index);
         }
-        encounter = (uint8_t *)encounter_data->data + (e & halo::k_slot_mask) * 0x6c;
+        encounter = (uint8_t *)encounter_data->data + (e & halo::k_slot_mask) * k_encounter_size;
         ((struct encounter *)encounter)->activation_delay = 0;
         encounter_deactivate((datum_index)(int32_t)e);
     }

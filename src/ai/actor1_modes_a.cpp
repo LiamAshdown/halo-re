@@ -493,7 +493,7 @@ void halo::ai::converse_mode::update()
     datum_index look_prop = k_datum_index_none;
 
     if (conversation != k_datum_index_none) {
-        record = (uint8_t *)ai_conversation_data->data + (conversation & halo::k_slot_mask) * 0x64;
+        record = (uint8_t *)ai_conversation_data->data + (conversation & halo::k_slot_mask) * k_ai_conversation_size;
     }
     if (((struct actor *)act)->mode_data.converse.partner_prop != k_datum_index_none) {
         look_prop = ((struct actor *)act)->mode_data.converse.partner_prop;

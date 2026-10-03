@@ -751,7 +751,7 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         datum_index encounter_index = ((actor *)self)->encounter_index;
 
         if (encounter_index != k_datum_index_none) {
-            uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * 0x6c;
+            uint8_t *encounter = (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size;
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((prop *)p)->object_index & halo::k_slot_mask].data;
             int32_t reference = ((struct encounter *)encounter)->last_idle_time;
             uint8_t counts = 1;

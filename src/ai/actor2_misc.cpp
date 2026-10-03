@@ -238,7 +238,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
         ai_actor_link_to_unassigned_list(actor_index);
     } else {
         if ((encounter_or_none & 0xffff0000) == 0) {
-            uint8_t *enc = (uint8_t *)encounter_data->data + (encounter_or_none & halo::k_slot_mask) * 0x6c;
+            uint8_t *enc = (uint8_t *)encounter_data->data + (encounter_or_none & halo::k_slot_mask) * k_encounter_size;
 
             encounter_or_none = ((uint32_t)(int32_t)*(int16_t *)enc << 0x10) | (encounter_or_none & halo::k_slot_mask);
         }

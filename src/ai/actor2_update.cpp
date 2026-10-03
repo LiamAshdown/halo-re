@@ -1624,7 +1624,7 @@ uint8_t ActorView::update_melee_combat_action()
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[D(a, 0x58) & halo::k_slot_mask].data;
     datum_index encounter_index = D(a, 0x34);
     uint8_t *encounter = encounter_index != k_datum_index_none
-        ? (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * 0x6c : 0;
+        ? (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size : 0;
     uint8_t result = 0;
     uint8_t regroup = 0;
     uint8_t searching = 0;

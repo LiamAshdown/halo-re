@@ -116,7 +116,7 @@ void ActorView::refresh_combat_context()
     datum_index child;
 
     if (A_U8(0x06)) {
-        uint8_t *swarm = (uint8_t *)swarm_data->data + (((struct actor *)self)->swarm_index & halo::k_slot_mask) * 0x98;
+        uint8_t *swarm = (uint8_t *)swarm_data->data + (((struct actor *)self)->swarm_index & halo::k_slot_mask) * k_swarm_size;
         real_point3d *center = (real_point3d *)(swarm + 0xc);
         int16_t count = ((struct swarm *)swarm)->component_count;
         int16_t i;
@@ -203,7 +203,7 @@ void ActorView::refresh_combat_context()
                 if (wanted_squad == -1 || A_I16(0x3a) == wanted_squad) {
                     move = 0;
                 } else {
-                    uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c;
+                    uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & halo::k_slot_mask) * k_encounter_size;
 
                     if (((struct encounter *)encounter_record)->follow_target_type > 0) {
                         int16_t first = ((struct encounter *)encounter_record)->first_squad;

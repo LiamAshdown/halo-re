@@ -258,7 +258,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 unit_capability[0] = 1;
             }
             if (unit_encounter_index != k_datum_index_none) {
-                unit_encounter = (uint8_t *)encounter_data->data + (unit_encounter_index & halo::k_slot_mask) * 0x6c;
+                unit_encounter = (uint8_t *)encounter_data->data + (unit_encounter_index & halo::k_slot_mask) * k_encounter_size;
             }
         } else if (((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
             unit_class = 1;

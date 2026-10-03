@@ -47,7 +47,7 @@ static uint8_t actor_danger_asleep(uint8_t *actor)
     uint8_t *encounter = 0;
 
     if (A_D(0x34) != halo::k_dword_none) {
-        encounter = (uint8_t *)encounter_data->data + (A_D(0x34) & halo::k_slot_mask) * 0x6c;
+        encounter = (uint8_t *)encounter_data->data + (A_D(0x34) & halo::k_slot_mask) * k_encounter_size;
     }
     return A_W(0x6a) == 1 || (encounter != 0 && encounter[0x40] != 0);
 }
