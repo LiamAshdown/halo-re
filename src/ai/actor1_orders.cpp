@@ -12,11 +12,6 @@
 #include "halo/ai/records.hpp"
 
 namespace c_actor_build_guard_mode_data {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 }
 
@@ -76,11 +71,6 @@ uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_build_order_default {
 }

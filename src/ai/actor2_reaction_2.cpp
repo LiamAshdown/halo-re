@@ -12,11 +12,6 @@ namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
 extern "C" {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 extern int32_t __ftol(void);
 }
 }
@@ -77,11 +72,6 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     return 1;
 }
 
-#undef ACTOR
-#undef B
-#undef W
-#undef D
-#undef F
 
 namespace actor_react_to_threat_event_local {
 extern "C" {

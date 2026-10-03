@@ -134,7 +134,6 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
  *
@@ -219,7 +218,6 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
 }
 
 #undef OBJECT_DATA
-#undef PROP
 
 /**
  * Behaviour of ai build priority target list, moved unchanged from the original free function.
@@ -789,7 +787,6 @@ void AiSystem::reset_all_actors_perception()
 }
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJ(h) ((uint8_t *)halo::ai::object_at((h)))
 #define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
@@ -976,7 +973,6 @@ void AiSystem::reset_fire_group_assignments()
 }
 
 #undef ACTOR
-#undef PROP
 #undef OBJ
 #undef AI_STATE_BYTES
 

@@ -586,8 +586,6 @@ extern "C" {
 
 extern double sqrt(double x);
 
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -680,8 +678,6 @@ int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_s
 }
 }
 
-#undef ACTOR
-#undef PROP
 
 namespace c_actor_gather_nearby_grenade_targets {
 }

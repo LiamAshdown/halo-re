@@ -75,7 +75,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
-#define A_U8(offset) (*(uint8_t *)((uint8_t *)self + (offset)))
 #define A_I16(offset) (*(int16_t *)((uint8_t *)self + (offset)))
 #define A_I32(offset) (*(int32_t *)((uint8_t *)self + (offset)))
 static uint8_t *object_get(datum_index object_index)
@@ -299,7 +298,6 @@ void ActorView::refresh_combat_context()
     A_I32(0x1c4) = *(int32_t *)&((unit_object *)unit)->base.recent_shield_damage;
 }
 
-#undef A_U8
 #undef A_I16
 #undef A_I32
 

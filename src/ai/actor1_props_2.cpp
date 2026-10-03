@@ -15,7 +15,6 @@ extern int32_t fistp_round(float x);
 
 
 #define A_W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define A_D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
 #define A_F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index object_index)
@@ -221,7 +220,6 @@ void actor_danger_update_reaction(datum_index actor_index)
 }
 }
 
-#undef A_D
 #undef A_F
 #undef A_W
 

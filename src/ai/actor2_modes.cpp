@@ -11,7 +11,6 @@
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
@@ -84,14 +83,11 @@ void ActorView::mode_uncover_tick()
     act->mode_data.uncover.done = done;
 }
 
-#undef ACTOR
 #undef TAG_DATA
 #undef PROP
 
 namespace actor_mode_uncover_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 /**
@@ -144,14 +140,11 @@ void ActorView::mode_uncover_update()
     act->unknown_41a[11] = 1;
 }
 
-#undef ACTOR
 #undef TAG_DATA
-#undef PROP
 
 namespace actor_mode_vehicle_enter_local {
 extern "C" {
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -170,10 +163,8 @@ void ActorView::mode_vehicle_enter()
     act->mode_data.vehicle.last_progress_position = *(real_point3d *)&act->body_position.x;
 }
 
-#undef ACTOR
 
 namespace actor_mode_vehicle_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -205,12 +196,9 @@ void ActorView::mode_vehicle_update()
     act->unknown_41a[11] = 0;
 }
 
-#undef ACTOR
 
 namespace actor_mode_wait_process_local {
 extern "C" {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 extern game_time_globals *game_time;
 }
 }
@@ -278,11 +266,8 @@ decided:
     return act->mode_data.wait.finished;
 }
 
-#undef ACTOR
-#undef TAG_DATA
 
 namespace actor_mode_wait_tick_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -320,10 +305,8 @@ void ActorView::mode_wait_tick()
     }
 }
 
-#undef ACTOR
 
 namespace actor_mode_wait_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -355,7 +338,6 @@ void ActorView::mode_wait_update()
     act->unknown_41a[11] = 0;
 }
 
-#undef ACTOR
 
 namespace actor_run_mode_transition_loop_local {
 }

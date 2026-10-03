@@ -96,7 +96,6 @@ void ActorView::type_crew_update()
 }
 
 namespace actor_type_elite_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -195,10 +194,8 @@ void ActorView::type_elite_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_engineer_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -274,10 +271,8 @@ void ActorView::type_engineer_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_flood_carrier_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -336,10 +331,8 @@ void ActorView::type_flood_carrier_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_flood_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -402,10 +395,8 @@ void ActorView::type_flood_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_grunt_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -497,10 +488,8 @@ void ActorView::type_grunt_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_hunter_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -558,7 +547,6 @@ void ActorView::type_hunter_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_infection_swarm_update_local {
 extern "C" {
@@ -568,10 +556,7 @@ extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
-#define SWARM(h) ((uint8_t *)halo::ai::globals().swarm_data->data + ((h) & halo::k_slot_mask) * k_swarm_size)
 #define COMPONENT(h) ((uint8_t *)halo::ai::globals().swarm_component_data->data + ((h) & halo::k_slot_mask) * k_swarm_component_size)
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define U16(p, o) (*(uint16_t *)((uint8_t *)(p) + (o)))
@@ -1048,10 +1033,7 @@ void ActorView::type_infection_swarm_update()
     }
 }
 
-#undef ACTOR
-#undef PROP
 #undef OBJECT
-#undef SWARM
 #undef COMPONENT
 #undef F
 #undef U16
@@ -1059,7 +1041,6 @@ void ActorView::type_infection_swarm_update()
 #undef U32
 
 namespace actor_type_infection_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1112,10 +1093,8 @@ void ActorView::type_infection_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_jackal_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1204,10 +1183,8 @@ void ActorView::type_jackal_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_marine_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1290,10 +1267,8 @@ void ActorView::type_marine_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_mounted_weapon_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1338,10 +1313,8 @@ void ActorView::type_mounted_weapon_update()
     }
 }
 
-#undef ACTOR
 
 namespace actor_type_sentinel_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1406,6 +1379,5 @@ void ActorView::type_sentinel_update()
     }
 }
 
-#undef ACTOR
 
 }

@@ -530,7 +530,6 @@ extern const real_vector2d *global_forward2d_pointer;
 extern double sqrt(double x);
 extern double fabs(double x);
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
@@ -664,7 +663,6 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
 }
 }
 
-#undef ACTOR
 #undef OBJECT_DATA
 #undef TAG_DATA
 
@@ -1107,7 +1105,6 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
 }
 
 namespace c_actor_mark_prop_seen_with_delta {
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 
@@ -1156,5 +1153,4 @@ void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor
 }
 }
 
-#undef PROP
 

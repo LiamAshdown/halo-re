@@ -12,11 +12,6 @@
 #include "halo/ai/records.hpp"
 
 namespace c_actor_alert_from_damage {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t source)
 {
@@ -77,18 +72,8 @@ uint8_t actor_alert_from_damage(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_alert_from_disturbance {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t source)
 {
@@ -129,18 +114,8 @@ uint8_t actor_alert_from_disturbance(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_alert_from_flag_1b4 {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 
@@ -173,18 +148,8 @@ uint8_t actor_alert_from_flag_1b4(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_alert_from_projectile {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t source)
 {
@@ -247,18 +212,8 @@ uint8_t actor_alert_from_projectile(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_alert_from_squad_attack {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t source)
 {
@@ -310,11 +265,6 @@ uint8_t actor_alert_from_squad_attack(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_check_pain_reaction {
 }
@@ -544,9 +494,6 @@ namespace c_actor_escalate_apply {
 extern "C" {
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 }
@@ -582,17 +529,12 @@ uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold)
 }
 }
 
-#undef ACTOR
-#undef PROP
-#undef TAG_DATA
 
 namespace c_actor_escalate_check_leader_flag {
 extern "C" {
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -626,17 +568,13 @@ uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef PROP
 #undef TAG_DATA
 
 namespace c_actor_escalate_check_shield_damage {
 extern "C" {
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -672,15 +610,12 @@ uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef PROP
 #undef TAG_DATA
 
 namespace c_actor_escalate_check_target_close {
 extern "C" {
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
@@ -719,7 +654,6 @@ uint8_t actor_escalate_check_target_close(datum_index actor_index)
 }
 }
 
-#undef ACTOR
 #undef PROP
 #undef TAG_DATA
 
@@ -727,7 +661,6 @@ namespace c_actor_escalate_check_weapon_range {
 extern "C" {
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
@@ -772,16 +705,10 @@ uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 }
 }
 
-#undef ACTOR
 #undef PROP
 #undef TAG_DATA
 
 namespace c_actor_escalate_to_guard_or_combat {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 }
 
@@ -819,11 +746,6 @@ uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_evaluate_combat_state_transition {
 extern "C" {

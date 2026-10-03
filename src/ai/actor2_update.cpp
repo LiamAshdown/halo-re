@@ -733,10 +733,8 @@ void ActorView::update_crouch_state()
 namespace actor_update_danger_avoidance_local {
 extern "C" {
 extern actor_mode_definition actor_mode_definitions[16];
-#define B(o) (((uint8_t *)actor)[(o)])
 #define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
 #define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 }
 
@@ -925,10 +923,8 @@ flee_check:
     return result;
 }
 
-#undef B
 #undef W
 #undef D
-#undef F
 
 namespace actor_update_facing_change_timer_local {
 extern "C" {
@@ -1706,10 +1702,7 @@ guard:
 #undef D
 
 namespace actor_update_movement_destination_local {
-#define A_B(o) (((uint8_t *)actor)[(o)])
 #define A_W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define A_D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define A_F(o) (*(float *)((uint8_t *)actor + (o)))
 static real_point3d *actor_held_firing_position(struct actor *actor)
 {
     uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (actor->encounter_index & halo::k_slot_mask) * 0xb0;
@@ -1832,10 +1825,7 @@ uint8_t ActorView::update_movement_destination()
     return 0;
 }
 
-#undef A_B
 #undef A_W
-#undef A_D
-#undef A_F
 
 namespace actor_update_path_if_needed_local {
 }

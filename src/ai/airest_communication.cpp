@@ -1711,9 +1711,6 @@ void AiCommunication::target_result_reset(ai_communication_target_result *record
     record->unknown_08 = -1;
 }
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f4f0 final : public DialogueCondition {
@@ -1747,13 +1744,7 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
-#undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f560 final : public DialogueCondition {
@@ -1782,12 +1773,7 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
-#undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
@@ -1823,13 +1809,8 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f650 final : public DialogueCondition {
@@ -1855,13 +1836,7 @@ uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
-#undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f690 final : public DialogueCondition {
@@ -1893,9 +1868,6 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
-#undef OBJECT
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
@@ -1942,9 +1914,6 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f7b0 final : public DialogueCondition {
@@ -1970,13 +1939,7 @@ uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
-#undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f7f0 final : public DialogueCondition {
@@ -2004,9 +1967,6 @@ uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef ACTOR
-#undef PROP
-#undef OBJECT
 
 /**
  * Behaviour of ai dispatch queued order, moved unchanged from the original free function.

@@ -20,7 +20,6 @@ extern const real_vector3d *global_down3d_pointer;
 
 extern double sqrt(double x);
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
@@ -181,7 +180,6 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
 }
 }
 
-#undef ACTOR
 #undef OBJECT_DATA
 #undef TAG_DATA
 
@@ -688,7 +686,6 @@ extern "C" {
 
 extern double sqrt(double x);
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 static actor *actor_try_get(datum_index handle)
@@ -823,7 +820,6 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
 }
 }
 
-#undef ACTOR
 #undef TAG_DATA
 
 namespace c_actor_fill_unit_position_context {

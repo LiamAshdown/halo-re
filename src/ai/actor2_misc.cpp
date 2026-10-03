@@ -622,11 +622,6 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 }
 
 namespace actor_process_pending_command_list_local {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -656,11 +651,6 @@ uint8_t ActorView::process_pending_command_list()
     return started;
 }
 
-#undef ACTOR
-#undef B
-#undef W
-#undef D
-#undef F
 
 namespace actor_process_vehicle_seat_exit_local {
 extern "C" {
@@ -971,11 +961,6 @@ void ActorView::propagate_unit_field(int16_t value)
 }
 
 namespace actor_raise_timer_5f6_local {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -995,11 +980,6 @@ void ActorView::raise_timer_5f6(int32_t ticks)
     }
 }
 
-#undef ACTOR
-#undef B
-#undef W
-#undef D
-#undef F
 
 namespace actor_rate_potential_target_local {
 }
@@ -2553,7 +2533,6 @@ typedef struct actor_dodge_entry {
     float bias;
 } actor_dodge_entry;
 extern const actor_dodge_entry actor_dodge_table[];
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
@@ -2628,7 +2607,6 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     return queued;
 }
 
-#undef ACTOR
 
 namespace actor_toggle_active_state_local {
 extern "C" {
@@ -2753,9 +2731,6 @@ void ActorView::unlink_unit()
 namespace actor_vehicle_not_recently_left_local {
 extern "C" {
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -2775,9 +2750,6 @@ uint8_t ActorView::vehicle_not_recently_left(datum_index vehicle_index)
     return (uint8_t)(game_time->game_time >= *(int32_t *)&act->exited_vehicle_reentry_time);
 }
 
-#undef ACTOR
-#undef TAG_DATA
-#undef PROP
 
 namespace actor_wants_reload_or_swap_local {
 }
