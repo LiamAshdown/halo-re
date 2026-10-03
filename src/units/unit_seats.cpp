@@ -230,7 +230,7 @@ void UnitView::detach_and_enter_named_seat(uint32_t target_parent_index, char *s
     }
     vehicle_tag = halo::objects::tag_as<Unit>(*(datum_index *)halo::objects::object_record_bytes(target_parent_index));
     for (i = 0; i < (int32_t)vehicle_tag->seats.count; i++) {
-        char *seat_label = (char *)(halo::objects::block_element<UnitSeat>(vehicle_tag->seats, i).label.string);
+        char *seat_label = halo::objects::block_element<UnitSeat>(vehicle_tag->seats, i).label.string;
 
         if (_stricmp(seat_marker_name, seat_label) != 0) {
             continue;
@@ -1217,7 +1217,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
                 continue;
             }
             if (candidate->type != _object_type_vehicle &&
-                !UnitView(candidate_index).set_or_test_seat_and_weapon_label((char *)(halo::objects::block_element<UnitSeat>(vehicle_tag->seats, seat).label.string), 0, 0)) {
+                !UnitView(candidate_index).set_or_test_seat_and_weapon_label(halo::objects::block_element<UnitSeat>(vehicle_tag->seats, seat).label.string, 0, 0)) {
                 continue;
             }
             if (candidate->parent_object != k_datum_index_none) {

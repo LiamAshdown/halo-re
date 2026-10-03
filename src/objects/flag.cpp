@@ -152,7 +152,7 @@ void halo::objects::FlagView::cloth_mark_border_cells(Flag *tag)
                 return;
             }
 
-            raw = *(int16_t *)((uint8_t *)tag->attachment_points.pointer + point_index * 0x34);
+            raw = halo::objects::block_element<FlagAttachmentPoint>(tag->attachment_points, point_index).height_to_next_attachment;
             if (raw < 0) {
                 clamped = 0;
             } else {
@@ -279,16 +279,16 @@ void halo::objects::FlagSystem::destroy(datum_index flag_index)
 void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_index flag_index, uint32_t arg3,
     uint32_t arg4)
 {
-    uint8_t *self = (uint8_t *)flag_data->data + halo::datum_slot(flag_index) * 0x16bc;
-    Flag *tag = (Flag *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)(self + 0xc))].data;
+    flag *self = reinterpret_cast<flag *>(static_cast<uint8_t *>(flag_data->data) + halo::datum_slot(flag_index) * 0x16bc);
+    Flag *tag = halo::objects::tag_as<Flag>(self->definition_tag);
 
-    *(datum_index *)(self + 8) = object_index;
-    if (*(int16_t *)(self + 6) > 5 || self[3] == 0) {
-        halo::objects::flag_cloth_update((flag *)self, tag, 5.0f);
-        self[3] = 1;
+    self->object_index = object_index;
+    if (self->update_counter > 5 || self->unknown_03 == 0) {
+        halo::objects::flag_cloth_update(self, tag, 5.0f);
+        self->unknown_03 = 1;
     }
-    *(int16_t *)(self + 6) = 0;
-    if (self[2] == 0) {
+    self->update_counter = 0;
+    if (self->invalid == 0) {
         halo::objects::flag_render((uint32_t *)self, (uint32_t *)arg3, tag, (uint8_t *)arg4);
     }
 }
@@ -317,7 +317,7 @@ void halo::objects::FlagSystem::update(float dt)
             flag *entry = (flag *)((uint8_t *)flags->data + halo::datum_slot(current) * flags->size);
             datum_index object_index = entry->object_index;
             void *tag_data = halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
-            int16_t *update_counter = (int16_t *)((uint8_t *)entry + 6);
+            int16_t *update_counter = &entry->update_counter;
 
             *update_counter = *update_counter + 1;
             if (object_index != k_datum_index_none && *update_counter < 5 && dt != 0.0f) {
@@ -360,7 +360,7 @@ void halo::objects::FlagSystem::update(float dt)
 void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
 {
     flag *entry = self;
-    int retracting = (*((uint8_t *)entry + 4) == 0);
+    int retracting = (entry->deployed == 0);
     bsp_leaf_reference node_ref;
     uint32_t physics_a = 0, physics_b = 0;
 
@@ -400,7 +400,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                 row_cursor = (col == 0) ? (int16_t)(tag->height - 1) : 0;
 
                 for (;;) {
-                    real_point3d *vertex;
+                    flag_vertex *vertex;
                     real_point3d target;
                     int32_t contributor_count;
                     uint32_t mode;
@@ -413,7 +413,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                         if (!(row_cursor < tag->height)) break;
                     }
 
-                    vertex = (real_point3d *)((uint8_t *)entry + 0x1c + (tag->height * col + row_cursor) * 0x18);
+                    vertex = &entry->vertices[tag->height * col + row_cursor];
                     contributor_count = 0;
                     mode = 1;
 
@@ -436,9 +436,9 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                         wind_dir.k = dir->z * wind_scale;
                     }
 
-                    target = *vertex;
+                    target = vertex->position;
 
-                    halo::physics::point_physics_tick((real_vector3d *)((uint8_t *)vertex + 0x0c)  , mode,
+                    halo::physics::point_physics_tick(reinterpret_cast<real_vector3d *>(&vertex->previous_position), mode,
                         (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data, &node_ref,
                         physics_b, &target, &wind_dir, 0, 0, 0.02f, dt);
 
@@ -454,8 +454,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                             int16_t nrow = neighbour_drow[n] + row_cursor;
 
                             if (ncol >= 0 && ncol < tag->width && nrow >= 0 && nrow < tag->height) {
-                                real_point3d *nvp = (real_point3d *)((uint8_t *)entry + 0x1c +
-                                                                      (tag->height * ncol + nrow) * 0x18);
+                                real_point3d *nvp = &entry->vertices[tag->height * ncol + nrow].position;
                                 float dx = target.x - nvp->x;
                                 float dy = target.y - nvp->y;
                                 float dz = target.z - nvp->z;
@@ -500,11 +499,11 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
 
                     {
                         float inv_dt = 1.0f / dt;
-                        real_vector3d *velocity_slot = (real_vector3d *)((uint8_t *)vertex + 0x0c);
-                        velocity_slot->i = (target.x - vertex->x) * inv_dt;
-                        velocity_slot->j = (target.y - vertex->y) * inv_dt;
-                        velocity_slot->k = (target.z - vertex->z) * inv_dt;
-                        *vertex = target;
+                        real_vector3d *velocity_slot = reinterpret_cast<real_vector3d *>(&vertex->previous_position);
+                        velocity_slot->i = (target.x - vertex->position.x) * inv_dt;
+                        velocity_slot->j = (target.y - vertex->position.y) * inv_dt;
+                        velocity_slot->k = (target.z - vertex->position.z) * inv_dt;
+                        vertex->position = target;
                     }
 
                     row_cursor = (int16_t)(row_cursor + row_step);
@@ -530,7 +529,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
     for (i = 0; i < (int32_t)tag->attachment_points.count; i++) {
         object_marker marker;
         halo::objects::object_get_node_local_transform(entry->object_index,
-            (char *)((uint8_t *)tag->attachment_points.pointer + i * 0x34 + 0x14),
+            halo::objects::block_element<FlagAttachmentPoint>(tag->attachment_points, i).marker_name.string,
             &marker, 1);
         marker_positions[i] = marker.node_transform.position;
     }
@@ -568,7 +567,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
                     break;
                 }
 
-                raw = *(int16_t *)((uint8_t *)tag->attachment_points.pointer + point_index * 0x34);
+                raw = halo::objects::block_element<FlagAttachmentPoint>(tag->attachment_points, point_index).height_to_next_attachment;
                 if (raw < 0) {
                     span = 0;
                 } else {
@@ -635,8 +634,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
                 for (r = 0; r < tag->width; r++) {
                     int16_t c;
                     for (c = 0; c < tag->height; c++) {
-                        real_point3d *vertex_position =
-                            (real_point3d *)((uint8_t *)entry + 0x1c + (tag->height * r + c) * 0x18);
+                        real_point3d *vertex_position = &entry->vertices[tag->height * r + c].position;
                         vertex_position->x += delta.i;
                         vertex_position->y += delta.j;
                         vertex_position->z += delta.k;
@@ -660,8 +658,8 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
 void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_block, Flag *tag,
     uint8_t *second_geometry)
 {
-    int16_t width = ((struct Flag *)tag)->width;
-    int16_t height = ((struct Flag *)tag)->height;
+    int16_t width = tag->width;
+    int16_t height = tag->height;
     int32_t model_context;
     void *normal_buffer;
     void *index_buffer;

@@ -550,7 +550,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
         return;
     }
     if ((int16_t)halo::objects::object_get_node_local_transform(unit_index,
-            (char *)(halo::objects::block_element<BipedContactPoint>(biped_tag->contact_point, contact_point_index).marker_name.string), &marker, 1) == 0) {
+            halo::objects::block_element<BipedContactPoint>(biped_tag->contact_point, contact_point_index).marker_name.string, &marker, 1) == 0) {
         return;
     }
     halo::effects::effect_marker_environment_probe(halo::objects::tag_handle(biped_tag->footsteps), (int16_t)trigger_kind,

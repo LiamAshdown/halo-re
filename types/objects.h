@@ -887,7 +887,9 @@ typedef struct flag {
     int16_t identifier;             // 0x00 datum salt
     uint8_t invalid;                // 0x02 raised when the tag grid is out of range
     uint8_t unknown_03;             // 0x03 zeroed at create
-    uint32_t unknown_04;            // 0x04
+    uint8_t deployed;               // 0x04 zero while flag_cloth_update treats the flag as retracting
+    uint8_t unknown_05;             // 0x05
+    int16_t update_counter;         // 0x06 ticks since the flag was last rendered; render_callback and the tick update compare it with 5
     datum_index object_index;       // 0x08 -1 at create
     datum_index definition_tag;     // 0x0c the Flag tag
     real_point3d previous_marker_position; // 0x10
