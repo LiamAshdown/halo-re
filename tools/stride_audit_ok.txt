@@ -1,0 +1,73 @@
+src/effects/decal_place.cpp|fallback_queue (int32_t*) [0x400]
+src/game/game1_king.cpp|text (uint16_t/wchar_t*) [0x100]
+src/game/game1_scoreboard.cpp|out (scoreboard_entry/wchar_t*) [0x4f]
+src/game/game2_engine_match.cpp|buffer (wchar_t*) [0x3ff]
+src/game/game2_game_lifecycle_2.cpp|(uint32_t*)x + 0xc
+src/game/game2_game_lifecycle_2.cpp|(uint32_t*)x + 0xd
+src/game/gamerest_updates.cpp|record (player_action/uint32_t/update_record*) [0xc1]
+src/gamespy/gt2.h|key (uint32_t*) [0x20]
+src/input/binding_names.cpp|out_name (uint16_t*) [0x17]
+src/input/binding_names.cpp|out_name (uint16_t*) [0x20]
+src/input/binding_names.cpp|out_text (uint16_t*) [0x17]
+src/input/binding_names.cpp|out_text (uint16_t*) [0x18]
+src/input/binding_names.cpp|out_text (uint16_t*) [0xd]
+src/interface/ifr1_controls_bindings.cpp|((uint16_t*)..)[0x3f]
+src/interface/ifr1_controls_bindings.cpp|buffer (uint16_t*) [0x1f]
+src/interface/ifr1_first_person_weapon_controller_2.cpp|((int16_t*)..)[0xf]
+src/interface/ifr1_first_person_weapon_controller_2.cpp|list_entries (int16_t*) [0x11]
+src/interface/ifr2_hud.cpp|crosshair_state (int32_t*) [0x13]
+src/interface/ifr2_hud.cpp|out_array (int32_t*) [0x13]
+src/interface/ifr2_hud.cpp|waypoints (hud_waypoint*) [0x10]
+src/interface/ifr2_keyboard.cpp|(UnicodeStringListString*)x + 0xe
+src/interface/ifr2_network.cpp|desc_buf (uint16_t*) [0xff]
+src/interface/ifr2_network.cpp|name_buf (uint16_t*) [0x7f]
+src/interface/ifr2_network_3.cpp|strings (UnicodeStringListString*) [0x13]
+src/interface/ifr2_players.cpp|name (uint16_t/wchar_t*) [0xb]
+src/interface/ifr2_video_2.cpp|((uint16_t*)..)[0xf]
+src/interface/uis_draw.cpp|ui_button_caption (uint16_t*) [0x28]
+src/interface/uis_events_2.cpp|text (uint16_t*) [0x7f]
+src/interface/uis_game_data_inputs.cpp|text (uint16_t*) [0x17]
+src/interface/uis_game_data_inputs.cpp|text (uint16_t*) [0xb]
+src/interface/uis_game_data_inputs.cpp|text (uint16_t*) [0xf]
+src/interface/uis_lists.cpp|out (uint16_t*) [0x3f]
+src/interface/uis_lists.cpp|out_name (uint16_t*) [0x3f]
+src/interface/uis_profiles_1.cpp|dest (uint16_t*) [0x0b]
+src/items/equipment.cpp|update_record (uint32_t*) [0x11]
+src/items/weapon.cpp|((uint16_t*)..)[0x17]
+src/items/weapon_network.cpp|update_record (uint32_t*) [0x11]
+src/networking/net1_client.cpp|record (uint16_t*) [0x80]
+src/networking/net1_runtime.cpp|buffer (uint16_t/uint32_t*) [0x600]
+src/networking/net1_runtime.cpp|payload_slot (int32_t*) + 0xc
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) + 0x30
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) + 0x60
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) + 0x90
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) + 0xc0
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) [0x30]
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) [0x60]
+src/networking/net1_server.cpp|machine_id_ptr (int16_t*) [0x90]
+src/networking/net1_session.cpp|out_name (wchar_t*) [0xb]
+src/networking/net2_message_delta_vector.cpp|descriptor (int32_t/uint32_t*) + 0x67
+src/networking/net2_player_update_client.cpp|decode_context (int32_t*) [0x11]
+src/networking/net2_player_update_history.cpp|decode_context (int32_t*) [0x11]
+src/networking/net2_server_browser.cpp|row (network_ui_widget*) [0x100]
+src/networking/net2_ticker.cpp|text_row (uint32_t*) [0xf]
+src/networking/net2_vector_quantize.cpp|descriptor (int32_t*) + 0x67
+src/objects/object_lighting.cpp|sample (float*) + 0x0d
+src/objects/object_lighting.cpp|sample (float*) + 0x17
+src/rasterizer/decals.cpp|((uint32_t*)..)[0x19]
+src/rasterizer/decals.cpp|((uint32_t*)..)[0x1a]
+src/rasterizer/decals.cpp|((uint32_t*)..)[0x1b]
+src/rasterizer/decals.cpp|((uint32_t*)..)[0x1c]
+src/rasterizer/decals.cpp|((uint32_t*)..)[0x1d]
+src/rasterizer/resources.cpp|stride (i*) + 0x30
+src/saved_games/saved_game_index.cpp|out_name (uint16_t*) [0x7f]
+src/structures/structure_clusters.cpp|clipped (inverse_z*) [0x100]
+src/structures/structure_draw.cpp|vtable (__stdcall*) [0xc]
+src/units/unit_control_2.cpp|((ModelAnimationsAnimation*)..)[0xa]
+src/units/unit_control_2.cpp|((int16_t*)..)[0xa]
+src/units/unit_control_2.cpp|((int16_t*)..)[0xb]
+src/units/vehicle_controls_2.cpp|out_transform (float*) [0x18]
+src/units/vehicle_controls_2.cpp|out_transform (float*) [0x1f]
+src/units/vehicle_controls_2.cpp|out_transform (float*) [0x20]
+src/units/vehicle_controls_2.cpp|out_transform (float*) [0x21]
+src/units/vehicle_controls_2.cpp|out_transform (float*) [0x22]

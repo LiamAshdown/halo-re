@@ -227,7 +227,7 @@ char Parser::parse_cond(int16_t function_index, datum_index node_index) const
 
 /**
  * Recursively desugars a cond special-form's list of condition/result pairs into a chain of nested if syntax
- * nodes; see UNSURE notes above for the exact node-splicing story.
+ * nodes; the end-of-list node is a primitive of the cond type with value 0.
  *
  * @address 0x4848f0
  */
@@ -1121,7 +1121,7 @@ char Parser::parse_string_arguments(int16_t function_index, datum_index node_ind
 
 /**
  * Looks up a parsed enum/keyword token by exact name in Scenario::references and stores its TagID if found and
- * its tag group matches the group expected for the node's type. Always returns 1 (see UNSURE above); a non-match
+ * its tag group matches the group expected for the node's type. Always returns 1; a non-match
  * simply leaves the node's data untouched.
  *
  * @address 0x486ce0

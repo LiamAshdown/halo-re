@@ -112,7 +112,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
 
 /**
  * Returns one of eight hardcoded 32-bit constants selected by `selector` (0..7), or 0x249248 for any other
- * value. UNSURE: see header for what these values actually mean.
+ * value.
  *
  * @address 0x465380
  */

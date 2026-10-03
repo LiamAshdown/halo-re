@@ -222,7 +222,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
 /**
  * blam-cc: EBX -> flag_object_index, EDI -> position
  * Drops a CTF flag object at `position` facing the world identity axes, wakes it and resets its
- * velocity, clears an equipment-runtime flag bit (UNSURE which), and resets its
+ * velocity, clears the weapon armed-expiry flag bit, and resets its
  * held-by/held-since bookkeeping (item_data::ignore_object_index and held_game_time) as if it
  * had just been returned to the ground.
  *

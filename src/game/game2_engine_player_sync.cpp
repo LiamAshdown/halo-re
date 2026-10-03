@@ -349,7 +349,7 @@ void EnginePlayerSync::players_update_server(void)
 }
 
 /**
- * While hosting: for every player whose unit has its (UNSURE) +0x4b8 flag set, clears the flag, copies +0x4bc
+ * While hosting: for every player whose unit has its +0x4b8 flag set, clears the flag, copies +0x4bc
  * into player+0xf4, and copies the unit's parent object's (or its own, if unparented) position into
  * player+0xf8/+0xfc/+0x100. For a non-local player, additionally logs a debug line with the current tick
  * count, game time, the copied value, position and the unit's own velocity/throttle.
@@ -941,7 +941,6 @@ int32_t EnginePlayerSync::player_profile_cache_find(datum_index player_handle)
 /**
  * Re-captures every active player-profile-cache entry with the given `commit` flag, then invokes the active
  * game engine's optional profiles_updated callback (commit, callback_extra_ arg), if one is registered.
- * UNSURE: see header for the callback's real signature.
  *
  * @address 0x466cb0
  */

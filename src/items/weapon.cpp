@@ -917,8 +917,8 @@ void weapon_ref::set_loaded_ammo_fraction(real fraction)
 }
 
 /**
- * Writes a weapon's ready_timer directly. UNSURE: called by unit_update when the holder Object
- * tag has flag 0x800000 (integrated_light_cntrls_weapon); see items_types_notes.md.
+ * Writes a weapon's ready_timer directly; unit_update calls it when the holder Object tag has flag 0x800000
+ * (integrated_light_cntrls_weapon).
  *
  * @address 0x4c2b20
  */

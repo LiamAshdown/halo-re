@@ -424,8 +424,7 @@ real distance_falloff_fraction(real value, real max_range)
 /**
  * C entry point for halo::game::ScalarMath::closest_point_on_segment; forwards to the C++ implementation.
  * register convention: target unit index in ECX (in_ECX, forwarded to unit_get_look_origin_
- * and_direction), a third vector in EBX (unaff_EBX) whose real identity was not pinned down
- * (see UNSURE below), reference point and output point as the two recognized stack parameters
+ * and_direction), the axis vector in EBX (unaff_EBX) the projection is taken against, reference point and output point as the two recognized stack parameters
  * (param_1, param_2).
  * // blam-cc: ECX -> unit_index, EBX -> aux_vector, stack -> reference_point, out_closest
  * blam-cc: ECX -> unit_index, EBX -> aux_vector, stack -> reference_point, out_closest

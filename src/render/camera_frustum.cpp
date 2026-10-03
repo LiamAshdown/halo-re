@@ -640,8 +640,8 @@ int16_t test_bounding_box(render_frustum *frustum, real_rectangle3d *box, uint8_
  * at least one plane) or fully inside. First rejects spheres that do not even overlap the
  * frustum's own overall AABB (world_bounds) or that are entirely outside any one of the six
  * frustum planes by more than the radius; a sphere that passes is then fully inside only if it
- * also sits more than a radius on the inside of five of those six planes (see the UNSURE note
- * above for the sixth).
+ * also sits more than a radius on the inside of five of those six planes (retail never keeps plane 4's
+ * distance, so it only takes part in the rejection test).
  *
  * @address 0x0050d890
  */

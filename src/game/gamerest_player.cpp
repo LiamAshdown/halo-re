@@ -2128,7 +2128,7 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
  * frees update_server_queues's matching slot's queue storage and deletes that slot too (both
  * queue arrays are indexed the same way as player_data, so the player's own handle doubles as
  * the datum handle into each). Passes the low byte of player::unknown_64 to player_delete as its
- * machine_index (see UNSURE above), then runs the two networking-side cleanups and clears the
+ * machine_index, then runs the two networking-side cleanups and clears the
  * player's player-profile-cache entry, decrementing the cache count.
  *
  * @address 0x473bb0
@@ -3417,7 +3417,6 @@ datum_index player_new_network(datum_index requested_index, uint32_t machine_ind
  * register convention: player_handle in EAX (unaff_EAX/in_EAX in Ghidra's read of it).
  * // blam-cc: EAX -> player_handle
  * blam-cc: EAX -> array,
- * blam-cc: EAX -> table, ESI -> player_handle; UNSURE full behavior
  * blam-cc: ESI -> player_handle
  * blam-cc: EAX -> player_handle
  *
@@ -3487,7 +3486,6 @@ int32_t players_active_count(void)
  * C entry point for halo::game::Players::any_pending_seat_or_respawn; forwards to the C++ implementation.
  * register convention: no arguments; return value in EAX.
  * blam-cc: EDI -> iterator
- * blam-cc: EAX -> unit_handle; UNSURE purpose
  *
  * @address 0x475090
  */

@@ -167,9 +167,8 @@ void effect_ref::destroy()
 }
 
 /**
- * UNSURE overall (see file header): whether object_index has flag bit 2 of the byte at +0x106
- * set, and if so, whether the linked index at +0x41c (offset by 0x1e ticks) is still within
- * k_game_tick globals's current tick.
+ * Returns 1 when object_index has flag bit 2 of the byte at +0x106 set and the tick stamp at +0x41c, plus 0x1e
+ * ticks, is older than the current game tick.
  *
  * @address 0x450680
  */

@@ -82,7 +82,6 @@ public:
     void update_steering_deviation_effects(real_vector3d *reference_direction, uint8_t *contact_points);
 
     void apply_impulse(real_vector3d *impulse);
-    void can_see_point(real_vector3d *target_direction, real_vector3d *perp, real_vector3d *up);
     void check_fell_off_level();
     void forget_object_reference(datum_index forgotten_object_index);
     uint32_t get_biped_specific_value();
@@ -387,7 +386,6 @@ void unit_broadcast_state_change_event(unit_state_change_record record);
 int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t bit_budget);
 datum_index unit_build_seat_occupant_zone_list(uint32_t unit_index);
 void unit_calculate_luminosity(uint32_t object_index);
-void unit_can_see_point(uint32_t unit_index, real_vector3d *target_direction, real_vector3d *perp, real_vector3d *up);
 void unit_cause_melee_damage(uint32_t unit_index, uint8_t suppress_effect, uint32_t target_object_index, int16_t damage_param4, int16_t damage_param5, int16_t damage_param6, uint32_t damage_param7);
 void unit_check_fell_off_level(uint32_t object_index);
 uint8_t unit_check_weapon_use_permission(uint32_t unit_index, uint32_t weapon_index);

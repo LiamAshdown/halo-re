@@ -151,31 +151,6 @@ void hs_vehicle_test_seat_evaluate(int16_t function_index, uint32_t thread_index
 }
 
 /**
- * C entry point for halo::game::HsPlayerFunctions::camo_screen_effect; forwards to the C++ implementation.
- * register convention: the hs_function_definition* dispatching this evaluate call in EAX
- * (in_EAX), the "first call" flag in ECX (in_ECX); `index` and `thread_index` are this
- * function's own two stack parameters (`index` is never read).
- * // blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
- * blam-cc: ECX -> object_handle, returns in EAX; UNSURE exact effect
- * blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
- *
- * @address 0x47c310
- */
-
-
-/**
- * C entry point for halo::game::HsPlayerFunctions::examine_nearby_vehicle; forwards to the C++ implementation.
- * register convention: the hs_function_definition* dispatching this evaluate call in EAX
- * (in_EAX), the "first call" flag in ECX (in_ECX); `index` and `thread_index` are this
- * function's own two stack parameters (`index` is never read).
- * // blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
- * blam-cc: EAX -> definition, ECX -> first, stack -> index, thread_index
- *
- * @address 0x47b140
- */
-
-
-/**
  * C entry point for halo::game::HsPlayerFunctions::set_action_result; forwards to the C++ implementation.
  * register convention: none -- all three are genuine stack parameters.
  *

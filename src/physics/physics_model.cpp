@@ -831,7 +831,7 @@ namespace halo::physics {
 /**
  * VERIFIED (logic) against disassembly 0x503050..0x503288 (2026-09-30): the discriminant, both roots, the t clamp, the edge
  * parameter branches (near vertex / far vertex sphere test, out_edge_fraction 0 / 1 / param/len) and the return values match;
- * only the floating point summation order was aligned with the x87 code. STILL-UNSURE: the original keeps every
+ * only the floating point summation order was aligned with the x87 code. Known deviation: the original keeps every
  * intermediate in 80-bit registers, so a rare 6/200 difference at the comparisons may remain.
  * stack -> radius, out_t, out_edge_fraction
  *

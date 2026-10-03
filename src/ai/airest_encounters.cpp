@@ -329,7 +329,7 @@ int32_t Encounters::find_best_matching_member(uint32_t packed_reference, int16_t
                 best_by_variant = iterator.cursor;
             }
             if (best_by_type == -1 && requested_actor_data != 0 && squad_actor_data != 0 &&
-                *(int16_t *)(requested_actor_data + 0x14) == squad_actor_data->type) {
+                requested_actor_data->type == squad_actor_data->type) {
                 best_by_type = iterator.cursor;
             }
             if (first_any == -1) {

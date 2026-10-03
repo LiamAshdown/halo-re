@@ -261,7 +261,7 @@ void UnitView::get_camera_position(real_point3d *out)
 /**
  * Computes a look/aim origin and direction for a unit, preferring its pelvis and head model nodes when the
  * Biped tag names both: with the "average pelvis/head" flag (biped_flags bit 0x10) set, origin is their
- * midpoint and direction is the zero vector (UNSURE -- see file header); otherwise origin is the pelvis
+ * midpoint and direction is the zero vector; otherwise origin is the pelvis
  * position and direction is head minus pelvis (unnormalized).
  *
  * @address 0x55a390
@@ -628,7 +628,7 @@ void UnitView::reset_orientation_and_find_position(uint32_t vehicle_index)
 }
 
 /**
- * UNSURE (see file header): rotates the object's forward and up vectors by an angle derived from normalizing
+ * Rotates the object's forward and up vectors by an angle derived from normalizing
  * rotation_axis, then re-derives up as forward crossed with a rotated copy of itself to keep the basis
  * orthonormal, falling back to global_forward3d/global_up3d if the result degenerates.
  *

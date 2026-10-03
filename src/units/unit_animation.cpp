@@ -482,7 +482,7 @@ uint8_t UnitView::dispatch_reaction_animation(int16_t reaction_code)
 
 /**
  * Evaluates whether a (typically vehicle-mounted) unit should flee or evade: gated on the parent vehicle's
- * Unit-tag flag 0x40 (UNSURE), the unit having an actor and not being mid scripted-action, and unknown_322
+ * Unit-tag flag 0x40 (causes_passenger_dialogue), the unit having an actor and not being mid scripted-action, and unknown_322
  * having climbed past 120 ticks. Rate-limited to once every 15 ticks via biped_data.unknown_4f8. Broadcasts
  * one of three AI communication lines (0x26/0x27/ 0x28) depending on whether a nearby open position was found
  * and how fast the unit is turning.

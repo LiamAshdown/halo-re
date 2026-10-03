@@ -412,7 +412,6 @@ uint32_t SaveGameFiles::slot_handle_pack(uint32_t slot_index, uint32_t type_nibb
 }
 
 /**
- * UNSURE: `unused` is read nowhere in this function's body (see header note).
  * If the index file has fewer than 999 records, seeks to the end and writes a new record
  * (source elided, same as savegame_index_write_slot), reporting the new record's slot number
  * through `*out_slot_count`. Returns 1 on success, 0 otherwise.

@@ -14,7 +14,6 @@ static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::va
 namespace halo::game {
 
 /**
- * UNSURE: see header.
  * REWRITTEN (first-boot track, objdump 0x472cc0..0x472e9f): the queues iterated are update_server_queues
  *   (0x006f1d90; the old version iterated nothing and dereferenced NULL), and update_client_advance_read_cursor
  *   (EBX the tick, EDX the slot's count word) always runs at the end. Per tick: the ring slot (0x308 bytes, tick &

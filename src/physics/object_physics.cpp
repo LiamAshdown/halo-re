@@ -639,7 +639,7 @@ namespace halo::physics {
  * no physics reference (tag offset 0x8c == -1); otherwise fills object_index, definition (the
  * Physics tag data), scale (forced to 1.0), the (forward, left, up) orientation basis (left via
  * cross product), and a translation built from the object's position and the Physics
- * definition's centre of mass (see UNSURE above), returning 1.
+ * definition's centre of mass, returning 1.
  *
  * @address 0x5074b0
  */
@@ -744,7 +744,7 @@ namespace halo::physics {
 
 /**
  * Integrates one tick of linear and angular momentum for context's object from torque_and_force
- * (see UNSURE above), then resolves the resulting movement in up to k_physics_integration_substeps
+ * then resolves the resulting movement in up to k_physics_integration_substeps
  * sub-steps: each sub-step re-tests every mass point's movement segment against the world
  * (collision_test_movement_segment), and on the closest hit applies a friction/bounce correction
  * to velocity before repeating, or commits the position/orientation directly once a sub-step finds
@@ -963,7 +963,7 @@ namespace halo::physics {
  * flags k_mass_point_collision_mask: structure BSP + nearby objects) around mass_point->position at definition->radius.
  * If that finds anything and a point test against the resulting model (physics_shape_test_point) also hits,
  * overwrites resting_plane/ground_depth/material_type from the contact, updates
- * _mass_point_on_ground_surface_bit (see UNSURE above), and depletes the hit object's shield
+ * _mass_point_on_ground_surface_bit, and depletes the hit object's shield
  * when the contact was against an object rather than the world.
  *
  * @address 0x507ac0
@@ -1022,7 +1022,7 @@ namespace halo::physics {
 /**
  * VERIFIED (logic) against disassembly 0x5096f0..0x5097d2 (2026-09-30): register/stack roles (EAX axis, ESI up, EDI forward,
  * stack fallback_forward/fallback_up), the fcos/fsin call order into matrix4x3_from_axis_angle, both transforms, the
- * forward renormalise, the Gram-Schmidt step and the zero-length fallback copy match. STILL-UNSURE: the original feeds
+ * forward renormalise, the Gram-Schmidt step and the zero-length fallback copy match. Known deviation: the original feeds
  * fsin/fcos the UNROUNDED extended-precision length returned in st(0); the C rounds it to float first, which only
  * matters for large random axes (angle > ~1e3 rad), as the difftest uses.
  * Rotates forward and up in place by the small rotation axis gives this tick (treating the

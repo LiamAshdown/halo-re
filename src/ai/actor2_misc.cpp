@@ -918,7 +918,7 @@ namespace actor_propagate_unit_field_local {
 }
 
 /**
- * Writes `value` into the unnamed int16 field at object+0xb8 (see UNSURE above) of every unit the actor
+ * Writes `value` into the unnamed int16 field at object+0xb8 of every unit the actor
  * controls: its single unit, every unit in its cluster, or every unit in its swarm's component list.
  *
  * @address 0x4276e0
@@ -1487,9 +1487,9 @@ namespace actor_reset_squad_link_for_type_change_local {
 }
 
 /**
- * UNSURE: the squad index arrives in DX and Ghidra did not attribute it to this call site, so the actor's
- * current squad_index is passed; encounter_add_actor writes it straight back into the same field. FIXED
- * (verified against 0x4290f0..0x429151): the squad is a stack argument (it becomes encounter_add
+ * Cancels the actor's movement action, detaches it from its current encounter (or from the unassigned list when it
+ * has none), then re-adds it to `encounter_index` under `squad_index`, or links it to the unassigned list when
+ * `encounter_index` is none. The squad index is a stack argument in retail, not a register.
  *
  * @address 0x4290f0
  */
