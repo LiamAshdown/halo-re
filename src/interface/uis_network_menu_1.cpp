@@ -289,9 +289,9 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
             scan++;
         }
         int32_t address_length = (int32_t)(scan - text);
-        halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(ip_control->text), 0x40, text);
+        halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(ip_control->text), 0x3e, text);
         halo::text::string_format_wide_va_bounded(
-            0x1f - address_length, reinterpret_cast<uint16_t *>(ip_control->text) + address_length,
+            0x20 - address_length, reinterpret_cast<uint16_t *>(ip_control->text) + address_length,
             reinterpret_cast<const uint16_t *>(ip_port_format_string_0066a564), halo::networking::globals().game_socket_port);
         (halo::interface::widget_text(ip_control))[0x1f] = 0;
     }
