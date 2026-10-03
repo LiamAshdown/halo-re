@@ -1,5 +1,6 @@
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -11,7 +12,6 @@ extern game_variant game_engine_active_variant;
 extern scenario_game_globals *global_scenario_game_globals;
 extern uint8_t *hs_camera_control_pointer;
 extern data_array *object_render_state_cache;
-extern void *runtime_decals_suppressed;
 extern breakable_surface_globals *breakable_surface_state;
 extern data_array *particle_data;
 extern data_array *effect_data;
@@ -42,7 +42,6 @@ extern void objects_initialize(void);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void saved_game_files_initialize(void);
 extern void game_sound_initialize(void);
-extern void detail_objects_globals_allocate(void);
 extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t players_any_without_unit(void);
 extern uint8_t item_any_detonating(void);
@@ -122,10 +121,10 @@ void GameLifecycle::initialize(void)
 
     object_render_state_cache = (data_array *)game_state_new((char *)"cached object render states", 0x100, 0x100);
     objects_initialize();
-    detail_objects_globals_allocate();
+    halo::structures::detail_objects_globals_allocate();
 
     size = 4;
-    runtime_decals_suppressed = (void *)(game_state_cursor + game_state_base);
+    halo::structures::globals().runtime_decals_suppressed = (uint8_t *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 4;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 

@@ -1,3 +1,4 @@
+#pragma once
 // Blam rasterizer module (halo.exe 1.0.10 retail, 0x5132b0..0x537d60, 228 Ghidra functions).
 // This is the Direct3D 9 back end of the renderer. It owns the device and its caps, the window
 // parameters of the frame being drawn, the dynamic vertex and index caches, the transparent

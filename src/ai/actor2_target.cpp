@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 namespace halo::ai {
 
@@ -514,8 +515,6 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location);
-extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b,
-    ScenarioStructureBSP *structure_bsp);
 }
 }
 
@@ -580,7 +579,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (!(range * range > distance_squared)) {
         return 0;
     }
-    pas = cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
+    pas = halo::structures::cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
     if (pas & 0x80) {
         return 0;
     }

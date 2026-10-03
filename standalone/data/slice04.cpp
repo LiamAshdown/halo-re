@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/structures/api.hpp"
 #include <stdint.h>
 
 extern "C" {
@@ -209,7 +210,7 @@ void * game_state_after_load_procs[13] = {
     game_sound_reconcile_scripting_state, observer_initialize,
     update_queues_revert, decal_geometry_cache_restore_procs,
     function_do_nothing, function_do_nothing,
-    detail_objects_invalidate, game_state_after_load_restore_time,
+    halo::structures::detail_objects_invalidate, game_state_after_load_restore_time,
     players_rebind_local_player_after_load, director_game_state_loaded,
     hud_messaging_clear_after_load,
 };
@@ -262,7 +263,7 @@ void * structure_bsp_activate_procedures[13] = {
     ai_unassigned_actors_attach_to_structure_bsp, effects_refresh_structure_locations,
     particles_refresh_structure_locations, particle_system_resolve_local_players,
     contrail_refresh_lightmap, decal_rehash_object_decals,
-    structure_runtime_decals_mark_dirty, observer_update_location,
+    halo::structures::structure_runtime_decals_mark_dirty, observer_update_location,
     players_structure_bsp_switch_regroup, sounds_refresh_structure_locations,
     scenario_objects_place_for_structure_bsp_on_activate,
 };
@@ -273,7 +274,7 @@ void * structure_bsp_deactivate_procedures[10] = {
     object_lights_detach_from_structure_bsp, ai_reset_fire_group_assignments,
     function_do_nothing, function_do_nothing,
     function_do_nothing, function_do_nothing,
-    structure_runtime_decals_evict, decals_detach_from_structure_bsp,
+    halo::structures::structure_runtime_decals_evict, decals_detach_from_structure_bsp,
 };
 
 /* 0x0069e940 size 184: glow_sprite_shader */

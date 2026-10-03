@@ -18,10 +18,9 @@
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
-extern uint8_t render_cluster_has_sky;
-extern int16_t render_cluster_sky_index;
 extern Scenario *global_scenario;
 extern float render_time_since_frame;
 extern float sky_animation_times[9];
@@ -62,12 +61,6 @@ extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t console_debug_toggle_69c614;
 extern int16_t console_debug_toggle_6893e4;
 extern uint8_t decals_for_all_responses;
-extern int16_t visible_cluster_count;
-extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
-extern int16_t visible_surface_count;
-extern int32_t visible_surface_indices[0x4000];
-extern uint8_t picked_surfaces_valid;
-extern int32_t picked_surfaces_geometry;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t render_force_flag;
 extern uint32_t rasterizer_active_environment_effect;
@@ -76,14 +69,11 @@ extern uint8_t rasterizer_secondary_groups_drawn;
 extern int16_t rasterizer_decal_layer;
 extern d3d_caps9 rasterizer_caps;
 extern game_engine_definition *current_game_engine;
-extern void structure_bsp_cluster_visibility_update(void);
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source);
 extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled);
 extern void first_person_weapon_update_active_state(void);
 extern void object_lights_update_all(void);
-extern void structure_picked_polygon_refresh(void);
-extern void structure_picked_polygon_draw(void);
 extern void lens_flare_update_samples(void);
 extern void lights_apply_spot_falloff(void);
 extern void lights_apply_spot_falloff_specular(void);
@@ -98,14 +88,9 @@ extern void rasterizer_shader_environment_technique_self_illumination_set_states
 extern void rasterizer_shader_decal_pass_set_states(void);
 extern void rasterizer_water_fade_compute_and_set_states(void);
 extern void rasterizer_set_shader_stage_config(int16_t mode);
-extern void structure_leaf_faces_for_each(int32_t render_context, structure_lightmap_begin_callback lightmap_begin,
-    structure_material_callback material_cb, structure_lightmap_end_callback lightmap_end,
-    structure_transparent_material_callback transparent_material_cb, int32_t *surface_indices,
-    int16_t surface_index_count);
 extern void weather_update_local_player(void);
 extern void particle_systems_render(void);
 extern void transparent_geometry_group_draw_all(uint8_t resort);
-extern void detail_objects_update_render_list(void);
 extern void lens_flare_render_all(void);
 extern void first_person_weapon_update_screen_effects(void);
 extern void rasterizer_screen_flash_render(void);
@@ -163,8 +148,8 @@ static void draw_visible_cluster_decals(void)
 {
     int16_t i;
 
-    for (i = 0; i < visible_cluster_count; i++) {
-        rasterizer_decals_draw_cluster((int16_t)(uint16_t)visible_clusters[i].cluster_index);
+    for (i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
+        rasterizer_decals_draw_cluster((int16_t)(uint16_t)halo::structures::globals().visible_clusters[i].cluster_index);
     }
 }
 
@@ -193,9 +178,9 @@ static void structure_pass(structure_lightmap_begin_callback lightmap_begin,
                            structure_lightmap_end_callback lightmap_end,
                            structure_transparent_material_callback transparent_material_cb)
 {
-    structure_leaf_faces_for_each(picked_surfaces_geometry, lightmap_begin, material_cb,
-                                  lightmap_end, transparent_material_cb, visible_surface_indices,
-                                  visible_surface_count);
+    halo::structures::structure_leaf_faces_for_each(halo::structures::globals().picked_surfaces_geometry, lightmap_begin, material_cb,
+                                  lightmap_end, transparent_material_cb, halo::structures::globals().visible_surface_indices,
+                                  halo::structures::globals().visible_surface_count);
 }
 
 namespace halo::render::frame {
@@ -219,13 +204,13 @@ void sky(void)
     real_matrix4x3 sky_transform;
     int16_t i;
 
-    if (!render_cluster_has_sky) {
+    if (!halo::structures::globals().render_cluster_has_sky) {
         return;
     }
     sky_tag = 0xffffffff;
-    if (render_cluster_sky_index >= 0 &&
-        (int32_t)render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
-        sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[render_cluster_sky_index].sky.tag_id);
+    if (halo::structures::globals().render_cluster_sky_index >= 0 &&
+        (int32_t)halo::structures::globals().render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
+        sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[halo::structures::globals().render_cluster_sky_index].sky.tag_id);
     }
     sky = 0;
     if (sky_tag != 0xffffffff) {
@@ -389,7 +374,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     parameters.window_index = render_window_index;
     parameters.fog = render_fog_state;
 
-    structure_bsp_cluster_visibility_update();
+    halo::structures::structure_bsp_cluster_visibility_update();
     player_effect_build_screen_flash(&parameters.screen_flash, local_player_index);
     rasterizer_begin_frame(&parameters);
     first_person_weapon_update_zoom_static_tint(1);
@@ -398,8 +383,8 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     first_person_weapon_update_active_state();
     object_lights_update_all();
     render_objects();
-    structure_picked_polygon_refresh();
-    structure_picked_polygon_draw();
+    halo::structures::structure_picked_polygon_refresh();
+    halo::structures::structure_picked_polygon_draw();
     lens_flare_update_samples();
     if (console_debug_toggle_69c614) {
         shadow_data.object_index = 0xffffffff;
@@ -421,7 +406,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     draw_visible_cluster_decals();
     rasterizer_end_decal_pass();
 
-    if (picked_surfaces_valid) {
+    if (halo::structures::globals().picked_surfaces_valid) {
         rasterizer_fog_screen_overlay_set_states();
         structure_pass(0, (structure_material_callback)render_window_structure_material_0x511f70,
                        0, 0);
@@ -438,7 +423,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     }
     lights_apply_spot_falloff_specular();
 
-    if (picked_surfaces_valid) {
+    if (halo::structures::globals().picked_surfaces_valid) {
         saved_69c67c = render_force_flag;
         if (*(int32_t *)&global_structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
             render_force_flag = 1;
@@ -448,27 +433,27 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
                        (structure_material_callback)render_window_structure_material_0x511fe0,
                        (structure_lightmap_end_callback)function_do_nothing, 0);
         render_force_flag = saved_69c67c;
-        if (picked_surfaces_valid) {
+        if (halo::structures::globals().picked_surfaces_valid) {
             rasterizer_shader_environment_technique_multipurpose_set_states();
             structure_pass(render_window_structure_lightmap_begin_0x512010,
                            (structure_material_callback)render_window_structure_material_0x512020,
                            (structure_lightmap_end_callback)function_do_nothing, 0);
             rasterizer_active_environment_effect = 0;
-            if (picked_surfaces_valid) {
+            if (halo::structures::globals().picked_surfaces_valid) {
                 rasterizer_shader_environment_technique_self_illumination_set_states();
                 structure_pass(0, (structure_material_callback)render_window_structure_material_0x512040,
                                0, 0);
-                if (picked_surfaces_valid) {
+                if (halo::structures::globals().picked_surfaces_valid) {
                     rasterizer_shader_decal_pass_set_states();
                     structure_pass(0,
                         (structure_material_callback)render_window_structure_material_0x512070, 0, 0);
-                    if (picked_surfaces_valid) {
+                    if (halo::structures::globals().picked_surfaces_valid) {
                         transparent_geometry_group_last_drawn_key = 0;
                         rasterizer_secondary_groups_drawn = 0;
                         structure_pass(0, 0, 0,
                             (structure_transparent_material_callback)
                                 render_window_structure_transparent_0x512080);
-                        if (picked_surfaces_valid) {
+                        if (halo::structures::globals().picked_surfaces_valid) {
                             rasterizer_water_fade_compute_and_set_states();
                             structure_pass(0,
                                 (structure_material_callback)render_window_structure_material_0x5120c0,
@@ -492,11 +477,11 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     rasterizer_decal_pass_begin(4);
     draw_visible_cluster_decals();
     reset_decal_fog_and_depth_bias();
-    detail_objects_update_render_list();
+    halo::structures::detail_objects_update_render_list();
     transparent_geometry_group_draw_all(0);
     rasterizer_set_shader_stage_config(0);
 
-    if (picked_surfaces_valid) {
+    if (halo::structures::globals().picked_surfaces_valid) {
         structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
         structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
     }

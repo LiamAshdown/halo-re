@@ -84,7 +84,6 @@ extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_
 extern float sound_dialog_ducking_gain;
 extern float sound_ducking_gain;
 extern float sound_time_delta;
-extern uint8_t cluster_sound_distance_lookup(int16_t cluster_a, int16_t cluster_b, ScenarioStructureBSP *structure_bsp);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern int16_t directsound_first_channel_of_type[4];
 extern directsound_channel directsound_channels[k_maximum_sound_channels];

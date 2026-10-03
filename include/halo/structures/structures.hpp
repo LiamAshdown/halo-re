@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "halo/structures/globals.hpp"
 #include "halo/structures/structure_bsp_bounds.hpp"
 #include "halo/structures/structure_bsp_query.hpp"
 #include "halo/structures/structure_bsp_view.hpp"

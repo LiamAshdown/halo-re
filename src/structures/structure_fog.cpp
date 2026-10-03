@@ -10,8 +10,6 @@
 extern "C" {
 extern Scenario *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t fog_plane_vector_valid;
-extern real_vector3d fog_plane_vector;
 }
 
 namespace halo::structures {
@@ -115,10 +113,10 @@ void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_e
         if ((cluster->fog & 0x8000) != 0) {
             float seed = *(float *)((uint8_t *)fog + 4) * 0.0f;
             out->plane.d = seed + out->plane.d;
-            fog_plane_vector.i = seed * out->plane.normal.i;
-            fog_plane_vector.j = seed * out->plane.normal.j;
-            fog_plane_vector.k = seed * out->plane.normal.k;
-            fog_plane_vector_valid = 1;
+            globals().fog_plane_vector.i = seed * out->plane.normal.i;
+            globals().fog_plane_vector.j = seed * out->plane.normal.j;
+            globals().fog_plane_vector.k = seed * out->plane.normal.k;
+            globals().fog_plane_vector_valid = 1;
         }
     }
 

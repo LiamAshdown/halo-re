@@ -6,6 +6,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -13,8 +14,6 @@ extern char ai_marker_name_a[];
 extern int16_t animation_graph_find_animation_by_name(datum_index animation_graph_tag, const char *name);
 extern double atan2(double y, double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position, float radius, void *leaf_and_cluster, void *cluster_list);
-extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
 extern data_array *collideable_object_references;
@@ -405,9 +404,9 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
 
         header->flags &= (uint8_t)~_object_header_unknown_80_bit;
 
-        cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
-                     &obj->location_leaf_index,
-                     (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first : (void *)&noncollideable_cluster_first);
+        halo::structures::cluster_reference_add_within_radius(object_index, &obj->placement_id, &obj->bounding_center, obj->bounding_radius,
+                     (bsp_leaf_reference *)&obj->location_leaf_index,
+                     (obj->flags & 0x2000000) != 0 ? (cluster_reference_group *)&collideable_cluster_first : (cluster_reference_group *)&noncollideable_cluster_first);
 
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             int16_t cluster = header->cluster_index;
@@ -451,9 +450,9 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
 
     if (obj->parent_object == k_datum_index_none) {
 
-        cluster_reference_remove_all(object_index, (datum_index *)((uint8_t *)obj + 0x10c),
-                     (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first
-                                                   : (void *)&noncollideable_cluster_first);
+        halo::structures::cluster_reference_remove_all(object_index, (datum_index *)((uint8_t *)obj + 0x10c),
+                     (obj->flags & 0x2000000) != 0 ? (cluster_reference_group *)&collideable_cluster_first
+                                                   : (cluster_reference_group *)&noncollideable_cluster_first);
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
             if ((header->flags & _object_header_active_bit) != 0) {

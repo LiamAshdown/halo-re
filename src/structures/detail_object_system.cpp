@@ -11,7 +11,6 @@ extern "C" {
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern detail_object_globals *detail_objects;
 extern player_globals *local_player_globals;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t current_local_player_index;
@@ -31,23 +30,23 @@ void detail_object_system::globals_allocate(void)
 
     game_state_cursor = game_state_cursor + size;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    detail_objects = (detail_object_globals *)region;
+    globals().detail_objects = (detail_object_globals *)region;
 
-    detail_objects->default_z_reference.z_reference_i = 0.0f;
-    detail_objects->default_z_reference.z_reference_j = 0.0f;
-    detail_objects->default_z_reference.z_reference_k = 1.0f;
-    detail_objects->default_z_reference.z_reference_l = 0.0f;
+    globals().detail_objects->default_z_reference.z_reference_i = 0.0f;
+    globals().detail_objects->default_z_reference.z_reference_j = 0.0f;
+    globals().detail_objects->default_z_reference.z_reference_k = 1.0f;
+    globals().detail_objects->default_z_reference.z_reference_l = 0.0f;
 }
 
 void detail_object_system::invalidate(void)
 {
-    ((uint8_t *)detail_objects)[0x520e] = 0;
+    ((uint8_t *)globals().detail_objects)[0x520e] = 0;
 }
 
 void detail_object_system::update_render_list(void)
 {
     ScenarioStructureBSPDetailObjectData *detail_data;
-    detail_object_frame *frame = &detail_objects->frames[0];
+    detail_object_frame *frame = &globals().detail_objects->frames[0];
     int16_t cell_x, cell_y, cell_z;
 
     if (local_player_globals->local_player_count != 1 || current_local_player_index == -1) {
@@ -136,7 +135,7 @@ void detail_object_system::update_render_list(void)
                                         }
 
                                         if (detail_data->z_reference_vectors.count == 0) {
-                                            batch->z_reference = &detail_objects->default_z_reference;
+                                            batch->z_reference = &globals().detail_objects->default_z_reference;
                                         } else {
                                             batch->z_reference = (ScenarioStructureBSPGlobalZReferenceVector *)
                                                 detail_data->z_reference_vectors.pointer + (cell->count_index + sub_index);

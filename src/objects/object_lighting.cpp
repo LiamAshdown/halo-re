@@ -4,11 +4,10 @@
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
-extern void bsp_lightmap_sample_vertex_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
-extern void bsp_material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices);
 extern real_vector3d *default_axis_b;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *light_data;
@@ -23,13 +22,11 @@ extern void object_light_recompute_transform(uint32_t light_index);
 extern float object_lighting_ambient_bias;
 extern float object_lighting_ambient_scale;
 extern float object_lighting_base_light_scale;
-extern uint8_t object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting);
 extern real_vector3d object_lightmap_probe_direction;
 extern void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_index, real_point3d *probe_point, float search_margin, uint32_t *out_indices, float *out_intensities, uint32_t out_falloffs, int16_t *count, int16_t max_count);
 extern real object_sum_attached_light_luminance(uint32_t object_index);
 extern double pow(double x, double y);
 extern double sqrt(double x);
-extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position, real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
 }
 
 /**
@@ -92,7 +89,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
 
     *color = *default_axis_b;
 
-    if (structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
+    if (halo::structures::structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
             &object_lightmap_probe_direction, &material_index, &surface_index, &weight_1)) {
         bsp = global_structure_bsp;
         lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
@@ -105,7 +102,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
                 (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
 
             if (halo::cache::texture_cache_get(bitmap, 0, 0) != 0) {
-                bsp_lightmap_sample_vertex_color(bitmap, weight_1, weight_2, (ColorRGB *)color, material, triangle);
+                halo::structures::bsp_lightmap_sample_vertex_color(bitmap, weight_1, weight_2, (ColorRGB *)color, material, triangle);
             }
         }
     }
@@ -196,7 +193,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     *lightmap_color = *object_ambient_lightmap_default;
     *base_map_color = *object_ambient_lightmap_default;
 
-    if (!structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
+    if (!halo::structures::structure_bsp_resolve_position_to_surface(point, &contact, &lightmap_index, &weight_2,
             &object_lightmap_probe_direction, &material_index, &surface_index, &weight_1)) {
         return;
     }
@@ -222,7 +219,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
 
     if (lightmap_bitmap != 0 && object_lightmap_texture_ready(lightmap_bitmap, wait_for_textures) != 0) {
         triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
-        bsp_lightmap_sample_vertex_color(lightmap_bitmap, weight_1, weight_2, (ColorRGB *)lightmap_color,
+        halo::structures::bsp_lightmap_sample_vertex_color(lightmap_bitmap, weight_1, weight_2, (ColorRGB *)lightmap_color,
             material, triangle);
         lightmap_color->i += 0.1f;
         if (!(lightmap_color->i <= 1.0f)) {
@@ -242,7 +239,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
         if (triangle == 0) {
             triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
         }
-        bsp_material_sample_base_map_color(base_map_bitmap, weight_1, weight_2, (ColorRGB *)base_map_color,
+        halo::structures::bsp_material_sample_base_map_color(base_map_bitmap, weight_1, weight_2, (ColorRGB *)base_map_color,
             material, triangle);
     }
 }
@@ -276,7 +273,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
         flags |= 4;
     }
 
-    center_ok = object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
+    center_ok = halo::structures::object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
 
     if ((obj->flags & 0x4000) == 0) {
         float probe[29];
@@ -301,7 +298,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
             corner.y = ((offset_index & 2) == 0 ? -0.70710677f : 0.70710677f) * obj->bounding_radius +
                        obj->bounding_center.y;
 
-            ok = object_lighting_sample_point(flags, &corner, (render_lighting *)probe);
+            ok = halo::structures::object_lighting_sample_point(flags, &corner, (render_lighting *)probe);
             if (ok != 0) {
                 successes = successes + 1;
                 for (i = 0; i < 29; i++) {

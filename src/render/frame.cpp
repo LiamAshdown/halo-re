@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -47,8 +48,6 @@ extern void game_engine_maybe_render_post_game(void);
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern render_fog render_fog_state;
 extern uint8_t render_clip_warning;
-extern int32_t render_cluster_index;
-extern int16_t render_cluster_sky_index;
 extern uint32_t rasterizer_device_version;
 extern uint8_t rasterizer_caps_flag_68a;
 extern game_engine_definition *current_game_engine;
@@ -56,11 +55,8 @@ extern game_engine_state game_engine_state_value;
 extern player_globals *local_player_globals;
 extern cinematic_globals *cinematic_globals_ptr;
 extern int16_t unknown_00719aac;
-extern void render_camera_update_leaf_and_cluster(real_point3d *point);
 extern void scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
     real_point3d *camera_position, render_fog *out);
-extern void structure_bsp_build_fog_environment(int16_t cluster_index, structure_fog_environment *out);
-extern uint8_t structure_bsp_mirror_query(void *camera_ref, void *camera, structure_bsp_mirror_result *out);
 extern void widget_draw_fullscreen_region(int16_t controller_index);
 }
 
@@ -200,16 +196,16 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
     render_frustum rasterizer_frustum;
     uint8_t attempt_mirror;
 
-    render_camera_update_leaf_and_cluster(&source_camera->position);
+    halo::structures::render_camera_update_leaf_and_cluster(&source_camera->position);
 
     render_fog_state.unknown_02 = 0;
-    scenario_sky_fog_state_update(render_cluster_sky_index, view->local_player_index, &source_camera->position,
+    scenario_sky_fog_state_update(halo::structures::globals().render_cluster_sky_index, view->local_player_index, &source_camera->position,
                                   &render_fog_state);
 
-    structure_bsp_build_fog_environment(render_cluster_index,
+    halo::structures::structure_bsp_build_fog_environment(halo::structures::globals().render_cluster_index,
                                          (structure_fog_environment *)&render_fog_state);
 
-    if (render_fog_state.atmospheric_maximum_distance != 0.0f && render_cluster_sky_index == -1 &&
+    if (render_fog_state.atmospheric_maximum_distance != 0.0f && halo::structures::globals().render_cluster_sky_index == -1 &&
         render_fog_state.atmospheric_maximum_distance < render_fog_state.planar_maximum_distance) {
         render_fog_state.planar_maximum_distance = render_fog_state.atmospheric_maximum_distance;
     }
@@ -268,18 +264,18 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
 
     if (attempt_mirror) {
         structure_bsp_mirror_result mirror_result;
-        if (structure_bsp_mirror_query(source_camera, &source_frustum, &mirror_result) &&
+        if (halo::structures::structure_bsp_mirror_query(source_camera, &source_frustum, &mirror_result) &&
             rasterizer_device_version > 0xffff0100 && !rasterizer_caps_flag_68a) {
             render_camera mirror_camera;
             render_frustum mirror_frustum;
-            int32_t saved_cluster_index = render_cluster_index;
+            int32_t saved_cluster_index = halo::structures::globals().render_cluster_index;
 
             render_camera_mirror(source_camera, &mirror_result, &mirror_camera);
             chimera__render_camera_build_frustum(frustum_bounds, &mirror_camera, &mirror_frustum, 1);
-            render_cluster_index = mirror_result.cluster_index;
+            halo::structures::globals().render_cluster_index = mirror_result.cluster_index;
             render_window(-1, &mirror_camera, &mirror_frustum, &mirror_camera, &mirror_frustum,
                           _render_target_mirror, 0);
-            render_cluster_index = saved_cluster_index;
+            halo::structures::globals().render_cluster_index = saved_cluster_index;
             has_mirror = 1;
         }
     }

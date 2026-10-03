@@ -1,6 +1,8 @@
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
+#include <stdlib.h>
 
 extern "C" {
 extern data_array *object_data;
@@ -13,10 +15,8 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 extern int16_t camera_observer_generate_target_candidates(observer_target_cone *cone, int16_t start_cluster, real_point3d *observer_position, real_vector3d *facing, datum_index exclude_object, int16_t team, int16_t capacity, observer_target_candidate *out);
 extern int32_t camera_observer_target_compare(const observer_target_candidate *a, const observer_target_candidate *b);
 extern char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *observer_position, real_point3d *target_position, datum_index target_object);
-extern void qsort(void *base, uint32_t count, uint32_t size, uint32_t (*compare)(const void *, const void *));
 extern double sin(double x);
 extern double cos(double x);
-extern int16_t cluster_flood_fill_with_predicate(real_point3d *position, real_vector3d *facing, real max_distance, real sin_angle, real cos_angle, int16_t max_count, int16_t *output, int16_t start_cluster);
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count, int16_t *cluster_indices, int16_t max_output, datum_index *out_objects);
 extern uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, datum_index start_object, real_point3d *observer_position, real_vector3d *facing, real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object, int16_t observer_team, int16_t capacity, observer_target_candidate *out);
 extern int16_t camera_get_type_for_player(int16_t local_player_index);
@@ -122,7 +122,7 @@ char CameraObserver::find_best_target(real_point3d *observer_position, observer_
                 return 0;
             }
             qsort(candidates, (uint32_t)candidate_count, sizeof(observer_target_candidate),
-                  (uint32_t (*)(const void *, const void *))camera_observer_target_compare);
+                  (int (*)(const void *, const void *))camera_observer_target_compare);
             for (i = 0; i < candidate_count; i = i + 1) {
                 if (CameraObserver::target_is_valid(exclude_object, observer_position, &candidates[i].point, candidates[i].object) != 0) {
                     *out = candidates[i];
@@ -163,7 +163,7 @@ int16_t CameraObserver::generate_target_candidates(observer_target_cone *cone, i
     sin_max_angle = (real)sin((double)max_angle);
     cos_max_angle = (real)cos((double)max_angle);
 
-    collected_clusters = cluster_flood_fill_with_predicate(observer_position, facing, max_distance,
+    collected_clusters = halo::structures::cluster_flood_fill_with_predicate(observer_position, facing, max_distance,
                                       sin_max_angle, cos_max_angle, 0x200, cluster_indices, start_cluster);
     cluster_count = object_collect_in_clusters(1, collected_clusters, cluster_indices, 0x800,
                                                cluster_heads);

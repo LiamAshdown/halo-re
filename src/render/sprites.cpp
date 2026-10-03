@@ -19,6 +19,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -57,7 +58,6 @@ extern data_array *contrail_data;
 extern uint8_t particle_spawn_debug_mode;
 extern int16_t current_local_player_index;
 extern data_array *particle_data;
-extern uint32_t cluster_visible_bits[0x10];
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
 }
@@ -985,7 +985,7 @@ void particles(void)
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
 
-        if ((cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f))) == 0) {
+        if ((halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f))) == 0) {
             continue;
         }
         if ((p->flags & 0x10) != 0 && owned) {

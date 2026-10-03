@@ -10,7 +10,6 @@
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t *runtime_decals_suppressed;
 extern Scenario *global_scenario;
 extern uint8_t decals_for_all_responses;
 extern uint8_t decals_enabled;
@@ -32,11 +31,11 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
     int16_t slot;
 
     if (global_structure_bsp->runtime_decals.count == 0) {
-        *runtime_decals_suppressed = 0;
+        *globals().runtime_decals_suppressed = 0;
         return;
     }
     if (cluster_count < 1) {
-        *runtime_decals_suppressed = 0;
+        *globals().runtime_decals_suppressed = 0;
         return;
     }
 
@@ -54,7 +53,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
         } else {
             uint32_t bit = 1u << (bit_index & 0x1f);
             uint32_t word = (uint32_t)((bit_index >> 5) * 4);
-            int suppressed = *runtime_decals_suppressed != 0;
+            int suppressed = *globals().runtime_decals_suppressed != 0;
 
             entering = !suppressed &&
                 (*(uint32_t *)((uint8_t *)switch_group_a + word) & bit) != 0 &&
@@ -116,7 +115,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
         cluster_offset = cluster_offset + sizeof(ScenarioStructureBSPCluster);
         bit_index = bit_index + 1;
         if (cluster_count <= (int16_t)(slot + 1)) {
-            *runtime_decals_suppressed = 0;
+            *globals().runtime_decals_suppressed = 0;
             return;
         }
     }
@@ -142,7 +141,7 @@ void structure_decals::runtime_decals_evict(void)
 
 void structure_decals::runtime_decals_mark_dirty(void)
 {
-    *runtime_decals_suppressed = 1;
+    *globals().runtime_decals_suppressed = 1;
 }
 
 }  // namespace halo::structures

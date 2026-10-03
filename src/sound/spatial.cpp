@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 namespace halo::sound {
 
@@ -408,7 +409,7 @@ void Location::compute_obstruction_occlusion(int16_t listener_index, float refer
         return;
     }
 
-    distance = (float)(cluster_sound_distance_lookup(this->cluster_index, listener_cluster,
+    distance = (float)(halo::structures::cluster_sound_distance_lookup(this->cluster_index, listener_cluster,
                                               (ScenarioStructureBSP *)global_structure_bsp ) & 0x7f) * 2.015748f;
     if (!(distance < 256.0f)) {
         return;

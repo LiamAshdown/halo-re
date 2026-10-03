@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -44,8 +45,6 @@ extern uint32_t unknown_00746280_block[0x343];
 extern scenario_game_globals *global_scenario_game_globals;
 extern uint32_t k_default_sound_environment[0x12];
 extern data_array *object_render_state_cache;
-extern uint32_t *detail_objects;
-extern void *runtime_decals_suppressed;
 extern void *decal_grid_block;
 extern data_array *decal_data;
 extern data_array *contrail_data;
@@ -274,13 +273,13 @@ void GameLifecycle::start_new_map(void)
     object_render_state_cache->valid = 1;
     halo::memory::data_delete_all(object_render_state_cache);
 
-    dst = detail_objects;
+    dst = (uint32_t *)halo::structures::globals().detail_objects;
     for (i = 0x290c; i != 0; i = i - 1) {
         *dst = 0;
         dst = dst + 1;
     }
-    *((uint8_t *)detail_objects + 0x520e) = 0;
-    *(uint32_t *)runtime_decals_suppressed = 0;
+    *((uint8_t *)halo::structures::globals().detail_objects + 0x520e) = 0;
+    *(uint32_t *)halo::structures::globals().runtime_decals_suppressed = 0;
     breakable_surfaces_reset();
 
     dst = (uint32_t *)decal_grid_block;

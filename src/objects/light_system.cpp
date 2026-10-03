@@ -8,12 +8,10 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void cluster_partition_new(cluster_reference_group *out, char *name);
-extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position, float radius, void *leaf_and_cluster, void *cluster_list);
-extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list);
 extern void *color_interpolate(void *color1, void *color0, void *dest, uint32_t flags, float t);
 extern void *color_interpolate_argb_with_tint(uint32_t flags, void *color1, void *dest, void *tint, void *color0, float t);
 extern game_engine_definition *current_game_engine;
@@ -65,14 +63,9 @@ extern rasterizer_light rasterizer_lights[0x80];
 extern void rasterizer_shader_environment_technique_ps2_set_states(void);
 extern uint8_t render_window_index;
 extern double sqrt(double x);
-extern int16_t structure_bsp_collect_visible_objects(datum_index *out_list, int32_t max_count, void *iterate_begin, void *iterate_next, void *get_bounds, void *predicate, void *accept);
 extern void structure_cluster_add_lens_flares(int16_t cluster_index);
-extern void structure_debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices);
-extern void structure_debug_draw_surfaces_in_box_alt(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices);
 extern uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name, real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction);
 extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction);
-extern int16_t visible_cluster_count;
-extern uint8_t visible_clusters[];
 }
 
 namespace {
@@ -99,7 +92,7 @@ void halo::objects::LightSystem::initialize()
     *checksum_slot = 1;
 
     if (new_light_data != 0) {
-        cluster_partition_new(&light_cluster_first__as_lights_initialize, (char *)"light");
+        halo::structures::cluster_partition_new(&light_cluster_first__as_lights_initialize, (char *)"light");
     }
 }
 
@@ -185,7 +178,7 @@ void halo::objects::LightSystem::destroy(datum_index light_handle)
 {
     light *entry = (light *)((uint8_t *)light_data->data + (light_handle & 0xffff) * 0x7c);
 
-    cluster_reference_remove_all(light_handle, &entry->next_light, &light_cluster_first);
+    halo::structures::cluster_reference_remove_all(light_handle, &entry->next_light, (cluster_reference_group *)&light_cluster_first);
     halo::memory::datum_delete(light_data, light_handle);
 }
 
@@ -233,7 +226,7 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
 namespace {
 static cluster_reference_group &light_cluster_first__as_object_lights_update_all = reinterpret_cast<cluster_reference_group &>(light_cluster_first);
 static lens_flare_instance *const light_transient_table__as_object_lights_update_all = reinterpret_cast<lens_flare_instance *>(light_transient_table);
-static void (*const cluster_reference_remove_all__as_object_lights_update_all)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list) = reinterpret_cast<void (*)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list)>(&cluster_reference_remove_all);
+static void (*const cluster_reference_remove_all__as_object_lights_update_all)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list) = reinterpret_cast<void (*)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list)>(&halo::structures::cluster_reference_remove_all);
 static uint8_t *object_data_get(datum_index handle)
 {
     return *(uint8_t **)((uint8_t *)object_data->data + (handle & 0xffff) * 0xc + 8);
@@ -295,14 +288,14 @@ void halo::objects::LightSystem::update_all()
 
     light_frame_counter++;
     light_render_unknown_7c0 = 1;
-    light_active_list_count = structure_bsp_collect_visible_objects(light_active_list, 0x80,
-        (void *)light_cluster_iterate_begin, (void *)light_cluster_iterate_next, (void *)light_get_render_bounds,
-        (void *)light_not_marked_this_frame, (void *)light_mark_this_frame);
+    light_active_list_count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)light_active_list, 0x80,
+        (structure_bsp_object_iterate_begin_fn)light_cluster_iterate_begin, (structure_bsp_object_iterate_next_fn)light_cluster_iterate_next, (structure_bsp_object_get_bounds_fn)light_get_render_bounds,
+        (structure_bsp_object_predicate_fn)light_not_marked_this_frame, (structure_bsp_object_accept_fn)light_mark_this_frame);
     light_render_unknown_7c0 = 0;
     rasterizer_light_count = 0;
     rasterizer_light_disable_all();
-    for (i = 0; i < visible_cluster_count; i++) {
-        structure_cluster_add_lens_flares(*(int16_t *)(visible_clusters + i * 0x1a0));
+    for (i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
+        structure_cluster_add_lens_flares(*(int16_t *)(halo::structures::globals().visible_clusters + i * 0x1a0));
     }
 
     for (i = 0; i < light_active_list_count; i++) {
@@ -585,7 +578,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                         position.z = radius * l->direction.k + l->position.z;
                     }
 
-                    structure_debug_draw_surfaces_in_box_alt((void *)queue_slot, &position, radius, marker_count,
+                    halo::structures::structure_debug_draw_surfaces_in_box_alt((void *)queue_slot, &position, radius, marker_count,
                         is_cone ? (int16_t *)0 : references);
 
                 }
@@ -651,7 +644,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                             position.z = radius * l->direction.k + l->position.z;
                         }
 
-                        structure_debug_draw_surfaces_in_box((void *)queue_slot, &position, radius, marker_count,
+                        halo::structures::structure_debug_draw_surfaces_in_box((void *)queue_slot, &position, radius, marker_count,
                             is_cone ? (int16_t *)0 : references);
 
                     }
@@ -673,7 +666,7 @@ void halo::objects::LightSystem::clear_dirty_flag(uint32_t light_index)
     light *entry = (light *)light_data->data + (light_index & 0xffff);
 
     if ((entry->flags & _light_attached_bit) != 0) {
-        cluster_reference_remove_all(light_index, &entry->next_light, &light_cluster_first);
+        halo::structures::cluster_reference_remove_all(light_index, &entry->next_light, (cluster_reference_group *)&light_cluster_first);
 
         entry->flags &= (uint16_t)~_light_transform_dirty_bit;
     }
@@ -764,15 +757,15 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
             object_get_root_location((int32_t *)&leaf_reference, entry->owner_object);
         }
 
-        cluster_reference_add_within_radius(light_index, &entry->next_light, &position, radius, &leaf_reference,
-                     &light_cluster_first);
+        halo::structures::cluster_reference_add_within_radius(light_index, &entry->next_light, &position, radius, &leaf_reference,
+                     (cluster_reference_group *)&light_cluster_first);
         entry->flags |= _light_transform_dirty_bit;
     }
 }
 
 namespace {
 static cluster_reference_group &light_cluster_first__as_object_lights_detach_from_structure_bsp = reinterpret_cast<cluster_reference_group &>(light_cluster_first);
-static void (*const cluster_reference_remove_all__as_object_lights_detach_from_structure_bsp)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list) = reinterpret_cast<void (*)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list)>(&cluster_reference_remove_all);
+static void (*const cluster_reference_remove_all__as_object_lights_detach_from_structure_bsp)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list) = reinterpret_cast<void (*)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list)>(&halo::structures::cluster_reference_remove_all);
 }
 
 /**

@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -9,7 +10,6 @@ extern decal_grid *decal_grid_block;
 extern cache *rasterizer_decal_vertex_cache_handle;
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern real_point2d decal_clip_buffers[2][12];
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
@@ -259,7 +259,7 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
         fallback_count = (int16_t)*fallback_queue_count;
     }
 
-    structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
+    halo::structures::structure_bsp_plane_fetch_signed(&surface_plane, global_structure_collision_bsp, (int32_t)surface->plane);
     angle = halo::math::vector3d_angle_between_4cd5e0(*((const real_vector3d *)&projection->transformed_i), surface_plane.normal);
 
     axes = &halo::math::globals().k_projection_axes[projection->major_axis * 2 + projection->normal_positive];

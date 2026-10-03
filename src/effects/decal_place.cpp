@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
@@ -18,7 +19,6 @@ extern double fabs(double x);
 extern double cos(double x);
 extern double sin(double x);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent, real *out_sprite_rect, const Decal *decal_definition);
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
@@ -397,7 +397,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
 
             sprite_bitmap_index =
                 (int16_t)((const BitmapGroupSprite *)sequence->sprites.pointer)[sprite_index].bitmap_index;
-            structure_lightmap_uv_rect_build(sequence_index, 0, radius, box, sprite_rect, definition);
+            halo::structures::structure_lightmap_uv_rect_build(sequence_index, 0, radius, box, sprite_rect, definition);
         } else {
             real aspect = 1.0f;
 

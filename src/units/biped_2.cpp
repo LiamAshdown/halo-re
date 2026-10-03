@@ -4,6 +4,7 @@
 #include "projectiles.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -31,7 +32,6 @@ extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3
 extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta, physics_model_contact *out_contact);
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern int16_t physics_sweep_capsule_step(real_point3d *origin, real_vector3d *delta, real_vector3d *out_velocity, uint32_t exclude_object_index, uint32_t flags, float pill_height, float pill_radius, real_point3d *out_position, int16_t max_contacts, physics_model_contact *contacts);
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
 }
 
 namespace halo::units {
@@ -1108,7 +1108,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             real_plane3d plane;
             float along;
 
-            structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[surface_index].plane);
+            halo::structures::structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[surface_index].plane);
             along = -((plane.normal.i * swept_position.x + plane.normal.k * swept_position.z +
                        plane.normal.j * swept_position.y) - plane.d);
             a.i = plane.normal.i * along + swept_position.x;
@@ -1124,7 +1124,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                     ((flags & 0x200) != 0 || (surfaces[other].flags & 4) != 0)) {
                     float dot;
 
-                    structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[other].plane);
+                    halo::structures::structure_bsp_plane_fetch_signed(&plane, bsp, (int32_t)surfaces[other].plane);
                     dot = plane.normal.i * swept_velocity.i + plane.normal.j * swept_velocity.j +
                           plane.normal.k * swept_velocity.k;
                     if (dot > 0.0f &&

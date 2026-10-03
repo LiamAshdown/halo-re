@@ -19,6 +19,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -61,8 +62,6 @@ extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
 extern uint8_t rasterizer_object_shadow_window_restored;
-extern void structure_debug_draw_surfaces_simple(real_point3d *query_point, float radius, real_rectangle3d *query_box,
-    real_plane3d *planes, int16_t plane_count);
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear);
 extern int16_t rendered_object_count;
 extern datum_index rendered_objects[0x100];
@@ -73,8 +72,6 @@ extern void first_person_weapon_update_lighting(void);
 extern int32_t object_cluster_stamp;
 extern object_globals *object_globals_pointer;
 extern uint8_t rendered_objects_full_warning;
-extern int16_t structure_bsp_collect_visible_objects(datum_index *out_handles, int16_t max_count, void *iterate_begin,
-    void *iterate_next, void *get_bounds, void *predicate, void *accept);
 extern datum_index object_resolve_collideable_reference(uint32_t *cursor, int16_t cluster_index);
 extern datum_index object_cluster_collideable_iterate_next(uint32_t *cursor);
 extern datum_index object_cluster_noncollideable_iterate_begin(uint32_t *cursor, int16_t cluster_index);
@@ -414,7 +411,7 @@ void halo::render::ObjectRenderData::shadow_end()
     box.z.lower = lower * data->shadow_radius + position->z;
     box.z.upper = upper * data->shadow_radius + position->z;
 
-    structure_debug_draw_surfaces_simple(position, data->shadow_radius * 4.0f, &box, planes, 6);
+    halo::structures::structure_debug_draw_surfaces_simple(position, data->shadow_radius * 4.0f, &box, planes, 6);
 
     if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0 &&
         rasterizer_object_shadow_window_restored == 0) {
@@ -951,21 +948,21 @@ void s_collect(void)
     object_cluster_stamp++;
     object_globals_pointer->collecting_in_clusters = 1;
 
-    count = structure_bsp_collect_visible_objects(rendered_objects, 0x100,
-        (void *)object_resolve_collideable_reference,
-        (void *)object_cluster_collideable_iterate_next,
-        (void *)render_object_get_cull_sphere,
-        (void *)object_disconnect_from_map,
-        (void *)object_cluster_stamp_mark_visited);
+    count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)rendered_objects, 0x100,
+        (structure_bsp_object_iterate_begin_fn)object_resolve_collideable_reference,
+        (structure_bsp_object_iterate_next_fn)object_cluster_collideable_iterate_next,
+        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
+        (structure_bsp_object_predicate_fn)object_disconnect_from_map,
+        (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
     rendered_object_count = count;
 
-    rendered_object_count += structure_bsp_collect_visible_objects(&rendered_objects[count],
+    rendered_object_count += halo::structures::structure_bsp_collect_visible_objects((int32_t *)&rendered_objects[count],
         (int16_t)(0x100 - rendered_object_count),
-        (void *)object_cluster_noncollideable_iterate_begin,
-        (void *)object_cluster_noncollideable_iterate_next,
-        (void *)render_object_get_cull_sphere,
-        (void *)object_disconnect_from_map,
-        (void *)object_cluster_stamp_mark_visited);
+        (structure_bsp_object_iterate_begin_fn)object_cluster_noncollideable_iterate_begin,
+        (structure_bsp_object_iterate_next_fn)object_cluster_noncollideable_iterate_next,
+        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
+        (structure_bsp_object_predicate_fn)object_disconnect_from_map,
+        (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
 
     object_globals_pointer->collecting_in_clusters = 0;
 

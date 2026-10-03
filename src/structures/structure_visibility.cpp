@@ -9,29 +9,16 @@
 #include "halo/cache/api.hpp"
 
 extern "C" {
-extern int32_t render_cluster_index;
 extern uint8_t render_frustum_global[];
 extern uint8_t render_camera_global[];
-extern uint32_t *flood_recursion_bits;
-extern int16_t visible_cluster_count;
-extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
 extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 extern uint32_t render_camera_compute_frustum_bounds(void *camera, float bounds_out[4], float bounds_in[4]);
 extern void chimera__render_camera_build_frustum(float *frustum_bounds, void *camera, void *frustum,
     uint8_t build_projection);
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t cluster_visible_bits[0x10];
-extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
-extern int16_t visible_surface_count;
-extern uint8_t debug_render_cluster_pvs;
-extern int16_t cluster_visible_index[0x200];
-extern uint8_t no_subcluster_path_taken;
 extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern Scenario *global_scenario;
-extern int32_t render_leaf_index;
-extern uint8_t render_cluster_has_sky;
-extern int16_t render_cluster_sky_index;
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point);
 }
 
@@ -39,7 +26,7 @@ namespace halo::structures {
 
 void structure_visibility::camera_visibility_pass(void)
 {
-    if (render_cluster_index == -1) {
+    if (globals().render_cluster_index == -1) {
         return;
     }
 
@@ -57,13 +44,13 @@ void structure_visibility::camera_visibility_pass(void)
     for (int i = 0; i < 0x10; i++) {
         recursion_bits[i] = 0;
     }
-    flood_recursion_bits = recursion_bits;
+    globals().flood_recursion_bits = recursion_bits;
 
-    visible_cluster_count = 0;
-    cluster_flood::camera_portal_flood_recursive(render_cluster_index, &clip_polygon);
+    globals().visible_cluster_count = 0;
+    cluster_flood::camera_portal_flood_recursive(globals().render_cluster_index, &clip_polygon);
 
-    for (int16_t i = 0; i < visible_cluster_count; i++) {
-        uint8_t *cluster = (uint8_t *)&visible_clusters[i];
+    for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
+        uint8_t *cluster = (uint8_t *)&globals().visible_clusters[i];
         render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + 4));
         chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + 0x14, 0);
     }
@@ -73,38 +60,38 @@ void structure_visibility::cluster_visibility_update(void)
 {
     ScenarioStructureBSP *tag = global_structure_bsp;
 
-    uint32_t fill = (render_cluster_index != -1) ? 0 : 0xffffffff;
+    uint32_t fill = (globals().render_cluster_index != -1) ? 0 : 0xffffffff;
     int32_t cluster_dwords = (tag->clusters.count + 0x1f) >> 5;
     for (int32_t i = 0; i < cluster_dwords; i++) {
-        cluster_visible_bits[i] = fill;
+        globals().cluster_visible_bits[i] = fill;
     }
 
-    visible_surface_count = 0;
+    globals().visible_surface_count = 0;
     int32_t surface_dwords = (tag->surfaces.count + 0x1f) >> 5;
     for (int32_t i = 0; i < surface_dwords; i++) {
-        surface_visible_bits[i] = 0;
+        globals().surface_visible_bits[i] = 0;
     }
 
-    visible_cluster_count = 0;
+    globals().visible_cluster_count = 0;
     structure_visibility::camera_visibility_pass();
 
-    if (debug_render_cluster_pvs != 0) {
-        visible_cluster_count = 0;
+    if (globals().debug_render_cluster_pvs != 0) {
+        globals().visible_cluster_count = 0;
         int32_t row_dwords = (tag->clusters.count + 0x1f) >> 5;
         uint32_t *pvs_row = (uint32_t *)((uint8_t *)tag->cluster_data.pointer +
-                                          render_cluster_index * row_dwords * 4);
+                                          globals().render_cluster_index * row_dwords * 4);
         for (int32_t i = 0; i < row_dwords; i++) {
-            cluster_visible_bits[i] = pvs_row[i];
+            globals().cluster_visible_bits[i] = pvs_row[i];
         }
         if (tag->clusters.count > 0) {
             for (int16_t cluster_index = 0; cluster_index < tag->clusters.count; cluster_index++) {
-                if ((cluster_visible_bits[cluster_index >> 5] & (1u << (cluster_index & 0x1f))) == 0) {
+                if ((globals().cluster_visible_bits[cluster_index >> 5] & (1u << (cluster_index & 0x1f))) == 0) {
                     continue;
                 }
-                int16_t visible_index = visible_cluster_count++;
-                cluster_visible_index[cluster_index] = visible_index;
-                visible_clusters[visible_index].cluster_index = cluster_index;
-                render_frustum_compute_screen_clip_bounds((float *)&visible_clusters[visible_index].screen_bounds_x,
+                int16_t visible_index = globals().visible_cluster_count++;
+                globals().cluster_visible_index[cluster_index] = visible_index;
+                globals().visible_clusters[visible_index].cluster_index = cluster_index;
+                render_frustum_compute_screen_clip_bounds((float *)&globals().visible_clusters[visible_index].screen_bounds_x,
                              (void *)render_frustum_global);
             }
         }
@@ -112,8 +99,8 @@ void structure_visibility::cluster_visibility_update(void)
 
     ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)tag->clusters.pointer;
     if (clusters[0].subclusters.count == 0) {
-        if (no_subcluster_path_taken == 0) {
-            no_subcluster_path_taken = 1;
+        if (globals().no_subcluster_path_taken == 0) {
+            globals().no_subcluster_path_taken = 1;
         }
         structure_bsp_view(tag).expand_visible_clusters_by_plane();
         return;
@@ -125,17 +112,17 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
 {
     int16_t written = 0;
 
-    for (int16_t i = 0; i < visible_cluster_count; i++) {
+    for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
         uint32_t cursor;
-        uint32_t handle = iterate_begin(&cursor, visible_clusters[i].cluster_index);
+        uint32_t handle = iterate_begin(&cursor, globals().visible_clusters[i].cluster_index);
         while (handle != 0xffffffff) {
             if (predicate(handle)) {
                 float radius;
                 real_point3d center;
                 get_bounds(handle, &center, &radius);
                 if (written < max_count &&
-                    (render_cluster_index == -1 ||
-                     render_frustum_test_sphere(&visible_clusters[i].frustum, &center,
+                    (globals().render_cluster_index == -1 ||
+                     render_frustum_test_sphere(&globals().visible_clusters[i].frustum, &center,
                                                  radius) != 0)) {
                     out_handles[written] = (int32_t)handle;
                     written++;
@@ -152,27 +139,27 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
 {
     int32_t leaf = bsp3d_node_find_leaf(0, *(void **)((uint8_t *)global_structure_bsp + 0xb4), camera_position);
 
-    if (leaf == -1 && render_leaf_index < global_structure_bsp->leaves.count) {
-        leaf = render_leaf_index;
+    if (leaf == -1 && globals().render_leaf_index < global_structure_bsp->leaves.count) {
+        leaf = globals().render_leaf_index;
     }
-    render_leaf_index = leaf;
-    render_cluster_index = -1;
-    render_cluster_sky_index = -1;
-    render_cluster_has_sky = 0;
+    globals().render_leaf_index = leaf;
+    globals().render_cluster_index = -1;
+    globals().render_cluster_sky_index = -1;
+    globals().render_cluster_has_sky = 0;
 
-    if (render_leaf_index != -1) {
+    if (globals().render_leaf_index != -1) {
         ScenarioStructureBSPLeaf *leaves = (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
         ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer;
         TagID sky_tag_id;
         int have_sky_tag_id = 0;
 
-        render_cluster_index = leaves[render_leaf_index & 0x7fffffff].cluster;
-        render_cluster_sky_index = clusters[render_cluster_index].sky;
+        globals().render_cluster_index = leaves[globals().render_leaf_index & 0x7fffffff].cluster;
+        globals().render_cluster_sky_index = clusters[globals().render_cluster_index].sky;
 
-        if (render_cluster_sky_index > -1 && render_cluster_sky_index < global_scenario->skies.count) {
+        if (globals().render_cluster_sky_index > -1 && globals().render_cluster_sky_index < global_scenario->skies.count) {
             ScenarioSky *skies = (ScenarioSky *)global_scenario->skies.pointer;
-            if (skies[render_cluster_sky_index].sky.tag_id.index != 0xffff) {
-                sky_tag_id = skies[render_cluster_sky_index].sky.tag_id;
+            if (skies[globals().render_cluster_sky_index].sky.tag_id.index != 0xffff) {
+                sky_tag_id = skies[globals().render_cluster_sky_index].sky.tag_id;
                 have_sky_tag_id = 1;
             }
         }
@@ -180,7 +167,7 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
         if (have_sky_tag_id) {
             Sky *sky = (Sky *)halo::cache::globals().tag_instances[sky_tag_id.index].data;
             if (sky != 0 && sky->model.tag_id.index != 0xffff) {
-                render_cluster_has_sky = 1;
+                globals().render_cluster_has_sky = 1;
             }
         }
     }
@@ -201,7 +188,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
     polygon2d clip_polygon;
     polygon2d project_out;
 
-    if (render_cluster_index == -1) {
+    if (globals().render_cluster_index == -1) {
         return 0;
     }
 
@@ -218,7 +205,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
 
     int32_t row_dwords = (cluster_count + 0x1f) >> 5;
     uint32_t *pvs_row = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
-                                      row_dwords * render_cluster_index * 4);
+                                      row_dwords * globals().render_cluster_index * 4);
 
     for (int16_t cluster_index = 0; cluster_index < cluster_count; pvs_row++) {
         if (*pvs_row == 0) {

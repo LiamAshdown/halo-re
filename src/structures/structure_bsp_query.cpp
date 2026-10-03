@@ -9,8 +9,6 @@
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t surface_visible_bits[k_maximum_visible_surface_bits];
-extern float k_cluster_query_radius_threshold;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point);
@@ -112,7 +110,7 @@ int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_cla
         int32_t surface = leaf_surfaces[i].surface;
         int32_t word = surface >> 5;
         uint32_t mask = 1u << (surface & 0x1f);
-        if ((surface_visible_bits[word] & mask) == 0) {
+        if ((globals().surface_visible_bits[word] & mask) == 0) {
             continue;
         }
         if ((visited_bits[word] & mask) != 0) {
@@ -159,7 +157,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
                 int32_t surface = indices[k];
                 int32_t word = surface >> 5;
                 uint32_t mask = 1u << (surface & 0x1f);
-                if ((surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
+                if ((globals().surface_visible_bits[word] & mask) != 0 && (visited_bits[word] & mask) == 0) {
                     if (written >= max_count) {
                         break;
                     }
@@ -189,7 +187,7 @@ int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_po
         query_box = &built_box;
     }
 
-    if (radius >= k_cluster_query_radius_threshold) {
+    if (radius >= globals().k_cluster_query_radius_threshold) {
         if (cluster_indices != 0) {
             return (int16_t)structure_bsp_query::collect_surfaces_in_clusters(out_surfaces, (int16_t)max_count, query_box, plane_count, planes, visited_bits, cluster_count, cluster_indices);
         }

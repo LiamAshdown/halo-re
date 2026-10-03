@@ -5,11 +5,11 @@
 #include "hs.h"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void cluster_partition_new(cluster_reference_group *out, char *name);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
 extern data_array *collideable_object_references;
@@ -70,7 +70,6 @@ extern uint16_t object_visibility_computed_mask;
 extern void objects_garbage_collection(void);
 extern void objects_get_statistics(void *out);
 extern int32_t sprintf(char *buffer, const char *format, ...);
-extern void structure_decals_update_switch_transitions(void *previous_pvs, void *current_pvs, int32_t cluster_count);
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
 extern void widgets_dispose(void);
 extern void widgets_dispose_clear_flag(void);
@@ -147,8 +146,8 @@ void halo::objects::ObjectManager::initialize()
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
-    cluster_partition_new(&collideable_cluster_first__as_objects_initialize, (char *)"collideable object");
-    cluster_partition_new(&noncollideable_cluster_first__as_objects_initialize, (char *)"noncollideable object");
+    halo::structures::cluster_partition_new(&collideable_cluster_first__as_objects_initialize, (char *)"collideable object");
+    halo::structures::cluster_partition_new(&noncollideable_cluster_first__as_objects_initialize, (char *)"noncollideable object");
 }
 
 /**
@@ -404,7 +403,7 @@ void halo::objects::ObjectManager::update()
                 }
             }
         }
-        structure_decals_update_switch_transitions(globals->cluster_pvs_previous, globals->cluster_pvs_current, cluster_count);
+        halo::structures::structure_decals_update_switch_transitions(globals->cluster_pvs_previous, globals->cluster_pvs_current, cluster_count);
     }
 
     headers = (object_header *)object_data->data;

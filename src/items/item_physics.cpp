@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -12,7 +13,6 @@ extern void item_compute_rotation(uint32_t object_index);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
-extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
 extern void random_get_table_point(real_vector3d *out);
 extern double sqrt(double x);
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix);
@@ -66,7 +66,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
             real correction;
             real_point3d corrected_position;
 
-            structure_bsp_plane_fetch_signed(&plane, global_structure_collision_bsp, surface_plane_ref);
+            halo::structures::structure_bsp_plane_fetch_signed(&plane, global_structure_collision_bsp, surface_plane_ref);
             correction = 0.05f - ((plane.normal.i * marker_position.x +
                 plane.normal.j * marker_position.y + plane.normal.k * marker_position.z) - plane.d);
             corrected_position.x = plane.normal.i * correction + marker_position.x;

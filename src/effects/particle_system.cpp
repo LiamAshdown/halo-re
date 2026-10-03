@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/structures/api.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
@@ -20,7 +21,6 @@ extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
-extern uint32_t cluster_visible_bits[];
 extern real_matrix4x3 render_camera_world_to_view;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int16_t first_sequence_index, int16_t sprite_index, real_point3d *origin, real_vector3d *axis, float rotation, float scale, ColorARGB *color, float fade);
@@ -517,7 +517,7 @@ void particle_system_ref::render()
             uint8_t *particle = (uint8_t *)particle_system_particle_data->data + particle_index * 0x80;
             int16_t cluster = *(int16_t *)(particle + 0x18);
 
-            if (particle[3] && (cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
+            if (particle[3] && (halo::structures::globals().cluster_visible_bits[cluster >> 5] & (1u << (cluster & 0x1f)))) {
                 uint8_t *states = *(uint8_t **)(type + 0x78);
                 uint8_t *current = states + *(int16_t *)(particle + 8) * 0x178;
                 uint8_t *next = 0;
