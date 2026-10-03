@@ -828,11 +828,11 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (unit[0x2a3] == 0x17 && self->berserking == 0) {
         goto return_true;
     }
-    if (target != 0 && *(const float *)((uint8_t *)target + 0x11c) > *(const float *)(def + 0x74)) {
+    if (target != 0 && target->distance > *(const float *)(def + 0x74)) {
         goto return_false;
     }
     if (self->berserking != 0 && target != 0 &&
-        *(const float *)((uint8_t *)target + 0x11c) > *(const float *)(def + 0x16c)) {
+        target->distance > *(const float *)(def + 0x16c)) {
         goto return_false;
     }
     if ((int8_t)unit[0x106] < 0) {
@@ -858,7 +858,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (variant_mode == 1) {
         goto return_true;
     }
-    if (target != 0 && !(*(const float *)((uint8_t *)target + 0x11c) >= *(const float *)(def + 0xa0))) {
+    if (target != 0 && !(target->distance >= *(const float *)(def + 0xa0))) {
         goto return_true;
     }
 
@@ -882,14 +882,14 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 actor *other;
                 float dot;
 
-                cursor = *(const uint32_t *)((uint8_t *)p + 0x8);
+                cursor = p->next_in_actor;
                 if (kind < 2 || kind > 3 || p->enemy != 0 || p->dead != 0) {
                     continue;
                 }
                 if (p->distance >= 15.0f) {
                     continue;
                 }
-                owner = *(const uint32_t *)((uint8_t *)p + 0x1c);
+                owner = p->owner_actor_index;
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
@@ -897,8 +897,8 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 if (other->unknown_362[0] == 0) {
                     continue;
                 }
-                dot = (*(const float *)((uint8_t *)other + 0x134) - self->body_position.z) * *(const float *)((uint8_t *)axis_prop + 0xe8) +
-                      (*(const float *)((uint8_t *)other + 0x130) - self->body_position.y) * *(const float *)((uint8_t *)axis_prop + 0xe4) +
+                dot = (other->body_position.z - self->body_position.z) * axis_prop->direction.z +
+                      (other->body_position.y - self->body_position.y) * axis_prop->direction.y +
                       (*(const float *)((uint8_t *)other + 0x12c) - self->body_position.x) * *(const float *)((uint8_t *)axis_prop + 0xe0);
                 if (dot > 1.4f) {
                     ahead++;
@@ -909,7 +909,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 }
             }
 
-            if (((uint8_t *)self)[0x363] != 0) {
+            if (self->unknown_362[1] != 0) {
                 if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
                     decision = 0;
                     goto apply_decision;
@@ -920,10 +920,10 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         }
         *(int16_t *)((uint8_t *)self + 0x364) -= 1;
         if (*(int16_t *)((uint8_t *)self + 0x364) != 0) {
-            return ((uint8_t *)self)[0x363];
+            return self->unknown_362[1];
         }
     flip_decision:
-        decision = (((uint8_t *)self)[0x363] == 0);
+        decision = (self->unknown_362[1] == 0);
     } else {
         float chance = ((ActorVariant *)variant)->initial_crouch_chance;
         float roll;
@@ -938,17 +938,17 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 uint32_t owner;
                 actor *other;
 
-                cursor = *(const uint32_t *)((uint8_t *)p + 0x8);
+                cursor = p->next_in_actor;
                 if (kind < 2 || kind > 3 || p->enemy != 0 || p->dead != 0) {
                     continue;
                 }
-                owner = *(const uint32_t *)((uint8_t *)p + 0x1c);
+                owner = p->owner_actor_index;
                 if (owner == halo::k_dword_none) {
                     continue;
                 }
                 other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
                 if (other->type != self->type ||
-                    *(const int16_t *)((uint8_t *)other + 0x6e) < 5) {
+                    other->combat_status < 5) {
                     continue;
                 }
                 if (other->crouch_active != 0) {
@@ -971,7 +971,7 @@ apply_decision:
     {
         float ticks;
 
-        ((uint8_t *)self)[0x363] = decision;
+        self->unknown_362[1] = decision;
         if (decision != 0) {
             ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
         } else {
@@ -984,7 +984,7 @@ apply_decision:
         *(int16_t *)((uint8_t *)self + 0x364) = (int16_t)(int32_t)ticks;
         *(int16_t *)((uint8_t *)self + 0x366) = 0x1e;
     }
-    return ((uint8_t *)self)[0x363];
+    return self->unknown_362[1];
 
 return_true:
     self->unknown_362[0] = 0;
@@ -1426,7 +1426,7 @@ void halo::ai::combat_ops::get_target_state_flags(int16_t ax_mode, int16_t cx_mo
 
                     halo::ai::actor_target_get_relationship_object(a->target_unit_index);
                 }
-                *out_f = halo::ai::actor_firing_position_near_point(actor_index, (real_point3d *)((uint8_t *)p + 0xf0), *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
+                *out_f = halo::ai::actor_firing_position_near_point(actor_index, &p->pathfinding_point, *(uint32_t *)&((struct prop *)p)->pathfinding_surface_index, 1);
             }
         } else {
             *out_a = 0;
