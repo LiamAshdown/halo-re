@@ -67,17 +67,17 @@ namespace halo::interface {
 void InterfaceMain::draw_cursor()
 {
     Rectangle2D rect;
-    int32_t bitmap_data;
+    BitmapData *bitmap_data;
 
     rect.top = (int16_t)ui_cursor_y;
     rect.left = (int16_t)ui_cursor_x;
 
     if (ui_cursor_bitmap != (datum_index)-1) {
-        bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0));
+        bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0);
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);
-            halo::interface::ui_draw_screen_quad(nullptr, (int16_t *)&rect, bitmap_data, nullptr, halo::k_dword_none);
+            halo::interface::ui_draw_screen_quad(nullptr, &rect, bitmap_data, nullptr, halo::k_dword_none);
             return;
         }
     }

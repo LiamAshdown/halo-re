@@ -205,10 +205,17 @@ void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *
     halo::ui::UiDraw::draw_rotated_screen_quad(origin, source_record, corner_uvs, scale, rotation_radians, alpha_fraction);
 }
 
-void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
-                          int16_t *clip_rect, uint32_t vertex_color)
+void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color)
 {
-    halo::ui::UiDraw::draw_screen_quad(source_rect, dest_rect, bitmap_data, clip_rect, vertex_color);
+    ui_draw_screen_quad(reinterpret_cast<const Rectangle2D *>(source_rect), reinterpret_cast<const Rectangle2D *>(dest_rect),
+                        reinterpret_cast<const BitmapData *>(static_cast<uintptr_t>(bitmap_data)),
+                        reinterpret_cast<const Rectangle2D *>(clip_rect), vertex_color);
+}
+
+void ui_draw_screen_quad(const Rectangle2D *source_rect, const Rectangle2D *dest_rect, const BitmapData *bitmap,
+                          const Rectangle2D *clip_rect, uint32_t vertex_color)
+{
+    halo::ui::UiDraw::draw_screen_quad(source_rect, dest_rect, bitmap, clip_rect, vertex_color);
 }
 
 void ui_draw_trouble_brewing_indicator(void)

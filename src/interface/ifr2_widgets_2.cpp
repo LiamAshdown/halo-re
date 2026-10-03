@@ -13,6 +13,7 @@
 #include "halo/interface/flags.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -171,14 +172,14 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             datum_index bitmap_tag = *(datum_index *)&(arrow == 0 ? tag->list_header_bitmap : tag->list_footer_bitmap).tag_id;
             uint8_t *bitmap_tag_data = halo::interface::tag_data<uint8_t>(bitmap_tag);
             int16_t frame = (int16_t)(arrow == 0 ? scroll_dir_up : scroll_dir_down);
-            int32_t bitmap;
+            BitmapData *bitmap;
 
             if (in_bounds != 0 && bitmap_tag_data != nullptr && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
                 halo::interface::widget_instance_point_in_bounds(widget) != 0 &&
                 (arrow == 0 ? cursor_side <= 0 : cursor_side > 0)) {
                 frame = (int16_t)(frame + 2);
             }
-            bitmap = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, frame));
+            bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, frame);
             if (bitmap != 0) {
                 Rectangle2D rect = arrow == 0 ? tag->header_bounds : tag->footer_bounds;
                 float alpha = scale * 255.0f;
@@ -187,7 +188,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
                 rect.left = (int16_t)(rect.left + x_off);
                 rect.bottom = (int16_t)(rect.bottom + y_off);
                 rect.right = (int16_t)(rect.right + x_off);
-                halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, bitmap, (int16_t *)dest,
+                halo::interface::ui_draw_screen_quad(&rect, &rect, bitmap, dest,
                                      (uint32_t)((int32_t)(alpha + 0.5f) << 24) | halo::interface::k_rgb_mask);
             }
         }
@@ -270,7 +271,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             }
 
             halo::text::text_context::set_render_context(halo::interface::tag_handle(tag->text_font.tag_id), &color, -1, justification, 0);
-            halo::rasterizer::chimera__draw_16_bit_text(&clip, (int32_t *)(&rect), 0, 0, (const int16_t *)text);
+            halo::interface::draw_text16(&clip, &rect, text);
         }
     }
 

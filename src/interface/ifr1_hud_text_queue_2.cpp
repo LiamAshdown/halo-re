@@ -10,6 +10,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t hud_text_message_time_base;
@@ -127,7 +128,7 @@ draw:
             halo::text::globals().hud_text_draw_color_a = *color;
             hud_text_draw_color_or_flags = halo::k_word_none | (2u << 16);
             hud_text_draw_unknown_4730 = 0;
-            halo::rasterizer::chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);
+            halo::interface::draw_text16(&clip, &dest, entry->text);
         }
     }
     return 1;

@@ -20,6 +20,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern char console_echo_prefix[];
@@ -290,7 +291,7 @@ void ConsoleTerminal::draw_overlay(void)
             rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
             rect.bottom = (int16_t)(halo::interface::k_base_screen_height - render_viewport_top[0]);
             rect.right = (int16_t)(halo::interface::k_base_screen_width - render_viewport_top[1]);
-            halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
+            halo::interface::draw_text8(0, &rect, line);
         }
     }
 
@@ -327,7 +328,7 @@ void ConsoleTerminal::draw_overlay(void)
                 rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
                 rect.bottom = (int16_t)(y + line_height - render_viewport_top[0]);
                 rect.right = (int16_t)(halo::interface::k_base_screen_width - render_viewport_top[1]);
-                halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
+                halo::interface::draw_text8(0, &rect, message->text);
             }
             halo::text::globals().hud_text_draw_background_mode = 0;
             message_handle = message->next;

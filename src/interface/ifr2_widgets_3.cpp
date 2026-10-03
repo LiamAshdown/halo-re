@@ -136,7 +136,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
 
         halo::text::text_context::set_render_context(halo::interface::tag_handle(tag->text_font.tag_id), &color, -1, tag->justification, 0);
         if (halo::interface::ui_string_has_button_prompt_token(halo::interface::widget_text(widget)) == 0) {
-            halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)(halo::interface::widget_text(widget)));
+            halo::interface::draw_text16(&rects[1], &rects[0], halo::interface::widget_text(widget));
             return;
         }
         halo::interface::ui_widget_draw_formatted_prompt_string(&rects[0], 0, halo::interface::widget_text(widget));

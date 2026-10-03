@@ -22,6 +22,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern HUDGlobals *hud_messaging_parameters;
@@ -219,7 +220,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     halo::text::text_context::measure_string_extents(&line, &cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
                     cursor.left = (int16_t)(cursor.left - 3);
                     bounds.left = line.left;
-                    halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+                    halo::interface::draw_text16(0, &bounds, text);
                     line.top = cursor.top;
                     text_offset = (uint16_t)(text_offset + data);
                 } else if (data <= 0x11) {
@@ -304,7 +305,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         hud_messaging_set_text_state(font, &color);
 
         if (slot->source == -1) {
-            halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)slot->text);
+            halo::interface::draw_text16(0, &cursor, slot->text);
         } else {
             Item *item;
             const uint16_t *text;
@@ -333,9 +334,9 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     value_scale = 1;
                 }
                 halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>((const wchar_t *)text), slot->count / value_scale);
-                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&cursor), 0, 0, (const int16_t *)((const uint16_t *)formatted));
+                halo::interface::draw_text16(0, &cursor, (const uint16_t *)formatted);
             } else {
-                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)text);
+                halo::interface::draw_text16(0, &cursor, text);
             }
         }
 

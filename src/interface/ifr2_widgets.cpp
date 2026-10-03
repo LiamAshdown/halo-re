@@ -1528,8 +1528,8 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
     }
 
     if (widget->state != 0) {
-        int32_t bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
-            *(datum_index *)&((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id, 0, widget->background_bitmap_frame));
+        BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
+            halo::interface::tag_handle(((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id), 0, widget->background_bitmap_frame);
 
         if (bitmap_data != 0) {
             float alpha = scale;
@@ -1563,7 +1563,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 alpha = (float)((cos(t * 0.003) + 1.0) * 0.5 * (double)alpha);
             }
 
-            halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)clip_arg,
+            halo::interface::ui_draw_screen_quad(&bounds, &bounds, bitmap_data, clip_arg,
                                  (uint32_t)((int32_t)(alpha * 255.0f + 0.5f) << 24) | halo::interface::k_rgb_mask);
             if ((int8_t)flag2 != 0) {
                 override_color_00879f40 = 0.0f;

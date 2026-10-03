@@ -24,6 +24,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -69,7 +70,7 @@ void ChimeraBridge::do_show_loading_screen(void)
 {
     float alpha;
     datum_index font, background, strings;
-    int32_t bitmap_data;
+    BitmapData *bitmap_data;
     uint32_t packed_color;
     ColorARGB text_color;
     Rectangle2D bounds;
@@ -139,7 +140,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         return;
     }
 
-    bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0));
+    bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0);
     packed_color = halo::interface::color_argb_scale_alpha(halo::k_dword_none, alpha);
     text_color.alpha = alpha;
     text_color.red = 1.0f;
@@ -150,7 +151,7 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = halo::interface::k_base_screen_height;
     bounds.right = halo::interface::k_base_screen_width;
     if (bitmap_data != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, nullptr,
+        halo::interface::ui_draw_screen_quad(&bounds, &bounds, bitmap_data, nullptr,
                             packed_color);
     }
     halo::text::text_context::set_render_context(font, &text_color, -1, 2, 0);
@@ -162,35 +163,35 @@ void ChimeraBridge::do_show_loading_screen(void)
     switch (join_ui_state) {
     case 2:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 1));
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 3:
     case 5:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 2), progress_screen_text);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 4:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 0), progress_screen_text);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 6:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 3), progress_screen_text,
                               interface_loading_screen_progress);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 7:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 4));
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 8:
         halo::text::string_format_wide_va(text_buffer,
                               halo::text::text_string_list_get_string(strings, (halo::networking::globals().game_mode == 2) ? 6 : 5),
                               progress_screen_subtext);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 9:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 8), progress_screen_subtext);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     default:
         break;
@@ -200,11 +201,11 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = halo::interface::k_base_screen_height - 30;
     switch (join_ui_state) {
     case 2: case 3: case 4: case 5: case 6: case 7: case 9:
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 7)));
+        halo::interface::draw_text16(0, &bounds, halo::text::text_string_list_get_string(strings, 7));
     case 8:
         bounds.top = halo::interface::k_base_screen_height - 20;
         bounds.bottom = halo::interface::k_base_screen_height;
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 9)));
+        halo::interface::draw_text16(0, &bounds, halo::text::text_string_list_get_string(strings, 9));
         break;
     default:
         break;

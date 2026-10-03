@@ -344,6 +344,7 @@ void ui_cursor_update(void);
 void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs, float scale, float rotation_radians, float alpha_fraction);
 void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
+void ui_draw_screen_quad(const Rectangle2D *source_rect, const Rectangle2D *dest_rect, const BitmapData *bitmap, const Rectangle2D *clip_rect, uint32_t vertex_color);
 void ui_draw_trouble_brewing_indicator(void);
 void ui_error_modal_update(void);
 uint8_t ui_event_49cdd0(widget_instance *widget, int16_t *event, uint8_t *out_handled);

@@ -12,6 +12,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -325,7 +326,7 @@ void HudDraw::message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const 
     if (allow_button_prompts != 0 && halo::game::globals().current_engine != 0) {
         halo::interface::ui_widget_draw_formatted_prompt_string(&bounds, 1, text);
     } else {
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+        halo::interface::draw_text16(0, &bounds, text);
     }
     origin->top = cursor->top;
 }

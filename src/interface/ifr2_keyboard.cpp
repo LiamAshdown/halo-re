@@ -15,6 +15,7 @@
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -33,7 +34,6 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
 extern ui_key_event key_events[];
@@ -189,11 +189,11 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             halo::text::text_context::measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
             highlight.left -= 2;
             highlight.right += 2;
-            halo::interface::ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, halo::interface::k_virtual_keyboard_highlight_color);
+            halo::interface::ui_draw_screen_quad(bounds, &highlight, white, 0, halo::interface::k_virtual_keyboard_highlight_color);
         }
     }
 
-    halo::rasterizer::chimera__draw_16_bit_text(bounds, (int32_t *)bounds, 0, 0, (const int16_t *)virtual_keyboard.destination);
+    halo::interface::draw_text16(bounds, bounds, virtual_keyboard.destination);
 
     if (virtual_keyboard.opened == 0 && virtual_keyboard.white_bitmap != (datum_index)-1 &&
         ((halo::cseries::time_query_performance_counter_ms() / 1000) & 1) != 0) {
@@ -224,7 +224,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
             caret.left = (int16_t)((bounds->left + bounds->right) / 2 - (total_advance >> 1) + advance_before_caret);
             caret.bottom = (int16_t)(height + 0x78);
             caret.right = (int16_t)(caret.left + 1);
-            halo::interface::ui_draw_screen_quad(0, (int16_t *)&caret, (int32_t)white, 0, halo::k_dword_none);
+            halo::interface::ui_draw_screen_quad(0, &caret, white, 0, halo::k_dword_none);
         }
     }
 }
@@ -487,7 +487,7 @@ void VirtualKeyboard::render()
         rect.left = 0;
         rect.bottom = halo::interface::k_base_screen_height;
         rect.right = halo::interface::k_base_screen_width;
-        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)bitmap, 0, halo::k_dword_none);
+        halo::interface::ui_draw_screen_quad(&rect, &rect, bitmap, 0, halo::k_dword_none);
     }
 
     virtual_keyboard_set_text_state(0);
@@ -499,7 +499,7 @@ void VirtualKeyboard::render()
         rect.left = 0x72;
         rect.bottom = 0x6e;
         rect.right = halo::interface::k_base_screen_width;
-        halo::rasterizer::chimera__draw_16_bit_text(&rect, (int32_t *)&rect, 0, 0, (const int16_t *)title);
+        halo::interface::draw_text16(&rect, &rect, title);
     }
 
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
@@ -522,7 +522,7 @@ void VirtualKeyboard::render()
     rect.left = 0;
     rect.bottom = halo::interface::k_base_screen_height - 30;
     rect.right = halo::interface::k_base_screen_width - 10;
-    halo::rasterizer::chimera__draw_16_bit_text(&rect, (int32_t *)&rect, 0, 0, (const int16_t *)prompt);
+    halo::interface::draw_text16(&rect, &rect, prompt);
 
     rect.top = 0x76;
     rect.left = 0x78;

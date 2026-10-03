@@ -34,6 +34,7 @@
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -73,7 +74,7 @@ static void draw_span_inline(Rectangle2D *origin, Rectangle2D *cursor, const uin
     halo::text::text_context::measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     out.left = origin->left;
-    halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)&out, 0, 0, (const int16_t *)text);
+    halo::interface::draw_text16((Rectangle2D *)0, &out, text);
     origin->top = cursor->top;
 }
 
@@ -269,33 +270,32 @@ void UiDraw::draw_rotated_screen_quad(int16_t *origin, int32_t source_record, fl
  *
  * @address 0x498b20
  */
-void UiDraw::draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
-                          int16_t *clip_rect, uint32_t vertex_color)
+void UiDraw::draw_screen_quad(const Rectangle2D *source_rect, const Rectangle2D *dest_rect, const BitmapData *bitmap,
+                          const Rectangle2D *clip_rect, uint32_t vertex_color)
 {
-    if (bitmap_data != 0 && dest_rect != nullptr) {
-        uint8_t submit_buffer[0x60];
+    if (bitmap != nullptr && dest_rect != nullptr) {
+        hud_quad_vertex vertices[4];
         ui_quad_render_state state;
-        int16_t fallback_rect[4];
+        Rectangle2D fallback_rect;
         float corners[8];
         int32_t clamped_bottom;
         float scale_u, scale_v;
         int32_t axis;
         int32_t vertex_index;
         float *corner_pair;
-        int32_t i;
 
         if (source_rect == nullptr) {
-            fallback_rect[0] = 0;
-            fallback_rect[1] = 0;
-            fallback_rect[3] = *(int16_t *)(bitmap_data + 4);
-            fallback_rect[2] = *(int16_t *)(bitmap_data + 6);
-            source_rect = fallback_rect;
+            fallback_rect.top = 0;
+            fallback_rect.left = 0;
+            fallback_rect.right = (int16_t)bitmap->width;
+            fallback_rect.bottom = (int16_t)bitmap->height;
+            source_rect = &fallback_rect;
         }
 
-        corners[0] = (float)(int32_t)dest_rect[1];
-        corners[1] = (float)(int32_t)dest_rect[0];
-        corners[2] = (float)((int32_t)(int16_t)(dest_rect[3] - dest_rect[1]) + (int32_t)dest_rect[1]);
-        clamped_bottom = (int32_t)(int16_t)(dest_rect[2] - dest_rect[0]) + (int32_t)dest_rect[0];
+        corners[0] = (float)(int32_t)dest_rect->left;
+        corners[1] = (float)(int32_t)dest_rect->top;
+        corners[2] = (float)((int32_t)(int16_t)(dest_rect->right - dest_rect->left) + (int32_t)dest_rect->left);
+        clamped_bottom = (int32_t)(int16_t)(dest_rect->bottom - dest_rect->top) + (int32_t)dest_rect->top;
         corners[3] = corners[1];
         corners[4] = corners[2];
         corners[5] = (float)clamped_bottom;
@@ -305,73 +305,66 @@ void UiDraw::draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t 
         if (clip_rect != nullptr) {
             int16_t v;
 
-            v = clip_rect[1];
-            if (dest_rect[1] < v) {
+            v = clip_rect->left;
+            if (dest_rect->left < v) {
                 clamped_bottom = (int32_t)v;
                 corners[6] = (float)(int32_t)v;
                 corners[0] = corners[6];
             }
-            v = clip_rect[3];
-            if (v < (int16_t)dest_rect[3]) {
+            v = clip_rect->right;
+            if (v < dest_rect->right) {
                 corners[4] = (float)(int32_t)v;
                 corners[2] = corners[4];
             }
-            v = clip_rect[0];
-            if (dest_rect[0] < v) {
+            v = clip_rect->top;
+            if (dest_rect->top < v) {
                 corners[3] = (float)(int32_t)v;
                 corners[1] = corners[3];
             }
-            if (clip_rect[2] < dest_rect[2]) {
-                corners[7] = (float)(int32_t)clip_rect[2];
+            if (clip_rect->bottom < dest_rect->bottom) {
+                corners[7] = (float)(int32_t)clip_rect->bottom;
                 corners[5] = corners[7];
             }
         }
 
-        scale_u = (float)(int32_t)*(int16_t *)(bitmap_data + 4);
+        scale_u = (float)(int32_t)(int16_t)bitmap->width;
         if (scale_u < 1.0f) scale_u = 1.0f;
-        scale_u = (float)(int32_t)(int16_t)(source_rect[3] - source_rect[1]) / scale_u;
+        scale_u = (float)(int32_t)(int16_t)(source_rect->right - source_rect->left) / scale_u;
         if (scale_u > 1.0f) scale_u = 1.0f;
 
-        scale_v = (float)(int32_t)*(int16_t *)(bitmap_data + 6);
+        scale_v = (float)(int32_t)(int16_t)bitmap->height;
         if (scale_v < 1.0f) scale_v = 1.0f;
-        scale_v = (float)(int32_t)(int16_t)(source_rect[2] - source_rect[0]) / scale_v;
+        scale_v = (float)(int32_t)(int16_t)(source_rect->bottom - source_rect->top) / scale_v;
         if (scale_v > 1.0f) scale_v = 1.0f;
 
         axis = 0;
         vertex_index = 0;
         corner_pair = corners + 1;
         do {
-            float u, v_uv, row, col;
-            uint8_t *vertex = submit_buffer + vertex_index * 0x18;
+            hud_quad_vertex &vertex = vertices[vertex_index];
 
-            u = (vertex_index % 3 == 0) ? 0.0f : scale_u;
-            v_uv = (axis < 2) ? 0.0f : scale_v;
-            row = corner_pair[-1];
-            col = corner_pair[0];
+            vertex.x = corner_pair[-1];
+            vertex.y = corner_pair[0];
+            vertex.z = 0.0f;
+            vertex.color = vertex_color;
+            vertex.u = (vertex_index % 3 == 0) ? 0.0f : scale_u;
+            vertex.v = (axis < 2) ? 0.0f : scale_v;
             axis = axis + 1;
-            *(float *)(vertex + 0x00) = row;
-            *(float *)(vertex + 0x04) = col;
-            *(float *)(vertex + 0x08) = 0.0f;
-            *(uint32_t *)(vertex + 0x0c) = vertex_color;
-            *(float *)(vertex + 0x10) = u;
-            *(float *)(vertex + 0x14) = v_uv;
             vertex_index = vertex_index + 1;
             corner_pair = corner_pair + 2;
         } while (axis < 4);
 
-        for (i = 0; i < 0x23; i++) {
-            ((int32_t *)&state)[i] = 0;
-        }
+        memset(&state, 0, sizeof(state));
         state.meter_parameters = 0;
         state.single_local_player = 0;
         state.framebuffer_blend_function = 0;
-        state.maps[0] = (BitmapData *)bitmap_data;
+        state.maps[0] = const_cast<BitmapData *>(bitmap);
         state.map_texel_scales[0].y = 1.0f;
         state.map_texel_scales[0].x = 1.0f;
         state.map_scales[0].y = 1.0f;
         state.map_scales[0].x = 1.0f;
 
-        halo::rasterizer::rasterizer_ui_quad_draw(&state, (hud_quad_vertex *)submit_buffer);
+        halo::rasterizer::rasterizer_ui_quad_draw(&state, vertices);
     }
 }
 
@@ -395,7 +388,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
             BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 
             if (bitmap_data != 0) {
-                halo::interface::ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, halo::k_dword_none);
+                halo::interface::ui_draw_screen_quad(0, &rect, bitmap_data, 0, halo::k_dword_none);
                 return;
             }
         }
@@ -550,7 +543,7 @@ void UiDraw::widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, 
     halo::text::text_context::measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
-    halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+    halo::interface::draw_text16((Rectangle2D *)0, &bounds, text);
     origin->top = cursor->top;
 }
 
