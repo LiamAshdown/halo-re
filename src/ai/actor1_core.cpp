@@ -134,7 +134,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     }
     self->team = unit_object->owner_team;
 
-    if (*(int16_t *)((uint8_t *)unit_object + 0xbe) > 99) {
+    if (unit_object->permutation_index > 99) {
         self->counts_toward_encounter = 1;
         if (self->encounter_index != (datum_index)k_datum_index_none) {
             encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];

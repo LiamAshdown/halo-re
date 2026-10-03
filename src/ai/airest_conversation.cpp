@@ -687,20 +687,20 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
 
         if (use_named_object) {
             object *obj = 0;
-            void *element = 0;
+            object_header *element = 0;
             if (named_object != (datum_index)k_datum_index_none) {
                 int16_t index = (int16_t)named_object;
                 if (index >= 0 && index < halo::objects::globals().object_data->maximum_count) {
-                    int32_t byte_offset = (int32_t)halo::objects::globals().object_data->size * (int32_t)index;
-                    int16_t identifier = *(int16_t *)((uint8_t *)halo::objects::globals().object_data->data + byte_offset);
+                    object_header *header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data + (int32_t)halo::objects::globals().object_data->size * (int32_t)index);
+                    int16_t identifier = header->identifier;
                     int16_t salt = (int16_t)((uint32_t)named_object >> 16);
                     if (identifier != 0 && (salt == 0 || identifier == salt)) {
-                        element = (uint8_t *)halo::objects::globals().object_data->data + byte_offset;
+                        element = header;
                     }
                 }
             }
-            if (element != 0 && ((1 << (*((uint8_t *)element + 3) & 0x1f)) & 3u) != 0) {
-                obj = *(object **)((uint8_t *)element + 8);
+            if (element != 0 && ((1 << (element->type & 0x1f)) & 3u) != 0) {
+                obj = element->data;
             }
             candidate = 0;
             candidate_index = (datum_index)k_datum_index_none;
@@ -812,8 +812,8 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 }
             }
 
-            candidate_variant = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
-                                                 [candidate->unit_index & halo::k_slot_mask].data + 0xbe);
+            candidate_variant = ((object_header *)halo::objects::globals().object_data->data)
+                                                 [candidate->unit_index & halo::k_slot_mask].data->permutation_index;
             variant_candidate_count = 0;
             zero_variant_slot = (uint32_t)k_datum_index_none;
             have_zero_variant = 0;
@@ -1105,8 +1105,8 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
             }
         }
         variant = (int16_t)participants[i].variant_numbers[variant_slots[i]];
-        if (*(int16_t *)((uint8_t *)unit_object + 0xbe) != variant) {
-            *(int16_t *)((uint8_t *)unit_object + 0xbe) = variant;
+        if (unit_object->permutation_index != variant) {
+            unit_object->permutation_index = variant;
             halo::units::unit_data_of(unit_object)->flags &= 0xfffffeffu;
         }
     }
