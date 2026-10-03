@@ -897,7 +897,7 @@ void rasterizer_render_target_bind_effect_texture(int16_t target_index, rasteriz
     void *texture = 0;
 
     if (target_index < 9 && target_index > -1) {
-        texture = (void *)(uintptr_t)rasterizer_render_targets[target_index].texture;
+        texture = rasterizer_render_targets[target_index].texture;
     }
 
     render_device().effect_set_texture(effect_slot->effect, effect_slot->texture_handles[handle_index], texture);
@@ -917,7 +917,7 @@ void * rasterizer_render_target_bind_texture_stage(int16_t target_index, int16_t
     void *texture = 0;
 
     if (target_index < 9 && target_index > -1) {
-        texture = (void *)(uintptr_t)rasterizer_render_targets[target_index].texture;
+        texture = rasterizer_render_targets[target_index].texture;
     }
 
     render_device().set_texture(stage, texture);
@@ -995,10 +995,10 @@ void rasterizer_unbind_stream_and_textures(void)
     int32_t stage;
 
     for (stage = 0; stage < 2; stage++) {
-        render_device().set_texture(stage, (void *)0);
+        render_device().set_texture(stage, nullptr);
     }
 
-    render_device().set_stream_source(0, (void *)0, 0, 0);
+    render_device().set_stream_source(0, nullptr, 0, 0);
 
     render_device().set_indices(0);
 }

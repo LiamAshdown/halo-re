@@ -61,7 +61,7 @@ void decal_and_font_system_reset(void)
     int32_t i;
 
     if (global_globals->rasterizer_data.count == 0) {
-        rasterizer_globals_data = (GlobalsRasterizerData *)((void *)0);
+        rasterizer_globals_data = (GlobalsRasterizerData *)nullptr;
     } else {
         rasterizer_globals_data = (GlobalsRasterizerData *)(uintptr_t)global_globals->rasterizer_data.pointer;
     }
@@ -84,7 +84,7 @@ void decal_and_font_system_reset(void)
         ((uint32_t *)cinematic_screen_effect_state)[0x1b] = 0x3f800000;
         ((uint32_t *)cinematic_screen_effect_state)[0x1c] = 0x3f800000;
     }
-    if (rasterizer_model_ambient_reflection_tint != (float *)0) {
+    if (rasterizer_model_ambient_reflection_tint != nullptr) {
         rasterizer_model_ambient_reflection_tint[0] = 0;
         rasterizer_model_ambient_reflection_tint[1] = 0;
         rasterizer_model_ambient_reflection_tint[2] = 0;
@@ -185,9 +185,9 @@ uint8_t rasterizer_decal_index_buffer_initialize(void)
     if (render_device().create_index_buffer(0x30000, usage, 0x65, 2, &rasterizer_dynamic_index_buffer, 0) < 0) {
         ok = 0;
     }
-    if (rasterizer_dynamic_index_buffer == (void *)0 || !ok) {
+    if (rasterizer_dynamic_index_buffer == nullptr || !ok) {
         ok = 0;
-        rasterizer_dynamic_index_buffer = (void *)0;
+        rasterizer_dynamic_index_buffer = nullptr;
     }
 
     for (type = 0; ok && (int16_t)type < k_rasterizer_vertex_type_count; type++) {

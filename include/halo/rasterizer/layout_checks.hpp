@@ -7,10 +7,11 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 #include "rasterizer.h"
 
-static_assert(sizeof(void *) == 4, "the rasterizer records mirror a 32-bit target");
+static_assert(sizeof(uintptr_t) == 4, "the rasterizer records mirror a 32-bit target");
 
 static_assert(sizeof(rasterizer_vertex_buffer) == 0x14);
 static_assert(offsetof(rasterizer_vertex_buffer, count) == 0x04);

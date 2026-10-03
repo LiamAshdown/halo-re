@@ -57,7 +57,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
 
     wcslen((const wchar_t *)text);
 
-    if (dest_rect_override == (int32_t *)0) {
+    if (dest_rect_override == nullptr) {
         int16_t neg_origin_x = (int16_t)(-render_viewport_top[0]);
         dest_rect[0] = (uint16_t)(int16_t)(screen_safe_area_right[0] + neg_origin_x) |
                        ((uint16_t)(int16_t)(screen_safe_area_right[1] - render_viewport_top[1]) << 16);
@@ -119,7 +119,7 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
         return;
     }
 
-    if (dest_rect_override == (int32_t *)0) {
+    if (dest_rect_override == nullptr) {
         dest_rect[0] = ((int32_t)screen_safe_area_right[0] - render_viewport_top[0]) |
                        (((int32_t)screen_safe_area_right[1] - render_viewport_top[1]) << 16);
         dest_rect[1] = ((int32_t)screen_safe_area_bottom[0] - render_viewport_top[0]) |
@@ -447,18 +447,18 @@ void rasterizer_editbox_log_dump(void)
     void *rect_zero[4];
     int32_t document;
 
-    if (chat_gui_root_handle == (void *)0) {
-        if (halo::rasterizer::fields::keystone_create == (void *)0) {
+    if (chat_gui_root_handle == nullptr) {
+        if (halo::rasterizer::fields::keystone_create == nullptr) {
             return;
         }
         chat_gui_root_handle = halo::rasterizer::fields::keystone_create(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
-        if (chat_gui_root_handle == (void *)0) {
+        if (chat_gui_root_handle == nullptr) {
             return;
         }
     }
 
-    rect_zero[0] = (void *)0;
-    rect_zero[1] = (void *)0;
+    rect_zero[0] = nullptr;
+    rect_zero[1] = nullptr;
     rect_zero[2] = (void *)(uintptr_t)rasterizer_present_parameters.back_buffer_width;
     rect_zero[3] = (void *)(uintptr_t)rasterizer_present_parameters.back_buffer_height;
 

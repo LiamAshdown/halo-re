@@ -25,18 +25,18 @@ namespace halo::rasterizer {
  */
 void chimera__rasterizer_dispose_free_memory(void)
 {
-    if (rasterizer_misc_vertex_buffer != (void *)0) {
+    if (rasterizer_misc_vertex_buffer != nullptr) {
         render_device().release(rasterizer_misc_vertex_buffer);
-        rasterizer_misc_vertex_buffer = (void *)0;
+        rasterizer_misc_vertex_buffer = nullptr;
     }
     if (transparent_geometry_groups != (transparent_geometry_group *)0) {
         GlobalFree(transparent_geometry_groups);
     }
     transparent_geometry_groups = (transparent_geometry_group *)0;
-    if (transparent_geometry_group_sorted_indices != (int16_t *)0) {
+    if (transparent_geometry_group_sorted_indices != nullptr) {
         GlobalFree(transparent_geometry_group_sorted_indices);
     }
-    transparent_geometry_group_sorted_indices = (int16_t *)0;
+    transparent_geometry_group_sorted_indices = nullptr;
     if (transparent_geometry_groups_secondary != (transparent_geometry_group *)0) {
         GlobalFree(transparent_geometry_groups_secondary);
     }
@@ -152,11 +152,11 @@ void * chimera__rasterizer_memory_alloc(void *source, uint32_t size)
     void *block;
 
     new_used = rasterizer_scratch_memory_used + size;
-    block = (void *)0;
+    block = nullptr;
     if (new_used < 0x18001) {
         block = (uint8_t *)rasterizer_scratch_memory + rasterizer_scratch_memory_used;
         rasterizer_scratch_memory_used = new_used;
-        if (source != (void *)0) {
+        if (source != nullptr) {
             memcpy(block, source, size);
         }
     }
@@ -313,7 +313,7 @@ void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t fir
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[type].usage) & 0x10);
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
-        buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
+        buffer = handle == 0 ? 0 : rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
         render_device().set_stream_source(0, buffer, 0, stride);
         render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
@@ -555,7 +555,7 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[type].usage) & 0x10);
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
-        buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
+        buffer = handle == 0 ? 0 : rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
         render_device().set_stream_source(0, buffer, 0, stride);
         {
             int32_t debug_hr = render_device().draw_primitive(primitive_type, (uint32_t)(primitive_kind * first_primitive + vertex_slot->first_vertex), (uint32_t)chunk);
@@ -601,7 +601,7 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[type].usage) & 0x10);
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
-        buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
+        buffer = handle == 0 ? 0 : rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
         render_device().set_stream_source(0, buffer, 0, stride);
         render_device().set_indices(index_buffer->hardware_buffer);
         {

@@ -297,7 +297,7 @@ void rasterizer_dx9_shaders_release_all(void)
 
     rasterizer_dx9_vertex_declarations_release();
     for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
-        void *shader = (void *)rasterizer_vertex_shaders[i].shader;
+        void *shader = rasterizer_vertex_shaders[i].shader;
         if (shader != 0) {
             render_device().release(shader);
             rasterizer_vertex_shaders[i].shader = 0;
@@ -316,7 +316,7 @@ void rasterizer_dx9_vertex_declarations_release(void)
     int i;
 
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
-        void *declaration = (void *)rasterizer_vertex_declarations[i].declaration;
+        void *declaration = rasterizer_vertex_declarations[i].declaration;
         if (declaration != 0) {
             render_device().release(declaration);
         }
@@ -397,7 +397,7 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
     if (index < k_rasterizer_vertex_shaders) {
         int i;
         for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
-            void *shader = (void *)rasterizer_vertex_shaders[i].shader;
+            void *shader = rasterizer_vertex_shaders[i].shader;
             if (shader != 0) {
                 render_device().release(shader);
                 rasterizer_vertex_shaders[i].shader = 0;
@@ -424,7 +424,7 @@ uint8_t rasterizer_dx9_vertex_shaders_reload(void)
     int i;
 
     for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
-        void *shader = (void *)rasterizer_vertex_shaders[i].shader;
+        void *shader = rasterizer_vertex_shaders[i].shader;
         if (shader != 0) {
             render_device().release(shader);
             rasterizer_vertex_shaders[i].shader = 0;
@@ -525,7 +525,7 @@ void rasterizer_ksml_ui_shutdown(void)
 {
     int32_t document;
 
-    if (chat_gui_root_handle == (void *)0 || halo::rasterizer::fields::keystone_get_window == (void *)0 || halo::rasterizer::fields::keystone_window_release == (void *)0) {
+    if (chat_gui_root_handle == nullptr || halo::rasterizer::fields::keystone_get_window == nullptr || halo::rasterizer::fields::keystone_window_release == nullptr) {
         return;
     }
 
@@ -542,7 +542,7 @@ void rasterizer_ksml_ui_shutdown(void)
     }
 
     halo::rasterizer::fields::keystone_release(chat_gui_root_handle);
-    chat_gui_root_handle = (void *)0;
+    chat_gui_root_handle = nullptr;
 }
 
 /**
@@ -560,24 +560,24 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     uint32_t size;
     void *buffer;
 
-    *out_buffer = (void *)0;
+    *out_buffer = nullptr;
     *out_size = 0;
 
-    file = CreateFileA(path, 0x80000000, 0, (LPSECURITY_ATTRIBUTES)((void *)0), 3, 0x8000000, (void *)0);
+    file = CreateFileA(path, 0x80000000, 0, (LPSECURITY_ATTRIBUTES)nullptr, 3, 0x8000000, nullptr);
     if (file == (void *)0xffffffff) {
         return 0;
     }
 
-    size = GetFileSize(file, (LPDWORD)((uint32_t *)0));
+    size = GetFileSize(file, (LPDWORD)(nullptr));
     if (size == halo::k_dword_none) {
         CloseHandle(file);
         return 0;
     }
 
     buffer = GlobalAlloc(0, size);
-    if (buffer != (void *)0) {
+    if (buffer != nullptr) {
         uint32_t bytes_read;
-        int32_t ok = ReadFile(file, buffer, size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0));
+        int32_t ok = ReadFile(file, buffer, size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)nullptr);
         if (ok != 0) {
             CloseHandle(file);
             if (rasterizer_resource_file_verify_signature((uint8_t *)buffer, size) == 0) {
@@ -709,7 +709,7 @@ void rasterizer_render_target_capture_frame(void)
         return;
     }
 
-    surface = (void *)rasterizer_render_targets[2].surface;
+    surface = rasterizer_render_targets[2].surface;
     render_device().set_render_target(0, surface);
     rasterizer_active_render_target = 2;
     render_device().surface_get_desc(surface, &desc);
@@ -955,7 +955,7 @@ void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_co
     d3d_viewport viewport;
 
     if (target_index < 9 && target_index >= 0) {
-        surface = (void *)(uintptr_t)rasterizer_render_targets[target_index].surface;
+        surface = rasterizer_render_targets[target_index].surface;
     }
 
     render_device().set_render_target(0, surface);

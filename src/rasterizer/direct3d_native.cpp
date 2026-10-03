@@ -281,7 +281,7 @@ void rasterizer_render_loading_screen(int32_t mode)
         void *render_target = 0;
         int32_t hr;
 
-        if (mode != 1 || rasterizer_device == (void *)0) {
+        if (mode != 1 || rasterizer_device == nullptr) {
             return;
         }
         vtable = *(void ***)rasterizer_device;
@@ -295,7 +295,7 @@ void rasterizer_render_loading_screen(int32_t mode)
 
                 vtable = *(void ***)rasterizer_device;
                 render_device().stretch_rect((uint32_t)splash, 0, render_target, 0, 0);
-                rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0);
+                rasterizer_capture_and_present(nullptr, (BitmapData *)0);
 
                 vtable = *(void ***)rasterizer_device;
                 render_device().stretch_rect((uint32_t)splash, 0, render_target, 0, 0);
@@ -311,10 +311,10 @@ void rasterizer_render_loading_screen(int32_t mode)
         }
     }
 
-    if (rasterizer_device != (void *)0) {
+    if (rasterizer_device != nullptr) {
         vtable = *(void ***)rasterizer_device;
         ((d3d_device_call6_fn)vtable[0xac / 4])(rasterizer_device, 0, 0, 7, 0, 0x3f800000, 0);
-        rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0);
+        rasterizer_capture_and_present(nullptr, (BitmapData *)0);
         vtable = *(void ***)rasterizer_device;
         ((d3d_device_call6_fn)vtable[0xac / 4])(rasterizer_device, 0, 0, 7, 0, 0x3f800000, 0);
     }

@@ -388,7 +388,7 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
     wc.instance = (uint32_t)halo::shell::globals().instance;
     wc.icon = (uint32_t)LoadIconA((HINSTANCE)halo::shell::globals().instance, (const char *)k_game_icon_resource_id);
     wc.small_icon = (uint32_t)LoadIconA((HINSTANCE)halo::shell::globals().instance, (const char *)k_game_icon_resource_id);
-    wc.cursor = (uint32_t)LoadCursorA((HINSTANCE)((void *)0), (const char *)IDC_ARROW);
+    wc.cursor = (uint32_t)LoadCursorA((HINSTANCE)nullptr, (const char *)IDC_ARROW);
     wc.background_brush = 0;
     wc.menu_name = 0;
     wc.class_name = (uint32_t)shell_window_class_name;
@@ -403,12 +403,12 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 
     hwnd = CreateWindowExA(0, shell_window_class_name, shell_window_title,
                             rasterizer_window_style, rect.left, rect.top, rect.right - rect.left,
-                            rect.bottom - rect.top, GetDesktopWindow(), (HMENU)((void *)0), (HINSTANCE)((void *)wc.instance), (void *)0);
-    if (hwnd == (void *)0) {
-        char *message_buffer = (char *)0;
+                            rect.bottom - rect.top, GetDesktopWindow(), (HMENU)nullptr, (HINSTANCE)((void *)wc.instance), nullptr);
+    if (hwnd == nullptr) {
+        char *message_buffer = nullptr;
         uint32_t message_id = GetLastError();
-        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, (const void *)0, message_id, halo::win32::k_locale_user_default, (LPSTR)&message_buffer, 0, (va_list *)((void *)0));
-        MessageBoxA((HWND)((void *)0), message_buffer, "ERROR - failed to create window", MB_ICONINFORMATION);
+        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, message_id, halo::win32::k_locale_user_default, (LPSTR)&message_buffer, 0, (va_list *)nullptr);
+        MessageBoxA((HWND)nullptr, message_buffer, "ERROR - failed to create window", MB_ICONINFORMATION);
         UnregisterClassA(shell_window_class_name, (HINSTANCE)halo::shell::globals().instance);
         LocalFree(message_buffer);
         return 0;
@@ -416,7 +416,7 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 
     halo::shell::globals().window = hwnd;
     rasterizer_window_icon_bitmap = LoadBitmapA((HINSTANCE)((void *)halo::shell::globals().module_handle), (const char *)k_splash_bitmap_resource_id);
-    if (rasterizer_window_icon_bitmap != (void *)0) {
+    if (rasterizer_window_icon_bitmap != nullptr) {
         void *hdc = GetDC((HWND)hwnd);
         rasterizer_window_icon_dc = CreateCompatibleDC((HDC)hdc);
         SelectObject((HDC)rasterizer_window_icon_dc, rasterizer_window_icon_bitmap);
@@ -463,7 +463,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     rasterizer_ksml_ui_shutdown();
 
     for (i = 0; i < (uint32_t)rasterizer_vertex_buffer_slot_high_water; i++) {
-        void *buffer = (void *)rasterizer_vertex_buffer_slots[i].hardware_buffer;
+        void *buffer = rasterizer_vertex_buffer_slots[i].hardware_buffer;
         if (buffer != 0) {
             render_device().release(buffer);
             rasterizer_vertex_buffer_slots[i].hardware_buffer = 0;
@@ -471,7 +471,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     }
     rasterizer_render_target_dispose();
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
-        void *declaration = (void *)rasterizer_vertex_declarations[i].declaration;
+        void *declaration = rasterizer_vertex_declarations[i].declaration;
         if (declaration != 0) {
             render_device().release(declaration);
         }
@@ -482,7 +482,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
         rasterizer_vertex_declarations[i].usage = 0;
     }
     for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
-        void *shader = (void *)rasterizer_vertex_shaders[i].shader;
+        void *shader = rasterizer_vertex_shaders[i].shader;
         if (shader != 0) {
             render_device().release(shader);
             rasterizer_vertex_shaders[i].shader = 0;
@@ -607,7 +607,7 @@ void rasterizer_end_frame(void)
     uint8_t succeeded = 1;
 
     if (rasterizer_frame_started == 1 && rasterizer_caps_flag_68a == 0) {
-        void *back_buffer = (void *)rasterizer_render_targets[0].surface;
+        void *back_buffer = rasterizer_render_targets[0].surface;
         int16_t width = (int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
         int16_t height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
         d3d_surface_desc desc;
@@ -1143,16 +1143,16 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
     int32_t height = 600;
     long refresh = 0x3c;
 
-    if (halo::shell::command_line_check_flag("-vidmode", &value) != 0 && value != (const char *)0) {
+    if (halo::shell::command_line_check_flag("-vidmode", &value) != 0 && value != nullptr) {
         int32_t parsed = sscanf(value, "%d,%d,%d", &width, &height, &refresh);
         if (parsed == 2 || parsed == 3) {
             if (parsed == 3 && refresh_out != (long *)0) {
                 *refresh_out = refresh;
             }
-            if (width_out != (int32_t *)0) {
+            if (width_out != nullptr) {
                 *width_out = width;
             }
-            if (height_out != (int32_t *)0) {
+            if (height_out != nullptr) {
                 *height_out = height;
             }
             if (halo::rasterizer::fields::video_mode_command_line_parsed == 0) {
@@ -1163,7 +1163,7 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
     }
 
     if (halo::shell::command_line_check_flag("-refresh", &value) != 0) {
-        refresh = (value == (const char *)0) ? 0 : atol(value);
+        refresh = (value == nullptr) ? 0 : atol(value);
         if (refresh_out != (long *)0) {
             *refresh_out = refresh;
         }
@@ -1347,7 +1347,7 @@ namespace rasterizer_service_deferred_windowed_ops_impl {
 void rasterizer_service_deferred_windowed_ops(void)
 {
 
-    if (rasterizer_fullscreen == 0 || rasterizer_device == (void *)0) {
+    if (rasterizer_fullscreen == 0 || rasterizer_device == nullptr) {
         return;
     }
     if (rasterizer_in_scene != 0) {
@@ -1441,10 +1441,10 @@ void rasterizer_shutdown(void)
 
     rasterizer_ksml_ui_shutdown();
 
-    if (rasterizer_scratch_memory != (void *)0) {
+    if (rasterizer_scratch_memory != nullptr) {
         GlobalFree(rasterizer_scratch_memory);
     }
-    rasterizer_scratch_memory = (void *)0;
+    rasterizer_scratch_memory = nullptr;
     rasterizer_scratch_memory_used = 0;
 
     rasterizer_dynamic_geometry_dispose();
@@ -1456,51 +1456,51 @@ void rasterizer_shutdown(void)
         g_font_glyph_cache.initialized = 0;
     }
 
-    if (rasterizer_device != (void *)0 && rasterizer_detail_object_vertex_buffer != (void *)0) {
+    if (rasterizer_device != nullptr && rasterizer_detail_object_vertex_buffer != nullptr) {
         render_device().release(rasterizer_detail_object_vertex_buffer);
-        rasterizer_detail_object_vertex_buffer = (void *)0;
+        rasterizer_detail_object_vertex_buffer = nullptr;
     }
 
     rasterizer_dx9_shaders_release_all();
     rasterizer_render_target_dispose();
 
     for (i = 0; i < k_lens_flare_occlusion_queries; i++) {
-        if (lens_flare_occlusion_queries[i] != (void *)0) {
+        if (lens_flare_occlusion_queries[i] != nullptr) {
             render_device().release(lens_flare_occlusion_queries[i]);
-            lens_flare_occlusion_queries[i] = (void *)0;
+            lens_flare_occlusion_queries[i] = nullptr;
         }
     }
 
     chimera__registry_check_3();
 
-    if (rasterizer_window_icon_dc != (void *)0) {
+    if (rasterizer_window_icon_dc != nullptr) {
         ReleaseDC((HWND)halo::shell::globals().window, (HDC)rasterizer_window_icon_dc);
-        rasterizer_window_icon_dc = (void *)0;
+        rasterizer_window_icon_dc = nullptr;
     }
-    if (rasterizer_window_icon_bitmap != (void *)0) {
+    if (rasterizer_window_icon_bitmap != nullptr) {
         DeleteObject(rasterizer_window_icon_bitmap);
-        rasterizer_window_icon_bitmap = (void *)0;
+        rasterizer_window_icon_bitmap = nullptr;
     }
     ShowWindow((HWND)halo::shell::globals().window, 0);
     DestroyWindow((HWND)halo::shell::globals().window);
-    halo::shell::globals().window = (void *)0;
+    halo::shell::globals().window = nullptr;
 
     for (i = 0; i < 4; i++) {
-        if (rasterizer_capture_surfaces[i] != (void *)0) {
+        if (rasterizer_capture_surfaces[i] != nullptr) {
             render_device().release(rasterizer_capture_surfaces[i]);
-            rasterizer_capture_surfaces[i] = (void *)0;
+            rasterizer_capture_surfaces[i] = nullptr;
         }
     }
 
-    if (rasterizer_device != (void *)0) {
+    if (rasterizer_device != nullptr) {
         render_device().release(rasterizer_device);
     }
-    rasterizer_device = (void *)0;
+    rasterizer_device = nullptr;
 
-    if (rasterizer_direct3d != (void *)0) {
+    if (rasterizer_direct3d != nullptr) {
         render_device().release(rasterizer_direct3d);
     }
-    rasterizer_direct3d = (void *)0;
+    rasterizer_direct3d = nullptr;
 }
 
 }  // namespace halo::rasterizer

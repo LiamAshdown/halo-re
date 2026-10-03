@@ -382,7 +382,7 @@ void rasterizer_motion_sensor_begin(void)
         return;
     }
 
-    surface = (void *)(uintptr_t)rasterizer_render_targets[5].surface;
+    surface = rasterizer_render_targets[5].surface;
     rasterizer_motion_sensor_ready = 1;
     render_device().set_render_target(0, (uint32_t)(uintptr_t)surface);
     rasterizer_active_render_target = 5;

@@ -362,7 +362,7 @@ uint8_t rasterizer_object_shadow_begin(const real_matrix4x3 *projection, const C
     render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 5);
 
     clear_color = console_debug_toggle_68941f ? 0x88888888 : 0;
-    surface = (void *)(uintptr_t)rasterizer_render_targets[3].surface;
+    surface = rasterizer_render_targets[3].surface;
     render_device().set_render_target(0, (uint32_t)(uintptr_t)surface);
     rasterizer_active_render_target = 3;
     render_device().surface_get_desc(surface, &desc);
@@ -477,7 +477,7 @@ void rasterizer_object_shadow_blur(void)
     set_render_state(halo::d3d9::rs::fog_enable, 0);
     render_device().set_vertex_shader_constant_f(0xd, &k_offsets[0][0], 8);
 
-    surface = (void *)(uintptr_t)rasterizer_render_targets[4].surface;
+    surface = rasterizer_render_targets[4].surface;
     render_device().set_render_target(0, (uint32_t)(uintptr_t)surface);
     rasterizer_active_render_target = 4;
     render_device().surface_get_desc(surface, &desc);

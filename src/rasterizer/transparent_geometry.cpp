@@ -1535,7 +1535,7 @@ int32_t transparent_geometry_pool_initialize(void)
     transparent_geometry_groups_secondary = (transparent_geometry_group *)secondary_pool;
 
     if (transparent_geometry_groups != (transparent_geometry_group *)0 &&
-        transparent_geometry_group_sorted_indices != (int16_t *)0 && secondary_pool != 0) {
+        transparent_geometry_group_sorted_indices != nullptr && secondary_pool != 0) {
         uint32_t result = rasterizer_misc_vertex_buffer_create();
         if ((uint8_t)result != 0) {
             return (int32_t)((result & 0xffffff00) | 1);

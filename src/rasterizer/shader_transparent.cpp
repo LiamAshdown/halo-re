@@ -2367,7 +2367,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             }
 
             {
-                void *surface = (void *)rasterizer_render_targets[8].surface;
+                void *surface = rasterizer_render_targets[8].surface;
                 uint32_t desc[8];
                 uint32_t viewport[6];
 
