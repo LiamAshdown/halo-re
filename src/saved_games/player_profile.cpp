@@ -800,14 +800,14 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
         _snprintf(dest_path, k_path_maximum_length, "%s%s", directory, "blam.sav");
         strncpy(old_directory, entry.path, k_path_maximum_length);
         trunc = strstr(old_directory, "blam.sav");
+        bool finalize = true;
+
         if (trunc != 0) {
             *trunc = '\0';
             result = (uint8_t)halo::saved_games::player_profile_copy_files(old_directory, directory);
-        } else {
-            goto finalize;
+            finalize = result == 1;
         }
-        if (result == 1) {
-        finalize:
+        if (finalize) {
             halo::game::XDeleteSaveGame(entry.display_name, savegames_directory);
             strncpy(entry.path, dest_path, k_path_maximum_length);
             wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)new_name, k_saved_game_display_name_length - 1);
@@ -821,7 +821,8 @@ uint8_t rename(int32_t handle, uint16_t *new_name)
         }
     } else {
         if (entry.type != 1) {
-            goto rollback;
+            halo::game::XDeleteSaveGame(new_name, savegames_directory);
+            return 0;
         }
         {
             char dest_path[0x100];

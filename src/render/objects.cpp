@@ -129,7 +129,7 @@ void halo::render::ObjectRenderData::draw()
     }
 
     {
-        uint8_t sample_full_lighting;
+        uint8_t sample_full_lighting = 1;
         Object *definition;
 
         if ((obj->flags & _object_no_collision_bit) != 0 && obj->first_child_object == k_datum_index_none) {
@@ -139,12 +139,8 @@ void halo::render::ObjectRenderData::draw()
                     return;
                 }
                 sample_full_lighting = 0;
-                goto sampled;
             }
         }
-        sample_full_lighting = 1;
-
-    sampled:
         definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
 
         if (sample_full_lighting) {
@@ -188,7 +184,8 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
         render_model_effect effect;
 
         if (halo::render::render_object_is_camera_unit(object_index) && !render_camera_global.mirrored) {
-            goto next_sibling;
+            object_index = obj->next_object;
+            continue;
         }
 
         if (data->shadow_pass == 0) {
@@ -273,7 +270,6 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
                                obj->first_child_object);
         }
 
-    next_sibling:
         object_index = obj->next_object;
     }
 }
