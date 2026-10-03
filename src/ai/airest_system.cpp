@@ -17,6 +17,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 extern "C" {
 extern int32_t game_engine_get_current_tick(void);
@@ -193,7 +194,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         datum_index actor_index = iterator.actor_index;
         int16_t actor_cluster = *(int16_t *)((uint8_t *)a + 0x148);
         datum_index prop_index;
-        uint8_t *p;
+        prop *p;
 
         if (actor_index == owner_actor || actor_cluster == -1 ||
             !(cluster_bits[actor_cluster >> 5] & (1u << (actor_cluster & 0x1f)))) {
@@ -207,9 +208,9 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         if (prop_index == k_datum_index_none) {
             continue;
         }
-        p = PROP(prop_index);
-        if ((int16_t)halo::ai::actor_target_hearing_check(p + 0xfc, (int16_t)*(uint16_t *)(p + 0x38), actor_index, firing_block,
-                gate, &((struct prop *)p)->last_known_position) < 2) {
+        p = halo::ai::prop_at(prop_index);
+        if ((int16_t)halo::ai::actor_target_hearing_check((uint8_t *)p + 0xfc, (int16_t)(uint16_t)p->obstruction, actor_index, firing_block,
+                gate, &p->last_known_position) < 2) {
             continue;
         }
         halo::ai::actor_squad_react_to_grenade(actor_index, prop_index, stimulus);
@@ -792,19 +793,19 @@ void AiSystem::reset_all_actors_perception()
 #define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
 
-static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
+static uint8_t ai_bsp_actor_should_carry(struct actor *actor)
 {
-    if (((struct actor *)actor)->target_unit_index != k_datum_index_none && ((struct actor *)actor)->target_combat_status >= 5) {
-        uint8_t *target = PROP(((struct actor *)actor)->target_unit_index);
-        int32_t fired = ((struct actor *)actor)->ticks_since_threatened;
+    if (actor->target_unit_index != k_datum_index_none && actor->target_combat_status >= 5) {
+        prop *target = halo::ai::prop_at(actor->target_unit_index);
+        int32_t fired = actor->ticks_since_threatened;
 
-        if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
-            target = PROP(((struct prop *)target)->pair_index);
+        if (target->state >= 4 && target->state <= 5) {
+            target = halo::ai::prop_at(target->pair_index);
         }
-        return target[0x12e] != 0 && fired != -1 && fired < 0x5a && ((struct prop *)target)->distance < 10.0f;
+        return target->is_parented != 0 && fired != -1 && fired < 0x5a && target->distance < 10.0f;
     }
     {
-        int16_t team = ((struct actor *)actor)->team;
+        int16_t team = actor->team;
         uint8_t enemies;
         uint8_t carry = 0;
         datum_index prop_index;
@@ -823,11 +824,11 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         if (enemies) {
             return 0;
         }
-        for (prop_index = ((struct actor *)actor)->first_prop; prop_index != k_datum_index_none;) {
-            uint8_t *p = PROP(prop_index);
+        for (prop_index = actor->first_prop; prop_index != k_datum_index_none;) {
+            prop *p = halo::ai::prop_at(prop_index);
 
-            prop_index = *(datum_index *)(p + 8);
-            if (p[0x12e] != 0 && (((struct prop *)p)->visual_perception >= 2 || ((struct prop *)p)->distance < 3.0f)) {
+            prop_index = *(datum_index *)((uint8_t *)p + 8);
+            if (p->is_parented != 0 && (p->visual_perception >= 2 || p->distance < 3.0f)) {
                 carry = 1;
             }
         }
@@ -835,21 +836,21 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
     }
 }
 
-static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
+static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
 {
-    uint8_t *swarm;
+    struct swarm *swarm;
     int16_t count;
     int16_t hidden = 0;
     datum_index hidden_units[16];
     int16_t i;
 
-    if (((struct actor *)actor)->swarm_index == k_datum_index_none) {
+    if (actor->swarm_index == k_datum_index_none) {
         return 0;
     }
-    swarm = (uint8_t *)halo::ai::globals().swarm_data->data + (((struct actor *)actor)->swarm_index & halo::k_slot_mask) * k_swarm_size;
-    count = *(int16_t *)(swarm + 2);
+    swarm = halo::ai::swarm_at(actor->swarm_index);
+    count = *(int16_t *)((uint8_t *)swarm + 2);
     for (i = 0; i < count; i++) {
-        datum_index unit_index = *(datum_index *)(swarm + 0x18 + i * 4);
+        datum_index unit_index = *(datum_index *)((uint8_t *)swarm + 0x18 + i * 4);
         datum_index root = unit_index;
         int16_t cluster;
 
@@ -871,11 +872,11 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
     for (i = 0; i < hidden; i++) {
         datum_index unit_index = hidden_units[i];
 
-        actor = ACTOR(actor_index);
+        actor = halo::ai::actor_at(actor_index);
         halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
-        actor = ACTOR(actor_index);
-        if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, ((struct actor *)actor)->actor_variant_tag, *(uint32_t *)&((struct actor *)actor)->encounter_index,
-                ((struct actor *)actor)->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
+        actor = halo::ai::actor_at(actor_index);
+        if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, actor->actor_variant_tag, *(uint32_t *)&actor->encounter_index,
+                actor->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
             int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
 
             if (kind == 0) {
@@ -903,38 +904,38 @@ void AiSystem::reset_fire_group_assignments()
     datum_index actor_index;
 
     for (e = 0; e < encounter_count; e++) {
-        uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (e & halo::k_slot_mask) * k_encounter_size;
+        struct encounter *encounter = halo::ai::encounter_at(e);
         datum_index next;
 
-        if (encounter[0xd] == 0 || ((struct encounter *)encounter)->living_count <= 0) {
+        if (encounter->units_active == 0 || encounter->living_count <= 0) {
             continue;
         }
-        next = ((struct encounter *)encounter)->first_actor;
+        next = encounter->first_actor;
         while (AI_STATE_BYTES[1] != 0 && next != k_datum_index_none) {
-            uint8_t *actor;
+            struct actor *actor;
             uint8_t carry;
 
             actor_index = next;
-            actor = ACTOR(actor_index);
-            next = ((struct actor *)actor)->next_in_encounter;
+            actor = halo::ai::actor_at(actor_index);
+            next = actor->next_in_encounter;
             carry = ai_bsp_actor_should_carry(actor);
             if (!carry) {
                 continue;
             }
-            if (actor[6] != 0 && !ai_bsp_split_swarm(actor_index, actor)) {
+            if (actor->swarm != 0 && !ai_bsp_split_swarm(actor_index, actor)) {
                 continue;
             }
-            actor = ACTOR(actor_index);
-            *(int32_t *)&((struct actor *)actor)->original_encounter_index = e;
-            ((struct actor *)actor)->original_squad_index = ((struct actor *)actor)->squad_index;
-            ((struct actor *)actor)->firing_position_index = -1;
-            if (((struct actor *)actor)->active_movement.type == 3 || ((struct actor *)actor)->active_movement.type == 4) {
-                ((struct actor *)actor)->active_movement.type = 0;
-                *(datum_index *)&((struct actor *)actor)->active_movement.extra = k_datum_index_none;
+            actor = halo::ai::actor_at(actor_index);
+            *(int32_t *)&actor->original_encounter_index = e;
+            actor->original_squad_index = actor->squad_index;
+            actor->firing_position_index = -1;
+            if (actor->active_movement.type == 3 || actor->active_movement.type == 4) {
+                actor->active_movement.type = 0;
+                *(datum_index *)&actor->active_movement.extra = k_datum_index_none;
             }
             {
                 void (*carry_proc)(datum_index) =
-                    *(void (**)(datum_index))((uint8_t *)&actor_mode_definitions[((struct actor *)actor)->mode] + 0x24);
+                    *(void (**)(datum_index))((uint8_t *)&actor_mode_definitions[actor->mode] + 0x24);
 
                 if (carry_proc != 0) {
                     carry_proc(actor_index);
@@ -944,15 +945,15 @@ void AiSystem::reset_fire_group_assignments()
             if (AI_STATE_BYTES[1] == 0) {
                 break;
             }
-            actor = ACTOR(actor_index);
-            ((struct actor *)actor)->next_in_encounter = *(datum_index *)(AI_STATE_BYTES + 8);
+            actor = halo::ai::actor_at(actor_index);
+            actor->next_in_encounter = *(datum_index *)(AI_STATE_BYTES + 8);
             *(datum_index *)(AI_STATE_BYTES + 8) = actor_index;
-            actor[9] = 1;
-            *(int16_t *)(actor + 0x10) = actor[8] != 0 ? 0x5a : 0;
+            actor->encounterless = 1;
+            *(int16_t *)((uint8_t *)actor + 0x10) = actor->active != 0 ? 0x5a : 0;
             halo::ai::actor_movement_action_cancel(actor_index);
         }
-        encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (e & halo::k_slot_mask) * k_encounter_size;
-        ((struct encounter *)encounter)->activation_delay = 0;
+        encounter = halo::ai::encounter_at(e);
+        encounter->activation_delay = 0;
         halo::ai::encounter_deactivate((datum_index)(int32_t)e);
     }
 
@@ -962,12 +963,12 @@ void AiSystem::reset_fire_group_assignments()
 
         halo::ai::actor_clear_target_state(actor_index);
         for (prop_index = ((struct actor *)ACTOR(actor_index))->first_prop; prop_index != k_datum_index_none;) {
-            uint8_t *p = PROP(prop_index);
+            prop *p = halo::ai::prop_at(prop_index);
 
-            prop_index = *(datum_index *)(p + 8);
-            *(int16_t *)(p + 0x100) = -1;
-            *(int32_t *)(p + 0xfc) = -1;
-            *(int32_t *)(p + 0xec) = -1;
+            prop_index = *(datum_index *)((uint8_t *)p + 8);
+            p->cluster_index = -1;
+            *(int32_t *)((uint8_t *)p + 0xfc) = -1;
+            p->pathfinding_surface_index = -1;
         }
         actor_index = following;
     }
