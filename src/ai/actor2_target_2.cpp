@@ -119,7 +119,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
                     reference = static_cast<int32_t>(self->found_body_time);
                 }
                 if (reference != -1) {
-                    int32_t fired = *(int32_t *)(target_unit + 0x41c);
+                    int32_t fired = halo::units::unit_data_of(target_unit)->death_time;
 
                     if (fired == -1 || fired < reference) {
                         counts = 0;

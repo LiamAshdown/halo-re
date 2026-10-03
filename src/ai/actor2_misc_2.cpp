@@ -110,7 +110,7 @@ void ActorView::refresh_combat_context()
             datum_index creature_unit = *(datum_index *)((uint8_t *)swarm + 0x18 + i * 4);
             uint8_t *creature_object = object_get(creature_unit);
             datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
-                *(datum_index *)(creature_object + 0x4d8) : k_datum_index_none;
+                ((biped_object *)creature_object)->biped.ground_surface_index : k_datum_index_none;
 
             halo::objects::object_get_position((real_point3d *)(creature + 4), creature_unit);
             *(datum_index *)(creature + 0x10) = vehicle;
@@ -258,11 +258,11 @@ void ActorView::refresh_combat_context()
     if (unit->base.type == 0 && self->active_unit_index == -1) {
         uint8_t *unit_object = object_get((int32_t)self->unit_index);
 
-        if ((int8_t)unit_object[0x501] >= 6) {
+        if (((biped_object *)unit_object)->biped.airborne_ticks >= 6) {
             self->airborne = 1;
         }
-        self->pathfinding_surface_index = *(int32_t *)(unit_object + 0x4dc);
-        *(real_vector3d *)&self->pathfinding_point = *(real_vector3d *)(unit_object + 0x4e0);
+        self->pathfinding_surface_index = (int32_t)((biped_object *)unit_object)->biped.cached_ground_surface_index;
+        *(real_vector3d *)&self->pathfinding_point = *(real_vector3d *)&((biped_object *)unit_object)->biped.cached_ground_point;
     }
     halo::units::unit_get_forward_vector_or_marker_normal(self->vehicle_driving_type > 0 ? (int32_t)self->active_unit_index : (int32_t)self->unit_index,
         &self->facing);

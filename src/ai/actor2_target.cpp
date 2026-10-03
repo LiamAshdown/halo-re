@@ -145,7 +145,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
         if (target->dead_confirmed != 0) {
             skip_refresh = true;
         } else {
-            if ((!halo::ai::flag_set(unit_obj->vitality_flags, halo::objects::vitality_flag::health_frozen) || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
+            if ((!halo::ai::flag_set(unit_obj->vitality_flags, halo::objects::vitality_flag::health_frozen) || halo::units::unit_data_of(unit_obj)->feign_death_ticks != 0) ||
                 (target->perception_level != 0 || 0.010000001f <= halo::math::vector3d_magnitude_squared(unit_obj->velocity))) {
                 is_eligible = 0;
             } else {
@@ -208,13 +208,13 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
             parent_obj = halo::ai::object_at(parent_index);
             if (parent_obj->type == 1) {
                 target->relationship_object_index = parent_index;
-                if (*(int32_t *)((uint8_t *)parent_obj + 0x328) == (int32_t)target->object_index ||
+                if ((int32_t)halo::units::unit_data_of(parent_obj)->gunner_unit_index == (int32_t)target->object_index ||
                     target->actor_type == 0xf) {
                     target->is_vehicle_gunner = 1;
                 } else {
                     target->is_vehicle_gunner = 0;
                 }
-                if (*(int32_t *)((uint8_t *)parent_obj + 0x324) == (int32_t)target->object_index &&
+                if ((int32_t)halo::units::unit_data_of(parent_obj)->driver_unit_index == (int32_t)target->object_index &&
                     halo::units::unit_get_tag_flag_bit7(parent_index) != 0) {
                     target->is_vehicle_driver = 1;
                 } else {

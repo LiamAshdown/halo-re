@@ -489,7 +489,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 
                 self->danger_type = 3;
                 self->danger_object_index = object_index;
-                driver_field = *(int32_t *)((uint8_t *)obj + 0x324);
+                driver_field = (int32_t)halo::units::unit_data_of(obj)->driver_unit_index;
                 self->danger_owner_unit = driver_field;
                 self->danger_object_radius = bounding_radius;
 
@@ -1050,7 +1050,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
         is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1;
         p->dead = is_vault;
         p->danger_radius = *(float *)(object_type + 0x284);
-        p->dead_not_feigning = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);
+        p->dead_not_feigning = (is_vault != 0) && (halo::units::unit_data_of(object)->feign_death_ticks == 0);
         p->dead_ticks = (is_vault != 0) ? 1000 : 0;
         p->is_parented = static_cast<int32_t>(((struct object *)object)->owner_linkage) != -1;
 

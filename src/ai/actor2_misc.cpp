@@ -828,11 +828,11 @@ uint8_t ActorView::process_vehicle_seat_exit()
             biped_free_local_player_history(self);
         } else if (!halo::units::unit_state_is_scripted_animation(&rider->unit)) {
             datum_index graph = halo::ai::tag_handle(halo::ai::tag_data<Object>(rider->base.definition_tag)->animation_graph);
-            ModelAnimationsAnimationGraphUnitSeat *block =
+            ModelAnimationsAnimationGraphUnitSeat *seat_block =
                 &halo::ai::reflexive_data<ModelAnimationsAnimationGraphUnitSeat>(halo::ai::tag_data<ModelAnimations>(graph)->units)[(int8_t)static_cast<uint8_t>(rider->unit.animation_definition_index)];
 
-            if (block->animations.count > 8) {
-                int16_t exit_animation = (int16_t)halo::ai::reflexive_data<ModelAnimationsAnimationWeaponClassAnimation>(block->animations)[8].animation;
+            if (seat_block->animations.count > 8) {
+                int16_t exit_animation = (int16_t)halo::ai::reflexive_data<ModelAnimationsAnimationWeaponClassAnimation>(seat_block->animations)[8].animation;
 
                 if (exit_animation != -1) {
                     unit_object *object;
@@ -1460,21 +1460,21 @@ static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(ha
 void ActorOps::reset_perception_scratch(datum_index unit_index)
 {
     using namespace actor_reset_perception_scratch_local;
-    uint8_t block[0x40];
+    unit_control_data block;
     biped_object *unit_object = (biped_object *)halo::ai::object_at(unit_index);
 
-    memset(block, 0, sizeof(block));
-    block[0] = 1;
-    block[1] = 1;
-    *(int16_t *)(block + 0x2) = 0;
-    *(int16_t *)(block + 0x4) = -1;
-    *(int16_t *)(block + 0x6) = -1;
-    *(int16_t *)(block + 0x8) = -1;
-    *(real_vector3d *)(block + 0xc) = *(const real_vector3d *)global_origin3d_pointer;
-    halo::units::unit_get_forward_vector_or_marker_normal(unit_index, (real_vector3d *)(block + 0x1c));
-    *(real_vector3d *)(block + 0x28) = *&unit_object->unit.aiming_vector;
-    *(real_vector3d *)(block + 0x34) = *&unit_object->unit.looking_vector;
-    halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)block, -1);
+    memset(&block, 0, sizeof(block));
+    block.animation_state = 1;
+    block.aiming_speed = 1;
+    block.control_flags = 0;
+    block.weapon_index = -1;
+    block.grenade_index = -1;
+    block.zoom_level = -1;
+    block.throttle = *(const real_vector3d *)global_origin3d_pointer;
+    halo::units::unit_get_forward_vector_or_marker_normal(unit_index, &block.facing_vector);
+    block.aiming_vector = unit_object->unit.aiming_vector;
+    block.looking_vector = unit_object->unit.looking_vector;
+    halo::units::unit_apply_control_block(unit_index, &block, -1);
     halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 0);
 }
 
