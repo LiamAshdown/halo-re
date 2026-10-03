@@ -13,6 +13,23 @@ cast_add = re.compile(r"\(\s*(?:const\s+)?([\w: ]+?)\s*\*+\s*\)\s*[\w.>-]+\s*\+\
 bytecast = re.compile(r"\(\s*(?:const\s+)?(?:" + "|".join(BYTE) + r")\s*\*\s*\)\s*$")
 _ok = os.path.join(ROOT, "tools", "stride_audit_ok.txt")
 ALLOW = set(l.strip() for l in open(_ok)) if os.path.exists(_ok) else set()
+# member types of halo::<m>::Globals (include/halo/<m>/*.hpp): pointer members whose element type is not a byte
+GMEM = {}
+_gm = re.compile(r"^\s*(?:const\s+)?(?:struct\s+)?([A-Za-z_][\w:]*)\s*\*\s*&\s*(\w+)\s*;")
+_inc = os.path.join(ROOT, "include", "halo")
+for _m in os.listdir(_inc) if os.path.isdir(_inc) else []:
+    _d = os.path.join(_inc, _m)
+    for _f in os.listdir(_d) if os.path.isdir(_d) else []:
+        if not _f.endswith(".hpp"):
+            continue
+        _b = re.search(r"struct Globals \{(.*?)\n\};", open(os.path.join(_d, _f), encoding="utf-8", errors="replace").read(), re.S)
+        for _l in _b.group(1).splitlines() if _b else []:
+            _x = _gm.match(_l)
+            if _x and _x.group(1).split("::")[-1] not in BYTE:
+                GMEM[(_m, _x.group(2))] = _x.group(1)
+gacc = re.compile(r"halo::(\w+)::globals\(\)\.(\w+)\s*(?:\+\s*(" + HEX + r")|\[\s*(" + HEX + r")\s*\])")
+galias = re.compile(r"(\w+)\s*=\s*halo::(\w+)::globals\(\)\.(\w+)\s*;")
+lref = re.compile(r"\bauto\s*&\s*(\w+)\s*=\s*halo::link::ref<\s*(?:const\s+)?([\w: ]+?)\s*\*\s*>")
 SKIP = {"return", "sizeof", "else", "case", "delete", "new"}
 
 
@@ -26,6 +43,13 @@ def scan(path, show_ok):
             if t in SKIP:
                 continue
             names.setdefault(n, set()).add(t)
+    for l in lines:
+        for m in lref.finditer(l):
+            if m.group(2).split()[-1].split("::")[-1] not in BYTE:
+                names.setdefault(m.group(1), set()).add(m.group(2))
+        for m in galias.finditer(l):
+            if GMEM.get((m.group(2), m.group(3))):
+                names.setdefault(m.group(1), set()).add(GMEM[(m.group(2), m.group(3))])
     wide = {n for n, ts in names.items() if not any(t in BYTE for t in ts)}
     use = None
     if wide:
@@ -48,6 +72,11 @@ def scan(path, show_ok):
                     continue
                 off = "+ " + m.group(2) if m.group(2) else "[" + m.group(3) + "]"
                 hits.append(f"{m.group(1)} ({'/'.join(sorted(names[m.group(1)]))}*) {off}")
+        for m in gacc.finditer(s):
+            t = GMEM.get((m.group(1), m.group(2)))
+            if t and not bytecast.search(s[:m.start()]):
+                off = "+ " + m.group(3) if m.group(3) else "[" + m.group(4) + "]"
+                hits.append(f"{m.group(1)}::globals().{m.group(2)} ({t}*) {off}")
         for h in hits:
             rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
             ok = f"{rel}|{h}" in ALLOW
