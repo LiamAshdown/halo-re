@@ -688,7 +688,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
-        render_device().set_fvf(0x144);
+        render_device().set_fvf(halo::d3d9::k_fvf_xyzrhw_diffuse_tex1);
         return;
     }
     if (mode != 5) {

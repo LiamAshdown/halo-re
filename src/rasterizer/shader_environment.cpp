@@ -684,7 +684,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
 
             if (count > 0) {
                 bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-                if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
+                if (bump_bitmap->type != 0) {
                     bump_bitmap = 0;
                 }
             }
@@ -998,7 +998,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
 
         if (count > 0) {
             bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
+            if (bump_bitmap->type != 0) {
                 bump_bitmap = 0;
             }
         }
@@ -1086,7 +1086,7 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
 
         if (count > 0) {
             bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
+            if (bump_bitmap->type != 0) {
                 bump_bitmap = 0;
             }
         }
@@ -1293,7 +1293,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 
         if (count > 0) {
             bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
+            if (bump_bitmap->type != 0) {
                 bump_bitmap = 0;
             }
         }
@@ -1459,7 +1459,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
         if (count > 0) {
             bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
+            if (bump_bitmap->type != 0) {
                 bump_bitmap = 0;
             }
         }
@@ -1621,7 +1621,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
 
         if (count > 0) {
             bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bitmap)->type != 0) {
+            if (bitmap->type != 0) {
                 bitmap = 0;
             }
         }
@@ -1639,8 +1639,8 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     }
     if (bitmap != 0) {
         rasterizer_bind_texture_d3d9(0, bitmap);
-        rasterizer_bound_bitmap_size_a[0] = *(int16_t *)&((struct BitmapData *)bitmap)->width;
-        rasterizer_bound_bitmap_size_a[1] = *(int16_t *)&((struct BitmapData *)bitmap)->height;
+        rasterizer_bound_bitmap_size_a[0] = static_cast<int16_t>(bitmap->width);
+        rasterizer_bound_bitmap_size_a[1] = static_cast<int16_t>(bitmap->height);
     }
 
     {
@@ -1713,7 +1713,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
 
         if (count > 0) {
             bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(self_illumination, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bitmap)->type != 0) {
+            if (bitmap->type != 0) {
                 bitmap = 0;
             }
         }
@@ -1731,8 +1731,8 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     }
     if (bitmap != 0) {
         rasterizer_bind_texture_d3d9(0, bitmap);
-        rasterizer_bound_bitmap_size_a[0] = *(int16_t *)&((struct BitmapData *)bitmap)->width;
-        rasterizer_bound_bitmap_size_a[1] = *(int16_t *)&((struct BitmapData *)bitmap)->height;
+        rasterizer_bound_bitmap_size_a[0] = static_cast<int16_t>(bitmap->width);
+        rasterizer_bound_bitmap_size_a[1] = static_cast<int16_t>(bitmap->height);
     }
 
     {

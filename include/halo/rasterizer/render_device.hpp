@@ -66,6 +66,16 @@ public:
     virtual int32_t create_texture(uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_texture, d3d_arg shared_handle) = 0;
 
     /**
+     * Creates a volume texture (IDirect3DDevice9::CreateVolumeTexture).
+     */
+    virtual int32_t create_volume_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_texture, d3d_arg shared_handle) = 0;
+
+    /**
+     * Creates a cube texture (IDirect3DDevice9::CreateCubeTexture).
+     */
+    virtual int32_t create_cube_texture(uint32_t edge_length, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_texture, d3d_arg shared_handle) = 0;
+
+    /**
      * Creates a vertex buffer (IDirect3DDevice9::CreateVertexBuffer).
      */
     virtual int32_t create_vertex_buffer(uint32_t length, uint32_t usage, uint32_t fvf, uint32_t pool, d3d_arg out_buffer, d3d_arg shared_handle) = 0;
@@ -456,6 +466,8 @@ public:
     int32_t reset(d3d_arg present_parameters) override;
     int32_t present(d3d_arg source_rect, d3d_arg dest_rect, d3d_arg dest_window, d3d_arg dirty_region) override;
     int32_t create_texture(uint32_t width, uint32_t height, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_texture, d3d_arg shared_handle) override;
+    int32_t create_volume_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_texture, d3d_arg shared_handle) override;
+    int32_t create_cube_texture(uint32_t edge_length, uint32_t levels, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_texture, d3d_arg shared_handle) override;
     int32_t create_vertex_buffer(uint32_t length, uint32_t usage, uint32_t fvf, uint32_t pool, d3d_arg out_buffer, d3d_arg shared_handle) override;
     int32_t create_index_buffer(uint32_t length, uint32_t usage, uint32_t format, uint32_t pool, d3d_arg out_buffer, d3d_arg shared_handle) override;
     int32_t stretch_rect(d3d_arg source_surface, d3d_arg source_rect, d3d_arg dest_surface, d3d_arg dest_rect, uint32_t filter) override;

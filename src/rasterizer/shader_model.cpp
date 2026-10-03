@@ -183,29 +183,29 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
         halo::rasterizer::fields::model_begin_cleared_flag = 0;
 
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-            if ((context->flags & 0x200) != 0) {
+            if ((context->flags & _model_draw_fixed_function_fog_bit) != 0) {
                 float world_matrix[16];
-                float *m = (float *)context->node_matrices;
+                const real_matrix4x3 *m = reinterpret_cast<const real_matrix4x3 *>(static_cast<uintptr_t>(context->node_matrices));
 
-                world_matrix[0] = m[1];
-                world_matrix[1] = m[2];
-                world_matrix[2] = m[3];
+                world_matrix[0] = m->forward.i;
+                world_matrix[1] = m->forward.j;
+                world_matrix[2] = m->forward.k;
                 world_matrix[3] = 0.0f;
-                world_matrix[4] = m[4];
-                world_matrix[5] = m[5];
-                world_matrix[6] = m[6];
+                world_matrix[4] = m->left.i;
+                world_matrix[5] = m->left.j;
+                world_matrix[6] = m->left.k;
                 world_matrix[7] = 0.0f;
-                world_matrix[8] = m[7];
-                world_matrix[9] = m[8];
-                world_matrix[10] = m[9];
+                world_matrix[8] = m->up.i;
+                world_matrix[9] = m->up.j;
+                world_matrix[10] = m->up.k;
                 world_matrix[11] = 0.0f;
-                world_matrix[12] = m[10] * m[0];
-                world_matrix[13] = m[11] * m[0];
-                world_matrix[14] = m[12] * m[0];
+                world_matrix[12] = m->position.x * m->scale;
+                world_matrix[13] = m->position.y * m->scale;
+                world_matrix[14] = m->position.z * m->scale;
                 world_matrix[15] = 1.0f;
 
                 {
-                    render_device().set_transform(0x100, world_matrix);
+                    render_device().set_transform(halo::d3d9::k_transform_world, world_matrix);
                 }
                 return;
             }
@@ -276,14 +276,14 @@ void rasterizer_model_draw_restore_states(void)
         chimera__rasterizer_set_frustum_z_func(0, 0);
     }
 
-    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && (context->flags & 0x200) != 0) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && (context->flags & _model_draw_fixed_function_fog_bit) != 0) {
         float identity[16] = {
             1.0f, 0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f, 0.0f,
             0.0f, 0.0f, 1.0f, 0.0f,
             0.0f, 0.0f, 0.0f, 1.0f,
         };
-        render_device().set_transform(0x100, identity);
+        render_device().set_transform(halo::d3d9::k_transform_world, identity);
     }
 
     rasterizer_active_model_context = 0;
@@ -527,7 +527,7 @@ void rasterizer_object_shadow_blur(void)
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     render_device().set_pixel_shader(0);
     render_device().set_vertex_shader(0);
-    render_device().set_fvf(0x144);
+    render_device().set_fvf(halo::d3d9::k_fvf_xyzrhw_diffuse_tex1);
     render_device().draw_primitive_up(2, 4, rasterizer_object_shadow_border_lines, sizeof(rasterizer_screen_vertex));
     render_device().set_fvf(0);
     render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
@@ -799,7 +799,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
 
     context = rasterizer_active_model_context;
-    source = *(int16_t *)&smodel(shader)->change_color_source;
+    source = smodel(shader)->change_color_source;
     if (source > 0 && source < 5) {
         color = ((const ColorRGB *)(uintptr_t)context->change_colors)[source - 1];
     } else {
@@ -824,7 +824,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
     factor = factor | ((uint32_t)(int32_t)(color.blue * 255.0f) & 0xff);
     set_render_state(halo::d3d9::rs::texture_factor, factor);
 
-    if (rasterizer_active_model_context->flags & 0x200) {
+    if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[14].declaration);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
@@ -848,7 +848,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
         set_transform(0x10, &texture_matrix[0][0]);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
 
-        source = *(int16_t *)&smodel(shader)->change_color_source;
+        source = smodel(shader)->change_color_source;
         if (source > 0 && source != 2) {
 
             set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 0);
@@ -990,7 +990,7 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
 
     context = rasterizer_active_model_context;
     {
-        int16_t source = *(int16_t *)&smodel(shader)->change_color_source;
+        int16_t source = smodel(shader)->change_color_source;
 
         if (source > 0 && source < 5) {
             const ColorRGB *colors = (const ColorRGB *)(uintptr_t)context->change_colors;
@@ -1027,7 +1027,7 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
     set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
-    if (rasterizer_active_model_context->flags & 0x200) {
+    if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
 
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[14].declaration);
@@ -1245,7 +1245,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
         change = *global_white_color;
     }
 
-    true_atmospheric_fog = *(uint16_t *)&((struct ShaderModel *)shader)->shader_model_flags & 0x10;
+    true_atmospheric_fog = halo::test_flag(model->shader_model_flags, halo::tags::shader_model_tag_flag::true_atmospheric_fog);
     if (true_atmospheric_fog) {
         vertex_shader = 0x1c;
     } else if (halo::rasterizer::fields::planar_fog_vertex_shader_active) {

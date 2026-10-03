@@ -121,6 +121,55 @@ enum class device_method : uint32_t {
     set_pixel_shader = 107,
     get_pixel_shader = 108,
     set_pixel_shader_constant_f = 109,
+    get_pixel_shader_constant_f = 110,
+    set_pixel_shader_constant_i = 111,
+    get_pixel_shader_constant_i = 112,
+    set_pixel_shader_constant_b = 113,
+    get_pixel_shader_constant_b = 114,
+    draw_rect_patch = 115,
+    draw_tri_patch = 116,
+    delete_patch = 117,
+    create_query = 118,
+};
+
+/** Index of an IDirect3D9 (factory object) method in its method table. */
+enum class direct3d_method : uint32_t {
+    release = 2,
+    get_adapter_count = 4,
+    get_adapter_display_mode = 8,
+    check_device_format = 10,
+    get_device_caps = 14,
+    create_device = 16,
+};
+
+/** Index of a method of IDirect3DTexture9, IDirect3DVolumeTexture9 and IDirect3DCubeTexture9. */
+enum class texture_method : uint32_t {
+    get_surface_level = 18,
+    lock_rect = 19,
+    unlock_rect = 20,
+    lock_box = 19,
+    unlock_box = 20,
+    get_cube_map_surface = 18,
+};
+
+/** Index of a method of IDirect3DQuery9. */
+enum class query_method : uint32_t {
+    issue = 6,
+    get_data = 7,
+};
+
+/** Index of a method of ID3DXEffect (the method table the effect framework hands out). */
+enum class effect_method : uint32_t {
+    get_parameter_by_name = 9,
+    get_technique_by_name = 13,
+    set_vector = 34,
+    set_texture = 52,
+    set_technique = 59,
+    validate_technique = 61,
+    find_next_valid_technique = 62,
+    begin = 64,
+    begin_pass = 65,
+    end = 66,
 };
 
 /** Index of a method shared by IDirect3DVertexBuffer9 and IDirect3DIndexBuffer9. */
@@ -294,6 +343,9 @@ inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
 inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
 inline constexpr uint32_t k_pixel_shader_version_2_0 = 0xffff0200;
 
+/** D3DTRANSFORMSTATETYPE: D3DTS_WORLD. */
+inline constexpr uint32_t k_transform_world = 0x100;
+
 /** D3DLIGHTTYPE values. */
 inline constexpr uint32_t k_light_point = 1;
 inline constexpr uint32_t k_light_spot = 2;
@@ -314,6 +366,8 @@ inline constexpr uint32_t k_pool_system_memory = 2;
 /** D3DLOCK_NOOVERWRITE and D3DLOCK_DISCARD. */
 inline constexpr uint32_t k_lock_no_overwrite = 0x1000;
 inline constexpr uint32_t k_lock_discard = 0x2000;
+inline constexpr uint32_t k_lock_read_only = 0x10;
+inline constexpr uint32_t k_lock_no_dirty_update = 0x800;
 
 /** D3DPRIMITIVETYPE values. */
 inline constexpr uint32_t k_primitive_line_strip = 3;
@@ -349,6 +403,7 @@ constexpr bool has_texture_cap(uint32_t texture_caps, texture_cap cap) noexcept
 /** Index of a method of IDirect3DSurface9. */
 enum class surface_method : uint32_t {
     release = 2,
+    get_desc = 12,
     lock_rect = 13,
     unlock_rect = 14,
 };

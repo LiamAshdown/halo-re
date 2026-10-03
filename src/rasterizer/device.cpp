@@ -110,7 +110,7 @@ void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
             view4[j * 4 + 2] = view[j * 3 + 2];
             view4[j * 4 + 3] = j == 3 ? 1.0f : 0.0f;
         }
-        render_device().set_transform(0x100, identity);
+        render_device().set_transform(halo::d3d9::k_transform_world, identity);
         render_device().set_transform(2, view4);
         render_device().set_transform(3, projection);
     }

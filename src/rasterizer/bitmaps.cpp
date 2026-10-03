@@ -16,6 +16,10 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/rasterizer/tag_access.hpp"
+#include <cstring>
 
 
 
@@ -180,7 +184,7 @@ int32_t bitmap_compute_texture_data_size(BitmapData *bitmap)
 
 static BitmapData *rasterizer_default_bitmap(int16_t bitmap_type, int16_t default_index)
 {
-    uint32_t tag = *(uint32_t *)((uint8_t *)rasterizer_globals_data + bitmap_type * 0x10 + 0xb8);
+    uint32_t tag = halo::tag_id_bits((&rasterizer_globals_data->default_2d)[bitmap_type].tag_id);
     Bitmap *bitmap;
 
     if (tag == halo::k_dword_none) {
@@ -190,7 +194,7 @@ static BitmapData *rasterizer_default_bitmap(int16_t bitmap_type, int16_t defaul
     if (bitmap == 0 || default_index < 0 || default_index >= (int32_t)bitmap->bitmap_data.count) {
         return 0;
     }
-    return (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + default_index * 0x30);
+    return tag_block_element<BitmapData>(bitmap->bitmap_data, default_index);
 }
 
 static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_type, int16_t default_index, int16_t frame,
@@ -225,7 +229,7 @@ int16_t * chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage,
     uint8_t resolved;
     BitmapData *data = rasterizer_tag_bitmap(bitmap_tag_id, bitmap_type, default_index, frame, &resolved);
 
-    if (!resolved || *(int16_t *)&((struct BitmapData *)data)->type != bitmap_type) {
+    if (!resolved || data->type != bitmap_type) {
         data = rasterizer_default_bitmap(bitmap_type, default_index);
         if (data == 0) {
             return 0;
@@ -250,7 +254,7 @@ static BitmapData *bitmap_group_frame(uint32_t bitmap_tag_id, int16_t frame)
     if (index < 0 || index >= count) {
         return 0;
     }
-    return (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + index * 0x30);
+    return tag_block_element<BitmapData>(bitmap->bitmap_data, index);
 }
 
 /**
@@ -406,10 +410,6 @@ int32_t rasterizer_bitmap_compute_mipmap_skip_count(BitmapData *bitmap, int16_t 
 namespace rasterizer_bitmap_create_hardware_texture_impl {
 
 
-typedef int32_t (__stdcall *d3d_create_volume_texture_fn)(void *self, uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
-
-typedef int32_t (__stdcall *d3d_create_cube_texture_fn)(void *self, uint32_t edge_length, uint32_t levels, uint32_t usage, int32_t format, uint32_t pool, void *out_texture, void *shared_handle);
-
 /**
  * Creates the hardware texture/volume texture/cube texture object for `bitmap` (matching its type field) and
  * stores it in bitmap->hardware_texture. Returns 1 on success (including "nothing to do" cases: no device, no
@@ -451,10 +451,8 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
             bitmap->hardware_texture = 0;
         } else {
             levels = ((int8_t)(rasterizer_caps.texture_caps >> 8) < 0) ? bitmap->mipmap_count + 1 : 1;
-            d3d_create_volume_texture_fn create_volume_texture =
-                (d3d_create_volume_texture_fn)(*(void ***)rasterizer_device)[0x18];
-            hresult = create_volume_texture(rasterizer_device, bitmap->width, bitmap->height,
-                bitmap->depth, (uint32_t)levels, 0, format, 1, &bitmap->hardware_texture, 0);
+            hresult = render_device().create_volume_texture(bitmap->width, bitmap->height,
+                bitmap->depth, (uint32_t)levels, 0, format, halo::d3d9::k_pool_managed, &bitmap->hardware_texture, 0);
             if (hresult < 0) {
                 ok = 0;
             }
@@ -464,10 +462,8 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
             bitmap->hardware_texture = 0;
         } else {
             levels = !halo::d3d9::has_texture_cap(rasterizer_caps.texture_caps, halo::d3d9::texture_cap::mip_cube_map) ? 1 : bitmap->mipmap_count + 1;
-            d3d_create_cube_texture_fn create_cube_texture =
-                (d3d_create_cube_texture_fn)(*(void ***)rasterizer_device)[0x19];
-            hresult = create_cube_texture(rasterizer_device, bitmap->width, (uint32_t)levels, 0,
-                format, 1, &bitmap->hardware_texture, 0);
+            hresult = render_device().create_cube_texture(bitmap->width, (uint32_t)levels, 0,
+                format, halo::d3d9::k_pool_managed, &bitmap->hardware_texture, 0);
             if (hresult < 0) {
                 ok = 0;
             }
@@ -502,6 +498,52 @@ static int32_t sample_texel_coordinate(int32_t size, float uv)
     return (texel % size + size) % size;
 }
 
+constexpr uint32_t k_alpha_opaque = 0xffu << 24;
+
+static uint32_t expand_5_bits(uint32_t channel)
+{
+    return (channel << 3) | (channel >> 2);
+}
+
+static uint32_t expand_6_bits(uint32_t channel)
+{
+    return (channel << 2) | (channel >> 4);
+}
+
+static uint32_t unpack_r5g6b5(uint32_t pixel)
+{
+    return k_alpha_opaque | (expand_5_bits((pixel >> 11) & 31) << 16) | (expand_6_bits((pixel >> 5) & 63) << 8) |
+           expand_5_bits(pixel & 31);
+}
+
+static uint32_t unpack_a1r5g5b5(uint32_t pixel)
+{
+    return (((pixel >> 15) & 1) != 0 ? k_alpha_opaque : 0u) | (expand_5_bits((pixel >> 10) & 31) << 16) |
+           (expand_5_bits((pixel >> 5) & 31) << 8) | expand_5_bits(pixel & 31);
+}
+
+static uint32_t unpack_a4r4g4b4(uint32_t pixel)
+{
+    return (((pixel >> 12) & 15) * 17u << 24) | (((pixel >> 8) & 15) * 17u << 16) | (((pixel >> 4) & 15) * 17u << 8) |
+           ((pixel & 15) * 17u);
+}
+
+static uint16_t read_pixel_16(const uint8_t *row, int32_t x)
+{
+    uint16_t pixel;
+
+    std::memcpy(&pixel, row + x * 2, sizeof(pixel));
+    return pixel;
+}
+
+static int32_t read_pixel_32(const uint8_t *row, int32_t x)
+{
+    int32_t pixel;
+
+    std::memcpy(&pixel, row + x * 4, sizeof(pixel));
+    return pixel;
+}
+
 static int16_t level_dimension(uint16_t base, int16_t level, int16_t skip, uint8_t compressed)
 {
     int16_t size = ((int16_t)base >> level) > 1 ? (int16_t)((int16_t)base >> level) : 1;
@@ -520,8 +562,8 @@ static int16_t level_dimension(uint16_t base, int16_t level, int16_t skip, uint8
  */
 int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias)
 {
-    uint8_t *data = (uint8_t *)bitmap;
-    void *texture = *(void **)&((struct BitmapData *)data)->hardware_texture;
+    BitmapData *data = bitmap;
+    void *texture = bitmap_hardware_texture(*bitmap);
     int16_t skipped_width;
     int16_t skipped_height;
     int16_t skip;
@@ -534,28 +576,25 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
     int32_t y;
     int32_t texel;
     locked_rect locked;
-    void **vtable;
 
     if (texture == 0) {
         return -1;
     }
     skip = (int16_t)rasterizer_bitmap_compute_mipmap_skip_count(bitmap, &skipped_width, &skipped_height);
-    remaining = (int16_t)(*(int16_t *)&((struct BitmapData *)data)->mipmap_count - skip);
+    remaining = (int16_t)(static_cast<int16_t>(data->mipmap_count) - skip);
     level = 0;
     if (mip_bias < 1.0f && remaining > 0 && skip == 0) {
         float mip = (1.0f - mip_bias) * (float)remaining;
 
         level = (int16_t)halo::libm::lrint((double)mip);
     }
-    compressed = (uint8_t)((*(uint16_t *)&((struct BitmapData *)data)->flags & 2) != 0);
-    width = level_dimension(((struct BitmapData *)data)->width, level, skip, compressed);
-    height = level_dimension(((struct BitmapData *)data)->height, level, skip, compressed);
+    compressed = (uint8_t)halo::test_flag(data->flags, halo::tags::bitmap_data_tag_flag::compressed);
+    width = level_dimension(data->width, level, skip, compressed);
+    height = level_dimension(data->height, level, skip, compressed);
     x = sample_texel_coordinate(width, uv[0]);
     y = sample_texel_coordinate(height, uv[1]);
 
-    vtable = *(void ***)texture;
-    if (((int32_t (__stdcall *)(void *, uint32_t, locked_rect *, void *, uint32_t))vtable[0x4c / 4])(
-            texture, (uint32_t)level, &locked, 0, 0x810) < 0) {
+    if (render_device().texture_lock_rect(texture, (uint32_t)level, &locked, 0, halo::d3d9::k_lock_read_only | halo::d3d9::k_lock_no_dirty_update) < 0) {
         return -1;
     }
     if (locked.bits == 0) {
@@ -564,7 +603,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
 
     texel = width;
     if (compressed) {
-        int16_t format = *(int16_t *)&((struct BitmapData *)data)->format;
+        int16_t format = data->format;
         int32_t block_bytes = ((int32_t)bitmap_format_bits_per_pixel[format] * 16) / 8;
         int32_t block_row = (int16_t)(y / 4);
         int32_t block_index = (block_row * width) / 4 + (int16_t)(x / 4);
@@ -573,67 +612,28 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
         x &= 3;
         y &= 3;
         switch (format) {
-        case 0xe: halo::bitmaps::dxt_decoder::decode_dxt1_texel(reinterpret_cast<ColorARGBInt *>(&texel), reinterpret_cast<dxt_color_block *>(block), x, y); break;
-        case 0xf: halo::bitmaps::dxt_decoder::decode_dxt3_texel(x, y, reinterpret_cast<ColorARGBInt *>(&texel), reinterpret_cast<dxt3_block *>(block)); break;
-        case 0x10: halo::bitmaps::dxt_decoder::decode_dxt5_texel(reinterpret_cast<dxt5_block *>(block), reinterpret_cast<ColorARGBInt *>(&texel), x, y); break;
+        case bitmapdataformat_dxt1: halo::bitmaps::dxt_decoder::decode_dxt1_texel(reinterpret_cast<ColorARGBInt *>(&texel), reinterpret_cast<dxt_color_block *>(block), x, y); break;
+        case bitmapdataformat_dxt3: halo::bitmaps::dxt_decoder::decode_dxt3_texel(x, y, reinterpret_cast<ColorARGBInt *>(&texel), reinterpret_cast<dxt3_block *>(block)); break;
+        case bitmapdataformat_dxt5: halo::bitmaps::dxt_decoder::decode_dxt5_texel(reinterpret_cast<dxt5_block *>(block), reinterpret_cast<ColorARGBInt *>(&texel), x, y); break;
         default: break;
         }
     } else {
         uint8_t *row = locked.bits + y * locked.pitch;
-        uint32_t v;
-        uint32_t a;
-        uint32_t b;
-        uint32_t c;
-        uint32_t d;
 
-        switch (*(int16_t *)&((struct BitmapData *)data)->format) {
-        case 6:
-            v = *(uint16_t *)(row + x * 2);
-            a = ((v & 0xfffff800) | 0xffff0000) << 3;
-            a |= v & 0x7e0;
-            b = (v >> 1) & 0xe;
-            a <<= 2;
-            a |= v & 0xffffe01f;
-            b |= v & 0x600;
-            a <<= 3;
-            b >>= 1;
-            texel = (int32_t)(a | b);
+        switch (data->format) {
+        case bitmapdataformat_r5g6b5:
+            texel = (int32_t)unpack_r5g6b5(read_pixel_16(row, x));
             break;
-        case 8:
-            v = *(uint16_t *)(row + x * 2);
-            a = (v & 0x7c00) << 3;
-            a |= v & 0x3e0;
-            a <<= 2;
-            a |= v & 0x7000;
-            a <<= 1;
-            a |= v & 0x1f;
-            a <<= 2;
-            a |= v & 0x380;
-            a <<= 1;
-            a |= (v >> 2) & 7;
-            a |= (uint32_t)(-(int32_t)(v >> 15)) << 24;
-            texel = (int32_t)a;
+        case bitmapdataformat_a1r5g5b5:
+            texel = (int32_t)unpack_a1r5g5b5(read_pixel_16(row, x));
             break;
-        case 9:
-            v = *(uint16_t *)(row + x * 2);
-            a = v >> 8;
-            b = a & 0xf;
-            a = ((a & 0xfffffff0) << 12) | v;
-            a &= 0xfffff000;
-            c = ((b << 4) | b) << 4;
-            a |= c;
-            d = (v >> 4) & 0xf;
-            a |= d;
-            a = (a << 4) | d;
-            a <<= 4;
-            a |= v & 0xf;
-            a = (a << 4) | (v & 0xf);
-            texel = (int32_t)a;
+        case bitmapdataformat_a4r4g4b4:
+            texel = (int32_t)unpack_a4r4g4b4(read_pixel_16(row, x));
             break;
-        case 0xa:
-            texel = *(int32_t *)(row + x * 4);
+        case bitmapdataformat_x8r8g8b8:
+            texel = read_pixel_32(row, x);
             break;
-        case 0xb:
+        case bitmapdataformat_a8r8g8b8:
             texel = *(row + x * 4);
             break;
         default:
@@ -641,7 +641,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
             break;
         }
     }
-    ((int32_t (__stdcall *)(void *, uint32_t))vtable[0x50 / 4])(texture, (uint32_t)level);
+    render_device().texture_unlock_rect(texture, (uint32_t)level);
     return texel;
 }
 
@@ -937,7 +937,7 @@ int16_t * rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t 
     uint8_t resolved;
     BitmapData *data = rasterizer_tag_bitmap(bitmap_tag_id, bitmap_type, default_index, frame, &resolved);
 
-    if (!resolved || *(int16_t *)&((struct BitmapData *)data)->type != bitmap_type) {
+    if (!resolved || data->type != bitmap_type) {
         data = rasterizer_default_bitmap(bitmap_type, default_index);
         if (data == 0) {
             return 0;
@@ -967,7 +967,7 @@ uint8_t rasterizer_resolve_and_cache_submap_c(uint32_t bitmap_tag_id, int16_t bi
             return 1;
         }
     }
-    if (!resolved || *(int16_t *)&((struct BitmapData *)data)->type != bitmap_type) {
+    if (!resolved || data->type != bitmap_type) {
         data = rasterizer_default_bitmap(bitmap_type, default_index);
         if (data == 0) {
             return 0;
