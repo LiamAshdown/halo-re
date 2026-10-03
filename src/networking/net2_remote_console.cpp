@@ -140,7 +140,7 @@ void RemoteConsole::rcon_out(char *text, int32_t unused_machine_id)
     buf[0x50] = 0;
     fields[0] = buf;
     fields[1] = 0;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::rcon_output), 0, fields, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::server_text), 0, fields, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_send_to_machine(unused_machine_id, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 9);
     }

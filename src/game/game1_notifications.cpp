@@ -443,7 +443,7 @@ void Notifications::dispatch_item_pickup_event(int32_t machine_id, int32_t picke
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 
-    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::item_pickup_event), 0, &fields_ptr, 0, 1, '\0'), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::netgame_equipment_spawn), 0, &fields_ptr, 0, 1, '\0'), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
 }
 
 /**

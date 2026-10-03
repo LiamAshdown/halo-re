@@ -766,7 +766,7 @@ void EventFeed::flush(int32_t *queue)
 
     force_changed = (char)*queue != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
-    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, (uint32_t)force_changed, halo::networking::message_id(halo::networking::delta_message::event_feed_flush), (int32_t)survivors_key,
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, (uint32_t)force_changed, halo::networking::message_id(halo::networking::delta_message::remote_player_action_apply), (int32_t)survivors_key,
         survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)*queue, 0, 0, 2);
     queue[1] = 0;
 }
