@@ -10,6 +10,7 @@
 #include "halo/core/crt.hpp"
 #include "halo/math/globals.hpp"
 #include "link/math.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::math {
 

@@ -13,9 +13,9 @@
 #include "halo/networking/net2_ticker.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/text/text.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
-#include "halo/text/text.hpp"
 
 extern "C" {
 extern void * hud_text_draw_font_tag_id;

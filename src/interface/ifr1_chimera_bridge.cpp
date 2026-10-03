@@ -9,8 +9,6 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
-#include "halo/networking/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
@@ -18,6 +16,8 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/text/text.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -228,7 +228,7 @@ void ChimeraBridge::load_main_menu(void)
         ui_input_batch_mode = 0;
         halo::input::InputSystem::time_base_resync();
     }
-    halo::input::input_queue_sample_time_update();
+    halo::input::UiEvents::queue_sample_time_update();
     halo::interface::widget_close_all();
     halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
                             (datum_index)-1, (datum_index)-1, -1);

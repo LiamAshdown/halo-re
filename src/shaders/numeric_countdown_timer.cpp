@@ -5,18 +5,9 @@
  */
 
 #include "halo/shaders/shaders.hpp"
-<<<<<<< HEAD
+#include "halo/shaders/api.hpp"
 #include "halo/game/api.hpp"
 
-extern "C" {
-extern int32_t numeric_countdown_timer_remaining_ms;
-extern uint8_t numeric_countdown_timer_running;
-extern int32_t numeric_countdown_timer_last_update_ms;
-}
-=======
-#include "halo/shaders/api.hpp"
-
->>>>>>> worktree-agent-abfcb6ae2d2dd8d16
 
 namespace halo::shaders {
 
@@ -56,11 +47,7 @@ void numeric_countdown_timer::update(void)
         return;
     }
 
-<<<<<<< HEAD
-    new_time = (halo::game::globals().game_time->game_time * k_numeric_countdown_timer_milliseconds_per_second) /
-=======
     new_time = (globals().game_time->game_time * k_numeric_countdown_timer_milliseconds_per_second) /
->>>>>>> worktree-agent-abfcb6ae2d2dd8d16
                k_numeric_countdown_timer_ticks_per_second;
 
     if (globals().numeric_countdown_timer_last_update_ms <= new_time) {

@@ -7,6 +7,7 @@
 #include "halo/core/crt.hpp"
 #include "halo/memory/globals.hpp"
 #include "link/memory.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::memory {
 

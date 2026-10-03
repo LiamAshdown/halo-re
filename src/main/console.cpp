@@ -28,14 +28,14 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/hs/api.hpp"
-#include "halo/interface/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 
 namespace halo::main {
@@ -645,7 +645,7 @@ void Console::toggle(void)
     if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {
         console_globals_data.terminal.input[0] = 0;
         console_globals_data.active = halo::interface::console_open(&console_globals_data.terminal);
-        halo::input::input_keyboard_set_capture_mode(1);
+        halo::input::DirectInput::keyboard_set_capture_mode(1);
     }
 }
 

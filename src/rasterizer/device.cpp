@@ -13,8 +13,8 @@
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 

@@ -20,9 +20,9 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/shaders/shaders.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/shaders/shaders.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;

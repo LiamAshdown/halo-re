@@ -15,14 +15,14 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/hs/api.hpp"
-#include "halo/game/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int32_t game_state_cursor;
@@ -168,8 +168,8 @@ void GameLifecycle::initialize(void)
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     halo::saved_games::saved_game_files_initialize();
 
-    halo::input::input_queue_initialize();
-    halo::input::input_state_initialize();
+    halo::input::UiEvents::queue_initialize();
+    halo::input::InputSystem::state_initialize();
     halo::interface::player_profile_subsystem_initialize();
 }
 

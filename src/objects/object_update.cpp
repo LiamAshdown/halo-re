@@ -11,9 +11,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/models/models.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/models/models.hpp"
 
 extern "C" {
 extern double atan2(double y, double x);

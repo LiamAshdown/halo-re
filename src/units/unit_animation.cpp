@@ -21,9 +21,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/models/models.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/models/models.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;

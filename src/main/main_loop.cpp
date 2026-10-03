@@ -39,9 +39,6 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
-#include "halo/networking/api.hpp"
-#include "halo/game/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
@@ -49,6 +46,9 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -56,7 +56,7 @@ namespace halo::main {
 
 /**
  * While skip_tick_count is armed and a cinematic isn't suppressing it, runs that many simulation
- * ticks back-to-back at a fixed 1/30s timestep (forcing game_time->speed to 1.0 for the
+ * ticks back-to-back at a fixed 1/30s timestep (forcing halo::game::globals().game_time->speed to 1.0 for the
  * duration, restoring it afterward -- already 1.0 in any networked game), then clears both the
  * tick count and the pending flag.
  *
@@ -404,9 +404,9 @@ void MainLoop::loop(void)
             main_globals_data.revert_map_if_allowed = 0;
         }
         if (main_globals_data.reset_map != 0 && halo::game::globals().game_time->paused == 0) {
-            halo::scenario::scenario_structure_bsp_switch(0);
+            halo::scenario::structure_bsp_switcher::switch_to(0);
             halo::game::game_stop_current_map();
-            halo::input::input_reset_state_and_axis_configs();
+            halo::input::GameActions::reset_state_and_axis_configs();
             memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
             input_globals.system_key_states[0] = 0;
             input_globals.system_key_states[1] = 0;
@@ -458,9 +458,9 @@ void MainLoop::loop(void)
         }
 
         connection = main_globals_data.game_connection;
-        halo::input::input_directinput_poll_devices();
+        halo::input::DirectInput::directinput_poll_devices();
         if (halo::game::globals().time_force_single_tick == 0) {
-            halo::input::input_update_tick();
+            halo::input::InputSystem::update_tick();
         }
         halo::shell::shell_pump_windows_messages();
         if (main_globals_data.quit != 0) {

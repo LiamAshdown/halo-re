@@ -7,23 +7,9 @@
 #include <string.h>
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
-#include "halo/networking/api.hpp"
 #include "link/calls.hpp"
+#include "halo/networking/api.hpp"
 
-extern "C" {
-extern uint8_t debug_log_level;
-extern uint8_t error_file_enabled;
-extern uint8_t error_file_needs_header;
-extern char error_file_spacer[];
-extern char error_file_banner[];
-extern char error_file_function_name[];
-extern char error_file_function_format[];
-extern char error_file_address_format[];
-extern char error_file_open_mode[];
-extern char error_file_name[];
-extern char error_file_timestamp_format[];
-extern char error_file_no_timestamp[];
-extern char profile_directory[k_profile_directory_storage_size];
 typedef int32_t (__stdcall *sh_get_folder_path_proc)(void *owner, int32_t csidl, void *token, uint32_t flags, char *out_path);
 
 namespace halo::cseries {
@@ -64,9 +50,9 @@ void error_log::write(char *message, uint8_t with_timestamp)
         halo::cseries::error_log::write(formatted, 1);
     }
 
-    if (error_file_enabled != 0) {
-        path = halo::networking::network_log_path_resolve(error_file_name);
-        file = fopen(path, error_file_open_mode);
+    if (globals().error_file_enabled != 0) {
+        path = halo::networking::network_log_path_resolve(globals().error_file_name);
+        file = fopen(path, globals().error_file_open_mode);
         if (file != 0) {
             if (with_timestamp != 0) {
                 _time32(&time_value);

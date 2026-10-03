@@ -21,8 +21,6 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
-#include "halo/game/api.hpp"
-#include "halo/interface/api.hpp"
 #include "link/calls.hpp"
 #include "halo/input/state.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -32,12 +30,9 @@
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
-extern "C" { extern uint8_t g_control_binding_state; }
-extern "C" { extern uint8_t g_control_binding_secondary_active; }
-extern "C" { extern Globals *global_globals; }
-extern "C" { extern uint32_t current_game_engine; }
-extern "C" { extern uint8_t g_control_binding_region_e4[0xa0]; }
 namespace halo::input {
 
 /**
@@ -52,8 +47,8 @@ void Bindings::control_binding_table_initialize(void)
     int32_t outer_row = 0;
     int32_t field_index;
 
-    g_control_binding_secondary_active = (halo::game::globals().teams_enabled != 0);
-    g_control_binding_state = 0;
+    globals().binding_secondary_active = (input_state().game_engine_teams_enabled_flag != 0);
+    globals().binding_state = 0;
 
     row = input_state().g_control_binding_region_e4;
     do {

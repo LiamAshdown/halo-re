@@ -11,6 +11,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/bitmaps/globals.hpp"
 #include "link/bitmaps.hpp"
+#include "halo/bitmaps/api.hpp"
 
 namespace halo::bitmaps {
 

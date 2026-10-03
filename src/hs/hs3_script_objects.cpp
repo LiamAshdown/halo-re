@@ -12,9 +12,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern char ai_marker_name_a[];

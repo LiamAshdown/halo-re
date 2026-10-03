@@ -5,9 +5,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/text/text.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);

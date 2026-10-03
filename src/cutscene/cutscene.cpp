@@ -8,10 +8,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/ai/api.hpp"
-#include "halo/game/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/text/text.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern float cinematic_saved_music_gain;

@@ -11,9 +11,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);

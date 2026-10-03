@@ -22,8 +22,8 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }

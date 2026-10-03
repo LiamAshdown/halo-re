@@ -28,9 +28,9 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/models/models.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/models/models.hpp"
 
 extern "C" {
 extern float sky_animation_times[9];

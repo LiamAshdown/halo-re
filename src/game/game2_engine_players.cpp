@@ -6,10 +6,10 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
-#include "halo/scenario/scenario.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 

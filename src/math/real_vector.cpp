@@ -10,15 +10,9 @@
 
 #include "tags.h"
 #include "halo/physics/api.hpp"
-#include "halo/game/api.hpp"
 #include "link/calls.hpp"
+#include "halo/game/api.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-extern double fmod(double x, double y);
-extern double acos(double x);
-}
 
 namespace halo::math {
 

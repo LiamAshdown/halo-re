@@ -19,10 +19,10 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
-#include "halo/networking/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/models/models.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();

@@ -8,8 +8,8 @@
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/text/text.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -28,7 +28,7 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
+extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
 extern ui_key_event key_events[];

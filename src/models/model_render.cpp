@@ -12,34 +12,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/models/globals.hpp"
 #include "link/calls.hpp"
-extern "C" { extern rasterizer_window_parameters rasterizer_window; }
+#include "halo/interface/api.hpp"
 
-extern "C" {
-extern void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *node_part_indices);
-extern void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, uint8_t *shader, int16_t frame,
-                                                          rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot,
-                                                          int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer);
-extern void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t frame,
-                                                 rasterizer_index_buffer *index_buffer,
-                                                 rasterizer_vertex_buffer *vertex_buffer);
-extern transparent_geometry_group *rasterizer_transparent_geometry_group_build(
-    transparent_geometry_group_link *link, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
-    int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
-    int32_t dynamic_vertex_slot, const real_point3d *position);
-extern uint8_t model_render_first_person;
-extern uint8_t model_render_default_region_permutations[8];
-extern render_model_effect model_render_default_effect;
-extern ColorRGB model_render_default_change_colors[4];
-extern float model_render_default_function_values[4];
-extern int16_t console_model_lod_override;
-extern uint8_t rasterizer_caps_flag_689;
-extern uint8_t console_debug_toggle_6893f2;
-extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context;
-extern uint8_t rasterizer_object_shadow_model_active;
-}
 
 namespace halo::models {
 

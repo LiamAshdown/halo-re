@@ -3,8 +3,8 @@
 #include "halo/memory/api.hpp"
 #include <wchar.h>
 #include "halo/rasterizer/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/text/text.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -129,7 +129,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             color.alpha = (float)((cos(time * 0.003) + 1.5) * 0.4 * (double)color.alpha);
         }
 
-        halo::text::text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
+        halo::text::text_context::set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
         if (halo::interface::ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
             halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)((uint16_t *)widget->text));
             return;

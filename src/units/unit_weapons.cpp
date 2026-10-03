@@ -19,10 +19,10 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/models/models.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
-#include "halo/models/models.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;

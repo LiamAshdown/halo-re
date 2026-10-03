@@ -5,9 +5,9 @@
 #include "interface.h"
 #include "halo/core/datum.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/shaders/shaders.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/shaders/shaders.hpp"
 
 #ifdef __cplusplus
 extern "C" {

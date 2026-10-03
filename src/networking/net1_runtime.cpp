@@ -12,10 +12,10 @@
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/text/text.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
-#include "halo/text/text.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
@@ -456,7 +456,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     }
     for (i = 0; i < len; i = i + 1) {
         uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || halo::text::text_get_character_metrics(ch, (Font *)small_ui_font) == 0 || halo::interface::virtual_keyboard_character_is_legal(mode, ch) == 0) {
+        if (ch < ' ' || ch == 0xff || halo::text::text_context::get_character_metrics(ch, (Font *)small_ui_font) == 0 || halo::interface::virtual_keyboard_character_is_legal(mode, ch) == 0) {
             ok = 0;
             break;
         }

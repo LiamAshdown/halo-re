@@ -20,7 +20,6 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
@@ -29,6 +28,7 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/text/text.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -465,8 +465,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                     uint8_t binding[12];
                     uint16_t key_name[0x40];
 
-                    if (halo::input::input_get_last_used_binding((int16_t)prompt_key_token_table[token], (control_binding_descriptor *)binding) != 0) {
-                        halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, key_name);
+                    if (halo::input::Bindings::get_last_used_binding((int16_t)prompt_key_token_table[token], (control_binding_descriptor *)binding) != 0) {
+                        halo::input::BindingNames::get_binding_display_name((control_binding_descriptor *)binding, key_name);
                         halo::interface::ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
                         halo::interface::ui_widget_draw_prompt_span(key_name, &cursor_rect, bounds);
                         halo::interface::ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);

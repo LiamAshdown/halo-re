@@ -7,8 +7,8 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern observer observers[1];

@@ -5,13 +5,13 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -120,7 +120,7 @@ uint16_t * ControlsBindings::action_display_name(int32_t device, const char *act
 
     controls_action_name_buffer[0] = 0;
     if (halo::interface::controls_enumerate_next_assignable_action(device, record, action_name, 1) != 0) {
-        halo::input::input_get_binding_display_name((control_binding_descriptor *)record, controls_action_name_buffer);
+        halo::input::BindingNames::get_binding_display_name((control_binding_descriptor *)record, controls_action_name_buffer);
     }
     if (controls_action_name_buffer[0] == 0) {
         wcscpy((wchar_t *)controls_action_name_buffer, (const wchar_t *)hud_text_unbound);

@@ -14,6 +14,7 @@
 #include "halo/core/crt.hpp"
 #include "halo/models/globals.hpp"
 #include "link/models.hpp"
+#include "halo/models/api.hpp"
 
 namespace halo::models {
 

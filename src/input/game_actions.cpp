@@ -21,7 +21,6 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/objects/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/input/state.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/datum.hpp"
@@ -30,6 +29,7 @@
 #include "halo/input/directinput.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::input {
 
@@ -716,11 +716,11 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
     if (local_player_index == -1 || local_player_index >= 1) {
         return 0;
     }
-    player_handle = halo::game::globals().local_player_globals->local_players[local_player_index];
-    if (player_handle == (datum_index)0xffffffff) {
+    player_handle = input_state().local_player_globals->local_players[local_player_index];
+    if (player_handle == halo::k_dword_none) {
         return 0;
     }
-    player_record = halo::memory::datum_get(player_handle, halo::game::globals().player_data);
+    player_record = halo::memory::datum_get(player_handle, input_state().player_data);
     if (player_record == (void *)0) {
         return 0;
     }

@@ -8,8 +8,6 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
-#include "halo/game/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
@@ -18,6 +16,8 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/text/text.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern HUDGlobals *hud_messaging_parameters;
@@ -66,11 +66,11 @@ static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cur
         halo::interface::hud_draw_message_text_span(cursor, line, hud_text_no_button_icon, 0);
         return;
     }
-    if (halo::input::input_get_last_used_binding(button_icon, (control_binding_descriptor *)binding) == 0) {
+    if (halo::input::Bindings::get_last_used_binding(button_icon, (control_binding_descriptor *)binding) == 0) {
         halo::interface::hud_draw_message_text_span(cursor, line, hud_text_unbound, 0);
         return;
     }
-    halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, name);
+    halo::input::BindingNames::get_binding_display_name((control_binding_descriptor *)binding, name);
     halo::interface::hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
     halo::interface::hud_draw_message_text_span(cursor, line, name, 0);
     halo::interface::hud_draw_message_text_span(cursor, line, hud_text_quote, 0);

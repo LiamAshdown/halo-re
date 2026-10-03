@@ -9,8 +9,8 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;

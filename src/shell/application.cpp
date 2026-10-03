@@ -16,8 +16,6 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "halo/networking/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/cseries/cseries.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
@@ -25,6 +23,8 @@
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;

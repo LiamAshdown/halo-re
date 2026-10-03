@@ -6,8 +6,8 @@
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/objects/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern real_point3d *global_origin3d_pointer;

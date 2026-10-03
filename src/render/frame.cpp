@@ -25,9 +25,9 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
-#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -43,12 +43,7 @@ extern uint8_t render_clip_warning;
 extern uint32_t rasterizer_device_version;
 extern uint8_t rasterizer_caps_flag_68a;
 extern int16_t unknown_00719aac;
-<<<<<<< HEAD
-extern void halo::scenario::scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
-    real_point3d *camera_position, render_fog *out);
-=======
 extern void widget_draw_fullscreen_region(int16_t controller_index);
->>>>>>> worktree-agent-abfcb6ae2d2dd8d16
 }
 
 namespace halo::render::frame {

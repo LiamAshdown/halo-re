@@ -12,10 +12,10 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/scenario/scenario.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
-#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern data_array *player_data;

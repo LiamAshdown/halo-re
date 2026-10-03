@@ -10,9 +10,9 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/models/models.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
-#include "halo/models/models.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;

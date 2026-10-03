@@ -21,8 +21,6 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
-#include "halo/interface/api.hpp"
-#include "halo/game/api.hpp"
 #include "link/calls.hpp"
 #include "halo/input/state.hpp"
 #include "halo/input/directinput_constants.hpp"
@@ -32,6 +30,8 @@
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::input {
 
@@ -354,18 +354,6 @@ uint8_t DirectInput::directinput_initialize(void)
 
 }
 
-extern "C" { extern uint8_t input_suppressed; }
-extern "C" { extern int16_t key_event_read_index; }
-extern "C" { extern int16_t key_event_count; }
-extern "C" { extern uint8_t key_frames[0x6d]; }
-extern "C" { extern uint8_t key_release_pending[0x6d]; }
-extern "C" { extern int16_t scan_code_to_key[0x100]; }
-extern "C" { extern input_abstraction_globals input_globals; }
-extern "C" { extern mouse_state live_mouse_state; }
-extern "C" { extern joystick_state joystick_states[4]; }
-extern "C" { extern joystick_state joystick_neutral_state; }
-#define k_dierr_reacquire_a ((int32_t)0x8007000cu)
-#define k_dierr_reacquire_b ((int32_t)0x8007001eu)
 namespace halo::input {
 
 /**
@@ -455,11 +443,11 @@ void DirectInput::directinput_poll_devices(void)
         }
     }
 
-    if (mouse_device != 0 && halo::game::globals().time_force_single_tick == 0) {
-        vtable = *(void ***)mouse_device;
-        hr = ((idirectinputdevice8_getdevicestate_proc)vtable[9])(mouse_device, 0x14, &mouse_raw);
-        if (hr == k_dierr_reacquire_b || hr == k_dierr_reacquire_a) {
-            ((idirectinputdevice8_acquire_proc)vtable[7])(mouse_device);
+    if (input_state().mouse_device != 0 && input_state().game_time_force_single_tick == 0) {
+        vtable = *(void ***)input_state().mouse_device;
+        hr = ((idirectinputdevice8_getdevicestate_proc)vtable[9])(input_state().mouse_device, 0x14, &mouse_raw);
+        if (hr == halo::input::k_dierr_input_lost || hr == halo::input::k_dierr_not_acquired) {
+            ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().mouse_device);
         } else if (hr == 0) {
             halo::input::DirectInput::mouse_state_process(&input_state().live_mouse_state, &mouse_raw);
             goto joystick_poll;
@@ -472,7 +460,7 @@ void DirectInput::directinput_poll_devices(void)
     }
 
 joystick_poll:
-    if (halo::game::globals().time_force_single_tick != 0) {
+    if (input_state().game_time_force_single_tick != 0) {
         return;
     }
     for (i = 0; i < 8; i++) {

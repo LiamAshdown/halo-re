@@ -5,8 +5,8 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/text/text.hpp"
+#include "halo/interface/api.hpp"
 
 #ifdef interface
 #undef interface

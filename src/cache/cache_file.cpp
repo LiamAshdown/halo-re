@@ -11,16 +11,11 @@
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "halo/interface/api.hpp"
 #include "link/calls.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/interface/api.hpp"
 
-extern "C" {
-extern char map_path_prefix[];
-extern int32_t os_platform;
-extern char profile_directory[0x105];
-extern int32_t sound_cache_size_megabytes;
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 
 namespace halo::cache {
@@ -492,11 +487,11 @@ uint8_t cache_files::request_map(char *name, uint8_t quit_on_fail)
 
 resolved:
     if (quit_on_fail == 0) {
-        if (halo::interface::globals().quit_confirm_error_string_index == -1) {
-            halo::interface::globals().quit_confirm_error_string_index = 0x23;
-            halo::interface::globals().quit_confirm_error_unknown_ae = 0;
-            halo::interface::globals().quit_confirm_error_modal = 0;
-            halo::interface::globals().quit_confirm_error_is_error = 0;
+        if (globals().quit_confirm_error_string_index == -1) {
+            globals().quit_confirm_error_string_index = 0x23;
+            globals().quit_confirm_error_unknown_ae = 0;
+            globals().quit_confirm_error_modal = 0;
+            globals().quit_confirm_error_is_error = 0;
         }
         return 0;
     }

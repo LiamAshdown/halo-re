@@ -12,13 +12,13 @@
 #include "halo/saved_games/layout.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
-#include "halo/interface/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/interface/api.hpp"
 
 static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 

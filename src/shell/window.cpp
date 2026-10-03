@@ -8,14 +8,14 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/main/api.hpp"
-#include "halo/interface/api.hpp"
-#include "halo/game/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/directinput.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
+#include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -377,27 +377,15 @@ keystone_dispatch:
         }
         if (message == 0x100) {
             if (wparam == 0xd) {
-<<<<<<< HEAD
                 if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::interface::chat_submit_input();
-                    halo::input::input_key_block_timer_set(0x38, 200);
-                    halo::input::input_key_block_timer_set(0x66, 200);
-                    return 0;
-                }
-            } else if (wparam == 0x1b) {
-                if (halo::interface::globals().chat_dialog_open != 0) {
-                    halo::input::input_key_block_timer_set(0, 0xfa);
-=======
-                if (chat_dialog_open != 0) {
-                    chat_submit_input();
                     halo::input::DirectInput::key_block_timer_set(0x38, 200);
                     halo::input::DirectInput::key_block_timer_set(0x66, 200);
                     return 0;
                 }
             } else if (wparam == 0x1b) {
-                if (chat_dialog_open != 0) {
+                if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::input::DirectInput::key_block_timer_set(0, 0xfa);
->>>>>>> worktree-agent-abfcb6ae2d2dd8d16
                 }
                 halo::interface::chat_close();
             }

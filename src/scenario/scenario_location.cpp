@@ -11,20 +11,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
-<<<<<<< HEAD
-#include "halo/game/api.hpp"
-
-extern "C" {
-extern ScenarioStructureBSP *global_structure_bsp;
-extern Scenario *global_scenario;
-extern float sqrtf(float x);
-extern scenario_game_globals *global_scenario_game_globals;
-}
-=======
 #include "halo/scenario/api.hpp"
 #include "link/calls.hpp"
+#include "halo/game/api.hpp"
 
->>>>>>> worktree-agent-abfcb6ae2d2dd8d16
 
 namespace halo::scenario {
 
