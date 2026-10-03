@@ -317,7 +317,7 @@ void update_range_and_ducking(void)
 
     for (sound_handle = halo::memory::datum_next(-1, sound_data); sound_handle != halo::k_dword_none;
          sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data)) {
-        instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+        instance = sound_instance(sound_handle);
         definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & halo::k_slot_mask].data;
 
         if ((instance->channel_index != -1 && channels::release_detail_buffers(instance->channel_index) == 0 &&
