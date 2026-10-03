@@ -416,8 +416,7 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
     out->seat_index = -1;
 
     if (unit != k_datum_index_none) {
-        object *u = (object *)(*(void **)((uint8_t *)halo::objects::globals().object_data->data +
-            (uint32_t)(uint16_t)unit * halo::objects::globals().object_data->size + 8));
+        object *u = halo::game::object_at(unit);
 
         halo::units::unit_get_camera_position(unit, &out->position);
 
@@ -425,23 +424,20 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
             object *parent = halo::objects::object_try_and_get(u->parent_object, _object_mask_vehicle);
 
             if (parent != 0) {
-                uint8_t *vehicle_tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)parent->definition_tag].data;
-                int16_t seat_index = *(int16_t *)((uint8_t *)u + 0x2f0);
-                uint8_t *seat_array = *(uint8_t **)(vehicle_tag_data + 0x2e8);
+                Unit *vehicle_tag = (Unit *)halo::game::tag_data_at(parent->definition_tag);
+                int16_t seat_index = halo::game::unit_data_of(u)->vehicle_seat_index;
+                UnitSeat *seat = (UnitSeat *)vehicle_tag->seats.pointer + seat_index;
 
-                uint8_t *seat = seat_array + (int32_t)seat_index * 0x11c;
-
-                out->marker_offset = seat + 0x84;
+                out->marker_offset = (uint8_t *)&seat->camera_marker_name;
                 out->unit = u->parent_object;
                 out->seat_index = seat_index;
-                u = (object *)(*(void **)((uint8_t *)halo::objects::globals().object_data->data +
-                    (uint32_t)(uint16_t)u->parent_object * halo::objects::globals().object_data->size + 8));
+                u = halo::game::object_at(u->parent_object);
             }
         }
         if (out->seat_index == -1) {
-            uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)u->definition_tag].data;
+            Unit *unit_tag = (Unit *)halo::game::tag_data_at(u->definition_tag);
 
-            out->marker_offset = tag_data + 0x1a8;
+            out->marker_offset = (uint8_t *)&unit_tag->camera_marker_name;
         }
     }
 }
