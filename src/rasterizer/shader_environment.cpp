@@ -23,6 +23,7 @@
 #include <cstddef>
 #include "halo/tags/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/render/api.hpp"
 
 namespace {
 

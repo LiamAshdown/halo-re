@@ -10,6 +10,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/constants.hpp"
 #include "halo/rasterizer/d3dx.hpp"
+#include "halo/rasterizer/api.hpp"
 
 
 
