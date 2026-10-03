@@ -15,9 +15,6 @@ extern void *ai_gc_callback_table;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
-extern int32_t game_state_cursor;
 extern game_time_globals *game_time;
 extern uint8_t *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -130,16 +127,16 @@ void halo::objects::ObjectManager::initialize()
 
     object_memory_pool = halo::saved_games::game_state_new_pool((char *)"objects", 0x200000);
 
-    globals_region = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0x98;
+    globals_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x98;
     size = 0x98;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
-    name_list_region = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0x800;
+    name_list_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x800;
     size = 0x800;
     object_globals_pointer = (object_globals *)globals_region;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
     halo::structures::cluster_partition_new(&collideable_cluster_first__as_objects_initialize, (char *)"collideable object");

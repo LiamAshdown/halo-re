@@ -44,7 +44,6 @@ extern uint8_t main_globals_byte_0071974e;
 extern uint8_t *object_globals_pointer;
 extern uint8_t unknown_00719738;
 extern uint8_t profile_globals_block[0x60a4];
-extern int32_t saved_player_profile_slots_handle;
 extern uint8_t ui_event_byte_0071975b;
 extern int32_t movie_playback_abort;
 extern uint8_t split_screen_quit_prompt_armed;
@@ -531,8 +530,8 @@ void GameCommands::evaluate_profile_unlock_solo_levels(int16_t function_index, u
         profile_globals_block[0x11e + level] |= 0xf;
     }
     profile_globals_block[0x11c] |= 4;
-    if (saved_player_profile_slots_handle != -1) {
-        halo::saved_games::player_profile_write_data(saved_player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
+    if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+        halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
     }
     hs_thread_return(0, thread_index);
 }

@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+
+
 struct checkpoint_file_entry;
 struct control_binding_descriptor;
 struct controls_gamepad_record;
@@ -21,6 +23,21 @@ struct win32_systemtime;
 typedef uint8_t (*checkpoint_enumerate_proc)(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const struct win32_systemtime *time, void *user_data);
 
 namespace halo::saved_games {
+
+/**
+ * The engine globals the saved_games module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    uint8_t *&game_state_base;
+    uint32_t &game_state_crc;
+    int32_t &game_state_cursor;
+    int32_t &player_profile_slots_handle;
+    uint8_t &game_state_write_in_progress;
+    uint8_t &profile_load_complete;
+};
+
+Globals &globals();
 
 void control_profile_clear_binding(const control_binding_descriptor *binding);
 void control_profile_clear_device_slot_mappings(saved_player_profile *profile);

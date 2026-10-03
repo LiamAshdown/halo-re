@@ -12,7 +12,6 @@ extern char *rasterizer_shader_file_name;
 extern game_main_globals *main_game_globals;
 extern main_globals main_globals_data;
 extern int16_t local_player_count;
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
 }
@@ -70,11 +69,11 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
             halo::cache::cache_file_download_finish();
         }
         if (local_player_count == 1) {
-            if (cached_profile_slot != saved_player_profile_slots_handle) {
-                if (saved_player_profile_slots_handle != -1) {
-                    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+            if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
+                if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+                    halo::saved_games::saved_game_get_directory_by_handle(halo::saved_games::globals().player_profile_slots_handle, last_profile_name);
                 }
-                cached_profile_slot = saved_player_profile_slots_handle;
+                cached_profile_slot = halo::saved_games::globals().player_profile_slots_handle;
             }
             if (last_profile_name[0] != 0) {
                 halo::saved_games::saved_game_last_profile_clear(last_profile_name);

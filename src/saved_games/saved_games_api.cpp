@@ -13,7 +13,22 @@
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/api.hpp"
 
+extern "C" {
+extern uint8_t *game_state_base;
+extern uint32_t game_state_crc;
+extern int32_t game_state_cursor;
+extern int32_t saved_player_profile_slots_handle;
+extern uint8_t game_state_write_in_progress;
+extern uint8_t profile_load_complete;
+}
+
 namespace halo::saved_games {
+
+Globals &globals()
+{
+    static Globals instance{::game_state_base, ::game_state_crc, ::game_state_cursor, ::saved_player_profile_slots_handle, ::game_state_write_in_progress, ::profile_load_complete};
+    return instance;
+}
 
 void control_profile_clear_binding(const control_binding_descriptor *binding)
 {

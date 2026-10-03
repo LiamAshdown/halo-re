@@ -9,7 +9,6 @@
 #endif
 
 extern "C" {
-extern int32_t saved_player_profile_slots_handle;
 extern uint8_t profile_globals_block[];
 extern void hud_message_broadcast_to_local_players(const uint16_t *text);
 extern const uint16_t empty_string[];
@@ -36,7 +35,7 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
     const uint16_t *text;
 
     state::profile_slot_flag = flag;
-    if (saved_player_profile_slots_handle != -1) {
+    if (halo::saved_games::globals().player_profile_slots_handle != -1) {
         string_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings");
 
         text = empty_string;
@@ -53,12 +52,12 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
             }
         }
         hud_message_broadcast_to_local_players(text);
-        if (saved_player_profile_slots_handle == -1) {
+        if (halo::saved_games::globals().player_profile_slots_handle == -1) {
             halo::main::console_out_printf(0, "profile not saved since it was a default profile");
             player_profile_refresh_settings_cache(0);
             return;
         }
-        halo::saved_games::player_profile_write_data(saved_player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
+        halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
     }
     player_profile_refresh_settings_cache(0);
 }

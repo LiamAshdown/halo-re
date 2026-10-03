@@ -21,6 +21,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -30,9 +31,6 @@ extern int16_t render_window_index;
 extern int16_t screenshot_scale;
 extern game_time_globals *game_time;
 extern void ui_draw_trouble_brewing_indicator(void);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
@@ -127,9 +125,9 @@ uint8_t initialize(void)
     int32_t block_size = 0x10;
 
     rasterizer_model_ambient_reflection_tint =
-        (ColorARGB *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + 0x10;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+        (ColorARGB *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x10;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&block_size, 4);
     return halo::rasterizer::rasterizer_initialize_direct3d();
 }
 

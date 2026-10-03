@@ -16,6 +16,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern game_main_globals *main_game_globals;
@@ -32,9 +33,6 @@ extern network_server_globals *network_server;
 extern void network_game_server_per_frame_tick(int16_t update_count, uint8_t *server);
 extern void game_effects_update(float delta_time);
 extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
 extern uint8_t game_engine_players_ready_for_bsp_switch_strict(void);
@@ -163,11 +161,11 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
  */
 void SimulationClock::allocate_tick_record(void)
 {
-    game_time_globals *record = (game_time_globals *)(game_state_base + game_state_cursor);
+    game_time_globals *record = (game_time_globals *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
     int32_t record_size = 0x20;
 
-    game_state_cursor = game_state_cursor + 0x20;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&record_size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x20;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&record_size, 4);
 
     memset(record, 0, sizeof(*record));
 

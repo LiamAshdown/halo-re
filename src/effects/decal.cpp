@@ -24,9 +24,6 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern game_time_globals *game_time;
 extern long lrint(double x);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 }
 
 namespace halo::effects {
@@ -690,9 +687,9 @@ void decal_ref::initialize()
     decal_data = (data_array *)halo::saved_games::game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
     ((uint8_t *)decal_data)[0x25] = 1;
 
-    decal_grid_block = (decal_grid *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + sizeof(decal_grid);
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    decal_grid_block = (decal_grid *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + sizeof(decal_grid);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&block_size, 4);
 
     halo::rasterizer::rasterizer_decals_initialize();
 }

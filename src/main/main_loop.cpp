@@ -231,8 +231,6 @@ extern "C" { extern int32_t rasterizer_window_requested; }
 extern "C" { extern int32_t checkfpu; }
 extern "C" { extern game_state_proc game_state_before_save_proc; }
 extern "C" { extern uint8_t game_state_revert_available; }
-extern "C" { extern uint8_t game_state_write_in_progress; }
-extern "C" { extern uint8_t *game_state_base; }
 extern "C" { extern int32_t ui_pause_pending_count_00718fa0; }
 extern "C" { extern int32_t network_console_connection_id; }
 extern "C" { extern network_bandwidth_graph network_bandwidth_graph_globals; }
@@ -423,7 +421,7 @@ void MainLoop::loop(void)
             main_globals_data.revert_map = 0;
         }
         if (main_globals_data.revert_map_if_allowed != 0) {
-            if (game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
+            if (halo::saved_games::globals().game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
                 halo::saved_games::game_state_perform_revert();
                 ui_pause_pending_count_00718fa0 = 0x1e;
                 main_globals_data.revert_map = 0;
@@ -447,7 +445,7 @@ void MainLoop::loop(void)
             main_globals_data.reset_map = 0;
         }
         if (main_globals_data.save_core != 0) {
-            if (halo::saved_games::game_state_write_profile_file(0x440000, (char *)"core.bin", game_state_base) != 0) {
+            if (halo::saved_games::game_state_write_profile_file(0x440000, (char *)"core.bin", halo::saved_games::globals().game_state_base) != 0) {
                 halo::main::console_print_error_va(0, "saved '%s'", "core.bin");
             } else {
                 halo::main::console_print_error_va(0, "error writing '%s'", "core.bin");

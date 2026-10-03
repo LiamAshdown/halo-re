@@ -19,6 +19,7 @@
 #include "halo/game/legacy_globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -53,7 +54,6 @@ extern void player_compute_view_forward_vector(datum_index player_handle, real *
     real_vector3d *out_forward);
 extern double atan2(double y, double x);
 extern uint8_t game_engine_input_source_flag;
-extern uint8_t game_state_write_in_progress;
 extern uint8_t *cinematic_globals_ptr;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
@@ -436,7 +436,7 @@ void LocalControl::digitize_control_input(player_control_input *input)
     uint32_t control_flags = input->control_flags;
     uint32_t button_flags = input->button_flags;
 
-    if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::globals::k_input_action_accept] != 0) && game_state_write_in_progress == 0 &&
+    if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::globals::k_input_action_accept] != 0) && halo::saved_games::globals().game_state_write_in_progress == 0 &&
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
         split_screen_quit_prompt_string = 0xffff;
         network_join_error_reason = 0;

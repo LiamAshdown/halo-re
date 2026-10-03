@@ -17,9 +17,6 @@ extern double k_plane_side_epsilon;
 extern float k_projection_numerator;
 extern real_point3d render_camera_global;
 extern uint8_t render_frustum_global;
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 }
 
 namespace halo::structures {
@@ -300,10 +297,10 @@ void cluster_references::partition_new(cluster_reference_group *out, char *name)
     int32_t size;
     uint8_t *region;
 
-    region = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0x800;
+    region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x800;
     size = 0x800;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     out->cluster_first = (datum_index *)region;
 
     sprintf(format_buffer, "cluster %s", name);

@@ -23,9 +23,6 @@ extern void first_person_weapon_center_flashlight(datum_index unit_index, real_p
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern int32_t fistp_round(float x);
 extern uint8_t game_engine_unknown_aa00;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
-extern int32_t game_state_cursor;
 extern game_time_globals *game_time;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern float *global_white_color;
@@ -76,12 +73,12 @@ static cluster_reference_group &light_cluster_first__as_lights_initialize = rein
 void halo::objects::LightSystem::initialize()
 {
     data_array *new_light_data = halo::saved_games::game_state_new((char *)"lights", k_maximum_lights, 0x7c  );
-    uint8_t *checksum_slot = game_state_base + game_state_cursor;
+    uint8_t *checksum_slot = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     uint32_t size_marker = 4;
 
-    game_state_cursor = game_state_cursor + 4;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 4;
     light_data = new_light_data;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size_marker, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size_marker, 4);
     lights_enabled = checksum_slot;
     *checksum_slot = 1;
 

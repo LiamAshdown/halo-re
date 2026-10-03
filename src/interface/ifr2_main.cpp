@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -18,9 +19,6 @@ extern int32_t ui_cursor_y;
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence, int16_t frame);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
-extern int32_t game_state_cursor;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern void terminal_initialize(void);
 extern void hud_state_allocate(void);
@@ -102,9 +100,9 @@ void InterfaceMain::globals_allocate()
     terminal_initialize();
     hud_state_allocate();
 
-    block = game_state_cursor + (int32_t)game_state_base;
-    game_state_cursor = game_state_cursor + 0x1ea0;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    block = halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1ea0;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     first_person_weapon_interfaces = (first_person_weapon_interface *)block;
 }
 

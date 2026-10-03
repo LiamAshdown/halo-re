@@ -28,7 +28,6 @@ extern void set_profile_name(widget_instance *widget, const uint16_t *name_sourc
 extern heap *widget_memory_pool;
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
@@ -155,11 +154,11 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
     string_convert_unicode_to_ascii((uint8_t *)name, network_host_name_field_00719238, 0x20);
     string_convert_unicode_to_ascii((uint8_t *)port, network_host_subname_007191f0, 9);
     result = halo::main::network_game_client_connect_to_address_async(name, port);
-    if (result == 0 || saved_player_profile_slots_handle == -1) {
+    if (result == 0 || halo::saved_games::globals().player_profile_slots_handle == -1) {
         return result;
     }
 
-    saved_item_select(saved_player_profile_slots_handle);
+    saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
     {
         uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : (uint8_t *)0;
         wcslen((const wchar_t *)network_host_name_field_00719238);
@@ -386,7 +385,7 @@ uint32_t UiNetworkMenu::network_name_fields_reset(void)
 {
     uint16_t unused_name_source[2077];
 
-    if (saved_player_profile_slots_handle == -1) {
+    if (halo::saved_games::globals().player_profile_slots_handle == -1) {
         halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile_globals_block);
     } else {
         uint8_t profile_copy[0x2000];

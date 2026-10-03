@@ -7,11 +7,9 @@
 #include "halo/structures/structures.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern player_globals *local_player_globals;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t current_local_player_index;
@@ -23,11 +21,11 @@ namespace halo::structures {
 
 void detail_object_system::globals_allocate(void)
 {
-    uint8_t *region = game_state_base + game_state_cursor;
+    uint8_t *region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     int32_t size = sizeof(detail_object_globals);
 
-    game_state_cursor = game_state_cursor + size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     globals().detail_objects = (detail_object_globals *)region;
 
     globals().detail_objects->default_z_reference.z_reference_i = 0.0f;

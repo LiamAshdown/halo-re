@@ -64,7 +64,6 @@ extern uint16_t hud_text_unknown[];
 extern network_client_globals *network_client;
 extern network_server_globals *network_server;
 extern uint8_t profile_globals_block[];
-extern int32_t saved_player_profile_slots_handle;
 extern game_engine_definition *current_game_engine;
 extern uint8_t port_overridden;
 extern uint32_t network_game_socket_port;
@@ -710,11 +709,11 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     }
 
     if (profile_id != -1) {
-        if (cached_profile_slot != saved_player_profile_slots_handle) {
-            if (saved_player_profile_slots_handle != -1) {
-                halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+        if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
+            if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+                halo::saved_games::saved_game_get_directory_by_handle(halo::saved_games::globals().player_profile_slots_handle, last_profile_name);
             }
-            cached_profile_slot = saved_player_profile_slots_handle;
+            cached_profile_slot = halo::saved_games::globals().player_profile_slots_handle;
         }
         if (last_profile_name[0] != '\0') {
             halo::saved_games::saved_game_last_profile_clear(last_profile_name);

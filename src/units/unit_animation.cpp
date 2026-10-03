@@ -11,11 +11,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
 extern data_array *object_data;
 extern int16_t unit_speech_fallback_index[];
@@ -60,11 +58,11 @@ namespace halo::units {
  */
 void unit_ai_update_stagger_allocate(void)
 {
-    uint8_t *block = game_state_base + game_state_cursor;
+    uint8_t *block = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     int32_t size = 8;
 
-    game_state_cursor = game_state_cursor + 8;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 8;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     ai_update_stagger = (ai_update_stagger_state *)block;
 }
 

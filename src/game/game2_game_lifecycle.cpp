@@ -12,9 +12,6 @@
 
 extern "C" {
 extern Scenario *global_scenario;
-extern int32_t game_state_cursor;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
 extern void *main_game_globals;
 extern game_variant game_engine_active_variant;
 extern scenario_game_globals *global_scenario_game_globals;
@@ -82,10 +79,10 @@ void GameLifecycle::initialize(void)
     int32_t i;
     uint32_t size;
 
-    cursor = (uint32_t *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0x114;
+    cursor = (uint32_t *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x114;
     size = 0x114;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     main_game_globals = cursor;
     for (i = 0x45; i != 0; i = i - 1) {
         *cursor = 0;
@@ -105,14 +102,14 @@ void GameLifecycle::initialize(void)
     interface_globals_allocate();
 
     size = 0x7c;
-    global_scenario_game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0x7c;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    global_scenario_game_globals = (scenario_game_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x7c;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
-    halo::camera::globals().hs_camera_control_pointer = (uint8_t *)(game_state_cursor + game_state_base);
+    halo::camera::globals().hs_camera_control_pointer = (uint8_t *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
     size = 4;
-    game_state_cursor = game_state_cursor + 4;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 4;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     *halo::camera::globals().hs_camera_control_pointer = 0;
 
     object_render_state_cache = (data_array *)halo::saved_games::game_state_new((char *)"cached object render states", 0x100, 0x100);
@@ -120,14 +117,14 @@ void GameLifecycle::initialize(void)
     halo::structures::detail_objects_globals_allocate();
 
     size = 4;
-    halo::structures::globals().runtime_decals_suppressed = (uint8_t *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 4;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::structures::globals().runtime_decals_suppressed = (uint8_t *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 4;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
     size = 0x4204;
-    halo::physics::globals().breakable_surface_state = (breakable_surface_globals *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0x4204;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::physics::globals().breakable_surface_state = (breakable_surface_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x4204;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
     halo::effects::decals_initialize();
     players_initialize();
@@ -141,15 +138,15 @@ void GameLifecycle::initialize(void)
     halo::effects::globals().particle_system_particle_data = (data_array *)halo::saved_games::game_state_new((char *)"particle system particles", 0x200, 0x80);
 
     size = 0x264;
-    sound_class_gains = (void *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0x264;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    sound_class_gains = (void *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x264;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     halo::sound::game_sound_initialize();
 
     size = 0x128;
-    halo::effects::globals().player_effect_state = (player_effect_globals *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0x128;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::effects::globals().player_effect_state = (player_effect_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x128;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     ai_initialize_for_new_map();
 
     widget_memory_pool_initialize();
@@ -160,9 +157,9 @@ void GameLifecycle::initialize(void)
     recorded_animations = halo::saved_games::game_state_new((char *)"recorded animations", 0x40, 0x64);
 
     size = 0x1c;
-    cinematic_globals_ptr = (uint32_t *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0x1c;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    cinematic_globals_ptr = (uint32_t *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1c;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     halo::saved_games::saved_game_files_initialize();
 
     halo::input::input_queue_initialize();

@@ -1,6 +1,7 @@
 #include "win32.h"
 #include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_browser.hpp"
+#include "halo/saved_games/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -16,7 +17,6 @@ extern int32_t server_list_block_capacity;
 extern int32_t server_browser_query_elapsed_ms;
 extern uint8_t server_browser_player_ticker[0x1c];
 extern uint8_t server_browser_variant_ticker[0x1c];
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t server_browser_sort_column;
@@ -77,7 +77,7 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     ticker_text_buffer_reset(server_browser_player_ticker);
     ticker_text_buffer_reset(server_browser_variant_ticker);
     autopatch_download_pool_shutdown();
-    profile = saved_player_profile_slots_handle;
+    profile = halo::saved_games::globals().player_profile_slots_handle;
     state::autopatch_active_slot = -1;
     if (profile == -1) {
         return 1;

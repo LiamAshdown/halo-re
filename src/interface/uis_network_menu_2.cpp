@@ -26,7 +26,6 @@ extern void set_profile_name(widget_instance *widget, const uint16_t *name_sourc
 extern uint8_t save_in_progress_00719010;
 extern int32_t quality_selection_00692b04;
 extern int32_t resolution_selection_00719204;
-extern int32_t saved_player_profile_slots_handle;
 extern uint16_t network_host_name_00719170[0x40];
 extern uint16_t network_host_subname_007191f0[9];
 extern int32_t resolution_row_count_table_0065bfb4[5];
@@ -86,7 +85,7 @@ uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
     if (save_in_progress_00719010 != 0) {
         resolution_selection_00719204 = 0;
     }
-    if (saved_player_profile_slots_handle != -1) {
+    if (halo::saved_games::globals().player_profile_slots_handle != -1) {
         memcpy(profile, &profile_globals_block[0].profile, sizeof(profile));
     } else {
         halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile);

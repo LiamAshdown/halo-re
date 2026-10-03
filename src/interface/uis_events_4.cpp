@@ -46,7 +46,6 @@ extern uint16_t network_host_name_00719170[0x40];
 extern int32_t network_host_edit_field_00719410;
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern uint16_t network_host_subname_007191f0[9];
-extern int32_t saved_player_profile_slots_handle;
 extern void saved_item_select(int32_t item);
 extern uint8_t save_in_progress_00719010;
 extern int32_t resolution_selection_00719204;
@@ -448,7 +447,7 @@ uint8_t UiEventHandlers::event_4a2c80(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2f10(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int32_t handle = saved_player_profile_slots_handle;
+    int32_t handle = halo::saved_games::globals().player_profile_slots_handle;
 
     if (handle != -1) {
         uint8_t *profile;

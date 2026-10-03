@@ -37,7 +37,6 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern int32_t saved_player_profile_slots_handle;
 extern void player_profile_auto_select(void);
 extern char pending_delete_saved_game_name_00718fd0[];
 extern void saved_item_select(int32_t item);
@@ -214,7 +213,7 @@ uint8_t UiEventHandlers::event_4a1280(widget_instance *widget, int16_t *event, u
     if ((handle & 0x40000000) != 0 || (handle & 0xf) != 0) {
         return 0;
     }
-    current = saved_player_profile_slots_handle;
+    current = halo::saved_games::globals().player_profile_slots_handle;
     if (handle != -1) {
         halo::saved_games::saved_game_delete_by_handle(handle);
         handle = profile_slot_lookup_cache_00692ac8;

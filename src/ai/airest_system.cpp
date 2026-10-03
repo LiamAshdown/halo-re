@@ -32,9 +32,6 @@ extern game_main_globals *main_game_globals;
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern void actors_initialize(void);
 extern void encounters_initialize(void);
 extern void ai_communication_initialize(void);
@@ -472,11 +469,11 @@ int16_t AiSystem::group_bucket_find_or_add(ai_group_bucket_entry *buckets, int32
  */
 void AiSystem::initialize_for_new_map()
 {
-    ai_globals *globals = (ai_globals *)(game_state_base + game_state_cursor);
+    ai_globals *globals = (ai_globals *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
     int32_t size = k_ai_globals_size;
 
-    game_state_cursor = game_state_cursor + k_ai_globals_size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_ai_globals_size;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
     ai_globals_ptr = globals;
     memset(globals, 0, k_ai_globals_size);

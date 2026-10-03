@@ -87,9 +87,6 @@ extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag
 extern float k_random_scale_65536;
 extern uint8_t encounter_evaluate_platoon_condition(datum_index encounter_index, const ai_platoon_condition *condition);
 extern data_array *ai_pursuit_data;
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition, int16_t *platoon_cursor);
 extern void encounter_spawn_squads(datum_index encounter_index, int16_t squad_filter, int16_t platoon_filter);
 extern void encounter_advance_grenade_timers(datum_index encounter_index);
@@ -3049,15 +3046,15 @@ void Encounters::initialize()
 
     encounter_data = (data_array *)halo::saved_games::game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
 
-    encounter_squad_states = (encounter_squad_state *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + 0x8000;
+    encounter_squad_states = (encounter_squad_state *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x8000;
     reserved_size = 0x8000;
-    halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, &reserved_size, 4);
 
-    encounter_platoon_states = (encounter_platoon_state *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + 0x1000;
+    encounter_platoon_states = (encounter_platoon_state *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1000;
     reserved_size = 0x1000;
-    halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, &reserved_size, 4);
 
     ai_pursuit_data = (data_array *)halo::saved_games::game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }

@@ -25,7 +25,6 @@ extern "C" {
 extern int16_t local_player_count;
 extern char level_select_current_path_00719068[0x106];
 extern level_select_entry level_select_entries[10];
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_saved_game_something;
 extern uint8_t level_select_flags_0071916a;
 extern uint8_t level_select_flags_0071916b;
@@ -88,11 +87,11 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
     string_list_tag = halo::cache::tag_lookup(0x75737472 , (char *)"ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
-    if (saved_player_profile_slots_handle != cached_saved_game_something) {
+    if (halo::saved_games::globals().player_profile_slots_handle != cached_saved_game_something) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
         level_select_flags_0071916b = halo::saved_games::game_state_read_checkpoint_summary(&level_select_flags_0071916c,
             &level_select_frame_00719168, level_select_current_path_00719068);
-        cached_saved_game_something = saved_player_profile_slots_handle;
+        cached_saved_game_something = halo::saved_games::globals().player_profile_slots_handle;
     }
 
     memcpy(profile_copy, profile_globals_block, sizeof(profile_copy) < sizeof(profile_globals_block)
@@ -201,7 +200,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
             level_select_flags_0071916b = 0;
             return 1;
         }
-    } else if (level_select_flags_0071916c == 1 && saved_player_profile_slots_handle != -1) {
+    } else if (level_select_flags_0071916c == 1 && halo::saved_games::globals().player_profile_slots_handle != -1) {
         if (last_level_widget_selection_00692afc == -1) {
             if (quit_confirm_error_string_index == -1) {
                 quit_confirm_error_string_index = 0x27;
@@ -209,7 +208,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
                 quit_confirm_error_modal = 1;
                 quit_confirm_error_is_error = 0;
             }
-            last_level_widget_selection_00692afc = saved_player_profile_slots_handle;
+            last_level_widget_selection_00692afc = halo::saved_games::globals().player_profile_slots_handle;
             return 1;
         }
         last_level_widget_selection_00692afc = -1;
@@ -372,11 +371,11 @@ uint32_t UiGameSetup::restart_saved_game(void)
     halo::saved_games::saved_game_delete_files(last_profile_name);
     network_game_mode = 0;
     network_wait_flag_00719739 = 1;
-    if (cached_profile_slot != saved_player_profile_slots_handle) {
-        if (saved_player_profile_slots_handle != -1) {
-            halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+    if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
+        if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+            halo::saved_games::saved_game_get_directory_by_handle(halo::saved_games::globals().player_profile_slots_handle, last_profile_name);
         }
-        cached_profile_slot = saved_player_profile_slots_handle;
+        cached_profile_slot = halo::saved_games::globals().player_profile_slots_handle;
     }
     if (last_profile_name[0] != '\0') {
         halo::saved_games::saved_game_last_profile_clear(last_profile_name);

@@ -105,7 +105,6 @@ extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[];
 extern uint8_t server_browser_initialized;
 extern uint8_t network_session_start_host_name[];
 extern uint8_t network_session_start_map_name[];
-extern int32_t saved_player_profile_slots_handle;
 extern uint8_t profile_globals_block[];
 extern void network_channels_open(void);
 extern int32_t master_server_connection_start(void);
@@ -1524,7 +1523,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     server_browser_variant_ticker.length = 0;
     server_browser_variant_ticker.scroll_cursor = 0;
 
-    if (saved_player_profile_slots_handle == -1) {
+    if (halo::saved_games::globals().player_profile_slots_handle == -1) {
         saved_config[0x1787] = 1;
         saved_config[0x1788] = 3;
         saved_config[0x1786] = 1;

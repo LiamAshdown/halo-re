@@ -23,7 +23,6 @@ extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
 extern int16_t local_player_count;
 extern uint8_t profile_globals_block[0x60a4];
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
 extern campaign_level_entry known_campaign_levels_00692acc[10];
@@ -70,11 +69,11 @@ uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
     }
     if (local_player_count == 1) {
         unlocked = level_unlocked_for(0, level_id);
-        if (cached_profile_slot != saved_player_profile_slots_handle) {
-            if (saved_player_profile_slots_handle != -1) {
-                halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+        if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
+            if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+                halo::saved_games::saved_game_get_directory_by_handle(halo::saved_games::globals().player_profile_slots_handle, last_profile_name);
             }
-            cached_profile_slot = saved_player_profile_slots_handle;
+            cached_profile_slot = halo::saved_games::globals().player_profile_slots_handle;
         }
         if (last_profile_name[0] != 0) {
             halo::saved_games::saved_game_last_profile_clear(last_profile_name);
