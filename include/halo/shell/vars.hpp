@@ -71,7 +71,6 @@ struct Vars {
     void *dsound_module;
     void *dxdiag_sound_device_child_name;
     void *error_file_enabled;
-    void *eula_file_name;
     void *exception_gathering_text;
     void *exception_title;
     void *external_00686b4c;

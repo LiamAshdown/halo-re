@@ -121,7 +121,6 @@ typedef enum shell_constants {
     k_shell_fatal_error_title_length = 0x80,
     k_shell_fatal_error_readme_length = 0x200,
     k_shell_exception_string_length = 0x100,
-    k_shell_eula_name_length = 0x20,
     k_shell_strings_dll_error_length = 0x400,
 
     k_crash_dialog_template_allocation = 0x400,     // GlobalAlloc(GMEM_ZEROINIT, 0x400)
@@ -830,7 +829,6 @@ typedef int32_t (__stdcall *d3d9_get_device_caps_fn)(void *self, uint32_t adapte
 //                      to the next global 0x00722d58
 // global 0x006f0670: char exception_gathering_text[0x100]       string 0x78, "Gathering Exception Data..."
 // global 0x006f0770: char exception_title[0x100]                string 0x77, "Exception!"
-// global 0x006f0870: char eula_file_name[0x20]                  string 0x84, "eula.rtf"; passed to EBUEula
 // global 0x006f0890: char strings_dll_invalid_text[0x400]       string 0x88, shown for -? / -help
 //
 // .bss

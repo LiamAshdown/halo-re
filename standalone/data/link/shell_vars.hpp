@@ -68,7 +68,6 @@ extern char dsdevid_default_playback[];
 extern char dsound_module[];
 extern char dxdiag_sound_device_child_name[];
 extern char error_file_enabled[];
-extern char eula_file_name[];
 extern char exception_gathering_text[];
 extern char exception_title[];
 extern char external_00686b4c[];

@@ -74,7 +74,6 @@ const Vars &vars()
         dsound_module,
         dxdiag_sound_device_child_name,
         error_file_enabled,
-        eula_file_name,
         exception_gathering_text,
         exception_title,
         external_00686b4c,

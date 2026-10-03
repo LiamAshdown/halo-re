@@ -26,7 +26,6 @@ private:
     static bool run_session(void *instance, char *command_line, int32_t show_command);
     static char *copy_command_line(const char *command_line);
     static void initialize_window_state(void *instance, char *command_line, int32_t show_command);
-    static void show_eula_on_first_run();
     static void parse_command_line_flags();
     static void measure_machine();
     static bool help_requested();

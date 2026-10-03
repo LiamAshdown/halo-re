@@ -29,7 +29,6 @@ static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode)
 static auto &fatal_error_remember_choice = halo::link::ref<int32_t>(halo::shell::vars().fatal_error_remember_choice);
 static auto &exception_title = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_title);
 static auto &exception_gathering_text = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_gathering_text);
-static auto &eula_file_name = halo::link::ref<char [k_shell_eula_name_length]>(halo::shell::vars().eula_file_name);
 static auto &strings_dll_invalid_text = halo::link::ref<char [k_shell_strings_dll_error_length]>(halo::shell::vars().strings_dll_invalid_text);
 static auto &shell_startup_tick_count = halo::link::ref<uint32_t>(halo::main::vars().shell_startup_tick_count);
 
@@ -164,7 +163,6 @@ void Localization::initialize()
 
     load_string_or_default(k_string_exception_title, k_shell_exception_string_length, exception_title, "Exception!");
     load_string_or_default(k_string_exception_gathering, k_shell_exception_string_length, exception_gathering_text, "Gathering Exception Data...");
-    load_string_or_default(k_string_eula_name, k_shell_eula_name_length, eula_file_name, "eula.rtf");
     load_string_or_default(k_string_strings_dll_invalid, k_shell_strings_dll_error_length, strings_dll_invalid_text, "Invalid / missing strings.dll");
 
     shell_startup_tick_count = GetTickCount();

@@ -26,7 +26,6 @@ inline constexpr uint32_t k_string_dsound_missing = 0x7b;
 inline constexpr uint32_t k_string_dinput8_missing = 0x7c;
 inline constexpr uint32_t k_string_shfolder_missing = 0x7d;
 inline constexpr uint32_t k_string_direct3d_create_failed = 0x81;
-inline constexpr uint32_t k_string_eula_name = 0x84;
 inline constexpr uint32_t k_string_safe_mode_requested = 0x87;
 inline constexpr uint32_t k_string_strings_dll_invalid = 0x88;
 inline constexpr uint32_t k_string_single_instance = 0x92;

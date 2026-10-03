@@ -89,7 +89,6 @@ __declspec(align(4)) char fatal_error_title[128] = {0};                // 0x006f
 __declspec(align(4)) char fatal_error_help_file[512] = {0};            // 0x006f0470  char [k_shell_fatal_error_readme_length]
 __declspec(align(4)) char exception_gathering_text[256] = {0};         // 0x006f0670  char [0x100]
 __declspec(align(4)) char exception_title[256] = {0};                  // 0x006f0770  char [0x100]
-__declspec(align(4)) char eula_file_name[32] = {0};                    // 0x006f0870  char [k_shell_eula_name_length]
 __declspec(align(4)) char strings_dll_invalid_text[1024] = {0};        // 0x006f0890  char [k_shell_strings_dll_error_length]
 int16_t qsort_candidate_count = 0;                                     // 0x006f0c90  int16_t
 void *qsort_candidate_base = 0;                                        // 0x006f0c94  actor_firing_position_candidate *

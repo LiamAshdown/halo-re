@@ -49,7 +49,6 @@ static auto &shell_window_minimized = halo::link::ref<uint8_t>(halo::shell::vars
 static auto &shell_window_class_name = halo::link::ref<char [k_shell_window_name_length]>(halo::rasterizer::vars().shell_window_class_name);
 static auto &shell_window_title = halo::link::ref<char [k_shell_window_name_length]>(halo::rasterizer::vars().shell_window_title);
 static auto &shell_arrow_cursor = halo::link::ref<void *>(halo::shell::vars().shell_arrow_cursor);
-static auto &eula_file_name = halo::link::ref<char [k_shell_eula_name_length]>(halo::shell::vars().eula_file_name);
 static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
 static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
 static auto &shell_direct3d = halo::link::ref<void *>(halo::rasterizer::vars().shell_direct3d);
@@ -105,7 +104,6 @@ static auto &external_00686b58 = halo::link::ref<void *>(halo::shell::vars().ext
 static auto &external_00686b5c = halo::link::ref<void *>(halo::shell::vars().external_00686b5c);
 static auto &external_00686b54 = halo::link::ref<uint32_t>(halo::shell::vars().external_00686b54);
 
-typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2, int32_t unknown_3);
 typedef void *(__stdcall *direct3d_create9_fn)(uint32_t sdk_version);
 
 namespace halo::shell {
@@ -255,35 +253,6 @@ void Application::initialize_window_state(void *instance, char *command_line, in
     memcpy(shell_window_class_name, "Halo", 5);
     memcpy(shell_window_title, "Halo", 5);
     shell_arrow_cursor = LoadCursorA(0, (const char *)k_idc_arrow);
-}
-
-/**
- * On the first run (no FIRSTRUN setting) shows the EULA from eula.dll and exits when it is declined.
- */
-void Application::show_eula_on_first_run()
-{
-    uint32_t firstrun;
-    uint32_t firstrun_size;
-    int32_t eula_accepted;
-
-    firstrun = 0;
-    firstrun_size = 4;
-    SettingsStore::current().read_value(SettingsScope::user, "FIRSTRUN", 0, &firstrun, &firstrun_size);
-    if (firstrun == 0) {
-        eula_accepted = 0;
-        {
-            DynamicLibrary eula("eula.dll");
-            if (eula.loaded()) {
-                eula_show_fn eula_show = (eula_show_fn)eula.symbol("EBUEula");
-                if (eula_show != 0) {
-                    eula_accepted = eula_show("Software\\Microsoft\\Microsoft Games\\Halo", eula_file_name, 0, 1);
-                }
-            }
-        }
-        if (eula_accepted == 0) {
-            ExitProcess(1);
-        }
-    }
 }
 
 /**
@@ -494,7 +463,6 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
 
     command_line_copy = copy_command_line(command_line);
     initialize_window_state(instance, command_line, show_command);
-    show_eula_on_first_run();
 
     shell_argv = CommandLine::parse_to_argv(command_line_copy, &shell_argc);
     parse_command_line_flags();
