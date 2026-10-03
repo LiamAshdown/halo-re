@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
+#include "halo/core/bit_cast.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -107,6 +108,9 @@ extern float camera_position_z_table[];
 }
 
 namespace {
+
+/** Tint of the full-health screen flash: the engine's 234/255 truncated to a float. */
+const float k_full_health_flash_tint = halo::bit_cast<float>(0x3f6aeaeau);
 static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_index)
 {
     uint8_t *self = halo::game::object_bytes(object_index);
@@ -1093,24 +1097,20 @@ void PlayerView::trigger_full_health_effect()
     player *p = halo::game::player_at(player_index);
 
     if (player_index != halo::k_dword_none && p->local_player_index != -1) {
-        uint8_t buffer[0x38];
-        int32_t i;
-        for (i = 0; i < 0x38; i++) {
-            buffer[i] = 0;
-        }
+        player_screen_flash flash = {};
 
-        *(uint16_t *)(buffer + 0x00) = 6;
-        *(uint16_t *)(buffer + 0x02) = 2;
-        *(uint32_t *)(buffer + 0x10) = 0x40000000;
-        *(uint16_t *)(buffer + 0x14) = 1;
-        *(uint32_t *)(buffer + 0x20) = 0x3f000000;
-        *(uint32_t *)(buffer + 0x24) = 0;
-        *(uint32_t *)(buffer + 0x28) = 0x3f800000;
-        *(uint32_t *)(buffer + 0x2c) = 0x3f6aeaea;
-        *(uint32_t *)(buffer + 0x30) = 0x3f6aeaea;
-        *(uint32_t *)(buffer + 0x34) = 0x3f6aeaea;
+        flash.type = 6;
+        flash.priority = 2;
+        flash.duration = 2.0f;
+        flash.fade_function = 1;
+        flash.maximum_intensity = halo::bit_cast<uint32_t>(0.5f);
+        flash.intensity = 0.0f;
+        flash.color.alpha = 1.0f;
+        flash.color.red = k_full_health_flash_tint;
+        flash.color.green = k_full_health_flash_tint;
+        flash.color.blue = k_full_health_flash_tint;
 
-        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
     }
 }
 
@@ -1126,24 +1126,20 @@ void PlayerView::trigger_shield_recharge_effect()
     player *p = halo::game::player_at(player_index);
 
     if (player_index != halo::k_dword_none && p->local_player_index != -1) {
-        uint8_t buffer[0x38];
-        int32_t i;
-        for (i = 0; i < 0x38; i++) {
-            buffer[i] = 0;
-        }
+        player_screen_flash flash = {};
 
-        *(uint16_t *)(buffer + 0x00) = global_006889d0;
-        *(uint16_t *)(buffer + 0x02) = 2;
-        *(uint32_t *)(buffer + 0x10) = global_006889e0;
-        *(uint16_t *)(buffer + 0x14) = global_007102e4;
-        *(uint32_t *)(buffer + 0x20) = global_006889d4;
-        *(uint32_t *)(buffer + 0x24) = 0;
-        *(uint32_t *)(buffer + 0x28) = global_007102e8;
-        *(uint32_t *)(buffer + 0x2c) = global_006889d8;
-        *(uint32_t *)(buffer + 0x30) = global_007102ec;
-        *(uint32_t *)(buffer + 0x34) = global_006889dc;
+        flash.type = static_cast<int16_t>(global_006889d0);
+        flash.priority = 2;
+        flash.duration = halo::bit_cast<float>(global_006889e0);
+        flash.fade_function = global_007102e4;
+        flash.maximum_intensity = global_006889d4;
+        flash.intensity = 0.0f;
+        flash.color.alpha = halo::bit_cast<float>(global_007102e8);
+        flash.color.red = halo::bit_cast<float>(global_006889d8);
+        flash.color.green = halo::bit_cast<float>(global_007102ec);
+        flash.color.blue = halo::bit_cast<float>(global_006889dc);
 
-        halo::effects::player_effect_set_screen_flash_for_player(player_index, (player_screen_flash *)buffer, 1.0f);
+        halo::effects::player_effect_set_screen_flash_for_player(player_index, &flash, 1.0f);
     }
 }
 
