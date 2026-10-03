@@ -605,7 +605,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
         if ((((uint8_t *)element)[2] & 1) != 0 || (view_mask & (1u << *(uint8_t *)&element->allowed_view_type)) == 0) {
             continue;
         }
-        halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->anchor,
+        halo::interface::hud_draw_static_element(local_player_index, &hud->anchor,
                                 (const hud_static_element_placement *)&element->anchor_offset, state_flags[state],
                                 flash_start_times[state]);
     }
@@ -653,7 +653,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
             fraction = -1;
             value = (int16_t)(numbers[state] / divisor);
         }
-        halo::interface::hud_draw_number((void *)(int32_t)local_player_index, (uint16_t *)&hud->anchor,
+        halo::interface::hud_draw_number((void *)(int32_t)local_player_index, &hud->anchor,
                         (const hud_number_placement *)&element->anchor_offset, value, fraction, state_flags[state],
                         flash_start_times[state], 0.0f);
     }
@@ -665,7 +665,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
         if ((((uint8_t *)element)[2] & 1) != 0 || (view_mask & (1u << *(uint8_t *)&element->allowed_view_type)) == 0) {
             continue;
         }
-        halo::interface::hud_draw_overlays((uint16_t *)&hud->anchor, (const hud_overlay_list *)&element->overlay_bitmap,
+        halo::interface::hud_draw_overlays(&hud->anchor, (const hud_overlay_list *)&element->overlay_bitmap,
                           (uint32_t)(int16_t)overlay_types[state], flash_start_times[state], state_flags[state],
                           halo::game::globals().local_player_globals->local_player_count > 1);
     }

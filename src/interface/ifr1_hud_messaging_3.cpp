@@ -128,7 +128,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         *(datum_index *)&parameters->splitscreen_font.tag_id != (datum_index)-1) {
         font = *(datum_index *)&parameters->splitscreen_font.tag_id;
     }
-    halo::interface::hud_anchor_offset_to_screen_position((uint16_t *)&parameters->anchor, split_screen, 0.0f,
+    halo::interface::hud_anchor_offset_to_screen_position(&parameters->anchor, split_screen, 0.0f,
                                          &parameters->anchor_offset.x, &origin.x, 0);
     font_tag = halo::interface::tag_data<Font>(font);
     y = origin.y;

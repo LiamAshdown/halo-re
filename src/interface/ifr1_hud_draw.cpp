@@ -72,10 +72,10 @@ namespace halo::interface {
  *
  * @address 0x4ab690
  */
-void HudDraw::anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale, const int16_t *offset, int16_t *out, int32_t selector)
+void HudDraw::anchor_offset_to_screen_position(const void *anchor, uint8_t has_scale, float scale, const int16_t *offset, int16_t *out, int32_t selector)
 {
     float x, y;
-    uint16_t anchor_value = *anchor;
+    uint16_t anchor_value = *static_cast<const uint16_t *>(anchor);
 
     if (!has_scale || scale == 0.0f) {
         scale = 1.0f;
@@ -221,7 +221,7 @@ void HudDraw::bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, 
  *
  * @address 0x4acad0
  */
-void HudDraw::bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, uint16_t *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen)
+void HudDraw::bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, const void *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen)
 {
     float default_uv[4];
     float element_scale[2];
@@ -249,7 +249,7 @@ void HudDraw::bitmap_element(const float *uv, const hud_element_placement *place
     }
     halo::interface::hud_anchor_offset_to_screen_position(anchor, scale_offset, 0.0f, &placement->anchor_offset.x,
                                          &screen_position.x, 0);
-    halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, (int16_t)*anchor);
+    halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, *static_cast<const int16_t *>(anchor));
     halo::interface::hud_draw_rotated_bitmap_quad(&screen_position, element_scale, meter_parameters, bitmap, uv, extents,
                                  rotation, color);
 }
@@ -543,7 +543,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
  *
  * @address 0x4ac0b0
  */
-void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value, int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale)
+void HudDraw::number(void *unused, const void *anchor, const hud_number_placement *placement, int16_t value, int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale)
 {
     GlobalsInterfaceBitmaps *interface_bitmaps = (global_globals->interface_bitmaps.count != 0)
         ? (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer
@@ -598,7 +598,7 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
 
     halo::interface::hud_anchor_offset_to_screen_position(anchor, (uint8_t)((flags >> 2) & 1), 0.0f,
                                          (const int16_t *)&placement->anchor_offset, (int16_t *)&origin, 0);
-    switch (*anchor) {
+    switch (*static_cast<const int16_t *>(anchor)) {
     case 0:
     case 2:
         pen.x = (int16_t)(int32_t)(((width_digits - 2.0f) * digits->screen_digit_width + width_decimal) * pen.scale + origin.x);
@@ -622,7 +622,7 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
         pen.color = *(uint32_t *)&placement->flash.default_color;
     }
     pen.y = origin.y;
-    pen.anchor = *anchor;
+    pen.anchor = *static_cast<const uint16_t *>(anchor);
     pen.is_sprite_bitmap = (*(int16_t *)digits_bitmap_data == 4);
     pen.advance = (float)digits->screen_digit_width * pen.scale;
 
@@ -675,7 +675,7 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
  *
  * @address 0x4ac950
  */
-void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask, int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen)
+void HudDraw::overlays(const void *anchor, const hud_overlay_list *list, uint32_t type_mask, int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen)
 {
     int32_t i;
 
@@ -775,7 +775,7 @@ void HudDraw::rotated_bitmap_quad(const Point2DInt *screen_position, const float
  *
  * @address 0x4ac6f0
  */
-void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const hud_static_element_placement *element, uint32_t draw_flags, int32_t flash_start_time)
+void HudDraw::static_element(int16_t local_player_index, const void *anchor, const hud_static_element_placement *element, uint32_t draw_flags, int32_t flash_start_time)
 {
     Bitmap *bitmap_tag;
     BitmapData *bitmap;
@@ -851,7 +851,7 @@ void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const
             }
             halo::interface::hud_anchor_offset_to_screen_position(anchor, scale_offset, 0.0f, &element->anchor_offset.x,
                                                  &screen_position.x, 0);
-            halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, (int16_t)*anchor);
+            halo::interface::hud_bitmap_anchor_extents(pixel_uvs, bitmap, uv, extents, *static_cast<const int16_t *>(anchor));
             halo::interface::hud_draw_multitexture_overlay(element_scale, overlay, local_player_index, &screen_position, uv,
                                           extents, 0.0f, color);
             i++;
