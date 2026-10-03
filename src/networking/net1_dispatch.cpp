@@ -250,7 +250,7 @@ class PositionUpdateHandler final : public ServerMessageHandler {
 public:
     uint32_t handle(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length) const override
     {
-        if (*(int16_t *)((uint8_t *)server + 4) == 1) {
+        if (server->state == 1) {
             client_position_packet packet;
             int16_t out_type;
             uint16_t version_used;

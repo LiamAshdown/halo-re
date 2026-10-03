@@ -473,7 +473,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         *((uint8_t *)network_server + 0x9d5) = 0;
 
         wcsncpy((wchar_t *)((uint8_t *)network_server + 8), (const wchar_t *)name, 0x3f);
-        *(uint16_t *)((uint8_t *)network_server + 0x86) = 0;
+        network_server->session.unknown_07e = 0;
         wcsncpy((wchar_t *)network_server->password, (const wchar_t *)password, 8);
         network_server->password[8] = 0;
         {
@@ -628,7 +628,7 @@ char GameSessionView::scenario_load_request()
         halo::game::game_unload_map();
     }
     halo::main::main_menu_music_stop();
-    if (*(int32_t *)((uint8_t *)session + 0x134) != 0) {
+    if (session->variant.game_engine_index != 0) {
         halo::game::game_engine_apply_variant(&session->variant);
     }
     halo::game::cache_file_switch_map_by_path(request.map_name, 1);

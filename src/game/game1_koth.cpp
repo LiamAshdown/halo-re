@@ -4,6 +4,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "memory.h"
@@ -98,8 +99,8 @@ namespace halo::game::engine1 {
  */
 void Koth::animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player)
 {
-    player *fading = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)fading_player * sizeof(player));
-    player *growing = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)growing_player * sizeof(player));
+    player *fading = halo::game::player_at(fading_player);
+    player *growing = halo::game::player_at(growing_player);
 
     if (!hill_pulse_fade_done) {
         float speed = fading->speed - 0.02f;
@@ -144,7 +145,7 @@ void Koth::animate_hill_pulse_icons(datum_index fading_player, datum_index growi
  */
 void Koth::alt_scorer_tick(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_index);
 
     if (halo::networking::globals().game_mode == 2) {
         king_alt_player_score[player_index & halo::k_datum_slot_mask]++;
@@ -676,7 +677,7 @@ uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_i
     }
 
     {
-        player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_index);
         uint8_t eligible = 1;
         if (p->unit != (datum_index)halo::k_dword_none) {
             uint16_t found = halo::units::unit_find_weapon_index_by_flag((uint32_t)p->unit, 3);
@@ -706,7 +707,7 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
     if (player_index == halo::k_dword_none) {
         return 0;
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     unit = p->unit;
     if (unit == (datum_index)halo::k_dword_none) {
         return 0;
@@ -1163,7 +1164,7 @@ void Koth::update_occupant_table(uint32_t index)
         }
     }
 
-    p = (player *)((uint8_t *)player_data->data + (index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(index);
     unit = p->unit;
     if (unit != (datum_index)halo::k_dword_none) {
         unit_data *unit_obj = (unit_data *)((uint8_t *)

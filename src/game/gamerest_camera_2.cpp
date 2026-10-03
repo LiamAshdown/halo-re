@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/camera/api.hpp"
@@ -42,7 +43,7 @@ uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player
     }
     player_index = (local_player_slot != -1 && local_player_slot < 1)
         ? local_player_globals->local_players[local_player_slot] : k_datum_index_none;
-    player_record = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+    player_record = (uint8_t *)halo::game::player_at(player_index);
     exclude_object = halo::units::UnitView(*(uint32_t *)(player_record + 0x34)).resolve_camera_object();
     if (local_player_slot != -1) {
         zoom_requirement = *(int16_t *)(*(uint8_t **)&player_control_globals_ptr + local_player_slot * 0x40 + 0x34);

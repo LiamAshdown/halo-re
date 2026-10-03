@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/text/api.hpp"
@@ -222,7 +223,7 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
  */
 wchar_t *Ctf::build_player_text(datum_index player, wchar_t *buffer)
 {
-    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)((::player *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200)))->objective_score);
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)((::player *)((uint8_t *)halo::game::player_at(player)))->objective_score);
     return buffer;
 }
 
@@ -327,7 +328,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
  */
 int32_t Ctf::get_score(datum_index player, int32_t team_mode)
 {
-    uint8_t *p = ((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200);
+    uint8_t *p = (uint8_t *)halo::game::player_at(player);
 
     if (team_mode != 0) {
         return ctf_team_flag_touch_count[*(int32_t *)(p + 0x20)];
@@ -621,7 +622,7 @@ void Ctf::object_expired(datum_index object_index)
  */
 void Ctf::on_flag_captured(uint32_t flag_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (flag_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(flag_index);
     int16_t elapsed = (int16_t)(game_time->game_time - p->slayer_target);
     uint8_t new_record = 0;
 
@@ -676,7 +677,7 @@ void Ctf::on_flag_captured(uint32_t flag_index)
  */
 void Ctf::player_drop_flag(uint32_t player_index, datum_index flag_object_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_index);
     uint32_t unit_index = (uint32_t)p->unit;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
 
@@ -701,7 +702,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
     int16_t team = ((struct object *)flag_obj)->owner_team;
 
     if (player_index != halo::k_dword_none && halo::networking::globals().game_mode == 2) {
-        player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_index);
 
         if ((int32_t)team == p->team) {
             if (game_engine_variant.engine.ctf.flag_must_reset == 0) {
@@ -761,7 +762,7 @@ void Ctf::player_round_reset(datum_index player_index)
  */
 void Ctf::player_touch_flag(uint32_t player_index, int32_t team)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_index);
     int16_t *touch_count = (int16_t *)((uint8_t *)p + 0xc8);
 
     ctf_team_flag_touch_count[team]++;
@@ -962,7 +963,7 @@ float Ctf::unknown_70(datum_index player_index, real_point3d *position)
     if (game_engine_variant.engine.ctf.assault == 0) {
         return 1.0f;
     }
-    other_team = (((::player *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200)))->team + 1) % 2;
+    other_team = (((::player *)((uint8_t *)halo::game::player_at(player_index)))->team + 1) % 2;
     stand = ctf_team_flag_stand_position[other_team];
     dx = stand->x - position->x;
     dy = stand->y - position->y;

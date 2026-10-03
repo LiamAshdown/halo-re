@@ -14,6 +14,7 @@
 static_assert(offsetof(data_array, actual_count) == 0x30);
 static_assert(offsetof(data_array, maximum_count) == 0x20);
 static_assert(offsetof(data_array, size) == 0x22);
+static_assert(offsetof(network_game_session, variant.game_engine_index) == 0x134);
 static_assert(offsetof(network_machine, unknown_52) == 0x52);
 static_assert(offsetof(network_machine, unknown_56) == 0x56);
 static_assert(offsetof(network_server_globals, join_finalize_pending) == 0x9f8);
@@ -41,6 +42,7 @@ static_assert(offsetof(player, unknown_f4) == 0xf4);
 static_assert(offsetof(player, unknown_f8) == 0xf8);
 static_assert(offsetof(player, update_history.queue.capacity) == 0x120);
 static_assert(offsetof(player, update_history.queue.record_size) == 0x124);
+static_assert(offsetof(s_network_address, ipv6_1) == 0x4);
 static_assert(offsetof(unit_object, unit.controlling_player) == 0x218);
 static_assert(offsetof(unit_object, unit.driver_unit_index) == 0x324);
 static_assert(offsetof(unit_object, unit.gunner_unit_index) == 0x328);

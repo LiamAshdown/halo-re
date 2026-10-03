@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/scenario/api.hpp"
@@ -94,7 +95,7 @@ void EnginePlayers::player_changed_object(uint32_t param)
  */
 uint8_t EnginePlayers::player_has_respawn_priority(uint32_t player_index)
 {
-    player *self = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *self = halo::game::player_at(player_index);
     uint8_t result = 0;
 
     if (game_engine_variant.odd_man_out != 0 && self->unit == (datum_index)halo::k_dword_none) {
@@ -143,7 +144,7 @@ uint8_t EnginePlayers::player_has_respawn_priority(uint32_t player_index)
 uint8_t EnginePlayers::player_is_eliminated(uint32_t player_index)
 {
     if (0 < game_engine_variant.lives_per_round) {
-        player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_index);
         if (p->unit == (datum_index)halo::k_dword_none && game_engine_variant.lives_per_round <= p->deaths) {
             return 1;
         }
@@ -165,7 +166,7 @@ void EnginePlayers::player_new_life(uint32_t player_handle)
     uint32_t sentinel;
     int32_t team;
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_handle);
     p->hud_message_index = (datum_index)halo::k_dword_none;
     p->hud_message_player = (datum_index)halo::k_dword_none;
     p->speed = 1.0f;
@@ -227,7 +228,7 @@ uint8_t EnginePlayers::player_ready_to_respawn(uint32_t player_index)
     if (current_game_engine == 0) {
         return 0;
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     if (p->marked_for_deletion == 1) {
         return 0;
     }
@@ -285,7 +286,7 @@ stagger_check:
  */
 uint8_t EnginePlayers::player_respawn_priority_gate(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_index);
 
     if (p->marked_for_deletion == 0 &&
         (game_engine_variant.lives_per_round < 1 || p->unit != (datum_index)halo::k_dword_none ||
@@ -339,7 +340,7 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
     while (element != 0) {
         datum_index candidate = iter.index;
         player *candidate_player =
-            (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)candidate * sizeof(player));
+            halo::game::player_at(candidate);
 
         if (candidate != player_or_all && (int32_t)candidate != previous_target &&
             candidate_player->team != self->team && candidate_player->unit != k_datum_index_none) {
@@ -363,7 +364,7 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
         while (element != 0) {
             datum_index candidate = iter.index;
             player *candidate_player =
-                (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)candidate * sizeof(player));
+                halo::game::player_at(candidate);
 
             if (candidate != player_or_all && (int32_t)candidate != previous_target &&
                 candidate_player->team != self->team && candidate_player->unit != k_datum_index_none) {
@@ -739,7 +740,7 @@ void EnginePlayers::resolve_player_team(uint32_t player_index)
         return;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     {
         uint32_t team = (uint32_t)p->local_player_index & 0x80000001;
         if ((int32_t)team < 0) {
@@ -762,8 +763,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
     uint8_t skip_trigger_check;
     int32_t unknown_result;
 
-    unit_handle = *(datum_index *)((uint8_t *)player_data->data +
-                                    (player_index & halo::k_datum_slot_mask) * sizeof(player) + 0x34);
+    unit_handle = *(datum_index *)((uint8_t *)halo::game::player_at(player_index) + 0x34);
     target_obj = halo::objects::object_try_and_get((datum_index)target_object, _object_mask_biped);
     if (target_obj == (object *)0) {
         return;
@@ -896,7 +896,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 if (controlling_player != (datum_index)-1) {
                     int16_t index = (int16_t)controlling_player;
                     if (index >= 0 && index < player_data->maximum_count) {
-                        player *plr = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)index * player_data->size);
+                        player *plr = halo::game::player_at(index);
                         int16_t salt = (int16_t)(controlling_player >> 16);
                         if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
                             plr->local_player_index == -1 && halo::networking::globals().client != 0) {

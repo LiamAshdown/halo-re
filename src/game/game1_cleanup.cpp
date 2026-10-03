@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -192,7 +193,7 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
         return;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_handle);
     if (p->unit == (datum_index)halo::k_dword_none) {
         return;
     }

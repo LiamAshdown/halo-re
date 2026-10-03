@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/cache/api.hpp"
@@ -146,7 +147,7 @@ void EngineHud::post_rasterize_post_game(void)
     row = 8;
     for (i = 0; i < visible_count; i++) {
         datum_index player_handle = visible[i].player;
-        player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_handle);
         int32_t place_index;
         wchar_t *place_text;
 

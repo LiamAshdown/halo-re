@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_placement.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/text/api.hpp"
@@ -67,7 +68,7 @@ namespace halo::game {
  */
 float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3d *point)
 {
-    player *self = (player *)((uint8_t *)player_data->data + (self_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *self = halo::game::player_at(self_index);
     float bonus = 0.0f;
     data_iterator iter;
     void *element;
@@ -115,7 +116,7 @@ float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3
 float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d *point)
 {
     uint8_t no_engine = (current_game_engine == 0);
-    player *self = (player *)((uint8_t *)player_data->data + (self_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *self = halo::game::player_at(self_index);
     uint8_t teams_enabled = (uint8_t)game_engine_variant.teams;
     float scale = 1.0f;
     data_iterator iter;
@@ -628,7 +629,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
  */
 void EnginePlacement::update_teleporter(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_index);
     datum_index unit = p->unit;
     object *unit_object;
     int32_t found_index;
@@ -674,7 +675,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
             unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
             forward = unit_object->forward;
-            p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+            p = halo::game::player_at(player_index);
             halo::units::unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
 
             destination_position.x = exit_flag->position.x;
@@ -698,8 +699,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                             ((unit_data *)((uint8_t *)blocker +
                                            k_unit_data_offset))->controlling_player;
                         if (controller != (datum_index)halo::k_dword_none) {
-                            player *other = (player *)((uint8_t *)player_data->data +
-                                (controller & halo::k_datum_slot_mask) * sizeof(player));
+                            player *other = halo::game::player_at(controller);
                             other->telefrag_danger = 1;
                             *(int32_t *)((uint8_t *)other + 0xcc) =
                                 *(int32_t *)((uint8_t *)other + 0xcc) + 1;

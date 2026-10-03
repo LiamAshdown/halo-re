@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
@@ -303,12 +304,12 @@ void GameLifecycle::set_local_player(datum_index player_handle, int16_t local_pl
     if (local_player_index >= 0 && local_player_index < 1) {
         previous = local_player_globals->local_players[local_player_index];
         if (previous != (datum_index)-1) {
-            p = (player *)((uint8_t *)player_data->data + (previous & halo::k_datum_slot_mask) * sizeof(player));
+            p = halo::game::player_at(previous);
             p->local_player_index = -1;
         }
         local_player_globals->local_players[local_player_index] = player_handle;
         if (player_handle != (datum_index)-1) {
-            p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+            p = halo::game::player_at(player_handle);
             p->local_player_index = local_player_index;
         }
     }

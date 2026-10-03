@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
@@ -55,7 +56,7 @@ wchar_t * OddballEngine::build_team_score_text(int32_t team, wchar_t *buffer)
 int32_t OddballEngine::get_score(datum_index player, int32_t team_mode)
 {
     if (team_mode == 1) {
-        return king_alt_team_score[((::player *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200)))->team];
+        return king_alt_team_score[((::player *)((uint8_t *)halo::game::player_at(player)))->team];
     }
     return king_alt_player_score[player & halo::k_datum_slot_mask];
 }
@@ -163,7 +164,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
     }
     count = game_engine_variant.engine.oddball.ball_count;
     if (killer != halo::k_dword_none && is_suicide == 0) {
-        uint8_t *killer_player = ((uint8_t *)player_data->data + ((killer) & halo::k_datum_slot_mask) * 0x200);
+        uint8_t *killer_player = (uint8_t *)halo::game::player_at(killer);
         uint8_t score;
 
         if (oddball_is_carrier(victim) || oddball_is_carrier(killer)) {
@@ -216,7 +217,7 @@ void OddballEngine::player_new_life(datum_index player_index)
     }
     king_alt_player_score[player_index & halo::k_datum_slot_mask] = 0;
     if (current_game_engine == 0 || game_engine_teams_enabled_flag == 0) {
-        king_alt_team_score[((::player *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200)))->team] = 0;
+        king_alt_team_score[((::player *)((uint8_t *)halo::game::player_at(player_index)))->team] = 0;
     }
 }
 
@@ -446,7 +447,7 @@ void OddballEngine::unknown_48(void)
             memset(waypoint, 0, 0x20);
             continue;
         }
-        unit_index = ((::player *)(((uint8_t *)player_data->data + ((carrier) & halo::k_datum_slot_mask) * 0x200)))->unit;
+        unit_index = ((::player *)((uint8_t *)halo::game::player_at(carrier)))->unit;
         if (unit_index == halo::k_dword_none) {
             continue;
         }

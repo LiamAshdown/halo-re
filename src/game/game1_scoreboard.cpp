@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -85,7 +86,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
     wchar_t lives_buffer[0x80];
 
     if (0 < game_engine_variant.lives_per_round) {
-        player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_handle);
         int32_t lives_left = game_engine_variant.lives_per_round - (int32_t)(int16_t)p->deaths;
 
         if (lives_left == 0) {
@@ -204,7 +205,7 @@ uint32_t Scoreboard::build_scoreboard_sort_key(uint32_t player_index, int32_t sc
     uint32_t flags;
 
     flags = 0;
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     if (score < -1000) {
         score = -1000;
     }
@@ -472,8 +473,7 @@ uint32_t Scoreboard::compare_score_to_others(uint32_t subject, int32_t team_mode
             uint8_t skip;
 
             if (team_mode == 1) {
-                player *subject_player = (player *)((uint8_t *)player_data->data +
-                    (subject & halo::k_datum_slot_mask) * sizeof(player));
+                player *subject_player = halo::game::player_at(subject);
                 skip = (entry->team == subject_player->team);
             } else {
                 skip = (subject == halo::k_dword_none);
@@ -701,7 +701,7 @@ wchar_t *Scoreboard::get_multiplayer_text_list(uint32_t rank)
  */
 real *Scoreboard::get_player_color(uint32_t player_index, real *out_rgb)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_index);
     real scratch[3];
     real *color;
 
@@ -802,7 +802,7 @@ uint32_t Scoreboard::is_object_winning(uint32_t handle)
             winning_team = team0_score <= team1_score;
         }
         if (winning_team != halo::k_dword_none) {
-            player *p = (player *)((uint8_t *)player_data->data + (handle & halo::k_datum_slot_mask) * sizeof(player));
+            player *p = halo::game::player_at(handle);
             return (uint32_t)(p->team == (int32_t)winning_team);
         }
     }
@@ -874,7 +874,7 @@ uint8_t Scoreboard::is_valid_team_player(uint32_t identifier)
         return 0;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     return p->local_player_index != -1;
 }
 
@@ -894,7 +894,7 @@ uint8_t Scoreboard::local_player_score_is_nonpositive(datum_index player_handle)
         return 1;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_handle);
     local_player_index = p->local_player_index;
     if (local_player_index != -1) {
         if (game_engine_nameplate_fade_opacity_array[local_player_index] > 0.0f) {

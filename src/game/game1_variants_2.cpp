@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -37,7 +38,7 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
     int32_t lookup_result;
 
     player_handle = player_profile_cache[slot].player;
-    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_handle);
 
     lookup_result = 0;
     if (player_handle != (datum_index)halo::k_dword_none) {

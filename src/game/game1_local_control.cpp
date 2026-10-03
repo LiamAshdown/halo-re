@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -108,7 +109,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     }
 
     control = &player_control_globals_ptr->local_players[local_player_index];
-    plr = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * k_player_size);
+    plr = halo::game::player_at(player_index);
     player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
     player_information = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
     input = &local_player_input_states[plr->local_player_index];

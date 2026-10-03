@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -205,7 +206,7 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
     } else {
         player_index = local_player_globals->local_players[local_player_slot];
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     unit_index = p->unit;
 
     zoom_level = -1;

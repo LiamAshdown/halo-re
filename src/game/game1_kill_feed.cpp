@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -107,7 +108,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
     if (victim == k_datum_index_none) {
         return;
     }
-    victim_player = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)victim * sizeof(player));
+    victim_player = halo::game::player_at(victim);
     victim_team = victim_player->team;
     if (killer == victim) {
         victim_player->suicides = victim_player->suicides + 1;
@@ -220,8 +221,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
     }
 
     if (killer != k_datum_index_none && credit_kills == 1) {
-        player *killer_player = (player *)((uint8_t *)player_data->data +
-            (uint32_t)(uint16_t)killer * sizeof(player));
+        player *killer_player = halo::game::player_at(killer);
         int16_t killer_player_team = killer_player->team;
         uint8_t is_friendly;
 
@@ -262,8 +262,7 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
 
             if ((index == killer_match_index || recent_damage[index].damage < assist_damage_threshold) &&
                 assist_candidate != k_datum_index_none && assist_candidate != killer) {
-                player *candidate_player = (player *)((uint8_t *)player_data->data +
-                    (uint32_t)(uint16_t)assist_candidate * sizeof(player));
+                player *candidate_player = halo::game::player_at(assist_candidate);
                 int16_t candidate_team = candidate_player->team;
                 uint8_t is_friendly;
 
@@ -314,8 +313,7 @@ void KillFeed::broadcast_kill_feed_by_relationship(uint32_t source_player, int32
 
         if (source_player != (uint32_t)halo::k_dword_none) {
             int16_t their_team = p->team;
-            int16_t source_team = ((player *)((uint8_t *)player_data->data +
-                (source_player & halo::k_datum_slot_mask) * sizeof(player)))->team;
+            int16_t source_team = (halo::game::player_at(source_player))->team;
 
             message = message_b;
 

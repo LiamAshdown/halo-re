@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -111,7 +112,7 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
  */
 wchar_t *King::build_player_text(datum_index player, wchar_t *buffer)
 {
-    halo::game::game_time_format_minutes_seconds((uint32_t)((int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200) + 0xc4)), 0x100, buffer);
+    halo::game::game_time_format_minutes_seconds((uint32_t)((int32_t)*(int16_t *)((uint8_t *)halo::game::player_at(player) + 0xc4)), 0x100, buffer);
     return buffer;
 }
 
@@ -172,7 +173,7 @@ wchar_t *King::build_team_score_text(int32_t team, wchar_t *buffer)
  */
 int32_t King::get_score(datum_index player, int32_t team_mode)
 {
-    uint8_t *p = ((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200);
+    uint8_t *p = (uint8_t *)halo::game::player_at(player);
 
     if (team_mode != 0) {
         return king_bucket_credit_ticks[*(int32_t *)(p + 0x20)];
@@ -240,7 +241,7 @@ uint8_t King::initialize_for_new_game(void)
 void King::player_new_life(datum_index player_index)
 {
     if (halo::networking::globals().game_mode == 2 && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
-        int32_t team = *(int32_t *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200) + 0x20);
+        int32_t team = *(int32_t *)((uint8_t *)halo::game::player_at(player_index) + 0x20);
 
         king_bucket_credit_ticks[team] = 0;
         king_bucket_last_credit_tick[team] = 0;

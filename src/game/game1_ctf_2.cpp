@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "memory.h"
@@ -381,7 +382,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
     }
     weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, 4);
     if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (weapon[0x22c] & 0x40) == 0 &&
-        ((struct weapon_object *)weapon)->base.owner_team == *(int32_t *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200) + 0x20)) {
+        ((struct weapon_object *)weapon)->base.owner_team == *(int32_t *)((uint8_t *)halo::game::player_at(player) + 0x20)) {
         return 0;
     }
     return 1;
@@ -395,7 +396,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
  */
 void Ctf::update(datum_index player_index)
 {
-    uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200);
+    uint8_t *player = (uint8_t *)halo::game::player_at(player_index);
     datum_index unit_index;
     uint8_t *unit;
     int16_t weapon_slot;

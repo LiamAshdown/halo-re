@@ -3,6 +3,7 @@
  * Builders and ordering checks for player update packets.
  */
 #include "win32.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -155,7 +156,7 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     void *previous_ptr;
     int32_t i;
 
-    cache = (uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+    cache = (uint8_t *)halo::game::player_at(player_index);
 
     header.update_id = *(uint8_t *)(cache + 0x128);
     header.baseline_id = *(uint8_t *)(cache + 300);
@@ -233,7 +234,7 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
     player *candidate;
     network_machine *machine;
 
-    cache = (uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+    cache = (uint8_t *)halo::game::player_at(player_index);
     staged_update_id = update_id_byte;
 
     if (network_broadcast_event_feed_mode == 0) {
@@ -342,7 +343,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
     int16_t *machine_id_slot;
     network_machine *machine;
 
-    plr = (uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+    plr = (uint8_t *)halo::game::player_at(player_index);
     update_id = *(int32_t *)(plr + 0xf4);
     cache = plr;
     encoded_size = 0;

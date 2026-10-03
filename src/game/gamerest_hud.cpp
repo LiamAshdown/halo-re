@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_hud.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include <string.h>
 #include <wchar.h>
@@ -67,7 +68,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
     player *tracked;
     wchar_t name[12];
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_handle);
     found = (datum_index)halo::k_dword_none;
 
     if (p->local_player_index != -1 && p->unit != (datum_index)halo::k_dword_none) {
@@ -154,7 +155,7 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
  */
 datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player_handle)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_handle);
     datum_index best = (datum_index)halo::k_dword_none;
     real_point3d camera;
     real_vector3d look;
@@ -409,8 +410,7 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
 
             do {
                 remaining_to_scan = remaining;
-                player *candidate = (player *)((uint8_t *)player_data->data +
-                    (scan->player & halo::k_datum_slot_mask) * sizeof(player));
+                player *candidate = halo::game::player_at(scan->player);
 
                 if (candidate != 0 && candidate->local_player_index != -1) {
                     if (debug) {
@@ -433,8 +433,7 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
                 if (-1 < slot) {
                     scoreboard_entry *victim = &entries[slot];
 
-                    while (((player *)((uint8_t *)player_data->data +
-                                (victim->player & halo::k_datum_slot_mask) * sizeof(player)))->local_player_index != -1) {
+                    while ((halo::game::player_at(victim->player))->local_player_index != -1) {
                         slot = slot - 1;
                         victim = victim - 1;
                         if (slot < 0) {

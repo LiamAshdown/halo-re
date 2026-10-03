@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -538,7 +539,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
     }
 
     {
-        player *owner = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+        player *owner = halo::game::player_at(player_handle);
         fields.kill_streak[0] = owner->kill_streak[0];
         fields.kill_streak[1] = owner->kill_streak[1];
     }

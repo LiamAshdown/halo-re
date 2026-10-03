@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/scenario/api.hpp"
@@ -102,7 +103,7 @@ namespace halo::game {
  */
 void PlayerView::respawn()
 {
-    uint8_t *p = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+    uint8_t *p = (uint8_t *)halo::game::player_at(player_index);
 
     if (current_game_engine == 0 && ((player *)p)->local_player_index != -1) {
         datum_index *slot = (datum_index *)&local_player_globals->local_player_units[((player *)p)->local_player_index];
@@ -175,7 +176,7 @@ void PlayerView::respawn()
         if (unit == 0) {
             goto reset_player_state;
         }
-        p = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+        p = (uint8_t *)halo::game::player_at(player_index);
         ((unit_object *)unit)->base.owner_linkage = player_index;
         ((unit_object *)unit)->base.owner_team = *(int16_t *)&((player *)p)->team;
         *(uint32_t *)&((unit_object *)unit)->unit.controlling_player = player_index;
@@ -211,7 +212,7 @@ void PlayerView::respawn()
     }
 
 reset_player_state:
-    p = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
+    p = (uint8_t *)halo::game::player_at(player_index);
     *(uint32_t *)(p + 0x68) = 0;
     *(uint16_t *)&((player *)p)->interaction_type = 0;
     ((player *)p)->interaction_object = k_datum_index_none;
@@ -248,7 +249,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
     out_forward->j = (float)(fcos(yaw_pitch[1]) * fsin(yaw_pitch[0]));
     out_forward->k = (float)fsin(yaw_pitch[1]);
 
-    plr = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    plr = halo::game::player_at(player_handle);
     if (plr->unit == (datum_index)-1) {
         return;
     }
@@ -352,7 +353,7 @@ int16_t PlayerView::pick_random_starting_location()
  */
 void KillStreak::begin(int16_t slot)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    player *p = halo::game::player_at(player_handle);
     unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
 
     if (slot == 0) {
@@ -370,7 +371,7 @@ void KillStreak::begin(int16_t slot)
 void KillStreak::continue_streak(int16_t slot)
 {
     if (slot == 0) {
-        player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_handle);
         unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
         unit->flags = unit->flags | 0x20;
     }
@@ -410,12 +411,12 @@ void Players::rebind_local_player_after_load()
         return;
     }
 
-    entry = (player *)((uint8_t *)player_data->data + (handle & halo::k_datum_slot_mask) * 0x200);
+    entry = halo::game::player_at(handle);
     {
         datum_index old = local_player_globals->local_players[slot];
 
         if (old != k_datum_index_none) {
-            ((player *)((uint8_t *)player_data->data + (old & halo::k_datum_slot_mask) * 0x200))->local_player_index = -1;
+            (halo::game::player_at(old))->local_player_index = -1;
         }
         local_player_globals->local_players[slot] = k_datum_index_none;
     }

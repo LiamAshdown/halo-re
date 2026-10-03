@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -106,7 +107,7 @@ int16_t SpawnLocations::collect_matching_waypoints(int32_t candidate, float *out
     int16_t slot;
 
     if (current_game_engine != 0 && game_engine_variant.objective_indicator == 0 && candidate != -1) {
-        player *reference_player = (player *)((uint8_t *)player_data->data + (candidate & halo::k_datum_slot_mask) * 0x200);
+        player *reference_player = halo::game::player_at(candidate);
 
         for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
             if (halo::game::custom_waypoint_matches_filter(candidate, reference_player, slot) != 0 &&

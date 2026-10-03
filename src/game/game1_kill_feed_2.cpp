@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -50,7 +51,7 @@ void KillFeed::notify_kill_event(uint32_t player_index, int32_t hash_key, int32_
 
     encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x18, 0, &fields_ptr, 0, 1, '\0');
     if (0 < encoded_size) {
-        player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+        player *p = halo::game::player_at(player_index);
         uint8_t player_machine_field = *(uint8_t *)&p->machine_index;
         int16_t *machine = (int16_t *)(network_server + 0x3c4);
         int32_t i = 0;

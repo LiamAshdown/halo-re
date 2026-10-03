@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_cheats.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/memory/api.hpp"
@@ -95,7 +96,7 @@ void Cheats::make_player_invincible(int16_t local_player_slot)
     if (-1 < local_player_slot && local_player_slot < 1 && local_player_slot != -1) {
         player_index = local_player_globals->local_players[local_player_slot];
         if (player_index != k_datum_index_none) {
-            unit_index = ((player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player)))->unit;
+            unit_index = (halo::game::player_at(player_index))->unit;
             unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
             unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->active_camouflage_power = 1.0f;
@@ -122,7 +123,7 @@ void Cheats::make_selected_object_invincible()
 
     player_index = Cheats::get_target_object_index();
     if (player_index != halo::k_dword_none) {
-        unit_index = ((player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player)))->unit;
+        unit_index = (halo::game::player_at(player_index))->unit;
         unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
         unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
         unit->active_camouflage_power = 1.0f;
@@ -159,7 +160,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
     if (count <= 0) {
         return;
     }
-    unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200 + 0x34);
+    unit = *(datum_index *)((uint8_t *)halo::game::player_at(player_index) + 0x34);
     halo::objects::object_get_position(&unit_position, unit);
     halo::objects::object_get_orientation(&unit_forward, unit, &unit_up);
 
@@ -244,11 +245,11 @@ void Cheats::teleport_to_camera()
 
     player_index = Cheats::get_target_object_index();
     if (player_index != halo::k_dword_none) {
-        local_player_slot = ((player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player)))->local_player_index;
+        local_player_slot = (halo::game::player_at(player_index))->local_player_index;
         if (local_player_slot != -1) {
             camera_row = (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
             if (*(int16_t *)(camera_row + 0x10) != -1) {
-                unit_index = ((player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player)))->unit;
+                unit_index = (halo::game::player_at(player_index))->unit;
                 unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
                 root = unit_obj->parent_object;
                 if (root == k_datum_index_none) {

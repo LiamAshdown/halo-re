@@ -127,7 +127,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
                 if (((player *)element)->local_player_index != -1) {
                     team_index = ((player *)element)->team_index_desired;
                     if (team_index != -1 && network_game_mode == 2) {
-                        int32_t base = *(int32_t *)((uint8_t *)network_server + 0x9c0);
+                        int32_t base = static_cast<int32_t>(network_server->last_stamp_ms);
                         int32_t now = halo::cseries::time_query_performance_counter_ms();
                         ((player *)element)->ping = now - base;
                         return;

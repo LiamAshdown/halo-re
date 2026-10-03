@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
@@ -113,7 +114,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         return;
     }
 
-    v = (player *)((uint8_t *)player_data->data + (victim & halo::k_datum_slot_mask) * sizeof(player));
+    v = halo::game::player_at(victim);
     v->last_death_tick = game_time->game_time;
 
     if (current_game_engine->on_player_death != 0) {
@@ -133,7 +134,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
             v->respawn_time_growth = (grown <= cap) ? grown : cap;
 
             if (clean_kill && killer != (datum_index)halo::k_dword_none) {
-                player *k = (player *)((uint8_t *)player_data->data + (killer & halo::k_datum_slot_mask) * sizeof(player));
+                player *k = halo::game::player_at(killer);
                 int32_t refunded = k->respawn_time_growth - game_engine_variant.respawn_time_growth;
                 k->respawn_time_growth = (refunded < 1) ? 0 : refunded;
             }
@@ -185,7 +186,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     if (message_category == 5) {
         message_players(killer, 0x0d, victim, kill_feed_buffer);
     } else if (message_category == 4) {
-        player *k = (player *)((uint8_t *)player_data->data + (killer & halo::k_datum_slot_mask) * sizeof(player));
+        player *k = halo::game::player_at(killer);
         int32_t spree_type = 0;
         int32_t send_spree = 1;
 

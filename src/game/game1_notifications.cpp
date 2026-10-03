@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -101,7 +102,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     plasma_count = grenades[1].mp_spawn_default;
     frag_max = grenades[0].maximum_count;
 
-    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    p = halo::game::player_at(player_index);
     unit = p->unit;
 
     if ((game_engine_unknown_aa00 & 8) == 0) {
