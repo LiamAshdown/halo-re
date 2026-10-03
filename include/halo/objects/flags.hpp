@@ -92,6 +92,19 @@ enum class vitality_flag : uint16_t {
     unknown_8000 = 1u << 15,
 };
 
+/** damage_data.flags (the word at damage_data +0x04), threaded through the damage application functions. */
+enum class damage_data_flag : uint32_t {
+    none = 0,
+    area_damage = 0x01,
+    localized_damage = 0x02,
+    kill_target = 0x04,
+    unknown_08 = 0x08,
+    unknown_10 = 0x10,
+    recursing_into_child = 0x20,
+    player_spared = 0x40,
+    suppress_death_notification = 0x80,
+};
+
 /** Masks built from 1 << object type, accepted by object_try_and_get and the object iterators. */
 enum class object_mask : uint32_t {
     none = 0,
@@ -127,4 +140,5 @@ template <> struct enable_bit_flags<objects::object_flag> : std::true_type {};
 template <> struct enable_bit_flags<objects::object_header_flag> : std::true_type {};
 template <> struct enable_bit_flags<objects::vitality_flag> : std::true_type {};
 template <> struct enable_bit_flags<objects::object_mask> : std::true_type {};
+template <> struct enable_bit_flags<objects::damage_data_flag> : std::true_type {};
 }  // namespace halo
