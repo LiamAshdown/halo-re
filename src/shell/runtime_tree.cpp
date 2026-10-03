@@ -181,7 +181,7 @@ hwreq_map_node *TreeNode::allocate(uint32_t left, uint32_t parent, uint32_t righ
  */
 int32_t TreeNode::compare_key(const msvc_std_string *search_key)
 {
-    const char *node_data = (self->key.capacity < 0x10) ? self->key.buffer.inline_buffer : (const char *)self->key.buffer.heap_buffer;
+    const char *node_data = (self->key.capacity < k_msvc_string_heap_capacity) ? self->key.buffer.inline_buffer : StdString::heap_pointer(self->key);
     return StdString(search_key).compare(search_key->size, 0, node_data, self->key.size);
 }
 
@@ -196,7 +196,7 @@ hwreq_map_node *StdMap::lower_bound(const msvc_std_string *search_key)
     hwreq_map_node *best = head;
     hwreq_map_node *candidate = (hwreq_map_node *)head->parent;
 
-    const char *search_data = (search_key->capacity < 0x10) ? search_key->buffer.inline_buffer : (const char *)search_key->buffer.heap_buffer;
+    const char *search_data = (search_key->capacity < k_msvc_string_heap_capacity) ? search_key->buffer.inline_buffer : StdString::heap_pointer(*search_key);
 
     if (candidate->is_nil == 0) {
         do {
@@ -222,7 +222,7 @@ hwreq_map_node *StdMap::find(msvc_std_string *key)
     hwreq_map_node *node = lower_bound(key);
 
     if (node != (hwreq_map_node *)self->head) {
-        const char *node_key = node->key.capacity >= 0x10 ? (const char *)node->key.buffer.heap_buffer : node->key.buffer.inline_buffer;
+        const char *node_key = node->key.capacity >= k_msvc_string_heap_capacity ? StdString::heap_pointer(node->key) : node->key.buffer.inline_buffer;
 
         if (StdString(key).compare(key->size, 0, node_key, node->key.size) >= 0) {
             return node;
@@ -436,7 +436,7 @@ hwreq_map_node *StdMap::hint_insert_unique(hwreq_map_node **result_holder, hwreq
     };
 
     if (hint == (hwreq_map_node *)head->left) {
-        const char *hint_data = (hint->key.capacity < 0x10) ? hint->key.buffer.inline_buffer : (const char *)hint->key.buffer.heap_buffer;
+        const char *hint_data = (hint->key.capacity < k_msvc_string_heap_capacity) ? hint->key.buffer.inline_buffer : StdString::heap_pointer(hint->key);
         if (StdString(value_key).compare(value_key->size, 0, hint_data, hint->key.size) < 0) {
             return *splice_insert(hint, result_holder, 1, value);
         }
@@ -600,8 +600,8 @@ hwreq_map_node **StdMap::erase_one(hwreq_map_node **result_holder, hwreq_map_nod
         }
         fix->color = 1;
     }
-    if (erased->key.capacity >= 0x10) {
-        free((void *)erased->key.buffer.heap_buffer);
+    if (erased->key.capacity >= k_msvc_string_heap_capacity) {
+        free(StdString::heap_pointer(erased->key));
     }
     erased->key.capacity = 0xf;
     erased->key.size = 0;
@@ -669,7 +669,7 @@ hwreq_property_set **StdMap::index_property_set(msvc_std_string *key)
     hwreq_map_node *node = lower_bound(key);
 
     if (node == (hwreq_map_node *)self->head ||
-        StdString(key).compare(key->size, 0, node->key.capacity >= 0x10 ? (const char *)node->key.buffer.heap_buffer :
+        StdString(key).compare(key->size, 0, node->key.capacity >= k_msvc_string_heap_capacity ? StdString::heap_pointer(node->key) :
             node->key.buffer.inline_buffer, node->key.size) < 0) {
         hwreq_map_value_type pair;
         hwreq_map_node *inserted;
@@ -681,8 +681,8 @@ hwreq_property_set **StdMap::index_property_set(msvc_std_string *key)
         pair.value = 0;
         hint_insert_unique(&inserted, node, &pair);
         node = inserted;
-        if (pair.key.capacity >= 0x10) {
-            free((void *)pair.key.buffer.heap_buffer);
+        if (pair.key.capacity >= k_msvc_string_heap_capacity) {
+            free(StdString::heap_pointer(pair.key));
         }
     }
     return (hwreq_property_set **)&node->value;

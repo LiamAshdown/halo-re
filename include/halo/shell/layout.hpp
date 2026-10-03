@@ -87,6 +87,9 @@ inline constexpr uint32_t k_memory_class_large_mb = 0x200;
 inline constexpr uint32_t k_video_memory_8mb = 0x800000;
 inline constexpr uint32_t k_video_memory_16mb = 0x1000000;
 
+/** Smallest capacity at which an MSVC std::string keeps its text on the heap instead of the inline buffer. */
+inline constexpr uint32_t k_msvc_string_heap_capacity = 0x10;
+
 /** Granules a video memory total is rounded up to: 8 MB up to 16 MB, 32 MB up to 64 MB and 64 MB above that. */
 inline constexpr uint32_t k_video_memory_granule_small = 0x800000;
 inline constexpr uint32_t k_video_memory_granule_medium = 0x2000000;

@@ -3,6 +3,7 @@
 #include "halo/core/link.hpp"
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/shell/runtime.hpp"
 
 static auto &hwreq_parser_vtable_instance = halo::link::ref<hwreq_parser_vtable>(halo::shell::vars().hwreq_parser_vtable_instance);
 static auto &hwreq_open_error_text = halo::link::ref<char []>(halo::shell::vars().hwreq_open_error_text);
@@ -141,35 +142,35 @@ void HwreqParser::destruct()
     self->property_sets.size = 0;
 
     if (self->sound_vendor_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->sound_vendor_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->sound_vendor_name));
     }
     self->sound_vendor_name.capacity = k_msvc_string_inline_capacity;
     self->sound_vendor_name.size = 0;
     self->sound_vendor_name.buffer.inline_buffer[0] = 0;
 
     if (self->sound_device_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->sound_device_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->sound_device_name));
     }
     self->sound_device_name.capacity = k_msvc_string_inline_capacity;
     self->sound_device_name.size = 0;
     self->sound_device_name.buffer.inline_buffer[0] = 0;
 
     if (self->graphics_vendor_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->graphics_vendor_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->graphics_vendor_name));
     }
     self->graphics_vendor_name.capacity = k_msvc_string_inline_capacity;
     self->graphics_vendor_name.size = 0;
     self->graphics_vendor_name.buffer.inline_buffer[0] = 0;
 
     if (self->graphics_device_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->graphics_device_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->graphics_device_name));
     }
     self->graphics_device_name.capacity = k_msvc_string_inline_capacity;
     self->graphics_device_name.size = 0;
     self->graphics_device_name.buffer.inline_buffer[0] = 0;
 
     if (self->error_message.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->error_message.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->error_message));
     }
     self->error_message.capacity = k_msvc_string_inline_capacity;
     self->error_message.size = 0;
@@ -197,7 +198,7 @@ void HwreqParser::scalar_deleting_destruct()
 char *HwreqParser::error_message_text()
 {
     if (self->error_message.capacity > k_string_inline_capacity) {
-        return (char *)self->error_message.buffer.heap_buffer;
+        return StdString::heap_pointer(self->error_message);
     }
     return self->error_message.buffer.inline_buffer;
 }
@@ -269,7 +270,7 @@ hwreq_property_set *HwreqParser::flags_set()
 char *HwreqParser::graphics_device_name_text()
 {
     if (self->graphics_device_name.capacity > k_string_inline_capacity) {
-        return (char *)self->graphics_device_name.buffer.heap_buffer;
+        return StdString::heap_pointer(self->graphics_device_name);
     }
     return self->graphics_device_name.buffer.inline_buffer;
 }
@@ -392,7 +393,7 @@ hwreq_property_set *HwreqParser::find_property_set(const char *name)
     }
 
     if (key.capacity >= k_string_inline_capacity + 1) {
-        free((void *)key.buffer.heap_buffer);
+        free(StdString::heap_pointer(key));
     }
     return result;
 }

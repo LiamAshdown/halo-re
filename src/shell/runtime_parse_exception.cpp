@@ -56,7 +56,7 @@ void ParseException::destruct()
     self->vtable = (uint32_t)&logic_error_vtable;
 
     if (self->message.capacity > k_string_inline_capacity) {
-        free((void *)self->message.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->message));
     }
     self->message.capacity = k_string_inline_capacity;
     self->message.size = 0;
