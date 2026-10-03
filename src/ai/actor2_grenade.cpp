@@ -553,7 +553,7 @@ uint8_t ActorView::update_grenade_throw_decision()
 
 
 namespace actor_validate_grenade_ally_candidate_local {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 /**
@@ -583,7 +583,7 @@ uint8_t ActorOps::validate_grenade_ally_candidate(datum_index candidate_actor, u
         (candidate->mode == halo::ai::actor_mode::search || candidate->mode == halo::ai::actor_mode::uncover ||
          (caller_type_flag == 0 && candidate->mode == halo::ai::actor_mode::wait) ||
          (candidate->mode == halo::ai::actor_mode::guard && candidate->mode_data.guard.ambush_active == 0 && 0 < candidate->mode_data.guard.countdown_00))) {
-        type_entry = (actor_type_table_entry *)actor_type_procs[candidate->type];
+        type_entry = actor_type_procs[candidate->type];
         if (type_entry->swarm != caller_type_flag) {
             return 1;
         }

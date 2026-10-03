@@ -180,7 +180,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 }
 
 namespace actor_new_and_attach_to_unit_local {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 /**
@@ -269,7 +269,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
     self->command_list_run_immediately = 0;
     self->command_list_delay = 2;
     self->pending_command_list = unknown_90;
-    if (self->swarm != ((uint8_t *)actor_type_procs[self->type])[0xd]) {
+    if (self->swarm != actor_type_procs[self->type]->swarm_actor) {
         halo::ai::actor_delete(actor_index, 0);
         return k_datum_index_none;
     }

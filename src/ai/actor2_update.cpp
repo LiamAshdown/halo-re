@@ -1480,7 +1480,7 @@ void ActorView::update_look_target()
 
 
 namespace actor_update_melee_combat_action_local {
-static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static uint8_t actor_combat_commit_position(datum_index actor_index, actor *a, prop *target, int16_t position)
 {
@@ -1573,11 +1573,11 @@ uint8_t ActorView::update_melee_combat_action()
         uint8_t wait_ok = 0;
 
         if (target == 0 || !target->noticed_c) {
-            uint8_t *type = actor_type_procs[a->type];
-            int16_t ax_mode = *(int16_t *)((uint8_t *)type + 0x6);
-            int16_t cx_mode = *(int16_t *)((uint8_t *)type + 0x8);
-            int16_t mode_b = *(int16_t *)((uint8_t *)type + 0xa);
-            uint8_t phase = type[0xc];
+            actor_type_table_entry *type = actor_type_procs[a->type];
+            int16_t ax_mode = type->ax_mode;
+            int16_t cx_mode = type->cx_mode;
+            int16_t mode_b = type->mode_b;
+            uint8_t phase = type->swarm;
             int16_t support_mode = 0;
             uint8_t reachable_b = 0;
 

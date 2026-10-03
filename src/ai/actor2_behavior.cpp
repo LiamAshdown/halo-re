@@ -4,7 +4,7 @@
 #include "halo/ai/api.hpp"
 
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 
 namespace halo::ai {
 
@@ -86,7 +86,7 @@ uint8_t TableActorType::swarm_flag() const
  */
 TableActorType ActorTypeRegistry::get(int32_t type)
 {
-    return TableActorType((const actor_type_table_entry *)actor_type_procs[type]);
+    return TableActorType(actor_type_procs[type]);
 }
 
 }

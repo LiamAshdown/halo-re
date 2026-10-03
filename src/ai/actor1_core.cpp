@@ -166,7 +166,7 @@ void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
 }
 
 namespace c_actor_classify_communication_object_type {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -185,7 +185,7 @@ int32_t halo::ai::actor_ref::classify_communication_object_type()
     int32_t result;
 
     a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    flags = *(uint16_t *)((uint8_t *)actor_type_procs[a->type] + 4);
+    flags = actor_type_procs[a->type]->flags;
 
     result = -1;
     if ((flags & 2) != 0) {
@@ -485,7 +485,7 @@ void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_
 }
 
 namespace c_actor_dispatch_type_vtable_0x10 {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -500,7 +500,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x10()
     using namespace c_actor_dispatch_type_vtable_0x10;
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
+    actor_type_table_entry *entry = actor_type_procs[self->type];
 
     if (entry->proc_10 != 0) {
         ((void (*)(datum_index))entry->proc_10)(actor_index);
@@ -515,7 +515,7 @@ void actor_dispatch_type_vtable_0x10(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_type_vtable_0x18 {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -530,7 +530,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x18()
     using namespace c_actor_dispatch_type_vtable_0x18;
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
+    actor_type_table_entry *entry = actor_type_procs[self->type];
 
     ((void (*)(datum_index))entry->proc_18)(actor_index);
 }
@@ -543,7 +543,7 @@ void actor_dispatch_type_vtable_0x18(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_type_vtable_0x1c {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -558,7 +558,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x1c(uint32_t a, uint32_t b, uint
     using namespace c_actor_dispatch_type_vtable_0x1c;
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
+    actor_type_table_entry *entry = actor_type_procs[self->type];
 
     if (entry->proc_1c != 0) {
         ((void (*)(datum_index, uint32_t, uint32_t, uint32_t))entry->proc_1c)(actor_index, a, b, c);

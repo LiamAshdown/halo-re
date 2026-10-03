@@ -27,7 +27,7 @@
 #include "halo/core/x87.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 static auto &ai_vocalization_line_table = halo::link::ref<int16_t [4]>(halo::ai::vars().ai_vocalization_line_table);
 static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
@@ -996,7 +996,7 @@ void EncounterView::choose_vocalizations()
             actor_index = a->next_in_encounter;
             if (a->unit_index != (datum_index)k_datum_index_none) {
                 proximity = halo::ai::ai_communication_rate_player_proximity(1, 0, 0, a->unit_index);
-                if ((actor_type_procs[a->type][4] & 2) != 0 /* 0x438a6c: byte +0x4 of the type definition */ && 2.0f < proximity &&
+                if ((actor_type_procs[a->type]->flags & 2) != 0 /* 0x438a6c: byte +0x4 of the type definition */ && 2.0f < proximity &&
                     best_distance < proximity) {
                     best_distance = proximity;
                     chosen_actor = current;

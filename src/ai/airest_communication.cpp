@@ -24,7 +24,7 @@
 static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
 static auto &global_structure_bsp_typed = reinterpret_cast<ScenarioStructureBSP *&>(global_structure_bsp);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
 static auto &conversation_index_lookup = halo::link::ref<int16_t []>(halo::ai::vars().conversation_index_lookup);
 static auto &ai_communication_lines = halo::link::ref<uint8_t []>(halo::ai::vars().ai_communication_lines);
@@ -208,7 +208,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (unit_actor_index != k_datum_index_none) {
             unit_actor = halo::ai::actor_at(unit_actor_index);
             unit_class = (unit_class & 0xffff0000u) |
-                         *(uint16_t *)(actor_type_procs[unit_actor->type] + 0x4);
+                         actor_type_procs[unit_actor->type]->flags;
             unit_encounter_index = unit_actor->encounter_index;
             if ((int8_t)unit_actor->tally.group_c_total > 0) {
                 unit_capability[1] = 1;
@@ -232,7 +232,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (other_actor_index != k_datum_index_none) {
             other_actor = halo::ai::actor_at(other_actor_index);
             other_class = (other_class & 0xffff0000u) |
-                          *(uint16_t *)(actor_type_procs[other_actor->type] + 0x4);
+                          actor_type_procs[other_actor->type]->flags;
             if ((int8_t)other_actor->tally.group_c_total > 0) {
                 other_capability[0] = 1;
                 other_capability[1] = 1;
@@ -576,7 +576,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             }
             near = (uint8_t)!(proximity >= 2.0f);
             if (speaker_actor != k_datum_index_none) {
-                uint16_t type_flags = *(uint16_t *)(actor_type_procs[halo::ai::actor_at(speaker_actor)->type] + 0x4);
+                uint16_t type_flags = actor_type_procs[halo::ai::actor_at(speaker_actor)->type]->flags;
                 int16_t type_side = (type_flags & 2) ? 0 : ((type_flags & 4) ? 1 : -1);
 
                 if (type_side != -1) {

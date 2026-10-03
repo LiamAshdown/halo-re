@@ -22,7 +22,7 @@
 #include "halo/ai/vars.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 
 namespace halo::ai {
 
@@ -1250,7 +1250,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     a->pending_command_list = -1;
     a->sequence_id = 0;
 
-    if (a->swarm != actor_type_procs[a->type][0xd]) {
+    if (a->swarm != actor_type_procs[a->type]->swarm_actor) {
         halo::ai::actor_delete(actor_index, 0);
         return;
     }

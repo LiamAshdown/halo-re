@@ -2185,13 +2185,15 @@ typedef struct ai_conversation_range_lookup {
 // One row of the per-ActorType table actor_type_procs points at. Only the offsets the
 // module actually reads are named.
 typedef struct actor_type_table_entry {
-    uint8_t unknown_00[6];             // 0x00
-    int16_t unknown_06;                // 0x06
-    int16_t unknown_08;                // 0x08
-    int16_t unknown_0a;                // 0x0a
+    uint8_t unknown_00[4];             // 0x00
+    uint16_t flags;                    // 0x04 type flag word; bit 1 (value 2) is tested by the unit-class and dormancy checks
+    int16_t ax_mode;                   // 0x06 seed of the first mode word actor_update passes to starting_location_derive_placement_flags
+    int16_t cx_mode;                   // 0x08
+    int16_t mode_b;                    // 0x0a
     uint8_t swarm;                     // 0x0c 0x0c compared against the actor swarm flag (caller_type_flag) in
-                                       //    actor_validate_grenade_ally_candidate
-    uint8_t unknown_0d[3];             // 0x0d
+                                       //    actor_validate_grenade_ally_candidate; also the placement phase byte seed
+    uint8_t swarm_actor;               // 0x0d compared against actor.swarm when a unit is placed or an actor changes type
+    uint8_t unknown_0e[2];             // 0x0e
     uint32_t proc_10;                  // 0x10 actor_dispatch_type_vtable @0x426670
     uint32_t proc_14;                  // 0x14 0x14 per-actor-type procedure called with the actor index each pass of
                                        //    actor_run_mode_transition_loop when non-null (same proc_10/18/1c
