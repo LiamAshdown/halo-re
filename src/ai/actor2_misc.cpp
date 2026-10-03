@@ -2480,12 +2480,10 @@ static auto &actor_dodge_table = halo::link::ref<const actor_dodge_entry []>(hal
  *
  * @address 0x40e060
  */
-uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance)
+uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint16_t direction_kind, float step_distance, float distance)
 {
     using namespace actor_take_danger_escape_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint16_t direction_kind = (uint16_t)escape;
-    float step_distance = *(float *)&extra;
     uint8_t probe_flag;
     float probe_extra[4];
     float a = 0.0f;

@@ -865,11 +865,11 @@ uint8_t ActorView::update_danger_avoidance()
         }
 
         {
-            uint32_t escape = 0;
-            uint8_t escape_position[0x40];
-            uint8_t found = halo::ai::actor_find_danger_escape(actor_index, &escape, escape_position, &path_delta, &in_danger);
+            int16_t escape = 0;
+            float escape_step = 0.0f;
+            uint8_t found = halo::ai::actor_find_danger_escape(actor_index, &escape, &escape_step, &path_delta, &in_danger);
 
-            if ((int16_t)escape != -1 && actor->danger_dive != 0 && actor->active_unit_index == halo::k_dword_none) {
+            if (escape != -1 && actor->danger_dive != 0 && actor->active_unit_index == halo::k_dword_none) {
                 int take = 0;
 
                 switch (actor->danger_type) {
@@ -889,7 +889,7 @@ uint8_t ActorView::update_danger_avoidance()
                     Actor *definition = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
                     float distance = halo::ai::flag_set(definition->flags, halo::tags::actor_tag_flag::dive_off_ledges) ? 8.0f : 0.0f;
 
-                    result = halo::ai::actor_take_danger_escape(&path_delta, actor_index, escape, *(uint32_t *)escape_position,
+                    result = halo::ai::actor_take_danger_escape(&path_delta, actor_index, (uint16_t)escape, escape_step,
                         distance);
                     if (result) {
                         return true;

@@ -381,11 +381,7 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
 
     source_obj = halo::ai::object_at(source_object_index);
 
-    clear = (uint32_t *)&self->danger_type;
-    for (i = 0x1b; i != 0; i--) {
-        *clear = 0;
-        clear++;
-    }
+    memset(&self->danger_type, 0, 0x1b * sizeof(uint32_t));
 
     self->danger_object_radius = radius;
     self->danger_type = 1;
@@ -480,11 +476,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const actor_firing
             if (existing_type < 3 ||
                 (existing_type == 3 && self->danger_object_index != object_index &&
                  distance < self->danger_distance)) {
-                clear = (uint32_t *)&self->danger_type;
-                for (i = 0x1b; i != 0; i--) {
-                    *clear = 0;
-                    clear++;
-                }
+                memset(&self->danger_type, 0, 0x1b * sizeof(uint32_t));
 
                 self->danger_type = 3;
                 self->danger_object_index = object_index;
@@ -535,7 +527,7 @@ static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(h
  *
  * @address 0x40bc40
  */
-uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_position, real_vector3d *path_delta, uint8_t *in_danger)
+uint8_t halo::ai::prop_ops::find_danger_escape(int16_t *out_kind, float *out_step, real_vector3d *path_delta, uint8_t *in_danger)
 {
     using namespace c_actor_find_danger_escape;
     datum_index actor_index = datum;
@@ -564,7 +556,7 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         uint8_t right_out;
         float left_distance;
         float right_distance;
-        uint8_t extra[0x30];
+        path_find_boundary_crossing extra;
         uint8_t have_axis = 0;
 
         axis.i = -act->danger_velocity.i;
@@ -606,10 +598,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         right_point.y = right.j * step + act->body_position.y;
         right_point.z = step * 0.0f + act->body_position.z;
 
-        left_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
+        left_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, &extra);
         left_distance = (float)halo::libm::sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, left_point));
         left_out = (uint8_t)(left_hit && left_distance > act->danger_object_radius);
-        right_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
+        right_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, &extra);
         right_distance = (float)halo::libm::sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, right_point));
         right_out = (uint8_t)(right_hit && right_distance > act->danger_object_radius);
 
@@ -641,8 +633,8 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
             blocked = right_blocked;
         }
     }
-    *(int16_t *)out_word = kind;
-    *(float *)out_position = step;
+    *out_kind = kind;
+    *out_step = step;
     *in_danger = blocked;
     path_delta->i = axis.i;
     path_delta->j = axis.j;
@@ -650,9 +642,9 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
 }
 
 namespace halo::ai {
-uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, uint8_t *out_position, real_vector3d *path_delta, uint8_t *in_danger)
+uint8_t actor_find_danger_escape(datum_index actor_index, int16_t *out_kind, float *out_step, real_vector3d *path_delta, uint8_t *in_danger)
 {
-    return halo::ai::prop_ops(actor_index).find_danger_escape(out_word, out_position, path_delta, in_danger);
+    return halo::ai::prop_ops(actor_index).find_danger_escape(out_kind, out_step, path_delta, in_danger);
 }
 }
 

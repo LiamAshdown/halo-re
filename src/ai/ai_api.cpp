@@ -1489,9 +1489,9 @@ void actor_swarm_for_each_component_thunk(uint32_t actor_index)
  *
  * @address 0x40e060
  */
-uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance)
+uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint16_t direction_kind, float step_distance, float distance)
 {
-    return halo::ai::ActorOps::take_danger_escape(path_delta, actor_index, escape, extra, distance);
+    return halo::ai::ActorOps::take_danger_escape(path_delta, actor_index, direction_kind, step_distance, distance);
 }
 
 /**

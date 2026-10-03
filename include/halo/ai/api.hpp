@@ -196,7 +196,7 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
 void actor_fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context);
 uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok);
 int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint);
-uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, uint8_t *out_position, real_vector3d *path_delta, uint8_t *in_danger);
+uint8_t actor_find_danger_escape(datum_index actor_index, int16_t *out_kind, float *out_step, real_vector3d *path_delta, uint8_t *in_danger);
 uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship);
 int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search);
 datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind);
@@ -433,7 +433,7 @@ void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_obje
 void actor_start_search_timer(datum_index actor_index, datum_index prop_index);
 void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, actor_mode_obey_data *obey);
 void actor_swarm_for_each_component_thunk(uint32_t actor_index);
-uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance);
+uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint16_t direction_kind, float step_distance, float distance);
 uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index, datum_index owner_reference, datum_index pair_reference);
 void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, actor_firing_positions *reference, char force, char allow_reassign);
 uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor_index, uint8_t *out_conflict_flag);
