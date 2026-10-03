@@ -3,6 +3,7 @@
  * Message encode/decode drivers and field binding lifecycle.
  */
 #include "tags.h"
+#include "halo/networking/delta_message_types.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -64,11 +65,11 @@ int32_t DeltaMessageDriver::decode_field_changed_flags(void **context)
     uint8_t ok;
     int32_t i;
 
-    state = (message_delta_decode_state *)context[0];
+    state = halo::networking::delta_context(context)->state;
     definition = message_delta_definitions[state->message_type];
     field_count = definition->field_count;
     stream = (bit_stream *)state->stream;
-    changed_flags = (uint8_t *)context + 4;
+    changed_flags = halo::networking::delta_context(context)->changed;
     bits_consumed = 0;
 
     if (state->incremental == 0) {
@@ -101,7 +102,7 @@ int32_t DeltaMessageDriver::decode_field_changed_flags(void **context)
 
     if (ok && 0 < definition->statics->count) {
         int32_t static_bits = halo::networking::message_delta_decode_static_fields(
-            state->message_type, stream, (int32_t)(int32_t)context[0x11]);
+            state->message_type, stream, (int32_t)(int32_t)halo::networking::delta_context(context)->target);
         if (static_bits < 1) {
             ok = 0;
         } else {
@@ -130,7 +131,6 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
     uint8_t sequence_bit;
     uint8_t item_count_ok;
     int32_t sequence_value;
-    uint8_t *raw_state = (uint8_t *)state;
 
     header_bits = 7;
     if (message_delta_parameters_enabled == 1) {
@@ -148,12 +148,12 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
     sequence_value = 0;
 
     incremental_read_ok = (uint8_t)halo::memory::bit_stream_read_bit((uint8_t *)state, stream);
-    *(int32_t *)(raw_state + 0x2c) = 1;
+    state->incremental_bits = 1;
     message_type_read_ok = incremental_read_ok != 0 && state->incremental >= 0 && state->incremental < 2;
 
     message_type_read_ok = (uint8_t)(halo::memory::bit_stream_read_bits_chunked(6, (uint32_t *)&state->message_type, stream) != 0) && message_type_read_ok;
     header_bits = 7;
-    *(int32_t *)(raw_state + 0x28) = 6;
+    state->message_type_bits = 6;
 
     {
         uint8_t range_ok = state->message_type >= 0 && state->message_type <= 0x37 && message_type_read_ok;
@@ -164,9 +164,9 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
             incremental_read_ok = (uint8_t)(halo::memory::bit_stream_read_bits_chunked(2, (uint32_t *)&sequence_value, stream) != 0);
             range_ok = incremental_read_ok != 0 && message_type_read_ok;
             header_bits = 10;
-            *(int32_t *)(raw_state + 0x24) = 3;
+            state->parameter_bits = 3;
         } else {
-            *(int32_t *)(raw_state + 0x24) = 0;
+            state->parameter_bits = 0;
         }
 
         if (range_ok) {
@@ -174,13 +174,13 @@ int32_t DeltaMessageDriver::decode_message_header(bit_stream *stream, message_de
             int32_t maximum_items = definition->maximum_items;
             if (maximum_items < 2) {
                 state->item_count = 1;
-                *(int32_t *)(raw_state + 0x20) = 0;
+                state->item_count_bits = 0;
             } else {
                 int32_t item_bits = message_delta_item_count_bits[maximum_items];
                 item_count_ok = (uint8_t)(halo::memory::bit_stream_read_bits_chunked(item_bits, (uint32_t *)&state->item_count, stream) != 0);
                 header_bits += item_bits;
                 state->item_count += 1;
-                *(int32_t *)(raw_state + 0x20) = item_bits;
+                state->item_count_bits = item_bits;
                 range_ok = state->item_count >= 1 && state->item_count <= maximum_items && item_count_ok;
             }
         }

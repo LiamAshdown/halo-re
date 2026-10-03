@@ -80,7 +80,7 @@ void GameClientView::action_apply(void **context)
         return;
     }
     network_action_apply_active = 1;
-    type_id = ((int32_t *)context[0])[1];
+    type_id = halo::networking::delta_context(context)->state->message_type;
     if (network_game_mode == halo::networking::k_game_mode_host) {
         network_game_action_apply_shared(context, client, type_id);
         network_action_apply_active = 0;
@@ -147,40 +147,38 @@ char GameClientView::action_queue_drain(bit_stream *stream, const uint32_t *send
 {
     network_client_globals *client = self;
     network_resolved_address remote;
-    union {
-        message_delta_decode_state state;
-        uint8_t bytes[0x34];
-    } state;
+    message_delta_decode_state state;
     uint8_t record[0x80];
-    void *context[0x12];
+    message_delta_context storage;
+    void **context = (void **)&storage;
     char result = 0;
 
     halo::networking::network_channel_remote_address_or_default(client->channel, &remote);
-    if (*(uint32_t *)&remote == *sender && (char)halo::networking::message_delta_decode_begin(&state.state, stream) != 0) {
+    if (*(uint32_t *)&remote == *sender && (char)halo::networking::message_delta_decode_begin(&state, stream) != 0) {
         memset(record, 0, sizeof(record));
-        memset(&context[1], 0, 0x40);
-        context[0] = &state;
-        context[0x11] = record;
-        state.bytes[0x1d] = 0;
-        state.bytes[0x1c] = 0;
+        memset(storage.changed, 0, sizeof(storage.changed));
+        storage.state = &state;
+        storage.target = record;
+        state.changed = 0;
+        state.more_items = 0;
         for (;;) {
-            uint8_t *current;
+            message_delta_decode_state *current;
 
             if ((char)halo::networking::message_delta_decode_array_field(context) == 0) {
                 result = 0;
                 break;
             }
             halo::networking::network_game_action_apply(context, client);
-            current = (uint8_t *)context[0];
-            result = current[0x1c] == 1 && current[0x1d] == 1;
-            ++*(int32_t *)(current + 0x18);
-            memset(&context[1], 0, 0x40);
-            current[0x1c] = 0;
-            current[0x1d] = 0;
+            current = storage.state;
+            result = current->more_items == 1 && current->changed == 1;
+            ++current->processed_count;
+            memset(storage.changed, 0, sizeof(storage.changed));
+            current->more_items = 0;
+            current->changed = 0;
             if (result != 1) {
                 break;
             }
-            if (*(int32_t *)(current + 0x18) > *(int32_t *)(current + 0x08)) {
+            if (current->processed_count > current->item_count) {
                 return result;
             }
         }
@@ -262,6 +260,37 @@ int32_t GameClientView::process_incoming_messages()
     }
 }
 
+#pragma pack(push, 1)
+/** The part of the decoded join challenge message the client reads: the machine id and the server name. */
+struct join_challenge_message {
+    uint8_t unknown_00[0x0c];    // 0x00
+    uint16_t machine_index;      // 0x0c
+    uint8_t unknown_0e[6];       // 0x0e
+    char server_name[64];        // 0x14
+};
+static_assert(offsetof(join_challenge_message, server_name) == 0x14);
+
+/** The challenge payload (message 0x0e) the client answers a join challenge with: the join request and its profile. */
+struct join_request_frame {
+    network_join_request header; // 0x00
+    uint8_t profile[0x1ffc];     // 0x90 profile_globals_block
+    uint8_t unused[0x2100 - 0x208c];
+};
+static_assert(offsetof(join_request_frame, profile) == 0x90);
+static_assert(sizeof(join_request_frame) == 0x2100);
+
+/** The decoded game state update message: ids, the simulation tick and one 8-dword player_action per player. */
+struct game_state_update_message {
+    uint32_t update_id;          // 0x00
+    uint32_t random_seed;        // 0x04
+    uint32_t game_time;          // 0x08
+    uint8_t unknown_0c[2];       // 0x0c
+    int16_t player_count;        // 0x0e
+    uint32_t action_dwords[16][8]; // 0x10
+};
+static_assert(offsetof(game_state_update_message, action_dwords) == 0x10);
+#pragma pack(pop)
+
 /**
  * be recovered from this function's own decompiled body, so 0 is passed (row 0, matching
  * network_game_settings_packet_send.c's own unindexed use of the same template table).
@@ -271,43 +300,16 @@ int32_t GameClientView::process_incoming_messages()
 int32_t GameClientView::settings_packet_receive(const uint32_t *request)
 {
     network_client_globals *client = self;
-    const uint8_t *pa, *pb;
-    uint8_t a, b;
+    const network_game_session *incoming = (const network_game_session *)request;
     int32_t cmp;
     uint32_t saved_last_dword;
     int32_t i;
 
-    if (*(int16_t *)(request + 0x68) < 0 || *(int16_t *)(request + 0x68) > 0x10) {
+    if (incoming->player_count < 0 || incoming->player_count > 0x10) {
         return 0;
     }
 
-    pa = (const uint8_t *)(request + 0x21);
-    pb = (const uint8_t *)client->session.server_name;
-    while (1) {
-        a = *pa;
-        b = *pb;
-        if (a != b) {
-            cmp = (1 - (uint32_t)(a < b)) - (uint32_t)((a < b) != 0);
-            goto compare_done;
-        }
-        if (a == 0) {
-            cmp = 0;
-            break;
-        }
-        a = pa[1];
-        b = pb[1];
-        if (a != b) {
-            cmp = (1 - (uint32_t)(a < b)) - (uint32_t)((a < b) != 0);
-            goto compare_done;
-        }
-        pa = pa + 2;
-        pb = pb + 2;
-        if (a == 0) {
-            cmp = 0;
-            break;
-        }
-    }
-compare_done:
+    cmp = strcmp(incoming->server_name, client->session.server_name);
     if (cmp != 0) {
         halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         if (join_ui_state != 1) {
@@ -346,13 +348,10 @@ compare_done:
 void GameClientView::settings_packet_send(const uint8_t *request)
 {
     network_client_globals *client = self;
+    const join_challenge_message *challenge_request = (const join_challenge_message *)request;
 
-    uint8_t frame[0x2100];
-    uint8_t *pa, *pb;
-    uint8_t a, b;
+    join_request_frame frame;
     int32_t cmp;
-    uint32_t *zero_fill;
-    int32_t i;
     int32_t *challenge;
     network_channel *channel;
     int32_t bits_to_send;
@@ -362,35 +361,9 @@ void GameClientView::settings_packet_send(const uint8_t *request)
         return;
     }
     client->state = 2;
-    client->machine_index = *(uint16_t *)(request + 0xc);
+    client->machine_index = challenge_request->machine_index;
 
-    pa = (uint8_t *)(request + 0x14);
-    pb = (uint8_t *)client->session.server_name;
-    while (1) {
-        a = *pa;
-        b = *pb;
-        if (a != b) {
-            cmp = (1 - (uint32_t)(a < b)) - (uint32_t)((a < b) != 0);
-            goto compare_done;
-        }
-        if (a == 0) {
-            cmp = 0;
-            break;
-        }
-        a = pa[1];
-        b = pb[1];
-        if (a != b) {
-            cmp = (1 - (uint32_t)(a < b)) - (uint32_t)((a < b) != 0);
-            goto compare_done;
-        }
-        pa = pa + 2;
-        pb = pb + 2;
-        if (a == 0) {
-            cmp = 0;
-            break;
-        }
-    }
-compare_done:
+    cmp = strcmp(challenge_request->server_name, client->session.server_name);
     if (cmp != 0) {
         halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         if (join_ui_state != 1) {
@@ -401,55 +374,45 @@ compare_done:
         }
     }
 
-    zero_fill = (uint32_t *)frame;
-    for (i = 0x23; i != 0; i = i - 1) {
-        *zero_fill = 0;
-        zero_fill = zero_fill + 1;
-    }
-    *(uint16_t *)zero_fill = 0;
+    memset(&frame, 0, offsetof(network_join_request, unknown_8e));
 
-    *(uint32_t *)(frame + 0x00) = client->connect_attempt.session_info[5];
-    *(uint32_t *)(frame + 0x04) = client->connect_attempt.session_info[6];
-    *(uint32_t *)(frame + 0x08) = client->connect_attempt.session_info[7];
-    *(uint32_t *)(frame + 0x0c) = client->connect_attempt.session_info[8];
+    memcpy(frame.header.session_key, &client->connect_attempt.session_info[5], sizeof(frame.header.session_key));
     *(uint8_t *)&client->pad_ee2 = 0;
-    wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
-    frame[0x6b] = *((uint8_t *)client + 0xf4c);
-    *(uint16_t *)(frame + 0x20) = 0;
-    gcd_compute_response(shell_product_id, (void *)request, frame + 0x22);
+    wcsncpy((wchar_t *)frame.header.password, (const wchar_t *)((const uint8_t *)client->connect_attempt.session_info + 2), 8);
+    frame.header.rate_index = *((uint8_t *)client + 0xf4c);
+    frame.header.password_terminator = 0;
+    gcd_compute_response(shell_product_id, (void *)request, frame.header.cd_key_response);
 
-    for (i = 0; i < 0x1ffc; i = i + 1) {
-        frame[0x90 + i] = profile_globals_block[i];
-    }
+    memcpy(frame.profile, profile_globals_block, sizeof(frame.profile));
 
-    *(uint8_t *)(frame + 0x8a) = request[0xc];
-    frame[0x8b] = 0;
-    wcsncpy((wchar_t *)(frame + 0x6e), (const wchar_t *)(frame + 0x92), 0xb);
-    frame[0x8c] = *(uint8_t *)&client->team_index;
-    *(uint16_t *)(frame + 0x84) = 0;
-    *(uint16_t *)(frame + 0x86) = *(uint16_t *)(frame + 0x1aa);
-    *(uint16_t *)(frame + 0x88) = 0xffff;
-    frame[0x8d] = 0xff;
+    frame.header.player.machine_index = (uint8_t)challenge_request->machine_index;
+    frame.header.player.machine_player_index = 0;
+    wcsncpy((wchar_t *)frame.header.player.name, (const wchar_t *)(frame.profile + 2), 0xb);
+    frame.header.player.team_index = *(uint8_t *)&client->team_index;
+    frame.header.player.name[11] = 0;
+    frame.header.player.color_index = *(uint16_t *)(frame.profile + 0x11a);
+    frame.header.player.icon_index = (int16_t)0xffff;
+    frame.header.player.slot_index = (int8_t)0xff;
     *(uint8_t *)&client->pad_ee2 = 1;
 
-    challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0e, frame);
+    challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0e, &frame);
     if (challenge != 0) {
         channel = client->channel;
         bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
         if ((channel->flags & 1) == 0) {
-            if ((((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit +
-                   *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
-                  *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
+            if ((((*(int32_t *)&channel->outgoing.stream.last_bit +
+                   *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
+                  *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
                 (retransmit_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok == 0)) {
                 return;
             }
             {
 
                 channel->send_budget = channel->send_budget + bits_to_send + 1;
-                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-                *((uint8_t *)channel + 0x2c) = 0;
-                halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
-                *((uint8_t *)channel + 0x2c) = 0;
+                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
+                channel->outgoing.empty = 0;
+                halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(challenge), bits_to_send);
+                channel->outgoing.empty = 0;
             }
         }
         client->flags = client->flags | 2;
@@ -464,8 +427,9 @@ compare_done:
  *
  * @address 0x4d9d20
  */
-int32_t GameClientView::state_update_receive(uint8_t *record)
+int32_t GameClientView::state_update_receive(uint8_t *record_bytes)
 {
+    game_state_update_message *record = (game_state_update_message *)record_bytes;
     network_client_globals *client = self;
     int16_t current_capacity;
     int16_t target_capacity;
@@ -477,11 +441,11 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
     large_integer counter;
     int32_t now_ms;
 
-    current_capacity = *(int16_t *)(record + 0xe);
+    current_capacity = record->player_count;
     target_capacity = client->session.player_count;
 
     if (current_capacity < target_capacity) {
-        fill = (uint32_t *)(record + 0x10) + (uint32_t)current_capacity * 8;
+        fill = record->action_dwords[0] + (uint32_t)current_capacity * 8;
         for (i = ((int32_t)target_capacity - (int32_t)current_capacity & 0x7ffffff) << 3; i != 0; i = i - 1) {
             *fill = 0;
             fill = fill + 1;
@@ -490,17 +454,17 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
             *(uint8_t *)fill = 0;
             fill = (uint32_t *)((uint8_t *)fill + 1);
         }
-        *(int16_t *)(record + 0xe) = target_capacity;
+        record->player_count = target_capacity;
     }
 
-    if (*(uint32_t *)record <= (uint32_t)client->last_update_id ||
-        (network_server == 0 && (uint32_t)halo::game::globals().game_time->game_time == *(uint32_t *)(record + 8) &&
-         *(uint32_t *)(record + 4) != halo::math::globals().random_seed_global)) {
+    if (record->update_id <= (uint32_t)client->last_update_id ||
+        (network_server == 0 && (uint32_t)halo::game::globals().game_time->game_time == record->game_time &&
+         record->random_seed != halo::math::globals().random_seed_global)) {
         halo::networking::network_disconnect_notify_dropped_machines(client);
     }
 
-    copy_units = *(int16_t *)(record + 0xe);
-    src = (uint32_t *)(record + 0x10);
+    copy_units = record->player_count;
+    src = record->action_dwords[0];
     *(int16_t *)local_buffer = copy_units;
     dst = local_buffer + 1;
     for (i = (uint32_t)(uint16_t)copy_units << 3; i != 0; i = i - 1) {
@@ -514,8 +478,8 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
         dst = (uint32_t *)((uint8_t *)dst + 1);
     }
 
-    halo::game::update_client_advance_read_cursor((int32_t)*(uint32_t *)record, local_buffer);
-    client->last_update_id = *(uint32_t *)record;
+    halo::game::update_client_advance_read_cursor((int32_t)record->update_id, local_buffer);
+    client->last_update_id = record->update_id;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);

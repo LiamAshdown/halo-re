@@ -119,8 +119,8 @@ void Ctf::skip_unchanged_message(message_delta_decode_state *state)
  */
 uint8_t Ctf::read_changed(void **context, void *changed_base, void *destination)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, halo::networking::delta_context(context)->changed, (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -138,7 +138,7 @@ uint8_t Ctf::read_changed(void **context, void *changed_base, void *destination)
  */
 void Ctf::profile_post_update(void **context)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
     uint8_t changed;
     uint8_t team;
 
@@ -168,7 +168,7 @@ void Ctf::profile_post_update(void **context)
     ctf_team_flag_touch_count[0] = ctf_touch_counts_network[0];
     ctf_team_flag_touch_count[1] = ctf_touch_counts_network[1];
     ctf_active_team = team;
-    ctf_flag_auto_return_ticks = *(int32_t *)context[0x11];
+    ctf_flag_auto_return_ticks = *(int32_t *)halo::networking::delta_context(context)->target;
 }
 
 /**
@@ -385,7 +385,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
         return 1;
     }
     weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, _object_mask_weapon);
-    if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (weapon[0x22c] & 0x40) == 0 &&
+    if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (((struct weapon_object *)weapon)->weapon.flags & _weapon_game_object_taken_bit) == 0 &&
         ((struct weapon_object *)weapon)->base.owner_team == halo::game::player_at(player)->team) {
         return 0;
     }
@@ -402,7 +402,7 @@ void Ctf::update(datum_index player_index)
 {
     ::player *player = halo::game::player_at(player_index);
     datum_index unit_index;
-    uint8_t *unit;
+    unit_object *unit;
     int16_t weapon_slot;
     datum_index weapon;
     int32_t team;
@@ -417,12 +417,12 @@ void Ctf::update(datum_index player_index)
     if (unit_index == halo::k_dword_none) {
         return;
     }
-    unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
-    weapon_slot = ((unit_object *)unit)->unit.current_weapon_index;
+    unit = halo::game::unit_at(unit_index);
+    weapon_slot = unit->unit.current_weapon_index;
     if (weapon_slot == -1) {
         return;
     }
-    weapon = *(datum_index *)(unit + 0x2f8 + weapon_slot * 4);
+    weapon = unit->unit.weapons[weapon_slot];
     if (weapon == halo::k_dword_none) {
         return;
     }
@@ -433,13 +433,13 @@ void Ctf::update(datum_index player_index)
         return;
     }
     team = ((struct player *)player)->team;
-    if (halo::game::game_engine_ctf_point_within_team_flag_radius(1.0f, team, (real_point3d *)(unit + 0x5c)) == 0) {
+    if (halo::game::game_engine_ctf_point_within_team_flag_radius(1.0f, team, &unit->base.position) == 0) {
         return;
     }
     if (game_engine_variant.engine.ctf.flag_at_home_to_score != 0 && game_engine_variant.engine.ctf.single_flag_time == 0) {
-        uint8_t *flag = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (ctf_team_flag_object[team] & halo::k_datum_slot_mask) * 12 + 8);
+        weapon_object *flag = (weapon_object *)halo::game::object_at(ctf_team_flag_object[team]);
 
-        if (((*(uint32_t *)(flag + 0x22c) >> 6) & 1) != 0) {
+        if ((flag->weapon.flags & _weapon_game_object_taken_bit) != 0) {
             halo::game::game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);
             return;
         }

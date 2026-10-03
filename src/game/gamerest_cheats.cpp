@@ -97,7 +97,7 @@ void Cheats::make_player_invincible(int16_t local_player_slot)
         if (player_index != k_datum_index_none) {
             unit_index = (halo::game::player_at(player_index))->unit;
             unit_obj = halo::game::object_at(unit_index);
-            unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+            unit = halo::game::unit_data_of(unit_obj);
             unit->active_camouflage_power = 1.0f;
             if ((unit->flags & 0x10) != 0) {
                 unit->flags = unit->flags | 0x20;
@@ -124,7 +124,7 @@ void Cheats::make_selected_object_invincible()
     if (player_index != halo::k_dword_none) {
         unit_index = (halo::game::player_at(player_index))->unit;
         unit_obj = halo::game::object_at(unit_index);
-        unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+        unit = halo::game::unit_data_of(unit_obj);
         unit->active_camouflage_power = 1.0f;
         if ((unit->flags & 0x10) != 0) {
             unit->flags = unit->flags | 0x20;

@@ -50,20 +50,24 @@ uint8_t SaveGameIndex::remove_slot(uint16_t slot)
         if (read_offset <= size && halo::saved_games::file_reference_open(ref, 3) != 0) {
             result = halo::saved_games::file_reference_seek((int32_t)write_offset, ref);
             if (result == 1) {
+                bool failed = false;
+
                 for (; read_offset < size; read_offset += 0x206, write_offset += 0x206) {
                     if (halo::saved_games::file_reference_seek((int32_t)read_offset, ref) == 0 ||
                         halo::saved_games::file_reference_read(ref, record, 0x206) == 0 ||
                         halo::saved_games::file_reference_seek((int32_t)write_offset, ref) == 0 ||
                         halo::saved_games::file_reference_write(ref, record, 0x206) == 0) {
                         result = 0;
-                        goto close_file;
+                        failed = true;
+                        break;
                     }
                 }
-                result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
+                if (!failed) {
+                    result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
+                }
             } else if (result != 0) {
                 result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
             }
-        close_file:
             if (halo::saved_games::file_reference_close(ref) == 0) {
                 result = 0;
             }

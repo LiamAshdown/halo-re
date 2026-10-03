@@ -14,6 +14,7 @@
 #include "win32.h"
 #include <wchar.h>
 #include "interface.h"
+#include "networking.h"
 
 #include "halo/game/game1_variants.hpp"
 #include "halo/memory/api.hpp"
@@ -175,7 +176,7 @@ void Variants::apply_player_profile_entry(void *event)
     p->speed = profile->speed;
 
     if (game_engine_variant.game_engine_index == _game_engine_king) {
-        *(int16_t *)&p->objective_time = (int16_t)profile->objective_time * 0x1e;
+        p->objective_time_words.low = (int16_t)profile->objective_time * 0x1e;
     }
 }
 
@@ -191,8 +192,8 @@ void Variants::apply_variant(const game_variant *variant)
     if (variant != (const game_variant *)0) {
         game_engine_active_variant = *variant;
         if (network_server != (void *)0 &&
-            *(int32_t *)((uint8_t *)network_server + 0x13c) != variant->game_engine_index) {
-            *(game_variant *)((uint8_t *)network_server + 0x10c) = *variant;
+            ((network_server_globals *)network_server)->session.variant.game_engine_index != variant->game_engine_index) {
+            ((network_server_globals *)network_server)->session.variant = *variant;
             halo::networking::network_game_broadcast_player_set_changed(network_server);
         }
     } else {

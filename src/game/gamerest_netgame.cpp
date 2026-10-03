@@ -50,12 +50,21 @@ namespace halo::game {
  */
 void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
 {
-    item_data *item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
+    item_data *item = halo::game::item_data_of(flag_obj);
     int32_t team;
     int32_t other_team;
     datum_index holder_player_index;
     real_point3d item_position;
     uint8_t position_valid;
+    bool check_dropped = true;
+    auto notify_teams = []() {
+        if (local_player_globals->local_players[0] != (datum_index)halo::k_dword_none) {
+            player *lp = (player *)((uint8_t *)player_data->data +
+                ((uint32_t)local_player_globals->local_players[0] & halo::k_datum_slot_mask) * sizeof(player));
+            *(int32_t *)&((struct player *)lp)->hud_message_index = (ctf_active_team == (uint8_t)lp->team) ? 0x31 : 0x30;
+            *(int32_t *)&((struct player *)lp)->hud_message_player = 0;
+        }
+    };
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (game_engine_variant.engine.ctf.single_flag_time > 0) {
@@ -71,7 +80,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                             object *unit_obj = halo::objects::object_try_and_get(carrier->unit, _object_mask_unit);
                             if (unit_obj != (object *)0) {
                                 unit_data *unit =
-                                    (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                                    halo::game::unit_data_of(unit_obj);
                                 datum_index current_weapon =
                                     halo::units::unit_get_weapon_object_index((uint32_t)carrier->unit, unit->current_weapon_index);
                                 if (current_weapon != (datum_index)flag_handle) {
@@ -93,9 +102,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                             }
                         }
                     }
-                    goto notify_teams;
-                }
-
+                } else {
                 {
                     data_iterator iter;
                     void *element;
@@ -128,7 +135,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
                     flag_obj = halo::game::object_at(flag_handle);
-                    item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
+                    item = halo::game::item_data_of(flag_obj);
                     halo::game::game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), halo::k_dword_none, 1);
                     halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
                     custom_waypoints[2] = CTF_CUSTOM_WAYPOINT_ZERO;
@@ -136,14 +143,9 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
                     halo::game::game_engine_ctf_notify_both_teams((int32_t)toggled);
                 }
+                }
             }
-notify_teams:
-            if (local_player_globals->local_players[0] != (datum_index)halo::k_dword_none) {
-                player *lp = (player *)((uint8_t *)player_data->data +
-                    ((uint32_t)local_player_globals->local_players[0] & halo::k_datum_slot_mask) * sizeof(player));
-                *(int32_t *)&((struct player *)lp)->hud_message_index = (ctf_active_team == (uint8_t)lp->team) ? 0x31 : 0x30;
-                *(int32_t *)&((struct player *)lp)->hud_message_player = 0;
-            }
+            notify_teams();
         }
 
     } else {
@@ -154,48 +156,41 @@ notify_teams:
             if (ctf_flag_auto_return_ticks == 0 && (item->flags & _item_in_inventory_bit) == 0) {
                 ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
             }
-            goto notify_teams;
+            notify_teams();
+        } else {
+            check_dropped = false;
         }
-        goto weapon_coordination;
     }
 
-    if (game_time->game_time - item->held_game_time <= 0x1fe) {
-        goto weapon_coordination;
-    }
-    {
+    if (check_dropped && game_time->game_time - item->held_game_time > 0x1fe) {
         int16_t obj_type = *(int16_t *)halo::game::tag_data_at((uint32_t)flag_obj->definition_tag);
         object_type_definition *type_def = object_type_definitions[obj_type];
-        if ((halo::game::weapon_flag_set(type_def, halo::tags::weapon_tag_flag::must_be_readied)) == 0) {
-            goto weapon_coordination;
+
+        if ((halo::game::weapon_flag_set(type_def, halo::tags::weapon_tag_flag::must_be_readied)) != 0 &&
+            (flag_obj->flags & _object_needs_cluster_update_bit) != 0 &&
+            flag_obj->parent_object == (datum_index)halo::k_dword_none) {
+            team = ((struct object *)flag_obj)->owner_team;
+            {
+                uint32_t toggled = (uint32_t)(team + 1) & 0x80000001;
+                if ((int32_t)toggled < 0) {
+                    toggled = (toggled - 1 | 0xfffffffe) + 1;
+                }
+                other_team = (int32_t)toggled;
+            }
+            if ((((weapon_object *)flag_obj)->weapon.flags & _weapon_game_object_taken_bit) != 0) {
+
+                halo::game::game_engine_queue_multiplayer_sound(team != 0 ? 9 : 0xc, halo::k_dword_none, 1);
+                ctf_team_return_credit_active[team] = 0;
+                ctf_team_return_credit_ticks[team] = 0;
+
+                halo::game::game_engine_broadcast_kill_feed_to_team(0x2b, team, 1);
+                halo::game::game_engine_broadcast_kill_feed_to_team(0x2c, other_team, 1);
+
+                halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
+            }
         }
     }
-    if ((flag_obj->flags & _object_needs_cluster_update_bit) == 0) {
-        goto weapon_coordination;
-    }
-    if (flag_obj->parent_object != (datum_index)halo::k_dword_none) {
-        goto weapon_coordination;
-    }
-    team = ((struct object *)flag_obj)->owner_team;
-    {
-        uint32_t toggled = (uint32_t)(team + 1) & 0x80000001;
-        if ((int32_t)toggled < 0) {
-            toggled = (toggled - 1 | 0xfffffffe) + 1;
-        }
-        other_team = (int32_t)toggled;
-    }
-    if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) != 0) {
 
-        halo::game::game_engine_queue_multiplayer_sound(team != 0 ? 9 : 0xc, halo::k_dword_none, 1);
-        ctf_team_return_credit_active[team] = 0;
-        ctf_team_return_credit_ticks[team] = 0;
-
-        halo::game::game_engine_broadcast_kill_feed_to_team(0x2b, team, 1);
-        halo::game::game_engine_broadcast_kill_feed_to_team(0x2c, other_team, 1);
-
-        halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
-    }
-
-weapon_coordination:
     holder_player_index = halo::game::game_engine_find_player_holding_object((datum_index)flag_handle);
     team = ((struct object *)flag_obj)->owner_team;
     {
@@ -249,10 +244,10 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
                                          halo::math::globals().global_up3d_pointer, position);
     halo::objects::object_reset_velocity_and_wake(flag_object_index);
 
-    unknown_22c = (uint32_t *)((uint8_t *)flag_obj + 0x22c);
-    *unknown_22c = *unknown_22c & 0xffffffdf;
+    unknown_22c = &((weapon_object *)flag_obj)->weapon.flags;
+    *unknown_22c = *unknown_22c & ~(uint32_t)_weapon_game_expiry_armed_bit;
 
-    item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
+    item = halo::game::item_data_of(flag_obj);
     item->held_game_time = game_time->game_time;
     item->ignore_object_index = (datum_index)halo::k_dword_none;
 }

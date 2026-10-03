@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_camera.hpp"
 #include "halo/game/records.hpp"
+#include "projectiles.h"
 #include "halo/core/datum.hpp"
 #include "halo/units/unit.hpp"
 #include <string.h>
@@ -41,7 +42,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
     uint8_t *aim_unit_obj = (uint8_t *)halo::game::object_at(aim_unit);
     real cone[5];
 
-    if (halo::game::unit_get_current_weapon_autoaim_cone(aim_unit, (int16_t)(int8_t)aim_unit_obj[0x320], cone)) {
+    if (halo::game::unit_get_current_weapon_autoaim_cone(aim_unit, (int16_t)((unit_object *)aim_unit_obj)->unit.zoom_level, cone)) {
         int16_t seat_state = 0;
         real_point3d camera_position;
         real_vector3d camera_direction;
@@ -49,7 +50,11 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         real_vector3d look_direction;
         real_vector3d blend;
         real fraction = 0.0f;
-        uint8_t record[0x50];
+        union {
+            observer_target_candidate candidate;
+            collision_result collision;
+            uint8_t bytes[0x50];
+        } record;
 
         uint8_t *unit_obj;
         real dx, dy, dz, distance;
@@ -65,23 +70,23 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         }
 
         target_direction = *fallback_facing;
-        memset(record, 0, sizeof(record));
+        memset(&record, 0, sizeof(record));
         if (halo::game::camera_observer_find_best_target(&camera_position, (observer_target_cone *)cone, &camera_direction,
-                ((struct player *)player)->unit, (int16_t)*(uint16_t *)&((struct player *)player)->team, (observer_target_candidate *)record)) {
-            target_direction.i = *(real *)(record + 0x04) - observer_position->x;
-            target_direction.j = *(real *)(record + 0x08) - observer_position->y;
-            target_direction.k = *(real *)(record + 0x0c) - observer_position->z;
+                ((struct player *)player)->unit, (int16_t)*(uint16_t *)&((struct player *)player)->team, &record.candidate)) {
+            target_direction.i = record.candidate.point.x - observer_position->x;
+            target_direction.j = record.candidate.point.y - observer_position->y;
+            target_direction.k = record.candidate.point.z - observer_position->z;
             if (halo::math::vector3d_normalize_with_length(target_direction) == 0.0f) {
                 target_direction = *fallback_facing;
             }
-            fraction = *(real *)(record + 0x30);
-            target = *(datum_index *)(record + 0x00);
+            fraction = record.candidate.weight_primary;
+            target = record.candidate.object;
         }
 
         unit_obj = (uint8_t *)halo::game::object_at(aim_unit);
-        dx = camera_position.x - *(real *)(unit_obj + 0x5c);
-        dy = camera_position.y - *(real *)(unit_obj + 0x60);
-        dz = camera_position.z - *(real *)(unit_obj + 0x64);
+        dx = camera_position.x - ((object *)unit_obj)->position.x;
+        dy = camera_position.y - ((object *)unit_obj)->position.y;
+        dz = camera_position.z - ((object *)unit_obj)->position.z;
         distance = (real)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
         camera_forward = camera_direction;
         halo::math::vector3d_normalize_with_length(camera_forward);
@@ -91,11 +96,11 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         probe_delta.i = camera_direction.i * 128.0f;
         probe_delta.j = camera_direction.j * 128.0f;
         probe_delta.k = camera_direction.k * 128.0f;
-        halo::physics::collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, (collision_result *)record);
+        halo::physics::collision_test_movement_segment(0x1000e9, &probe_origin, &probe_delta, ((struct player *)player)->unit, &record.collision);
 
-        look_direction.i = *(real *)(record + 0x18) - observer_position->x;
-        look_direction.j = *(real *)(record + 0x1c) - observer_position->y;
-        look_direction.k = *(real *)(record + 0x20) - observer_position->z;
+        look_direction.i = record.collision.point.x - observer_position->x;
+        look_direction.j = record.collision.point.y - observer_position->y;
+        look_direction.k = record.collision.point.z - observer_position->z;
         if (halo::math::vector3d_normalize_with_length(look_direction) == 0.0f) {
             look_direction = *fallback_facing;
         }

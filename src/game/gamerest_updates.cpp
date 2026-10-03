@@ -9,6 +9,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
@@ -38,6 +39,19 @@ static auto &wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().wai
 static auto &local_player_name_filter = halo::link::ref<uint16_t []>(halo::game::vars().local_player_name_filter);
 static auto &vehicle_wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().vehicle_wait_tick_counter);
 
+namespace {
+
+constexpr uint32_t k_held_control_flags_mask = 0x4d0;
+constexpr size_t k_player_action_payload_size = offsetof(player_action, pad_1e) - offsetof(player_action, desired_yaw);
+
+static_assert(offsetof(update_record, actions) == 0x08);
+static_assert(offsetof(update_record, carry) == 0x208);
+static_assert(offsetof(update_client_queue_entry, desired_yaw) == 0x0c);
+static_assert(offsetof(update_client_queue_entry, zoom_level) == 0x24);
+static_assert(sizeof(update_client_queue_entry) == 0x28);
+
+}  // namespace
+
 namespace halo::game {
 
 /**
@@ -61,11 +75,11 @@ void UpdateClient::advance_read_cursor(int32_t target_tick, const uint32_t *reco
         return;
     }
     slot->tick = target_tick;
-    memcpy((uint8_t *)slot + 4, record, 0xc1 * 4);
+    memcpy(&slot->player_count, record, 0xc1 * 4);
     if (target_tick > update_client_unknown_ea0) {
         for (tick = update_client_unknown_ea0 + 1; tick < target_tick; tick++) {
             UpdateClient::queue_get_slot(tick);
-            ((struct update_record *)slot)->player_count = halo::k_word_none;
+            slot->player_count = halo::k_word_none;
         }
         update_client_unknown_ea0 = target_tick;
     }
@@ -130,14 +144,15 @@ void UpdateClient::dispose()
  *
  * @address 0x473270
  */
-uint32_t UpdateClient::distribute_staged_entry(uint8_t *out)
+uint32_t UpdateClient::distribute_staged_entry(uint8_t *out_bytes)
 {
+    player_action *out = (player_action *)out_bytes;
     uint32_t masked = ~update_client_unknown_ec8 & update_client_staged[0];
     data_iterator iter;
     void *element;
     int32_t index = -1;
 
-    update_client_unknown_ec8 = update_client_staged[0] & 0x4d0;
+    update_client_unknown_ec8 = update_client_staged[0] & k_held_control_flags_mask;
 
     iter.data = 0;
     iter.next_index = 0;
@@ -145,15 +160,12 @@ uint32_t UpdateClient::distribute_staged_entry(uint8_t *out)
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
     element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
-        uint32_t *record;
-        int32_t i;
+        player_action *record;
 
         index = index + 1;
-        record = (uint32_t *)(out + (int32_t)index * 0x20);
-        for (i = 0; i < 8; i++) {
-            record[i] = update_client_staged[i];
-        }
-        record[0] = masked;
+        record = &out[index];
+        memcpy(record, update_client_staged, sizeof(*record));
+        record->control_flags = masked;
         if (index == 0) {
             update_client_unknown_ec4 = update_client_unknown_ec4 - 1;
         }
@@ -206,7 +218,6 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
         data_iterator player_iter;
         void *player_element;
         int16_t index = -1;
-        uint8_t *slot_bytes = (uint8_t *)slot;
 
         player_iter.data = update_client_queues;
         player_iter.next_index = 0;
@@ -215,19 +226,12 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
         player_element = halo::memory::data_iterator_next(&player_iter);
         while (player_element != 0) {
             index = index + 1;
-            if (index < *(int16_t *)&((struct update_record *)slot_bytes)->player_count) {
-                uint8_t *record = slot_bytes + 8 + (int32_t)index * 0x20;
-                uint8_t *dst = (uint8_t *)player_element;
+            if (index < (int16_t)slot->player_count) {
+                const player_action *record = &slot->actions[index];
+                update_client_queue_entry *entry = (update_client_queue_entry *)player_element;
 
-                *(uint32_t *)(dst + 4) = *(uint32_t *)(record + 0);
-                *(uint32_t *)(dst + 0xc) = *(uint32_t *)(record + 4);
-                *(uint32_t *)(dst + 0x10) = *(uint32_t *)(record + 8);
-                *(uint32_t *)(dst + 0x14) = *(uint32_t *)(record + 0xc);
-                *(uint32_t *)(dst + 0x18) = *(uint32_t *)(record + 0x10);
-                *(uint32_t *)(dst + 0x1c) = *(uint32_t *)(record + 0x14);
-                *(uint16_t *)(dst + 0x20) = *(uint16_t *)(record + 0x18);
-                *(uint16_t *)(dst + 0x22) = *(uint16_t *)(record + 0x1a);
-                *(uint16_t *)(dst + 0x24) = *(uint16_t *)(record + 0x1c);
+                entry->control_flags = record->control_flags;
+                memcpy(&entry->desired_yaw, &record->desired_yaw, k_player_action_payload_size);
             }
             player_element = halo::memory::data_iterator_next(&player_iter);
         }
@@ -239,26 +243,14 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_element = halo::memory::data_iterator_next(&player_iter);
         while (player_element != 0) {
-            uint8_t *dst = (uint8_t *)player_element;
-            uint32_t *out_record = (uint32_t *)(((uint8_t *)out_actions) + (int32_t)(++index) * 0x20);
-            uint32_t *carry_src = (uint32_t *)(slot_bytes + 0x208 + (int32_t)index * 0x10);
-            uint32_t *carry_dst = (uint32_t *)(((uint8_t *)out_carry) + (int32_t)index * 0x10);
-            int32_t k;
+            update_client_queue_entry *entry = (update_client_queue_entry *)player_element;
+            player_action *out_record = &out_actions[++index];
 
-            out_record[0] = ~*(uint32_t *)(dst + 8) & *(uint32_t *)(dst + 4);
-            *(uint32_t *)(dst + 8) = *(uint32_t *)(dst + 4) & 0x4d0;
-            out_record[1] = *(uint32_t *)(dst + 0xc);
-            out_record[2] = *(uint32_t *)(dst + 0x10);
-            out_record[3] = *(uint32_t *)(dst + 0x14);
-            out_record[4] = *(uint32_t *)(dst + 0x18);
-            out_record[5] = *(uint32_t *)(dst + 0x1c);
-            *(uint16_t *)(out_record + 6) = *(uint16_t *)(dst + 0x20);
-            *(uint16_t *)((uint8_t *)out_record + 0x1a) = *(uint16_t *)(dst + 0x22);
-            *(uint16_t *)(out_record + 7) = *(uint16_t *)(dst + 0x24);
+            out_record->control_flags = ~entry->held_control_flags & entry->control_flags;
+            entry->held_control_flags = entry->control_flags & k_held_control_flags_mask;
+            memcpy(&out_record->desired_yaw, &entry->desired_yaw, k_player_action_payload_size);
 
-            for (k = 0; k < 4; k++) {
-                carry_dst[k] = carry_src[k];
-            }
+            out_carry[index] = slot->carry[index];
             player_element = halo::memory::data_iterator_next(&player_iter);
         }
     }
@@ -413,17 +405,17 @@ void UpdateServer::queue_create_entry(datum_index requested_handle)
 void UpdateServer::queue_get_history_entry(int32_t *out_record, int32_t *out_tick, datum_index queue_handle)
 {
     uint8_t counter_scratch[8];
-    uint8_t *entry = 0;
+    update_server_queue *entry = 0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)counter_scratch);
 
     if (queue_handle != k_datum_index_none) {
-        entry = (uint8_t *)update_server_queues->data + (uint32_t)(uint16_t)queue_handle * update_server_queues->size;
-        if (update_server_tick <= *(int32_t *)(entry + 4)) {
+        entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (uint32_t)(uint16_t)queue_handle * update_server_queues->size);
+        if (update_server_tick <= entry->history_tick) {
             *out_tick = -1;
             return;
         }
-        *out_tick = *(int32_t *)(entry + 4);
+        *out_tick = entry->history_tick;
     }
 
     {
@@ -441,7 +433,7 @@ void UpdateServer::queue_get_history_entry(int32_t *out_record, int32_t *out_tic
                 }
             }
             if (entry != 0) {
-                *(int32_t *)(entry + 4) = *(int32_t *)(entry + 4) + 1;
+                entry->history_tick = entry->history_tick + 1;
             }
         }
     }
@@ -539,16 +531,15 @@ void UpdateQueues::revert()
         memset(update_server_history, 0, 0x1840 * 4);
     }
     if (update_client_initialized) {
-        uint8_t *header = &update_client_initialized;
         int32_t now;
         int32_t tick;
         update_record *record;
 
         memset(update_client_history, 0xff, 0x6100 * 4);
-        memset(header + 0x0c, 0, 0x20);
-        *(int32_t *)(header + 0x30) = 0;
+        memset(update_client_staged, 0, sizeof(update_client_staged));
+        update_client_unknown_ec8 = 0;
         update_client_base_tick = 0;
-        *(int32_t *)(header + 0x2c) = -1;
+        update_client_unknown_ec4 = -1;
         update_client_unknown_ea0 = -1;
 
         now = game_time->game_time;
@@ -567,7 +558,7 @@ void UpdateQueues::revert()
     }
     if (update_server_initialized) {
         UpdateServer::dispose();
-        *(int32_t *)((uint8_t *)update_server_queues->data + 4) = update_server_tick;
+        ((update_server_queue *)update_server_queues->data)->history_tick = update_server_tick;
     } else if (update_client_initialized) {
         UpdateClient::dispose();
     }
@@ -761,7 +752,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
     }
 
     {
-        unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(unit_obj);
         uint8_t seated = halo::game::player_unit_has_parent(unit->controlling_player);
         *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = field0;
         if (seated == 0) {

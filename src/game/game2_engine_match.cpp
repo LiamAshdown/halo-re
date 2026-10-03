@@ -431,18 +431,18 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
 
     encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::team_allegiance), 0, fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
-        uint8_t *session = *(uint8_t **)(network_client + 0xadc);
+        network_channel *channel = ((network_client_globals *)network_client)->channel;
 
-        if ((*(uint8_t *)(session + 0xa8c) & 1) == 0 &&
-            (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) -
-                *(int32_t *)(session + 0x1c) * 8 - *(int32_t *)(session + 0x20)) + 1 ||
-             halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
+        if ((channel->flags & 1) == 0 &&
+            (encoded_bits + 1 <= (*(int32_t *)&channel->outgoing.stream.last_bit -
+                *(int32_t *)&channel->outgoing.stream.byte_cursor * 8 - *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 ||
+             halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) != 0)) {
 
-            *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
-            *(uint8_t *)(session + 0x2c) = 0;
-            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
-            *(uint8_t *)(session + 0x2c) = 0;
+            channel->send_budget = channel->send_budget + encoded_bits + 1;
+            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
+            channel->outgoing.empty = 0;
+            halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(network_message_scratch), encoded_bits);
+            channel->outgoing.empty = 0;
         }
     }
 }

@@ -32,16 +32,7 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
     strrchr(path, 0x5c);
     slot = halo::cache::cache_file_find_slot_by_name(path);
     if (slot == -1) {
-        if (halo::cache::globals().map_download_in_progress == 0) {
-        open_by_name:
-            if (halo::cache::cache_file_open_by_name(path, apply_state) == 0) {
-                if (apply_state == 0) {
-                    return;
-                }
-                halo::rasterizer::globals().shader_file_name = path;
-                halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
-            }
-        } else {
+        if (halo::cache::globals().map_download_in_progress != 0) {
             if (halo::cache::cache_file_download_matches(path) == 0) {
                 if (apply_state == 0) {
                     halo::cache::cache_file_download_stop();
@@ -50,8 +41,14 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
                     halo::cache::cache_file_download_finish();
                 }
             }
-            if (halo::cache::globals().map_download_in_progress == 0) {
-                goto open_by_name;
+        }
+        if (halo::cache::globals().map_download_in_progress == 0) {
+            if (halo::cache::cache_file_open_by_name(path, apply_state) == 0) {
+                if (apply_state == 0) {
+                    return;
+                }
+                halo::rasterizer::globals().shader_file_name = path;
+                halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             }
         }
         globals = halo::main::globals().game_globals;

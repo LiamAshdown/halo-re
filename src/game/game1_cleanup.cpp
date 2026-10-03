@@ -52,7 +52,7 @@ void ObjectCleanup::cleanup_dropped_objects(void)
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
-        item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
+        item_data *item = halo::game::item_data_of(obj);
 
         if ((int32_t)item->held_game_time < now - 900 &&
             (item->flags & _item_in_inventory_bit) == 0) {
@@ -113,6 +113,7 @@ void ObjectCleanup::cleanup_stray_items(void)
     while (obj != (object *)0) {
         if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || obj->network_role == 3) {
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
+            bool keep = false;
 
             if (iter.handle != (datum_index)halo::k_dword_none && index16 >= 0 &&
                 index16 < halo::objects::globals().object_data->maximum_count) {
@@ -128,25 +129,24 @@ void ObjectCleanup::cleanup_stray_items(void)
 
                         if ((halo::game::weapon_flag_set(tag_data, halo::tags::weapon_tag_flag::must_be_readied)) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {
-                            goto next;
+                            keep = true;
                         }
                     }
                 }
             }
 
-            {
-                item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+            if (!keep) {
+                item_data *item = halo::game::item_data_of(obj);
                 if ((item->flags & (_item_in_inventory_bit | _item_unknown_40_bit)) == 0) {
                     if (obj->network_role == 0) {
                         halo::objects::object_delete_unparented(iter.handle);
-                    } else if (obj->network_role != 3) {
-                        goto next;
                     }
-                    halo::objects::object_delete_recursive(iter.handle, 0);
+                    if (obj->network_role == 0 || obj->network_role == 3) {
+                        halo::objects::object_delete_recursive(iter.handle, 0);
+                    }
                 }
             }
         }
-next:
         obj = halo::objects::object_iterator_next(&iter);
     }
 }

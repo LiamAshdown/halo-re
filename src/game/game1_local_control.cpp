@@ -125,7 +125,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     pitch_rate = 0.0f;
     if (plr->unit != (datum_index)-1) {
         object *unit_object = halo::game::object_at(plr->unit);
-        unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(unit_object);
 
         yaw_rate = look_yaw_rate_setting[local_player_index] *
                    k_degrees_to_radians * k_seconds_per_tick;
@@ -570,7 +570,7 @@ real LocalControl::get_max_look_pitch(int16_t local_player_index)
         void *base = *(void **)((uint8_t *)halo::objects::globals().object_data->data +
             (uint32_t)(uint16_t)look->unit * halo::objects::globals().object_data->size + 8);
         object *o = (object *)base;
-        unit_data *u = (unit_data *)((uint8_t *)base + k_unit_data_offset);
+        unit_data *u = halo::game::unit_data_of(base);
         uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)o->definition_tag].data;
 
         if (u->current_weapon_index != -1 && u->weapons[u->current_weapon_index] != k_datum_index_none) {

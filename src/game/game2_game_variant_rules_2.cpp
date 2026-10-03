@@ -37,8 +37,8 @@ void GameVariantRules::sync_variant_defaults(void)
 
     game_engine_active_variant = game_engine_pending_variant;
 
-    if (hosting && *(int32_t *)((uint8_t *)session + 0x13c) != cached_network_engine_index) {
-        *(game_variant *)((uint8_t *)session + 0x10c) = game_engine_pending_variant;
+    if (hosting && ((network_server_globals *)session)->session.variant.game_engine_index != cached_network_engine_index) {
+        ((network_server_globals *)session)->session.variant = game_engine_pending_variant;
         halo::networking::network_game_broadcast_player_set_changed((uint8_t *)session);
         session = halo::networking::globals().server;
     }

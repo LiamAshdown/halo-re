@@ -203,19 +203,17 @@ int32_t SimulationClock::announce_time_remaining(void)
         return 1;
     }
 
-    if (time_remaining < 0x97) {
-        interval = 0x1e;
-    } else if (time_remaining == 900) {
-        goto announce;
-    } else {
-        interval = (8999 < time_remaining) ? 9000 : halo::game::k_ticks_per_minute;
-    }
+    if (time_remaining != 900) {
+        if (time_remaining < 0x97) {
+            interval = 0x1e;
+        } else {
+            interval = (8999 < time_remaining) ? 9000 : halo::game::k_ticks_per_minute;
+        }
 
-    if (time_remaining % interval != 0) {
-        return 0;
+        if (time_remaining % interval != 0) {
+            return 0;
+        }
     }
-
-announce:
 
     iterator.data = player_data;
     iterator.next_index = 0;
@@ -251,7 +249,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
 
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
-        int16_t value = *(int16_t *)((uint8_t *)p + 0xc6);
+        int16_t value = ((struct player *)p)->objective_time_words.race_laps;
         if (leader <= value) {
             leader = value;
         }
@@ -266,7 +264,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         float speed = 1.0f;
-        int32_t gap = leader - *(int16_t *)((uint8_t *)p + 0xc6);
+        int32_t gap = leader - ((struct player *)p)->objective_time_words.race_laps;
         if (game_engine_variant.engine.race.race_type == 2) {
             gap /= 3;
         }

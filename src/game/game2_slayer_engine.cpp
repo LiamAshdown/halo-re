@@ -44,17 +44,17 @@ const uint16_t * SlayerEngine::game_text(int16_t index)
 /**
  * A live player of the given handle (index in range, salt 0 or matching), else 0.
  */
-uint8_t * SlayerEngine::player_if_valid(datum_index handle)
+::player * SlayerEngine::player_if_valid(datum_index handle)
 {
     int16_t index = (int16_t)handle;
     int16_t salt = (int16_t)(handle >> 16);
-    uint8_t *player;
+    ::player *player;
 
     if (handle == halo::k_dword_none || index < 0 || index >= player_data->maximum_count) {
         return 0;
     }
-    player = (uint8_t *)player_data->data + index * player_data->size;
-    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt)) {
+    player = (::player *)((uint8_t *)player_data->data + index * player_data->size);
+    if (player->identifier == 0 || (salt != 0 && player->identifier != salt)) {
         return 0;
     }
     return player;
@@ -71,7 +71,7 @@ uint8_t * SlayerEngine::player_if_valid(datum_index handle)
 uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
     if (message_type == 0x16) {
-        uint8_t *player = player_if_valid(recipient);
+        ::player *player = player_if_valid(recipient);
         const uint16_t *place;
         int32_t team;
 
@@ -90,12 +90,12 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
         return 1;
     }
     if (message_type == 0x20) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+        ::player *player = (::player *)halo::memory::datum_get(subject, player_data);
 
         if (player == 0) {
             return 0;
         }
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb4), player + 4);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb4), player->name);
         return 1;
     }
     return 0;
@@ -228,14 +228,14 @@ void SlayerEngine::player_new_life(datum_index player_index)
  */
 void SlayerEngine::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(player_index, player_data);
     data_iterator iterator;
     uint8_t *other;
 
     if (player == 0) {
         return;
     }
-    ((struct player *)player)->slayer_target = -1;
+    player->slayer_target = -1;
     slayer_player_score[player_index & halo::k_datum_slot_mask] = 0;
     iterator.data = player_data;
     iterator.next_index = 0;
@@ -271,8 +271,8 @@ void SlayerEngine::skip_unchanged_message(message_delta_decode_state *state)
  */
 uint8_t SlayerEngine::read_changed(void **context, void *changed_base, void *destination)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, halo::networking::delta_context(context)->changed, (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -293,7 +293,7 @@ uint8_t SlayerEngine::read_changed(void **context, void *changed_base, void *des
  */
 void SlayerEngine::profile_post_update(void **context)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
     uint8_t changed;
 
     if (state->incremental == 0) {
@@ -350,7 +350,7 @@ void SlayerEngine::profiles_updated(int32_t mode, int32_t machine_index)
 uint8_t SlayerEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = halo::game::players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(handle, player_data);
 
     if (player == 0 || key != 0x16) {
         return 0;
@@ -440,7 +440,7 @@ void SlayerEngine::update(datum_index player_index)
             datum_index unit_index = halo::game::player_at(target)->unit;
 
             if (unit_index != halo::k_dword_none) {
-                uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
+                uint8_t *unit = (uint8_t *)halo::game::object_at(unit_index);
 
                 halo::game::custom_waypoint_register(halo::k_dword_none, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
                     player_index, -1);

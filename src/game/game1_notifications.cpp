@@ -153,7 +153,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             case 9:
                 frag_result = frag_result + plasma_result;
                 plasma_result = 0;
-                goto clamp;
+                break;
             case 0x0d:
 
                 if ((uint8_t)halo::game::game_engine_pack_object_flags_or_passthrough(0) == 0) {
@@ -164,19 +164,14 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             default:
                 break;
             }
-            goto clamp_after_default;
-
-        clamp:
-            plasma_result = 0;
-        clamp_after_default:
             if (frag_max < frag_result) {
                 frag_result = frag_max;
             }
             if (plasma_max < plasma_result) {
                 plasma_result = plasma_max;
             }
-            *(uint8_t *)((uint8_t *)obj + 0x31e) = (uint8_t)frag_result;
-            *(uint8_t *)((uint8_t *)obj + 0x31f) = (uint8_t)plasma_result;
+            ((unit_object *)obj)->unit.grenade_counts[0] = (int8_t)frag_result;
+            ((unit_object *)obj)->unit.grenade_counts[1] = (int8_t)plasma_result;
 
         }
     }
@@ -300,7 +295,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         p->team_index = (int8_t)message.team;
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
                         unit_obj->owner_team = (int16_t)p->team;
-                        ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->controlling_player = owner_handle;
+                        (halo::game::unit_data_of(unit_obj))->controlling_player = owner_handle;
                         halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
 
                         if (p->local_player_index == -1) {
@@ -328,7 +323,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         halo::game::game_engine_apply_player_grenade_counts(player_handle);
 
                         {
-                            unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+                            unit_data *unit = halo::game::unit_data_of(unit_obj);
                             int32_t i;
                             for (i = 0; i < 4; i++) {
                                 int32_t weapon = message.weapon_pooled_ids[i] != 0
@@ -456,21 +451,21 @@ int32_t Notifications::get_multiplayer_sound_duration_ticks(int32_t sound_index)
 {
     GlobalsMultiplayerInformation *mp_info =
         (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
-    uint8_t *sound;
+    GlobalsSound *sound;
     uint32_t tag_id;
 
     if (mp_info == (GlobalsMultiplayerInformation *)0 || sound_index >= (int32_t)mp_info->sounds.count) {
         return 0;
     }
-    sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
-    if (sound == (uint8_t *)0) {
+    sound = (GlobalsSound *)mp_info->sounds.pointer + sound_index;
+    if (sound == (GlobalsSound *)0) {
         return 0;
     }
-    tag_id = *(uint32_t *)(sound + 0xc);
+    tag_id = *(uint32_t *)&sound->sound.tag_id;
     if (tag_id == halo::k_dword_none) {
         return 0;
     }
-    return (*(int32_t *)((uint8_t *)halo::game::tag_data_at(tag_id) + 0x84) * 30) / 1000;
+    return ((int32_t)((Sound *)halo::game::tag_data_at(tag_id))->longest_permutation_length * 30) / 1000;
 }
 
 /**
@@ -490,9 +485,9 @@ void Notifications::handle_sound_status_event(void *event)
                 (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
             if (mp_info != (GlobalsMultiplayerInformation *)0 &&
                 sound_index < (int32_t)mp_info->sounds.count) {
-                uint8_t *sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
-                if (sound != (uint8_t *)0 && *(int32_t *)(sound + 0xc) != -1) {
-                    halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+                GlobalsSound *sound = (GlobalsSound *)mp_info->sounds.pointer + sound_index;
+                if (sound != (GlobalsSound *)0 && *(int32_t *)&sound->sound.tag_id != -1) {
+                    halo::sound::sound_start_unspatialized(*(datum_index *)&sound->sound.tag_id, 1.0f);
                 }
             }
         }
@@ -536,13 +531,13 @@ void Notifications::multiplayer_sound_queue_tick(void)
 void Notifications::notify_item_expired(datum_index object_index)
 {
     object *obj = halo::game::object_at(object_index);
-    item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
-    uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
+    item_data *item = halo::game::item_data_of(obj);
+    uint32_t *extension_flags = &((weapon_object *)obj)->weapon.flags;
 
     if (obj->parent_object == (datum_index)halo::k_dword_none &&
         (item->flags & _item_in_inventory_bit) == 0 &&
-        (*extension_flags & 0x20) != 0) {
-        *extension_flags = *extension_flags & 0xffffffdf;
+        (*extension_flags & _weapon_game_expiry_armed_bit) != 0) {
+        *extension_flags = *extension_flags & ~(uint32_t)_weapon_game_expiry_armed_bit;
         if (current_game_engine != 0 && current_game_engine->object_expired != 0) {
             ((void (*)(datum_index))current_game_engine->object_expired)(object_index);
         }

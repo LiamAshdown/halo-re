@@ -69,10 +69,11 @@ wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
  */
 int32_t EngineHud::scoreboard_text_font(void)
 {
-    int32_t font = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x54);
+    HUDGlobals *messaging = (HUDGlobals *)hud_messaging_parameters;
+    int32_t font = *(int32_t *)&messaging->fullscreen_font.tag_id;
 
     if (local_player_globals->local_player_count > 1) {
-        int32_t preferred = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x64);
+        int32_t preferred = *(int32_t *)&messaging->splitscreen_font.tag_id;
 
         if (preferred != -1) {
             font = preferred;
@@ -147,9 +148,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     halo::game::hud_draw_world_relative_text(&params_result, 0, result_text, 0);
 
     params_default.alpha = opacity;
-    params_default.red = *(float *)((uint8_t *)hud_messaging_parameters + 0x74);
-    params_default.green = *(float *)((uint8_t *)hud_messaging_parameters + 0x78);
-    params_default.blue = *(float *)((uint8_t *)hud_messaging_parameters + 0x7c);
+    params_default.red = ((HUDGlobals *)hud_messaging_parameters)->icon_color.red;
+    params_default.green = ((HUDGlobals *)hud_messaging_parameters)->icon_color.green;
+    params_default.blue = ((HUDGlobals *)hud_messaging_parameters)->icon_color.blue;
     team_params[0].alpha = opacity;
     team_params[0].red = 0.6f;
     team_params[0].green = 0.3f;
@@ -430,13 +431,13 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
 {
     GlobalsMultiplayerInformation *mp_info =
         (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
-    uint8_t *sound;
+    GlobalsSound *sound;
 
     if (mp_info == (GlobalsMultiplayerInformation *)0 || sound_index >= (int32_t)mp_info->sounds.count) {
         return;
     }
-    sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
-    if (sound == (uint8_t *)0 || *(int32_t *)(sound + 0xc) == -1) {
+    sound = (GlobalsSound *)mp_info->sounds.pointer + sound_index;
+    if (sound == (GlobalsSound *)0 || *(int32_t *)&sound->sound.tag_id == -1) {
         return;
     }
 
@@ -445,11 +446,11 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
     }
 
     if (recipient_player == (datum_index)halo::k_dword_none || halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
-        halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+        halo::sound::sound_start_unspatialized(*(datum_index *)&sound->sound.tag_id, 1.0f);
     } else {
         player *p = (player *)halo::memory::datum_get(recipient_player, player_data);
         if (p != (player *)0 && p->local_player_index != -1) {
-            halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+            halo::sound::sound_start_unspatialized(*(datum_index *)&sound->sound.tag_id, 1.0f);
         }
     }
 }
@@ -509,7 +510,7 @@ void EngineHud::queue_status_sound_message(int32_t sound_index, datum_index reci
         if (recipient_player == (datum_index)halo::k_dword_none) {
             halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
         } else {
-            int32_t machine_id = (int8_t)*((uint8_t *)halo::game::player_at(recipient_player) + 0x64);
+            int32_t machine_id = (int8_t)halo::game::player_at(recipient_player)->machine_index;
             network_machine *machine = halo::networking::network_machine_find_by_id(halo::networking::globals().server, machine_id);
 
             if (machine != 0) {

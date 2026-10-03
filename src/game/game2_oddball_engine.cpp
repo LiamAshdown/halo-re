@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
@@ -29,7 +30,7 @@ static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::gam
 static auto &king_alt_team_scores_network2 = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network2);
 static auto &king_alt_player_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_player_scores_network);
 static auto &king_alt_scores_network_tail = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_scores_network_tail);
-static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint []>(halo::game::vars().custom_waypoints);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 namespace halo::game {
@@ -172,7 +173,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
 
         if (oddball_is_carrier(victim) || oddball_is_carrier(killer)) {
             if (oddball_is_carrier(victim)) {
-                (*(int16_t *)(killer_player + 0xc6))++;
+                (((struct player *)killer_player)->objective_time_words.race_laps)++;
             } else {
                 (killer_player->objective_score)++;
             }
@@ -231,7 +232,7 @@ void OddballEngine::player_new_life(datum_index player_index)
  */
 void OddballEngine::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
         king_alt_player_score[player_index & halo::k_datum_slot_mask] = 0;
@@ -261,8 +262,8 @@ void OddballEngine::skip_unchanged_message(message_delta_decode_state *state)
  */
 uint8_t OddballEngine::read_changed(void **context, void *changed_base, void *destination)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, halo::networking::delta_context(context)->changed, (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -283,7 +284,7 @@ uint8_t OddballEngine::read_changed(void **context, void *changed_base, void *de
  */
 void OddballEngine::profile_post_update(void **context)
 {
-    message_delta_decode_state *state = (message_delta_decode_state *)context[0];
+    message_delta_decode_state *state = halo::networking::delta_context(context)->state;
     uint8_t changed;
     int32_t i;
 
@@ -321,7 +322,7 @@ void OddballEngine::profile_post_update(void **context)
 uint8_t OddballEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = halo::game::players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {
@@ -385,7 +386,7 @@ void OddballEngine::reset_objects(void)
         }
     }
     for (i = 0; i < count; i++) {
-        memset(custom_waypoints + (int16_t)i * 0x20, 0, 0x20);
+        memset(&custom_waypoints[(int16_t)i], 0, sizeof(custom_waypoint));
     }
 }
 
@@ -441,27 +442,27 @@ void OddballEngine::unknown_48(void)
         return;
     }
     for (i = 0; i < count; i++) {
-        uint8_t *waypoint = custom_waypoints + (int16_t)i * 0x20;
+        custom_waypoint *waypoint = &custom_waypoints[(int16_t)i];
         datum_index carrier = king_hill_occupant_table[i];
         datum_index unit_index;
         uint8_t *unit;
 
         if (carrier == halo::k_dword_none) {
-            memset(waypoint, 0, 0x20);
+            memset(waypoint, 0, sizeof(*waypoint));
             continue;
         }
         unit_index = halo::game::player_at(carrier)->unit;
         if (unit_index == halo::k_dword_none) {
             continue;
         }
-        unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
-        *(datum_index *)(waypoint + 0x18) = carrier;
-        *(int16_t *)(waypoint + 0x1c) = halo::interface::hud_waypoint_arrow_find("target_blue");
-        waypoint[0x0c] = 1;
-        *(real_point3d *)waypoint = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
-        *(float *)(waypoint + 0x08) += 0.63f;
-        *(int16_t *)(waypoint + 0x14) = -1;
-        *(int32_t *)(waypoint + 0x10) = -1;
+        unit = (uint8_t *)halo::game::object_at(unit_index);
+        waypoint->owner = carrier;
+        waypoint->icon = halo::interface::hud_waypoint_arrow_find("target_blue");
+        waypoint->active = 1;
+        waypoint->position = *(real_point3d *)&((unit_object *)unit)->base.bounding_center.x;
+        waypoint->position.z += 0.63f;
+        waypoint->team = -1;
+        waypoint->player = (datum_index)-1;
     }
 }
 

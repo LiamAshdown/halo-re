@@ -78,15 +78,15 @@ void EngineHud::post_rasterize_post_game(void)
     int32_t row;
     Rectangle2D rect;
     GlobalsInterfaceBitmaps *interface_bitmaps;
-    uint8_t *hud_globals;
-    uint8_t *quad_tag;
+    HUDGlobals *hud_globals;
+    Bitmap *quad_tag;
     wchar_t *col_a, *col_b, *col_c, *col_d, *col_e;
 
     if (current_game_engine == 0) {
         return;
     }
 
-    hud_text_draw_font_tag_id = *(uint32_t *)((uint8_t *)hud_globals_tag_data + 0x54);
+    hud_text_draw_font_tag_id = *(uint32_t *)&((HUDGlobals *)hud_globals_tag_data)->fullscreen_font.tag_id;
     post_game_set_text_color(color_normal);
     hud_text_draw_color_or_flags = 0xffffu;
     halo::text::globals().hud_text_draw_column = 0;
@@ -95,14 +95,14 @@ void EngineHud::post_rasterize_post_game(void)
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
         ? (GlobalsInterfaceBitmaps *)0
         : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    hud_globals = (uint8_t *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
-    quad_tag = (uint8_t *)halo::game::tag_data_at(*(uint32_t *)(hud_globals + 0x3d4));
+    hud_globals = (HUDGlobals *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
+    quad_tag = (Bitmap *)halo::game::tag_data_at(*(uint32_t *)&hud_globals->carnage_report_bitmap.tag_id);
     rect.top = 0;
     rect.left = 0;
     rect.bottom = 0x1e0;
     rect.right = 0x280;
-    if (quad_tag != 0 && *(int32_t *)(quad_tag + 0x60) > 0 && *(int32_t *)(quad_tag + 0x64) != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, *(int32_t *)(quad_tag + 0x64), 0, halo::k_dword_none);
+    if (quad_tag != 0 && (int32_t)quad_tag->bitmap_data.count > 0 && quad_tag->bitmap_data.pointer != 0) {
+        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)quad_tag->bitmap_data.pointer, 0, halo::k_dword_none);
     }
 
     if (game_engine_variant.teams != 0) {

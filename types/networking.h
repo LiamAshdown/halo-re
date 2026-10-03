@@ -427,6 +427,24 @@ typedef struct network_player_entry {
 } network_player_entry;          // size 0x20
 
 // ---------------------------------------------------------------------------
+// network_join_request  (0x90 bytes; message 0x0e, the answer to a join challenge)
+// What a client sends the host to join: the version canary the host checks (0x4e21d0 compares the first 16
+// bytes), the 8 character password, the CD key response (network_join_request_reset_state), the channel rate and
+// the player entry the host adds. The client (0x4d94c0) follows it with its 0x1ffc-byte profile.
+// ---------------------------------------------------------------------------
+typedef struct network_join_request {
+    uint32_t session_key[4];     // 0x00 the version canary
+    uint16_t password[8];        // 0x10 UTF-16 password attempt
+    uint16_t password_terminator; // 0x20 the host forces it to 0
+    uint8_t cd_key_response[0x6b - 0x22]; // 0x22 gcd_compute_response of the challenge
+    uint8_t rate_index;          // 0x6b the client's network rate; becomes network_channel::rate_index
+    uint8_t unknown_6c[2];       // 0x6c
+    network_player_entry player; // 0x6e the player to add; name[11] is the terminator
+    uint8_t unknown_8e[2];       // 0x8e
+} network_join_request;          // size 0x90
+typedef char network_join_request_size[sizeof(network_join_request) == 0x90 ? 1 : -1];
+
+// ---------------------------------------------------------------------------
 // network_game_session  (0x4de470 network_channel_table_initialize, 0x4e1820 defaults)
 // The block both the server and the client embed: the advertised server name, the
 // live game variant and the 16-row player table. The variant offset is confirmed
@@ -448,7 +466,9 @@ typedef struct network_game_session {
                                //    session+0x19e; host_new seeds it from pending_difficulty 0x696564
     int16_t player_count;      // 0x1a0 the value the summary log averages
     network_player_entry players[16]; // 0x1a2
-    uint8_t unknown_3a2[10];   // 0x3a2
+    uint8_t unknown_3a2[2];    // 0x3a2
+    uint32_t salt;             // 0x3a4 random per hosted game; the client copies it from its own session
+    int32_t session_counter;   // 0x3a8 host_new sets -1, then it counts up once per new round
     uint8_t map_loaded;        // 0x3ac 0x4de6d0 sets 1 after scenario_load/game_start_new_map (0 on key-open failure)
                                //    and returns it; dispatch/shutdown load the UI map when set then clear
     uint8_t pad_3ad[3];        // 0x3ad
@@ -1120,12 +1140,23 @@ typedef struct message_delta_decode_state {
     uint8_t more_items;        // 0x1c the drain loop stops when this clears
     uint8_t changed;           // 0x1d every delta handler stores 1 here after decoding
     uint8_t pad_1e[2];         // 0x1e
-} message_delta_decode_state;  // size 0x20
-// The decode context itself (EAX or EDX in the 0x4e5390..0x4e6510 handlers) is an
-// array of pointers: slot 0 is this record, slot 1 onward is the field-binding list
-// handed to message_delta_read_changed_subfields as (context + 1), and slot 0x11 is
-// a remote_player_update_header *. It is left untyped because only those three slots
-// are ever touched and its size is not pinned by anything in the image.
+    int32_t item_count_bits;   // 0x20 bits of the item count field (0 when the message holds one item)
+    int32_t parameter_bits;    // 0x24 bits of the protocol parameter prefix: 3 with parameters enabled, else 0
+    int32_t message_type_bits; // 0x28 bits of the message type field: 6
+    int32_t incremental_bits;  // 0x2c bits of the incremental flag: 1
+    int32_t unknown_30;        // 0x30
+} message_delta_decode_state;  // size 0x34
+typedef char message_delta_decode_state_size[sizeof(message_delta_decode_state) == 0x34 ? 1 : -1];
+
+// The decode context the 0x4e5390..0x4e6510 handlers receive (EAX or EDX): the state being decoded, the
+// per-field changed flags message_delta_read_changed_subfields fills (it is handed `changed`) and the record
+// the handler decodes into, a remote_player_update_header * for the remote player messages.
+typedef struct message_delta_context {
+    message_delta_decode_state *state; // 0x00
+    uint8_t changed[0x40];             // 0x04 one flag per field of the message definition
+    void *target;                      // 0x44
+} message_delta_context;               // size 0x48
+typedef char message_delta_context_size[sizeof(message_delta_context) == 0x48 ? 1 : -1];
 
 // ---------------------------------------------------------------------------
 // remote_player_update_header

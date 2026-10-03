@@ -475,6 +475,7 @@ char * AutopatchUpdater::get_proxy_settings(void)
     if (token == 0) {
         return autopatch_proxy_server;
     }
+    proxy = 0;
     do {
         token_count++;
         if (strstr(token, "http=") == token) {
@@ -482,16 +483,16 @@ char * AutopatchUpdater::get_proxy_settings(void)
             if (proxy == 0) {
                 return autopatch_proxy_server;
             }
-            goto copy_proxy;
+            break;
         }
         token = strtok(0, " ;");
     } while (token != 0);
-    if (token_count <= 0) {
-        return autopatch_proxy_server;
+    if (proxy == 0) {
+        if (token_count <= 0) {
+            return autopatch_proxy_server;
+        }
+        proxy = proxy_list;
     }
-    proxy = proxy_list;
-
-copy_proxy:
     while (strstr(proxy, "http://") == proxy) {
         proxy += 7;
     }

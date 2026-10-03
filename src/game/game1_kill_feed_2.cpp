@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "game.h"
+#include "networking.h"
 #include "objects.h"
 
 #include "halo/game/game1_kill_feed.hpp"
@@ -57,25 +58,21 @@ void KillFeed::notify_kill_event(uint32_t player_index, int32_t hash_key, int32_
     if (0 < encoded_size) {
         player *p = halo::game::player_at(player_index);
         uint8_t player_machine_field = *(uint8_t *)&p->machine_index;
-        int16_t *machine = (int16_t *)(network_server + 0x3c4);
+        network_server_globals *server = (network_server_globals *)network_server;
         int32_t i = 0;
 
-        while ((int32_t)*machine != (int32_t)(int8_t)player_machine_field) {
+        while ((int32_t)server->machines[i].machine_id != (int32_t)(int8_t)player_machine_field) {
             i = i + 1;
-            machine = machine + 0x30;
             if (0xf < i) {
                 return;
             }
         }
 
         {
-            uint8_t *entry = network_server + 0x3b8 + i * 0x60;
-            if (entry != 0) {
-                uint8_t flags = (uint8_t)*(uint16_t *)(entry + 0xe);
-                if (((flags >> 1) & 1) != 0 && ((flags >> 2) & 1) != 0) {
-                    halo::networking::network_session_send_to_machine((int32_t)(int8_t)player_machine_field, (network_server_globals *)network_server, 1, network_message_scratch,
-                                                    (uint32_t)encoded_size, 1, 0, 0, 3);
-                }
+            uint8_t flags = server->machines[i].flags;
+            if (((flags >> 1) & 1) != 0 && ((flags >> 2) & 1) != 0) {
+                halo::networking::network_session_send_to_machine((int32_t)(int8_t)player_machine_field, server, 1, network_message_scratch,
+                                                (uint32_t)encoded_size, 1, 0, 0, 3);
             }
         }
     }

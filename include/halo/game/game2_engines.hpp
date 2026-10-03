@@ -62,7 +62,7 @@ public:
 
 private:
     static const uint16_t * game_text(int16_t index);
-    static uint8_t * player_if_valid(datum_index handle);
+    static ::player * player_if_valid(datum_index handle);
     static void add_score(datum_index player_index, int32_t delta);
     static void skip_unchanged_message(message_delta_decode_state *state);
     static uint8_t read_changed(void **context, void *changed_base, void *destination);

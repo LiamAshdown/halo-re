@@ -33,39 +33,40 @@ namespace halo::game {
 void UpdateServer::push_player_tick_history()
 {
     int32_t tick = update_server_tick;
-    uint8_t *slot;
+    update_record *record;
     uint16_t *count;
     data_iterator iterator;
-    uint8_t *queue;
+    update_server_queue *entry;
 
     update_server_tick = tick + 1;
-    slot = (tick < tick + 1 && tick >= (tick + 1) - 0x20)
-        ? (uint8_t *)update_server_history + (tick & 0x1f) * 0x308 : 0;
-    *(int32_t *)slot = tick;
-    count = (uint16_t *)(slot + 4);
+    record = (tick < tick + 1 && tick >= (tick + 1) - 0x20)
+        ? (update_record *)((uint8_t *)update_server_history + (tick & 0x1f) * sizeof(update_record)) : 0;
+    record->tick = tick;
+    count = &record->player_count;
     *count = 0;
 
     iterator.data = update_server_queues;
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)update_server_queues ^ halo::game::k_iterator_signature_key;
-    for (queue = (uint8_t *)halo::memory::data_iterator_next(&iterator); queue != 0; queue = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
-        int32_t read = *(int32_t *)(queue + 0x38);
-        uint32_t *record = 0;
+    for (entry = (update_server_queue *)halo::memory::data_iterator_next(&iterator); entry != 0; entry = (update_server_queue *)halo::memory::data_iterator_next(&iterator)) {
+        circular_queue *ring = &entry->queue.queue;
+        int32_t read = ring->read_index;
+        uint32_t *queued = 0;
         uint8_t have = 0;
-        uint32_t *summary = (uint32_t *)(slot + 0x208 + *count * 0x10);
+        client_update_carry *summary = &record->carry[*count];
         int32_t i;
 
-        if (read != *(int32_t *)(queue + 0x34)) {
-            record = ((uint32_t **)*(uint32_t *)(queue + 0x30))[read];
+        if (read != ring->write_index) {
+            queued = ((uint32_t **)ring->records)[read];
             have = 1;
-            record[1] -= 1;
-            if (record[1] == 0) {
-                if (read != *(int32_t *)(queue + 0x34)) {
-                    record = ((uint32_t **)*(uint32_t *)(queue + 0x30))[read];
-                    *(int32_t *)(queue + 0x38) = (read + 1) % *(int32_t *)(queue + 0x28);
+            queued[1] -= 1;
+            if (queued[1] == 0) {
+                if (read != ring->write_index) {
+                    queued = ((uint32_t **)ring->records)[read];
+                    ring->read_index = (read + 1) % ring->capacity;
                 } else {
-                    record = 0;
+                    queued = 0;
                     have = 0;
                 }
             }
@@ -73,31 +74,31 @@ void UpdateServer::push_player_tick_history()
                 uint32_t local_record[11];
 
                 for (i = 0; i < 11; i++) {
-                    local_record[i] = record[i];
+                    local_record[i] = queued[i];
                 }
-                for (i = 0; i < 8; i++) {
-                    ((uint32_t *)(queue + 0x44))[i] = local_record[3 + i];
-                }
-                queue[0x40] = 1;
-                for (i = 0; i < 8; i++) {
-                    ((uint32_t *)(queue + 8))[i] = local_record[3 + i];
-                    ((uint32_t *)(slot + 8 + *count * 0x20))[i] = local_record[3 + i];
-                }
-                summary[0] = 1u | (uint32_t)(local_record[1] == 0) << 8;
-                summary[1] = local_record[0];
-                summary[2] = local_record[2];
-                summary[3] = local_record[1];
+                memcpy(entry->queue.current, &local_record[3], sizeof(entry->queue.current));
+                entry->queue.has_current = 1;
+                memcpy(&entry->last_action, &local_record[3], sizeof(entry->last_action));
+                memcpy(&record->actions[*count], &local_record[3], sizeof(player_action));
+                summary->flag_a = 1;
+                summary->flag_b = (local_record[1] == 0);
+                summary->pad_02[0] = 0;
+                summary->pad_02[1] = 0;
+                summary->field1 = (int32_t)local_record[0];
+                summary->field2 = (int32_t)local_record[2];
+                summary->field3 = (int32_t)local_record[1];
                 *count += 1;
                 continue;
             }
         }
-        for (i = 0; i < 8; i++) {
-            ((uint32_t *)(slot + 8 + *count * 0x20))[i] = ((uint32_t *)(queue + 8))[i];
-        }
-        summary[0] = 0;
-        summary[1] = halo::k_dword_none;
-        summary[2] = 0;
-        summary[3] = 0;
+        memcpy(&record->actions[*count], &entry->last_action, sizeof(player_action));
+        summary->flag_a = 0;
+        summary->flag_b = 0;
+        summary->pad_02[0] = 0;
+        summary->pad_02[1] = 0;
+        summary->field1 = (int32_t)halo::k_dword_none;
+        summary->field2 = 0;
+        summary->field3 = 0;
         *count += 1;
     }
     UpdateClient::advance_read_cursor(tick, (const uint32_t *)count);

@@ -184,7 +184,7 @@ void Koth::alt_scorer_tick(uint32_t player_index)
  */
 void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
 {
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *item = halo::game::item_data_of(obj);
     real_point3d position;
     object_header *hdr;
     int32_t tick;
@@ -206,29 +206,27 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
             return;
         }
-        if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)halo::k_dword_none) {
-            goto check_relocation;
-        }
-        if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
-            data_iterator iter;
-            void *element;
-            iter.data = halo::objects::globals().object_data;
-            iter.next_index = 0;
-            iter.index = (datum_index)halo::k_dword_none;
-            iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-            element = halo::memory::data_iterator_next(&iter);
-            while (element != 0) {
-                halo::game::chimera__kill_feed((datum_index)halo::k_dword_none, 0x26, (uint32_t)halo::k_dword_none, 1, 0);
+        if (halo::items::weapon_must_be_readied((datum_index)object_handle) != 0 && (obj->flags >> 0xb & 1) != 0 && obj->parent_object == (datum_index)halo::k_dword_none) {
+            if ((((weapon_object *)obj)->weapon.flags & _weapon_game_object_taken_bit) != 0) {
+                data_iterator iter;
+                void *element;
+                iter.data = halo::objects::globals().object_data;
+                iter.next_index = 0;
+                iter.index = (datum_index)halo::k_dword_none;
+                iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
                 element = halo::memory::data_iterator_next(&iter);
+                while (element != 0) {
+                    halo::game::chimera__kill_feed((datum_index)halo::k_dword_none, 0x26, (uint32_t)halo::k_dword_none, 1, 0);
+                    element = halo::memory::data_iterator_next(&iter);
+                }
             }
+            halo::game::game_engine_koth_relocate_object_hill(object_handle);
         }
-        halo::game::game_engine_koth_relocate_object_hill(object_handle);
     }
     tick = game_time->game_time;
     if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
-check_relocation:
     if (game_engine_variant.engine.oddball.ball_type < 1 || game_engine_variant.engine.oddball.ball_type > 2) {
         int16_t team = ((object *)obj)->owner_team;
         if (king_hill_occupant_last_tick[team] == -1 ||
@@ -693,7 +691,7 @@ uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_i
             uint16_t found = halo::units::unit_find_weapon_index_by_flag((uint32_t)p->unit, 3);
             eligible = 1 - (found != 0);
             if (eligible != 0) {
-                *(uint32_t *)((uint8_t *)obj + 0x22c) |= 0x40;
+                ((weapon_object *)obj)->weapon.flags |= _weapon_game_object_taken_bit;
             }
         }
         return eligible;
@@ -755,7 +753,7 @@ void Koth::player_tick(uint32_t player_index)
 
         king_hill_player_in_hill[idx] = 1;
         if (hosting) {
-            *(int16_t *)&((struct player *)p)->objective_time += 1;
+            ((struct player *)p)->objective_time_words.low += 1;
         }
 
         if (king_bucket_last_credit_tick[p->team] < game_time->game_time && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
@@ -845,7 +843,7 @@ void Koth::relocate_object_hill(uint32_t object_index)
             halo::game::game_engine_queue_multiplayer_sound(0x1e, halo::k_dword_none, 1);
         }
         halo::game::ctf_flag_object_clear_carrier(object_index, &discarded_position);
-        *(uint32_t *)((uint8_t *)obj + 0x22c) &= 0xffffffbf;
+        ((weapon_object *)obj)->weapon.flags &= ~(uint32_t)_weapon_game_object_taken_bit;
     }
 }
 
@@ -864,6 +862,57 @@ void Koth::reset_hill_marker_history(void)
         king_hill_markers.state[i] = 0;
     }
 }
+
+#pragma pack(push, 1)
+/** One 0x44-byte vertex of the hill marker quad as the dynamic vertex cache holds it. */
+struct hill_marker_vertex {
+    real_point3d position;       // 0x00
+    real_vector3d normal;        // 0x0c
+    real_vector3d tangent;       // 0x18
+    uint32_t unknown_24[5];      // 0x24
+    uint16_t unknown_38;         // 0x38
+    uint16_t unknown_3a;         // 0x3a
+    uint32_t center_bits[2];     // 0x3c both k_float_half_bits (0.5f)
+};
+static_assert(sizeof(hill_marker_vertex) == 0x44);
+
+/** The 0x74-byte shading block of the marker draw record, copied verbatim from the position override. */
+struct hill_marker_shading {
+    real_vector3d tint;          // 0x00
+    uint16_t unknown_0c;         // 0x0c
+    uint8_t unknown_0e[0x42 - 0x0e];
+    uint16_t unknown_42;         // 0x42
+    uint16_t unknown_44;         // 0x44
+    ColorARGB color;             // 0x46
+    real_vector3d axis;          // 0x56
+    uint32_t unknown_62;         // 0x62
+    uint32_t scale_bits;         // 0x66 1.0f in the default block
+    uint32_t unknown_6a;         // 0x6a
+    uint8_t unknown_6e[0x74 - 0x6e];
+};
+static_assert(sizeof(hill_marker_shading) == 0x74);
+
+/** The 0xd8-byte draw record Koth::submit_hill_marker_geometry fills in for the marker model draw. */
+struct hill_marker_draw_record {
+    uint32_t unknown_00;         // 0x00
+    uint32_t unknown_04;         // 0x04 set to 1
+    uint16_t unknown_08;         // 0x08 set to 1
+    void *matrix;                // 0x0a k_render_identity_matrix_ptr
+    hill_marker_shading shading; // 0x0e
+    uint8_t unknown_82[0x98 - 0x82];
+    float center[3];             // 0x98 the centroid of the four vertices
+    uint8_t unknown_a4[0xc8 - 0xa4];
+    void *position_table;        // 0xc8 the orientation override's first word, else the hill marker positions
+    void *state_table;           // 0xcc the orientation override's second word, else the hill marker states
+    uint32_t param_4;            // 0xd0
+    uint32_t param_5;            // 0xd4
+};
+#pragma pack(pop)
+static_assert(sizeof(hill_marker_draw_record) == 0xd8);
+static_assert(offsetof(hill_marker_draw_record, shading) == 0x0e);
+static_assert(offsetof(hill_marker_draw_record, center) == 0x98);
+static_assert(offsetof(hill_marker_draw_record, position_table) == 0xc8);
+static_assert(offsetof(hill_marker_draw_record, param_5) == 0xd4);
 
 /**
  * Draws one quad of the moving King-of-the-Hill marker with the given shader tag. The four source vertices
@@ -1010,6 +1059,11 @@ void Koth::update_hill_occupancy_state(void)
 {
     data_iterator iter;
     void *element;
+    auto check_streak = []() {
+        if (king_hill_state_globals.hill_ticks == 300) {
+            halo::game::game_engine_queue_multiplayer_sound(0x28, halo::k_dword_none, 1);
+        }
+    };
 
     iter.data = player_data;
     iter.next_index = 0;
@@ -1053,7 +1107,8 @@ void Koth::update_hill_occupancy_state(void)
                     king_hill_state_globals.occupant = (datum_index)occupant;
                 }
                 king_hill_state_globals.hill_state = _king_hill_held;
-                goto check_streak;
+                check_streak();
+                return;
             }
         }
         king_hill_state_globals.hill_state = _king_hill_empty;
@@ -1093,7 +1148,8 @@ void Koth::update_hill_occupancy_state(void)
             if (king_hill_state_globals.hill_state == _king_hill_team_0) {
                 king_hill_state_globals.hill_ticks++;
                 king_hill_state_globals.hill_state = new_state;
-                goto check_streak;
+                check_streak();
+                return;
             }
         } else {
             if (team0_count != 0) {
@@ -1108,16 +1164,14 @@ void Koth::update_hill_occupancy_state(void)
             if (king_hill_state_globals.hill_state == _king_hill_team_1) {
                 king_hill_state_globals.hill_ticks++;
                 king_hill_state_globals.hill_state = new_state;
-                goto check_streak;
+                check_streak();
+                return;
             }
         }
         king_hill_state_globals.hill_ticks = 0;
         king_hill_state_globals.hill_state = new_state;
     }
-check_streak:
-    if (king_hill_state_globals.hill_ticks == 300) {
-        halo::game::game_engine_queue_multiplayer_sound(0x28, halo::k_dword_none, 1);
-    }
+    check_streak();
 }
 
 /**
