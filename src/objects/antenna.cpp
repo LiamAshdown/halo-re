@@ -463,9 +463,9 @@ void halo::objects::AntennaView::render_geometry(Antenna *antenna_tag)
         direction.i = ant->vertices[i + 1].position.x - vertex->position.x;
         direction.j = ant->vertices[i + 1].position.y - vertex->position.y;
         direction.k = ant->vertices[i + 1].position.z - vertex->position.z;
-        color = *(ColorARGB *)(tag_vertex + 0x2c);
+        color = ((struct AntennaVertex *)tag_vertex)->color;
         if (vertex->texture_scale != 0.0f && fade > 0.0f) {
-            build_sprite(&data, *(int16_t *)(tag_vertex + 0x28), 0, 1, &vertex->position, &direction, 0.0f,
+            build_sprite(&data, (int16_t)((struct AntennaVertex *)tag_vertex)->sequence_index, 0, 1, &vertex->position, &direction, 0.0f,
                 vertex->texture_scale, &color, fade, 0);
         }
     }

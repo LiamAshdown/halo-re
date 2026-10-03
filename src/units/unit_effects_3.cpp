@@ -94,8 +94,8 @@ uint32_t UnitView::update_marker_traction_effects()
     matrix4x3_from_forward_up((real_vector3d *)&((struct object *)obj)->up, (real_vector3d *)&((struct object *)obj)->forward, &basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 
-    for (i = 0; (int32_t)i < *(int32_t *)(node_array + 0x68); i++) {
-        uint8_t *entry = *(uint8_t **)(node_array + 0x6c) + (int32_t)i * 0x14;
+    for (i = 0; (int32_t)i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.count; i++) {
+        uint8_t *entry = (uint8_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)node_array)->suspension_animations.pointer + (int32_t)i * 0x14;
         int16_t contact_index = *(int16_t *)entry;
         uint8_t *mass_point;
         uint8_t old_byte;

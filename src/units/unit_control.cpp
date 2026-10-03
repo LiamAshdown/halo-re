@@ -1142,7 +1142,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             if (keep_still) {
                 ((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks = 0;
             } else {
-                int16_t frames = *(int16_t *)(animation_data + 0x22);
+                int16_t frames = (int16_t)((struct ModelAnimationsAnimation *)animation_data)->frame_count;
                 int8_t ticks = (int8_t)random_int_range((int16_t)(frames >> 2),
                     (int16_t)((frames >> 1) + (frames >> 2)));
 
@@ -1150,7 +1150,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             }
         }
         if ((int16_t)facing != 0 &&
-            *(int16_t *)(animation_data + 0x42) ==
+            (int16_t)((struct ModelAnimationsAnimation *)animation_data)->main_animation_index ==
                 animation_table_lookup(graph, (int16_t)stance_class * 0x2c + (int16_t)weapon_class)) {
             facing = 0;
         }

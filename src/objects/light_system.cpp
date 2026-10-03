@@ -347,13 +347,13 @@ void halo::objects::LightSystem::update_all()
 
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
             tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
-            color_interpolate_argb_with_tint(*(uint32_t *)&((struct Unit *)tag)->base.model.tag_id, tag + 0x48, color, tint, tag + 0x38, t);
+            color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
             blend = t;
         } else {
             int32_t age_ticks = tick - ((struct light *)light)->marker_link;
             float phase = (float)age_ticks / *(float *)(tag + 0xf4);
             t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->transient_color_scale;
-            color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)&((struct Unit *)tag)->base.model.tag_id, t);
+            color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
 
             memcpy(&blend, &age_ticks, sizeof(blend));
         }
@@ -381,7 +381,7 @@ void halo::objects::LightSystem::update_all()
         }
 
         if ((light[2] & 1) != 0) {
-            float intensity = ((1.0f - blend) * *(float *)(tag + 8) + blend * ((struct Unit *)tag)->base.bounding_offset.y) * *(float *)(tag + 4);
+            float intensity = ((1.0f - blend) * *(float *)(tag + 8) + blend * *(float *)(tag + 0xc)) * *(float *)(tag + 4);
 
             ((struct light *)light)->radius = intensity;
             if (intensity != 0.0f) {

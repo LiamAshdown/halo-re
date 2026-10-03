@@ -1,9 +1,9 @@
 #include "halo/objects/object_ref.hpp"
-#include "halo/core/network_constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/core/network_constants.hpp"
 #include "game.h"
 #include "units.h"
 #include "networking.h"
@@ -480,7 +480,7 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
         object *parent = object_try_and_get(obj->parent_object, _object_mask_all);
         if (parent != 0) {
 
-            object_remove_from_sibling_list((datum_index *)&((struct object *)parent)->first_child_object, object_index);
+            object_remove_from_sibling_list((datum_index *)((uint8_t *)parent + 0x118), object_index);
         }
     }
 
@@ -1283,9 +1283,9 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
 
                             c = cos(angle + 0.7853982);
 
-                            if (delta.i * ((struct unit_object *)extended)->unit.desired_aiming_vector.i +
-                                delta.j * ((struct unit_object *)extended)->unit.desired_aiming_vector.j +
-                                delta.k * ((struct unit_object *)extended)->unit.desired_aiming_vector.k <= c) {
+                            if (delta.i * *(float *)(extended + 0x230) +
+                                delta.j * *(float *)(extended + 0x234) +
+                                delta.k * *(float *)(extended + 0x238) <= c) {
                                 zone_index = datum_next((int16_t)zone_index, player_data);
                                 continue;
                             }

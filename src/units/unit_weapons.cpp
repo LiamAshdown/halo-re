@@ -760,10 +760,10 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
             break;
         }
     }
-    if (block == 0 || *(int32_t *)(block + 0x40) <= 7) {
+    if (block == 0 || (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count <= 7) {
         return 0;
     }
-    enter_animation = (*(int16_t **)(block + 0x44))[7];
+    enter_animation = ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[7];
     if (enter_animation == -1) {
         return 0;
     }
@@ -1203,8 +1203,8 @@ void UnitView::ready_desired_weapon(uint8_t force)
                 OBJECT_HEADER(desired_weapon).flags |= 2;
             }
         }
-        object_reorient_relative_to_marker(unit_index, (char *)(weapon_anim + 0x40), desired_weapon,
-            (char *)(weapon_anim + 0x20));
+        object_reorient_relative_to_marker(unit_index, (char *)&((struct ModelAnimationsAnimationGraphUnitSeat *)weapon_anim)->animations, desired_weapon,
+            (char *)&((struct ModelAnimationsAnimationGraphUnitSeat *)weapon_anim)->right_yaw_per_frame);
         desired = ((unit_object *)unit)->unit.desired_weapon_index;
         ((unit_object *)unit)->unit.current_weapon_index = desired;
         if (desired != -1) {

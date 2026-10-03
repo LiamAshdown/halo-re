@@ -172,8 +172,8 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
         uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
 
         if (*(int16_t *)(tag + 0x6e) > 0 && *(int32_t *)(tag + 0x120) > 0 &&
-            ((int16_t)((struct Unit *)tag)->base.animation_graph.tag_id.index == 0 || function_context == 0 ||
-             *(float *)(*(int32_t *)(function_context + 4) - 4 + (int16_t)((struct Unit *)tag)->base.animation_graph.tag_id.index * 4) > 0.0f)) {
+            (*(int16_t *)(tag + 0x44) == 0 || function_context == 0 ||
+             *(float *)(*(int32_t *)(function_context + 4) - 4 + *(int16_t *)(tag + 0x44) * 4) > 0.0f)) {
             object_marker marker;
 
             object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
@@ -261,7 +261,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
         fade = clamp01((distance - *(float *)(tag + 0x38)) / (*(float *)(tag + 0x34) - *(float *)(tag + 0x38)));
     }
     brightness = clamp01((1.0f - facing) * *(float *)(tag + 0x3c) + facing * *(float *)(tag + 0x40)) * fade;
-    if (object_function_get_value(object_index, (int16_t)(((struct Unit *)tag)->base.animation_graph.tag_id.index - 1), &function_value)) {
+    if (object_function_get_value(object_index, (int16_t)(*(uint16_t *)(tag + 0x44) - 1), &function_value)) {
         brightness *= function_value;
     }
     if (brightness <= 0.0f) {
@@ -421,14 +421,14 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
         tag = (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
     }
 
-    if ((int32_t)((struct Unit *)tag)->base.modifier_shader.path_size <= 0) {
+    if (*(int32_t *)(tag + 0x98) <= 0) {
         return;
     }
 
     {
         object_marker root_marker;
         int16_t markers_ok = (int16_t)object_get_node_local_transform(
-            object_index, (char *)*(uint32_t *)&((struct Unit *)tag)->base.modifier_shader.tag_id, &root_marker, 1);
+            object_index, (char *)*(uint32_t *)(tag + 0x9c), &root_marker, 1);
         if (markers_ok <= 0) {
             return;
         }
@@ -436,7 +436,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         uint32_t shader_something = *(uint32_t *)(
-            (uint8_t *)tag_instances[halo::datum_slot(((struct Unit *)tag)->base.animation_graph.path_size)].data + 100);
+            (uint8_t *)tag_instances[halo::datum_slot(*(uint32_t *)(tag + 0x40))].data + 100);
         int32_t device = texture_cache_get(0, 1);
 
         int16_t shard;
@@ -459,8 +459,8 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                 }
             }
 
-            for (marker_index = 0; marker_index < (int32_t)((struct Unit *)tag)->base.modifier_shader.path_size; marker_index++) {
-                uint8_t *marker_tag = (uint8_t *)*(uint32_t *)&((struct Unit *)tag)->base.modifier_shader.tag_id + marker_index * 0xe4;
+            for (marker_index = 0; marker_index < *(int32_t *)(tag + 0x98); marker_index++) {
+                uint8_t *marker_tag = *(uint8_t **)(tag + 0x9c) + marker_index * 0xe4;
 
                 if (first_marker) {
                     object_marker m;
@@ -475,7 +475,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                     first_marker = 0;
                 }
 
-                if ((marker_tag[0x20] & 1) == 0 && marker_index != (int32_t)((struct Unit *)tag)->base.modifier_shader.path_size - 1) {
+                if ((marker_tag[0x20] & 1) == 0 && marker_index != *(int32_t *)(tag + 0x98) - 1) {
                     uint16_t octaves = *(uint16_t *)(marker_tag + 0x24);
                     uint8_t *next_marker_tag = marker_tag + 0xe4;
                     object_marker m;

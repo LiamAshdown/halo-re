@@ -416,7 +416,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         orientations = (real_orientation *)(obj + ((struct object *)obj)->node_function_defaults.offset);
     }
 
-    if (OFS(def, 0x34, int32_t) == -1) {
+    if (*(int32_t *)&((struct Object *)def)->model.tag_id == -1) {
 
         nodes[0].scale = 1.0f;
         nodes[0].forward = ((struct object *)obj)->forward;
@@ -424,7 +424,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         vector3d_cross_product(&nodes[0].left, &nodes[0].forward, &nodes[0].up);
         nodes[0].position = ((struct object *)obj)->position;
     } else {
-        uint8_t *model = TAG_DATA(OFS(def, 0x34, uint32_t));
+        uint8_t *model = TAG_DATA(*(uint32_t *)&((struct Object *)def)->model.tag_id);
         real_matrix4x3 *parent_matrix = 0;
         uint8_t absolute_root = 0;
         int16_t queue[k_maximum_nodes_per_model];
@@ -451,12 +451,12 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             model_nodes_get_default_transforms((GBXModel *)model, orientations);
         }
 
-        if (OFS(def, 0x44, int32_t) != -1) {
-            uint8_t *graph = TAG_DATA(OFS(def, 0x44, uint32_t));
+        if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
+            uint8_t *graph = TAG_DATA(*(uint32_t *)&((struct Object *)def)->animation_graph.tag_id);
             int16_t i;
             for (i = 0; (int32_t)i < OFS(graph, 0x0, int32_t); i++) {
                 int16_t *entry = (int16_t *)(OFS(graph, 0x4, uint8_t *) + (int32_t)i * 0x14);
-                if (entry[0] == -1 || (int32_t)entry[1] >= OFS(def, 0x158, int32_t)) {
+                if (entry[0] == -1 || (int32_t)entry[1] >= (int32_t)((struct Object *)def)->functions.count) {
                     continue;
                 }
                 {
@@ -485,7 +485,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             orientations[0].translation.y *= scale;
             orientations[0].translation.z *= scale;
         }
-        if (OFS(def, 0x44, int32_t) != -1) {
+        if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
             object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
         }
         if (((struct object *)obj)->node_function_count > 0) {
@@ -519,17 +519,17 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 
                     matrix4x3_set_translation_only(&world, &((struct object *)obj)->position);
                     matrix4x3_from_forward_up(&((struct object *)obj)->up, &((struct object *)obj)->forward, &orientation);
-                    if ((((struct object *)obj)->flags & 0x1000) != 0) {
+                    if (test_flag(((struct object *)obj)->flags, objects::object_flag::mirrored_geometry)) {
                         orientation.left.i = -orientation.left.i;
                         orientation.left.j = -orientation.left.j;
                         orientation.left.k = -orientation.left.k;
                     }
-                    if (OFS(def, 0x8c, int32_t) != -1) {
-                        uint8_t *tag = TAG_DATA(OFS(def, 0x8c, uint32_t));
+                    if (*(int32_t *)&((struct Object *)def)->physics.tag_id != -1) {
+                        uint8_t *tag = TAG_DATA(*(uint32_t *)&((struct Object *)def)->physics.tag_id);
                         real_point3d negated;
-                        negated.x = -((struct Unit *)tag)->base.bounding_offset.y;
-                        negated.y = -((struct Unit *)tag)->base.bounding_offset.z;
-                        negated.z = -((struct Unit *)tag)->base.origin_offset.x;
+                        negated.x = -OFS(tag, 0xc, float);
+                        negated.y = -OFS(tag, 0x10, float);
+                        negated.z = -OFS(tag, 0x14, float);
                         matrix4x3_set_translation_only(&offset, &negated);
                         matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
                     }
@@ -584,9 +584,9 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
     }
 
     matrix4x3_transform_point(&((struct object *)obj)->bounding_center, &OFS(def, 0x8, real_point3d), &nodes[0]);
-    ((struct object *)obj)->bounding_radius = OFS(def, 0x4, float);
+    ((struct object *)obj)->bounding_radius = ((struct Object *)def)->bounding_radius;
     if (((struct object *)obj)->scale > 0.0f) {
-        ((struct object *)obj)->bounding_radius = OFS(def, 0x4, float) * ((struct object *)obj)->scale;
+        ((struct object *)obj)->bounding_radius = ((struct Object *)def)->bounding_radius * ((struct object *)obj)->scale;
     }
 }
 #undef OFS
@@ -631,16 +631,16 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
             double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +
                 (double)position[1] * (double)587.12946f + (double)i * (double)431.12894f;
             float weight = (float)fmod(fabs(seed), 1.0);
-            int32_t count = *(int32_t *)(change_color + 0x20);
+            int32_t count = (int32_t)((struct ObjectChangeColors *)change_color)->permutations.count;
             int16_t p;
 
             for (p = 0; p < count; p++) {
-                uint8_t *permutation = *(uint8_t **)(change_color + 0x24) + p * 0x1c;
+                uint8_t *permutation = (uint8_t *)((struct ObjectChangeColors *)change_color)->permutations.pointer + p * 0x1c;
 
                 if (weight <= *(float *)permutation) {
                     float t = (float)fmod(fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    color_interpolate((ColorRGB *)(permutation + 0x10), (ColorRGB *)(permutation + 4), working, 1, t);
+                    color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, 1, t);
                     break;
                 }
             }

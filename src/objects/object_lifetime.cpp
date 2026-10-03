@@ -1,8 +1,8 @@
 #include "halo/objects/object_lifetime.hpp"
-#include "halo/core/network_constants.hpp"
-#include "halo/core/tag_groups.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -395,10 +395,10 @@ void halo::objects::ObjectLifetime::create_attachments()
 
     for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {
         uint8_t *attachment = *(uint8_t **)&((struct Object *)definition)->attachments.pointer + i * 0x48;
-        datum_index tag = *(datum_index *)(attachment + 0xc);
-        int16_t first_scale = (int16_t)(*(int16_t *)(attachment + 0x30) - 1);
-        int16_t second_scale = (int16_t)(*(uint16_t *)(attachment + 0x32) - 1);
-        int16_t change_color = (int16_t)(*(uint16_t *)(attachment + 0x34) - 1);
+        datum_index tag = *(datum_index *)&((struct ObjectAttachment *)attachment)->type.tag_id;
+        int16_t first_scale = (int16_t)(((struct ObjectAttachment *)attachment)->primary_scale - 1);
+        int16_t second_scale = (int16_t)((uint16_t)((struct ObjectAttachment *)attachment)->secondary_scale - 1);
+        int16_t change_color = (int16_t)((uint16_t)((struct ObjectAttachment *)attachment)->change_color - 1);
         int8_t type = -1;
         datum_index handle = k_datum_index_none;
 
@@ -419,7 +419,7 @@ void halo::objects::ObjectLifetime::create_attachments()
             }
             break;
         case 1:
-            handle = looping_sound_new(object_index, tag, (char *)(attachment + 0x10), first_scale);
+            handle = looping_sound_new(object_index, tag, (char *)&((struct ObjectAttachment *)attachment)->marker, first_scale);
             if (handle != k_datum_index_none) {
                 set_flag(((object *)obj)->flags, objects::object_flag::unknown_400);
             }

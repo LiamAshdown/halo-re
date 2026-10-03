@@ -1,11 +1,10 @@
 #include "halo/objects/object_damage.hpp"
-#include "halo/core/network_constants.hpp"
 #include "halo/tags/flags.hpp"
-#include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/core/network_constants.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -556,7 +555,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
         } else if (apply && (flags & 0x1000)) {
             apply = 0;
             if (((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) &&
-                (((struct Unit *)TAG_DATA(*(datum_index *)target))->unit_flags & 0x80000) &&
+                (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x80000) &&
                 target_index != dd->responsible_object) {
                 real scale = weapon_get_zoom_fov(8, main_game_globals->difficulty);
 
@@ -601,7 +600,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 applied = 1;
             }
             {
-                datum_index model = *(datum_index *)&((struct Unit *)target_tag)->base.collision_model.tag_id;
+                datum_index model = *(datum_index *)&((struct Object *)target_tag)->collision_model.tag_id;
 
                 if (model != k_datum_index_none && (*TAG_DATA(model) & 8) &&
                     ((struct object *)target)->first_child_object != k_datum_index_none) {
@@ -949,10 +948,10 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         id = list[i];
         obj = object_get(id);
         object_tag = tag_get(*(datum_index *)obj);
-        if (*(datum_index *)&((struct Unit *)object_tag)->base.collision_model.tag_id == k_datum_index_none) {
+        if (*(datum_index *)(object_tag + 0x7c) == k_datum_index_none) {
             goto notify;
         }
-        geometry = tag_get(*(datum_index *)&((struct Unit *)object_tag)->base.collision_model.tag_id);
+        geometry = tag_get(*(datum_index *)(object_tag + 0x7c));
         kill = (uint8_t)((dd->flags >> 2) & 1);
         *(datum_index *)record.unknown_00 = id;
         record.shield_damage_dealt = 0.0f;
@@ -1111,7 +1110,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     float taken;
     uint8_t unscaled = 0;
 
-    if ((*geometry & 0x40) && ((object *)obj)->type == 1 && ((struct unit_object *)obj)->unit.driver_unit_index == k_datum_index_none) {
+    if ((*geometry & 0x40) && ((object *)obj)->type == 1 && *(datum_index *)(obj + 0x324) == k_datum_index_none) {
         body = 0.0f;
     }
     if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
@@ -1144,7 +1143,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
 
             if (effect_flags & 2) {
                 if (!(current_game_engine == 0 && ((object *)obj)->type == 0 &&
-                      ((struct unit_object *)obj)->unit.controlling_player != k_datum_index_none)) {
+                      *(datum_index *)(obj + 0x218) != k_datum_index_none)) {
                     if (is_local == 1) {
                         *vitality = 0.0f;
                     }
@@ -1197,7 +1196,7 @@ bookkeeping:
         }
     }
     if (g_0087abc0 && *vitality < 0.0f && ((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 3)) {
-        if (((struct unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
+        if (*(datum_index *)(obj + 0x218) != k_datum_index_none) {
             *vitality = 0.0f;
         } else if (((object *)obj)->type == 1) {
             datum_index child = ((object *)obj)->first_child_object;
@@ -1206,7 +1205,7 @@ bookkeeping:
                 uint8_t *child_obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(child)].data;
 
                 if (((1u << ((uint8_t)((struct object *)child_obj)->type & 0x1f)) & 3) &&
-                    ((struct unit_object *)child_obj)->unit.controlling_player != k_datum_index_none) {
+                    *(datum_index *)(child_obj + 0x218) != k_datum_index_none) {
                     *vitality = 0.0f;
                     break;
                 }
@@ -1484,7 +1483,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         switch (type) {
         case 0:
         case 1:
-            if (*(float *)(effect + 0x1f4) > 0.0001f && !test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unknown_800000)) {
+            if (*(float *)(effect + 0x1f4) > 0.0001f && (*(uint32_t *)(obj + 0x204) & 0x800000) == 0) {
                 if (type == 0) {
                     unit_apply_impulse(target_index, &impulse);
                 } else {
@@ -1506,7 +1505,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
             int32_t role;
 
             if (!(impulse.k * impulse.k + impulse.i * impulse.i + impulse.j * impulse.j < 0.0001f) ||
-                ((uint8_t)((struct unit_object *)obj)->unit.actor_index & 8) == 0) {
+                (*(uint8_t *)(obj + 0x1f4) & 8) == 0) {
                 significant = 1;
             }
             if (((object *)obj)->network_role == 0 && significant == 1) {

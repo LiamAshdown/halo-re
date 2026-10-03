@@ -140,7 +140,7 @@ datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
     }
     self = (uint8_t *)datum_try_get(glow_data, index);
     tag = (uint8_t *)tag_instances[halo::datum_slot(glow_tag)].data;
-    bitmap_tag = ((struct Unit *)tag)->base.widgets.pointer;
+    bitmap_tag = *(datum_index *)(tag + 0x150);
     bitmap = (uint8_t *)tag_instances[halo::datum_slot(bitmap_tag)].data;
     if (*(int16_t *)bitmap == 3) {
         uint8_t *sequence = *(uint8_t **)(bitmap + 0x58);

@@ -101,8 +101,8 @@ void VehicleView::blend_animations(real_orientation *orientations)
         return;
     }
     animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
-    count = *(int32_t *)(entry + 0x5c);
-    indices = *(int16_t **)(entry + 0x60);
+    count = (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->animations.count;
+    indices = (int16_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->animations.pointer;
 
     if (count > 0 && indices[0] != -1) {
         animation_aiming_screen_blend((ModelAnimationsAnimation *)(animations + indices[0] * 0xb4),
@@ -144,8 +144,8 @@ void VehicleView::blend_animations(real_orientation *orientations)
         }
         animation_overlay_interpolated_frame_orientations(animation, (float)((double)frames * fraction), orientations);
     }
-    for (i = 0; i < *(int32_t *)(entry + 0x68); i++) {
-        int16_t suspension = *(int16_t *)(*(uint8_t **)(entry + 0x6c) + i * 0x14 + 2);
+    for (i = 0; i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->suspension_animations.count; i++) {
+        int16_t suspension = *(int16_t *)((uint8_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->suspension_animations.pointer + i * 0x14 + 2);
 
         if (suspension != -1) {
             uint8_t compression = obj[0x4f4 + i];

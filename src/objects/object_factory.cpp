@@ -1,8 +1,8 @@
 #include "halo/objects/object_factory.hpp"
-#include "halo/core/network_constants.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/core/network_constants.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -669,7 +669,7 @@ uint8_t halo::objects::SceneryObject::update()
     datum_index object_index = handle;
     uint8_t *object = object_get(object_index);
 
-    if (((uint8_t)((struct unit_object *)object)->unit.actor_index & 1) != 0 &&
+    if ((object[0x1f4] & 1) != 0 &&
         animation_state_advance(((struct object *)object)->animation_graph, object + 0xd0, 0, 1) == 2) {
         ((struct object *)object)->animation_frame -= 1;
     }

@@ -168,7 +168,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
 
             read_index++;
             if (node_index != 0) {
-                int16_t parent_index = *(int16_t *)(graph_node + 0x24);
+                int16_t parent_index = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->parent_node_index;
                 real_point3d *self = &nodes[node_index].position;
                 real_point3d *parent = &nodes[parent_index].position;
                 real_vector3d bone;
@@ -265,7 +265,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                     float stretch = (rest_length - current_length) / current_length;
                     real_vector3d correction;
 
-                    if (*(int16_t *)(graph_node + 0x24) == 0) {
+                    if ((int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->parent_node_index == 0) {
                         correction.i = bone.i * stretch;
                         correction.j = bone.j * stretch;
                         correction.k = bone.k * stretch;
@@ -290,11 +290,11 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 }
             }
 
-            if (*(uint16_t *)(graph_node + 0x20) != halo::k_word_none) {
-                queue[write_index++] = *(int16_t *)(graph_node + 0x20);
+            if (((struct ModelAnimationsAnimationGraphNode *)graph_node)->next_sibling_node_index != halo::k_word_none) {
+                queue[write_index++] = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->next_sibling_node_index;
             }
-            if (*(uint16_t *)(graph_node + 0x22) != halo::k_word_none) {
-                queue[write_index++] = *(int16_t *)(graph_node + 0x22);
+            if (((struct ModelAnimationsAnimationGraphNode *)graph_node)->first_child_node_index != halo::k_word_none) {
+                queue[write_index++] = (int16_t)((struct ModelAnimationsAnimationGraphNode *)graph_node)->first_child_node_index;
             }
         } while (read_index != write_index);
     }

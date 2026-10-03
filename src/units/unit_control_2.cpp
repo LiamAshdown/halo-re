@@ -90,7 +90,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
     block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
 
     if ((uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame != 0xff) {
-        int16_t emotion = (*(int32_t *)(block + 0x40) > 0xb) ? (*(int16_t **)(block + 0x44))[0xb] : -1;
+        int16_t emotion = ((int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xb) ? ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xb] : -1;
 
         if (((unit_object *)unit)->unit.emotion_animation_index != -1) {
             emotion = ((unit_object *)unit)->unit.emotion_animation_index;
@@ -104,17 +104,17 @@ void UnitView::update_aiming_overlay_angles(void *output)
             }
         }
     }
-    if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && *(int32_t *)(block + 0x40) > 0xa &&
-        (*(int16_t **)(block + 0x44))[0xa] != -1) {
-        animation_overlay_frame_orientations_weighted(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4, 0,
+    if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xa &&
+        ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] != -1) {
+        animation_overlay_frame_orientations_weighted(animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] * 0xb4, 0,
             ((unit_object *)unit)->unit.mouth_aperture, output);
     }
     if ((uint8_t)((struct unit_object *)unit)->unit.animation_state_flags & 2) {
         int32_t slot;
 
         for (slot = 2; slot < 5; slot++) {
-            if (slot < *(int32_t *)(block + 0x40) && (*(int16_t **)(block + 0x44))[slot] != -1) {
-                uint8_t *record = animations + (*(int16_t **)(block + 0x44))[slot] * 0xb4;
+            if (slot < (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count && ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] != -1) {
+                uint8_t *record = animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] * 0xb4;
                 int32_t last_frame = *(int16_t *)(record + 0x22) - 1;
 
                 animation_overlay_interpolated_frame_orientations(record,
@@ -134,7 +134,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
     aim_yaw = global_zero_vector2d_pointer[0];
     aim_pitch = global_zero_vector2d_pointer[1];
     if (((unit_object *)unit)->unit.aiming_animation_index != -1) {
-        uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc + 0x60;
+        uint8_t *screen = (uint8_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->weapons.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc + 0x60;
 
         aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector, &aim_yaw, &aim_pitch);
         ((struct unit_object *)unit)->unit.aiming_bounds_valid = 1;
