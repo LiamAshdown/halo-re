@@ -82,7 +82,7 @@ void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
         constants[i][3] = projection[3 * 4 + i] + constants[i][3];
     }
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
 
         float identity[16] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
                               0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
@@ -868,11 +868,11 @@ uint8_t rasterizer_initialize_direct3d(void)
         }
         if (command_line_has_switch("-use11")) {
             halo::shell::globals().force_shader = 0;
-            shader_version = 0xffff0101;
+            shader_version = halo::d3d9::k_pixel_shader_version_1_1;
         }
         if (command_line_has_switch("-use14")) {
             halo::shell::globals().force_shader = 0;
-            shader_version = 0xffff0104;
+            shader_version = halo::d3d9::k_pixel_shader_version_1_4;
         }
         if (command_line_has_switch("-use20")) {
             halo::shell::globals().force_shader = 0;
@@ -977,7 +977,7 @@ uint8_t rasterizer_initialize_direct3d(void)
         rasterizer_build_present_parameters(&rasterizer_present_parameters, &mode);
         behavior_flags[3] = 0x20;
         for (;;) {
-            uint8_t no_pixel_shaders = (uint8_t)(rasterizer_caps.pixel_shader_version < 0xffff0101);
+            uint8_t no_pixel_shaders = (uint8_t)(rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1);
 
             behavior_flags[0] = no_pixel_shaders ? 0x80 : 0x40;
             behavior_flags[1] = no_pixel_shaders ? 0x20 : 0x40;
@@ -1039,7 +1039,7 @@ finish:
     if (rasterizer_window_requested == 0) {
         rasterizer_render_loading_screen(1);
     }
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         if (rasterizer_texture_stage_count >= 2) {
             rasterizer_texture_stage_count = 2;
         }
@@ -1170,7 +1170,7 @@ uint8_t rasterizer_reset_device_if_needed(void)
     uint8_t usable = 1;
     int32_t hr;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         halo::rasterizer::fields::specular_projected_light_enabled = 0;
         halo::rasterizer::fields::specular_lightmap_enabled = 0;
         halo::rasterizer::fields::environment_multipurpose_enabled = 0;
@@ -1284,7 +1284,7 @@ void rasterizer_select_hardware_codepaths(void)
         halo::rasterizer::fields::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw_single_stream;
     } else {
         halo::rasterizer::fields::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw_two_stream;
-        if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
+        if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
             halo::rasterizer::fields::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw;
         }
     }
@@ -1294,15 +1294,15 @@ void rasterizer_select_hardware_codepaths(void)
 
     if (rasterizer_caps.max_streams < 2) {
         halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_single_stream;
-        if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
+        if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
             halo::rasterizer::fields::light_cone_draw = (void *)rasterizer_light_cone_draw;
             goto set_vertex_buffer_slot;
         }
     } else {
         halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_two_stream;
-        if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
+        if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
             halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw;
-            if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
+            if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
                 halo::rasterizer::fields::light_cone_draw = (void *)rasterizer_light_cone_draw;
                 goto set_vertex_buffer_slot;
             }
@@ -1312,7 +1312,7 @@ void rasterizer_select_hardware_codepaths(void)
 
 set_vertex_buffer_slot:
     rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_fixed_function;
-    if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
+    if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
         rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_pixel_shader;
     }
 }

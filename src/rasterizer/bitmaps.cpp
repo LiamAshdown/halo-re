@@ -854,7 +854,7 @@ namespace rasterizer_force_bilinear_filtering_impl {
 void rasterizer_force_bilinear_filtering(void)
 {
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         render_device().set_render_state(halo::d3d9::rs::lighting, 0);
     }
 
@@ -865,7 +865,7 @@ void rasterizer_force_bilinear_filtering(void)
     render_device().set_sampler_state(0, halo::d3d9::ss::max_anisotropy, 1);
     render_device().set_sampler_state(1, halo::d3d9::ss::max_anisotropy, 1);
 
-    if (0xffff0100 < rasterizer_caps.pixel_shader_version) {
+    if (halo::d3d9::k_pixel_shader_version_1_0 < rasterizer_caps.pixel_shader_version) {
         render_device().set_sampler_state(2, halo::d3d9::ss::min_filter, 2);
         render_device().set_sampler_state(3, halo::d3d9::ss::min_filter, 2);
         render_device().set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);

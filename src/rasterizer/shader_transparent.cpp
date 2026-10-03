@@ -179,7 +179,7 @@ fallback:
  */
 void rasterizer_glass_draw_procedures_select(void)
 {
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         rasterizer_glass_draw_procedures[1] = (void *)rasterizer_glass_tint_draw_fixed_function;
         rasterizer_glass_draw_procedures[2] = (void *)rasterizer_glass_reflection_draw_fixed_function;
         rasterizer_glass_draw_procedures[0] = (void *)rasterizer_glass_diffuse_draw_fixed_function;
@@ -305,7 +305,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     case 1:
         effect_slot = &rasterizer_effects[107];
         shader_base = 0x34;
-        if (rasterizer_caps.pixel_shader_version >= 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1) {
             render_device().set_pixel_shader_constant_f(0, vectors, 3);
         }
         break;
@@ -341,7 +341,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     constants[8] = 0.0f;
     constants[10] = 0.0f;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
 
         constants[0] = 1.0f;
         constants[1] = 1.0f;
@@ -908,7 +908,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
             if (function_values != NULL) {
                 const float *value = &function_values[fade_source - 1];
 
-                if (*value == 0.0f && rasterizer_caps.pixel_shader_version < 0xffff0101) {
+                if (*value == 0.0f && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
                     return;
                 }
                 fade_constants[2][2] *= *value;
@@ -1075,7 +1075,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
     frame = (int16_t)group->shader_permutation;
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.pointer;
     } else {
         maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
@@ -1139,7 +1139,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         }
     }
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         map_count = (int16_t)*(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.count;
         maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.pointer;
     } else {
@@ -1249,7 +1249,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
             if (function_values != NULL) {
                 const float *value = &function_values[fade_source - 1];
 
-                if (*value == 0.0f && rasterizer_caps.pixel_shader_version < 0xffff0101) {
+                if (*value == 0.0f && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
                     return;
                 }
                 fade_constants[2][2] *= *value;
@@ -1363,7 +1363,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * VERIFIED against disassembly 0x537d60..0x537f6d (2026-09-30): list selection (caps 0xffff0101), the pointer
+ * VERIFIED against disassembly 0x537d60..0x537f6d (2026-09-30): list selection (caps halo::d3d9::k_pixel_shader_version_1_1), the pointer
  * array copy, the per-map stage numbering (stage = index + 1, last map on stage 0), all six
  * SetTextureStageState calls of both branches (vtable +0x10c, stdcall) and the return values match. The
  * unbounded 4-entry array is the original's own behaviour, so a difftest with a random count smashes the stack
@@ -1381,7 +1381,7 @@ uint8_t rasterizer_shader_transparent_chicago_extended_set_texture_stages(const 
     if ((int32_t)shader->maps_4_stage.count <= 0) {
         return 0;
     }
-    list = (rasterizer_caps.pixel_shader_version < 0xffff0101) ? &shader->maps_2_stage : &shader->maps_4_stage;
+    list = (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) ? &shader->maps_2_stage : &shader->maps_4_stage;
     count = (int16_t)list->count;
     if (count <= 0) {
         return 1;
@@ -1571,7 +1571,7 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     vertex_constants[3][3] = secondary_phase * PLASMA_FLOAT(0x10c);
     vertex_constants[4][3] = secondary_phase * PLASMA_FLOAT(0x110);
     vertex_constants[5][3] = secondary_phase * PLASMA_FLOAT(0x114);
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
 
         vertex_constants[0][2] = 0.01f;
         vertex_constants[3][0] = 0.4f;
@@ -1987,7 +1987,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         vertex_constants[3] = (float)(halo::libm::sin((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
         render_device().set_vertex_shader_constant_f(10, vertex_constants, 3);
 
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0xe8), 0, 0);
             set_stage_samplers(0, 1, 0);
             effect_draw_all_passes(effect, group);
@@ -2049,7 +2049,7 @@ void rasterizer_water_fade_compute_and_set_states(void)
     float plane_distance;
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version <= 0xffff0100) {
+        rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_0) {
         return;
     }
 
@@ -2092,7 +2092,7 @@ void rasterizer_water_fade_compute_and_set_states(void)
         render_device().set_render_state(halo::d3d9::rs::z_func, 3);
         render_device().set_render_state(halo::d3d9::rs::z_write_enable, 0);
 
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             render_device().set_render_state(halo::d3d9::rs::fog_enable, 1);
             render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::one);
             render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_color);
@@ -2150,7 +2150,7 @@ void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const
     uint32_t pass;
 
     if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version < 0xffff0101 || effect == 0) {
+        rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 || effect == 0) {
         return;
     }
 

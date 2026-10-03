@@ -563,7 +563,7 @@ void rasterizer_shader_decal_pass_set_states(void)
 {
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version <= 0xffff0100) {
+        rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_0) {
         return;
     }
 

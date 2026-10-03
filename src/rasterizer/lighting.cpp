@@ -127,7 +127,7 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     float constants_ps[1][4];
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::environment_diffuse_lights_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version <= 0xffff0100) {
+        rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_0) {
         return;
     }
 
@@ -199,7 +199,7 @@ void rasterizer_light_cone_set_texture_stage_states(void)
 {
 
     if (halo::rasterizer::fields::rasterizer_debug_mode == 0 && halo::rasterizer::fields::environment_diffuse_lights_enabled != 0 &&
-        0xffff0100 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
+        halo::d3d9::k_pixel_shader_version_1_0 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
 
         render_device().set_sampler_state(0, halo::d3d9::ss::address_u, 1);
         render_device().set_sampler_state(0, halo::d3d9::ss::address_v, 1);
@@ -268,7 +268,7 @@ void rasterizer_light_disable_all(void)
 {
     uint32_t i;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101 && rasterizer_caps.max_active_lights != 0) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && rasterizer_caps.max_active_lights != 0) {
         render_device().set_material(rasterizer_default_material);
 
         rasterizer_fixed_function_light_count = 0;
@@ -307,7 +307,7 @@ void rasterizer_light_set(rasterizer_light *light)
 
 
     index = rasterizer_fixed_function_light_count;
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101 && rasterizer_caps.max_active_lights != 0 &&
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && rasterizer_caps.max_active_lights != 0 &&
         rasterizer_fixed_function_light_count < (int32_t)rasterizer_caps.max_active_lights) {
         int i;
         for (i = 0; i < 26; i++) {
@@ -487,7 +487,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
     block.ambient[2] = ambient_blue;
     block.ambient[3] = 0.0f;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         float boost = (float)(halo::rasterizer::fields::fixed_function_ambient_color & 0xff) * 0.003921569f;
         uint32_t red = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.red + boost + ambient_red) * 255.0f);
         uint32_t green = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.green + boost + ambient_green) * 255.0f);
@@ -514,7 +514,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     Light *definition;
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+        rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_3) {
         return;
     }
 
@@ -578,7 +578,7 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
     float radius;
     float scale;
 
-    if (halo::rasterizer::fields::specular_projected_light_enabled == 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+    if (halo::rasterizer::fields::specular_projected_light_enabled == 0 || rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_3) {
         return;
     }
 
@@ -729,7 +729,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     rasterizer_set_render_state(halo::d3d9::rs::fog_table_mode, 0);
     rasterizer_set_render_state(halo::d3d9::rs::fog_vertex_mode, 3);
     rasterizer_set_render_state(halo::d3d9::rs::fog_start, real_bits(window_fog->atmospheric_minimum_distance));
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
 
         float z_far = rasterizer_window.frustum.z_far;
         rasterizer_set_render_state(halo::d3d9::rs::fog_end, real_bits((z_far - window_fog->atmospheric_maximum_density * z_far) +

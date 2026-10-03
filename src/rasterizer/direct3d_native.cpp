@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "internal/state.hpp"
 #include "d3d.h"
 #include "halo/shell/api.hpp"
@@ -204,7 +205,7 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
     rasterizer_vertex_declarations[14].usage = 8;
     rasterizer_vertex_declarations[13].usage = 8;
     rasterizer_vertex_declarations[12].usage = 8;
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         rasterizer_vertex_declarations[6].usage = 0x218;
         rasterizer_vertex_declarations[7].usage = 0x218;
         rasterizer_vertex_declarations[8].usage = 0x218;

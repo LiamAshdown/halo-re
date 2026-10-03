@@ -28,7 +28,7 @@ int rasterizer_transparent_decals_enabled(void)
 {
     if (rasterizer_window.type != 1 || halo::rasterizer::fields::active_camouflage_enabled == 0 ||
         (rasterizer_caps_flag_688 == 0 &&
-         (rasterizer_caps_flag_68a == 0 && rasterizer_caps.pixel_shader_version > 0xffff0100))) {
+         (rasterizer_caps_flag_68a == 0 && rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0))) {
         return 0;
     }
     return 1;
@@ -368,7 +368,7 @@ static void draw_glass_shader(transparent_geometry_group *group, const uint8_t *
 
     if (reflection_type == 2 && (rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1)) {
 
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             ((transparent_geometry_draw_procedure2)rasterizer_glass_draw_procedures[2])(group, 2);
         }
         return;
@@ -403,7 +403,7 @@ static void draw_meter_shader(transparent_geometry_group *group, const uint8_t *
     void *effect;
     int i;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         return;
     }
     if (vertex_type == 0 || vertex_type == 2) {
@@ -834,7 +834,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
     }
 
     if (rasterizer_caps_flag_688 == 0 && rasterizer_caps_flag_68a == 0 &&
-        rasterizer_caps.pixel_shader_version >= 0xffff0101) {
+        rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1) {
         void *effect = (void *)rasterizer_effects[105].effect;
 
         if (effect != 0) {
@@ -974,7 +974,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         if (halo::rasterizer::fields::models_enabled != 0) {
             rasterizer_render_states_dirty = 1;
             halo::rasterizer::fields::sky_pass_active = 0;
-            if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+            if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
                 rasterizer_set_render_state(halo::d3d9::rs::lighting, 1);
             }
         }

@@ -373,7 +373,7 @@ void rasterizer_dynamic_light_technique_ps2_set_states(void)
 {
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_lightmap_enabled == 0 ||
-        render_force_flag != 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+        render_force_flag != 0 || rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_3) {
         return;
     }
 
@@ -723,7 +723,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
     if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
         chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
     }
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         rasterizer_geometry_draw_fixed_function(group->flags, group->dynamic_vertex_slot,
                                                 (rasterizer_vertex_buffer *)(uintptr_t)group->vertex_buffer,
                                                 (rasterizer_index_buffer *)(uintptr_t)group->index_buffer,

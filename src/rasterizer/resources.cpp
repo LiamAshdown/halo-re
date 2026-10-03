@@ -249,7 +249,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
             hr = render_device().effect_set_technique(effect, technique);
         } else {
 
-            const char *default_name = (rasterizer_caps.pixel_shader_version < 0xffff0101)
+            const char *default_name = (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1)
                                             ? "TDefault_no_ps" : "TDefault_ps";
             sprintf(name, default_name);
             technique = (void *)render_device().effect_get_technique_by_name_scoped(effect, 0, name);
@@ -704,7 +704,7 @@ void rasterizer_render_target_capture_frame(void)
     float inverse_height;
 
     if (halo::rasterizer::fields::active_camouflage_enabled == 0 || rasterizer_caps_flag_688 != 0 || rasterizer_caps_flag_68a != 0 ||
-        rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         return;
     }
 
@@ -1049,7 +1049,7 @@ static void rasterizer_vertex_buffer_fill(void *locked, int16_t vertex_type, int
     uint8_t *dst = (uint8_t *)locked;
     int32_t i;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101u) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         switch (vertex_type) {
         case 12:
         case 14: {

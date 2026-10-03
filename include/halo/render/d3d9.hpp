@@ -256,7 +256,10 @@ inline constexpr uint32_t k_cull_cw = 2;
 inline constexpr uint32_t k_cull_ccw = 3;
 
 /** D3DPS_VERSION(1, 1): pixel shader versions encoded the way the device capabilities report them. */
+inline constexpr uint32_t k_pixel_shader_version_1_0 = 0xffff0100;
 inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101;
+inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
+inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
 
 /** D3DCOLORWRITEENABLE_RED | GREEN | BLUE | ALPHA. */
 inline constexpr uint32_t k_color_write_all = 0xf;

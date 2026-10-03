@@ -117,7 +117,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
     set_sampler_state(1, halo::d3d9::ss::min_filter, 2);
     set_sampler_state(1, halo::d3d9::ss::mip_filter, 2);
 
-    if (0xffff0100 < rasterizer_caps.pixel_shader_version) {
+    if (halo::d3d9::k_pixel_shader_version_1_0 < rasterizer_caps.pixel_shader_version) {
         set_sampler_state(2, halo::d3d9::ss::address_u, 1);
         set_sampler_state(2, halo::d3d9::ss::address_v, 1);
         set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);
@@ -167,7 +167,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
         }
         halo::rasterizer::fields::model_begin_cleared_flag = 0;
 
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             if ((context->flags & 0x200) != 0) {
                 float world_matrix[16];
                 float *m = (float *)context->node_matrices;
@@ -262,7 +262,7 @@ void rasterizer_model_draw_restore_states(void)
         chimera__rasterizer_set_frustum_z_func(0, 0);
     }
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101 && (context->flags & 0x200) != 0) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && (context->flags & 0x200) != 0) {
         float identity[16] = {
             1.0f, 0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f, 0.0f,
@@ -1171,7 +1171,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     set_render_state(halo::d3d9::rs::blend_op, 1);
     set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !decal && !(shader[0x28] & 4)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
-    if (rasterizer_caps.pixel_shader_version < 0xffff0104) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
     } else {
         set_render_state(halo::d3d9::rs::fog_enable, (shader[0x28] >> 4) & 1);
@@ -1185,7 +1185,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     animated.red = 0.0f;
     animated.green = 0.0f;
     animated.blue = 0.0f;
-    if (rasterizer_caps.pixel_shader_version >= 0xffff0104 || model->detail_mask == 0) {
+    if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_4 || model->detail_mask == 0) {
 
         float phase;
         float value;
@@ -1215,7 +1215,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
             animated.green *= source->green;
             animated.blue *= source->blue;
             if (model->detail_mask == 0 && model->color_source == 2 &&
-                rasterizer_caps.pixel_shader_version < 0xffff0104) {
+                rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
                 float distance = (float)halo::libm::fabs(halo::math::vector3d_distance(context->center, rasterizer_window.camera.position));
 
                 if (distance < 6.0f) {
@@ -1264,7 +1264,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     if (!rasterizer_fog_enabled) {
 
     } else if (true_atmospheric_fog) {
-        if (rasterizer_caps.pixel_shader_version < 0xffff0104) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
             set_render_state(halo::d3d9::rs::fog_enable, 1);
             set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color)));
         } else {
@@ -1300,7 +1300,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         fog_add.red = density * fog->atmospheric_color.red;
         fog_add.green = fog->atmospheric_color.green * density;
         fog_add.blue = fog->atmospheric_color.blue * density;
-        if (rasterizer_caps.pixel_shader_version < 0xffff0104) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
             if (model->detail_mask != 0 && vertex_shader == 0x19) {
                 ColorRGB fixed_function_fog;
 
@@ -1477,7 +1477,7 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
     if (flags & 1) {
         index += 3;
     }
-    if (rasterizer_caps.pixel_shader_version >= 0xffff0104 && !(flags & 0x10)) {
+    if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_4 && !(flags & 0x10)) {
         index += (shader->detail_mask == 0) ? 6 : 0xc;
     }
     switch (shader->detail_mask) {
@@ -1486,7 +1486,7 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
         if (slot->effect == 0) {
             return NULL;
         }
-        if (rasterizer_caps.pixel_shader_version >= 0xffff0101 && rasterizer_caps.pixel_shader_version < 0xffff0104 &&
+        if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1 && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4 &&
             shader->color_source == 2 &&
             halo::libm::fabs(halo::math::vector3d_distance(rasterizer_active_model_context->center, rasterizer_window.camera.position)) < 6.0) {
             index += 6;

@@ -44,7 +44,7 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     rasterizer_time = *time_source;
 
-    halo::rasterizer::fields::water_ripple_update_pending = (uint8_t)(1 - (rasterizer_caps.pixel_shader_version < 0xffff0101));
+    halo::rasterizer::fields::water_ripple_update_pending = (uint8_t)(1 - (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1));
     halo::rasterizer::fields::transparent_group_created = 0;
 
     lens_flare_update_visibility();
@@ -234,7 +234,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
         }
         render_device().set_sampler_state(0, halo::d3d9::ss::max_anisotropy, max_anisotropy);
         render_device().set_sampler_state(1, halo::d3d9::ss::max_anisotropy, max_anisotropy);
-        if (0xffff0100 < rasterizer_caps.pixel_shader_version) {
+        if (halo::d3d9::k_pixel_shader_version_1_0 < rasterizer_caps.pixel_shader_version) {
             render_device().set_sampler_state(2, halo::d3d9::ss::max_anisotropy, max_anisotropy);
             render_device().set_sampler_state(3, halo::d3d9::ss::max_anisotropy, max_anisotropy);
         }
@@ -257,7 +257,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
     render_device().set_sampler_state(1, halo::d3d9::ss::min_filter, stage6_filter);
     render_device().set_sampler_state(1, halo::d3d9::ss::mip_filter, 2);
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         render_device().set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled);
         fog_color = halo::interface::color_rgb_float_to_int((const float *)(&rasterizer_window.fog.atmospheric_color));
         render_device().set_render_state(halo::d3d9::rs::fog_color, fog_color);
@@ -305,7 +305,7 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
     scaled = halo::libm::exp(exponent) * 255.0;
 
     rasterizer_gamma_exponent = (int32_t)scaled;
-    if (0xffff0100 < rasterizer_caps.pixel_shader_version) {
+    if (halo::d3d9::k_pixel_shader_version_1_0 < rasterizer_caps.pixel_shader_version) {
         rasterizer_gamma_exponent = rasterizer_gamma_exponent + 10;
     }
     if (rasterizer_gamma_exponent < 1) {
@@ -1596,7 +1596,7 @@ void rasterizer_screen_flash_render(void)
     ps_constants[1][1] = (1.0f - color.green) * intensity;
     ps_constants[1][2] = (1.0f - color.blue) * intensity;
     ps_constants[1][3] = color.alpha * intensity;
-    if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
+    if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
         render_device().set_pixel_shader_constant_f(0, &ps_constants[0][0], 2);
     }
 
@@ -1976,7 +1976,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     int32_t target;
     int32_t quad;
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         return;
     }
     set_clamped_linear_sampler(0);
@@ -2301,7 +2301,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
             render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
             return;
         }
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
             return;
         }
@@ -2350,7 +2350,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
             halo::cache::texture_cache_get(state->maps[stage], 1, 1);
             render_device().effect_set_texture(effect, slot->texture_handles[stage], *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
         }
-        if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             set_render_state(halo::d3d9::rs::texture_factor, pack_argb(pixel[0][3], pixel[0][0], pixel[0][1], pixel[0][2]));
         } else {
             render_device().set_pixel_shader_constant_f(0, &pixel[0][0], 6);
@@ -2428,7 +2428,7 @@ void rasterizer_underwater_tint_set_states(void)
     render_device().set_render_state(halo::d3d9::rs::z_write_enable, 1);
 
 
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         render_device().set_material(rasterizer_underwater_material);
 
         render_device().set_render_state(halo::d3d9::rs::lighting, 1);
