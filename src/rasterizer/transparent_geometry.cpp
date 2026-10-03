@@ -1143,7 +1143,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
 }
 
 /**
- * 0x00689400, UNSURE meaning; gates this whole function Appends a new transparent_geometry_group built from a
+ * Gated by the debug toggle at 0x00689400 (default 1, read nowhere else). Appends a new transparent_geometry_group built from a
  * dynamic vertex/index cache submission (as opposed to rasterizer_transparent_geometry_group_new's static-tag
  * submission), computing its depth sort key from the camera position/forward axis and bumping it by 0.25 for
  * shaders whose type is 1 with flag bit 0 set. Sets the sticky overflow flag once if the pool is full.
@@ -1522,7 +1522,7 @@ uint8_t transparent_geometry_group_test_drawn_bit(transparent_geometry_group *gr
 }
 
 /**
- * 0x534e50, UNSURE arguments, outside this session's range Allocates the primary (384 entry) and secondary (32
+ * Takes no arguments. Allocates the primary (384 entry) and secondary (32
  * entry) transparent geometry group pools and the primary pool's sorted-index buffer, then performs further
  * subsystem init via rasterizer_misc_vertex_buffer_create. Returns a nonzero low byte on success.
  *

@@ -415,7 +415,9 @@ void lens_flare_render_all(void)
 }
 
 /**
- * 0x512150, UNSURE name/signature
+ * Takes no arguments. For every lens flare instance of the current window computes the occlusion sample point (behind
+ * the camera forward axis, along the flare normal or at the instance position, per the definition's occlusion offset
+ * direction) and issues the occlusion query, storing the returned sample count in the instance.
  *
  * @address 0x513ba0
  */
@@ -794,7 +796,7 @@ namespace rasterizer_lens_flare_occlusion_query_get_result_impl {
 
 /**
  * Polls the occlusion query for one lens-flare slot until a result is available, returning the query's
- * visible-pixel-count result. UNSURE/note: the original overwrites its own "query pointer" stack slot in place
+ * visible-pixel-count result. Note: the original overwrites its own "query pointer" stack slot in place
  * with the 4-byte GetData result and returns that slot's value reinterpreted as a pointer, rather than
  * returning through a separate out-parameter; the same in-place reuse is reproduced here via `slot`.
  *

@@ -555,7 +555,7 @@ uint8_t delete_files(char *name)
 
 /**
  * Rebuilds the saved-game index first if it is marked dirty, then scans up to *capacity_and_count
- * index entries (rebuilding the count from savegame_index_get_slot_count (FUN_0053e420) as the scan bound) for ones matching
+ * index entries (rebuilding the count from savegame_index_get_slot_count as the scan bound) for ones matching
  * type, writing their packed handles into out_handles until either the scan bound or the
  * caller's capacity is reached. builtin_only selects whether non-builtin entries are skipped.
  * *capacity_and_count is always overwritten with the number of handles actually written (0 if

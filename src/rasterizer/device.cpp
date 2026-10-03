@@ -1240,7 +1240,7 @@ uint8_t rasterizer_reset_device_if_needed(void)
 }  // namespace rasterizer_reset_device_if_needed_impl
 
 /**
- * 0x0069c64c UNSURE Repositions/resizes the game window to a centered `width` by `height` client area if that
+ * Repositions/resizes the game window to a centered `width` by `height` client area if that
  * differs from its current adjusted rect, then updates the cached client-area/mouse-bound globals.
  *
  * Registers: EAX -> height, ECX -> width

@@ -23,7 +23,7 @@ namespace halo::rasterizer {
 /**
  * Creates one Direct3D vertex buffer (register EAX selects the vertex format, whose declaration usage bits are
  * folded into the buffer's own Usage flags) from the given length/FVF/dynamic request, returning the created
- * buffer or NULL on failure. UNSURE: `not_dynamic` sets D3DUSAGE_DYNAMIC (0x200) when it is ZERO, i.e. the raw
+ * buffer or NULL on failure. Note: `not_dynamic` sets D3DUSAGE_DYNAMIC (0x200) when it is ZERO, i.e. the raw
  * bool this takes reads as "static"/"not dynamic" rather than "dynamic"; preserved as the code computes it.
  *
  * @address 0x530570
