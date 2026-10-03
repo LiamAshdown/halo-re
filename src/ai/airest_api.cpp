@@ -55,9 +55,9 @@ void ai_actor_link_to_unassigned_list(datum_index actor_index)
  *
  * @address 0x434ed0
  */
-uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference)
+uint32_t ai_actor_type_get_morale_grade(int16_t command_list_index, const actor_squad_action_state *action)
 {
-    return halo::ai::AiObjects::type_get_morale_grade(actor_type_index, command_reference);
+    return halo::ai::AiObjects::type_get_morale_grade(command_list_index, action);
 }
 
 /**

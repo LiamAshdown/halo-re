@@ -501,7 +501,7 @@ void actors_initialize();
 void ai_accumulate_repeated_event(int32_t event_type, real_point3d *position, int16_t event_id, int16_t window_ticks);
 int32_t ai_actor_get_activity_stage(datum_index actor_index);
 void ai_actor_link_to_unassigned_list(datum_index actor_index);
-uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference);
+uint32_t ai_actor_type_get_morale_grade(int16_t command_list_index, const actor_squad_action_state *action);
 void ai_actor_unlink_from_unassigned_list(datum_index actor_index);
 void ai_alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate);
 void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);

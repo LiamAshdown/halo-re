@@ -82,14 +82,14 @@ void AiActorView::link_to_unassigned_list()
  *
  * @address 0x434ed0
  */
-uint32_t AiObjects::type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference)
+uint32_t AiObjects::type_get_morale_grade(int16_t command_list_index, const actor_squad_action_state *action)
 {
     ScenarioCommandList *command_list =
-        &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[actor_type_index];
+        &halo::ai::reflexive_data<ScenarioCommandList>(halo::scenario::globals().scenario->command_lists)[command_list_index];
 
-    if ((uint32_t)command_reference[0] < (uint32_t)command_list->commands.count &&
-        (ScenarioCommand *)command_list->commands.pointer + command_reference[0] != 0) {
-        return ((uint8_t)(~command_reference[4]) & 0x10 | 0x20) >> 4;
+    if ((uint32_t)action->command_index < (uint32_t)command_list->commands.count &&
+        halo::ai::reflexive_data<ScenarioCommand>(command_list->commands) + action->command_index != 0) {
+        return ((uint8_t)(~action->flags) & 0x10 | 0x20) >> 4;
     }
     return 1;
 }
@@ -532,9 +532,9 @@ int16_t ObjectListView::max_flee_grade()
                         if (component_index < component_count &&
                             (((swarm_component *)halo::ai::globals().swarm_component_data->data)
                                  [sw->component_index[component_index] & halo::k_slot_mask].flags & 8) != 0) {
-                            grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(*(int16_t *)&a->mode_data,
-                                (uint8_t *)&((swarm_component *)halo::ai::globals().swarm_component_data->data)
-                                    [sw->component_index[component_index] & halo::k_slot_mask] + 0x1c);
+                            grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(a->mode_data.obey.command_list_index,
+                                &((swarm_component *)halo::ai::globals().swarm_component_data->data)
+                                    [sw->component_index[component_index] & halo::k_slot_mask].action);
                             keep_grade = (int16_t)grade != 0;
                         }
                     }
