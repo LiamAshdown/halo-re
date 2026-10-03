@@ -1,5 +1,6 @@
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
+#include "halo/units/tag_layout.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
