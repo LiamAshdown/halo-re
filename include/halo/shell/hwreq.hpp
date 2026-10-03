@@ -11,6 +11,9 @@ class HwreqParser {
 public:
     explicit HwreqParser(const hwreq_parser *value) : self(const_cast<hwreq_parser *>(value)) {}
 
+    char *text_cursor() const { return reinterpret_cast<char *>(static_cast<uintptr_t>(self->cursor)); }
+    char *text_end() const { return reinterpret_cast<char *>(static_cast<uintptr_t>(self->end)); }
+
     static bool is_delimiter(char c)
     {
         return c == '>' || c == '<' || c == '!' || c == '=' || c == ' ' || c == '\r' || c == '\t';
@@ -21,13 +24,13 @@ public:
         char *line;
 
         do {
-            line = (char *)self->cursor;
+            line = text_cursor();
             self->cursor = (uint32_t)(line + 1);
             if (*line == '\r') {
                 break;
             }
-        } while ((char *)self->cursor < (char *)self->end);
-        if ((char *)self->cursor < (char *)self->end && *(char *)self->cursor == '\n') {
+        } while (text_cursor() < text_end());
+        if (text_cursor() < text_end() && *text_cursor() == '\n') {
             self->cursor = (uint32_t)(line + 2);
         }
     }

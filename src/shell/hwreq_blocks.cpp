@@ -16,8 +16,8 @@ uint8_t HwreqParser::find_requirements_section()
     char c;
 
     for (;;) {
-        if (_strnicmp((char *)self->cursor, "Requirements", 12) == 0) {
-            c = ((char *)self->cursor)[12];
+        if (_strnicmp(text_cursor(), "Requirements", 12) == 0) {
+            c = (text_cursor())[12];
             if (is_delimiter(c)) {
                 break;
             }
@@ -25,12 +25,12 @@ uint8_t HwreqParser::find_requirements_section()
         advance_line_raw();
         self->line_start = self->cursor;
         self->line_number = self->line_number + 1;
-        if (!((char *)self->cursor < (char *)self->end)) {
+        if (!(text_cursor() < text_end())) {
             break;
         }
     }
 
-    if ((char *)self->end <= (char *)self->cursor) {
+    if (text_end() <= text_cursor()) {
         return 1;
     }
 
@@ -86,26 +86,26 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
             self->line_number = self->line_number + 1;
         }
 
-        if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
-            c = ((char *)self->cursor)[6];
+        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
+            c = (text_cursor())[6];
             if (is_delimiter(c)) {
                 return 1;
             }
         }
-        if (_strnicmp((char *)self->cursor, "audiovendor", 11) == 0) {
-            c = ((char *)self->cursor)[11];
+        if (_strnicmp(text_cursor(), "audiovendor", 11) == 0) {
+            c = (text_cursor())[11];
             if (is_delimiter(c)) {
                 return 1;
             }
         }
-        if (_strnicmp((char *)self->cursor, "Requirements", 12) == 0) {
-            c = ((char *)self->cursor)[12];
+        if (_strnicmp(text_cursor(), "Requirements", 12) == 0) {
+            c = (text_cursor())[12];
             if (is_delimiter(c)) {
                 return 1;
             }
         }
 
-        cursor = (char *)self->cursor;
+        cursor = text_cursor();
         while (*cursor == ' ' || *cursor == '\t') {
             cursor++;
         }
@@ -119,7 +119,7 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
             break;
         } else if (match_keyword("MaxOverallGraphicDetail")) {
             self->cursor = self->cursor + 23;
-            cursor = (char *)self->cursor;
+            cursor = text_cursor();
             while (*cursor == ' ' || *cursor == '\t') {
                 cursor++;
             }
@@ -196,7 +196,7 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
             if (match_keyword("propertyset")) {
                 self->cursor = self->cursor + 11;
                 skip_whitespace();
-                if (*(char *)self->cursor != '=') {
+                if (*text_cursor() != '=') {
                     report_error("Missing =");
                     return 0;
                 }
@@ -230,7 +230,7 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
             }
         }
 
-        if (!((char *)self->cursor < (char *)self->end)) {
+        if (!(text_cursor() < text_end())) {
             break;
         }
     }
@@ -259,9 +259,9 @@ const char *HwreqParser::parse_flag_assignment(hwreq_property_set *property_set)
     char c;
     char *p2;
 
-    c = *(char *)self->cursor;
+    c = *text_cursor();
     while (c != ' ') {
-        c = *(char *)self->cursor;
+        c = *text_cursor();
         if (c == '=' || c == '\r') break;
         self->cursor++;
         if (c > '@' && c < '[') c += ' ';
@@ -270,15 +270,15 @@ const char *HwreqParser::parse_flag_assignment(hwreq_property_set *property_set)
         if (name_out == name + 254) {
             return "Flag too long";
         }
-        c = *(char *)self->cursor;
+        c = *text_cursor();
     }
     *name_out = '\0';
 
-    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
         self->cursor++;
     }
 
-    src = (char *)self->cursor;
+    src = text_cursor();
     value_out = value;
 
     if (*src != '\r') {
@@ -328,7 +328,7 @@ const char *HwreqParser::parse_flag_assignment(hwreq_property_set *property_set)
             if (value_out == value + 0xfe) {
                 return "Flag too long";
             }
-            c = *(char *)self->cursor;
+            c = *text_cursor();
         }
     }
 
@@ -376,8 +376,8 @@ uint8_t HwreqParser::parse_propertyset_directive()
     hwreq_property_set **slot;
 
     for (;;) {
-        if (_strnicmp((char *)self->cursor, "propertyset", 11) == 0) {
-            cursor = (char *)self->cursor + 11;
+        if (_strnicmp(text_cursor(), "propertyset", 11) == 0) {
+            cursor = text_cursor() + 11;
             c = *cursor;
             if (is_delimiter(c)) {
                 while (*cursor == ' ' || *cursor == '\t') {
@@ -440,15 +440,15 @@ uint8_t HwreqParser::parse_propertyset_directive()
 
                 goto skip_line_and_continue;
             }
-        } else if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
-            c = ((char *)self->cursor)[6];
+        } else if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
+            c = (text_cursor())[6];
             if (is_delimiter(c)) {
                 break;
             }
         }
 
-        if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
-            c = ((char *)self->cursor)[10];
+        if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
+            c = (text_cursor())[10];
             if (is_delimiter(c)) {
                 break;
             }
@@ -456,10 +456,10 @@ uint8_t HwreqParser::parse_propertyset_directive()
 
     skip_line_and_continue:
         advance_line_raw();
-        line = (char *)self->cursor;
+        line = text_cursor();
         self->line_start = self->cursor;
         self->line_number = self->line_number + 1;
-        if ((char *)self->end <= line) {
+        if (text_end() <= line) {
             return 1;
         }
     }
@@ -491,10 +491,10 @@ uint8_t HwreqParser::parse_vendor_block()
     uint8_t ok;
 
     for (;;) {
-        if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
-            c = ((char *)self->cursor)[6];
+        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
+            c = (text_cursor())[6];
             if (is_delimiter(c)) {
-                cursor = (char *)self->cursor + 6;
+                cursor = text_cursor() + 6;
                 while (*cursor == ' ' || *cursor == '\t') {
                     cursor++;
                 }
@@ -532,10 +532,10 @@ uint8_t HwreqParser::parse_vendor_block()
                         self->line_start = self->cursor;
                         self->line_number = self->line_number + 1;
 
-                        if (!(_strnicmp((char *)self->cursor, "vendor", 6) == 0 &&
-                              (c = ((char *)self->cursor)[6],
+                        if (!(_strnicmp(text_cursor(), "vendor", 6) == 0 &&
+                              (c = (text_cursor())[6],
                                is_delimiter(c)))) {
-                            cursor = (char *)self->cursor;
+                            cursor = text_cursor();
                             while (*cursor == ' ' || *cursor == '\t') {
                                 cursor++;
                             }
@@ -554,20 +554,20 @@ uint8_t HwreqParser::parse_vendor_block()
                             break;
                         }
                     after_nested_line:
-                        if (!((char *)self->cursor < (char *)self->end)) {
+                        if (!(text_cursor() < text_end())) {
                             break;
                         }
                     }
 
                     for (;;) {
-                        if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
-                            c = ((char *)self->cursor)[6];
+                        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
+                            c = (text_cursor())[6];
                             if (is_delimiter(c)) {
                                 return 1;
                             }
                         }
-                        if (_strnicmp((char *)self->cursor, "unknown", 7) == 0) {
-                            c = ((char *)self->cursor)[7];
+                        if (_strnicmp(text_cursor(), "unknown", 7) == 0) {
+                            c = (text_cursor())[7];
                             if (is_delimiter(c)) {
                                 device_id = (int32_t)self->adapter.device_id;
                                 self->cursor = self->cursor + 7;
@@ -575,7 +575,7 @@ uint8_t HwreqParser::parse_vendor_block()
                                 goto check_device_id;
                             }
                         }
-                        cursor = (char *)self->cursor;
+                        cursor = text_cursor();
                         while (*cursor == ' ' || *cursor == '\t') {
                             cursor++;
                         }
@@ -590,7 +590,7 @@ uint8_t HwreqParser::parse_vendor_block()
                         advance_line_raw();
                         self->line_start = self->cursor;
                         self->line_number = self->line_number + 1;
-                        if ((char *)self->end <= (char *)self->cursor) {
+                        if (text_end() <= text_cursor()) {
                             return 1;
                         }
                         continue;
@@ -599,7 +599,7 @@ uint8_t HwreqParser::parse_vendor_block()
                         if (device_id == -1) {
                             return 1;
                         }
-                        if (*(char *)self->cursor == '=') {
+                        if (*text_cursor() == '=') {
                             self->cursor = self->cursor + 1;
                             name = parse_quoted_string();
                             if (name != 0) {
@@ -615,8 +615,8 @@ uint8_t HwreqParser::parse_vendor_block()
                     }
                 }
             }
-        } else if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
-            c = ((char *)self->cursor)[10];
+        } else if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
+            c = (text_cursor())[10];
             if (is_delimiter(c)) {
                 return 1;
             }
@@ -626,7 +626,7 @@ uint8_t HwreqParser::parse_vendor_block()
         advance_line_raw();
         self->line_start = self->cursor;
         self->line_number = self->line_number + 1;
-        if ((char *)self->end <= (char *)self->cursor) {
+        if (text_end() <= text_cursor()) {
             return 1;
         }
     }
@@ -655,10 +655,10 @@ uint8_t HwreqParser::parse_audiovendor_block()
     uint8_t ok;
 
     for (;;) {
-        if (_strnicmp((char *)self->cursor, "audiovendor", 11) == 0) {
-            c = ((char *)self->cursor)[11];
+        if (_strnicmp(text_cursor(), "audiovendor", 11) == 0) {
+            c = (text_cursor())[11];
             if (is_delimiter(c)) {
-                cursor = (char *)self->cursor + 11;
+                cursor = text_cursor() + 11;
                 while (*cursor == ' ' || *cursor == '\t') {
                     cursor++;
                 }
@@ -696,10 +696,10 @@ uint8_t HwreqParser::parse_audiovendor_block()
                         self->line_start = self->cursor;
                         self->line_number = self->line_number + 1;
 
-                        if (!(_strnicmp((char *)self->cursor, "audiovendor", 11) == 0 &&
-                              (c = ((char *)self->cursor)[11],
+                        if (!(_strnicmp(text_cursor(), "audiovendor", 11) == 0 &&
+                              (c = (text_cursor())[11],
                                is_delimiter(c)))) {
-                            cursor = (char *)self->cursor;
+                            cursor = text_cursor();
                             while (*cursor == ' ' || *cursor == '\t') {
                                 cursor++;
                             }
@@ -718,26 +718,26 @@ uint8_t HwreqParser::parse_audiovendor_block()
                             break;
                         }
                     after_nested_line:
-                        if (!((char *)self->cursor < (char *)self->end)) {
+                        if (!(text_cursor() < text_end())) {
                             break;
                         }
                     }
 
                     for (;;) {
-                        if (_strnicmp((char *)self->cursor, "audiovendor", 11) == 0) {
-                            c = ((char *)self->cursor)[11];
+                        if (_strnicmp(text_cursor(), "audiovendor", 11) == 0) {
+                            c = (text_cursor())[11];
                             if (is_delimiter(c)) {
                                 return 1;
                             }
                         }
-                        if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
-                            c = ((char *)self->cursor)[6];
+                        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
+                            c = (text_cursor())[6];
                             if (is_delimiter(c)) {
                                 return 1;
                             }
                         }
-                        if (_strnicmp((char *)self->cursor, "unknown", 7) == 0) {
-                            c = ((char *)self->cursor)[7];
+                        if (_strnicmp(text_cursor(), "unknown", 7) == 0) {
+                            c = (text_cursor())[7];
                             if (is_delimiter(c)) {
                                 device_id = (int32_t)self->sound_device.device_id;
                                 self->cursor = self->cursor + 7;
@@ -745,7 +745,7 @@ uint8_t HwreqParser::parse_audiovendor_block()
                                 goto check_device_id;
                             }
                         }
-                        cursor = (char *)self->cursor;
+                        cursor = text_cursor();
                         while (*cursor == ' ' || *cursor == '\t') {
                             cursor++;
                         }
@@ -760,7 +760,7 @@ uint8_t HwreqParser::parse_audiovendor_block()
                         advance_line_raw();
                         self->line_start = self->cursor;
                         self->line_number = self->line_number + 1;
-                        if ((char *)self->end <= (char *)self->cursor) {
+                        if (text_end() <= text_cursor()) {
                             return 1;
                         }
                         continue;
@@ -769,7 +769,7 @@ uint8_t HwreqParser::parse_audiovendor_block()
                         if (device_id == -1) {
                             return 1;
                         }
-                        if (*(char *)self->cursor == '=') {
+                        if (*text_cursor() == '=') {
                             self->cursor = self->cursor + 1;
                             name = parse_quoted_string();
                             if (name != 0) {
@@ -785,8 +785,8 @@ uint8_t HwreqParser::parse_audiovendor_block()
                     }
                 }
             }
-        } else if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
-            c = ((char *)self->cursor)[10];
+        } else if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
+            c = (text_cursor())[10];
             if (is_delimiter(c)) {
                 return 1;
             }
@@ -796,7 +796,7 @@ uint8_t HwreqParser::parse_audiovendor_block()
         advance_line_raw();
         self->line_start = self->cursor;
         self->line_number = self->line_number + 1;
-        if ((char *)self->end <= (char *)self->cursor) {
+        if (text_end() <= text_cursor()) {
             return 1;
         }
     }
@@ -816,8 +816,8 @@ uint8_t HwreqParser::scan_for_applytoall()
     uint8_t result;
 
     for (;;) {
-        if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
-            c = ((char *)self->cursor)[10];
+        if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
+            c = (text_cursor())[10];
             if (is_delimiter(c)) {
                 advance_line_raw();
                 self->line_start = self->cursor;
@@ -831,10 +831,10 @@ uint8_t HwreqParser::scan_for_applytoall()
         }
 
         advance_line_raw();
-        line = (char *)self->cursor;
+        line = text_cursor();
         self->line_start = self->cursor;
         self->line_number = self->line_number + 1;
-        if ((char *)self->end <= line) {
+        if (text_end() <= line) {
             return 1;
         }
     }
@@ -855,8 +855,8 @@ uint8_t HwreqParser::scan_for_applytoall_or_vendor()
     uint8_t result;
 
     for (;;) {
-        if (_strnicmp((char *)self->cursor, "applytoall", 10) == 0) {
-            c = ((char *)self->cursor)[10];
+        if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
+            c = (text_cursor())[10];
             if (is_delimiter(c)) {
                 advance_line_raw();
                 self->line_start = self->cursor;
@@ -867,18 +867,18 @@ uint8_t HwreqParser::scan_for_applytoall_or_vendor()
                     return result;
                 }
             }
-        } else if (_strnicmp((char *)self->cursor, "vendor", 6) == 0) {
-            c = ((char *)self->cursor)[6];
+        } else if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
+            c = (text_cursor())[6];
             if (is_delimiter(c)) {
                 break;
             }
         }
 
         advance_line_raw();
-        line = (char *)self->cursor;
+        line = text_cursor();
         self->line_start = self->cursor;
         self->line_number = self->line_number + 1;
-        if ((char *)self->end <= line) {
+        if (text_end() <= line) {
             return 1;
         }
     }
