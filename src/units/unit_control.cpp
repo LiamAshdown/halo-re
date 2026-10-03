@@ -994,6 +994,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     ModelAnimations *graph;
     int16_t new_state;
     int16_t animation;
+    bool animation_started = false;
     uint8_t allowed;
     double turn;
 
@@ -1080,65 +1081,65 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         !test_flag(reinterpret_cast<const Biped *>(unit_tag)->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
         new_state = 0x18;
         if (UnitView(unit_index).try_set_animation_state(0x18)) {
-            goto aim;
+            animation_started = true;
         }
     }
 
-    animation = halo::models::animation_choose_random_permutation(graph_tag,
-        animation_table_lookup(graph, (int16_t)((facing + stance_class * 4) * 0xb + weapon_class)), static_cast<animation_random_stream>(1));
-    if (animation == -1) {
-        if (forced) {
-            obj->unit.animation_state_flags = (uint16_t)((obj->unit.animation_state_flags & 0xfff7) | 4);
-            if ((uint8_t)unit_tag->unit_flags & 2) {
-                halo::objects::object_delete_teardown(unit_index);
-                UnitView(unit_index).pick_random_spawned_actor_count();
-            }
-        }
-    } else {
-        ModelAnimationsAnimation *animation_data = reinterpret_cast<ModelAnimationsAnimation *>(&halo::objects::block_element<ModelAnimationsAnimation>(graph->animations, animation));
-
-        if ((uint8_t)obj->unit.animation_state == 0x21) {
-            UnitView(unit_index).release_thrown_grenade(1);
-        }
-        halo::objects::object_copy_default_node_transforms(unit_index, 3);
-        obj->unit.animation_state = (uint8_t)new_state;
-        UnitView(unit_index).set_custom_animation(graph_tag, animation);
-        set_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
-        if (forced) {
-            uint8_t keep_still = suppress_shield_check || allow_death_reaction;
-
-            if (!keep_still && halo::networking::globals().game_mode != 0) {
-                datum_index weapon = UnitView(unit_index).get_weapon_object_index(obj->unit.current_weapon_index);
-
-                if (halo::objects::object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
-                    keep_still = 1;
+    if (!animation_started) {
+        animation = halo::models::animation_choose_random_permutation(graph_tag,
+            animation_table_lookup(graph, (int16_t)((facing + stance_class * 4) * 0xb + weapon_class)), static_cast<animation_random_stream>(1));
+        if (animation == -1) {
+            if (forced) {
+                obj->unit.animation_state_flags = (uint16_t)((obj->unit.animation_state_flags & 0xfff7) | 4);
+                if ((uint8_t)unit_tag->unit_flags & 2) {
+                    halo::objects::object_delete_teardown(unit_index);
+                    UnitView(unit_index).pick_random_spawned_actor_count();
                 }
             }
-            if (keep_still) {
-                obj->unit.delayed_weapon_drop_ticks = 0;
-            } else {
-                int16_t frames = (int16_t)animation_data->frame_count;
-                int8_t ticks = (int8_t)halo::math::random_int_range((int16_t)(frames >> 2),
-                    (int16_t)((frames >> 1) + (frames >> 2)));
+        } else {
+            ModelAnimationsAnimation *animation_data = reinterpret_cast<ModelAnimationsAnimation *>(&halo::objects::block_element<ModelAnimationsAnimation>(graph->animations, animation));
 
-                obj->unit.delayed_weapon_drop_ticks = (uint8_t)(ticks > 1 ? ticks : 1);
+            if ((uint8_t)obj->unit.animation_state == 0x21) {
+                UnitView(unit_index).release_thrown_grenade(1);
             }
-        }
-        if ((int16_t)facing != 0 &&
-            (int16_t)animation_data->main_animation_index ==
-                animation_table_lookup(graph, (int16_t)stance_class * 0x2c + (int16_t)weapon_class)) {
-            facing = 0;
-        }
-        if (forced) {
-            if ((int16_t)facing == 3) {
-                set_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
-            } else {
-                clear_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
+            halo::objects::object_copy_default_node_transforms(unit_index, 3);
+            obj->unit.animation_state = (uint8_t)new_state;
+            UnitView(unit_index).set_custom_animation(graph_tag, animation);
+            set_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
+            if (forced) {
+                uint8_t keep_still = suppress_shield_check || allow_death_reaction;
+
+                if (!keep_still && halo::networking::globals().game_mode != 0) {
+                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(obj->unit.current_weapon_index);
+
+                    if (halo::objects::object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
+                        keep_still = 1;
+                    }
+                }
+                if (keep_still) {
+                    obj->unit.delayed_weapon_drop_ticks = 0;
+                } else {
+                    int16_t frames = (int16_t)animation_data->frame_count;
+                    int8_t ticks = (int8_t)halo::math::random_int_range((int16_t)(frames >> 2),
+                        (int16_t)((frames >> 1) + (frames >> 2)));
+
+                    obj->unit.delayed_weapon_drop_ticks = (uint8_t)(ticks > 1 ? ticks : 1);
+                }
+            }
+            if ((int16_t)facing != 0 &&
+                (int16_t)animation_data->main_animation_index ==
+                    animation_table_lookup(graph, (int16_t)stance_class * 0x2c + (int16_t)weapon_class)) {
+                facing = 0;
+            }
+            if (forced) {
+                if ((int16_t)facing == 3) {
+                    set_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
+                } else {
+                    clear_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
+                }
             }
         }
     }
-
-aim:
     if (throttle == 0 || (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::don_t_reface_during_pings)) || obj->base.type != 0 ||
         (int32_t)obj->base.parent_object != -1 || (!hard_ping && !forced)) {
         return;

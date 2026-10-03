@@ -482,16 +482,16 @@ void halo::objects::ObjectLighting::color_clamp_to_intensity(float intensity, Co
         scale = 1.0f;
     } else {
         float headroom = max_channel * (intensity + 1.0f);
+        bool keep_scale = false;
         if (headroom <= 1.0f) {
-            if (intensity <= headroom) {
-                goto apply;
-            }
+            keep_scale = intensity <= headroom;
         } else {
             intensity = 1.0f;
         }
-        scale = intensity / max_channel;
+        if (!keep_scale) {
+            scale = intensity / max_channel;
+        }
     }
-apply:
     color->red *= scale;
     color->green *= scale;
     color->blue *= scale;

@@ -894,127 +894,125 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         id = list[i];
         obj = object_get(id);
         object_tag = tag_get<Object>(obj->base.definition_tag);
-        if (halo::objects::tag_handle(object_tag->collision_model) == k_datum_index_none) {
-            goto notify;
-        }
-        geometry = tag_get<ModelCollisionGeometry>(halo::objects::tag_handle(object_tag->collision_model));
-        kill = (uint8_t)((dd->flags >> 2) & 1);
-        *(datum_index *)record.unknown_00 = id;
-        record.shield_damage_dealt = 0.0f;
-        record.depleted_this_call = 0;
-        if (obj->base.network_role == 3 || obj->base.network_role == 0) {
-            apply_state = 1;
-        } else {
-            player *responsible = player_try_get(dd->responsible_player);
+        if (halo::objects::tag_handle(object_tag->collision_model) != k_datum_index_none) {
+            geometry = tag_get<ModelCollisionGeometry>(halo::objects::tag_handle(object_tag->collision_model));
+            kill = (uint8_t)((dd->flags >> 2) & 1);
+            *(datum_index *)record.unknown_00 = id;
+            record.shield_damage_dealt = 0.0f;
+            record.depleted_this_call = 0;
+            if (obj->base.network_role == 3 || obj->base.network_role == 0) {
+                apply_state = 1;
+            } else {
+                player *responsible = player_try_get(dd->responsible_player);
 
-            apply_state = (responsible != 0 && responsible->local_player_index != -1) ? 0 : 1;
-        }
-        if (halo::game::globals().current_engine != 0 && halo::game::globals().teams_enabled) {
-            datum_index owner = halo::game::player_index_from_unit_index(id);
+                apply_state = (responsible != 0 && responsible->local_player_index != -1) ? 0 : 1;
+            }
+            if (halo::game::globals().current_engine != 0 && halo::game::globals().teams_enabled) {
+                datum_index owner = halo::game::player_index_from_unit_index(id);
 
-            if (owner != k_datum_index_none && owner != dd->responsible_player) {
-                player *owner_record = player_try_get(owner);
+                if (owner != k_datum_index_none && owner != dd->responsible_player) {
+                    player *owner_record = player_try_get(owner);
 
-                if (owner_record != 0) {
-                    friendly = (uint8_t)(halo::game::teams_are_enemies(dd->team_index,
-                        *(int16_t *)&((struct player *)owner_record)->team) == 0);
-                    if (friendly) {
-                        switch (g_006f1cf4) {
-                        case 0:
-                            shield_allowed = 0;
-                            body_allowed = 0;
-                            break;
-                        case 2:
-                            shield_allowed = 1;
-                            body_allowed = 0;
-                            break;
-                        case 3:
-                            if ((effect_block->damage_flags & 0x20) == 0) {
+                    if (owner_record != 0) {
+                        friendly = (uint8_t)(halo::game::teams_are_enemies(dd->team_index,
+                            *(int16_t *)&((struct player *)owner_record)->team) == 0);
+                        if (friendly) {
+                            switch (g_006f1cf4) {
+                            case 0:
                                 shield_allowed = 0;
                                 body_allowed = 0;
+                                break;
+                            case 2:
+                                shield_allowed = 1;
+                                body_allowed = 0;
+                                break;
+                            case 3:
+                                if ((effect_block->damage_flags & 0x20) == 0) {
+                                    shield_allowed = 0;
+                                    body_allowed = 0;
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
                 }
             }
-        }
-        if (node_index >= 0 && node_index < geometry->nodes.count) {
-            *(int16_t *)&region = halo::objects::block_element<ModelCollisionGeometryNode>(geometry->nodes, node_index).name_thing;
-        }
-        if (difficulty_scaled) {
-            notify_flags = 0x20;
-        }
-        if (dd->team_index != -1) {
-            int16_t team = obj->base.owner_team;
+            if (node_index >= 0 && node_index < geometry->nodes.count) {
+                *(int16_t *)&region = halo::objects::block_element<ModelCollisionGeometryNode>(geometry->nodes, node_index).name_thing;
+            }
+            if (difficulty_scaled) {
+                notify_flags = 0x20;
+            }
+            if (dd->team_index != -1) {
+                int16_t team = obj->base.owner_team;
 
-            if (halo::game::globals().current_engine != 0) {
-                if (team == dd->team_index) {
-                    notify_flags |= 0x10;
-                }
-            } else if (team >= 0 && team < 10 && dd->team_index >= 0 && dd->team_index < 10) {
-                if (teams_are_friends(team * 10 + dd->team_index)) {
-                    notify_flags |= 0x10;
+                if (halo::game::globals().current_engine != 0) {
+                    if (team == dd->team_index) {
+                        notify_flags |= 0x10;
+                    }
+                } else if (team >= 0 && team < 10 && dd->team_index >= 0 && dd->team_index < 10) {
+                    if (teams_are_friends(team * 10 + dd->team_index)) {
+                        notify_flags |= 0x10;
+                    }
                 }
             }
-        }
-        if (i == 0 && material_index >= 0 && material_index < geometry->materials.count) {
-            material = &halo::objects::block_element<ModelCollisionGeometryMaterial>(geometry->materials, material_index);
-        } else if (geometry->indirect_damage_material >= 0 && geometry->indirect_damage_material < geometry->materials.count) {
-            material = &halo::objects::block_element<ModelCollisionGeometryMaterial>(geometry->materials, geometry->indirect_damage_material);
-        } else {
-            material = &default_collision_material;
-        }
-        dd->material_type = material->material_type;
-        if (halo::hs::fields::omnipotent && dd->responsible_player != k_datum_index_none) {
-            kill = 1;
-        }
-        if (*(int16_t *)effect_block == 2 && halo::units::unit_point_in_front_and_asleep(&dd->origin, id) &&
-            ((uint8_t)(obj->base.vitality_flags >> 8) & 8) == 0) {
-            kill = 1;
-        }
-        if (target_is_local == 1 && kill && !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen) && (!friendly || body_allowed)) {
-            obj->base.body_vitality = 0.0f;
-            halo::objects::object_set_health_frozen_flag(id);
-            notify_flags |= 0x41;
-        }
-        if ((dd->flags & 0x20) == 0 && (effect_block->damage_flags & 0x200) == 0 &&
-            obj->base.maximum_shield_vitality > 0.0f && (!friendly || shield_allowed) && (i == 0 || (geometry->flags & 1))) {
-            halo::objects::object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
-                target_is_local, apply_state, &record);
-        }
-        if ((i == 0 || (parents_take_damage && (geometry->flags & 2))) &&
-            (effect_block->damage_flags & 0x40) == 0) {
-            if (((geometry->flags & 0x20) && (effect_block->damage_flags & 0x20) == 0) ||
-                (friendly && !body_allowed)) {
-                amount = 0.0f;
-            }
-            halo::objects::object_apply_body_damage(id, (i == 0) ? region_index : -1, (i == 0) ? node_index : -1,
-                (void *)(uintptr_t)((i == 0) ? hit_plane : 0), geometry, material, effect_block, dd, &notify_flags,
-                &body_damage, &material_multiplier, amount, target_is_local);
-            remaining = 0;
-        }
-        if (!reported && (shield_damage > 0.0001f || body_damage > 0.0001f)) {
-            if (shield_damage > body_damage) {
-                dd->material_type = geometry->shield_material_type;
-                dd->remaining_vitality = *(uint32_t *)&obj->base.shield_vitality;
+            if (i == 0 && material_index >= 0 && material_index < geometry->materials.count) {
+                material = &halo::objects::block_element<ModelCollisionGeometryMaterial>(geometry->materials, material_index);
+            } else if (geometry->indirect_damage_material >= 0 && geometry->indirect_damage_material < geometry->materials.count) {
+                material = &halo::objects::block_element<ModelCollisionGeometryMaterial>(geometry->materials, geometry->indirect_damage_material);
             } else {
-                float vitality = obj->base.body_vitality;
-
-                if (vitality < 0.0f) {
-                    vitality = 0.0f;
-                } else if (vitality > 1.0f) {
-                    vitality = 1.0f;
-                }
-                *(float *)&dd->remaining_vitality = vitality;
+                material = &default_collision_material;
             }
-            reported = 1;
+            dd->material_type = material->material_type;
+            if (halo::hs::fields::omnipotent && dd->responsible_player != k_datum_index_none) {
+                kill = 1;
+            }
+            if (*(int16_t *)effect_block == 2 && halo::units::unit_point_in_front_and_asleep(&dd->origin, id) &&
+                ((uint8_t)(obj->base.vitality_flags >> 8) & 8) == 0) {
+                kill = 1;
+            }
+            if (target_is_local == 1 && kill && !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen) && (!friendly || body_allowed)) {
+                obj->base.body_vitality = 0.0f;
+                halo::objects::object_set_health_frozen_flag(id);
+                notify_flags |= 0x41;
+            }
+            if ((dd->flags & 0x20) == 0 && (effect_block->damage_flags & 0x200) == 0 &&
+                obj->base.maximum_shield_vitality > 0.0f && (!friendly || shield_allowed) && (i == 0 || (geometry->flags & 1))) {
+                halo::objects::object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
+                    target_is_local, apply_state, &record);
+            }
+            if ((i == 0 || (parents_take_damage && (geometry->flags & 2))) &&
+                (effect_block->damage_flags & 0x40) == 0) {
+                if (((geometry->flags & 0x20) && (effect_block->damage_flags & 0x20) == 0) ||
+                    (friendly && !body_allowed)) {
+                    amount = 0.0f;
+                }
+                halo::objects::object_apply_body_damage(id, (i == 0) ? region_index : -1, (i == 0) ? node_index : -1,
+                    (void *)(uintptr_t)((i == 0) ? hit_plane : 0), geometry, material, effect_block, dd, &notify_flags,
+                    &body_damage, &material_multiplier, amount, target_is_local);
+                remaining = 0;
+            }
+            if (!reported && (shield_damage > 0.0001f || body_damage > 0.0001f)) {
+                if (shield_damage > body_damage) {
+                    dd->material_type = geometry->shield_material_type;
+                    dd->remaining_vitality = *(uint32_t *)&obj->base.shield_vitality;
+                } else {
+                    float vitality = obj->base.body_vitality;
+
+                    if (vitality < 0.0f) {
+                        vitality = 0.0f;
+                    } else if (vitality > 1.0f) {
+                        vitality = 1.0f;
+                    }
+                    *(float *)&dd->remaining_vitality = vitality;
+                }
+                reported = 1;
+            }
+            halo::objects::object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
+            if (shield_damage > 0.0f && obj->base.type == 0) {
+                obj->base.shield_update_pending = 1;
+            }
         }
-        halo::objects::object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
-        if (shield_damage > 0.0f && obj->base.type == 0) {
-            obj->base.shield_update_pending = 1;
-        }
-notify:
         halo::objects::object_damage_notify_and_impulse(id, dd, notify_flags, shield_damage, body_damage,
             *(uint32_t *)&material_multiplier, region, target_is_local);
         if (notify_flags & 4) {
@@ -1079,9 +1077,10 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
         }
     }
     taken = value * inverse_maximum * material_damage_multiplier(*effect_block, material->material_type);
+    bool skip_region_damage = false;
     if (*vitality_flags & 0x800) {
         if (is_local != 1) {
-            goto bookkeeping;
+            skip_region_damage = true;
         }
     } else {
         if (body > 0.0f && (geometry->unknown_20 & 1)) {
@@ -1106,11 +1105,12 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             }
         }
         if (is_local != 1) {
-            goto bookkeeping;
+            skip_region_damage = true;
+        } else {
+            *vitality = *vitality - taken;
         }
-        *vitality = *vitality - taken;
     }
-    if ((int16_t)region_index != -1) {
+    if (!skip_region_damage && (int16_t)region_index != -1) {
         int32_t region = (int16_t)region_index;
 
         if ((obj->base.destroyed_region_flags & (1u << (region & 0x1f))) == 0) {
@@ -1125,7 +1125,6 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             }
         }
     }
-bookkeeping:
     {
         float current = taken + obj->base.current_body_damage;
         float recent;
@@ -1226,106 +1225,98 @@ void halo::objects::ObjectDamage::apply_shield_damage(ModelCollisionGeometry *ge
     }
     if (!(*shield > 0.0f)) {
         to_shield = 0.0f;
-        if (is_local != 1) {
-            goto done;
+        if (is_local == 1) {
+            *shield = 0.0f;
         }
-        *shield = 0.0f;
-        goto stun;
-    }
-    maximum = obj->base.maximum_shield_vitality;
-    if (!unscaled) {
-        maximum = halo::game::weapon_get_zoom_fov_resolved(2, obj->base.owner_team) * maximum;
-    }
-    inverse_maximum = (maximum > 0.0f) ? 1.0f / maximum : 0.0f;
-    if ((*notify_flags & 0x10) == 0 || (geometry->flags & 4) == 0) {
-        float threshold = geometry->shield_failure_threshold;
-
-        to_shield = (1.0f - material->shield_leak_percentage) * passthrough;
-        if (*shield <= threshold && threshold > 0.0f) {
-            real t = halo::math::transition_function_evaluate(geometry->shield_failure_function, *shield / threshold);
-            float leak = geometry->failing_shield_leak_fraction;
-
-            to_shield = ((1.0f - leak) * t + leak) * to_shield;
-        }
-    }
-    if (*vitality_flags & 0x10) {
-        to_shield = passthrough;
-        passthrough = 0.0f;
     } else {
-        float scaled;
-        float dealt;
-
-        if (to_shield < 0.0f) {
-            to_shield = 0.0f;
+        maximum = obj->base.maximum_shield_vitality;
+        if (!unscaled) {
+            maximum = halo::game::weapon_get_zoom_fov_resolved(2, obj->base.owner_team) * maximum;
         }
-        passthrough = passthrough - to_shield;
-        if ((*notify_flags & 0x10) && (*notify_flags & 0x20)) {
-            real multiplier = halo::game::weapon_get_zoom_fov(0, halo::main::globals().game_globals->difficulty);
+        inverse_maximum = (maximum > 0.0f) ? 1.0f / maximum : 0.0f;
+        if ((*notify_flags & 0x10) == 0 || (geometry->flags & 4) == 0) {
+            float threshold = geometry->shield_failure_threshold;
 
-            if (multiplier > 0.0f) {
-                to_shield = to_shield / multiplier;
+            to_shield = (1.0f - material->shield_leak_percentage) * passthrough;
+            if (*shield <= threshold && threshold > 0.0f) {
+                real t = halo::math::transition_function_evaluate(geometry->shield_failure_function, *shield / threshold);
+                float leak = geometry->failing_shield_leak_fraction;
+
+                to_shield = ((1.0f - leak) * t + leak) * to_shield;
             }
         }
-        scaled = to_shield * material->shield_damage_multiplier *
-            material_damage_multiplier(*effect_block, geometry->shield_material_type);
-        if (scaled < 0.0001f) {
-            negligible = 1;
-        }
-        dealt = inverse_maximum * scaled;
-        if (dealt > *shield || *(int16_t *)effect_block == 3) {
-            float overflow = scaled - maximum * *shield;
-
-            if (overflow > 0.0f) {
-                passthrough = overflow + passthrough;
-            }
-            if (is_local == 1) {
-                *shield = 0.0f;
-            }
-            if ((*vitality_flags & 8) == 0 && apply_state == 1) {
-                halo::objects::object_set_shield_depleted_flag(target_index);
-                *notify_flags |= 8;
-                record->depleted_this_call = 1;
-            }
+        if (*vitality_flags & 0x10) {
+            to_shield = passthrough;
+            passthrough = 0.0f;
         } else {
-            if (is_local == 1 && (*vitality_flags & 0x800) == 0) {
-                *shield = *shield - dealt;
-            }
-            if ((*vitality_flags & 2) == 0 && *shield < geometry->shield_damaged_threshold) {
-                halo::objects::object_dispatch_effect_notify(target_index, halo::objects::tag_handle(geometry->shield_damaged_effect));
-                *vitality_flags |= 2;
-            }
-        }
-        if (negligible) {
-            goto local_stun;
-        }
-    }
-    if (apply_state == 1) {
-        float fraction = (*remaining_damage - passthrough) * inverse_maximum;
-        float recent;
+            float scaled;
+            float dealt;
 
-        obj->base.shield_damage_ticks = 0;
-        if ((*vitality_flags & 8) == 0) {
-            obj->base.current_shield_damage = 1.0f;
+            if (to_shield < 0.0f) {
+                to_shield = 0.0f;
+            }
+            passthrough = passthrough - to_shield;
+            if ((*notify_flags & 0x10) && (*notify_flags & 0x20)) {
+                real multiplier = halo::game::weapon_get_zoom_fov(0, halo::main::globals().game_globals->difficulty);
+
+                if (multiplier > 0.0f) {
+                    to_shield = to_shield / multiplier;
+                }
+            }
+            scaled = to_shield * material->shield_damage_multiplier *
+                material_damage_multiplier(*effect_block, geometry->shield_material_type);
+            if (scaled < 0.0001f) {
+                negligible = 1;
+            }
+            dealt = inverse_maximum * scaled;
+            if (dealt > *shield || *(int16_t *)effect_block == 3) {
+                float overflow = scaled - maximum * *shield;
+
+                if (overflow > 0.0f) {
+                    passthrough = overflow + passthrough;
+                }
+                if (is_local == 1) {
+                    *shield = 0.0f;
+                }
+                if ((*vitality_flags & 8) == 0 && apply_state == 1) {
+                    halo::objects::object_set_shield_depleted_flag(target_index);
+                    *notify_flags |= 8;
+                    record->depleted_this_call = 1;
+                }
+            } else {
+                if (is_local == 1 && (*vitality_flags & 0x800) == 0) {
+                    *shield = *shield - dealt;
+                }
+                if ((*vitality_flags & 2) == 0 && *shield < geometry->shield_damaged_threshold) {
+                    halo::objects::object_dispatch_effect_notify(target_index, halo::objects::tag_handle(geometry->shield_damaged_effect));
+                    *vitality_flags |= 2;
+                }
+            }
         }
-        recent = fraction + obj->base.recent_shield_damage;
-        obj->base.recent_shield_damage = recent;
-        if (obj->base.current_shield_damage > 1.0f) {
-            obj->base.current_shield_damage = 1.0f;
+        if (!negligible && apply_state == 1) {
+            float fraction = (*remaining_damage - passthrough) * inverse_maximum;
+            float recent;
+
+            obj->base.shield_damage_ticks = 0;
+            if ((*vitality_flags & 8) == 0) {
+                obj->base.current_shield_damage = 1.0f;
+            }
+            recent = fraction + obj->base.recent_shield_damage;
+            obj->base.recent_shield_damage = recent;
+            if (obj->base.current_shield_damage > 1.0f) {
+                obj->base.current_shield_damage = 1.0f;
+            }
+            if (recent > 1.0f) {
+                obj->base.recent_shield_damage = 1.0f;
+            }
+            record->shield_damage_dealt = fraction;
         }
-        if (recent > 1.0f) {
-            obj->base.recent_shield_damage = 1.0f;
+    }
+    if (is_local == 1) {
+        if (!(to_shield < geometry->minimum_stun_damage) || *shield == 0.0f) {
+            obj->base.shield_stun_ticks = (int16_t)(int32_t)(geometry->stun_time * 30.0f);
         }
-        record->shield_damage_dealt = fraction;
     }
-local_stun:
-    if (is_local != 1) {
-        goto done;
-    }
-stun:
-    if (!(to_shield < geometry->minimum_stun_damage) || *shield == 0.0f) {
-        obj->base.shield_stun_ticks = (int16_t)(int32_t)(geometry->stun_time * 30.0f);
-    }
-done:
     *shield_damage_out = to_shield;
     *remaining_damage = passthrough;
 }

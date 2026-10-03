@@ -320,7 +320,6 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
                 return 0;
             }
             reaction_id = (recent_damage <= 0.0f) * 2 + 6;
-            goto have_reaction_id;
         } else {
             use_second_tier = 1;
             reaction_id = 7;
@@ -361,13 +360,9 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
             chain = 2;
             out_communication_hold_tick = (reaction_id == 0x12) ? 4 : 1;
         }
-have_reaction_id:
-        if (reaction_id == -1) {
-            goto done;
-        }
     }
 
-    {
+    if (reaction_id != -1) {
         int16_t priority = is_scripted ? 10 : (use_second_tier ? 7 : 2);
         int32_t out3f0 = -1;
         int32_t commit_chain = -1;
@@ -396,7 +391,6 @@ have_reaction_id:
         }
     }
 
-done:
     if (chain != -1) {
         halo::ai::ai_refresh_unit_stimulus_and_alert(unit_index, (int16_t)out_communication_hold_tick, (int16_t)chain);
     }
@@ -1441,53 +1435,50 @@ void UnitView::update_animation_timers()
     if (obj->unit.current_speech.priority > 0) {
         if (obj->unit.speech_delay_ticks > 0) {
             obj->unit.speech_delay_ticks = (int16_t)(obj->unit.speech_delay_ticks - 1);
-            goto tail;
-        }
-        if ((uint8_t)obj->unit.speech_started == 0) {
-            object_marker marker;
-            Point3D position;
-            Vector3D forward;
-            int16_t node = 0;
+        } else {
+            if ((uint8_t)obj->unit.speech_started == 0) {
+                object_marker marker;
+                Point3D position;
+                Vector3D forward;
+                int16_t node = 0;
 
-            if ((int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"head", &marker, 1) != 0) {
-                uint8_t *raw = (uint8_t *)&marker;
+                if ((int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"head", &marker, 1) != 0) {
+                    position = *(Point3D *)&marker.transform.position;
+                    forward = *(Vector3D *)&marker.transform.forward;
+                    node = marker.node_index;
+                } else {
+                    position = *(Point3D *)global_zero_vector3d_pointer;
+                    forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
+                }
+                if (obj->unit.current_speech.sound_tag != k_datum_index_none) {
+                    obj->unit.speech_sound_handle = halo::sound::sound_start_at_object_marker(unit_index, &position, &forward,
+                        obj->unit.current_speech.sound_tag, node, 1.0f, 0);
+                }
+                halo::ai::ai_communication_gate_line_played(obj->unit.current_speech.priority, (ai_communication_record *)&obj->unit.current_speech.unknown_10,
+                    unit_index);
+                obj->unit.speech_started = 1;
+            }
+            count_down(reinterpret_cast<uint8_t *>(obj) + 0x3fc);
+            if (obj->unit.speech_duration_ticks > 0) {
+                int16_t value = (int16_t)(obj->unit.speech_duration_ticks - 1);
 
-                position = *(Point3D *)(raw + 0x2c);
-                forward = *(Vector3D *)(raw + 0x8);
-                node = *(int16_t *)raw;
+                obj->unit.speech_duration_ticks = value;
+                if (value == 0) {
+                    obj->unit.speech_sound_handle = k_datum_index_none;
+                }
             } else {
-                position = *(Point3D *)global_zero_vector3d_pointer;
-                forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
+                if ((uint8_t)obj->unit.speech_finished == 0) {
+                    halo::ai::ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)&obj->unit.current_speech.scream_type, 0, k_datum_index_none,
+                        (uint32_t *)&obj->unit.current_speech.unknown_10);
+                    obj->unit.speech_finished = 1;
+                }
+                count_down(reinterpret_cast<uint8_t *>(obj) + 0x3fe);
+                if (obj->unit.speech_tail_ticks == 0) {
+                    obj->unit.speech_lipsync_ticks = 0;
+                }
             }
-            if (obj->unit.current_speech.sound_tag != k_datum_index_none) {
-                obj->unit.speech_sound_handle = halo::sound::sound_start_at_object_marker(unit_index, &position, &forward,
-                    obj->unit.current_speech.sound_tag, node, 1.0f, 0);
-            }
-            halo::ai::ai_communication_gate_line_played(obj->unit.current_speech.priority, (ai_communication_record *)&obj->unit.current_speech.unknown_10,
-                unit_index);
-            obj->unit.speech_started = 1;
-        }
-        count_down(reinterpret_cast<uint8_t *>(obj) + 0x3fc);
-        if (obj->unit.speech_duration_ticks > 0) {
-            int16_t value = (int16_t)(obj->unit.speech_duration_ticks - 1);
-
-            obj->unit.speech_duration_ticks = value;
-            if (value == 0) {
-                obj->unit.speech_sound_handle = k_datum_index_none;
-            }
-            goto tail;
-        }
-        if ((uint8_t)obj->unit.speech_finished == 0) {
-            halo::ai::ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)&obj->unit.current_speech.scream_type, 0, k_datum_index_none,
-                (uint32_t *)&obj->unit.current_speech.unknown_10);
-            obj->unit.speech_finished = 1;
-        }
-        count_down(reinterpret_cast<uint8_t *>(obj) + 0x3fe);
-        if (obj->unit.speech_tail_ticks == 0) {
-            obj->unit.speech_lipsync_ticks = 0;
         }
     }
-tail:
     if (obj->unit.speech_lipsync_ticks == 0 && (uint8_t)obj->unit.speech_lipsync_stopped == 0) {
         halo::ai::ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&obj->unit.current_speech.unknown_10);
         obj->unit.speech_lipsync_stopped = 1;
@@ -1546,19 +1537,14 @@ void UnitView::update_footstep_and_idle_triggers()
             }
         } else if (is_moving_fast &&
                    (anim->left_foot_frame_index != 0 || anim->right_foot_frame_index != 0)) {
-            int16_t foot;
             if ((uint16_t)obj->animation_frame == (uint16_t)(uint8_t)anim->left_foot_frame_index) {
-                foot = 0;
-            } else if ((uint16_t)obj->animation_frame != (uint16_t)(uint8_t)anim->right_foot_frame_index) {
-                goto idle_timeout;
-            } else {
-                foot = 1;
+                UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == 2, 0);
+            } else if ((uint16_t)obj->animation_frame == (uint16_t)(uint8_t)anim->right_foot_frame_index) {
+                UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == 2, 1);
             }
-            UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == 2, foot);
         }
     }
 
-idle_timeout:
     if (biped->movement_state == 0) {
         if (biped->stop_moving_ticks < 1) {
             return;

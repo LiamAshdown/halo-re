@@ -90,35 +90,33 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
 
     if (BipedView(object_index).is_idle_eligible()) {
         already_idle = 1;
-        if (!test_flag(tag->biped_flags, tags::biped_tag_flag::rotate_while_airborne)) {
-            goto tail;
-        }
-        if (unit->animation_state != 0x1f && unit->animation_state != 0x29) {
-            float magnitude = (float)halo::math::random_real_range(0.05235988, 0.08726646);
-            real_vector3d impulse_dir;
+        if (test_flag(tag->biped_flags, tags::biped_tag_flag::rotate_while_airborne)) {
+            if (unit->animation_state != 0x1f && unit->animation_state != 0x29) {
+                float magnitude = (float)halo::math::random_real_range(0.05235988, 0.08726646);
+                real_vector3d impulse_dir;
 
-            if (!(obj->up.k <= 0.8f)) {
-                double angle = halo::math::random_real_range(0.0, 6.2831855);
-                impulse_dir.i = (float)halo::x87::fcos(angle);
-                impulse_dir.j = (float)halo::x87::fsin(angle);
-                impulse_dir.k = 0.0f;
-            } else {
-                halo::math::vector3d_cross_product(impulse_dir, *halo::math::globals().global_up3d_pointer, obj->up);
-                if (!(halo::math::vector3d_normalize_with_length(impulse_dir) > 0.0f)) {
+                if (!(obj->up.k <= 0.8f)) {
                     double angle = halo::math::random_real_range(0.0, 6.2831855);
                     impulse_dir.i = (float)halo::x87::fcos(angle);
                     impulse_dir.j = (float)halo::x87::fsin(angle);
                     impulse_dir.k = 0.0f;
+                } else {
+                    halo::math::vector3d_cross_product(impulse_dir, *halo::math::globals().global_up3d_pointer, obj->up);
+                    if (!(halo::math::vector3d_normalize_with_length(impulse_dir) > 0.0f)) {
+                        double angle = halo::math::random_real_range(0.0, 6.2831855);
+                        impulse_dir.i = (float)halo::x87::fcos(angle);
+                        impulse_dir.j = (float)halo::x87::fsin(angle);
+                        impulse_dir.k = 0.0f;
+                    }
                 }
+                obj->angular_velocity.i += impulse_dir.i * magnitude;
+                obj->angular_velocity.j += impulse_dir.j * magnitude;
+                obj->angular_velocity.k += impulse_dir.k * magnitude;
             }
-            obj->angular_velocity.i += impulse_dir.i * magnitude;
-            obj->angular_velocity.j += impulse_dir.j * magnitude;
-            obj->angular_velocity.k += impulse_dir.k * magnitude;
+            UnitView(object_index).rotate_basis_about_axis();
         }
-        UnitView(object_index).rotate_basis_about_axis();
     }
 
-tail:
     {
         int8_t state = unit->animation_state;
         if (state == 0x27 || state == 0x28) {
@@ -514,6 +512,18 @@ uint8_t BipedView::update()
     state[0] = 0;
     state[1] = 0;
 
+    auto finish = [&]() -> uint8_t {
+        if (UnitView(object_index).update_animation_state_machine(state) == 1) {
+            UnitView(object_index).snap_to_min_ground_height();
+        }
+        if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && test_flag(((struct object *)obj)->flags, objects::object_flag::at_rest)) {
+            (*(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks)++;
+        } else {
+            *(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks = 0;
+        }
+        return 1;
+    };
+
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         object *parent = reinterpret_cast<object *>(halo::objects::object_record_bytes(((unit_object *)obj)->base.parent_object));
 
@@ -521,7 +531,7 @@ uint8_t BipedView::update()
             if (parent->type == 0) {
                 state[0] = (int8_t)(((uint8_t)parent->vitality_flags & 4) | 0x20);
             }
-            goto tail;
+            return finish();
         }
         UnitView(object_index).evaluate_flee_reaction();
         if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && halo::networking::globals().game_mode != 1) {
@@ -580,7 +590,7 @@ uint8_t BipedView::update()
             }
             biped_free_local_player_history(self);
         }
-        goto tail;
+        return finish();
     }
 
     ::halo::units::unit_update_up_vector((Biped *)(Biped *)tag, (::object *)(object *)obj);
@@ -638,7 +648,7 @@ uint8_t BipedView::update()
         BipedView(object_index).trigger_on_velocity_threshold();
     }
     if (unit_updates_suppressed) {
-        goto tail;
+        return finish();
     }
     if ((uint8_t)((struct biped_object *)obj)->biped.melee_ticks == 0) {
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none && (int8_t)(uint8_t)((struct unit_object *)obj)->unit.control_flags < 0) {
@@ -658,7 +668,7 @@ uint8_t BipedView::update()
                 tail_time = (int8_t)halo::items::weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
                 ((struct biped_object *)obj)->biped.melee_inflict_tick = (uint8_t)(total - quarter - tail_time);
                 if (unit_updates_suppressed) {
-                    goto tail;
+                    return finish();
                 }
             }
         }
@@ -668,7 +678,7 @@ uint8_t BipedView::update()
         }
         ((struct biped_object *)obj)->biped.melee_ticks--;
         if (unit_updates_suppressed) {
-            goto tail;
+            return finish();
         }
     }
     UnitView(object_index).update_footstep_and_idle_triggers();
@@ -677,16 +687,7 @@ uint8_t BipedView::update()
         UnitView(object_index).check_fell_off_level();
     }
 
-tail:
-    if (UnitView(object_index).update_animation_state_machine(state) == 1) {
-        UnitView(object_index).snap_to_min_ground_height();
-    }
-    if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && test_flag(((struct object *)obj)->flags, objects::object_flag::at_rest)) {
-        (*(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks)++;
-    } else {
-        *(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks = 0;
-    }
-    return 1;
+    return finish();
 }
 
 /**

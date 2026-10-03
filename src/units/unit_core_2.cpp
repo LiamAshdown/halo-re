@@ -210,13 +210,12 @@ uint8_t UnitView::update()
             if (obj->unit.stun_ticks > 0 && --obj->unit.stun_ticks == 0) {
                 *(int32_t *)&obj->unit.stun = 0;
             }
+            bool skip_feign_death = false;
             if ((int8_t)(uint8_t)obj->unit.delayed_weapon_drop_ticks > 0 && --obj->unit.delayed_weapon_drop_ticks == 0) {
                 UnitView(unit_index).drop_current_weapon(1);
-                if (unit_updates_suppressed) {
-                    goto controls;
-                }
+                skip_feign_death = unit_updates_suppressed;
             }
-            if (obj->unit.feign_death_ticks > 0 && test_flag(obj->base.flags, objects::object_flag::at_rest) && --obj->unit.feign_death_ticks == 0) {
+            if (!skip_feign_death && obj->unit.feign_death_ticks > 0 && test_flag(obj->base.flags, objects::object_flag::at_rest) && --obj->unit.feign_death_ticks == 0) {
                 if (obj->base.body_vitality > 0.0f) {
                     int16_t state = (int16_t)((~((uint8_t)obj->unit.animation_state_flags >> 3) & 1) | 0x22);
 
@@ -236,7 +235,6 @@ uint8_t UnitView::update()
         }
     }
 
-controls:
     if (!test_flag(tag->unit_flags, tags::unit_tag_flag::has_no_aiming)) {
         if (!test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen) && !unit_updates_suppressed) {
             if (test_flag(obj->base.vitality_flags, objects::vitality_flag::region_response_400)) {
@@ -478,16 +476,16 @@ controls:
     }
     if ((uint8_t)obj->unit.flaming_ticks != 0) {
         if (unit_updates_suppressed) {
-            goto done;
+            return 1;
         }
         if (--obj->unit.flaming_ticks == 0) {
             UnitView(unit_index).update_autoaim_interaction();
             if (unit_updates_suppressed) {
-                goto done;
+                return 1;
             }
         }
     } else if (unit_updates_suppressed) {
-        goto done;
+        return 1;
     }
     {
         float step = -obj->unit.mouth_aperture;
@@ -594,7 +592,7 @@ controls:
             }
         }
     }
-done:
+
     return 1;
 }
 

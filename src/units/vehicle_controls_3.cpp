@@ -56,10 +56,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 
     if (bank_lookup >= 0.5f || obj->up.k <= -0.2f) {
         halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)node_output, (uint32_t)contact_points, &push, &angular);
-        goto ground_lean_update;
-    }
-
-    {
+    } else {
         real_matrix4x3 basis;
         real_vector3d local_velocity;
 
@@ -214,11 +211,10 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 
         push.i *= unit->driver_seat_power; push.j *= unit->driver_seat_power; push.k *= unit->driver_seat_power;
         angular.i *= unit->driver_seat_power; angular.j *= unit->driver_seat_power; angular.k *= unit->driver_seat_power;
+
+        halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)node_output, (uint32_t)contact_points, &push, &angular);
     }
 
-    halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)node_output, (uint32_t)contact_points, &push, &angular);
-
-ground_lean_update:
     {
         float base = (vehicle->ground_lean >= 0.4f) ? vehicle->ground_lean : 0.4f;
         int32_t count = physics_tag->mass_points.count;

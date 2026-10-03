@@ -335,10 +335,21 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     tag_inst = &halo::cache::globals().tag_instances[halo::datum_slot(definition_tag)];
     object_tag = (Object *)tag_inst->data;
 
+    auto report_out_of_objects = [&]() -> datum_index {
+        tag_path = halo::cache::globals().tag_instances[(uint16_t)(uint32_t)definition_tag].path;
+        last_slash = strrchr(tag_path, '\\');
+        if (last_slash != 0) {
+            tag_path = last_slash + 1;
+        }
+        sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
+        halo::main::console_print_error_va(0, network_log_path_format, out_of_objects_message);
+        return new_index;
+    };
+
     new_index = halo::objects::object_block_data_new(-1, object_data,
         object_type_definitions[object_tag->object_type]->object_size);
     if (new_index == k_datum_index_none) {
-        goto out_of_objects;
+        return report_out_of_objects();
     }
 
     header = (object_header *)object_data->data + halo::datum_slot(new_index);
@@ -475,15 +486,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         halo::objects::object_type_definitions_notify_0x30(new_index);
         halo::objects::object_block_data_free(object_data, new_index);
         new_index = k_datum_index_none;
-out_of_objects:
-        tag_path = halo::cache::globals().tag_instances[(uint16_t)(uint32_t)definition_tag].path;
-        last_slash = strrchr(tag_path, '\\');
-        if (last_slash != 0) {
-            tag_path = last_slash + 1;
-        }
-        sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
-        halo::main::console_print_error_va(0, network_log_path_format, out_of_objects_message);
-        return new_index;
+        return report_out_of_objects();
     }
 
     if (halo::objects::tag_handle(object_tag->creation_effect) != k_datum_index_none) {

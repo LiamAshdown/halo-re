@@ -152,6 +152,7 @@ void BipedView::update_facing(int8_t *out_animation_state)
         float bank_time;
         float bounds[4];
         float servo_acceleration;
+        bool facing_reached = false;
 
         if (obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
                 obj->velocity.i * obj->velocity.i < 0.00027777778f &&
@@ -167,20 +168,21 @@ void BipedView::update_facing(int8_t *out_animation_state)
                                 unit->desired_facing_vector.j * obj->forward.j +
                                 unit->desired_facing_vector.k * obj->forward.k) {
                 target = obj->forward;
-                goto apply_turn;
+                facing_reached = true;
             }
         }
 
-        pitch = tag->pitch_ratio * unit->throttle.k;
-        target = unit->desired_facing_vector;
-        if (pitch != 0.0f) {
-            target.k = target.k + pitch;
-            if (halo::math::vector3d_normalize_with_length(target) == 0.0f) {
-                target = unit->desired_facing_vector;
+        if (!facing_reached) {
+            pitch = tag->pitch_ratio * unit->throttle.k;
+            target = unit->desired_facing_vector;
+            if (pitch != 0.0f) {
+                target.k = target.k + pitch;
+                if (halo::math::vector3d_normalize_with_length(target) == 0.0f) {
+                    target = unit->desired_facing_vector;
+                }
             }
         }
 
-    apply_turn:
         halo::math::vector3d_cross_product(scratch, obj->up, obj->forward);
         bank_target = (scratch.i * unit->desired_facing_vector.i +
                        scratch.k * unit->desired_facing_vector.k +

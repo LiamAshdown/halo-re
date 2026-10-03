@@ -221,130 +221,135 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         }
     }
 
+    bool skip_record_check = false;
     if (obj->unit.controlling_player == k_datum_index_none && killed && (effect_block[0x4] & 0x80) &&
         (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::runs_around_flaming))) {
-        unit_object *self;
-        datum_index vehicle_index;
+        const bool enter_stunned = [&]() -> bool {
+            unit_object *self;
+            datum_index vehicle_index;
 
-        if (obj->base.parent_object == k_datum_index_none) {
-            goto stunned;
-        }
-        self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
-        if (self == 0 || halo::networking::globals().game_mode == 1 ||
-            (vehicle_index = self->base.parent_object) == k_datum_index_none ||
-            self->unit.vehicle_seat_index == -1) {
-            goto record_check;
-        }
-        if (self->base.type == 1) {
-            unit_object *me = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
+            if (obj->base.parent_object == k_datum_index_none) {
+                return true;
+            }
+            self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
+            if (self == 0 || halo::networking::globals().game_mode == 1 ||
+                (vehicle_index = self->base.parent_object) == k_datum_index_none ||
+                self->unit.vehicle_seat_index == -1) {
+                return false;
+            }
+            if (self->base.type == 1) {
+                unit_object *me = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
 
-            if (me->base.parent_object != k_datum_index_none && me->unit.vehicle_seat_index != -1) {
-                biped_detach_from_seat(unit_index, me->base.parent_object);
+                if (me->base.parent_object != k_datum_index_none && me->unit.vehicle_seat_index != -1) {
+                    biped_detach_from_seat(unit_index, me->base.parent_object);
+                }
+                biped_free_local_player_history(me);
+                return false;
             }
-            biped_free_local_player_history(me);
-            goto record_check;
-        }
-        if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
-            goto record_check;
-        }
-        {
-            Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
-            datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
-            uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)self->unit.animation_definition_index * 0x64;
-            int16_t death_animation;
-            uint8_t *object;
-            Object *object_tag;
+            if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
+                return false;
+            }
+            {
+                Unit *self_tag = halo::objects::tag_as<Unit>(*(datum_index *)self);
+                datum_index graph = halo::objects::tag_handle(self_tag->base.animation_graph);
+                uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)self->unit.animation_definition_index * 0x64;
+                int16_t death_animation;
+                uint8_t *object;
+                Object *object_tag;
 
-            if (*(int32_t *)(seat_block + 0x40) <= 8) {
-                goto record_check;
+                if (*(int32_t *)(seat_block + 0x40) <= 8) {
+                    return false;
+                }
+                death_animation = (*(int16_t **)(seat_block + 0x44))[8];
+                if (death_animation == -1) {
+                    return false;
+                }
+                if (((struct unit_object *)halo::objects::object_record_bytes(vehicle_index))->unit.driver_unit_index == unit_index) {
+                    UnitView((int32_t)vehicle_index).notify_weapon_removed();
+                }
+                UnitView(unit_index).set_custom_animation(halo::objects::tag_handle(self_tag->base.animation_graph), halo::models::animation_choose_random_permutation(graph, death_animation, (animation_random_stream)1));
+                object = halo::objects::object_record_bytes(unit_index);
+                object_tag = halo::objects::tag_as<Object>(*(datum_index *)object);
+                if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+                    halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
+                }
+                if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1) {
+                    clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
+                    halo::objects::object_header_of(unit_index).flags |= 2;
+                }
+                self->unit.animation_state = 0x1b;
+                halo::ai::actor_notify_weapon_pickup_once(unit_index);
+                if (self->base.network_role == 0) {
+                    ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
+                }
             }
-            death_animation = (*(int16_t **)(seat_block + 0x44))[8];
-            if (death_animation == -1) {
-                goto record_check;
+            return true;
+        }();
+        if (enter_stunned) {
+            if (is_local == 1) {
+                UnitView(unit_index).enter_stunned_state(dd->responsible_object);
             }
-            if (((struct unit_object *)halo::objects::object_record_bytes(vehicle_index))->unit.driver_unit_index == unit_index) {
-                UnitView((int32_t)vehicle_index).notify_weapon_removed();
-            }
-            UnitView(unit_index).set_custom_animation(halo::objects::tag_handle(self_tag->base.animation_graph), halo::models::animation_choose_random_permutation(graph, death_animation, (animation_random_stream)1));
-            object = halo::objects::object_record_bytes(unit_index);
-            object_tag = halo::objects::tag_as<Object>(*(datum_index *)object);
-            if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
-                halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
-            }
-            if ((int32_t)halo::objects::tag_handle(object_tag->model) != -1) {
-                clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
-                halo::objects::object_header_of(unit_index).flags |= 2;
-            }
-            self->unit.animation_state = 0x1b;
-            halo::ai::actor_notify_weapon_pickup_once(unit_index);
-            if (self->base.network_role == 0) {
-                ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
-            }
+            killed = 0;
+            skip_record_check = true;
         }
-stunned:
-        if (is_local == 1) {
-            UnitView(unit_index).enter_stunned_state(dd->responsible_object);
-        }
-        killed = 0;
-        goto local_reactions;
     }
 
-record_check:
-    if ((dd->flags & 0x10) == 0 && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
-        !test_flag(obj->unit.flags, units::unit_flag::unknown_800000) && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
-        uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
-        real_vector2d direction;
-        real_vector2d forward;
-        uint8_t stunned_flag = 0;
-        uint8_t special = 0;
-        uint8_t has_direction = 0;
-        float angle = 0.0f;
+    if (!skip_record_check) {
+        if ((dd->flags & 0x10) == 0 && (killed || knocked_down || !test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) &&
+            !test_flag(obj->unit.flags, units::unit_flag::unknown_800000) && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
+            uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
+            real_vector2d direction;
+            real_vector2d forward;
+            uint8_t stunned_flag = 0;
+            uint8_t special = 0;
+            uint8_t has_direction = 0;
+            float angle = 0.0f;
 
-        direction.i = dd->direction.i;
-        direction.j = dd->direction.j;
-        forward.i = obj->base.forward.i;
-        forward.j = obj->base.forward.j;
-        if (halo::math::vector2d_normalize_with_length(direction) > 0.0f && halo::math::vector2d_normalize_with_length(forward) > 0.0f) {
-            angle = halo::math::vector2d_angle_between(forward, direction);
-            has_direction = 1;
-        }
-        if (((uint8_t)unit_tag->unit_flags & 0x80) && (effect_flags & 4) == 0) {
-            stunned_flag = 1;
-        }
-        if ((uint8_t)obj->unit.flaming_ticks != 0) {
-            stunned_flag = 1;
-        }
-        if (flags & 0x8a) {
-            special = 1;
-        }
-        record.valid = 1;
-        record.killed = killed;
-        record.knocked_down = knocked_down;
-        record.violent = violent;
-        record.stunned = stunned_flag;
-        record.special = special;
-        record.region_index = (int16_t)region_index;
-        record.angle = angle;
-        if (has_direction == 1) {
-            record.no_direction = 0;
-            record.direction = direction;
+            direction.i = dd->direction.i;
+            direction.j = dd->direction.j;
+            forward.i = obj->base.forward.i;
+            forward.j = obj->base.forward.j;
+            if (halo::math::vector2d_normalize_with_length(direction) > 0.0f && halo::math::vector2d_normalize_with_length(forward) > 0.0f) {
+                angle = halo::math::vector2d_angle_between(forward, direction);
+                has_direction = 1;
+            }
+            if (((uint8_t)unit_tag->unit_flags & 0x80) && (effect_flags & 4) == 0) {
+                stunned_flag = 1;
+            }
+            if ((uint8_t)obj->unit.flaming_ticks != 0) {
+                stunned_flag = 1;
+            }
+            if (flags & 0x8a) {
+                special = 1;
+            }
+            record.valid = 1;
+            record.killed = killed;
+            record.knocked_down = knocked_down;
+            record.violent = violent;
+            record.stunned = stunned_flag;
+            record.special = special;
+            record.region_index = (int16_t)region_index;
+            record.angle = angle;
+            if (has_direction == 1) {
+                record.no_direction = 0;
+                record.direction = direction;
+            } else {
+                record.no_direction = 1;
+            }
+            record.player_value = 0;
+            if (obj->unit.controlling_player != k_datum_index_none) {
+                uint8_t *player = (uint8_t *)halo::memory::datum_get(obj->unit.controlling_player, halo::game::globals().player_data);
+
+                if (player != 0) {
+                    record.player_value = *(uint32_t *)&((struct player *)player)->respawn_timer;
+                }
+            }
+            UnitView(unit_index).update_stance_and_jump(killed, knocked_down, violent, stunned_flag, special, angle, (int16_t)region_index, has_direction ? &direction : 0, is_local);
         } else {
-            record.no_direction = 1;
+            record.valid = 0;
         }
-        record.player_value = 0;
-        if (obj->unit.controlling_player != k_datum_index_none) {
-            uint8_t *player = (uint8_t *)halo::memory::datum_get(obj->unit.controlling_player, halo::game::globals().player_data);
-
-            if (player != 0) {
-                record.player_value = *(uint32_t *)&((struct player *)player)->respawn_timer;
-            }
-        }
-        UnitView(unit_index).update_stance_and_jump(killed, knocked_down, violent, stunned_flag, special, angle, (int16_t)region_index, has_direction ? &direction : 0, is_local);
-    } else {
-        record.valid = 0;
     }
 
-local_reactions:
     if (is_local == 1) {
         datum_index unit_player = obj->unit.controlling_player;
 
@@ -799,19 +804,20 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
     int16_t self_team = ((struct object *)unit_obj)->owner_team;
     uint8_t hostile;
     if (halo::game::globals().current_engine == 0) {
-        if ((self_team < 0) || (9 < self_team) || (team_index < 0) || (9 < team_index)) {
-            goto broadcast_check;
+        if (!((self_team < 0) || (9 < self_team) || (team_index < 0) || (9 < team_index))) {
+            int32_t bit_index = team_index + self_team * 10;
+            hostile = 1 - ((*(uint32_t *)(team_pair_data + 0xa4 + (bit_index >> 5) * 4) & (1u << (bit_index & 0x1f))) != 0);
+            if (!hostile) {
+                return;
+            }
         }
-        int32_t bit_index = team_index + self_team * 10;
-        hostile = 1 - ((*(uint32_t *)(team_pair_data + 0xa4 + (bit_index >> 5) * 4) & (1u << (bit_index & 0x1f))) != 0);
     } else {
         hostile = self_team != team_index;
-    }
-    if (!hostile) {
-        return;
+        if (!hostile) {
+            return;
+        }
     }
 
-broadcast_check:
     {
         uint8_t *attacker = 0;
         uint32_t attacker_handle = k_datum_index_none;
