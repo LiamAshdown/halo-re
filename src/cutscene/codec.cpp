@@ -5,7 +5,17 @@
 #include "halo/core/libm.hpp"
 
 static auto &recorded_animation_angle_scale = halo::link::ref<float>(halo::cutscene::vars().recorded_animation_angle_scale);
-static auto &unit_control_data_version_layouts = halo::link::ref<unit_control_data_field_layout *[4]>(halo::cutscene::vars().unit_control_data_version_layouts);
+namespace {
+/** Field layouts of the recorded unit control data, one table per stream version (version 1 uses table 0 only, version n >= 2 uses tables 0..n-1). */
+unit_control_data_field_layout k_control_layout_v0[] = {
+    { nullptr, 1, 0x00 }, { nullptr, 1, 0x01 }, { nullptr, 2, 0x02 }, { nullptr, 2, 0x04 }, { nullptr, 2, -1 },
+    { nullptr, 8, 0x0c }, { nullptr, 12, 0x1c }, { nullptr, 12, 0x28 }, { nullptr, 12, 0x34 }, { nullptr, -1, -1 },
+};
+unit_control_data_field_layout k_control_layout_v1[] = { { nullptr, 4, 0x18 }, { nullptr, -1, -1 } };
+unit_control_data_field_layout k_control_layout_v2[] = { { nullptr, 2, 0x06 }, { nullptr, -1, -1 } };
+unit_control_data_field_layout k_control_layout_v3[] = { { nullptr, 2, 0x08 }, { nullptr, -1, -1 } };
+unit_control_data_field_layout *const unit_control_data_version_layouts[4] = { k_control_layout_v0, k_control_layout_v1, k_control_layout_v2, k_control_layout_v3 };
+}
 static auto &recorded_animation_compressed_event_handlers = halo::link::ref<recorded_animation_compressed_event_proc [k_recorded_animation_event_type_count]>(halo::cutscene::vars().recorded_animation_compressed_event_handlers);
 static auto &recorded_animation_v1_event_handlers = halo::link::ref<recorded_animation_v1_event_proc [k_recorded_animation_event_type_count]>(halo::cutscene::vars().recorded_animation_v1_event_handlers);
 

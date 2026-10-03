@@ -1150,7 +1150,7 @@ void halo::objects::ObjectRef::list_membership_set(char add)
 }
 
 namespace {
-static uint8_t * &local_player_globals__as_object_test_in_atmosphere_zone = reinterpret_cast<uint8_t * &>(halo::game::globals().local_player_globals);
+
 }
 
 /**
@@ -1181,7 +1181,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
 
             data_array *references = (data_array *)cursor.cluster_globals[2];
 
-            while ((*(uint32_t *)(local_player_globals__as_object_test_in_atmosphere_zone + 0x18 + ((int16_t)ref >> 5) * 4) &
+            while ((*(uint32_t *)(reinterpret_cast<uint8_t * &>(halo::game::globals().local_player_globals) + 0x18 + ((int16_t)ref >> 5) * 4) &
                     (1u << ((uint8_t)ref & 0x1f))) == 0) {
                 if (ref_index == k_datum_index_none) {
                     ref = k_datum_index_none;

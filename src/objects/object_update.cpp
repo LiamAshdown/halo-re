@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "halo/networking/game_mode.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/object_update.hpp"
@@ -542,10 +543,10 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                 halo::math::globals().matrix4x3_multiply_procedure(&nodes[node->parent_node_index], m, m);
             }
 
-            if (node->next_sibling_node_index != -1) {
+            if (node->next_sibling_node_index != halo::k_word_none) {
                 queue[tail++] = node->next_sibling_node_index;
             }
-            if (node->first_child_node_index != -1) {
+            if (node->first_child_node_index != halo::k_word_none) {
                 queue[tail++] = node->first_child_node_index;
             }
         } while (head != tail);

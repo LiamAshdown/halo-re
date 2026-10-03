@@ -102,8 +102,7 @@ void halo::objects::ObjectManager::delete_unparented_of_type_mask()
 }
 
 namespace {
-static cluster_reference_group &collideable_cluster_first__as_objects_initialize = reinterpret_cast<cluster_reference_group &>(halo::physics::globals().collideable_cluster_first);
-static cluster_reference_group &noncollideable_cluster_first__as_objects_initialize = reinterpret_cast<cluster_reference_group &>(noncollideable_cluster_first);
+
 }
 
 /**
@@ -138,8 +137,8 @@ void halo::objects::ObjectManager::initialize()
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
-    halo::structures::cluster_partition_new(&collideable_cluster_first__as_objects_initialize, "collideable object");
-    halo::structures::cluster_partition_new(&noncollideable_cluster_first__as_objects_initialize, "noncollideable object");
+    halo::structures::cluster_partition_new(reinterpret_cast<cluster_reference_group *>(&halo::physics::globals().collideable_cluster_first), "collideable object");
+    halo::structures::cluster_partition_new(reinterpret_cast<cluster_reference_group *>(&noncollideable_cluster_first), "noncollideable object");
 }
 
 /**
