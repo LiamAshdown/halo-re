@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "halo/game/game1_lifecycle.hpp"
+#include "halo/game/legacy_globals.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
@@ -65,8 +66,6 @@ extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index
 extern float game_engine_post_game_fade;
 extern uint8_t game_engine_dedicated_idle;
 extern float game_engine_dedicated_idle_timer;
-extern uint8_t g_006f1d25;
-extern int32_t g_006f1d28;
 extern game_variant game_engine_variant;
 extern int32_t game_engine_map_table_value;
 extern uint8_t map_per_map_table[];
@@ -374,14 +373,14 @@ void Lifecycle::end_game_sequence_stage3(void)
 {
     game_engine_state_value = _game_engine_state_post_game;
 
-    if (g_006f1d25 == 1) {
+    if (halo::game::globals::server_end_game_requested == 1) {
         game_engine_dedicated_idle = 0;
         game_engine_dedicated_idle_timer = 0.0f;
         return;
     }
 
-    if (g_006f1d28 > 0) {
-        game_engine_dedicated_idle_timer = (float)g_006f1d28;
+    if (halo::game::globals::mapcycle_timeout > 0) {
+        game_engine_dedicated_idle_timer = (float)halo::game::globals::mapcycle_timeout;
         game_engine_dedicated_idle = 1;
     }
 }

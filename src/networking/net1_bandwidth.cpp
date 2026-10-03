@@ -3,6 +3,10 @@
 #include "halo/cseries/api.hpp"
 #include "rasterizer.h"
 
+namespace {
+constexpr int k_screen_vertex_shader = 35;
+}
+
 extern "C" {
 extern const char *network_bandwidth_direction_label_table[2];
 extern network_bandwidth_graph network_bandwidth_graph_globals;
@@ -22,7 +26,7 @@ extern void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph);
 extern int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown, network_bandwidth_graph *graph);
 extern void ***rasterizer_device;
 extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count];
-extern uint32_t renderer_unknown_69e468;
+extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders];
 extern uint8_t rasterizer_software_vertex_processing;
 extern network_screen_point network_stats_overlay_text_rect_min;
 extern network_screen_point network_stats_overlay_text_rect_max;
@@ -710,7 +714,7 @@ void BandwidthGraphView::overlay_draw()
         device_call1(device, 0x134, (int32_t)flag);
     }
 
-    device_call1(device, 0x170, (int32_t)renderer_unknown_69e468);
+    device_call1(device, 0x170, (int32_t)rasterizer_vertex_shaders[k_screen_vertex_shader].shader);
 
     delta_y = (float)(int16_t)(network_stats_overlay_text_rect_max.y - network_stats_overlay_text_rect_min.y);
     delta_x = (float)(int16_t)(network_stats_overlay_text_rect_max.x - network_stats_overlay_text_rect_min.x);

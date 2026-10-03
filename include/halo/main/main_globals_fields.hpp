@@ -8,6 +8,7 @@
  * range; the named references of halo::main::fields are what the engine code uses.
  */
 extern "C" {
+extern uint8_t main_globals_byte_0071973a;
 extern uint8_t unknown_00719738;
 extern uint8_t unknown_0071973b;
 extern uint8_t main_globals_byte_0071974f;
@@ -24,6 +25,14 @@ namespace halo::main::fields {
  * @address 0x719738
  */
 inline uint8_t &reset_map = unknown_00719738;
+
+/**
+ * main_globals.revert_map: revert to the last checkpoint on the next frame. Raised by the revert script function and
+ * the revert menu action.
+ *
+ * @address 0x71973a
+ */
+inline uint8_t &revert_map = main_globals_byte_0071973a;
 
 /**
  * main_globals.revert_map_if_allowed: revert to the last checkpoint on the next frame, but only when the

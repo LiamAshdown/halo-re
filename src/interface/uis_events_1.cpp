@@ -32,7 +32,6 @@ extern uint8_t save_in_progress_00719010;
 extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
 extern uint8_t network_join_error_reason;
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t main_globals_byte_0071973a;
 extern uint8_t split_screen_quit_prompt_armed;
 extern void network_client_globals_dispose(void);
 extern network_server_globals *network_server;
@@ -194,7 +193,7 @@ uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, u
     network_join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
-    main_globals_byte_0071973a = 1;
+    halo::main::fields::revert_map = 1;
     return 1;
 }
 
