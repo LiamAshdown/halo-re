@@ -6,6 +6,7 @@
 
 #include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
+#include "halo/sound/api.hpp"
 
 constexpr uint32_t SOUND_EAX20_LISTENER_REQUIRED = 0x000027fcu;
 constexpr uint32_t SOUND_EAX20_CHANNEL_REQUIRED = 0x000007dcu;

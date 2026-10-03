@@ -6,6 +6,7 @@
 
 #include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
+#include "halo/sound/api.hpp"
 
 namespace halo::sound {
 

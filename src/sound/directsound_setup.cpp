@@ -8,6 +8,7 @@
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/sound/api.hpp"
 
 constexpr int k_probe_pool_capacity = 77;
 template <typename T>
