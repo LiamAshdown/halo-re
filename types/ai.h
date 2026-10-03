@@ -317,7 +317,8 @@ typedef struct actor_mode_search_data {
     int16_t stage;                      // 0x08
     int16_t firing_position;            // 0x0a the firing position searched from, -1 for none
     int16_t target_cluster;             // 0x0c passed as actor_evaluate_engagement_reachability's target_cluster
-    uint8_t unknown_0e[6];              // 0x0e
+    uint8_t unknown_0e[2];              // 0x0e
+    int32_t surface_index;              // 0x10 pathfinding surface of the firing position the search starts from
     real_point3d position;              // 0x14 the search position; update copies it to the destination
     int32_t duration_ticks;             // 0x20 set on enter
     int32_t remaining_ticks;            // 0x24 copied from duration_ticks and counted down by the tick
