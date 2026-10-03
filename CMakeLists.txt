@@ -82,14 +82,16 @@ set(SUPPORT_SOURCES
     "${SA}/d3dx_compat.c"
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
     "${SA}/image/pieces.c"
-    "${SA}/generated/image_bindings.c")
+    "${SA}/generated/image_bindings.c"
+    "${SA}/generated/code_entries.c"
+    "${SA}/bridges.cpp")
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
-    "${SA}/globals.asm" "${SA}/generated/code_entries.asm" "${SA}/bridges.asm"
+    "${SA}/globals.asm"
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
 
 # ---- keep the committed link sources in step with src/ (tools/cmake_regen.py): after the game objects compile and
-# before the link, regenerate code_entries.asm / image_bindings.c / pieces.c (new or renamed functions) and add new
+# before the link, regenerate code_entries.c / image_bindings.c / pieces.c (new or renamed functions) and add new
 # engine globals to globals.asm. Off, or without Python, the committed files are used as they are.
 find_package(Python3 COMPONENTS Interpreter)
 option(HALO_REGENERATE "Regenerate the link sources and globals.asm from src/ during the build" ${Python3_FOUND})
@@ -111,7 +113,7 @@ if(HALO_REGENERATE)
     add_custom_target(halo_regenerate DEPENDS "${_regen_stamp}")
     add_dependencies(halo_rebuilt halo_regenerate)
     set_source_files_properties("${SA}/image/pieces.c" "${SA}/generated/image_bindings.c" "${SA}/globals.asm"
-        "${SA}/generated/code_entries.asm" PROPERTIES OBJECT_DEPENDS "${_regen_stamp}")
+        "${SA}/generated/code_entries.c" PROPERTIES OBJECT_DEPENDS "${_regen_stamp}")
 endif()
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")
 set_source_files_properties("${SA}/d3dx_compat.c" PROPERTIES INCLUDE_DIRECTORIES "${DXSDK_DIR}/Include")

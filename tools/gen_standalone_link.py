@@ -4,13 +4,13 @@ Run tools/msvc_build.py first (it compiles src/ into build/obj/). This script co
 sources and links everything; it generates nothing and reads no retail file:
   standalone/loader.c, d3dx_compat.c, harness/x87_shims.c   the loader and runtime support
   standalone/image/*.asm, image/pieces.c                     the data image the loader copies to 0x63a000..
-  standalone/generated/image_bindings.c, code_entries.asm    code pointers in the image -> C functions, and the
+  standalone/generated/image_bindings.c, code_entries.c      code pointers in the image -> C functions, and the
                                                              original address -> C function table
   standalone/globals.asm                                     the engine globals at their fixed original addresses
-  standalone/bridges.asm                                     D3DXCreateEffect and the code_address_ thunks
+  standalone/bridges.cpp                                     D3DXCreateEffect and the code_address_ thunks
   standalone/libs/*.def                                      import libraries for binkw32 / vorbisfile (delay-loaded)
 Anything unresolved fails the link. When functions or globals are added, regenerate the committed sources:
-  python tools/gen_link_sources.py      image_bindings.c, code_entries.asm, pieces.c
+  python tools/gen_link_sources.py      image_bindings.c, code_entries.c, pieces.c
   python tools/update_globals.py        globals the failed link reported, from their address comments
 CMakeLists.txt builds the same exe without Python.
 Usage: python tools/gen_standalone_link.py [halo folder]"""
@@ -46,6 +46,11 @@ def run(cmd, what):
 def compile_c(src, obj, includes=(), defines=()):
     run([gl.tool("cl"), "/nologo", "/c", "/GS-", "/O2", "/Fo" + obj] + ["/I" + i for i in includes] +
         ["/D" + d for d in defines] + [src], "compile " + src)
+    return obj
+
+
+def compile_cpp(src, obj):
+    run([gl.tool("cl"), "/nologo", "/c", "/GS-", "/O2", "/EHs-c-", "/Fo" + obj, src], "compile " + src)
     return obj
 
 
@@ -87,8 +92,8 @@ def main():
     for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):   # the engine globals as C definitions, one file per slice
         extra.append(compile_data_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj")))
     extra += [assemble(os.path.join(SA, "globals.asm"), o("globals.obj")),
-              assemble(os.path.join(SA, "generated", "code_entries.asm"), o("code_entries.obj")),
-              assemble(os.path.join(SA, "bridges.asm"), o("bridges.obj"))]
+              compile_c(os.path.join(SA, "generated", "code_entries.c"), o("code_entries.obj"), [SA]),
+              compile_cpp(os.path.join(SA, "bridges.cpp"), o("bridges.obj"))]
 
     # only objects whose source still exists: a renamed or deleted .c leaves its old object behind
     objs = [x for x in glob.glob(os.path.join(ROOT, "build", "obj", "*", "*.obj"))
