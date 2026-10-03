@@ -200,6 +200,7 @@ int32_t King::get_team_score(int32_t team)
  */
 uint8_t King::initialize_for_new_game(void)
 {
+    constexpr int16_t k_netgame_flag_type_hill = 8;
     int16_t count = 0;
     int16_t i;
 
@@ -207,19 +208,19 @@ uint8_t King::initialize_for_new_game(void)
     memset(king_team_hill_seconds_network, 0, 0x6b * 4);
     game_engine_recent_location_count = 0;
     for (i = 0; i < *(int32_t *)&halo::scenario::globals().scenario->netgame_flags.count; i++) {
-        uint8_t *location = (uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + i * 0x94;
+        ScenarioNetgameFlags *location = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer + i;
         int16_t k;
 
-        if (*(int16_t *)(location + 0x10) != 8) {
+        if (location->type != k_netgame_flag_type_hill) {
             continue;
         }
         for (k = 0; k < count; k++) {
-            if (game_engine_recent_location_table[k] == *(int16_t *)(location + 0x12)) {
+            if (game_engine_recent_location_table[k] == (int16_t)location->usage_id) {
                 break;
             }
         }
         if (k == count) {
-            game_engine_recent_location_table[count] = *(int16_t *)(location + 0x12);
+            game_engine_recent_location_table[count] = (int16_t)location->usage_id;
             count++;
         }
     }
@@ -257,10 +258,10 @@ void King::player_new_life(datum_index player_index)
  */
 void King::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
-        *(int16_t *)&((struct player *)player)->objective_time = 0;
+        player->objective_time_words.low = 0;
     }
 }
 
@@ -344,13 +345,13 @@ void King::profile_post_update(void **context)
 uint8_t King::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = halo::game::players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    halo::game::game_time_format_minutes_seconds_ascii((uint32_t)(*(int16_t *)&((struct player *)player)->objective_time), 0x100, text);
+    halo::game::game_time_format_minutes_seconds_ascii((uint32_t)(player->objective_time_words.low), 0x100, text);
     qr2_buffer_add(buffer, text);
     return 1;
 }

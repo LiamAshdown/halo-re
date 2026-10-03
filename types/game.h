@@ -592,9 +592,15 @@ typedef struct player {
     int16_t betrayal_penalty_count;    // 0xc0 +1 per betrayal; on_player_death scales it by
                                        //      game_variant::betrayal_penalty and clears it
     int16_t unknown_c2;                // 0xc2
-    int32_t objective_time;            // 0xc4 hill / ball time in ticks. The profile cache
+    union {
+        int32_t objective_time;        // 0xc4 hill / ball time in ticks. The profile cache
                                        //      divides it by 30 on the way out and multiplies
                                        //      it back on the way in when the engine is king
+        struct {
+            int16_t low;               // 0xc4 the time word the ctf / king / koth engines count in
+            int16_t race_laps;         // 0xc6 laps completed (race); the score the clock and scoreboard read
+        } objective_time_words;
+    };
     int16_t objective_score;           // 0xc8 per-gametype: ctf flag captures (get_score / build_player_text, ++ at
                                        //    0x468910), oddball kills while carrying, race best lap ticks (0x46dde0
                                        //    keeps the minimum)

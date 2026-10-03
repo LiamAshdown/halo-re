@@ -251,7 +251,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
 
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
-        int16_t value = *(int16_t *)((uint8_t *)p + 0xc6);
+        int16_t value = ((struct player *)p)->objective_time_words.race_laps;
         if (leader <= value) {
             leader = value;
         }
@@ -266,7 +266,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         float speed = 1.0f;
-        int32_t gap = leader - *(int16_t *)((uint8_t *)p + 0xc6);
+        int32_t gap = leader - ((struct player *)p)->objective_time_words.race_laps;
         if (game_engine_variant.engine.race.race_type == 2) {
             gap /= 3;
         }

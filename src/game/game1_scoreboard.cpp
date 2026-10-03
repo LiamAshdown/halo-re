@@ -354,7 +354,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
         p = (player *)halo::memory::data_iterator_next(&iter);
         while (p != (player *)0) {
             if (p->team == bucket && p->marked_for_deletion == 0) {
-                int32_t value = *(int16_t *)((uint8_t *)p + 0xc6);
+                int32_t value = ((struct player *)p)->objective_time_words.race_laps;
                 if (game_engine_variant.engine.race.team_scoring == 0) {
                     if (count == 0 || value < aggregate) {
                         aggregate = value;

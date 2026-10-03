@@ -751,7 +751,7 @@ void Koth::player_tick(uint32_t player_index)
 
         king_hill_player_in_hill[idx] = 1;
         if (hosting) {
-            *(int16_t *)&((struct player *)p)->objective_time += 1;
+            ((struct player *)p)->objective_time_words.low += 1;
         }
 
         if (king_bucket_last_credit_tick[p->team] < game_time->game_time && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {

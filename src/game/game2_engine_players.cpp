@@ -1002,7 +1002,7 @@ uint8_t EnginePlayers::team_has_scoring_capacity(int32_t team)
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         if (p->team == team &&
-            *(int16_t *)((uint8_t *)p + 0xc6) < game_engine_variant.score_limit &&
+            ((struct player *)p)->objective_time_words.race_laps < game_engine_variant.score_limit &&
             game_engine_variant.lives_per_round > 0) {
             if (p->unit == (datum_index)halo::k_dword_none &&
                 (int32_t)p->deaths >= game_engine_variant.lives_per_round) {

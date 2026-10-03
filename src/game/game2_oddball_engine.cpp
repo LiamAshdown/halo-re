@@ -172,7 +172,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
 
         if (oddball_is_carrier(victim) || oddball_is_carrier(killer)) {
             if (oddball_is_carrier(victim)) {
-                (*(int16_t *)(killer_player + 0xc6))++;
+                (((struct player *)killer_player)->objective_time_words.race_laps)++;
             } else {
                 (killer_player->objective_score)++;
             }
@@ -231,7 +231,7 @@ void OddballEngine::player_new_life(datum_index player_index)
  */
 void OddballEngine::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
         king_alt_player_score[player_index & halo::k_datum_slot_mask] = 0;
@@ -321,7 +321,7 @@ void OddballEngine::profile_post_update(void **context)
 uint8_t OddballEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = halo::game::players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {

@@ -44,6 +44,14 @@ inline object_header &object_header_at(uint32_t handle) noexcept {
     return reinterpret_cast<object_header *>(objects::globals().object_data->data)[handle & k_datum_slot_mask];
 }
 
+/** The unit object in the slot named by an object datum handle. */
+inline unit_object *unit_at(uint32_t handle) noexcept { return reinterpret_cast<unit_object *>(object_at(handle)); }
+
+/** The weapon datum in the unit's current weapon slot, or none when the unit is unarmed. */
+inline datum_index unit_current_weapon(const unit_data &unit) noexcept {
+    return unit.current_weapon_index != -1 ? unit.weapons[unit.current_weapon_index] : static_cast<datum_index>(k_datum_index_none);
+}
+
 /** The loaded tag data of a tag datum handle. */
 inline uint8_t *tag_data_at(uint32_t tag) noexcept {
     return static_cast<uint8_t *>(cache::globals().tag_instances[tag & k_datum_slot_mask].data);
@@ -63,5 +71,7 @@ static_assert(offsetof(Weapon, weapon_flags) == 0x308);
 static_assert(offsetof(Equipment, powerup_type) == 0x308);
 
 static_assert(sizeof(player) == 0x200);
+static_assert(offsetof(unit_object, unit.weapons) == 0x2f8);
+static_assert(offsetof(unit_object, unit.current_weapon_index) == 0x2f2);
 
 }  // namespace halo::game

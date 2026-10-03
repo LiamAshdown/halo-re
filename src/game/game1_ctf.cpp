@@ -499,14 +499,14 @@ uint8_t Ctf::initialize_for_new_game(void)
     ctf_flag_capture_limit_006b0ea0 = game_engine_variant.score_limit;
     count = *(int16_t *)&halo::scenario::globals().scenario->player_starting_locations.count;
     for (i = 0; i < count; i++) {
-        uint8_t *equipment = (uint8_t *)0;
+        ScenarioPlayerStartingLocation *start = nullptr;
         int16_t type;
         uint8_t belongs;
 
         if (i >= 0 && i < *(int32_t *)&halo::scenario::globals().scenario->player_starting_locations.count) {
-            equipment = (uint8_t *)halo::scenario::globals().scenario->player_starting_locations.pointer + i * 0x34;
+            start = (ScenarioPlayerStartingLocation *)halo::scenario::globals().scenario->player_starting_locations.pointer + i;
         }
-        type = *(int16_t *)&((struct equipment_object *)equipment)->base.flags;
+        type = (int16_t)start->team_index;
         if (type != 0 && type != 1) {
             continue;
         }
@@ -515,22 +515,21 @@ uint8_t Ctf::initialize_for_new_game(void)
 
             belongs = 0;
             for (k = 0; k < 4; k++) {
-                int16_t game_type = *(int16_t *)(equipment + 0x14 + k * 2);
+                int16_t game_type = (&start->type_0)[k];
 
                 if (game_type == 1 || game_type == 12) {
                     belongs = 1;
                 }
             }
         } else {
-            belongs = *(int16_t *)&((struct equipment_object *)equipment)->base.cluster_stamp == 0 && *(int16_t *)(equipment + 0x16) == 0 &&
-                *(int16_t *)&((struct equipment_object *)equipment)->base.network_position_valid == 0 && *(int16_t *)(equipment + 0x1a) == 0;
+            belongs = start->type_0 == 0 && start->type_1 == 0 && start->type_2 == 0 && start->type_3 == 0;
         }
         if (belongs) {
-            float own = distance_squared((real_point3d *)equipment, ctf_team_flag_stand_position[type % 2]);
-            float other = distance_squared((real_point3d *)equipment, ctf_team_flag_stand_position[(type + 1) % 2]);
+            float own = distance_squared((real_point3d *)start, ctf_team_flag_stand_position[type % 2]);
+            float other = distance_squared((real_point3d *)start, ctf_team_flag_stand_position[(type + 1) % 2]);
 
             if (game_engine_variant.engine.ctf.assault != 0 ? own < other : own > other) {
-                *(int16_t *)&((struct equipment_object *)equipment)->base.flags = 3;
+                start->team_index = 3;
             }
         }
     }
@@ -557,7 +556,7 @@ uint8_t Ctf::is_flag_eligible_for_capture(uint32_t team, int32_t flag_id)
     }
 
     p = (player *)((uint8_t *)player_data->data + team_idx * sizeof(player));
-    if (*(int16_t *)((uint8_t *)p + 0xc6) >= game_engine_variant.score_limit) {
+    if (((struct player *)p)->objective_time_words.race_laps >= game_engine_variant.score_limit) {
         return 0;
     }
 
@@ -638,8 +637,8 @@ void Ctf::on_flag_captured(uint32_t flag_index)
     ctf_team_captured_flags_mask[flag_index & halo::k_datum_slot_mask] = 0;
     halo::game::game_engine_queue_multiplayer_sound(0x2a, flag_index, 1);
 
-    *(int16_t *)&((struct player *)p)->objective_time = elapsed;
-    if (*(int16_t *)((uint8_t *)p + 0xc6) != 0) {
+    ((struct player *)p)->objective_time_words.low = elapsed;
+    if (((struct player *)p)->objective_time_words.race_laps != 0) {
         if (elapsed <= ((struct player *)p)->objective_score) {
             new_record = 1;
             ((struct player *)p)->objective_score = elapsed;
@@ -648,7 +647,7 @@ void Ctf::on_flag_captured(uint32_t flag_index)
         ((struct player *)p)->objective_score = elapsed;
     }
 
-    *(int16_t *)((uint8_t *)p + 0xc6) += 1;
+    ((struct player *)p)->objective_time_words.race_laps += 1;
     p->slayer_target = game_time->game_time;
 
     halo::game::game_engine_check_bucket_scores_and_end_round();
@@ -719,7 +718,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
                     if (halo::game::game_engine_is_inactive() != 0) {
                         ctf_team_return_credit_active[team] = 0;
                         ctf_team_return_credit_ticks[team] = 0;
-                        *(int16_t *)((uint8_t *)p + 0xc6) += 1;
+                        ((struct player *)p)->objective_time_words.race_laps += 1;
                         halo::game::game_engine_broadcast_kill_feed_by_relationship(player_index, 0x25, 0x2a, 0x28, player_index, 1);
                         halo::game::game_engine_queue_multiplayer_sound(p->team != 0 ? 9 : 0xc, halo::k_dword_none, 1);
                     }
@@ -735,7 +734,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 
         if ((*(uint8_t *)((uint8_t *)flag_obj + 0x22c) & 0x40) == 0 &&
             (current_game_engine == 0 || game_engine_state_value == 0)) {
-            *(int16_t *)&((struct player *)p)->objective_time += 1;
+            ((struct player *)p)->objective_time_words.low += 1;
             if (game_engine_variant.engine.ctf.assault == 0) {
                 halo::game::game_engine_queue_multiplayer_sound(p->team != 0 ? 8 : 0xb, halo::k_dword_none, 1);
                 ctf_team_return_credit_active[team] = 1;
@@ -821,12 +820,12 @@ uint8_t Ctf::point_within_team_flag_radius(float radius, int32_t team, real_poin
  */
 uint8_t Ctf::query_player_score(int32_t key, int32_t index, void *buffer)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(halo::game::players_get_active_by_index(index), player_data);
+    ::player *player = (::player *)halo::memory::datum_get(halo::game::players_get_active_by_index(index), player_data);
 
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    qr2_buffer_add_int(buffer, ((struct player *)player)->objective_score);
+    qr2_buffer_add_int(buffer, player->objective_score);
     return 1;
 }
 

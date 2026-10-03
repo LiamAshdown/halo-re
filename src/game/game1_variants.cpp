@@ -175,7 +175,7 @@ void Variants::apply_player_profile_entry(void *event)
     p->speed = profile->speed;
 
     if (game_engine_variant.game_engine_index == _game_engine_king) {
-        *(int16_t *)&p->objective_time = (int16_t)profile->objective_time * 0x1e;
+        p->objective_time_words.low = (int16_t)profile->objective_time * 0x1e;
     }
 }
 

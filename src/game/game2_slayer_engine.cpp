@@ -228,14 +228,14 @@ void SlayerEngine::player_new_life(datum_index player_index)
  */
 void SlayerEngine::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(player_index, player_data);
     data_iterator iterator;
     uint8_t *other;
 
     if (player == 0) {
         return;
     }
-    ((struct player *)player)->slayer_target = -1;
+    player->slayer_target = -1;
     slayer_player_score[player_index & halo::k_datum_slot_mask] = 0;
     iterator.data = player_data;
     iterator.next_index = 0;
@@ -350,7 +350,7 @@ void SlayerEngine::profiles_updated(int32_t mode, int32_t machine_index)
 uint8_t SlayerEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = halo::game::players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(handle, player_data);
 
     if (player == 0 || key != 0x16) {
         return 0;
