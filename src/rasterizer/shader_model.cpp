@@ -13,6 +13,13 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/libm.hpp"
 
+static_assert(sizeof(ShaderModel) == 0x1b8);
+
+static inline ShaderModel *smodel(const void *shader)
+{
+    return (ShaderModel *)shader;
+}
+
 
 
 
@@ -740,7 +747,7 @@ static void set_transform(uint32_t state, const float *matrix)
 void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context = rasterizer_active_model_context;
-    uint8_t decal = (shader[0x28] >> 3) & 1;
+    uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
     uint16_t flags;
     uint8_t cull = 1;
     ColorRGB color;
@@ -762,7 +769,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
             rasterizer_clear_decal_zbias();
         }
     }
-    flags = *(uint16_t *)(shader + 0x28);
+    flags = smodel(shader)->shader_model_flags;
     if (flags & 2) {
         if (flags & 0x20) {
             float dx, dy, dz;
@@ -785,12 +792,12 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !(shader[0x28] & 4)) ? 1 : 0);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !(smodel(shader)->shader_model_flags & 4)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
 
     context = rasterizer_active_model_context;
-    source = *(int16_t *)(shader + 0x4c);
+    source = *(int16_t *)&smodel(shader)->change_color_source;
     if (source > 0 && source < 5) {
         color = ((const ColorRGB *)(uintptr_t)context->change_colors)[source - 1];
     } else {
@@ -802,10 +809,10 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
         }
     }
     halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), texture_matrix[0], texture_matrix[1],
-                                      context->base_map_u_scale * *(float *)(shader + 0x9c),
-                                      context->base_map_v_scale * *(float *)(shader + 0xa0), 0.0f, 0.0f, 0.0f,
+                                      context->base_map_u_scale * smodel(shader)->map_u_scale,
+                                      context->base_map_v_scale * smodel(shader)->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
-    if (shader[0x28] & 2) {
+    if (smodel(shader)->shader_model_flags & 2) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
     }
     alpha = rasterizer_camouflage_fade_active ? rasterizer_camouflage_fade : 1.0f;
@@ -819,7 +826,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[14].declaration);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
-        chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0xb0), 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(*(uint32_t *)&smodel(shader)->base_map.tag_id, 0, 0, 1, frame);
         set_transform(0x10, &texture_matrix[0][0]);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         set_stage(0, 4, 2, 0, 4, 2, 3);
@@ -839,15 +846,15 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
         set_transform(0x10, &texture_matrix[0][0]);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
 
-        source = *(int16_t *)(shader + 0x4c);
+        source = *(int16_t *)&smodel(shader)->change_color_source;
         if (source > 0 && source != 2) {
 
             set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 0);
             set_transform(0x11, &texture_matrix[0][0]);
             set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 2);
             set_render_state(halo::d3d9::rs::fog_color, 0xff000000);
-            chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0xb0), 0, 0, 1, frame);
-            chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0xc8), 1, 0, 1, frame);
+            chimera__rasterizer_set_texture(*(uint32_t *)&smodel(shader)->base_map.tag_id, 0, 0, 1, frame);
+            chimera__rasterizer_set_texture(*(uint32_t *)&smodel(shader)->multipurpose_map.tag_id, 1, 0, 1, frame);
             set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
             set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
             set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
@@ -895,7 +902,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
             set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 1);
             set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 0);
         } else {
-            chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0xb0), 0, 0, 1, frame);
+            chimera__rasterizer_set_texture(*(uint32_t *)&smodel(shader)->base_map.tag_id, 0, 0, 1, frame);
             set_stage(0, 4, 2, 0, 4, 2, 3);
             set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
             set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
@@ -936,7 +943,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context = rasterizer_active_model_context;
-    uint8_t decal = (shader[0x28] >> 3) & 1;
+    uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
     uint16_t flags;
     uint8_t cull = 1;
     ColorRGB color;
@@ -957,7 +964,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
             rasterizer_clear_decal_zbias();
         }
     }
-    flags = *(uint16_t *)(shader + 0x28);
+    flags = smodel(shader)->shader_model_flags;
     if (flags & 2) {
         if (flags & 0x20) {
             float dx, dy, dz;
@@ -980,13 +987,13 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !(shader[0x28] & 4)) ? 1 : 0);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !(smodel(shader)->shader_model_flags & 4)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
 
     context = rasterizer_active_model_context;
     {
-        int16_t source = *(int16_t *)(shader + 0x4c);
+        int16_t source = *(int16_t *)&smodel(shader)->change_color_source;
 
         if (source > 0 && source < 5) {
             const ColorRGB *colors = (const ColorRGB *)(uintptr_t)context->change_colors;
@@ -1002,10 +1009,10 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
         }
     }
     halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), texture_matrix[0], texture_matrix[1],
-                                      context->base_map_u_scale * *(float *)(shader + 0x9c),
-                                      context->base_map_v_scale * *(float *)(shader + 0xa0), 0.0f, 0.0f, 0.0f,
+                                      context->base_map_u_scale * smodel(shader)->map_u_scale,
+                                      context->base_map_v_scale * smodel(shader)->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
-    if (shader[0x28] & 2) {
+    if (smodel(shader)->shader_model_flags & 2) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
     }
     alpha = rasterizer_camouflage_fade_active ? rasterizer_camouflage_fade : 1.0f;
@@ -1028,7 +1035,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[14].declaration);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
-        chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0xb0), 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(*(uint32_t *)&smodel(shader)->base_map.tag_id, 0, 0, 1, frame);
         render_device().set_transform(0x10, &texture_matrix[0][0]);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
@@ -1046,7 +1053,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[15].declaration);
         render_device().set_transform(0x10, &texture_matrix[0][0]);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
-        chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0xb0), 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(*(uint32_t *)&smodel(shader)->base_map.tag_id, 0, 0, 1, frame);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                   dynamic_vertex_slot);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
@@ -1103,7 +1110,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     const ShaderModel *model = (const ShaderModel *)shader;
     rasterizer_model_draw_context *context;
     rasterizer_effect_slot *slot;
-    uint8_t decal = (shader[0x28] >> 3) & 1;
+    uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
     uint8_t ok = 1;
     uint8_t cull = 1;
     uint16_t true_atmospheric_fog;
@@ -1153,8 +1160,8 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
             rasterizer_clear_decal_zbias();
         }
     }
-    if (shader[0x28] & 2) {
-        if (shader[0x28] & 0x20) {
+    if (smodel(shader)->shader_model_flags & 2) {
+        if (smodel(shader)->shader_model_flags & 0x20) {
             float distance = (float)halo::math::vector3d_distance(rasterizer_active_model_context->center,
                                                       rasterizer_window.camera.position);
 
@@ -1174,12 +1181,12 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !decal && !(shader[0x28] & 4)) ? 1 : 0);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !decal && !(smodel(shader)->shader_model_flags & 4)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
     } else {
-        set_render_state(halo::d3d9::rs::fog_enable, (shader[0x28] >> 4) & 1);
+        set_render_state(halo::d3d9::rs::fog_enable, (smodel(shader)->shader_model_flags >> 4) & 1);
     }
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderModel *)shader)->base_map.tag_id, 0, 0, 1, frame, slot);
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&((struct ShaderModel *)shader)->detail_map.tag_id, 0, 1, 2, frame, slot);
@@ -1410,7 +1417,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     }
     render_device().effect_end((void *)(uintptr_t)slot->effect);
 
-    if ((shader[0x28] & 2) && cull) {
+    if ((smodel(shader)->shader_model_flags & 2) && cull) {
 
         context = rasterizer_active_model_context;
         detail_constants[0][0] = model->detail_map_scale;
