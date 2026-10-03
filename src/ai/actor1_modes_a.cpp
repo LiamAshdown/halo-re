@@ -182,7 +182,7 @@ void halo::ai::alert_mode::tick()
         return;
     }
     if (actor->movement_action_complete != 0 && actor->movement_completed == 0) {
-        float dx = F(0xa8) - F(0x12c);
+        float dx = F(0xa8) - actor->body_position.x;
         float dy = F(0xac) - actor->body_position.y;
         float dz = F(0xb0) - actor->body_position.z;
 
@@ -716,7 +716,7 @@ void halo::ai::obey_mode::update()
         actor->jump_is_leap = (uint8_t)(F(0xb0) * 0.7f > F(0xb4));
         actor->jump_parameters_valid = (uint8_t)((B(0xa9) >> 4) & 1);
         actor->jump_facing.j = y;
-        F(0x444) = x;
+        actor->jump_facing.i = x;
         D(0x44c) = D(0xb0);
         D(0x450) = D(0xb4);
         B(0xa9) = (uint8_t)(B(0xa9) | 8);
