@@ -124,6 +124,7 @@ static_assert(offsetof(object, forward) == 0x74);
 static_assert(offsetof(object, up) == 0x80);
 static_assert(offsetof(object, bounding_center) == 0xa0);
 static_assert(offsetof(object, position) == 0x5c);
+static_assert(offsetof(object, type) == 0xb4);
 static_assert(offsetof(item_object, item) == k_item_data_offset);
 static_assert(offsetof(Unit, seats) == 0x2e4);
 static_assert(offsetof(UnitSeat, marker_name) == 0x24);
