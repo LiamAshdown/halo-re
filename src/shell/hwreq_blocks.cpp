@@ -308,7 +308,7 @@ const char *HwreqParser::parse_flag_assignment(hwreq_property_set *property_set)
                     p2[0] = '"';
                     value_out += 2;
                     if (value_out != value + 0xfe) {
-                        goto have_value;
+                        break;
                     }
                     return "Flag too long";
                 }
@@ -317,22 +317,21 @@ const char *HwreqParser::parse_flag_assignment(hwreq_property_set *property_set)
                     return "Missing Quote";
                 }
             }
-        }
-
-        while (c != ' ' && (c = *src, c != '\r')) {
-            src++;
-            self->cursor = (uint32_t)src;
-            if (c > '@' && c < '[') c += ' ';
-            *value_out = c;
-            value_out++;
-            if (value_out == value + 0xfe) {
-                return "Flag too long";
+        } else {
+            while (c != ' ' && (c = *src, c != '\r')) {
+                src++;
+                self->cursor = (uint32_t)src;
+                if (c > '@' && c < '[') c += ' ';
+                *value_out = c;
+                value_out++;
+                if (value_out == value + 0xfe) {
+                    return "Flag too long";
+                }
+                c = *text_cursor();
             }
-            c = *text_cursor();
         }
     }
 
-have_value:
     *value_out = '\0';
 
     PropertySet(property_set).upsert(name, value);
@@ -376,6 +375,8 @@ uint8_t HwreqParser::parse_propertyset_directive()
     hwreq_property_set **slot;
 
     for (;;) {
+        bool directive_consumed = false;
+
         if (_strnicmp(text_cursor(), "propertyset", 11) == 0) {
             cursor = text_cursor() + 11;
             c = *cursor;
@@ -438,7 +439,7 @@ uint8_t HwreqParser::parse_propertyset_directive()
                 name.size = 0;
                 name.buffer.inline_buffer[0] = 0;
 
-                goto skip_line_and_continue;
+                directive_consumed = true;
             }
         } else if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
             c = (text_cursor())[6];
@@ -447,14 +448,13 @@ uint8_t HwreqParser::parse_propertyset_directive()
             }
         }
 
-        if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
+        if (!directive_consumed && _strnicmp(text_cursor(), "applytoall", 10) == 0) {
             c = (text_cursor())[10];
             if (is_delimiter(c)) {
                 break;
             }
         }
 
-    skip_line_and_continue:
         advance_line_raw();
         line = text_cursor();
         self->line_start = self->cursor;
@@ -466,6 +466,191 @@ uint8_t HwreqParser::parse_propertyset_directive()
 
     return 1;
 }
+
+namespace {
+
+/**
+ * Parses the body of a matched "vendor" or "audiovendor" directive: records the vendor name, parses
+ * lines nested under it directly as flags until the first line that starts a device id, then finds
+ * the device entry matching device_id (or "unknown") and parses its block into the parser's flags.
+ * A line starting with the vendor keyword (or, for audio, "vendor") ends the scan without a match.
+ */
+uint8_t parse_matched_vendor(HwreqParser &parser, const char *keyword, uint32_t keyword_length, bool also_stop_at_vendor,
+                             int32_t device_id_actual, msvc_std_string *vendor_name, msvc_std_string *device_name)
+{
+    hwreq_parser *self = parser.self;
+    char *cursor;
+    char c;
+    char *name;
+    uint32_t length;
+    int32_t device_id;
+    uint8_t ok;
+
+    name = parser.parse_quoted_string();
+    if (name == 0) {
+        return 0;
+    }
+    length = 0;
+    while (name[length] != 0) {
+        length++;
+    }
+    StdString(vendor_name).assign_n(name, length);
+
+    for (;;) {
+        parser.advance_line_raw();
+        self->line_start = self->cursor;
+        self->line_number = self->line_number + 1;
+
+        if (!(_strnicmp(parser.text_cursor(), keyword, keyword_length) == 0 &&
+              (c = parser.text_cursor()[keyword_length], HwreqParser::is_delimiter(c)))) {
+            cursor = parser.text_cursor();
+            while (*cursor == ' ' || *cursor == '\t') {
+                cursor++;
+            }
+            self->cursor = (uint32_t)cursor;
+            c = *cursor;
+            if (c >= '0' && c <= '9') {
+                break;
+            }
+            if (c != '\r' && *(uint16_t *)cursor != char_pair('/', '/')) {
+                ok = parser.parse_block((hwreq_property_set *)self->flags);
+                if (ok == 0) {
+                    return 0;
+                }
+            }
+        }
+        if (!(parser.text_cursor() < parser.text_end())) {
+            break;
+        }
+    }
+
+    for (;;) {
+        bool matched = false;
+
+        if (_strnicmp(parser.text_cursor(), keyword, keyword_length) == 0) {
+            c = parser.text_cursor()[keyword_length];
+            if (HwreqParser::is_delimiter(c)) {
+                return 1;
+            }
+        }
+        if (also_stop_at_vendor && _strnicmp(parser.text_cursor(), "vendor", 6) == 0) {
+            c = parser.text_cursor()[6];
+            if (HwreqParser::is_delimiter(c)) {
+                return 1;
+            }
+        }
+        if (_strnicmp(parser.text_cursor(), "unknown", 7) == 0) {
+            c = parser.text_cursor()[7];
+            if (HwreqParser::is_delimiter(c)) {
+                device_id = device_id_actual;
+                self->cursor = self->cursor + 7;
+                parser.skip_whitespace();
+                matched = true;
+            }
+        }
+        if (!matched) {
+            cursor = parser.text_cursor();
+            while (*cursor == ' ' || *cursor == '\t') {
+                cursor++;
+            }
+            self->cursor = (uint32_t)cursor;
+            if (*cursor >= '0' && *cursor <= '9') {
+                device_id = parser.parse_number();
+                matched = device_id == device_id_actual;
+            }
+        }
+
+        if (!matched) {
+            parser.advance_line_raw();
+            self->line_start = self->cursor;
+            self->line_number = self->line_number + 1;
+            if (parser.text_end() <= parser.text_cursor()) {
+                return 1;
+            }
+            continue;
+        }
+
+        if (device_id == -1) {
+            return 1;
+        }
+        if (*parser.text_cursor() == '=') {
+            self->cursor = self->cursor + 1;
+            name = parser.parse_quoted_string();
+            if (name != 0) {
+                StdString(device_name).assign_cstr(name);
+                parser.skip_line();
+                ok = parser.parse_block((hwreq_property_set *)self->flags);
+                return ok != 0;
+            }
+        } else {
+            parser.report_error("xxx = Device Name expected");
+        }
+        return 0;
+    }
+}
+
+/**
+ * Scans lines for a "<keyword> = id" directive whose id matches vendor_id_actual (or the keyword
+ * "unknown"), then parses the matched directive. A non-matching directive line is skipped for its
+ * single line only; "applytoall" or the end of the file returns true.
+ */
+uint8_t parse_vendor_directive(HwreqParser &parser, const char *keyword, uint32_t keyword_length, bool also_stop_at_vendor,
+                               int32_t vendor_id_actual, int32_t device_id_actual, msvc_std_string *vendor_name,
+                               msvc_std_string *device_name)
+{
+    hwreq_parser *self = parser.self;
+    char *cursor;
+    char c;
+    int32_t vendor_id;
+
+    for (;;) {
+        if (_strnicmp(parser.text_cursor(), keyword, keyword_length) == 0) {
+            c = parser.text_cursor()[keyword_length];
+            if (HwreqParser::is_delimiter(c)) {
+                cursor = parser.text_cursor() + keyword_length;
+                while (*cursor == ' ' || *cursor == '\t') {
+                    cursor++;
+                }
+                self->cursor = (uint32_t)cursor;
+
+                if (*cursor == '=') {
+                    bool matches = true;
+
+                    cursor++;
+                    self->cursor = (uint32_t)cursor;
+
+                    if (_strnicmp(cursor, "unknown", 7) == 0 && (c = cursor[7], HwreqParser::is_delimiter(c))) {
+                        vendor_id = vendor_id_actual;
+                    } else {
+                        vendor_id = parser.parse_number();
+                        matches = vendor_id == vendor_id_actual;
+                    }
+                    if (matches) {
+                        if (vendor_id == -1) {
+                            return 1;
+                        }
+                        return parse_matched_vendor(parser, keyword, keyword_length, also_stop_at_vendor, device_id_actual,
+                                                    vendor_name, device_name);
+                    }
+                }
+            }
+        } else if (_strnicmp(parser.text_cursor(), "applytoall", 10) == 0) {
+            c = parser.text_cursor()[10];
+            if (HwreqParser::is_delimiter(c)) {
+                return 1;
+            }
+        }
+
+        parser.advance_line_raw();
+        self->line_start = self->cursor;
+        self->line_number = self->line_number + 1;
+        if (parser.text_end() <= parser.text_cursor()) {
+            return 1;
+        }
+    }
+}
+
+}  // namespace
 
 /**
  * Scans forward from the parser's cursor for a "vendor[=id] = \"name\" { ... }" directive whose id
@@ -482,154 +667,9 @@ uint8_t HwreqParser::parse_propertyset_directive()
  */
 uint8_t HwreqParser::parse_vendor_block()
 {
-    char *cursor;
-    char c;
-    int32_t vendor_id;
-    int32_t device_id;
-    char *name;
-    uint32_t length;
-    uint8_t ok;
-
-    for (;;) {
-        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
-            c = (text_cursor())[6];
-            if (is_delimiter(c)) {
-                cursor = text_cursor() + 6;
-                while (*cursor == ' ' || *cursor == '\t') {
-                    cursor++;
-                }
-                self->cursor = (uint32_t)cursor;
-
-                if (*cursor == '=') {
-                    cursor++;
-                    self->cursor = (uint32_t)cursor;
-
-                    if (_strnicmp(cursor, "unknown", 7) == 0 &&
-                        (c = cursor[7], is_delimiter(c))) {
-                        vendor_id = (int32_t)self->adapter.vendor_id;
-                    } else {
-                        vendor_id = parse_number();
-                        if (vendor_id != (int32_t)self->adapter.vendor_id) {
-                            goto skip_line_and_rescan;
-                        }
-                    }
-                    if (vendor_id == -1) {
-                        return 1;
-                    }
-
-                    name = parse_quoted_string();
-                    if (name == 0) {
-                        return 0;
-                    }
-                    length = 0;
-                    while (name[length] != 0) {
-                        length++;
-                    }
-                    StdString(&self->graphics_vendor_name).assign_n(name, length);
-
-                    for (;;) {
-                        advance_line_raw();
-                        self->line_start = self->cursor;
-                        self->line_number = self->line_number + 1;
-
-                        if (!(_strnicmp(text_cursor(), "vendor", 6) == 0 &&
-                              (c = (text_cursor())[6],
-                               is_delimiter(c)))) {
-                            cursor = text_cursor();
-                            while (*cursor == ' ' || *cursor == '\t') {
-                                cursor++;
-                            }
-                            self->cursor = (uint32_t)cursor;
-                            c = *cursor;
-                            if (c < '0' || c > '9') {
-                                if (c != '\r' && *(uint16_t *)cursor != char_pair('/', '/')) {
-                                    ok = parse_block((hwreq_property_set *)self->flags);
-                                    if (ok == 0) {
-                                        return 0;
-                                    }
-                                }
-                                goto after_nested_line;
-                            }
-
-                            break;
-                        }
-                    after_nested_line:
-                        if (!(text_cursor() < text_end())) {
-                            break;
-                        }
-                    }
-
-                    for (;;) {
-                        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
-                            c = (text_cursor())[6];
-                            if (is_delimiter(c)) {
-                                return 1;
-                            }
-                        }
-                        if (_strnicmp(text_cursor(), "unknown", 7) == 0) {
-                            c = (text_cursor())[7];
-                            if (is_delimiter(c)) {
-                                device_id = (int32_t)self->adapter.device_id;
-                                self->cursor = self->cursor + 7;
-                                skip_whitespace();
-                                goto check_device_id;
-                            }
-                        }
-                        cursor = text_cursor();
-                        while (*cursor == ' ' || *cursor == '\t') {
-                            cursor++;
-                        }
-                        self->cursor = (uint32_t)cursor;
-                        if (*cursor >= '0' && *cursor <= '9') {
-                            device_id = parse_number();
-                            if (device_id == (int32_t)self->adapter.device_id) {
-                                goto check_device_id;
-                            }
-                        }
-
-                        advance_line_raw();
-                        self->line_start = self->cursor;
-                        self->line_number = self->line_number + 1;
-                        if (text_end() <= text_cursor()) {
-                            return 1;
-                        }
-                        continue;
-
-                    check_device_id:
-                        if (device_id == -1) {
-                            return 1;
-                        }
-                        if (*text_cursor() == '=') {
-                            self->cursor = self->cursor + 1;
-                            name = parse_quoted_string();
-                            if (name != 0) {
-                                StdString(&self->graphics_device_name).assign_cstr(name);
-                                skip_line();
-                                ok = parse_block((hwreq_property_set *)self->flags);
-                                return ok != 0;
-                            }
-                        } else {
-                            report_error("xxx = Device Name expected");
-                        }
-                        return 0;
-                    }
-                }
-            }
-        } else if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
-            c = (text_cursor())[10];
-            if (is_delimiter(c)) {
-                return 1;
-            }
-        }
-
-    skip_line_and_rescan:
-        advance_line_raw();
-        self->line_start = self->cursor;
-        self->line_number = self->line_number + 1;
-        if (text_end() <= text_cursor()) {
-            return 1;
-        }
-    }
+    return parse_vendor_directive(*this, "vendor", 6, false, (int32_t)self->adapter.vendor_id,
+                                  (int32_t)self->adapter.device_id, &self->graphics_vendor_name,
+                                  &self->graphics_device_name);
 }
 
 /**
@@ -646,160 +686,9 @@ uint8_t HwreqParser::parse_vendor_block()
  */
 uint8_t HwreqParser::parse_audiovendor_block()
 {
-    char *cursor;
-    char c;
-    int32_t vendor_id;
-    int32_t device_id;
-    char *name;
-    uint32_t length;
-    uint8_t ok;
-
-    for (;;) {
-        if (_strnicmp(text_cursor(), "audiovendor", 11) == 0) {
-            c = (text_cursor())[11];
-            if (is_delimiter(c)) {
-                cursor = text_cursor() + 11;
-                while (*cursor == ' ' || *cursor == '\t') {
-                    cursor++;
-                }
-                self->cursor = (uint32_t)cursor;
-
-                if (*cursor == '=') {
-                    cursor++;
-                    self->cursor = (uint32_t)cursor;
-
-                    if (_strnicmp(cursor, "unknown", 7) == 0 &&
-                        (c = cursor[7], is_delimiter(c))) {
-                        vendor_id = (int32_t)self->sound_device.vendor_id;
-                    } else {
-                        vendor_id = parse_number();
-                        if (vendor_id != (int32_t)self->sound_device.vendor_id) {
-                            goto skip_line_and_rescan;
-                        }
-                    }
-                    if (vendor_id == -1) {
-                        return 1;
-                    }
-
-                    name = parse_quoted_string();
-                    if (name == 0) {
-                        return 0;
-                    }
-                    length = 0;
-                    while (name[length] != 0) {
-                        length++;
-                    }
-                    StdString(&self->sound_vendor_name).assign_n(name, length);
-
-                    for (;;) {
-                        advance_line_raw();
-                        self->line_start = self->cursor;
-                        self->line_number = self->line_number + 1;
-
-                        if (!(_strnicmp(text_cursor(), "audiovendor", 11) == 0 &&
-                              (c = (text_cursor())[11],
-                               is_delimiter(c)))) {
-                            cursor = text_cursor();
-                            while (*cursor == ' ' || *cursor == '\t') {
-                                cursor++;
-                            }
-                            self->cursor = (uint32_t)cursor;
-                            c = *cursor;
-                            if (c < '0' || c > '9') {
-                                if (c != '\r' && *(uint16_t *)cursor != char_pair('/', '/')) {
-                                    ok = parse_block((hwreq_property_set *)self->flags);
-                                    if (ok == 0) {
-                                        return 0;
-                                    }
-                                }
-                                goto after_nested_line;
-                            }
-
-                            break;
-                        }
-                    after_nested_line:
-                        if (!(text_cursor() < text_end())) {
-                            break;
-                        }
-                    }
-
-                    for (;;) {
-                        if (_strnicmp(text_cursor(), "audiovendor", 11) == 0) {
-                            c = (text_cursor())[11];
-                            if (is_delimiter(c)) {
-                                return 1;
-                            }
-                        }
-                        if (_strnicmp(text_cursor(), "vendor", 6) == 0) {
-                            c = (text_cursor())[6];
-                            if (is_delimiter(c)) {
-                                return 1;
-                            }
-                        }
-                        if (_strnicmp(text_cursor(), "unknown", 7) == 0) {
-                            c = (text_cursor())[7];
-                            if (is_delimiter(c)) {
-                                device_id = (int32_t)self->sound_device.device_id;
-                                self->cursor = self->cursor + 7;
-                                skip_whitespace();
-                                goto check_device_id;
-                            }
-                        }
-                        cursor = text_cursor();
-                        while (*cursor == ' ' || *cursor == '\t') {
-                            cursor++;
-                        }
-                        self->cursor = (uint32_t)cursor;
-                        if (*cursor >= '0' && *cursor <= '9') {
-                            device_id = parse_number();
-                            if (device_id == (int32_t)self->sound_device.device_id) {
-                                goto check_device_id;
-                            }
-                        }
-
-                        advance_line_raw();
-                        self->line_start = self->cursor;
-                        self->line_number = self->line_number + 1;
-                        if (text_end() <= text_cursor()) {
-                            return 1;
-                        }
-                        continue;
-
-                    check_device_id:
-                        if (device_id == -1) {
-                            return 1;
-                        }
-                        if (*text_cursor() == '=') {
-                            self->cursor = self->cursor + 1;
-                            name = parse_quoted_string();
-                            if (name != 0) {
-                                StdString(&self->sound_device_name).assign_cstr(name);
-                                skip_line();
-                                ok = parse_block((hwreq_property_set *)self->flags);
-                                return ok != 0;
-                            }
-                        } else {
-                            report_error("xxx = Device Name expected");
-                        }
-                        return 0;
-                    }
-                }
-            }
-        } else if (_strnicmp(text_cursor(), "applytoall", 10) == 0) {
-            c = (text_cursor())[10];
-            if (is_delimiter(c)) {
-                return 1;
-            }
-        }
-
-    skip_line_and_rescan:
-        advance_line_raw();
-        self->line_start = self->cursor;
-        self->line_number = self->line_number + 1;
-        if (text_end() <= text_cursor()) {
-            return 1;
-        }
-    }
+    return parse_vendor_directive(*this, "audiovendor", 11, true, (int32_t)self->sound_device.vendor_id,
+                                  (int32_t)self->sound_device.device_id, &self->sound_vendor_name,
+                                  &self->sound_device_name);
 }
 
 /**
