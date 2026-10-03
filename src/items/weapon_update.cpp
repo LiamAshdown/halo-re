@@ -11,10 +11,6 @@
 #include "halo/core/link.hpp"
 #include "halo/items/vars.hpp"
 
-extern "C" {
-int32_t halo::items::weapon_update(datum_index item_index);
-void halo::items::weapon_update_function_values(uint32_t object_index);
-}
 static auto &weapon_blur_permutation_names = halo::link::ref<char *[2]>(halo::items::vars().weapon_blur_permutation_names);
 
 namespace halo::items {

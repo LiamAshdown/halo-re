@@ -44,11 +44,9 @@
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
 
-extern "C" {
 
-extern void *(__stdcall *direct3d_create9_procedure)(uint32_t sdk_version);
+inline auto &direct3d_create9_procedure = halo::link::ref<void *(__stdcall *)(uint32_t sdk_version)>(halo::rasterizer::vars().direct3d_create9_procedure);
 
-}  // extern "C"
 inline auto &bitmap_format_bits_per_pixel = halo::link::ref<int8_t []>(halo::rasterizer::vars().bitmap_format_bits_per_pixel);
 inline auto &cinematic_screen_effect_state = halo::link::ref<cinematic_screen_effect_globals *>(halo::cutscene::vars().cinematic_screen_effect_state);
 inline auto &rasterizer_default_z_near = halo::link::ref<float>(halo::rasterizer::vars().rasterizer_default_z_near);

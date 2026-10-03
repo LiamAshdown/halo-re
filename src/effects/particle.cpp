@@ -17,12 +17,10 @@
 #include "halo/render/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
 void particle_new(particle_creation_data *creation_data);
 void particles_delete_by_first_person_weapon(uint8_t first_person_weapon_index);
 void particles_refresh_structure_locations();
 void particles_update(real delta_time);
-}
 static auto &particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_data);
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &particle_impact_vector_names = halo::link::ref<char *[2]>(halo::effects::vars().particle_impact_vector_names);

@@ -1,12 +1,8 @@
 #include "halo/networking/net1_channel.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
-extern "C" {
-extern void *gt2GetConnectionData(void *gamespy_connection);
-extern uint16_t gt2GetRemotePort(int32_t object);
-extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-}
 
 namespace halo::networking {
 

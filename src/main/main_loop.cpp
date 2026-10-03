@@ -57,6 +57,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -245,7 +246,6 @@ static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::va
 static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::vars().update_client_staged_count);
 static auto &player_update_log_flags = halo::link::ref<uint32_t>(halo::main::vars().player_update_log_flags);
 static auto &main_render_skip_threshold_ms = halo::link::ref<int32_t>(halo::main::vars().main_render_skip_threshold_ms);
-extern "C" { extern void gcd_think(void); }
 namespace halo::main {
 
 /**

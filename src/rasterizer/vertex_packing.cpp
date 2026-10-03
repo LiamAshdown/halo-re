@@ -7,10 +7,8 @@
 #include "internal/state.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

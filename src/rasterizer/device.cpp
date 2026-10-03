@@ -15,12 +15,10 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/rasterizer/d3dx.hpp"
 
-extern "C" {
 
-extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 
@@ -613,7 +611,7 @@ void rasterizer_end_frame(void)
             rasterizer_set_render_state(8, 3);
         }
 
-        stride = D3DXGetFVFVertexSize(0x144);
+        stride = halo::rasterizer::d3dx::fvf_vertex_size(0x144);
         render_device().set_pixel_shader(0);
         render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
         rasterizer_set_sampler_state(0, 1, 3);

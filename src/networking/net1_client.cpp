@@ -19,6 +19,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
@@ -63,18 +64,6 @@ static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo:
 static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
 static auto &progress_screen_text = halo::link::ref<int32_t>(halo::main::vars().progress_screen_text);
 static auto &progress_screen_subtext = halo::link::ref<int32_t>(halo::main::vars().progress_screen_subtext);
-extern "C" {
-extern uint32_t SBServerGetPublicQueryPort(int32_t handle);
-extern char *SBServerGetPublicAddress(int32_t handle);
-extern uint32_t SBServerGetPrivateQueryPort(int32_t handle);
-extern char *SBServerGetPrivateAddress(int32_t handle);
-extern int32_t SBServerHasPrivateAddress(int32_t handle);
-extern int32_t SBServerDirectConnect(int32_t handle);
-extern char *ServerBrowserGetMyPublicIP(void *handle);
-extern uint32_t ServerBrowserGetMyPublicIPAddr(void *handle);
-extern void ServerBrowserSendNatNegotiateCookieToServer(void *handle, char *hostname, uint32_t port, int32_t request_id);
-extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one, void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *), int32_t zero);
-}
 
 namespace halo::networking {
 

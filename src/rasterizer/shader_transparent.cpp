@@ -14,10 +14,8 @@
 #include "halo/shaders/shaders.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

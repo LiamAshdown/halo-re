@@ -6,7 +6,6 @@
 #include "halo/ai/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction);
 void effect_random_direction_from_table(real_point3d *out);
 void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset);
@@ -15,7 +14,6 @@ int16_t effect_random_int_between(int16_t minimum, int16_t maximum);
 real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
 uint32_t effect_random_uint16();
 void effect_random_velocity_vector(effect *self, random_seed *seed, real_vector3d *direction, real_vector3d *out_direction, real_vector3d *out_velocity, real min, real max, real angle_max, uint32_t a_bitset, uint8_t b_bitset);
-}
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::effects {

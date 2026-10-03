@@ -8,10 +8,8 @@
 #include "d3d.h"
 #include "halo/shell/api.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

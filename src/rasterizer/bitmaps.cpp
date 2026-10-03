@@ -14,10 +14,8 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

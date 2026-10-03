@@ -31,6 +31,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &ctf_globals_live = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_live);
 static auto &ctf_globals_network = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_network);
@@ -61,9 +62,6 @@ static auto &ctf_notify_throttle_tick = halo::link::ref<int32_t>(halo::game::var
 static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
 static auto &ctf_team_return_credit_active = halo::link::ref<uint8_t [2]>(halo::game::vars().ctf_team_return_credit_active);
 static auto &ctf_team_return_credit_ticks = halo::link::ref<int32_t [2]>(halo::game::vars().ctf_team_return_credit_ticks);
-extern "C" {
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-}
 
 namespace halo::game::engine1 {
 

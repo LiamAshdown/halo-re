@@ -48,6 +48,7 @@ const Vars &vars()
         console_debug_toggle_69c614,
         console_debug_value_689430,
         decal_vertex_cache_last_queried,
+        direct3d_create9_procedure,
         environment_effect_slot,
         environment_techniques_change_color,
         environment_techniques_multipurpose,

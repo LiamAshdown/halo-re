@@ -9,13 +9,10 @@
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/rasterizer/d3dx.hpp"
 
-extern "C" {
 
-extern int32_t D3DXCreateEffect(void *device, const void *data, uint32_t size, const void *defines, void *include, uint32_t flags, void *pool, void *out_effect, void **out_error_buffer);
-extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 
@@ -94,7 +91,7 @@ int32_t rasterizer_dx9_pixel_shader_effect_load(int32_t effect_index, const void
 
     rasterizer_effects[effect_index].effect = 0;
     error_buffer = 0;
-    hr = D3DXCreateEffect(rasterizer_device, data, size, rasterizer_effect_defines, 0, 0,
+    hr = halo::rasterizer::d3dx::create_effect(rasterizer_device, data, size, rasterizer_effect_defines, 0, 0,
                           rasterizer_effect_pool, &rasterizer_effects[effect_index].effect, &error_buffer);
     if (hr < 0) {
         rasterizer_shader_file_name = "shaders\\fx.bin";
@@ -927,7 +924,7 @@ uint8_t rasterizer_render_target_initialize(void)
         }
     }
     if (ok) {
-        if (render_device().create_vertex_buffer(D3DXGetFVFVertexSize(0x144) * 4, 0x208, 0x144, 0, &rasterizer_render_target_vertex_buffer, NULL) < 0) {
+        if (render_device().create_vertex_buffer(halo::rasterizer::d3dx::fvf_vertex_size(0x144) * 4, 0x208, 0x144, 0, &rasterizer_render_target_vertex_buffer, NULL) < 0) {
             return 0;
         }
     }

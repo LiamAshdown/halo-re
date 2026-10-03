@@ -2,9 +2,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/hs/api.hpp"
 
-extern "C" {
-extern int32_t strstr(ScenarioObjectName *entry, uint32_t predicate_arg);
-}
+#include <string.h>
 
 namespace halo::hs::part3 {
 
@@ -21,7 +19,7 @@ void ScriptObjects::object_names_for_each(void (*callback)(int32_t index), uint3
 
     object_names = (ScenarioObjectName *)halo::scenario::globals().scenario->object_names.pointer;
     for (index = 0; index < (int32_t)halo::scenario::globals().scenario->object_names.count; index++) {
-        if (strstr(&object_names[index], predicate_arg) != 0) {
+        if (strstr(object_names[index].name.string, (const char *)predicate_arg) != nullptr) {
             callback(index);
         }
     }

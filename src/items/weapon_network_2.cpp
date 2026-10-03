@@ -6,12 +6,6 @@
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-void halo::items::weapon_notify_ammo_pickup(datum_index item_index, int16_t magazine_index, int16_t rounds);
-void halo::items::weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index);
-void halo::items::weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
-void halo::items::weapon_notify_reload_step(datum_index item_index, int16_t magazine_index);
-}
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 

@@ -9,12 +9,10 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &sv_ban_penalty_seconds = halo::link::ref<int32_t [4]>(halo::networking::vars().sv_ban_penalty_seconds);
-extern "C" {
-extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key);
-}
 static auto &network_banlist_full_path = halo::link::ref<char [0x104]>(halo::networking::vars().network_banlist_full_path);
 static auto &network_ban_file_read_mode_string = halo::link::ref<char []>(halo::networking::vars().network_ban_file_read_mode_string);
 static auto &network_ban_indefinite_marker = halo::link::ref<char []>(halo::networking::vars().network_ban_indefinite_marker);

@@ -333,7 +333,6 @@ void vehicle_calculate_hover_turn_controls(void);
 
 }
 
-extern "C" {
 void biped_advance_frame_counter_trigger(uint32_t object_index, char *state_out);
 void biped_apply_idle_fidget(uint32_t object_index, uint8_t *state_out);
 void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out);
@@ -594,4 +593,3 @@ uint8_t vehicle_is_old_enough(uint32_t object_index);
 void vehicle_network_baseline_take(uint32_t object_index);
 void vehicle_reset_state(uint32_t object_index);
 uint32_t vehicle_update(uint32_t object_index);
-}

@@ -11,6 +11,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
@@ -37,10 +38,6 @@ typedef struct network_game_info_record {
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-extern "C" {
-extern void gcd_disconnect_user(int32_t id, int32_t value);
-extern void gcd_disconnect_all(int32_t id);
-}
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &variant_defaults_source = halo::link::ref<void *>(halo::networking::vars().variant_defaults_source);
 static auto &game_engine_pending_variant = halo::link::ref<uint8_t [0x98]>(halo::game::vars().game_engine_pending_variant);

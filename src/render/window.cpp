@@ -39,7 +39,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
 extern void rasterizer_object_shadow_structure_draw(void *vertex_buffer, int32_t dynamic_index_slot,
@@ -59,7 +58,6 @@ extern void rasterizer_water_ripple_draw(void *vertex_buffer, void *shader, int3
 extern void rasterizer_transparent_geometry_group_new(void *shader, int16_t shader_permutation,
     uint32_t lightmap_bitmap, uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count,
     uint32_t vertex_buffer, void *tint, uint32_t lighting, uint32_t flags, void *world_position);
-}
 static auto &sky_animation_times = halo::link::ref<float [9]>(halo::render::vars().sky_animation_times);
 static auto &render_camera_global = halo::link::ref<render_camera>(halo::render::vars().render_camera_global);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);

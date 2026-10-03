@@ -13,11 +13,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
-void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
-uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);
-}
 static auto &global_structure_collision_bsp = halo::link::ref<uint8_t *>(halo::physics::vars().global_structure_collision_bsp);
 
 namespace halo::items {

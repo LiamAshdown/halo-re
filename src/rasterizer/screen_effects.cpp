@@ -16,10 +16,8 @@
 #include "halo/core/libm.hpp"
 #include <string.h>
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

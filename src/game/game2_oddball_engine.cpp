@@ -8,6 +8,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
 static auto &king_alt_team_score = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_score);
@@ -23,10 +24,6 @@ static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::gam
 static auto &king_alt_team_scores_network2 = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network2);
 static auto &king_alt_player_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_player_scores_network);
 static auto &king_alt_scores_network_tail = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_scores_network_tail);
-extern "C" {
-extern void qr2_buffer_add(void *buffer, const char *value);
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-}
 static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 

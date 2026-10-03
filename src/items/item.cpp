@@ -7,13 +7,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 
-extern "C" {
-uint32_t halo::items::item_any_detonating();
-void halo::items::item_detonation_timer_start(uint32_t object_index);
-uint8_t halo::items::item_new(uint32_t object_index);
-void halo::items::item_set_holder(uint32_t item_index, datum_index holder_index);
-void halo::items::item_stamp_age_timestamp(uint32_t object_index);
-}
 
 namespace halo::items {
 

@@ -8,6 +8,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 #ifdef interface
 #undef interface
@@ -35,9 +36,6 @@ static auto &server_browser_allow_full = halo::link::ref<uint8_t>(halo::ui::vars
 static auto &server_browser_filter_gametype = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_gametype);
 static auto &server_browser_filter_teamplay = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_teamplay);
 static auto &server_browser_filter_ping_limit_index = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_ping_limit_index);
-extern "C" {
-extern void ServerBrowserFree(void *sb);
-}
 
 namespace halo::interface {
 

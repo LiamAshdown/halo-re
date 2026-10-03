@@ -16,9 +16,6 @@
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-uint8_t halo::items::item_update(uint32_t item_index);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &global_structure_collision_bsp = halo::link::ref<uint8_t *>(halo::physics::vars().global_structure_collision_bsp);
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);

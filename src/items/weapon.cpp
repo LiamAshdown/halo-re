@@ -17,34 +17,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
-real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
-void halo::items::weapon_force_settled_state(datum_index item_index);
-char * halo::items::weapon_get_label(datum_index item_index);
-int32_t halo::items::weapon_get_next_zoom_level(int32_t current_level, datum_index item_index);
-int32_t halo::items::weapon_has_active_state(datum_index item_index);
-uint8_t halo::items::weapon_is_old_enough(uint32_t object_index);
-uint8_t halo::items::weapon_is_out_of_ammo(datum_index item_index);
-int32_t halo::items::weapon_is_reloading(datum_index item_index);
-void halo::items::weapon_magazine_begin_chamber(datum_index item_index, int16_t magazine_index);
-void halo::items::weapon_magazine_reload_tick_predicted(datum_index item_index, int16_t magazine_index);
-uint32_t halo::items::weapon_must_be_readied(datum_index item_index);
-uint8_t halo::items::weapon_new(uint32_t object_index);
-datum_index halo::items::weapon_new_from_placement(datum_index weapon_object_index, ScenarioWeapon *placement);
-uint32_t halo::items::weapon_prevents_grenade_throwing(datum_index item_index);
-uint32_t halo::items::weapon_prevents_melee_attack(datum_index item_index);
-void halo::items::weapon_ready(datum_index item_index);
-void halo::items::weapon_reload_recovery_finish(datum_index item_index);
-void halo::items::weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_counts);
-void halo::items::weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
-void halo::items::weapon_set_loaded_ammo_fraction(datum_index item_index, real fraction);
-void halo::items::weapon_set_ready_timer(datum_index item_index, real value);
-void halo::items::weapon_set_state_indicator_flags(datum_index item_index);
-uint32_t halo::items::weapon_stop_object_effect(datum_index item_index, datum_index tag_id);
-uint32_t halo::items::weapon_transfer_ammunition(datum_index target_item_index, datum_index source_item_index, int16_t requesting_player_index, int16_t *out_transferred);
-int32_t halo::items::weapon_triggers_idle(datum_index item_index);
-}
 static auto &k_weapon_zoom_fov_maximum = halo::link::ref<real>(halo::items::vars().k_weapon_zoom_fov_maximum);
 static auto &k_weapon_zoom_fov_minimum = halo::link::ref<real>(halo::items::vars().k_weapon_zoom_fov_minimum);
 static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);

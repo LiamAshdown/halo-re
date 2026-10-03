@@ -28,6 +28,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &join_ui_state = halo::link::ref<progress_screen_state>(halo::networking::vars().join_ui_state);
 static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
@@ -47,7 +48,6 @@ extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t
                                                      int16_t frame);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
-extern void NNCancel(datum_index tag);
 }
 static auto &main_menu_reload_pending = halo::link::ref<uint8_t>(halo::ui::vars().main_menu_reload_pending);
 static auto &ui_input_batch_mode = halo::link::ref<uint8_t>(halo::ui::vars().ui_input_batch_mode);

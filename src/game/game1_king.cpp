@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &king_bucket_credit_ticks = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_credit_ticks);
@@ -38,10 +39,6 @@ static auto &current_game_engine = halo::link::ref<game_engine_definition *>(hal
 static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
 static auto &king_bucket_last_credit_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_last_credit_tick);
 static auto &king_hill_broadcast_overrun_value = halo::link::ref<int32_t>(halo::game::vars().king_hill_broadcast_overrun_value);
-extern "C" {
-extern void qr2_buffer_add(void *buffer, const char *value);
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-}
 static auto &king_hill_player_in_hill = halo::link::ref<uint8_t [16]>(halo::game::vars().king_hill_player_in_hill);
 static auto &king_hill_state_006b1054 = halo::link::ref<int32_t>(halo::game::vars().king_hill_state_006b1054);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);

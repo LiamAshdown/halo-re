@@ -12,6 +12,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
 static auto &network_buffer_pair_pool = halo::link::ref<int32_t>(halo::main::vars().network_buffer_pair_pool);
@@ -19,46 +20,18 @@ static auto &network_buffer_pair_pool_count = halo::link::ref<int32_t>(halo::net
 static auto &network_buffer_pair_pool_data = halo::link::ref<network_buffer_pair *>(halo::networking::vars().network_buffer_pair_pool_data);
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
 static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
-extern "C" {
-extern void gt2CloseSocket(int32_t socket);
-}
 static auto &network_local_address = halo::link::ref<uint32_t>(halo::networking::vars().network_local_address);
 static auto &network_channels_open_ok = halo::link::ref<uint8_t>(halo::networking::vars().network_channels_open_ok);
 static auto &network_game_socket_port = halo::link::ref<uint32_t>(halo::networking::vars().network_game_socket_port);
 static auto &game_cport = halo::link::ref<uint32_t>(halo::ui::vars().game_cport);
-extern "C" {
-extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-extern int32_t gt2CreateSocket(int32_t *socket_out, uint8_t address_buffer[24], int32_t unused_a, int32_t unused_b, void *receive_callback);
-extern void gt2SetSendDump(int32_t socket, void *callback);
-extern void gt2SetReceiveDump(int32_t socket, void *callback);
-extern void gt2SetUnrecognizedMessageCallback(int32_t socket, void *callback);
-}
 static auto &network_handle_registry = halo::link::ref<network_handle_registry_slot [64]>(halo::networking::vars().network_handle_registry);
 static auto &network_mutex_table = halo::link::ref<network_mutex_record [k_network_mutex_table_count]>(halo::networking::vars().network_mutex_table);
 static auto &network_thread_table = halo::link::ref<network_thread_record [k_network_thread_table_count]>(halo::networking::vars().network_thread_table);
-extern "C" {
-extern int32_t gt2GetConnectionState(int32_t socket);
-extern uint16_t gt2GetRemotePort(int32_t object);
-extern uint32_t gt2GetLocalIP(int32_t socket);
-extern uint16_t gt2GetLocalPort(int32_t socket);
-extern void gt2SetSocketData(int32_t socket, void *data);
-extern int32_t gt2Listen(int32_t socket, void *callback);
-extern void gt2CloseConnectionHard(int32_t socket);
-extern void gt2SetConnectionData(int32_t socket, network_receive_queue *queue);
-extern void *gt2GetConnectionData(void *connection);
-}
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
-extern "C" {
-extern void gt2CloseAllConnections(void *socket);
-}
 static auto &network_game_receive_buffer = halo::link::ref<uint8_t [0x2000]>(halo::networking::vars().network_game_receive_buffer);
 static auto &natneg_magic = halo::link::ref<const uint8_t [6]>(halo::networking::vars().natneg_magic);
 static auto &network_session_host_object = halo::link::ref<void *>(halo::networking::vars().network_session_host_object);
-extern "C" {
-extern void NNProcessData(char *data, int32_t len, void *fromaddr);
-extern void qr2_parse_queryA(void *qrec, char *query, int32_t len, void *sender);
-}
 static auto &network_query_receive_buffer = halo::link::ref<uint8_t [0x2000]>(halo::networking::vars().network_query_receive_buffer);
 extern "C" {
 typedef struct network_receive_queue network_receive_queue;
@@ -68,10 +41,6 @@ static auto &server_browser_initialized = halo::link::ref<uint8_t>(halo::network
 static auto &server_browser_query_elapsed_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_query_elapsed_ms);
 static auto &server_browser_selected_index = halo::link::ref<int32_t>(halo::networking::vars().server_browser_selected_index);
 static auto &server_browser_last_click_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_last_click_ms);
-extern "C" {
-extern int32_t SBServerHasBasicKeys(void *server);
-extern int32_t SBServerHasFullKeys(void *server);
-}
 static auto &network_bit_chunk_size = halo::link::ref<int32_t>(halo::networking::vars().network_bit_chunk_size);
 static auto &network_pending_connection_count = halo::link::ref<int32_t>(halo::networking::vars().network_pending_connection_count);
 static auto &network_rate_override = halo::link::ref<int32_t>(halo::networking::vars().network_rate_override);
@@ -81,15 +50,7 @@ static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
-extern "C" {
-extern int32_t gt2Send(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode);
-}
 static auto &network_pending_connections = halo::link::ref<network_pending_connection [k_network_pending_connection_count]>(halo::networking::vars().network_pending_connections);
-extern "C" {
-extern int32_t gt2Accept(int32_t reply_socket, network_listen_accept_config *config);
-extern void gt2Reject(int32_t socket, void *buffer, int32_t length);
-extern void gt2GetSocketData(int32_t listen_handle);
-}
 
 namespace halo::networking {
 

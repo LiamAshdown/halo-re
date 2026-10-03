@@ -12,10 +12,8 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/shaders/shaders.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

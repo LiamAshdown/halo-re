@@ -14,10 +14,8 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/text/text.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

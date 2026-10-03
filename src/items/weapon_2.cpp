@@ -4,9 +4,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 
-extern "C" {
-int32_t halo::items::weapon_put_away(datum_index item_index, int8_t force);
-}
 
 namespace halo::items {
 

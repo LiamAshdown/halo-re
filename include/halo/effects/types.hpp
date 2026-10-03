@@ -21,8 +21,6 @@
 #include "interface.h"
 #include "main.h"
 
-extern "C" {
 typedef int32_t (*effect_marker_resolver)(uint32_t object_index, const char *location,
     object_marker *out, uint32_t max_count);
 
-}

@@ -14,18 +14,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-void halo::items::equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
-int32_t halo::items::equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
-void halo::items::equipment_create_from_creation_message(void *incoming_record);
-void halo::items::equipment_definition_play_pickup_sound(uint32_t equipment_tag_id);
-uint8_t halo::items::equipment_is_old_enough(uint32_t object_index);
-void halo::items::equipment_network_baseline_take(uint32_t item_index);
-uint8_t halo::items::equipment_new(uint32_t object_index);
-void halo::items::equipment_new_from_placement(uint32_t equipment_object_index, ScenarioEquipment *placement);
-void halo::items::equipment_pickup_play_sound(uint32_t object_index);
-void halo::items::equipment_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
-}
 static auto &equipment_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().equipment_network_update_position_tolerance);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);

@@ -7,9 +7,7 @@
 #include "halo/effects/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index);
-}
 static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
 static auto &k_render_identity_matrix_ptr = halo::link::ref<real_matrix4x3 *>(halo::effects::vars().k_render_identity_matrix_ptr);
 

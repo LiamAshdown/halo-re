@@ -11,10 +11,8 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
 
-extern "C" {
 
 
-}  // extern "C"
 
 namespace halo::rasterizer {
 

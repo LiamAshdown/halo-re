@@ -11,17 +11,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-int32_t halo::items::weapon_add_ammunition(void **message_record);
-void halo::items::weapon_apply_ammo_correction(void **message_record);
-void halo::items::weapon_apply_ammo_correction_and_resync(void **message_record);
-void halo::items::weapon_apply_network_update(datum_index item_index, uint32_t *update_record);
-int32_t halo::items::weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
-void halo::items::weapon_create_from_creation_message(void *incoming_record);
-void halo::items::weapon_network_baseline_take(uint32_t item_index);
-void halo::items::weapon_predict_ammo(void **message_record);
-void halo::items::weapon_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
-}
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &weapon_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().weapon_network_update_position_tolerance);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);

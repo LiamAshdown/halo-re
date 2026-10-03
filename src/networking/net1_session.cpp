@@ -25,6 +25,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 
 static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::vars().object_type_definitions);
@@ -62,41 +63,18 @@ static auto &player_update_log_file_mode_string = halo::link::ref<char []>(halo:
 static auto &network_session_host_object = halo::link::ref<void *>(halo::networking::vars().network_session_host_object);
 static auto &network_session_host_state = halo::link::ref<int32_t>(halo::networking::vars().network_session_host_state);
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
-extern "C" {
-extern void gcd_shutdown(void);
-extern void qr2_shutdown(void *object);
-}
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
 extern "C" {
-extern int32_t NNBeginNegotiationWithSocket(uint32_t socket, int32_t cookie, int32_t client_index, void *progress_callback, void *completed_callback, void *user_data);
-extern uint16_t gt2NetworkToHostShort(uint16_t value);
-extern char *gt2AddressToString(uint32_t ip, uint16_t port, char *string);
 typedef struct ColorARGB ColorARGB;
 }
 static auto &console_message_default_color = halo::link::ref<void *>(halo::networking::vars().console_message_default_color);
 static auto &current_game_engine = halo::link::ref<void *>(halo::game::vars().current_game_engine);
-extern "C" {
-extern void qr2_buffer_add(void *buffer, const char *value);
-extern void gcd_authenticate_user(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response, void *callback, void *instance);
-extern const char *gcd_getkeyhash(int32_t game_id, int32_t local_id);
-extern void gcd_disconnect_user(int32_t game_id, int32_t local_id);
-extern void gcd_disconnect_all(int32_t game_id);
-}
 static auto &network_session_start_game_type = halo::link::ref<int32_t>(halo::networking::vars().network_session_start_game_type);
 static auto &network_session_start_host_name = halo::link::ref<char []>(halo::networking::vars().network_session_start_host_name);
 static auto &network_session_start_map_name = halo::link::ref<char []>(halo::networking::vars().network_session_start_map_name);
-extern "C" {
-extern int32_t qr2_init_socketA(void **qrec_out, uint32_t socket, int32_t port, const char *gamename, const char *secret_key, int32_t ispublic, int32_t natnegotiate, void *server_key, void *player_key, void *team_key, void *key_list, void *count, void *adderror, void *userdata);
-extern void qr2_register_natneg_callback(void *qrec, void *callback);
-extern void gcd_init_qr2(void *qrec, int32_t game_id, int32_t use_network);
-}
 static auto &network_session_start_variant_name = halo::link::ref<char []>(halo::networking::vars().network_session_start_variant_name);
 static auto &network_session_host_closing = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_closing);
 static auto &network_session_host_last_tick = halo::link::ref<int32_t>(halo::networking::vars().network_session_host_last_tick);
-extern "C" {
-extern void qr2_send_statechanged(void *object);
-extern void qr2_think(void *object);
-}
 
 namespace halo::networking {
 
@@ -1220,8 +1198,9 @@ void HostSession::dispose()
  */
 void HostSession::natneg_callback(int32_t cookie)
 {
-    NNBeginNegotiationWithSocket(*(uint32_t *)network_game_socket, cookie, 0, (void *)halo::cseries::function_do_nothing,
-        (void *)halo::networking::network_session_host_natneg_completed, 0);
+    NNBeginNegotiationWithSocket((int32_t) * (uint32_t *)network_game_socket, cookie, 0,
+        reinterpret_cast<void (*)(void)>(halo::cseries::function_do_nothing),
+        reinterpret_cast<void (*)(int32_t, uint32_t, uint8_t *)>(halo::networking::network_session_host_natneg_completed), 0);
 }
 
 /**

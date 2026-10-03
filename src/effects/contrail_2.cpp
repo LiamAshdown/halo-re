@@ -6,9 +6,7 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 
-extern "C" {
 void contrail_refresh_lightmap();
-}
 static auto &contrail_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_data);
 static auto &contrail_point_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_point_data);
 

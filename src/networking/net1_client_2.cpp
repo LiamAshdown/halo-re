@@ -11,6 +11,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
@@ -29,10 +30,6 @@ static auto &empty_string = halo::link::ref<uint16_t>(halo::game::vars().empty_s
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_join_error_reason = halo::link::ref<int32_t>(halo::networking::vars().network_join_error_reason);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint8_t [4]>(halo::ui::vars().split_screen_quit_prompt_string);
-extern "C" {
-extern uint32_t gt2NetworkToHostShort(int16_t value);
-extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-}
 static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);

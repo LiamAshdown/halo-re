@@ -16,6 +16,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_incoming_message_scratch = halo::link::ref<uint8_t [0x510]>(halo::networking::vars().network_incoming_message_scratch);
 extern "C" {
@@ -41,11 +42,6 @@ static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::netw
 static auto &network_session_active2 = halo::link::ref<uint8_t>(halo::networking::vars().network_session_active2);
 static auto &network_session_host_object = halo::link::ref<void *>(halo::networking::vars().network_session_host_object);
 static auto &network_session_host_state = halo::link::ref<int32_t>(halo::networking::vars().network_session_host_state);
-extern "C" {
-extern void gcd_disconnect_all(int32_t connection_id);
-extern void gcd_shutdown(void);
-extern void qr2_shutdown(void *object);
-}
 static auto &network_server_storage = halo::link::ref<network_server_globals>(halo::networking::vars().network_server_storage);
 static auto &network_scenario_round_counter_a = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_a);
 static auto &network_scenario_round_counter_b = halo::link::ref<uint8_t>(halo::game::vars().network_scenario_round_counter_b);

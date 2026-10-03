@@ -9,11 +9,10 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &current_game_engine = halo::link::ref<void *>(halo::game::vars().current_game_engine);
 extern "C" {
-extern void qr2_buffer_add(void *buffer, const char *value);
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
 typedef struct data_array data_array;
 }
 static auto &player_data = halo::link::ref<uint8_t *>(halo::game::vars().player_data);

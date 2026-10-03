@@ -10,6 +10,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
@@ -26,9 +27,6 @@ static auto &game_engine_bucket_scores_extra = halo::link::ref<int32_t [16]>(hal
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &ctf_globals_live = halo::link::ref<uint8_t []>(halo::game::vars().ctf_globals_live);
 static auto &ctf_globals_network = halo::link::ref<uint8_t []>(halo::game::vars().ctf_globals_network);
-extern "C" {
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-}
 static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
 
 namespace halo::game {

@@ -11,10 +11,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
-extern "C" {
-extern void KeyValCompareKeyA(const void *a, const void *b);
-}
 static auto &hs_autocomplete_maximum_count = halo::link::ref<int16_t>(halo::hs::vars().hs_autocomplete_maximum_count);
 static auto &hs_autocomplete_prefix = halo::link::ref<char *>(halo::hs::vars().hs_autocomplete_prefix);
 static auto &hs_autocomplete_count = halo::link::ref<int16_t>(halo::hs::vars().hs_autocomplete_count);

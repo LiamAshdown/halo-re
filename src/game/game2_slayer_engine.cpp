@@ -7,6 +7,7 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
@@ -18,9 +19,6 @@ static auto &slayer_unknown_0087a4e0 = halo::link::ref<int32_t [16]>(halo::game:
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-extern "C" {
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-}
 static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
 
 namespace halo::game {

@@ -18,8 +18,6 @@
 #include "halo/render/render.hpp"
 #include "halo/render/api.hpp"
 
-extern "C" {
-}
 
 /**
  * The inlined comparison of every function in this instantiation (see the file header).

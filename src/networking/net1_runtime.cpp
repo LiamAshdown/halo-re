@@ -21,6 +21,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/x87.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_connection_stats = halo::link::ref<network_connection_statistics [k_network_connection_stats_count]>(halo::networking::vars().network_connection_stats);
 static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
@@ -33,10 +34,6 @@ static auto &network_summary_stats = halo::link::ref<network_summary_statistics>
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_summary_log_mode_string = halo::link::ref<char []>(halo::networking::vars().network_summary_log_mode_string);
-extern "C" {
-extern void *gt2GetConnectionData(void *gamespy_connection);
-extern uint16_t gt2GetRemotePort(int32_t object);
-}
 static auto &network_disabled_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_disabled_flag);
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_join_error_reason = halo::link::ref<int32_t>(halo::networking::vars().network_join_error_reason);
@@ -55,15 +52,8 @@ static auto &network_random_seeded = halo::link::ref<uint8_t>(halo::networking::
 static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
 static auto &network_summary_log_file = halo::link::ref<void *>(halo::networking::vars().network_summary_log_file);
-extern "C" {
-extern void gt2CloseSocket(int32_t socket);
-extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-}
 static auto &network_high_res_clock_ms = halo::link::ref<int32_t>(halo::networking::vars().network_high_res_clock_ms);
 static auto &network_update_unknown_869bf = halo::link::ref<uint8_t>(halo::networking::vars().network_update_unknown_869bf);
-extern "C" {
-extern void gt2Think(int32_t socket);
-}
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &machine_table = halo::link::ref<void *>(halo::game::vars().machine_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);

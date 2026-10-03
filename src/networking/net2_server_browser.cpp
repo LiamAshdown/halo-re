@@ -36,6 +36,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
@@ -63,10 +64,6 @@ static auto &server_browser_require_valid_entry = halo::link::ref<uint8_t>(halo:
 static auto &server_browser_total_players = halo::link::ref<int32_t>(halo::networking::vars().server_browser_total_players);
 static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
 static auto &empty_string = halo::link::ref<wchar_t []>(halo::game::vars().empty_string);
-extern "C" {
-extern int32_t SBServerHasFullKeys(void *entry);
-extern int32_t ServerBrowserState(void *engine);
-}
 static auto &server_browser_player_ticker = halo::link::ref<ticker_text_buffer>(halo::ui::vars().server_browser_player_ticker);
 static auto &server_browser_variant_ticker = halo::link::ref<ticker_text_buffer>(halo::ui::vars().server_browser_variant_ticker);
 static auto &string_widen_scratch = halo::link::ref<wchar_t [0x400]>(halo::networking::vars().string_widen_scratch);
@@ -89,12 +86,6 @@ static auto &server_browser_filter_panel_mode = halo::link::ref<uint8_t>(halo::u
 static auto &server_browser_query_elapsed_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_query_elapsed_ms);
 static auto &server_list = halo::link::ref<server_list_globals>(halo::networking::vars().server_list);
 static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::ui::vars().network_host_edit_field_00719410);
-extern "C" {
-extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value);
-extern char * SBServerGetStringValue(void *entry, const char *key, const char *default_value);
-extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value);
-extern int32_t SBServerGetPing(void *entry);
-}
 static auto &PTR_s_parameter_handles_0063fff0_0x35_006607a0 = halo::link::ref<const wchar_t []>(halo::networking::vars().PTR_s_parameter_handles_0063fff0_0x35_006607a0);
 static auto &server_browser_initialized = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_initialized);
 static auto &network_session_start_host_name = halo::link::ref<uint8_t []>(halo::networking::vars().network_session_start_host_name);
@@ -105,12 +96,6 @@ extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, 
                            void *callback, int32_t h);
 }
 static auto &hud_text_unbound = halo::link::ref<wchar_t []>(halo::ui::vars().hud_text_unbound);
-extern "C" {
-extern char * SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value);
-extern int32_t ServerBrowserGetServer(void *query_engine, int32_t index);
-extern int32_t ServerBrowserCount(void *engine);
-extern int32_t SBServerHasBasicKeys(int32_t record);
-}
 static auto &server_browser_skip_reselect = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_skip_reselect);
 static auto &server_browser_ping_limits = halo::link::ref<int32_t []>(halo::networking::vars().server_browser_ping_limits);
 
@@ -1586,7 +1571,7 @@ void ServerBrowser::query_results_ingest(server_list_globals *list)
             do {
                 int32_t record = ServerBrowserGetServer(master_server_query_engine, i);
 
-                if (SBServerHasBasicKeys(record) != 0) {
+                if (SBServerHasBasicKeys((void *)(intptr_t)record) != 0) {
                     halo::networking::dynamic_pointer_array_add_unique((void *)(intptr_t)record, list);
                 }
                 i = i + 1;

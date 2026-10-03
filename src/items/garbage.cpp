@@ -5,10 +5,6 @@
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
 
-extern "C" {
-uint8_t halo::items::garbage_new(uint32_t object_index);
-int32_t halo::items::garbage_update(uint32_t object_index);
-}
 
 namespace halo::items {
 

@@ -12,9 +12,6 @@
 #include "halo/ai/vars.hpp"
 #include "halo/items/vars.hpp"
 
-extern "C" {
-uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
-}
 static auto &weapon_infinite_ammo = halo::link::ref<uint8_t>(halo::items::vars().weapon_infinite_ammo);
 static auto &weapon_bottomless_clip = halo::link::ref<uint8_t>(halo::items::vars().weapon_bottomless_clip);
 static auto &weapon_client_side_projectiles = halo::link::ref<uint8_t>(halo::items::vars().weapon_client_side_projectiles);

@@ -43,6 +43,7 @@ extern char console_debug_toggle_689441[];
 extern char console_debug_toggle_69c614[];
 extern char console_debug_value_689430[];
 extern char decal_vertex_cache_last_queried[];
+extern char direct3d_create9_procedure[];
 extern char environment_effect_slot[];
 extern char environment_techniques_change_color[];
 extern char environment_techniques_multipurpose[];

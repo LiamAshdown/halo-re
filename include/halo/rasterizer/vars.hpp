@@ -46,6 +46,7 @@ struct Vars {
     void *console_debug_toggle_69c614;
     void *console_debug_value_689430;
     void *decal_vertex_cache_last_queried;
+    void *direct3d_create9_procedure;
     void *environment_effect_slot;
     void *environment_techniques_change_color;
     void *environment_techniques_multipurpose;

@@ -4,23 +4,15 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "../gamespy/gamespy_calls.hpp"
 
 static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
-extern "C" {
-extern int gt2NetworkToHostInt(unsigned int value);
-extern char *gt2AddressToString(unsigned int ip, unsigned short port, char *string);
-extern int gt2Connect(void *socket, void **connection_out, const char *remote_address, const unsigned char *message, int len, unsigned long timeout, const void *callbacks, int blocking);
-extern void gt2SetConnectionData(void *connection, void *data);
-}
 static auto &network_connect_timeout_ms = halo::link::ref<int32_t>(halo::networking::vars().network_connect_timeout_ms);
 static auto &network_pending_connection_count = halo::link::ref<int32_t>(halo::networking::vars().network_pending_connection_count);
 static auto &network_pending_connections = halo::link::ref<network_pending_connection [k_network_pending_connection_count]>(halo::networking::vars().network_pending_connections);
-extern "C" {
-extern void gt2Reject(void *connection, const unsigned char *message, int len);
-}
 
 namespace halo::networking {
 
@@ -64,7 +56,7 @@ int16_t ReceiveQueueView::attempt_connect(s_network_address *address, int32_t un
                                     callbacks, 0);
         if (connect_result == 0) {
             queue->connection_failed = 0;
-            gt2SetConnectionData((void *)queue->socket, queue);
+            gt2SetConnectionData((int32_t)queue->socket, queue);
             queue->last_error = 0;
             return 0;
         }
@@ -93,8 +85,8 @@ int32_t ListenerCallbacks::reject_pending_connection_callback(void *unused, int3
 {
     (void)unused;
     if (network_pending_connection_count > 0) {
-        gt2Reject((void *)network_pending_connections[network_pending_connection_count - 1].reply_socket,
-                  (const unsigned char *)&reject_code, 4);
+        gt2Reject((int32_t)network_pending_connections[network_pending_connection_count - 1].reply_socket,
+                  (void *)&reject_code, 4);
         network_pending_connection_count = network_pending_connection_count - 1;
     }
     return network_pending_connection_count;

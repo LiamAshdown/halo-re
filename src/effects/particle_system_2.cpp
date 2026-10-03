@@ -9,9 +9,7 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 
-extern "C" {
 void particle_system_update(float delta_time, datum_index handle);
-}
 static auto &particle_system_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_data);
 static auto &particle_system_particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_particle_data);
 static auto &particle_system_update_physics_table = halo::link::ref<void (*[2])(particle_system *self, float delta_time)>(halo::effects::vars().particle_system_update_physics_table);
