@@ -210,7 +210,7 @@ void ActorView::update_aim_wander()
 
         bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->visual_perception == 0) ? 1 : 0;
     }
-    target = *(real_point3d *)&((actor *)a)->wander_unknown_62c;
+    target = ((actor *)a)->firing_target_point;
     if (bombard) {
         actor_choose_random_point_near(&target, ((ActorVariant *)variant)->bombardment_range);
     }
@@ -250,7 +250,7 @@ void ActorView::update_aim_wander()
         if (!(sweep <= 0.7853982f)) {
             sweep = 0.7853982f;
         }
-        limit = (float)ftan((double)sweep) * ((actor *)a)->wander_unknown_638;
+        limit = (float)ftan((double)sweep) * ((actor *)a)->firing_target_distance;
         if (radius_a > limit) {
             float limit_15 = limit * 1.5f;
 
@@ -282,9 +282,9 @@ void ActorView::update_aim_wander()
         recoil.j = recoil.j * per_tick;
         recoil.k = recoil.k * per_tick;
     }
-    *(real_point3d *)&((actor *)a)->wander_unknown_64c.i = target;
-    *(real_vector3d *)&((actor *)a)->wander_unknown_664.i = wander;
-    *(real_vector3d *)&((actor *)a)->wander_unknown_670.i = recoil;
+    ((actor *)a)->aim_target_point = target;
+    ((actor *)a)->aim_wander_offset = wander;
+    ((actor *)a)->aim_recoil_per_tick = recoil;
     ((actor *)a)->grenade_aim_direction.i = wander.i + target.x;
     ((actor *)a)->grenade_aim_direction.j = wander.j + target.y;
     ((actor *)a)->grenade_aim_direction.k = wander.k + target.z;
@@ -1504,8 +1504,8 @@ void ActorView::update_look_target()
     if (a[0x58f] != 0) {
         if (a[0x590] == 0) {
             if (a[0x504] == 0 &&
-                ((actor *)a)->facing_unknown_180.k * ((actor *)a)->desired_aiming_vector.z + ((actor *)a)->facing_unknown_180.j * ((actor *)a)->desired_aiming_vector.y +
-                ((actor *)a)->facing_unknown_180.i * ((actor *)a)->desired_aiming_vector.x > 0.9f) {
+                ((actor *)a)->unit_aiming_vector.k * ((actor *)a)->desired_aiming_vector.z + ((actor *)a)->unit_aiming_vector.j * ((actor *)a)->desired_aiming_vector.y +
+                ((actor *)a)->unit_aiming_vector.i * ((actor *)a)->desired_aiming_vector.x > 0.9f) {
                 ULT_V3(a + 0x598) = ULT_V3(cache_a);
                 a[0x590] = 1;
             }

@@ -275,7 +275,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         }
         if (self->danger_type > 0 && self->danger_is_own == 0 &&
             (((uint8_t *)actor_definition)[4] & 0x10) == 0) {
-            path_find_set_avoid_sphere(&request, &self->flee_from_point, self->danger_unknown_294,
+            path_find_set_avoid_sphere(&request, &self->flee_from_point, self->danger_object_radius,
                          self->danger_object_index, 10.0f);
         }
         path_find_context_init(&local_context, &request, 0);

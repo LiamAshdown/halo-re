@@ -105,7 +105,7 @@ uint8_t ActorView::request_path_with_grenade_arc()
         query.have_explicit_target = 1;
         query.explicit_target_position = *(real_point3d *)(actor + 0xb0);
         query.explicit_target_object = *(uint32_t *)(actor + 0xac);
-        query.explicit_target_unknown_34 = *(int16_t *)(actor + 0xa8);
+        query.explicit_target_cluster_index = *(int16_t *)(actor + 0xa8);
     } else {
         query.use_last_seen_position = actor[0xa0];
     }
@@ -304,7 +304,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     }
 
     if (projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
-                     point, 0, 0, &self->grenade_unknown_6c8, self->grenade_high_arc[0], &direction,
+                     point, 0, 0, &self->grenade_throw_speed, self->grenade_high_arc[0], &direction,
                      &speed, &arc, 0, &flat) == 0) {
         return 0;
     }
@@ -335,10 +335,10 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
         return 0;
     }
 
-    self->grenade_unknown_6bc = direction.i;
-    self->grenade_unknown_6c0 = direction.j;
-    self->grenade_unknown_6c4 = direction.k;
-    self->grenade_unknown_6c8 = speed;
+    self->grenade_throw_direction.i = direction.i;
+    self->grenade_throw_direction.j = direction.j;
+    self->grenade_throw_direction.k = direction.k;
+    self->grenade_throw_speed = speed;
     return 1;
 }
 

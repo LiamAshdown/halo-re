@@ -205,7 +205,7 @@ typedef struct actor_target_tally {
     uint8_t threat_class_8;                // 0x13 (0x1ff)
     uint8_t group_a_total;                 // 0x14 (0x200) prop within 8 world units, or further away but
                                            //   fighting the same object this actor is fighting
-    uint8_t group_a_marked;                // 0x15 (0x201) ... and prop.unknown_12d set
+    uint8_t group_a_marked;                // 0x15 (0x201) ... and prop.owner_burst_length_exceeded set
     uint8_t group_a_marked_135;            // 0x16 (0x202) ... and prop.unknown_135 set as well
     uint8_t group_a_by_actor_type[16];     // 0x17 (0x203)
     uint8_t group_a_marked_by_actor_type[16];// 0x27 (0x213)
@@ -488,8 +488,8 @@ typedef struct actor {
                                       //   position is body_position at 0x12c. Together with the two vectors
                                       //   below it forms the 3x3 basis actor_snapshot_orientation @0x4294d0
                                       //   copies to 0x6fc / 0x708 / 0x714, which is what that name describes.
-    real_vector3d facing_unknown_180; // 0x180 snapshotted to 0x708
-    real_vector3d facing_unknown_18c; // 0x18c snapshotted to 0x714
+    real_vector3d unit_aiming_vector; // 0x180 the unit's aiming vector, copied in by the pre-update step; snapshotted to 0x708
+    real_vector3d unit_looking_vector; // 0x18c the unit's looking vector, copied in by the pre-update step; snapshotted to 0x714
     uint8_t unknown_198[4];           // 0x198
     int32_t unknown_19c;              // 0x19c
     uint8_t unknown_1a0[8];           // 0x1a0
@@ -517,7 +517,7 @@ typedef struct actor {
                                       //    behaviour when set
     uint8_t charge_disallowed;        // 0x1cb hs ai_allow_charge (0x47e790) -> 0x434d40 stores !allow on every
                                       //    referenced actor; charge mode / combat transitions test it
-    uint8_t unknown_1cc;              // 0x1cc actor_new sets 0
+    uint8_t grenade_ally_phase_flag;     // 0x1cc 0 after the first grenade ally pass, 1 when the second pass found more than one ally; actor_new sets 0
     uint8_t unknown_1cd[3];           // 0x1cd
     datum_index nearby_friend_prop_index; // 0x1d0 0x40e540 records the nearest friendly prop whose actor is
                                           //    searching/investigating (combat_status 2..3, modes 5-8); wait mode
@@ -562,9 +562,12 @@ typedef struct actor {
                                       //    encounter.has_live_target
     uint8_t unknown_27d[3];           // 0x27d
     int16_t danger_type;              // 0x280 0x41ea60 and 0x41ec90 only register a danger that outranks this
-    int16_t danger_unknown_282;       // 0x282
-    int16_t danger_unknown_284;       // 0x284
-    uint8_t danger_unknown_286;       // 0x286
+    int16_t danger_owner_relation;    // 0x282 who set the danger off: 0 an enemy or unknown, 1 a friend, 2 this actor's
+                                      //    own unit (projectile danger); passed on with the threat direction
+    int16_t danger_reaction_ticks;    // 0x284 countdown before the actor reacts: 6 for a point danger, 0x1e for a
+                                      //    projectile, 0x14 for a vehicle; actor_target_relationship_think decrements it
+    uint8_t danger_reaction_delayed;  // 0x286 the caller allows the countdown to run (the reaction is otherwise
+                                      //    immediate)
     uint8_t danger_reacting;          // 0x287 actor_target_relationship_think sets it when a danger is noticed;
                                       //    actor_find_best_firing_position only reports a danger when set
     uint8_t danger_dive;              // 0x288 dive_from_grenade_chance roll (relationship_think); 0 for own danger
@@ -574,21 +577,18 @@ typedef struct actor {
                                       //    0x40c040)
     uint8_t unknown_28b;              // 0x28b
     datum_index danger_object_index;  // 0x28c
-    uint32_t danger_unknown_290;      // 0x290
-    float danger_unknown_294;         // 0x294
-    float danger_unknown_298;         // 0x298
-    float danger_unknown_29c;         // 0x29c
-    float danger_unknown_2a0;         // 0x2a0
-    uint32_t danger_unknown_2a4;      // 0x2a4
-    uint32_t danger_unknown_2a8;      // 0x2a8
-    uint32_t danger_unknown_2ac;      // 0x2ac
+    datum_index danger_owner_unit;    // 0x290 the unit that fired the projectile or drives the vehicle (-1 none)
+    float danger_object_radius;       // 0x294 radius of the dangerous object when it was registered; the avoid sphere
+    real_point3d danger_object_position;// 0x298 its position when it was registered (projectile and vehicle dangers)
+    real_vector3d danger_object_velocity;// 0x2a4 its velocity when it was registered
     real_point3d flee_from_point;     // 0x2b0 0x4146c0 resolves the point the actor flees away from; the
                                       //   danger scoring rule also uses it as a segment start
     uint8_t danger_velocity[12];      // 0x2bc real_vector3d (declared uint8_t[12]): 0x41eda0 copies the danger
                                       //    object's velocity; end point = pos + 45*vel; actor_find_danger_escape uses
                                       //    -vel as axis
     real_point3d danger_segment_end;  // 0x2c8 0x4112b0 builds the segment flee_from_point -> here
-    float danger_unknown_2d4;         // 0x2d4
+    float danger_distance;            // 0x2d4 distance of the registered danger; a new one of the same type replaces it
+                                      //    only when closer
     float danger_radius;              // 0x2d8 the sphere around danger_center a candidate has to be inside
     real_point3d danger_center;       // 0x2dc
     uint8_t unknown_2e8[5];           // 0x2e8
@@ -597,11 +597,11 @@ typedef struct actor {
                                       //    actor_process_vehicle_seat_exit exits (CEA stimulus_vehicle_eviction)
     int16_t look_at_priority;         // 0x2ee 0x421bc0 keeps only the highest-priority look-at point
     uint8_t unknown_2f0[4];           // 0x2f0
-    uint32_t look_at_unknown_2f4;     // 0x2f4
-    float look_at_unknown_2f8;        // 0x2f8
-    uint32_t look_at_unknown_2fc;     // 0x2fc
-    float look_at_unknown_300;        // 0x300
-    uint32_t look_at_unknown_304;     // 0x304
+    datum_index look_at_reference;    // 0x2f4 the datum the highest-priority look-at request carries (swapped by
+                                      //    actor_replace_object_reference)
+    uint8_t look_at_has_point;        // 0x2f8 the request supplied a point
+    uint8_t unknown_2f9[3];           // 0x2f9
+    real_point3d look_at_point;       // 0x2fc the point to look at
     int16_t pending_panic_type;       // 0x308 max-raised panic kind (1 squad attack,2/3 friend killed,6,8 leader
                                       //    killed,11 0x1b4,12 damaged); 0x40a700 consumes -> flee order code / raises
                                       //    flee.panic
@@ -611,21 +611,18 @@ typedef struct actor {
                                        //    actor_replace_object_reference
     uint8_t unknown_310[2];           // 0x310
     int16_t search_priority;          // 0x312 0x421af0 keeps only the highest-priority search position
-    uint8_t search_unknown_314;       // 0x314
+    uint8_t search_position_valid;    // 0x314 the highest-priority search request supplied a position
     uint8_t unknown_315[3];           // 0x315
-    uint32_t search_unknown_318;      // 0x318
-    uint32_t search_unknown_31c;      // 0x31c
-    uint32_t search_unknown_320;      // 0x320
-    uint32_t search_unknown_324;      // 0x324
-    uint32_t search_unknown_328;      // 0x328
-    uint8_t search_unknown_32c;       // 0x32c
+    real_point3d search_position;     // 0x318 the position to search
+    int32_t search_surface_index;     // 0x324 pathfinding surface of the position (-1 unknown); the start surface
+                                      //    for actor_firing_position_near_point
+    uint32_t search_unknown_328;      // 0x328 caller parameter stored with the position (0 in the known callers)
+    uint8_t search_velocity_valid;    // 0x32c the request supplied a velocity
     uint8_t unknown_32d[3];           // 0x32d
-    uint32_t search_unknown_330;      // 0x330
-    int16_t unknown_334;              // 0x334
-    int16_t unknown_336;              // 0x336
-    uint32_t search_unknown_338;      // 0x338
-    uint32_t search_unknown_33c;      // 0x33c
-    uint32_t search_unknown_340;      // 0x340
+    real_vector3d search_velocity;    // 0x330 the direction the searched target was moving
+    uint32_t search_velocity_ticks;   // 0x33c caller parameter (90 in the known caller); the guard order data takes it
+                                      //    as its first word and uses the velocity only while it is positive
+    datum_index search_prop_index;    // 0x340 prop the request came from (swapped by actor_replace_object_reference)
     uint32_t search_unknown_344;      // 0x344
     uint8_t search_unknown_348;       // 0x348
     uint8_t unknown_349;              // 0x349
@@ -944,19 +941,19 @@ typedef struct actor {
                                       //    firing distance 0x608); look decode code 2 then uses target_aim_vector
                                       //    0x63c
     uint8_t unknown_629[3];           // 0x629
-    float wander_unknown_62c;         // 0x62c 0x40fcb0 destination and velocity scratch
-    float wander_unknown_630;         // 0x630
-    float wander_unknown_634;         // 0x634
-    float wander_unknown_638;         // 0x638
+    real_point3d firing_target_point; // 0x62c where the actor aims: the target prop's position or the firing target
+                                      //    point; the aim error setup 0x40fcb0 starts from it
+    float firing_target_distance;     // 0x638 distance from the aim origin to firing_target_point; bounds the error
+                                      //    radius and is compared with the weapon's minimum range
     uint8_t target_aim_vector[16];    // 0x63c 0x40e7b0 weapon_trigger_get_aiming_vector(origin 0x120 -> target 0x62c)
                                       //    out vector at 0x63c, range out at 0x648; 0x4281f0/look decode read the
                                       //    vector
-    real_vector3d wander_unknown_64c; // 0x64c
+    real_point3d aim_target_point;    // 0x64c firing_target_point after the bombardment scatter
     uint8_t firing_aim_point[12];     // 0x658 0x40e7b0 = aim target (0x64c) plus target_tracking drift and
                                       //    target_leading lead; + accumulated error gives 0x67c; real_point3d
                                       //    (declared uint8_t[12])
-    real_vector3d wander_unknown_664; // 0x664
-    real_vector3d wander_unknown_670; // 0x670
+    real_vector3d aim_wander_offset;  // 0x664 aim error offset the aim error setup 0x40fcb0 rolls for this burst
+    real_vector3d aim_recoil_per_tick;// 0x670 per tick share of the recoil error (divided by the firing state timer)
     real_vector3d grenade_aim_direction;// 0x67c written by 0x40f7e0 and 0x40fcb0
     uint8_t firing_vector_ballistic;  // 0x688 0x40e7b0 sets = !used_straight_line from 0x4c2b40; 0x40f7e0 (CEA
                                       //    actor_aim_projectile) then uses 0x68c instead of aiming at 0x67c
@@ -980,10 +977,9 @@ typedef struct actor {
                                         //    state/position; replace_object_reference patches it; actor_new -1
     uint8_t grenade_exclude_object_index[4]; // 0x6b8 0x411180 stores the object excluded from the arc check; 0x410780
                                              //    passes it to 0x42b5d0 path check; should be datum_index
-    float grenade_unknown_6bc;        // 0x6bc throw-direction scratch written by 0x410a60
-    float grenade_unknown_6c0;        // 0x6c0
-    float grenade_unknown_6c4;        // 0x6c4
-    float grenade_unknown_6c8;        // 0x6c8
+    real_vector3d grenade_throw_direction;// 0x6bc direction of the planned grenade throw, written by 0x410a60 and
+                                      //    the grenade arc solver
+    float grenade_throw_speed;        // 0x6c8 launch speed of the planned throw
     uint8_t grenade_eligible;         // 0x6cc 0x42f260 caches the eligibility test here
     uint8_t unknown_6cd;              // 0x6cd
     int16_t grenade_recheck_ticks;    // 0x6ce actor_new sets 30
@@ -1005,8 +1001,8 @@ typedef struct actor {
                                        //    alignment 0x6f0
     uint8_t unknown_6ee[14];          // 0x6ee
     real_vector3d snapshot_facing;    // 0x6fc copy of facing taken by actor_snapshot_orientation
-    real_vector3d snapshot_unknown_708;// 0x708 copy of facing_unknown_180
-    real_vector3d snapshot_unknown_714;// 0x714 copy of facing_unknown_18c
+    real_vector3d aiming_vector_snapshot;// 0x708 copy of unit_aiming_vector
+    real_vector3d looking_vector_snapshot;// 0x714 copy of unit_looking_vector
     datum_index override_target;      // 0x720 0x42a5e0 writes it together with flags bit 0x800
 } actor;                // size 0x724
 // global 0x00880360: data_array *actor_data          element size 0x724, capacity 0x100
@@ -1149,7 +1145,7 @@ typedef struct prop {
     int16_t friends_killed_timer;     // 0xa8 750 per kill; each expiry takes one off friends_killed
     int16_t shots_fired;              // 0xaa actor_target_reset_shot_counters zeroes 0xaa, 0xac and 0xae
     int16_t shots_hit;                // 0xac
-    int16_t shots_unknown_ae;         // 0xae
+    int16_t danger_trigger_ticks;     // 0xae ticks of being shot at after which the prop raises the danger priority to 7 (drawn from the actor definition danger_trigger_time)
     int16_t information_age;          // 0xb0 ticks since the information about it was last refreshed (-1 none); past
                                       //    59 has_current_information clears
     uint8_t unknown_b2[2];            // 0xb2
@@ -1210,7 +1206,7 @@ typedef struct prop {
                                       //    with no owner) here; read by actor_scale_value_by_ally_exposure (counts
                                       //    exposed allies) and actor_target_relationship_think (broadcast 0xf while
                                       //    awareness < 3)
-    uint8_t unknown_12d;              // 0x12d
+    uint8_t owner_burst_length_exceeded;  // 0x12d actor_check_burst_length_exceeded of the owning actor, stored by the prop update
     uint8_t is_parented;              // 0x12e 0x43e640 sets it when the tracked object has a parent (object+0x30)
     uint8_t shooting;                 // 0x12f stimulus_type 1 (weapon fire)
     uint8_t flying;                   // 0x130 Biped.flags bit 2 (flying); 0 for non-bipeds
@@ -1767,7 +1763,7 @@ typedef struct actor_firing_position_query {
     uint8_t unknown_21[3];             // 0x21
     real_point3d explicit_target_position;// 0x24
     uint32_t explicit_target_object;   // 0x30
-    int16_t explicit_target_unknown_34;// 0x34
+    int16_t explicit_target_cluster_index;// 0x34 cluster of an explicit target (actor+0xa8)
     uint8_t unknown_36;                // 0x36
     uint8_t unknown_37;                // 0x37
     float avoid_weight;                // 0x38 0x38 copied to path_find_request.avoid_weight in
@@ -1815,13 +1811,13 @@ typedef struct actor_firing_position_query {
     int32_t target_relationship_object;// 0x62c prop.relationship_object_index
     uint32_t target_surface_index;     // 0x630 prop+0xec, or explicit_target_object; a navmesh surface id
     real_point3d target_surface_point; // 0x634 prop+0xf0, or explicit_target_position; the point on it
-    int16_t target_unknown_640;        // 0x640 prop+0x100
+    int16_t target_cluster_index;        // 0x640 the target prop's cluster_index (prop+0x100)
     uint8_t unknown_642[2];            // 0x642
     datum_index target_prop_index;     // 0x644 the prop the block above was read from, or none
     uint8_t have_target_vault_point;   // 0x648 set when the prop kind is 4 or 5
     uint8_t unknown_649[3];            // 0x649
     real_point3d target_vault_point;   // 0x64c prop+0x40
-    float target_unknown_658;          // 0x658 prop.unknown_20
+    float target_danger_radius;          // 0x658 the target prop's danger_radius (0 for an explicit target)
     uint8_t baseline_accept;           // 0x65c the rejection table run with no candidate at all
     uint8_t unknown_65d[3];            // 0x65d
     float baseline_penalty;            // 0x660 the score an ideal candidate would earn; used as the

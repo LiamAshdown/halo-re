@@ -93,7 +93,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->pathfinding_surface_index = -1;
     self->active_unit_index = (datum_index)k_datum_index_none;
     self->platoon_defending = 0;
-    self->unknown_1cc = 0;
+    self->grenade_ally_phase_flag = 0;
     self->nearby_friend_prop_index = (datum_index)k_datum_index_none;
     self->try_to_fight_type = 0;
     self->conversation_index = (datum_index)k_datum_index_none;
@@ -1372,14 +1372,14 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     if (self->grenade_target_prop_index == old_reference) {
         self->grenade_target_prop_index = new_reference;
     }
-    if (self->look_at_unknown_2f4 == old_reference) {
-        self->look_at_unknown_2f4 = new_reference;
+    if (self->look_at_reference == old_reference) {
+        self->look_at_reference = new_reference;
     }
     if (self->pending_panic_prop_index == old_reference) {
         self->pending_panic_prop_index = new_reference;
     }
-    if (self->search_unknown_340 == old_reference) {
-        self->search_unknown_340 = new_reference;
+    if (self->search_prop_index == old_reference) {
+        self->search_prop_index = new_reference;
     }
     if (self->retreat_prop_index == old_reference) {
         if (new_reference == 0xffffffff) {
@@ -2561,8 +2561,8 @@ void ActorView::snapshot_orientation()
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     self->snapshot_facing = self->facing;
-    self->snapshot_unknown_708 = self->facing_unknown_180;
-    self->snapshot_unknown_714 = self->facing_unknown_18c;
+    self->aiming_vector_snapshot = self->unit_aiming_vector;
+    self->looking_vector_snapshot = self->unit_looking_vector;
 
     self->control_flags = 0;
     self->override_target = 0;

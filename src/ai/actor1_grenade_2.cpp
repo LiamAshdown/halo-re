@@ -47,7 +47,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
     }
     actor_solve_grenade_lob(actor_index, grenade_position);
 
-    direction = *(real_vector3d *)&((actor *)a)->grenade_unknown_6bc;
+    direction = ((actor *)a)->grenade_throw_direction;
     if (((actor *)a)->active_unit_index == k_datum_index_none) {
         real length = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
 
@@ -71,7 +71,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
             }
         }
     }
-    speed = ((actor *)a)->grenade_unknown_6c8;
+    speed = ((actor *)a)->grenade_throw_speed;
     out_vector->i = direction.i * speed;
     out_vector->j = direction.j * speed;
     out_vector->k = speed * direction.k;

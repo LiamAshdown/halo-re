@@ -232,19 +232,19 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     }
     if (((actor *)self)->danger_type >= 2) {
         if (((actor *)self)->danger_type != 2 || ((actor *)self)->danger_object_index == object_index ||
-            !(distance < ((actor *)self)->danger_unknown_2d4)) {
+            !(distance < ((actor *)self)->danger_distance)) {
             return;
         }
     }
     memset(self + 0x280, 0, 0x6c);
     ((actor *)self)->danger_type = 2;
     ((actor *)self)->danger_object_index = object_index;
-    ((actor *)self)->danger_unknown_294 = radius;
-    *(real_point3d *)&((actor *)self)->danger_unknown_298 = position;
-    *(real_vector3d *)&((actor *)self)->danger_unknown_2a4 = *(real_vector3d *)&((struct object *)object)->velocity.i;
-    ((actor *)self)->danger_unknown_284 = 0x1e;
+    ((actor *)self)->danger_object_radius = radius;
+    ((actor *)self)->danger_object_position = position;
+    ((actor *)self)->danger_object_velocity = *(real_vector3d *)&((struct object *)object)->velocity.i;
+    ((actor *)self)->danger_reaction_ticks = 0x1e;
     self[0x286] = 0;
-    ((actor *)self)->danger_unknown_282 = 0;
+    ((actor *)self)->danger_owner_relation = 0;
     owner = ((struct object *)object)->creator_object;
     if (owner != k_datum_index_none) {
         uint8_t *owner_object = (uint8_t *)object_try_and_get(owner, 0xffffffff);
@@ -252,13 +252,13 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
         if (owner_object != 0 && ((1u << owner_object[0xb4]) & 3) != 0) {
             owner_unit = owner;
             if (((actor *)self)->unit_index != k_datum_index_none && owner == ((actor *)self)->unit_index) {
-                ((actor *)self)->danger_unknown_282 = 2;
+                ((actor *)self)->danger_owner_relation = 2;
             } else if (!teams_are_enemies(((struct object *)object)->owner_team, ((actor *)self)->team)) {
-                ((actor *)self)->danger_unknown_282 = 1;
+                ((actor *)self)->danger_owner_relation = 1;
             }
         }
     }
-    *(datum_index *)&((actor *)self)->danger_unknown_290 = owner_unit;
+    ((actor *)self)->danger_owner_unit = owner_unit;
 }
 extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a, int16_t *candidates_b);
 }

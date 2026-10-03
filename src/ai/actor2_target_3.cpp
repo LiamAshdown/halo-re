@@ -97,21 +97,21 @@ void ActorView::target_relationship_think()
     {
         uint8_t should_react;
 
-        if (self->danger_is_own == 0 && self->danger_unknown_282 == 0) {
+        if (self->danger_is_own == 0 && self->danger_owner_relation == 0) {
             should_react = 0;
-            if (self->danger_unknown_284 > 0 && self->danger_unknown_286 != 0) {
+            if (self->danger_reaction_ticks > 0 && self->danger_reaction_delayed != 0) {
                 if (self->ticks_since_threatened == -1 || self->ticks_since_threatened > 0x3b) {
-                    self->danger_unknown_284 -= 1;
-                    should_react = (uint8_t)(self->danger_unknown_284 == 0);
+                    self->danger_reaction_ticks -= 1;
+                    should_react = (uint8_t)(self->danger_reaction_ticks == 0);
                 } else {
-                    self->danger_unknown_284 = 0;
+                    self->danger_reaction_ticks = 0;
                     should_react = 1;
                 }
             }
         } else {
             self->danger_reacting = 1;
-            should_react = (uint8_t)(self->danger_unknown_284 > 0);
-            self->danger_unknown_284 = 0;
+            should_react = (uint8_t)(self->danger_reaction_ticks > 0);
+            self->danger_reaction_ticks = 0;
         }
 
         if (should_react) {
@@ -131,7 +131,7 @@ void ActorView::target_relationship_think()
 
             if (self->danger_reacting != 0) {
                 if (self->danger_is_own == 0) {
-                    if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
+                    if (self->danger_owner_relation == 0 && danger_type != 3 && danger_type != 1) {
                         self->danger_dive = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
                     } else {
                         self->danger_dive = 1;
@@ -140,12 +140,12 @@ void ActorView::target_relationship_think()
                     self->danger_dive = 0;
                 }
                 actor_notify_squad_of_threat_direction(&self->flee_from_point, actor_index, (uint16_t)self->danger_type,
-                    (uint16_t)self->danger_unknown_282);
+                    (uint16_t)self->danger_owner_relation);
             }
         }
     }
 
-    if (self->danger_unknown_284 == 0) {
+    if (self->danger_reaction_ticks == 0) {
         if (self->vocalization_line == 0xc) {
             if (self->vocalization_variant > 5) {
                 self->vocalization_variant = 5;

@@ -40,8 +40,8 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     control.throttle = *(real_vector3d *)&((struct actor *)actor)->throttle.i;
     control.primary_trigger = *(float *)&((struct actor *)actor)->override_target;
     control.facing_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_facing.i;
-    control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_708.i;
-    control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_714.i;
+    control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->aiming_vector_snapshot.i;
+    control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->looking_vector_snapshot.i;
 
     if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != 0xffffffff && local_player_globals->input_disabled == 0) {
         return;
@@ -275,7 +275,7 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
     }
 
     if (actor[6] == 0 && check_facing != 0) {
-        float forward = dz * ((struct actor *)actor)->facing_unknown_18c.k + dy * ((struct actor *)actor)->facing_unknown_18c.j + dx * ((struct actor *)actor)->facing_unknown_18c.i;
+        float forward = dz * ((struct actor *)actor)->unit_looking_vector.k + dy * ((struct actor *)actor)->unit_looking_vector.j + dx * ((struct actor *)actor)->unit_looking_vector.i;
         float left = dz * *(float *)(actor + 0x1a0) + dy * *(float *)&((struct actor *)actor)->unknown_19c + dx * *(float *)(actor + 0x198);
         float up = dz * *(float *)(actor + 0x1ac) + dy * *(float *)&((struct actor *)actor)->unknown_1a8 + dx * *(float *)(actor + 0x1a4);
         float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));

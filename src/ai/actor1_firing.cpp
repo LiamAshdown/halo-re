@@ -195,12 +195,12 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             query->target_position = target->last_known_position;
             query->target_surface_index = *(uint32_t *)&((struct prop *)target)->pathfinding_surface_index;
             query->target_surface_point = *(real_point3d *)&((struct prop *)target)->pathfinding_point.x;
-            query->target_unknown_640 = ((struct prop *)target)->cluster_index;
+            query->target_cluster_index = ((struct prop *)target)->cluster_index;
             query->target_distance = target->distance;
             query->target_prop_index = prop_index;
             query->target_aim_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
             query->target_relationship_object = target->relationship_object_index;
-            query->target_unknown_658 = target->danger_radius;
+            query->target_danger_radius = target->danger_radius;
 
             if (query->use_last_seen_position == 0 || ((struct prop *)target)->last_seen_time == -1) {
                 query->target_lead_position = *(real_point3d *)&((struct prop *)target)->head_position_x;
@@ -218,7 +218,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     } else {
         query->target_position = query->explicit_target_position;
         query->target_surface_point = query->explicit_target_position;
-        query->target_unknown_640 = (int16_t)query->explicit_target_unknown_34;
+        query->target_cluster_index = (int16_t)query->explicit_target_cluster_index;
         query->have_target = 1;
         query->target_surface_index = query->explicit_target_object;
 
@@ -227,7 +227,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         delta.k = query->target_position.z - self->body_position.z;
         query->target_prop_index = (datum_index)0xffffffff;
         query->target_relationship_object = -1;
-        query->target_unknown_658 = 0.0f;
+        query->target_danger_radius = 0.0f;
         query->target_distance = (float)sqrt((double)(delta.i * delta.i + delta.j * delta.j +
                                                       delta.k * delta.k));
         unit_add_marker_relative_offset(self->unit_index, 1, (float *)&query->target_position, 0, 0,
@@ -270,7 +270,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     }
 
     if (self->danger_type > 0 && self->danger_reacting != 0 &&
-        self->danger_unknown_2d4 < self->danger_radius + 3.0f) {
+        self->danger_distance < self->danger_radius + 3.0f) {
         query->danger_active = 1;
     }
     query->flying = self->flying;
@@ -525,7 +525,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             request.have_avoid_sphere = 1;
         } else if (self->danger_type > 0 && (actor_definition->more_flags & 0x10) == 0 ) {
             request.avoid_position = self->flee_from_point;
-            request.avoid_radius = self->danger_unknown_294;
+            request.avoid_radius = self->danger_object_radius;
             request.avoid_object_index = self->danger_object_index;
             request.avoid_weight = 10.0f;
             request.have_avoid_sphere = 1;

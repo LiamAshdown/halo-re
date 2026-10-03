@@ -755,7 +755,7 @@ void ActorView::target_reset_shot_counters()
         target = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * sizeof(prop));
         prop_index = target->next_in_actor;
         target->shots_fired = 0;
-        target->shots_unknown_ae = 0;
+        target->danger_trigger_ticks = 0;
         target->shots_hit = 0;
     }
 }
@@ -883,7 +883,7 @@ void ActorView::target_scan_potential_targets()
                         unit_bucket = 1;
                         goto merged;
                     }
-                    if (self->unknown_1cc == 0) {
+                    if (self->grenade_ally_phase_flag == 0) {
                         threshold_bits = (uint16_t)(dist_sq < 16.0f) << 8 |
                                           (uint16_t)(dist_sq == 16.0f) << 0xe;
                         goto shared_threshold;
@@ -1225,7 +1225,7 @@ uint8_t ActorView::target_update_active_flag(datum_index target_prop_index)
 
     if (target->engaged != 0 && active == 0) {
         target->shots_fired = 0;
-        target->shots_unknown_ae = 0;
+        target->danger_trigger_ticks = 0;
         target->shots_hit = 0;
     }
 
@@ -1496,7 +1496,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
                     engage_flag = 1;
                 }
             }
-            p->unknown_12d = reachable;
+            p->owner_burst_length_exceeded = reachable;
             p->owner_not_in_combat = owner_not_fully_aware;
             p->owner_stalled = owner_stalled;
         }

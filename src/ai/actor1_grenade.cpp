@@ -329,9 +329,9 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     }
     *(real_point3d *)&((actor *)a)->grenade_impact_point.x = *point;
     ((struct actor *)a)->grenade_target_prop_index = object_handle;
-    *(real_vector3d *)&((actor *)a)->grenade_unknown_6bc = direction;
+    ((actor *)a)->grenade_throw_direction = direction;
     *(uint32_t *)(a + 0x6b8) = exclude_object_index;
-    ((actor *)a)->grenade_unknown_6c8 = speed;
+    ((actor *)a)->grenade_throw_speed = speed;
     a[0x6a1] = 0;
     return 1;
 }

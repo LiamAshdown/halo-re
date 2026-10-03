@@ -628,29 +628,25 @@ void ActorView::queue_search_position(real_point3d *position, int16_t priority, 
         self->search_priority = priority;
 
         if (position == (real_point3d *)0) {
-            self->search_unknown_314 = 0;
+            self->search_position_valid = 0;
         } else {
-            self->search_unknown_314 = 1;
-            self->search_unknown_318 = ((uint32_t *)position)[0];
-            self->search_unknown_31c = ((uint32_t *)position)[1];
-            self->search_unknown_320 = ((uint32_t *)position)[2];
-            self->search_unknown_324 = unknown_324;
+            self->search_position_valid = 1;
+            self->search_position = *position;
+            self->search_surface_index = unknown_324;
             self->search_unknown_328 = unknown_328;
         }
 
         if (velocity == (real_vector3d *)0) {
-            self->search_unknown_32c = 0;
+            self->search_velocity_valid = 0;
         } else {
-            self->search_unknown_32c = 1;
-            self->search_unknown_330 = ((uint32_t *)velocity)[0];
-            *(uint32_t *)&self->unknown_334 = ((uint32_t *)velocity)[1];
-            self->search_unknown_338 = ((uint32_t *)velocity)[2];
+            self->search_velocity_valid = 1;
+            self->search_velocity = *velocity;
         }
 
-        self->search_unknown_340 = unknown_340;
+        self->search_prop_index = unknown_340;
         self->search_unknown_344 = unknown_344;
         self->search_unknown_348 = unknown_348;
-        self->search_unknown_33c = unknown_33c;
+        self->search_velocity_ticks = unknown_33c;
     }
 }
 
@@ -969,7 +965,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
     Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
     real_vector3d direction;
 
-    if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_unknown_284 >= 1) {
+    if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_reaction_ticks >= 1) {
         ai_communication_broadcast(10, self->unit_index, (datum_index)k_datum_index_none, (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
     } else {
@@ -1148,15 +1144,13 @@ void ActorView::record_look_at_point(const uint32_t *point, int16_t priority, ui
 
     if (self->look_at_priority < priority) {
         self->look_at_priority = priority;
-        self->look_at_unknown_2f4 = data;
+        self->look_at_reference = data;
         if (point == 0) {
-            *(uint8_t *)&self->look_at_unknown_2f8 = 0;
+            self->look_at_has_point = 0;
             return;
         }
-        *(uint8_t *)&self->look_at_unknown_2f8 = 1;
-        memcpy(&self->look_at_unknown_2fc, &point[0], sizeof(uint32_t));
-        memcpy(&self->look_at_unknown_300, &point[1], sizeof(uint32_t));
-        memcpy(&self->look_at_unknown_304, &point[2], sizeof(uint32_t));
+        self->look_at_has_point = 1;
+        memcpy(&self->look_at_point, point, sizeof(real_point3d));
     }
 }
 
@@ -1306,7 +1300,7 @@ void ActorView::scan_allies_for_backup_request()
 
             if (claimant->shots_fired > 0) {
                 if (claimant->shots_hit == 0) {
-                    claimant->shots_unknown_ae = (int16_t)(random_real_range(
+                    claimant->danger_trigger_ticks = (int16_t)(random_real_range(
                         actor_def->danger_trigger_time[0], actor_def->danger_trigger_time[1]) *
                         30.0f);
                 }
@@ -1315,8 +1309,8 @@ void ActorView::scan_allies_for_backup_request()
             }
 
             if (claimant->sighted_ticks >= 0x2d ||b->priority >= 4) {
-                if (claimant->shots_unknown_ae > 0 &&
-                    claimant->shots_hit >= claimant->shots_unknown_ae) {
+                if (claimant->danger_trigger_ticks > 0 &&
+                    claimant->shots_hit >= claimant->danger_trigger_ticks) {
                     if (b->priority < 7) b->priority = 7;
                 }
                 if (flagged) {
