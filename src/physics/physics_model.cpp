@@ -836,72 +836,76 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
 namespace halo::physics {
 
 /**
- * VERIFIED (logic) against disassembly 0x503050..0x503288 (2026-09-30): the discriminant, both roots, the t clamp, the edge
- * parameter branches (near vertex / far vertex sphere test, out_edge_fraction 0 / 1 / param/len) and the return values match;
- * only the floating point summation order was aligned with the x87 code. Known deviation: the original keeps every
- * intermediate in 80-bit registers, so a rare 6/200 difference at the comparisons may remain.
- * stack -> radius, out_t, out_edge_fraction
+ * Sweeps a sphere of the given radius along delta against the capsule edge starting at near_vertex (the quadratic for the
+ * closest approach to the edge line, then the end-sphere tests when the contact falls outside the edge). The original keeps
+ * its intermediates in the x87 registers and only rounds the values it spills to the stack (edge length squared, edge dot
+ * delta, discriminant scale, relative dot edge, b, t, edge parameter) to float, so the same values are kept in double here.
+ * Stack -> radius, out_t, out_edge_fraction.
  *
- * Original register convention: ECX -> near_vertex, EDX -> delta, EBX -> origin, EDI -> edge_dir,.
+ * Original register convention: ECX -> near_vertex, EDX -> delta, EBX -> origin, EDI -> edge_dir.
  *
  * @address 0x503050
  */
 uint8_t PhysicsModelOps::shape_pill_sweep_test_point(real_point3d *near_vertex, real_vector3d *delta, real_point3d *origin, real_vector3d *edge_dir, float radius, float *out_t, float *out_edge_fraction)
 {
-    float rel_x = origin->x - near_vertex->x;
-    float rel_y = origin->y - near_vertex->y;
-    float rel_z = origin->z - near_vertex->z;
+    const double rel_x = (double)origin->x - (double)near_vertex->x;
+    const double rel_y = (double)origin->y - (double)near_vertex->y;
+    const double rel_z = (double)origin->z - (double)near_vertex->z;
 
-    float edge_len_sq = (edge_dir->k * edge_dir->k + edge_dir->i * edge_dir->i) + edge_dir->j * edge_dir->j;
-    float edge_dot_delta = (edge_dir->k * delta->k + edge_dir->j * delta->j) + edge_dir->i * delta->i;
-    float delta_len_sq = (delta->i * delta->i + delta->j * delta->j) + delta->k * delta->k;
-    float disc_scale = delta_len_sq * edge_len_sq - edge_dot_delta * edge_dot_delta;
+    const float edge_len_sq = (float)(((double)edge_dir->k * edge_dir->k + (double)edge_dir->i * edge_dir->i) + (double)edge_dir->j * edge_dir->j);
+    const float edge_dot_delta = (float)(((double)edge_dir->k * delta->k + (double)edge_dir->j * delta->j) + (double)edge_dir->i * delta->i);
+    const double delta_len_sq = ((double)delta->i * delta->i + (double)delta->j * delta->j) + (double)delta->k * delta->k;
+    const float disc_scale = (float)(delta_len_sq * edge_len_sq - (double)edge_dot_delta * edge_dot_delta);
 
-    if (disc_scale != 0.0f) {
-        float rel_dot_edge = (rel_x * edge_dir->i + rel_y * edge_dir->j) + rel_z * edge_dir->k;
-        float rel_dot_delta = (rel_x * delta->i + rel_y * delta->j) + rel_z * delta->k;
-        float b = rel_dot_edge * edge_dot_delta - rel_dot_delta * edge_len_sq;
-        float rel_len_sq = (rel_x * rel_x + rel_y * rel_y) + rel_z * rel_z;
-        float disc = b * b - ((rel_len_sq - radius * radius) * edge_len_sq - rel_dot_edge * rel_dot_edge) *
-                              disc_scale;
+    if (disc_scale == 0.0f) {
+        return 0;
+    }
 
-        if (0.0f <= disc) {
-            float sqrt_disc = (float)halo::libm::sqrt((double)disc);
-            float t = -((sqrt_disc + b) * (1.0f / disc_scale));
+    const double rel_dot_edge = (rel_x * edge_dir->i + rel_y * edge_dir->j) + rel_z * edge_dir->k;
+    const float rel_dot_edge_f = (float)rel_dot_edge;
+    const double rel_dot_delta = (rel_x * delta->i + rel_y * delta->j) + rel_z * delta->k;
+    const double b = rel_dot_edge * edge_dot_delta - rel_dot_delta * edge_len_sq;
+    const float b_f = (float)b;
+    const double rel_len_sq = (rel_x * rel_x + rel_y * rel_y) + rel_z * rel_z;
+    const double disc = b * b_f - (((rel_len_sq - (double)radius * radius) * edge_len_sq - (double)rel_dot_edge_f * rel_dot_edge_f) * disc_scale);
 
-            if ((t <= 1.0f) && (0.0f <= -((b - sqrt_disc) * (1.0f / disc_scale)))) {
-                float edge_param;
+    if (!(0.0 <= disc)) {
+        return 0;
+    }
 
-                if (t < 0.0f) {
-                    t = 0.0f;
-                }
-                edge_param = edge_dot_delta * t + rel_dot_edge;
-                if (0.0f <= edge_param) {
-                    if (edge_param <= edge_len_sq) {
-                        *out_t = t;
-                        *out_edge_fraction = edge_param / edge_len_sq;
-                        return 1;
-                    }
-                    {
-                        real_point3d far_vertex;
-                        far_vertex.x = near_vertex->x + edge_dir->i;
-                        far_vertex.y = near_vertex->y + edge_dir->j;
-                        far_vertex.z = near_vertex->z + edge_dir->k;
-                        if (halo::physics::physics_shape_sphere_sweep_test_ray(&far_vertex, origin, delta, out_t,
-                                                                 radius)) {
-                            *out_edge_fraction = 1.0f;
-                            return 1;
-                        }
-                    }
-                } else {
-                    if (halo::physics::physics_shape_sphere_sweep_test_ray(near_vertex, origin, delta, out_t,
-                                                             radius)) {
-                        *out_edge_fraction = 0.0f;
-                        return 1;
-                    }
-                }
-            }
+    const double sqrt_disc = halo::libm::sqrt(disc);
+    const double inverse_scale = 1.0 / (double)disc_scale;
+    const double t = -((sqrt_disc + b_f) * inverse_scale);
+    const float t_f = (float)t;
+
+    if (!(t <= 1.0) || !(0.0 <= -((b_f - sqrt_disc) * inverse_scale))) {
+        return 0;
+    }
+
+    const float t_clamped = (t_f < 0.0f) ? 0.0f : t_f;
+    const double edge_param = (double)edge_dot_delta * t_clamped + rel_dot_edge_f;
+    const float edge_param_f = (float)edge_param;
+
+    if (edge_param < 0.0) {
+        if (halo::physics::physics_shape_sphere_sweep_test_ray(near_vertex, origin, delta, out_t, radius)) {
+            *out_edge_fraction = 0.0f;
+            return 1;
         }
+        return 0;
+    }
+    if (!(edge_param_f > edge_len_sq)) {
+        *out_t = t_clamped;
+        *out_edge_fraction = (float)((double)edge_param_f / (double)edge_len_sq);
+        return 1;
+    }
+
+    real_point3d far_vertex;
+    far_vertex.x = near_vertex->x + edge_dir->i;
+    far_vertex.y = near_vertex->y + edge_dir->j;
+    far_vertex.z = near_vertex->z + edge_dir->k;
+    if (halo::physics::physics_shape_sphere_sweep_test_ray(&far_vertex, origin, delta, out_t, radius)) {
+        *out_edge_fraction = 1.0f;
+        return 1;
     }
     return 0;
 }
