@@ -7,6 +7,8 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
 
@@ -189,7 +191,7 @@ uint32_t cache_io::thread_proc_async(void *parameter)
     read_function = (void *)ReadFileEx;
     for (;;) {
         do {
-            wait_result = WaitForSingleObjectEx(globals().cache_io_event, 0xffffffff, 1);
+            wait_result = WaitForSingleObjectEx(globals().cache_io_event, halo::win32::k_infinite, 1);
         } while (wait_result == 0xc0);
 
         for (;;) {
@@ -242,7 +244,7 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
     uint32_t bytes_read;
 
     for (;;) {
-        WaitForSingleObject(globals().cache_io_event, 0xffffffff);
+        WaitForSingleObject(globals().cache_io_event, halo::win32::k_infinite);
 
         for (;;) {
             best = (cache_io_request *)0;
@@ -271,7 +273,7 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
                 file_handle = source->file;
             }
 
-            if (SetFilePointer(file_handle, (int32_t)best->offset, (PLONG)((void *)0), 0) != 0xffffffff) {
+            if (SetFilePointer(file_handle, (int32_t)best->offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
                 ReadFile(file_handle, best->destination, best->size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0));
             }
 

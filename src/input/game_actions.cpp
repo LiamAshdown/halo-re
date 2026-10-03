@@ -22,6 +22,8 @@
 #include "halo/input/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/input/state.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
 
 namespace halo::input {
 
@@ -718,7 +720,7 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
         return 0;
     }
     player_handle = input_state().local_player_globals->local_players[local_player_index];
-    if (player_handle == (datum_index)0xffffffff) {
+    if (player_handle == halo::k_dword_none) {
         return 0;
     }
     player_record = halo::memory::datum_get(player_handle, input_state().player_data);
@@ -730,7 +732,7 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
     if (unit_object == (object *)0) {
         return 0;
     }
-    if (unit_object->parent_object == (datum_index)0xffffffff) {
+    if (unit_object->parent_object == halo::k_dword_none) {
         return 0;
     }
     unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);

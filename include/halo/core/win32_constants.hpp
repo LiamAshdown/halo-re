@@ -58,10 +58,21 @@ inline constexpr uint32_t k_locale_user_default = 0x400;
 /** Window messages, virtual keys and system commands the movie player handles. */
 inline constexpr uint32_t k_wm_keydown = 0x100;
 inline constexpr uint32_t k_wm_keyup = 0x101;
+inline constexpr uint32_t k_wm_char = 0x102;
+inline constexpr uint32_t k_wm_syskeydown = 0x104;
+inline constexpr uint32_t k_wm_syschar = 0x106;
 inline constexpr uint32_t k_wm_syscommand = 0x112;
 inline constexpr uint32_t k_vk_escape = 0x1b;
 inline constexpr uint32_t k_vk_space = 0x20;
 inline constexpr uint32_t k_sc_close = 0xf060;
+
+/** VirtualAlloc: MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE. */
+inline constexpr uint32_t k_mem_commit_reserve = 0x3000;
+inline constexpr uint32_t k_page_readwrite = 4;
+
+/** FILE_FLAG_OVERLAPPED and MAX_PATH (260). */
+inline constexpr uint32_t k_file_flag_overlapped = 0x40000000;
+inline constexpr uint32_t k_max_path = 0x104;
 
 /** SetFilePointer move methods. */
 inline constexpr uint32_t k_file_begin = 0;

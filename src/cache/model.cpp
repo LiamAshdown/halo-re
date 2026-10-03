@@ -9,6 +9,8 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
 
 namespace halo::cache {
@@ -35,7 +37,7 @@ void model_vertex_buffers::dispose()
     iterator.group_tag = _tag_group_gbxmodel;
 
     tag_id = halo::cache::view(&iterator)->next();
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != halo::k_dword_none) {
         model = (GBXModel *)globals().tag_instances[(uint16_t)tag_id].data;
 
         for (geometry_index = 0; geometry_index < (int32_t)model->geometries.count;
@@ -113,7 +115,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
     iterator.group_tag = _tag_group_gbxmodel;
 
     tag_id = halo::cache::view(&iterator)->next();
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != halo::k_dword_none) {
         model = (GBXModel *)globals().tag_instances[(uint16_t)tag_id].data;
 
         for (geometry_index = 0; geometry_index < (int32_t)model->geometries.count;

@@ -17,6 +17,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/input/state.hpp"
+#include "halo/input/directinput_constants.hpp"
 
 namespace halo::input {
 
@@ -66,19 +67,19 @@ uint32_t InputSystem::system_initialize(void)
     for (i = 0; i < 0x20; i++) {
         input_state().joystick_objects[i].guid = 0;
         input_state().joystick_objects[i].offset = i * 4;
-        input_state().joystick_objects[i].type = 0x80ffff03;
+        input_state().joystick_objects[i].type = k_didft_optional_any_instance | k_didft_axis;
         input_state().joystick_objects[i].flags = 0;
     }
     for (i = 0; i < 0x10; i++) {
         input_state().joystick_objects[0x20 + i].guid = 0;
         input_state().joystick_objects[0x20 + i].offset = 0x80 + i * 4;
-        input_state().joystick_objects[0x20 + i].type = 0x80ffff10;
+        input_state().joystick_objects[0x20 + i].type = k_didft_optional_any_instance | k_didft_pov;
         input_state().joystick_objects[0x20 + i].flags = 0;
     }
     for (i = 0; i < 0x20; i++) {
         input_state().joystick_objects[0x30 + i].guid = 0;
         input_state().joystick_objects[0x30 + i].offset = 0xc0 + i;
-        input_state().joystick_objects[0x30 + i].type = 0x80ffff0c;
+        input_state().joystick_objects[0x30 + i].type = k_didft_optional_any_instance | k_didft_button;
         input_state().joystick_objects[0x30 + i].flags = 0;
     }
 

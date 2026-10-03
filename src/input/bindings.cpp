@@ -23,6 +23,8 @@
 #include "halo/saved_games/api.hpp"
 #include "link/calls.hpp"
 #include "halo/input/state.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
 
 namespace halo::input {
 
@@ -416,10 +418,10 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
     saved_player_profile profile;
 
     iterator.next_index = -1;
-    iterator.group_tag = (tag_group)0x64657663;
+    iterator.group_tag = (tag_group)halo::groups::input_device_defaults;
 
     tag_id = halo::cache::tag_iterator_next(&iterator);
-    if (tag_id == (datum_index)0xffffffff) {
+    if (tag_id == halo::k_dword_none) {
         return;
     }
 
@@ -431,13 +433,13 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
             break;
         }
         tag_id = halo::cache::tag_iterator_next(&iterator);
-        if (tag_id == (datum_index)0xffffffff) {
+        if (tag_id == halo::k_dword_none) {
             return;
         }
     }
 
     profile_handle = halo::saved_games::saved_game_create_default_profile(tag_profile_name);
-    if (profile_handle != 0xffffffff) {
+    if (profile_handle != halo::k_dword_none) {
         if (halo::saved_games::player_profile_get((int32_t)profile_handle, &profile) != 0) {
             if (halo::input::input_profile_copy_bindings_by_device(2, &profile,
                     (saved_player_profile *)defaults->profile.pointer) != 0) {
@@ -594,10 +596,10 @@ uint32_t Bindings::device_default_profile_tag_find(input_guid device_guid, void 
     InputDeviceDefaults *defaults;
 
     iterator.next_index = -1;
-    iterator.group_tag = (tag_group)0x64657663;
+    iterator.group_tag = (tag_group)halo::groups::input_device_defaults;
 
     tag_id = halo::cache::tag_iterator_next(&iterator);
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != halo::k_dword_none) {
         defaults = (InputDeviceDefaults *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (defaults->device_type == inputdevicedefaultsdevicetype_mouse_and_keyboard ||
             defaults->device_type == inputdevicedefaultsdevicetype_joysticks_gamepads_etc) {
@@ -726,7 +728,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
 
     if (_stricmp(device_class_name, "keyboard") == 0 || _stricmp(device_class_name, "key") == 0) {
         index = halo::input::input_keyboard_key_name_to_index(name);
-        if (index == 0xffff) {
+        if (index == halo::k_word_none) {
             return 0;
         }
         out_binding->device_type = _control_device_keyboard;
@@ -739,7 +741,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
 
     if (_stricmp(device_class_name, "mouse") == 0) {
         index = halo::input::input_mouse_button_name_to_index(name);
-        if (index == 0xffff) {
+        if (index == halo::k_word_none) {
             return 0;
         }
         out_binding->device_type = _control_device_mouse;
@@ -752,7 +754,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
 
     if (_stricmp(device_class_name, "mouseaxis") == 0) {
         index = halo::input::input_mouse_axis_name_to_index(name, &byte_direction);
-        if (index == 0xffff) {
+        if (index == halo::k_word_none) {
             return 0;
         }
         out_binding->device_type = _control_device_mouse;

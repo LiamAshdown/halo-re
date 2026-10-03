@@ -20,6 +20,8 @@
 #include "halo/input/api.hpp"
 #include "link/calls.hpp"
 #include "halo/input/state.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
 
 #define k_gamepad_names_tag_path \
     "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names"
@@ -35,9 +37,9 @@ static uint16_t *lookup_named_string(const char *tag_path, int32_t index)
     uint16_t *source;
 
     source = halo::input::input_state().missing_string_text;
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)tag_path);
-    if (tag_id != (datum_index)0xffffffff) {
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (index >= 0 && index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[index];

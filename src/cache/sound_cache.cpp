@@ -12,6 +12,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
 
 
@@ -318,7 +320,7 @@ void sound_cache_manager::page_allocate(SoundPermutation *permutation, uint8_t p
     }
 
     page_datum = halo::memory::view(globals().sound_cache)->allocate_block((uint32_t)requested_bytes);
-    if (page_datum != 0xffffffff) {
+    if (page_datum != halo::k_dword_none) {
         page_address = (((cache_entry *)((uint8_t *)globals().sound_cache->entries->data +
             (page_datum & 0xffff) * sizeof(cache_entry)))->offset << (globals().sound_cache->block_shift & 0x1f)) +
             (int32_t)globals().sound_cache_base;
@@ -383,12 +385,12 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
     int32_t elapsed_ms;
     uint32_t stall_ms;
 
-    if (permutation->samples_pointer == 0xffffffff) {
+    if (permutation->samples_pointer == halo::k_dword_none) {
         if (allocate_if_missing != 0) {
 
             halo::cache::sound_cache_manager::page_allocate(permutation, wait_until_loaded);
         }
-        if (permutation->samples_pointer == 0xffffffff) {
+        if (permutation->samples_pointer == halo::k_dword_none) {
             return 0;
         }
     }
@@ -440,7 +442,7 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
  */
 void sound_cache_manager::release_page(SoundPermutation *permutation)
 {
-    if (permutation->samples_pointer != 0xffffffff) {
+    if (permutation->samples_pointer != halo::k_dword_none) {
         halo::memory::view(globals().sound_cache)->evict_entry((datum_index)permutation->samples_pointer);
     }
     permutation->samples_pointer = 0xffffffff;

@@ -12,6 +12,8 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
@@ -83,11 +85,11 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
     int16_t bitmap_type;
 
     if ((bitmap->flags & 0x80) != 0) {
-        if (bitmap->pointer == 0xffffffff && allocate_if_missing != 0) {
+        if (bitmap->pointer == halo::k_dword_none && allocate_if_missing != 0) {
             halo::cache::texture_cache_manager::page_allocate(bitmap, wait);
         }
 
-        if (bitmap->pointer != 0xffffffff) {
+        if (bitmap->pointer != halo::k_dword_none) {
             entry = (texture_cache_entry *)((uint8_t *)globals().texture_cache_entries->data +
                 (bitmap->pointer & 0xffff) * sizeof(texture_cache_entry));
 
@@ -191,7 +193,7 @@ uint32_t texture_cache_manager::page_allocate(BitmapData *bitmap, uint8_t priori
 
     computed_size = halo::rasterizer::bitmap_compute_texture_data_size(bitmap);
     cache_slot = halo::memory::view(globals().texture_cache)->allocate_block(4);
-    if (cache_slot == (datum_index)0xffffffff) {
+    if (cache_slot == halo::k_dword_none) {
         return 0;
     }
 

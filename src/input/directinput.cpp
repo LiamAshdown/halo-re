@@ -23,6 +23,8 @@
 #include "halo/shell/api.hpp"
 #include "link/calls.hpp"
 #include "halo/input/state.hpp"
+#include "halo/input/directinput_constants.hpp"
+#include "halo/core/win32_constants.hpp"
 
 namespace halo::input {
 
@@ -180,7 +182,7 @@ void DirectInput::device_list_print(void)
     uint16_t guid_wide[0x27];
     char guid_ascii[0x27];
     char guid_ascii_trimmed[0x27];
-    char name_ascii[0x105];
+    char name_ascii[k_device_name_ascii_capacity];
     uint32_t length;
     uint32_t i;
     int32_t hr;
@@ -209,7 +211,7 @@ void DirectInput::device_list_print(void)
         guid_ascii_trimmed[0x26] = '\0';
 
         length = (uint32_t)wcslen((const wchar_t *)record.name);
-        if (length >= 0x105) {
+        if (length >= k_device_name_ascii_capacity) {
             continue;
         }
         for (i = 0; i < length; i++) {
@@ -329,7 +331,7 @@ uint8_t DirectInput::directinput_initialize(void)
 {
     int32_t hr;
 
-    hr = ((directinput8create_proc)input_state().direct_input8_create)(halo::shell::globals().instance, 0x800,
+    hr = ((directinput8create_proc)input_state().direct_input8_create)(halo::shell::globals().instance, k_directinput_version,
         &input_state().iid_directinput8a, &input_state().direct_input, (void *)0);
     if (hr < 0) {
         input_error_log_once(hr, (char *)"DirectInputCreate");
@@ -345,8 +347,6 @@ uint8_t DirectInput::directinput_initialize(void)
 
 }
 
-#define k_dierr_reacquire_a ((int32_t)0x8007000cu)
-#define k_dierr_reacquire_b ((int32_t)0x8007001eu)
 namespace halo::input {
 
 /**
@@ -427,7 +427,7 @@ void DirectInput::directinput_poll_devices(void)
                 continue;
             }
 
-            if (hr == k_dierr_reacquire_b || hr == k_dierr_reacquire_a) {
+            if (hr == halo::input::k_dierr_input_lost || hr == halo::input::k_dierr_not_acquired) {
                 ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().keyboard_device);
             } else {
                 input_error_log_once(hr, (char *)"IDirectInputDevice_GetDeviceData (mouse)");
@@ -439,7 +439,7 @@ void DirectInput::directinput_poll_devices(void)
     if (input_state().mouse_device != 0 && input_state().game_time_force_single_tick == 0) {
         vtable = *(void ***)input_state().mouse_device;
         hr = ((idirectinputdevice8_getdevicestate_proc)vtable[9])(input_state().mouse_device, 0x14, &mouse_raw);
-        if (hr == k_dierr_reacquire_b || hr == k_dierr_reacquire_a) {
+        if (hr == halo::input::k_dierr_input_lost || hr == halo::input::k_dierr_not_acquired) {
             ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().mouse_device);
         } else if (hr == 0) {
             halo::input::input_mouse_state_process(&input_state().live_mouse_state, &mouse_raw);
@@ -467,7 +467,7 @@ joystick_poll:
                 hr = ((idirectinputdevice8_getdevicestate_proc)vtable[9])(input_state().joystick_devices[i], 0xe0, &joystick_raw);
             }
 
-            if (hr == k_dierr_reacquire_b || hr == k_dierr_reacquire_a) {
+            if (hr == halo::input::k_dierr_input_lost || hr == halo::input::k_dierr_not_acquired) {
                 vtable = *(void ***)input_state().joystick_devices[i];
                 ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().joystick_devices[i]);
             } else if (hr == 0) {
@@ -486,8 +486,8 @@ joystick_poll:
 
 }
 
-#undef k_dierr_reacquire_a
-#undef k_dierr_reacquire_b
+#undef halo::input::k_dierr_not_acquired
+#undef halo::input::k_dierr_input_lost
 
 namespace halo::input {
 
@@ -692,8 +692,8 @@ int32_t DirectInput::enumerate_gamepad_object_callback(const di_device_object_in
     range.header.header_size = sizeof(di_property_header);
     range.header.object = type;
     range.header.how = 2;
-    range.minimum = -0x1000;
-    range.maximum = 0x1000;
+    range.minimum = -k_joystick_axis_range;
+    range.maximum = k_joystick_axis_range;
     hr = set_property(device, 4, (di_property_dword *)&range);
     if (hr < 0) {
         input_error_log_once(hr, (char *)"InitializeObject range %d - %s", object->type, object->name);
@@ -889,24 +889,14 @@ void DirectInput::joystick_state_process(joystick_raw_state *raw, joystick_state
 
         if (angle < 0) {
             octant = k_input_joystick_pov_none;
-        } else if (angle < 0x8ca) {
-            octant = 0;
-        } else if (angle < 0x1a5e) {
-            octant = 1;
-        } else if (angle < 0x2bf2) {
-            octant = 2;
-        } else if (angle < 0x3d86) {
-            octant = 3;
-        } else if (angle < 0x4f1a) {
-            octant = 4;
-        } else if (angle < 0x60ae) {
-            octant = 5;
-        } else if (angle < 0x7242) {
-            octant = 6;
-        } else if (angle < 0x83d6) {
-            octant = 7;
         } else {
             octant = 0;
+            for (int32_t candidate = 0; candidate < k_pov_octant_count; candidate++) {
+                if (angle < k_pov_octant_half_width + candidate * k_pov_octant_width) {
+                    octant = candidate;
+                    break;
+                }
+            }
         }
         dest->povs[i] = octant;
     }
@@ -1209,13 +1199,13 @@ void DirectInput::record_windows_key_message(uint32_t wparam, int32_t message)
         return;
     }
 
-    if (message == 0x100 || message == 0x104) {
+    if (message == halo::win32::k_wm_keydown || message == halo::win32::k_wm_syskeydown) {
         event.key_code = input_state().virtual_key_to_key[wparam];
         if (event.key_code == -1) {
             return;
         }
         event.character = 0xff;
-    } else if (message == 0x102 || message == 0x106) {
+    } else if (message == halo::win32::k_wm_char || message == halo::win32::k_wm_syschar) {
         event.character = (uint8_t)wparam;
         event.key_code = -1;
         if (wparam < 0x80) {
