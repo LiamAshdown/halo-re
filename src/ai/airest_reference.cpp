@@ -613,15 +613,15 @@ uint32_t ReferenceView::get_stat_pair(int16_t stat_kind, int32_t *out_member_cou
                 encounter_squad_state *state = &halo::ai::globals().squad_states[enc->first_squad + squad_sub_index];
                 if (stat_kind == 0) {
                     result = (uint32_t)state->living_count;
-                    extra = (uint32_t)state->average_vitality;
+                    extra = halo::bit_cast<uint32_t>(state->average_vitality);
                     member_count = state->member_count;
                 } else if (stat_kind == 1) {
                     result = (uint32_t)state->swarm_count;
-                    extra = (uint32_t)state->average_vitality;
+                    extra = halo::bit_cast<uint32_t>(state->average_vitality);
                     member_count = state->member_count;
                 } else {
                     int32_t diff;
-                    extra = (uint32_t)state->average_vitality;
+                    extra = halo::bit_cast<uint32_t>(state->average_vitality);
                     member_count = state->member_count;
                     diff = (int32_t)state->living_count - (int32_t)state->swarm_count;
                     result = (uint32_t)(diff & ~(diff >> 31));
