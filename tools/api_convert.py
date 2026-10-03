@@ -162,13 +162,14 @@ def forward_block(decl_text):
 
 
 DECL = lambda n: re.compile(r'^[ \t]*extern\s+(?:"C"\s+)?[^;{}()]*?\b' + re.escape(n) + r'\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;[ \t]*\r?\n', re.M)
+ONE_LINE_DECL = lambda n: re.compile(r'^[ \t]*extern\s+"C"\s*\{\s*extern\s+[^;{}()]*?\b' + re.escape(n) + r'\s*\((?:[^;{}()]|\([^()]*\))*\)\s*;\s*\}[ \t]*\r?\n', re.M)
 STR = re.compile(r'("(?:[^"\\\n]|\\.)*"|' + r"'(?:[^'\\\n]|\\.)*')")
 BARE = re.compile(r"(?<![\w:.>])(" + "|".join(map(re.escape, names)) + r")\b(?!\s*\[)")
 CALL = lambda n: re.compile(r'(?<![\w:.>"\'&])' + re.escape(n) + r'(?=\s*\()')
 
 changed = {}
 for f in src_files():
-    if f.startswith(module_dir) or f.startswith(f"include/halo/{mod}/"):
+    if f == shim_path.replace("\\", "/") or f.startswith(f"include/halo/{mod}/"):
         continue
     s = open(f, encoding="utf-8", errors="replace").read()
     if not name_re.search(s):
@@ -177,6 +178,7 @@ for f in src_files():
     hit = set(name_re.findall(s))
     for n in hit:
         s = DECL(n).sub("", s)
+        s = ONE_LINE_DECL(n).sub("", s)
     s = code_sub(s, lambda t: BARE.sub(lambda m: f"halo::{mod}::{m.group(1)}", t))
     still = set(name_re.findall(re.sub(r'"(?:[^"\\\n]|\\.)*"', '""', re.sub(r"//[^\n]*|/\*.*?\*/", "", s, flags=re.S)))) - set()
     # qualified uses count as used

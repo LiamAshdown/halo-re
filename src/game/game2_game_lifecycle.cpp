@@ -1,5 +1,6 @@
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -33,8 +34,6 @@ extern void players_initialize(void);
 extern void hs_scripts_reload(void);
 extern void hs_runtime_initialize(void);
 extern void object_lists_initialize(void);
-extern void input_state_initialize(void);
-extern void input_queue_initialize(void);
 extern void interface_globals_allocate(void);
 extern void player_profile_subsystem_initialize(void);
 extern void widget_memory_pool_initialize(void);
@@ -171,8 +170,8 @@ void GameLifecycle::initialize(void)
     crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     saved_game_files_initialize();
 
-    input_queue_initialize();
-    input_state_initialize();
+    halo::input::input_queue_initialize();
+    halo::input::input_state_initialize();
     player_profile_subsystem_initialize();
 }
 

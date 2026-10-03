@@ -6,6 +6,7 @@
 #include "halo/shell/window.hpp"
 #include <excpt.h>
 #include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -98,13 +99,11 @@ extern uint32_t external_00686b54;
 extern uint8_t data_file_open(void);
 extern void directory_create_recursive(char *path);
 extern void profile_path_initialize(void);
-extern void input_directinput_initialize(void);
 extern void math_initialize(void);
 extern uint32_t render_initialize(void);
 extern void game_state_startup(void);
 extern void cache_file_unload(void);
 extern void data_file_close(void);
-extern void input_directinput_release_devices(void);
 extern void periodic_function_tables_free(void);
 extern void rasterizer_shutdown(void);
 }
@@ -169,7 +168,7 @@ uint8_t EngineLifecycle::initialize()
 
     startup_ok = render_initialize();
     if ((uint8_t)startup_ok != 0) {
-        input_directinput_initialize();
+        halo::input::input_directinput_initialize();
         halo::sound::globals().disabled = (uint8_t)shell_nosound;
         halo::sound::sound_initialize();
         return 1;
@@ -195,7 +194,7 @@ void EngineLifecycle::shutdown()
     global_collision_bsp = 0;
     global_globals = 0;
 
-    input_directinput_release_devices();
+    halo::input::input_directinput_release_devices();
     rasterizer_shutdown();
     GlobalFree(sphere_point_table);
     periodic_function_tables_free();

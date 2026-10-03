@@ -17,6 +17,7 @@
 
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -56,7 +57,6 @@ extern uint8_t controls_device_labels[];
 extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page);
 extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0xa0 * 4];
-extern void input_bind_scan_set_active(uint8_t enable_scan);
 extern void controls_binding_rows_toggle_device_mode(widget_instance *widget, uint8_t mode);
 extern int32_t controls_selected_device;
 extern uint8_t controls_device_sensitivity_a[];
@@ -438,7 +438,7 @@ uint8_t UiEventHandlers::event_4b52f0(widget_instance *widget, int16_t *event, u
         child = child->next_sibling;
     }
     controls_capture_row = i;
-    input_bind_scan_set_active(1);
+    halo::input::input_bind_scan_set_active(1);
     second = child->first_child->next_sibling;
     third = second->next_sibling;
     *((uint8_t *)second + 0x54) = 1;

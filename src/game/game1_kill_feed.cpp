@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "halo/game/game1_kill_feed.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern network_id_table *machine_table;
@@ -41,8 +42,6 @@ extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *form
 extern void *datum_get(datum_index handle, data_array *array);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
-extern char input_get_last_used_binding(void *out_140_bytes);
-extern void input_get_binding_display_name(void);
 extern player_globals *local_player_globals;
 }
 
@@ -583,10 +582,11 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
         }
         case 0x1d: {
             uint8_t scratch[140];
-            if (!input_get_last_used_binding(scratch)) {
+            uint16_t binding_name[0x40];
+            if (!halo::input::input_get_last_used_binding((int16_t)subject, (control_binding_descriptor *)scratch)) {
                 out[0] = 0;
             } else {
-                input_get_binding_display_name();
+                halo::input::input_get_binding_display_name((control_binding_descriptor *)scratch, binding_name);
                 {
                     datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                     wchar_t *fmt = (tag_id == k_datum_index_none) ? &empty_string

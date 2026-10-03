@@ -17,6 +17,7 @@
 
 #include "halo/interface/uis_screens.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern void widget_extended_description_sync_selection(widget_instance *widget);
@@ -37,7 +38,6 @@ extern int32_t previous_mouse_y;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern int32_t mouse_device;
-extern uint8_t input_suppressed;
 extern int32_t mouse_neutral_state[2];
 extern int32_t live_mouse_state[2];
 extern float cursor_sensitivity_x;
@@ -166,7 +166,7 @@ void UiScreens::cursor_update(void)
         record = live_mouse_state;
         if (mouse_device != 0) {
             record = mouse_neutral_state;
-            if (input_suppressed == 0) {
+            if (halo::input::globals().suppressed == 0) {
                 record = live_mouse_state;
             }
         }

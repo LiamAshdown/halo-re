@@ -20,6 +20,7 @@
 #include <wchar.h>
 
 #include "halo/main/level.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { int campaign_level_find_index_for_path(char *path); }
 extern "C" { void credits_load_directly_for_endgame(void); }
@@ -222,8 +223,6 @@ extern "C" { extern int32_t ui_pause_pending_count_00718fa0; }
 extern "C" { extern int32_t join_ui_state; }
 extern "C" { extern int32_t interface_loading_screen_address_a; }
 extern "C" { extern int32_t interface_loading_screen_address_b; }
-extern "C" { extern void input_reset_state_and_axis_configs(void); }
-extern "C" { extern void input_bind_capture_reset(void); }
 extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
@@ -250,8 +249,8 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
     int64_t counter_ms;
     uint8_t already_initialized;
 
-    input_reset_state_and_axis_configs();
-    input_bind_capture_reset();
+    halo::input::input_reset_state_and_axis_configs();
+    halo::input::input_bind_capture_reset();
     cache_file_switch_map_by_path(request->map_name, 1);
 
     memcpy(main_game_globals + 8, request, sizeof(network_scenario_load_request));

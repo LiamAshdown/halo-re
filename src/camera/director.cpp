@@ -1,14 +1,13 @@
 #include "halo/camera/director.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern void *mouse_device;
-extern uint8_t input_suppressed;
 extern mouse_state live_mouse_state;
 extern mouse_state mouse_neutral_state;
 extern uint8_t director_camera_switching;
 extern director_globals camera_director_globals;
 extern director directors[1];
-extern uint8_t input_get_key_state(int16_t key_index);
 extern void camera_input_axes_update(int16_t local_player_index, uint32_t key_bits, float zoom);
 extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
@@ -74,8 +73,8 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
     if (!director_camera_switching) {
         return 0;
     }
-    mouse = input_suppressed ? &mouse_neutral_state : &live_mouse_state;
-    result = (input_get_key_state(0x1d) == 1);
+    mouse = halo::input::globals().suppressed ? &mouse_neutral_state : &live_mouse_state;
+    result = (halo::input::input_get_key_state(0x1d) == 1);
 
     if (director->pov_proc == camera_first_person_compute_pov ||
         director->pov_proc == camera_third_person_compute_pov ||
@@ -83,14 +82,14 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
         return result;
     }
 
-    key_bits = (input_get_key_state(0x20) != 0);
-    if (input_get_key_state(0x2e)) key_bits |= 0x02; else key_bits &= ~0x02u;
-    if (input_get_key_state(0x2d)) key_bits |= 0x04; else key_bits &= ~0x04u;
-    if (input_get_key_state(0x2f)) key_bits |= 0x08; else key_bits &= ~0x08u;
-    if (input_get_key_state(0x22)) key_bits |= 0x10; else key_bits &= ~0x10u;
-    if (input_get_key_state(0x30)) key_bits |= 0x20; else key_bits &= ~0x20u;
-    if (input_get_key_state(0x23)) key_bits |= 0x40; else key_bits &= ~0x40u;
-    if (input_get_key_state(0x31)) key_bits |= 0x80; else key_bits &= ~0x80u;
+    key_bits = (halo::input::input_get_key_state(0x20) != 0);
+    if (halo::input::input_get_key_state(0x2e)) key_bits |= 0x02; else key_bits &= ~0x02u;
+    if (halo::input::input_get_key_state(0x2d)) key_bits |= 0x04; else key_bits &= ~0x04u;
+    if (halo::input::input_get_key_state(0x2f)) key_bits |= 0x08; else key_bits &= ~0x08u;
+    if (halo::input::input_get_key_state(0x22)) key_bits |= 0x10; else key_bits &= ~0x10u;
+    if (halo::input::input_get_key_state(0x30)) key_bits |= 0x20; else key_bits &= ~0x20u;
+    if (halo::input::input_get_key_state(0x23)) key_bits |= 0x40; else key_bits &= ~0x40u;
+    if (halo::input::input_get_key_state(0x31)) key_bits |= 0x80; else key_bits &= ~0x80u;
 
     camera_input_axes_update(local_player_index, key_bits, (float)mouse->wheel);
 

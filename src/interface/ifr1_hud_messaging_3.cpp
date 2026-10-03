@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include <string.h>
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern cinematic_globals *cinematic_globals_ptr;
@@ -44,8 +45,6 @@ extern void hud_draw_message_text_span(Rectangle2D *cursor, Rectangle2D *origin,
 extern void hud_draw_message_icon(const hud_messaging_information *information, Rectangle2D *cursor,
                                   uint32_t color);
 extern int32_t hud_message_compare(const void *a, const void *b);
-extern uint8_t input_get_last_used_binding(int16_t key, uint8_t *out_binding);
-extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name);
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
                          const uint16_t *text);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
@@ -75,11 +74,11 @@ static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cur
         hud_draw_message_text_span(cursor, line, hud_text_no_button_icon, 0);
         return;
     }
-    if (input_get_last_used_binding(button_icon, binding) == 0) {
+    if (halo::input::input_get_last_used_binding(button_icon, (control_binding_descriptor *)binding) == 0) {
         hud_draw_message_text_span(cursor, line, hud_text_unbound, 0);
         return;
     }
-    input_get_binding_display_name(binding, name);
+    halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, name);
     hud_draw_message_text_span(cursor, line, hud_text_quote, 0);
     hud_draw_message_text_span(cursor, line, name, 0);
     hud_draw_message_text_span(cursor, line, hud_text_quote, 0);

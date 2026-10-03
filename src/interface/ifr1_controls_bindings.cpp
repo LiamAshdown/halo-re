@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_controls_bindings.hpp"
 #include <string.h>
 #include <wchar.h>
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -8,7 +9,6 @@ extern uint16_t controls_action_name_buffer[];
 extern const uint16_t hud_text_unbound[];
 extern uint8_t controls_enumerate_next_assignable_action(int32_t device, int16_t *record, const char *action_name,
                                                           uint8_t accept_reserved_on_retry);
-extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name);
 extern uint32_t wcslen_halo(const uint16_t *text);
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
@@ -16,14 +16,12 @@ extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t control_keyboard_scan_table[0xda];
 extern uint32_t control_mouse_button_scan_table[7];
 extern uint32_t input_default_profile_guid[4];
-extern int32_t input_device_default_profile_tag_find(input_guid guid, uint8_t *out_profile);
 extern void control_profile_reset_digital_bindings(uint8_t *profile);
 extern void control_profile_reset_analog_bindings(uint8_t *profile);
 extern uint8_t control_profile_finalize_slot(uint8_t *profile, int32_t preset_index);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t controls_action_table[][0x18];
 extern int32_t controls_current_binding_table[][3];
-extern int16_t input_action_name_to_index(const char *action_name);
 extern void control_profile_clear_binding(const int16_t *record);
 extern controls_device_label controls_device_labels[0x10];
 extern void controls_binding_row_widget_update(int32_t action_index, widget_instance *row, int32_t device);
@@ -39,7 +37,6 @@ extern uint8_t controls_key_is_bindable(int32_t control);
 extern uint8_t controls_binding_clear(int32_t action_index, int32_t device);
 extern uint8_t controls_action_column_is_bindable(int32_t slot, int32_t action_index);
 extern void control_profile_set_binding(const int16_t *record, int32_t action);
-extern void input_last_used_binding_copy(const int16_t *record, int32_t action);
 extern uint16_t *controls_action_display_name(int32_t device, const char *action_name);
 extern uint8_t controls_device_sensitivity_a[];
 extern uint8_t controls_device_sensitivity_b[];
@@ -132,7 +129,7 @@ uint16_t * ControlsBindings::action_display_name(int32_t device, const char *act
 
     controls_action_name_buffer[0] = 0;
     if (controls_enumerate_next_assignable_action(device, record, action_name, 1) != 0) {
-        input_get_binding_display_name((uint8_t *)record, controls_action_name_buffer);
+        halo::input::input_get_binding_display_name((control_binding_descriptor *)record, controls_action_name_buffer);
     }
     if (controls_action_name_buffer[0] == 0) {
         wcscpy((wchar_t *)controls_action_name_buffer, (const wchar_t *)hud_text_unbound);
@@ -173,7 +170,7 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
             input_guid guid;
 
             memcpy(&guid, input_default_profile_guid, sizeof(guid));
-            if (input_device_default_profile_tag_find(guid, profile) != -1) {
+            if (halo::input::input_device_default_profile_tag_find(guid, profile) != -1) {
                 memcpy(control_keyboard_scan_table, profile + 0x134, 0xda);
                 memcpy(control_mouse_button_scan_table, profile + 0x20e, sizeof(control_mouse_button_scan_table));
             } else {
@@ -222,7 +219,7 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
         return 1;
     }
     {
-        int32_t *current = controls_current_binding_table[input_action_name_to_index((const char *)entry)];
+        int32_t *current = controls_current_binding_table[halo::input::input_action_name_to_index((char *)entry)];
         if (memcmp(current, record, 12) == 0) {
             current[0] = 0;
             current[1] = 0;
@@ -372,7 +369,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
 
         {
             const char *action_name = (const char *)controls_action_table[action_index];
-            int16_t action = input_action_name_to_index(action_name);
+            int16_t action = halo::input::input_action_name_to_index((char *)action_name);
 
             if (action == 0x7fff || controls_action_column_is_bindable(kind == 2 ? 1 : device, action_index) == 0) {
                 sound = 4;
@@ -386,7 +383,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
                 control_profile_clear_binding(record);
             }
             control_profile_set_binding(record, action);
-            input_last_used_binding_copy(record, action);
+            halo::input::input_last_used_binding_copy(action, (control_binding_descriptor *)record);
             sound = 2;
         }
 

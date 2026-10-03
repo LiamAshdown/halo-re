@@ -17,13 +17,13 @@
 #include <string.h>
 
 #include "halo/input/bindings.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { extern uint8_t game_engine_teams_enabled_flag; }
 extern "C" { extern uint8_t g_control_binding_state; }
 extern "C" { extern uint8_t g_control_binding_secondary_active; }
 extern "C" { extern Globals *global_globals; }
 extern "C" { extern uint32_t current_game_engine; }
-extern "C" { extern uint32_t control_word_extract_field(uint32_t which_word, uint32_t field_index); }
 extern "C" { extern uint8_t g_control_binding_region_e4[0xa0]; }
 namespace halo::input {
 
@@ -50,7 +50,7 @@ void Bindings::control_binding_table_initialize(void)
         do {
             ((control_binding_half *)(cell - 4))->entry_count = 0;
             ((control_binding_half *)(cell - 4))->selected_count = 0;
-            ((control_binding_half *)(cell - 4))->limit = (int32_t)control_word_extract_field(outer_row, field_index);
+            ((control_binding_half *)(cell - 4))->limit = (int32_t)halo::input::control_word_extract_field(outer_row, field_index);
             field_index++;
 
             {
@@ -415,7 +415,6 @@ extern "C" { extern tag_instance *tag_instances; }
 extern "C" { extern datum_index tag_iterator_next(tag_iterator *iterator); }
 extern "C" { extern uint32_t saved_game_create_default_profile(uint16_t *name); }
 extern "C" { extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); }
-extern "C" { extern uint8_t input_profile_copy_bindings_by_device(int32_t category, saved_player_profile *dst, saved_player_profile *src); }
 extern "C" { extern void player_profile_save_539bf0(int32_t handle, saved_player_profile *profile); }
 namespace halo::input {
 
@@ -460,7 +459,7 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
     profile_handle = saved_game_create_default_profile(tag_profile_name);
     if (profile_handle != 0xffffffff) {
         if (player_profile_get((int32_t)profile_handle, &profile) != 0) {
-            if (input_profile_copy_bindings_by_device(2, &profile,
+            if (halo::input::input_profile_copy_bindings_by_device(2, &profile,
                     (saved_player_profile *)defaults->profile.pointer) != 0) {
                 profile.flags |= 0x0006;
                 player_profile_save_539bf0((int32_t)profile_handle, &profile);
@@ -639,7 +638,6 @@ uint32_t Bindings::device_default_profile_tag_find(input_guid device_guid, void 
 }
 
 extern "C" { extern int32_t last_input_device; }
-extern "C" { extern uint8_t input_refresh_last_used_binding(int32_t device_class, int16_t action); }
 namespace halo::input {
 
 /**
@@ -661,10 +659,10 @@ uint8_t Bindings::get_last_used_binding(int16_t action, control_binding_descript
     found = (cached->device_type != 0);
 
     if (!found) {
-        found = input_refresh_last_used_binding(last_input_device, action);
+        found = halo::input::input_refresh_last_used_binding(last_input_device, action);
         if (!found) {
             for (device_class = 0; device_class < 5; device_class++) {
-                found = input_refresh_last_used_binding(device_class, action);
+                found = halo::input::input_refresh_last_used_binding(device_class, action);
                 if (found) {
                     break;
                 }
@@ -734,12 +732,6 @@ void Bindings::last_used_binding_set(int16_t action, int16_t device_type, int16_
 }
 
 extern "C" { extern int32_t _stricmp(const char *a, const char *b); }
-extern "C" { extern uint32_t input_keyboard_key_name_to_index(char *name); }
-extern "C" { extern uint32_t input_mouse_button_name_to_index(char *name); }
-extern "C" { extern uint32_t input_mouse_axis_name_to_index(char *name, uint8_t *out_direction); }
-extern "C" { extern int16_t input_joystick_button_name_to_index(char *name); }
-extern "C" { extern int16_t input_joystick_axis_name_to_index(char *name, uint8_t *out_direction); }
-extern "C" { extern int16_t input_joystick_pov_name_to_index(char *name, int16_t *out_direction); }
 namespace halo::input {
 
 /**
@@ -759,7 +751,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     int16_t pov_direction;
 
     if (_stricmp(device_class_name, "keyboard") == 0 || _stricmp(device_class_name, "key") == 0) {
-        index = input_keyboard_key_name_to_index(name);
+        index = halo::input::input_keyboard_key_name_to_index(name);
         if (index == 0xffff) {
             return 0;
         }
@@ -772,7 +764,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "mouse") == 0) {
-        index = input_mouse_button_name_to_index(name);
+        index = halo::input::input_mouse_button_name_to_index(name);
         if (index == 0xffff) {
             return 0;
         }
@@ -785,7 +777,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "mouseaxis") == 0) {
-        index = input_mouse_axis_name_to_index(name, &byte_direction);
+        index = halo::input::input_mouse_axis_name_to_index(name, &byte_direction);
         if (index == 0xffff) {
             return 0;
         }
@@ -798,7 +790,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystick") == 0) {
-        joystick_index = input_joystick_button_name_to_index(name);
+        joystick_index = halo::input::input_joystick_button_name_to_index(name);
         if (joystick_index == -1) {
             return 0;
         }
@@ -811,7 +803,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystickaxis") == 0) {
-        joystick_index = input_joystick_axis_name_to_index(name, &byte_direction);
+        joystick_index = halo::input::input_joystick_axis_name_to_index(name, &byte_direction);
         if (joystick_index == -1) {
             return 0;
         }
@@ -824,7 +816,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystickpov") == 0) {
-        joystick_index = input_joystick_pov_name_to_index(name, &pov_direction);
+        joystick_index = halo::input::input_joystick_pov_name_to_index(name, &pov_direction);
         if (joystick_index == -1) {
             return 0;
         }
@@ -922,7 +914,6 @@ uint8_t Bindings::profile_copy_bindings_by_device(int32_t category, saved_player
 }
 
 extern "C" { extern int16_t gamepad_action_buttons[k_control_gamepad_count][2]; }
-extern "C" { extern void input_last_used_binding_set(int16_t action, int16_t device_type, int16_t device_index, int16_t input_kind, int16_t input_index, int32_t direction); }
 namespace halo::input {
 
 /**
@@ -1018,7 +1009,7 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
         special_button = gamepad_action_buttons[slot][1];
     }
     if ((action == _input_action_accept || action == _input_action_back) && special_button != -1) {
-        input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
+        halo::input::input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
                                      _control_input_button, special_button, 0);
         found = 1;
     }
@@ -1091,7 +1082,6 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
 extern "C" { extern void *mouse_device; }
 extern "C" { extern mouse_state live_mouse_state; }
 extern "C" { extern mouse_state mouse_neutral_state; }
-extern "C" { extern uint8_t input_get_key_state(int16_t key_index); }
 namespace halo::input {
 
 /**
@@ -1127,7 +1117,7 @@ void Bindings::scan_any_bound_input(void)
     }
 
     for (i = 0; i < k_control_keyboard_key_count; i++) {
-        if (input_get_key_state((int16_t)i) == 1) {
+        if (halo::input::input_get_key_state((int16_t)i) == 1) {
             result->device_type = _control_device_keyboard;
             result->device_index = 0;
             result->input_kind = _control_input_button;
@@ -1257,8 +1247,6 @@ void Bindings::scan_any_bound_input(void)
 
 }
 
-extern "C" { extern uint8_t input_guid_parse_ansi(input_guid *out_guid, char *ansi); }
-extern "C" { extern uint32_t input_device_default_profile_tag_find(input_guid device_guid, void *out_profile); }
 extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, ...); }
 namespace halo::input {
 
@@ -1277,8 +1265,8 @@ void Bindings::test_input_device_defaults_find(char *device_id_ansi)
     uint8_t saved_profile[k_saved_player_profile_size];
     int32_t tag_id;
 
-    input_guid_parse_ansi(&guid, device_id_ansi);
-    tag_id = (int32_t)input_device_default_profile_tag_find(guid, saved_profile);
+    halo::input::input_guid_parse_ansi(&guid, device_id_ansi);
+    tag_id = (int32_t)halo::input::input_device_default_profile_tag_find(guid, saved_profile);
     if (tag_id == -1) {
         console_printf_verbose((ColorARGB *)0, (char *)"deviceid %s has no default", device_id_ansi);
         return;

@@ -4,6 +4,7 @@
 #include "effects.h"
 #include "networking.h"
 #include "cutscene.h"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
@@ -12,16 +13,9 @@ extern void block_list_compact(memory_pool *arena);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern cinematic_globals *cinematic_globals_ptr;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
-extern void control_binding_table_initialize(void);
-extern uint8_t control_binding_table_query(int32_t target, int32_t raw_id);
-extern void control_binding_table_register_single(int32_t target, int32_t selector, int32_t raw_id, uint32_t raw_value);
-extern void control_binding_table_update_a(void);
-extern void control_binding_table_update_b(void);
 extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void euler_angles_to_basis_vectors(real_euler_angles3d *angles, real_vector3d *up_out, real_vector3d *forward_out);
-extern uint8_t g_control_binding_secondary_active;
-extern uint8_t g_control_binding_state;
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_forward3d_pointer;
@@ -107,7 +101,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
     if (connection != 0 && *(int32_t *)(connection + 0x134) == 5) {
         joining = 1;
     } else {
-        control_binding_table_initialize();
+        halo::input::control_binding_table_initialize();
         if (network_game_mode == 2) {
             object_type_definition *vehicle = object_type_definitions[_object_type_vehicle];
             int32_t size = vehicle->scenario_placement_size;
@@ -119,19 +113,19 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
                 uint8_t *placement = (uint8_t *)placements->pointer + i * size;
                 int16_t kind = *(int16_t *)placement;
                 if (kind != -1) {
-                    control_binding_table_register_single(palette_tag(palette, kind), placement[0x58], i,
+                    halo::input::control_binding_table_register_single(palette_tag(palette, kind), placement[0x58], i,
                                                           (uint32_t)*(int16_t *)(placement + 0x5a));
                 }
             }
         }
         if (current_game_engine != 0) {
-            if (g_control_binding_secondary_active) {
-                control_binding_table_update_b();
+            if (halo::input::globals().binding_secondary_active) {
+                halo::input::control_binding_table_update_b();
             } else {
-                control_binding_table_update_a();
+                halo::input::control_binding_table_update_a();
             }
         }
-        g_control_binding_state = 1;
+        halo::input::globals().binding_state = 1;
     }
 
     for (type = 0; type < k_maximum_object_types; type++) {
@@ -159,7 +153,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
             datum_index object;
 
             if (type == _object_type_vehicle) {
-                if (joining || !control_binding_table_query(palette_tag(palette, *(int16_t *)placement), i)) {
+                if (joining || !halo::input::control_binding_table_query(palette_tag(palette, *(int16_t *)placement), i)) {
                     continue;
                 }
             }

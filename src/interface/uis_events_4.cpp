@@ -17,13 +17,13 @@
 #include "game.h"
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
 extern uint32_t time_query_performance_counter_ms(void);
 extern uint8_t multiplayer_host_session_start(void);
 extern uint8_t input_event_queue_active;
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
 extern tag_instance *tag_instances;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
@@ -126,7 +126,7 @@ static void row_clicked(widget_instance *list, int32_t row, int32_t old_committe
 
         memset(&queued, 0, sizeof(queued));
         queued.kind = 5;
-        input_queue_push_event(0, &queued);
+        halo::input::input_queue_push_event(0, &queued);
     }
 }
 
@@ -168,7 +168,7 @@ uint8_t UiEventHandlers::event_4a1d30(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0xb;
         queued.pressed = 1;
-        input_queue_push_event(0, &queued);
+        halo::input::input_queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -187,7 +187,7 @@ uint8_t UiEventHandlers::event_4a1d60(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0x2;
         queued.pressed = 1;
-        input_queue_push_event(0, &queued);
+        halo::input::input_queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -203,7 +203,7 @@ uint8_t UiEventHandlers::event_4a1d90(widget_instance *widget, int16_t *event, u
 
     memset(&queued, 0, sizeof(queued));
     queued.kind = 5;
-    input_queue_push_event(0, &queued);
+    halo::input::input_queue_push_event(0, &queued);
     return 1;
 }
 
@@ -267,7 +267,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
                 queued.kind = 3;
                 queued.code = 0;
                 queued.pressed = 1;
-                input_queue_push_event(0, &queued);
+                halo::input::input_queue_push_event(0, &queued);
             }
             return 1;
         }

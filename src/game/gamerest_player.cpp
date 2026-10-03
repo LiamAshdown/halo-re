@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -193,7 +194,6 @@ extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d 
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
-extern int32_t joystick_slot_devices[4];
 extern uint8_t players_any_with_local_player_index(int16_t local_player_index);
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
@@ -2963,7 +2963,7 @@ int32_t LocalPlayers::find_free_slot_index()
     int32_t i;
 
     for (i = 0; i < 4; i = i + 1) {
-        if (joystick_slot_devices[i] != -1 &&
+        if (halo::input::globals().joystick_slot_devices[i] != -1 &&
             Players::any_with_local_player_index((int16_t)i) == 0) {
             return i;
         }

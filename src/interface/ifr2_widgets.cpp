@@ -3,6 +3,7 @@
 #include "sound.h"
 #include <string.h>
 #include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -50,7 +51,6 @@ extern void widget_instance_select_list_index(widget_instance *widget, datum_ind
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_armed;
-extern int32_t joystick_slot_devices[4];
 extern uint8_t widget_list_select_next(widget_instance *widget);
 extern uint8_t widget_list_select_previous(widget_instance *widget);
 extern uint8_t widget_instance_point_in_bounds(widget_instance *widget);
@@ -1036,7 +1036,7 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
             int32_t i;
 
             for (i = 0; i <= 3; i++) {
-                if (joystick_slot_devices[i] != -1) {
+                if (halo::input::globals().joystick_slot_devices[i] != -1) {
                     break;
                 }
             }
@@ -1049,7 +1049,7 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
             }
             widget_close(ancestor);
             handled = 1;
-        } else if (joystick_slot_devices[controller] != -1) {
+        } else if (halo::input::globals().joystick_slot_devices[controller] != -1) {
             ancestor = widget;
             while (ancestor->parent != (widget_instance *)0) {
                 ancestor = ancestor->parent;

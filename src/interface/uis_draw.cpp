@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "halo/interface/uis_draw.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -53,8 +54,6 @@ extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, Rectangle2D *origin);
-extern uint8_t input_get_last_used_binding(int16_t key, uint8_t *out_binding);
-extern void input_get_binding_display_name(uint8_t *binding, uint16_t *out_name);
 extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon);
 }
@@ -471,8 +470,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                     uint8_t binding[12];
                     uint16_t key_name[0x40];
 
-                    if (input_get_last_used_binding((int16_t)prompt_key_token_table[token], binding) != 0) {
-                        input_get_binding_display_name(binding, key_name);
+                    if (halo::input::input_get_last_used_binding((int16_t)prompt_key_token_table[token], (control_binding_descriptor *)binding) != 0) {
+                        halo::input::input_get_binding_display_name((control_binding_descriptor *)binding, key_name);
                         ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);
                         ui_widget_draw_prompt_span(key_name, &cursor_rect, bounds);
                         ui_widget_draw_prompt_span(hud_text_quote, &cursor_rect, bounds);

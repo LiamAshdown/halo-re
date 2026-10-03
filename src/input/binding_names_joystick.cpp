@@ -12,6 +12,7 @@
 #include "input.h"
 
 #include "halo/input/binding_names.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" { extern char joystick_button_prefix[0x18]; }
 extern "C" { extern char decimal_suffixes[0x20][3]; }
@@ -54,7 +55,6 @@ int16_t BindingNames::joystick_button_name_to_index(char *name)
 }
 
 extern "C" { extern char joystick_pov_prefix[0x18]; }
-extern "C" { extern int16_t input_joystick_pov_direction_name_to_index(char *name); }
 namespace halo::input {
 
 /**
@@ -94,7 +94,7 @@ int16_t BindingNames::joystick_pov_name_to_index(char *name, int16_t *out_direct
             }
 
             rest = match + length;
-            direction_index = input_joystick_pov_direction_name_to_index(rest);
+            direction_index = halo::input::input_joystick_pov_direction_name_to_index(rest);
             *out_direction = direction_index;
             if (direction_index != -1) {
                 return (int16_t)pov_index;

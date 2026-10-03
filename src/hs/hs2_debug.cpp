@@ -1,4 +1,5 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/input/api.hpp"
 
 
 #ifdef __cplusplus
@@ -24,7 +25,6 @@ extern void network_bandwidth_graph_instance_history_reset(void *graph);
 extern uint32_t network_bandwidth_graph_set_units_command(const char *units_name, const char *direction_name);
 extern void *actor_mode_default_look_weights;
 extern void console_printf_verbose(ColorARGB *color, char *format, ...);
-extern void input_print_bound_controls(void);
 extern uint32_t renderer_unknown_69c684;
 extern uint32_t lens_flare_object_visibility_table[0x8c0];
 extern uint32_t lens_flare_marker_visibility[0x4002];
@@ -210,7 +210,7 @@ void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index
  */
 void DebugCommands::evaluate_print_binds(int16_t function_index, uint32_t thread_index, char first)
 {
-    input_print_bound_controls();
+    halo::input::input_print_bound_controls();
     hs_thread_return(0, thread_index);
 }
 

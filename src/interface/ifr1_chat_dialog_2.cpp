@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
 #include <stdint.h>
 #include <wchar.h>
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -40,7 +41,6 @@ extern uint8_t chat_gui_active;
 extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t game_engine_get_teams_enabled(void);
-extern void input_keyboard_set_capture_mode(void);
 extern int32_t chat_default_team_channel(void);
 }
 
@@ -278,7 +278,7 @@ gui_setup:
         chat_gui_release(gui_object);
     }
     chat_dialog_open = 1;
-    input_keyboard_set_capture_mode();
+    halo::input::input_keyboard_set_capture_mode(1);
 }
 
 }

@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include <stdarg.h>
 #include <string.h>
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern uint8_t terminal_initialized;
@@ -48,7 +49,6 @@ extern void console_restore_cursor(void);
 extern uint32_t strlen(const char *s);
 extern uint8_t debug_log_level;
 extern void *console_input_handle;
-extern void input_record_windows_key_message(int32_t key_or_char, int32_t message);
 extern int32_t console_caret_blink_time;
 extern int64_t performance_frequency;
 extern uint8_t controls_input_capture_flags;
@@ -548,8 +548,8 @@ void ConsoleTerminal::process_input_events(void)
         if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, (LPDWORD)&events_read) != 0 &&
             record.EventType == 1) {
             if (record.KeyEvent.bKeyDown != 0) {
-                input_record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);
-                input_record_windows_key_message(record.KeyEvent.uChar, 0x102);
+                halo::input::input_record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);
+                halo::input::input_record_windows_key_message(record.KeyEvent.uChar, 0x102);
             }
         }
     }

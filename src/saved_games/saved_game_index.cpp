@@ -11,6 +11,7 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -37,7 +38,6 @@ extern uint32_t savegame_slot_handle_pack(uint32_t slot_index, uint32_t type_nib
 extern uint8_t savegame_index_append_slot(const saved_game_index_entry *entry, int32_t *out_slot);
 extern uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);
 extern saved_player_profile default_profile_data;
-extern void input_apply_named_device_default_profile(const uint16_t *name);
 extern int32_t cached_saved_game_something;
 extern uint8_t savegame_index_read_slot(int32_t slot_index, saved_game_index_entry *out_entry);
 extern uint8_t savegame_index_remove_slot(int32_t slot_index);
@@ -468,12 +468,12 @@ void delete_by_display_name(const char *name)
                 if (handle != -1) {
                     saved_game_delete_by_handle(handle);
                 }
-                input_apply_named_device_default_profile(name_wide);
+                halo::input::input_apply_named_device_default_profile(name_wide);
                 return;
             }
         }
     }
-    input_apply_named_device_default_profile(name_wide);
+    halo::input::input_apply_named_device_default_profile(name_wide);
     return;
 }
 

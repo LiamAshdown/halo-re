@@ -16,6 +16,7 @@
 #include "units.h"
 
 #include "halo/interface/uis_game_setup.hpp"
+#include "halo/input/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -26,7 +27,6 @@ extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern void multiplayer_settings_select_list_update_item(widget_instance *description_widget, const uint16_t *variant_description);
 extern int16_t local_player_count;
-extern int32_t joystick_slot_devices[4];
 extern char known_campaign_levels_00692acc[];
 extern uint8_t pending_difficulty;
 extern uint8_t split_screen_quit_prompt_armed;
@@ -88,7 +88,7 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
 
     if (local_player_count >= 2) {
         i = 0;
-        while (joystick_slot_devices[i] == -1 || i == requested_index) {
+        while (halo::input::globals().joystick_slot_devices[i] == -1 || i == requested_index) {
             i = i + 1;
             if (i > 0) {
                 goto report_error;

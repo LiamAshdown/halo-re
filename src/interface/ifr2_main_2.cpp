@@ -8,6 +8,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "crt.h"
 #include <string.h>
 #include <ctype.h>
+#include "halo/input/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -45,7 +46,6 @@ extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t m
 extern uint8_t ui_check_for_pause_game(void);
 extern void virtual_keyboard_process_input(void);
 extern uint8_t network_game_is_active(void);
-extern uint8_t input_queue_pop_event(uint8_t *event_scratch, int16_t controller_index);
 extern void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinition *tag, uint8_t *event_scratch, uint8_t *out_handled);
 extern void list_node_pop(widget_history_node *out, widget_history_node **head);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
@@ -160,7 +160,7 @@ void InterfaceMain::tick()
                     root = widget;
 
                     if (ui_input_batch_mode == 0) {
-                        uint8_t got_event = input_queue_pop_event(event_scratch, widget->controller_index);
+                        uint8_t got_event = halo::input::input_queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
 
                         if (got_event != 0) {
                             looped = 1;
@@ -171,7 +171,7 @@ void InterfaceMain::tick()
                                     widget != root) {
                                     break;
                                 }
-                                got_event = input_queue_pop_event(event_scratch, widget->controller_index);
+                                got_event = halo::input::input_queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
                             } while (got_event != 0);
                         }
                     }

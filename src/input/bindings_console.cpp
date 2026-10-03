@@ -12,10 +12,8 @@
 #include "input.h"
 
 #include "halo/input/bindings.hpp"
+#include "halo/input/api.hpp"
 
-extern "C" { extern uint8_t input_parse_device_binding_string(const char *device_class_name, const char *input_name, control_binding_descriptor *out_binding); }
-extern "C" { extern int16_t input_action_name_to_index(const char *action_name); }
-extern "C" { extern uint8_t input_apply_control_binding(control_binding_descriptor *binding, int32_t action_index); }
 extern "C" { extern void console_out_printf(uint8_t unknown, const char *format, ...); }
 namespace halo::input {
 
@@ -31,10 +29,10 @@ void Bindings::hs_bind_control(const char *device_class_name, const char *input_
     control_binding_descriptor binding;
     int16_t action_index;
 
-    if (input_parse_device_binding_string(device_class_name, input_name, &binding) != 0) {
-        action_index = input_action_name_to_index(action_name);
+    if (halo::input::input_parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) != 0) {
+        action_index = halo::input::input_action_name_to_index((char *)action_name);
         if (action_index != (int16_t)k_input_unbound) {
-            if (input_apply_control_binding(&binding, action_index) != 0) {
+            if (halo::input::input_apply_control_binding(&binding, action_index) != 0) {
                 console_out_printf(0, "bound %s %s to game control %s", device_class_name, input_name, action_name);
             }
         }
@@ -43,7 +41,6 @@ void Bindings::hs_bind_control(const char *device_class_name, const char *input_
 
 }
 
-extern "C" { extern void input_clear_control_binding(control_binding_descriptor *binding); }
 namespace halo::input {
 
 /**
@@ -57,11 +54,11 @@ void Bindings::hs_unbind_control(const char *device_class_name, const char *inpu
 {
     control_binding_descriptor binding;
 
-    if (input_parse_device_binding_string(device_class_name, input_name, &binding) == 0) {
+    if (halo::input::input_parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) == 0) {
         return;
     }
 
-    input_clear_control_binding(&binding);
+    halo::input::input_clear_control_binding(&binding);
 
     switch (binding.device_type) {
     case _control_device_keyboard:
