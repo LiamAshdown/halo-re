@@ -1303,9 +1303,9 @@ namespace {
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
     uint8_t *self = OBJECT_DATA(object_index);
-    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    unit_object *vehicle = (unit_object *)OBJECT_DATA(vehicle_index);
     uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(vehicle->base.definition_tag) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -1319,7 +1319,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle->unit.animation_state != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
         halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
     }
@@ -1345,10 +1345,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
     *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
     {
-        uint8_t *object = OBJECT_DATA(object_index);
-        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+        unit_object *object = (unit_object *)OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(object->base.definition_tag);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
@@ -1467,7 +1467,7 @@ void ReferenceView::units_exit_vehicles()
 
             if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
                 int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
-                uint8_t *object;
+                unit_object *object;
                 uint8_t *object_tag;
 
                 if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
@@ -1475,10 +1475,10 @@ void ReferenceView::units_exit_vehicles()
                 }
                 halo::units::unit_set_custom_animation(unit_index, *(datum_index *)(self_tag + 0x44),
                     halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
-                object = OBJECT_DATA(unit_index);
-                object_tag = TAG_DATA(*(datum_index *)object);
+                object = (unit_object *)OBJECT_DATA(unit_index);
+                object_tag = TAG_DATA(object->base.definition_tag);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                    if ((object[0x10] & 1) != 0) {
+                    if ((static_cast<uint8_t>(object->base.flags) & 1) != 0) {
                         halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
                     }
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {

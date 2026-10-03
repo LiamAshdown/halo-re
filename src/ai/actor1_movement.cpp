@@ -38,8 +38,8 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
     using namespace c_actor_avoid_obstacle_and_project;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
-    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)vehicle);
+    object *vehicle = (object *)OBJECT_DATA(vehicle_index);
+    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(vehicle->definition_tag);
     real_point3d point = *entry;
     uint8_t near_line = in_out_near_line != 0 ? *in_out_near_line : 0;
     collision_bsp_segment_result result;

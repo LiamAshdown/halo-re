@@ -51,7 +51,7 @@ uint8_t ActorView::seek_vehicle_to_board()
             prop *p = halo::ai::prop_at(prop_index);
             int16_t kind = p->state;
             datum_index vehicle = (uint32_t)p->relationship_object_index;
-            uint8_t *vehicle_object;
+            unit_object *vehicle_object;
             float distance_squared;
 
             prop_index = p->next_in_actor;
@@ -59,8 +59,8 @@ uint8_t ActorView::seek_vehicle_to_board()
                 !halo::ai::actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
-            vehicle_object = (uint8_t *)halo::objects::object_try_and_get(vehicle, 2);
-            if (vehicle_object == 0 || *(datum_index *)(vehicle_object + 0x324) != p->object_index) {
+            vehicle_object = (unit_object *)halo::objects::object_try_and_get(vehicle, 2);
+            if (vehicle_object == 0 || vehicle_object->unit.driver_unit_index != p->object_index) {
                 continue;
             }
             halo::objects::object_get_position(&position, vehicle);

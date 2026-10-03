@@ -807,7 +807,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
     const uint8_t *def = (const uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
     uint32_t unit_index = self->unit_index;
-    const uint8_t *unit;
+    const unit_object *unit;
     prop *target = 0;
     uint8_t decision;
     int16_t variant_mode;
@@ -824,11 +824,11 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         self->charge_trigger_active = 0;
         return 0;
     }
-    unit = (const uint8_t *)halo::ai::object_at(unit_index);
+    unit = (unit_object *)halo::ai::object_at(unit_index);
     if (self->target_unit_index != halo::k_dword_none) {
         target = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
     }
-    if (unit[0x2a3] == 0x17 && self->berserking == 0) {
+    if (static_cast<uint8_t>(unit->unit.animation_state) == 0x17 && self->berserking == 0) {
         self->charge_trigger_active = 0;
         return 1;
     }
@@ -841,7 +841,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         self->charge_trigger_active = 0;
         return 0;
     }
-    if ((int8_t)unit[0x106] < 0) {
+    if ((int8_t)static_cast<uint8_t>(unit->base.vitality_flags) < 0) {
         self->charge_trigger_active = 0;
         return 1;
     }

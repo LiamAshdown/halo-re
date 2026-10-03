@@ -126,8 +126,8 @@ void ActorView::update_aim_wander()
     if (a->active_unit_index == k_datum_index_none) {
         moving = (a->airborne != 0 || a->moving != 0) ? 1 : 0;
     } else {
-        uint8_t *vehicle = (uint8_t *)halo::ai::object_at(a->active_unit_index);
-        real_vector3d *velocity = (real_vector3d *)(vehicle + 0x68);
+        object *vehicle = (object *)halo::ai::object_at(a->active_unit_index);
+        real_vector3d *velocity = &vehicle->velocity;
 
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
     }
@@ -1785,8 +1785,8 @@ uint8_t ActorView::update_movement_destination()
                 float wait = halo::math::random_real_range(actor_tag->combat_position_time[0], actor_tag->combat_position_time[1]);
 
                 if (actor->vehicle_driving_type > 0) {
-                    uint8_t *vehicle = (uint8_t *)halo::ai::object_at(actor->active_unit_index);
-                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)vehicle);
+                    object *vehicle = (object *)halo::ai::object_at(actor->active_unit_index);
+                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(vehicle->definition_tag);
                     float cap = vehicle_tag->ai_move_position_time;
 
                     if (cap > 0.0f && wait > cap) {

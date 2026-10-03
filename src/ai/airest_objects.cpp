@@ -1144,19 +1144,19 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
  */
 void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value)
 {
-    uint8_t *obj;
+    unit_object *obj;
     int32_t now;
 
     if (!halo::ai::globals().state->actors_valid || object_index == k_datum_index_none || priority <= 0) {
         return;
     }
-    obj = OBJECT_DATA(object_index);
+    obj = (unit_object *)OBJECT_DATA(object_index);
     now = halo::game::globals().game_time->game_time;
-    if (!(stimulus_value > *(int16_t *)(obj + 0x21c)) && !(now > *(int32_t *)(obj + 0x220) + 0x1e)) {
+    if (!(stimulus_value > obj->unit.ai_stimulus_type) && !(now > static_cast<int32_t>(obj->unit.ai_stimulus_tick) + 0x1e)) {
         return;
     }
-    *(int32_t *)(obj + 0x220) = now;
-    *(int16_t *)(obj + 0x21c) = stimulus_value;
+    obj->unit.ai_stimulus_tick = now;
+    obj->unit.ai_stimulus_type = stimulus_value;
     if (((object *)obj)->type == 1) {
         datum_index child;
 

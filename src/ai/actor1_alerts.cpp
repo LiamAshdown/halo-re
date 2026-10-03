@@ -48,13 +48,13 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
         datum_index attacker = static_cast<datum_index>(((struct unit_object *)unit)->unit.flaming_responsible_object);
 
         if (attacker != k_datum_index_none) {
-            uint8_t *attacker_unit = (uint8_t *)halo::objects::object_try_and_get(attacker, 3);
+            unit_object *attacker_unit = (unit_object *)halo::objects::object_try_and_get(attacker, 3);
 
             if (attacker_unit != 0) {
-                if (*(datum_index *)(attacker_unit + 0x328) != k_datum_index_none) {
-                    attacker = *(datum_index *)(attacker_unit + 0x328);
-                } else if (*(datum_index *)(attacker_unit + 0x324) != k_datum_index_none) {
-                    attacker = *(datum_index *)(attacker_unit + 0x324);
+                if (attacker_unit->unit.gunner_unit_index != k_datum_index_none) {
+                    attacker = attacker_unit->unit.gunner_unit_index;
+                } else if (attacker_unit->unit.driver_unit_index != k_datum_index_none) {
+                    attacker = attacker_unit->unit.driver_unit_index;
                 }
                 if (attacker != k_datum_index_none) {
                     source = halo::ai::actor_find_prop_for_object(attacker, actor_index);
@@ -185,15 +185,15 @@ uint8_t halo::ai::alert_ops::alert_from_projectile()
     noticed = (uint8_t *)halo::objects::object_try_and_get((uint32_t)actor->stuck_projectile_index, halo::k_dword_none);
     if (noticed != 0 && *(datum_index *)(noticed + 0xc4) != k_datum_index_none) {
         datum_index creator = *(datum_index *)(noticed + 0xc4);
-        uint8_t *creator_unit = (uint8_t *)halo::objects::object_try_and_get(creator, 3);
+        unit_object *creator_unit = (unit_object *)halo::objects::object_try_and_get(creator, 3);
 
         if (creator_unit != 0) {
             datum_index who;
 
-            if (*(datum_index *)(creator_unit + 0x328) != k_datum_index_none) {
-                who = *(datum_index *)(creator_unit + 0x328);
-            } else if (*(datum_index *)(creator_unit + 0x324) != k_datum_index_none) {
-                who = *(datum_index *)(creator_unit + 0x324);
+            if (creator_unit->unit.gunner_unit_index != k_datum_index_none) {
+                who = creator_unit->unit.gunner_unit_index;
+            } else if (creator_unit->unit.driver_unit_index != k_datum_index_none) {
+                who = creator_unit->unit.driver_unit_index;
             } else {
                 who = creator;
             }
@@ -412,7 +412,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         return actor->vehicle_driving_type > 1;
     }
     if (mode == 2) {
-        uint8_t *unit;
+        object *unit;
         prop *target;
         uint8_t leap = 0;
         int16_t frame_count = 0;
@@ -427,8 +427,8 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
             ((struct actor_combat_consideration *)record)->mode = mode;
             return result;
         }
-        unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
-        if ((unit[0x106] & 0x80) != 0 || actor->target_unit_index == k_datum_index_none) {
+        unit = (object *)halo::ai::object_at(actor->unit_index);
+        if ((static_cast<uint8_t>(unit->vitality_flags) & 0x80) != 0 || actor->target_unit_index == k_datum_index_none) {
             ((struct actor_combat_consideration *)record)->mode = mode;
             return result;
         }

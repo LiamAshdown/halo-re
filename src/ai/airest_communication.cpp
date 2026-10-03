@@ -523,12 +523,12 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (speaker_unit == k_datum_index_none) {
             reject = 1;
         } else {
-            uint8_t *object = OBJECT_DATA(speaker_unit);
+            unit_object *object = (unit_object *)OBJECT_DATA(speaker_unit);
 
-            if ((object[0x106] & 4) || ((struct object *)object)->type == 1) {
+            if ((static_cast<uint8_t>(object->base.vitality_flags) & 4) || ((struct object *)object)->type == 1) {
                 reject = 1;
-            } else if (*(datum_index *)(object + 0x218) == k_datum_index_none &&
-                       *(datum_index *)(object + 0x1f4) == k_datum_index_none) {
+            } else if (object->unit.controlling_player == k_datum_index_none &&
+                       object->unit.actor_index == k_datum_index_none) {
                 if (row->flags & 8) {
                     no_actor_speaker = 1;
                 } else {
@@ -803,7 +803,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             halo::units::unit_commit_speech(speaker_unit, (unit_speech *)speech, chosen->check_result);
 
             if ((uint16_t)chosen->animation != halo::k_word_none) {
-                uint8_t *object = OBJECT_DATA(speaker_unit);
+                unit_object *object = (unit_object *)OBJECT_DATA(speaker_unit);
                 real_vector2d direction;
 
                 direction.i = ((struct object *)object)->forward.i;
@@ -1012,12 +1012,12 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         return;
     }
     for (; *(int16_t *)row != -1; row += 0x24, row_index++) {
-        uint8_t *object;
+        unit_object *object;
         datum_index object_actor;
         int16_t class_index;
         int16_t priority;
         datum_index speaker_unit;
-        uint8_t *speaker;
+        unit_object *speaker;
         int16_t dialogue_index;
         int32_t chain = -1;
         int16_t delay;
@@ -1027,8 +1027,8 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         if (*(int16_t *)row != event_id) {
             continue;
         }
-        object = OBJECT_DATA(object_index);
-        object_actor = *(datum_index *)(object + 0x1f4);
+        object = (unit_object *)OBJECT_DATA(object_index);
+        object_actor = object->unit.actor_index;
         class_index = *(int16_t *)(row + 0xa);
         priority = ai_communication_class_priority[class_index];
         if (*(int16_t *)(row + 0x2) != -1 && *(int16_t *)(row + 0x2) != *(int16_t *)((uint8_t *)event_record + 0x8)) {
@@ -1072,8 +1072,8 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         if (speaker_unit == k_datum_index_none) {
             continue;
         }
-        speaker = OBJECT_DATA(speaker_unit);
-        if (*(datum_index *)(speaker + 0x218) != k_datum_index_none) {
+        speaker = (unit_object *)OBJECT_DATA(speaker_unit);
+        if (speaker->unit.controlling_player != k_datum_index_none) {
             continue;
         }
         if (!force) {
@@ -1085,7 +1085,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         }
         if (*(ai_communication_line_predicate *)(row + 0x20) != 0 &&
             !(*(ai_communication_line_predicate *)(row + 0x20))(object_index, event_record,
-                                                                 *(datum_index *)(speaker + 0x1f4))) {
+                                                                 speaker->unit.actor_index)) {
             continue;
         }
         dialogue_index = (int16_t)*(uint16_t *)(row + 0x6);
@@ -1112,7 +1112,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
             speech[0x1a] = 1;
             halo::units::unit_commit_speech(speaker_unit, (unit_speech *)speech, (int16_t)status);
             halo::ai::ai_communication_record_line_played(speaker_unit, priority, -1, (int16_t)row_index);
-            halo::ai::actor_issue_order_or_vocalize(k_datum_index_none, *(datum_index *)(speaker + 0x1f4), object_index, 8,
+            halo::ai::actor_issue_order_or_vocalize(k_datum_index_none, speaker->unit.actor_index, object_index, 8,
                                           (int16_t)(uint16_t)ai_communication_class_follow_up[class_index]);
         }
         return;
@@ -1433,7 +1433,7 @@ check_b:
  */
 void AiCommunication::record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id)
 {
-    uint8_t *obj;
+    unit_object *obj;
     datum_index actor_index;
     int32_t current_tick;
     int32_t decay;
@@ -1442,16 +1442,16 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     int32_t *entry;
     int32_t *slot;
 
-    obj = (uint8_t *)halo::ai::object_at(object_index);
-    actor_index = *(datum_index *)(obj + 0x1f4);
+    obj = (unit_object *)halo::ai::object_at(object_index);
+    actor_index = obj->unit.actor_index;
 
     current_tick = halo::game::globals().game_time->game_time;
-    decay = *(int16_t *)(obj + 0x3fa) - 0x2d;
+    decay = obj->unit.speech_duration_ticks - 0x2d;
     if (decay < 0) {
         decay = 0;
     }
     stamp = decay + current_tick;
-    *(int32_t *)(obj + 0x3f0) = stamp;
+    obj->unit.communication_hold_tick = stamp;
 
     if (actor_index == (datum_index)k_datum_index_none) {
         return;
@@ -2118,7 +2118,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
     int16_t candidate_a;
     int16_t candidate_b;
     uint32_t search_kind;
-    void *vehicle_obj;
+    unit_object *vehicle_obj;
     int16_t comm_kind;
     int32_t *timestamp_pair;
     int32_t now;
@@ -2151,10 +2151,10 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                                    (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
                                                    *(int16_t *)((uint8_t *)halo::ai::object_at(param_a) + 0xb8));
                         } else if (target_kind == 3) {
-                            vehicle_obj = object_try_and_get(param_b, 3);
+                            vehicle_obj = (unit_object *)object_try_and_get(param_b, 3);
                             result = -1;
                             if (vehicle_obj != 0) {
-                                result = *(int32_t *)((uint8_t *)vehicle_obj + 0x1f4);
+                                result = static_cast<int32_t>(vehicle_obj->unit.actor_index);
                             }
                         }
 

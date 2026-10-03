@@ -383,7 +383,7 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
 {
     using namespace c_actor_build_order_investigate_encounter_point;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *vehicle;
+    object *vehicle;
     real_point3d entry;
     real_vector3d direction;
     real_point3d hint;
@@ -392,8 +392,8 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     if (act->active_unit_index != k_datum_index_none || act->swarm != 0) {
         return 0;
     }
-    vehicle = (uint8_t *)halo::ai::object_at(vehicle_index);
-    if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (vehicle[0x106] & 4) != 0) {
+    vehicle = (object *)halo::ai::object_at(vehicle_index);
+    if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (static_cast<uint8_t>(vehicle->vitality_flags) & 4) != 0) {
         return 0;
     }
     *(datum_index *)(order + 0x0) = vehicle_index;

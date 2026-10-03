@@ -95,7 +95,7 @@ void ActorView::refresh_combat_context()
     using namespace actor_refresh_combat_context_local;
     actor *self = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
-    uint8_t *unit;
+    unit_object *unit;
     unit_object *parent = 0;
     datum_index parent_index;
     datum_index child;
@@ -137,8 +137,8 @@ void ActorView::refresh_combat_context()
         return;
     }
 
-    unit = object_get((int32_t)self->unit_index);
-    parent_index = ((unit_object *)unit)->base.parent_object;
+    unit = (unit_object *)object_get((int32_t)self->unit_index);
+    parent_index = unit->base.parent_object;
     if (parent_index != k_datum_index_none) {
         parent = (unit_object *)object_get(parent_index);
     }
@@ -224,10 +224,10 @@ void ActorView::refresh_combat_context()
         }
     }
 
-    self->unknown_1b4[1] = unit[0x28b] > 0;
+    self->unknown_1b4[1] = static_cast<uint8_t>(unit->unit.flaming_ticks) > 0;
     self->unknown_1b4[0] = 0;
     self->stuck_projectile_index = -1;
-    for (child = ((unit_object *)unit)->base.first_child_object; child != k_datum_index_none;
+    for (child = unit->base.first_child_object; child != k_datum_index_none;
          child = *(datum_index *)(object_get(child) + 0x114)) {
         uint8_t *child_object = object_get(child);
         int16_t type = ((struct object *)child_object)->type;
@@ -258,7 +258,7 @@ void ActorView::refresh_combat_context()
 
     self->airborne = 0;
     self->pathfinding_surface_index = -1;
-    if (((unit_object *)unit)->base.type == 0 && self->active_unit_index == -1) {
+    if (unit->base.type == 0 && self->active_unit_index == -1) {
         uint8_t *unit_object = object_get((int32_t)self->unit_index);
 
         if ((int8_t)unit_object[0x501] >= 6) {
@@ -277,8 +277,8 @@ void ActorView::refresh_combat_context()
         }
     }
     if (self->vehicle_gunner) {
-        uint8_t *vehicle = object_get((int32_t)self->active_unit_index);
-        Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)vehicle);
+        object *vehicle = (object *)object_get((int32_t)self->active_unit_index);
+        Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(vehicle->definition_tag);
 
         if (vehicle_tag->vehicle_flags & 0x100) {
             halo::units::unit_get_forward_vector_or_marker_normal((int32_t)self->unit_index, &self->unit_aiming_vector);
@@ -286,17 +286,17 @@ void ActorView::refresh_combat_context()
             *(real_vector3d *)&self->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
     } else {
-        *(real_vector3d *)&self->unit_aiming_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
+        *(real_vector3d *)&self->unit_aiming_vector.i = *(real_vector3d *)&unit->unit.aiming_vector.i;
     }
-    *(real_vector3d *)&self->unit_looking_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
+    *(real_vector3d *)&self->unit_looking_vector.i = *(real_vector3d *)&unit->unit.looking_vector.i;
     halo::math::vector3d_cross_product(self->looking_left_vector, self->unit_looking_vector, *halo::math::globals().global_up3d_pointer);
     halo::math::vector3d_normalize_with_length(self->looking_left_vector);
     halo::math::vector3d_cross_product(self->looking_up_vector, self->looking_left_vector,
         self->unit_looking_vector);
-    A_I32(0x1b8) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.body_vitality);
-    A_I32(0x1bc) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.shield_vitality);
-    A_I32(0x1c0) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.recent_body_damage);
-    A_I32(0x1c4) = halo::bit_cast<int32_t>(((struct unit_object *)unit)->base.recent_shield_damage);
+    A_I32(0x1b8) = halo::bit_cast<int32_t>(unit->base.body_vitality);
+    A_I32(0x1bc) = halo::bit_cast<int32_t>(unit->base.shield_vitality);
+    A_I32(0x1c0) = halo::bit_cast<int32_t>(unit->base.recent_body_damage);
+    A_I32(0x1c4) = halo::bit_cast<int32_t>(unit->base.recent_shield_damage);
 }
 
 #undef A_I16

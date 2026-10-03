@@ -856,7 +856,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
     using namespace c_actor_find_or_create_shared_prop;
     datum_index result = (datum_index)halo::k_dword_none;
     actor *self;
-    uint8_t *object;
+    unit_object *object;
     int32_t cluster_ref;
 
     if (object_index == (datum_index)halo::k_dword_none) {
@@ -864,10 +864,10 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
     }
 
     self = halo::ai::actor_at(actor_index);
-    object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
-    cluster_ref = *(int32_t *)(object + 0x1f8);
+    object = (unit_object *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index)));
+    cluster_ref = static_cast<int32_t>(object->unit.swarm_actor_index);
     if (cluster_ref == -1) {
-        cluster_ref = *(int32_t *)(object + 500);
+        cluster_ref = static_cast<int32_t>(object->unit.actor_index);
     }
 
     if ((((struct object *)object)->type == 0) && ((datum_index)cluster_ref != actor_index)) {
@@ -942,13 +942,13 @@ namespace c_actor_find_prop_for_object {
 datum_index halo::ai::prop_ops::find_prop_for_object(datum_index object_index, datum_index actor_index)
 {
     using namespace c_actor_find_prop_for_object;
-    uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
-    int32_t cluster_ref = *(int32_t *)(object + 0x1f8);
+    unit_object *object = (unit_object *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index)));
+    int32_t cluster_ref = static_cast<int32_t>(object->unit.swarm_actor_index);
     actor *self;
     datum_index cur;
 
     if (cluster_ref == -1) {
-        cluster_ref = *(int32_t *)(object + 500);
+        cluster_ref = static_cast<int32_t>(object->unit.actor_index);
     }
 
     self = halo::ai::actor_at(actor_index);

@@ -73,9 +73,9 @@ uint8_t halo::ai::alert_mode::process()
             }
         }
         if (ready && !(actor->mode_data.alert.wait_ticks > 0) && actor->mode_data.alert.position_reached == 0) {
-            uint8_t *unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
+            unit_object *unit = (unit_object *)halo::ai::object_at(actor->unit_index);
 
-            if (unit[0x2a3] != 0x1c) {
+            if (static_cast<uint8_t>(unit->unit.animation_state) != 0x1c) {
                 actor->mode_data.alert.next_position = (int16_t)halo::ai::actor_select_move_position(actor_index, count, current, &actor->mode_data.alert.direction_flag);
             }
         }
@@ -186,9 +186,9 @@ void halo::ai::alert_mode::tick()
         datum_index graph = *(datum_index *)(animation + 0x2c);
 
         if (graph == k_datum_index_none) {
-            uint8_t *unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
+            object *unit = (object *)halo::ai::object_at(actor->unit_index);
 
-            graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data + 0x44);
+            graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[unit->definition_tag & halo::k_slot_mask].data + 0x44);
         }
         halo::units::unit_start_user_animation(actor->unit_index, graph, (const char *)animation, 1);
     }

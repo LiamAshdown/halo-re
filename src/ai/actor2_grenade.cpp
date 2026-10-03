@@ -53,10 +53,10 @@ void ActorView::recompute_grenade_eligibility()
     float fraction;
 
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        uint8_t *unit_obj = (uint8_t *)halo::ai::object_at(self->unit_index);
+        unit_object *unit_obj = (unit_object *)halo::ai::object_at(self->unit_index);
 
-        if (*(int16_t *)(unit_obj + 0x388) > 0) {
-            base_ticks = *(int16_t *)(unit_obj + 0x3fa);
+        if (unit_obj->unit.current_speech.priority > 0) {
+            base_ticks = unit_obj->unit.speech_duration_ticks;
         }
     }
 

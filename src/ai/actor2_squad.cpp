@@ -1134,7 +1134,7 @@ void ActorOps::squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_
 {
     using namespace actor_squad_react_to_grenade_for_vehicle_occupants_local;
     uint8_t *vehicle;
-    uint8_t *occupant;
+    unit_object *occupant;
     datum_index occupant_index;
     datum_index actor;
     datum_index prop;
@@ -1150,8 +1150,8 @@ void ActorOps::squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_
     if (occupant_index == k_datum_index_none) {
         occupant_index = vehicle_object_index;
     }
-    occupant = OBJECT_DATA(occupant_index);
-    if (*(int16_t *)(occupant + 0xb4) != 0) {
+    occupant = (unit_object *)OBJECT_DATA(occupant_index);
+    if (occupant->base.type != 0) {
         return;
     }
     actor = *(datum_index *)(OBJECT_DATA(other_object_index) + 0x1f4);
@@ -1161,7 +1161,7 @@ void ActorOps::squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_
             halo::ai::actor_squad_react_to_grenade(actor, prop, 0);
         }
     }
-    actor = *(datum_index *)(occupant + 0x1f4);
+    actor = occupant->unit.actor_index;
     if (actor != k_datum_index_none) {
         prop = halo::ai::actor_find_or_create_shared_prop(other_object_index, actor, 1, 0);
         if (prop != k_datum_index_none) {

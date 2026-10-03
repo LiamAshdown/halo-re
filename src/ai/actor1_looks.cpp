@@ -63,10 +63,10 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
             (const real_vector2d *)((uint8_t *)actor + 0x6f0));
     }
     if (actor->persistent_control_ticks > 0) {
-        uint8_t *object = (uint8_t *)halo::ai::object_at(actor->unit_index);
+        unit_object *object = (unit_object *)halo::ai::object_at(actor->unit_index);
 
-        *(int32_t *)(object + 0x210) = actor->persistent_control_ticks;
-        *(uint32_t *)(object + 0x214) = actor->persistent_control_flags;
+        object->unit.persistent_control_ticks = actor->persistent_control_ticks;
+        object->unit.persistent_control_flags = actor->persistent_control_flags;
     }
 }
 

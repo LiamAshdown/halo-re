@@ -597,9 +597,9 @@ void halo::ai::flee_mode::exit()
     datum_index unit_index = ((struct actor *)ACTOR(actor_index))->unit_index;
 
     if (unit_index != k_datum_index_none) {
-        uint8_t *obj = (uint8_t *)halo::ai::object_at(unit_index);
+        unit_object *obj = (unit_object *)halo::ai::object_at(unit_index);
 
-        *(uint32_t *)(obj + 0x204) &= ~0x2000000u;
+        obj->unit.flags &= ~0x2000000u;
     }
 }
 

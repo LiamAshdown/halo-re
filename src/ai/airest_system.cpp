@@ -659,7 +659,7 @@ void AiSystem::process_vehicle_entry_queue()
         for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
             datum_index gunner_tag = *(datum_index *)(*(uint8_t **)(vehicle_tag + 0x2e8) + seat_index * 0x11c + 0x104);
             actor_placement_request request;
-            uint8_t *vehicle;
+            object *vehicle;
             datum_index actor_index;
 
             if (gunner_tag == k_datum_index_none) {
@@ -667,14 +667,14 @@ void AiSystem::process_vehicle_entry_queue()
             }
             memset(&request, 0, 0x1c);
             *(int16_t *)((uint8_t *)&request + 0x1a) = -1;
-            vehicle = OBJECT_DATA(vehicle_index);
+            vehicle = (object *)OBJECT_DATA(vehicle_index);
             if (((vehicle_object *)vehicle)->base.parent_object == k_datum_index_none) {
                 request.position = *(real_point3d *)&((vehicle_object *)vehicle)->base.position.x;
             } else {
                 uint8_t *parent = OBJECT_DATA(((vehicle_object *)vehicle)->base.parent_object);
 
-                halo::math::matrix4x3_transform_point(request.position, *(real_point3d *)(vehicle + 0x5c),
-                    *(real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle[0x120] * 0x34));
+                halo::math::matrix4x3_transform_point(request.position, *&vehicle->position,
+                    *(real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle->parent_marker_index * 0x34));
             }
             actor_index = halo::ai::actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
