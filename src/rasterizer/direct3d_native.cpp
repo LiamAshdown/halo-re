@@ -15,9 +15,9 @@
 namespace halo::rasterizer {
 
 
-static uint32_t get_param(uint32_t effect, const char *name)
+static void *get_param(void *effect, const char *name)
 {
-    return (uint32_t)render_device().effect_get_parameter_by_name(effect, 0, name);
+    return halo::rasterizer::d3d_arg(render_device().effect_get_parameter_by_name(effect, 0, name)).get();
 }
 
 /**
@@ -32,7 +32,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     int32_t hr;
     uint8_t success;
     int i;
-    uint32_t *handles;
+    void **handles;
 
     saved_locale = GetThreadLocale();
     SetThreadLocale(0x409);
@@ -62,9 +62,9 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 116; i <= 121; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x14);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x14));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_primary_change_color");
         handles[1] = get_param(effect, "c_fog_color_correction_0");
         handles[2] = get_param(effect, "c_fog_color_correction_E");
@@ -73,27 +73,27 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 32; i <= 34; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     for (i = 37; i <= 39; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[106].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x10);
-        rasterizer_effects[106].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[106].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x10));
+        rasterizer_effects[106].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
@@ -101,27 +101,27 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     {
-        uint32_t effect = rasterizer_effects[107].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[107].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[107].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[107].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[108].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0xc);
-        rasterizer_effects[108].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[108].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0xc));
+        rasterizer_effects[108].constant_handles = handles;
         handles[0] = get_param(effect, "c_eye_forward");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[0].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x18);
-        rasterizer_effects[0].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[0].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x18));
+        rasterizer_effects[0].constant_handles = handles;
         handles[0] = get_param(effect, "c_material_color");
         handles[1] = get_param(effect, "c_plasma_animation");
         handles[2] = get_param(effect, "c_primary_color");
@@ -131,24 +131,24 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 1; i <= 3; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 4);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 4));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_material_color");
     }
 
     {
-        uint32_t effect = rasterizer_effects[114].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 8);
-        rasterizer_effects[114].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[114].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 8));
+        rasterizer_effects[114].constant_handles = handles;
         handles[0] = get_param(effect, "c_desaturation_tint");
         handles[1] = get_param(effect, "c_light_enhancement");
     }
 
     for (i = 40; i <= 43; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
-        handles = (uint32_t *)GlobalAlloc(0, 0x10);
-        rasterizer_effects[i].constant_handles = (uint32_t)handles;
+        void *effect = rasterizer_effects[i].effect;
+        handles = static_cast<void **>(GlobalAlloc(0, 0x10));
+        rasterizer_effects[i].constant_handles = handles;
         handles[0] = get_param(effect, "c_specular_brightness");
         handles[1] = get_param(effect, "c_view_perpendicular_color");
         handles[2] = get_param(effect, "c_view_parallel_color");

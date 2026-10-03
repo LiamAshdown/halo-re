@@ -1,4 +1,5 @@
 #include "halo/rasterizer/globals.hpp"
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/core/datum.hpp"
 #include "crt.h"
 #include "win32.h"
@@ -38,6 +39,8 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/main/api.hpp"
+
+using halo::rasterizer::render_device;
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
@@ -92,25 +95,12 @@ static float progress(float start_time, float end_time)
     return t;
 }
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
-
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
-
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
-
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data,
-                                         uint32_t count);
-
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type,
-                                            uint32_t primitive_count, const void *data,
-                                            uint32_t stride);
-
 /**
  * Calls IDirect3DDevice::SetRenderState through the device method table.
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    halo::d3d9::device_function<d3d_call2_fn>(halo::rasterizer::globals().device, halo::d3d9::device_method::set_render_state)(halo::rasterizer::globals().device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 /**
@@ -118,14 +108,10 @@ static void set_render_state(uint32_t state, uint32_t value)
  */
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    halo::d3d9::device_function<d3d_call3_fn>(halo::rasterizer::globals().device, halo::d3d9::device_method::set_texture_stage_state)(halo::rasterizer::globals().device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
-typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
-
 typedef int32_t (__stdcall *d3d_release_fn)(void *self);
-
-typedef int32_t (__stdcall *d3d_clear_state_slot_fn)(void *device, uint32_t value);
 
 /**
  * stack -> (cursor, flags, text). src/rasterizer types the two stack slots as opaque
@@ -401,12 +387,10 @@ void draw(uint8_t render_graph, uint8_t render_infos)
         return;
     }
 
-    d3d9::device_function<d3d_call1_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_vertex_declaration)(halo::rasterizer::globals().device,
-        rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    d3d9::device_function<d3d_call1_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_software_vertex_processing)(halo::rasterizer::globals().device,
-        ((halo::rasterizer::globals().software_vertex_processing != 0 ? d3d9::k_usage_software_processing : 0) |
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_software_vertex_processing(((halo::rasterizer::globals().software_vertex_processing != 0 ? d3d9::k_usage_software_processing : 0) |
          rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & d3d9::k_usage_software_processing);
-    d3d9::device_function<d3d_call1_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_vertex_shader)(halo::rasterizer::globals().device, rasterizer_vertex_shaders[35].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
 
     width = (int16_t)(halo::rasterizer::globals().window.camera.viewport_bounds.right -
                       halo::rasterizer::globals().window.camera.viewport_bounds.left);
@@ -434,9 +418,9 @@ void draw(uint8_t render_graph, uint8_t render_infos)
     constants[17] = 1.0f;
     constants[18] = 0.0f;
     constants[19] = 1.0f;
-    d3d9::device_function<d3d_set_constant_f_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_vertex_shader_constant_f)(halo::rasterizer::globals().device, 13, constants, 5);
+    render_device().set_vertex_shader_constant_f(13, constants, 5);
 
-    d3d9::device_function<d3d_call1_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_pixel_shader)(halo::rasterizer::globals().device, 0);
+    render_device().set_pixel_shader(0);
     halo::rasterizer::rasterizer_set_shader_stage_config(0);
     set_render_state((uint32_t)d3d9::render_state::cull_mode, d3d9::k_cull_none);
     set_render_state((uint32_t)d3d9::render_state::color_write_enable, d3d9::k_color_write_all);
@@ -451,14 +435,14 @@ void draw(uint8_t render_graph, uint8_t render_infos)
     set_texture_stage_state(0, (uint32_t)d3d9::texture_stage_state::alpha_arg2, d3d9::k_texture_argument_diffuse);
     set_texture_stage_state(1, (uint32_t)d3d9::texture_stage_state::color_op, (uint32_t)d3d9::texture_op::disable);
     set_texture_stage_state(1, (uint32_t)d3d9::texture_stage_state::alpha_op, (uint32_t)d3d9::texture_op::disable);
-    d3d9::device_function<d3d_call2_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_texture)(halo::rasterizer::globals().device, 0, 0);
+    render_device().set_texture(0, 0);
     set_render_state((uint32_t)d3d9::render_state::point_sprite_enable, 1);
     set_render_state((uint32_t)d3d9::render_state::point_scale_enable, 0);
 
     if (render_graph) {
-        d3d9::device_function<d3d_draw_primitive_up_fn>(halo::rasterizer::globals().device, d3d9::device_method::draw_primitive_up)(halo::rasterizer::globals().device, d3d9::k_primitive_line_strip, k_frame_graph_vertex_count - 1,
+        render_device().draw_primitive_up(d3d9::k_primitive_line_strip, k_frame_graph_vertex_count - 1,
             frame_graphs[0].vertices, sizeof(rasterizer_dynamic_screen_vertex));
-        d3d9::device_function<d3d_draw_primitive_up_fn>(halo::rasterizer::globals().device, d3d9::device_method::draw_primitive_up)(halo::rasterizer::globals().device, d3d9::k_primitive_line_strip, 4,
+        render_device().draw_primitive_up(d3d9::k_primitive_line_strip, 4,
             frame_graphs[0].frame_vertices, sizeof(rasterizer_dynamic_screen_vertex));
     }
 
@@ -478,7 +462,7 @@ void draw(uint8_t render_graph, uint8_t render_infos)
         halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&frame_graphs[0].average_bounds, 0, 0, text);
     }
 
-    d3d9::device_function<d3d_call1_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_software_vertex_processing)(halo::rasterizer::globals().device, halo::rasterizer::globals().software_vertex_processing);
+    render_device().set_software_vertex_processing(halo::rasterizer::globals().software_vertex_processing);
 }
 
 }  // namespace halo::render::fg
@@ -495,17 +479,15 @@ namespace halo::render::rasterizer {
 void *dynamic_index_slot_lock(int32_t slot_index)
 {
     rasterizer_dynamic_index_slot *slot;
-    d3d_lock_fn lock;
 
     if (slot_index == -1) {
         return 0;
     }
 
     slot = &rasterizer_dynamic_index_slots[slot_index];
-    lock = d3d9::buffer_function<d3d_lock_fn>(halo::rasterizer::globals().dynamic_index_buffer, d3d9::buffer_method::lock);
-    lock(halo::rasterizer::globals().dynamic_index_buffer, slot->first_index * 6, slot->index_count * 6,
-         (void **)&slot->locked_indices, d3d9::k_lock_no_overwrite);
-    return (void *)slot->locked_indices;
+    render_device().buffer_lock(halo::rasterizer::globals().dynamic_index_buffer, slot->first_index * 6, slot->index_count * 6,
+                                &slot->locked_indices, d3d9::k_lock_no_overwrite);
+    return slot->locked_indices;
 }
 
 /**
@@ -527,8 +509,7 @@ void effect_slot_release_active(void)
     }
     rasterizer_effect_pool_scratch = 0;
 
-    vtable = *(void ***)halo::rasterizer::globals().device;
-    ((d3d_clear_state_slot_fn)vtable[(uint32_t)d3d9::device_method::set_fvf])(halo::rasterizer::globals().device, 0);
+    render_device().set_fvf(0);
 }
 
 /**

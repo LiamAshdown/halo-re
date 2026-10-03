@@ -354,7 +354,7 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
         return 0;
     }
     halo::cache::texture_cache_get(bitmap, 1, 1);
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *&((struct BitmapData *)bitmap)->hardware_texture);
     return 1;
 }

@@ -847,7 +847,7 @@ uint8_t rasterizer_screen_effect_init_shaders(void)
 
     for (i = 0; i < k_rasterizer_screen_effect_techniques; i++) {
         screen_effect_techniques[i] = (int32_t)(uintptr_t)rasterizer_shader_technique_for_name(
-            (void *)(uintptr_t)rasterizer_effects[114].effect, k_video_technique_names[i]);
+            rasterizer_effects[114].effect, k_video_technique_names[i]);
         if (screen_effect_techniques[i] == 0) {
             return 0;
         }
@@ -877,7 +877,7 @@ static void set_sampler_states(uint32_t sampler, uint32_t address, uint32_t filt
     set_sampler_state(sampler, halo::d3d9::ss::mip_filter, mip_filter);
 }
 
-static void *screen_effect(void) { return (void *)(uintptr_t)rasterizer_effects[114].effect; }
+static void *screen_effect(void) { return rasterizer_effects[114].effect; }
 
 static void draw_screen_quad(void)
 {
@@ -891,7 +891,7 @@ static void set_technique(uint32_t technique)
 
 static void set_vector(int handle_index, const float *vector)
 {
-    uint32_t *handles = (uint32_t *)(uintptr_t)rasterizer_effects[114].constant_handles;
+    void **handles = rasterizer_effects[114].constant_handles;
 
     render_device().effect_set_vector(screen_effect(), handles[handle_index], vector);
 }
@@ -1638,7 +1638,7 @@ static void set_quad_vertex(int i, float x, float y, float u, float v)
 int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
 {
     int16_t pass;
-    uint32_t effect = rasterizer_effects[76].effect;
+    void *effect = rasterizer_effects[76].effect;
 
     if (effect == NULL || passes <= 0) {
         return (passes & 1) ? second : first;
@@ -1666,7 +1666,7 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
         uint32_t effect_passes;
 
         for (stage = 0; stage < 4; stage++) {
-            uint32_t texture = (source < 9 && source >= 0) ? rasterizer_render_targets[source].texture : 0;
+            void *texture = (source < 9 && source >= 0) ? rasterizer_render_targets[source].texture : NULL;
 
             render_device().set_texture(stage, texture);
             render_device().set_sampler_state(stage, halo::d3d9::ss::mip_filter, 1);
@@ -1721,7 +1721,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
 {
     float constants[8][4];
     float width, height;
-    uint32_t effect;
+    void *effect;
     int i, j;
 
     render_device().set_texture(0, rasterizer_render_targets[1].texture);
@@ -2049,7 +2049,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
     draw_quad();
 
-    effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+    effect = rasterizer_effects[77].effect;
     if (effect != NULL) {
         uint32_t passes;
         uint32_t pass;
@@ -2077,14 +2077,14 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
 
             set_quad_color_and_uv((alpha << 24) | 0x00ffffff);
             set_quad_position(rect[0] - grow, rect[2] - grow, rect[1] + grow, rect[3] + grow, 0.0f);
-            effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+            effect = rasterizer_effects[77].effect;
             render_device().effect_begin(effect, &passes, 3);
             for (pass = 0; pass < passes; pass++) {
-                effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+                effect = rasterizer_effects[77].effect;
                 render_device().effect_pass(effect, pass);
                 draw_quad();
             }
-            effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
+            effect = rasterizer_effects[77].effect;
             render_device().effect_end(effect);
         }
     }
@@ -2338,7 +2338,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     }
 
     if (ok && slot != NULL && slot->effect != 0) {
-        uint32_t effect = slot->effect;
+        void *effect = slot->effect;
         uint32_t passes;
         uint32_t pass;
 

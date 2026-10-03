@@ -141,8 +141,8 @@ typedef struct rasterizer_vertex_buffer {
     int32_t count;                  // 0x04 vertex count
     int16_t unknown_08;             // 0x08 zeroed by the constructor
     int16_t unknown_0a;             // 0x0a zeroed by the constructor
-    uint32_t data;                  // 0x0c void* source vertices (tag data)
-    uint32_t hardware_buffer;       // 0x10 void* IDirect3DVertexBuffer9, from the 0x530570 wrapper
+    void *data;                     // 0x0c source vertices (tag data)
+    void *hardware_buffer;          // 0x10 IDirect3DVertexBuffer9, from the 0x530570 wrapper
 } rasterizer_vertex_buffer;         // size 0x14
 
 // ---------------------------------------------------------------------------
@@ -156,8 +156,8 @@ typedef struct rasterizer_index_buffer {
     int16_t type;                   // 0x00 TriangleBufferType
     int16_t unknown_02;             // 0x02 alignment
     int32_t count;                  // 0x04 primitive count
-    uint32_t data;                  // 0x08 void* source indices (tag data)
-    uint32_t hardware_buffer;       // 0x0c void* IDirect3DIndexBuffer9
+    const void *data;               // 0x08 source indices (tag data)
+    void *hardware_buffer;          // 0x0c IDirect3DIndexBuffer9
 } rasterizer_index_buffer;          // size 0x10
 
 // ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ typedef struct rasterizer_index_buffer {
 // usage straight to CreateVertexBuffer.
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_declaration {
-    uint32_t declaration;           // 0x00 void* IDirect3DVertexDeclaration9
+    void *declaration;              // 0x00 IDirect3DVertexDeclaration9
     uint32_t fvf;                   // 0x04 always 0 in this build
     uint32_t usage;                 // 0x08 D3DUSAGE bits for buffers of this type
 } rasterizer_vertex_declaration;    // size 0x0c
@@ -183,7 +183,7 @@ typedef struct rasterizer_vertex_declaration {
 // is the device reset path for default-pool buffers.
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_buffer_slot {
-    uint32_t hardware_buffer;       // 0x00 void* IDirect3DVertexBuffer9, NULL when free
+    void *hardware_buffer;          // 0x00 IDirect3DVertexBuffer9, NULL when free
     int32_t vertex_type;            // 0x04 rasterizer_vertex_type (EAX of 0x530570)
     uint32_t length;                // 0x08 bytes
     uint32_t fvf;                   // 0x0c
@@ -213,7 +213,7 @@ typedef struct rasterizer_dynamic_vertex_slot {
     int16_t unknown_02;             // 0x02 alignment
     int32_t first_vertex;           // 0x04
     int32_t vertex_count;           // 0x08
-    uint32_t locked_vertices;       // 0x0c void* Lock result, NULL on failure
+    void *locked_vertices;          // 0x0c Lock result, NULL on failure
 } rasterizer_dynamic_vertex_slot;   // size 0x10
 
 // ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ typedef struct rasterizer_dynamic_vertex_slot {
 typedef struct rasterizer_dynamic_index_slot {
     int32_t first_index;            // 0x00
     int32_t index_count;            // 0x04
-    int32_t locked_indices;         // 0x08 0x08 out pointer of the index buffer Lock in
+    void *locked_indices;           // 0x08 out pointer of the index buffer Lock in
                                     //    rasterizer_dynamic_index_slot_lock, which returns it; the sibling
                                     //    rasterizer_dynamic_vertex_slot keeps locked_vertices
 } rasterizer_dynamic_index_slot;    // size 0x0c
@@ -237,10 +237,10 @@ typedef struct rasterizer_dynamic_index_slot {
 // that 0x5202f0/0x520e50/0x531ed0 read through +0x18.
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_effect_slot {
-    uint32_t effect;                // 0x00 void* ID3DXEffect
+    void *effect;                   // 0x00 ID3DXEffect
     int32_t vertex_shader_index;    // 0x04 index into rasterizer_vertex_shaders (0x0069e350)
-    uint32_t texture_handles[4];    // 0x08 void* D3DXHANDLE Texture0..Texture3
-    uint32_t constant_handles;      // 0x18 void** GlobalAlloc array of named constant handles
+    void *texture_handles[4];       // 0x08 D3DXHANDLE Texture0..Texture3
+    void **constant_handles;        // 0x18 GlobalAlloc array of named constant handles
     uint32_t unknown_1c;            // 0x1c no reader found
 } rasterizer_effect_slot;           // size 0x20
 
@@ -250,7 +250,7 @@ typedef struct rasterizer_effect_slot {
 // creates the rest from shaders\vsh.bin with CreateVertexShader (device +0x16c).
 // ---------------------------------------------------------------------------
 typedef struct rasterizer_vertex_shader {
-    uint32_t shader;                // 0x00 void* IDirect3DVertexShader9
+    void *shader;                   // 0x00 IDirect3DVertexShader9
     int32_t enabled;                // 0x04 static initialised data; 0 skips the chunk
 } rasterizer_vertex_shader;         // size 0x08
 
@@ -265,8 +265,8 @@ typedef struct rasterizer_render_target {
     uint32_t width;                 // 0x00
     uint32_t height;                // 0x04
     uint32_t format;                // 0x08 D3DFORMAT; 0x15 A8R8G8B8
-    uint32_t surface;               // 0x0c void* IDirect3DSurface9
-    uint32_t texture;               // 0x10 void* IDirect3DTexture9
+    void *surface;                  // 0x0c IDirect3DSurface9
+    void *texture;                  // 0x10 IDirect3DTexture9
 } rasterizer_render_target;         // size 0x14
 
 // ---------------------------------------------------------------------------

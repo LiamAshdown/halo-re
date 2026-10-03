@@ -147,7 +147,7 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
     if (index < k_rasterizer_pixel_shader_effects) {
         int i;
         for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
-            uint32_t effect = rasterizer_effects[i].effect;
+            void *effect = rasterizer_effects[i].effect;
             if (effect != 0) {
                 render_device().release(effect);
                 rasterizer_effects[i].effect = 0;
@@ -164,7 +164,7 @@ static void free_constant_handles(int first, int last)
     int i;
     for (i = first; i <= last; i++) {
         if (rasterizer_effects[i].constant_handles != 0) {
-            GlobalFree((void *)rasterizer_effects[i].constant_handles);
+            GlobalFree(rasterizer_effects[i].constant_handles);
             rasterizer_effects[i].constant_handles = 0;
         }
     }
@@ -191,7 +191,7 @@ void rasterizer_dx9_pixel_shaders_release(void)
     free_constant_handles(40, 43);
 
     for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
-        uint32_t effect = rasterizer_effects[i].effect;
+        void *effect = rasterizer_effects[i].effect;
         if (effect != 0) {
             render_device().release(effect);
             rasterizer_effects[i].effect = 0;
@@ -228,7 +228,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
     int i;
     static const char *texture_param_names[4] = { "Texture0", "Texture1", "Texture2", "Texture3" };
 
-    effect = (void *)rasterizer_effects[effect_index].effect;
+    effect = rasterizer_effects[effect_index].effect;
     technique = 0;
     found = 0;
 
@@ -278,7 +278,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
 
     for (i = 0; i < 4; i++) {
         rasterizer_effects[effect_index].texture_handles[i] =
-            (uint32_t)render_device().effect_get_parameter_by_name(effect, 0, texture_param_names[i]);
+            d3d_arg(render_device().effect_get_parameter_by_name(effect, 0, texture_param_names[i])).get();
     }
     return found;
 }
@@ -498,8 +498,8 @@ uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_i
             if (render_device().buffer_unlock(buffer) < 0) {
                 ok = 0;
             }
-            out->hardware_buffer = (uint32_t)(uintptr_t)buffer;
-            out->data = (uint32_t)(uintptr_t)source;
+            out->hardware_buffer = buffer;
+            out->data = source;
             return ok;
         }
     }
@@ -798,9 +798,9 @@ void rasterizer_render_target_capture_frame(void)
 namespace rasterizer_render_target_dispose_impl {
 
 
-static void release_com(uint32_t *slot)
+static void release_com(void **slot)
 {
-    void *object = (void *)(uintptr_t)*slot;
+    void *object = *slot;
     if (object != 0) {
         render_device().release(object);
         *slot = 0;
@@ -1123,8 +1123,8 @@ uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_
             record->type = vertex_type;
             record->count = count;
             *(uint32_t *)&record->unknown_08 = 0;
-            record->data = (uint32_t)source_data;
-            record->hardware_buffer = (uint32_t)buffer;
+            record->data = source_data;
+            record->hardware_buffer = buffer;
             if (ok) {
                 return ok;
             }
@@ -1172,7 +1172,7 @@ int32_t rasterizer_vertex_buffer_slot_allocate(int32_t vertex_type, uint32_t fvf
     }
     rasterizer_vertex_buffer_slot_count++;
 
-    rasterizer_vertex_buffer_slots[index].hardware_buffer = (uint32_t)buffer;
+    rasterizer_vertex_buffer_slots[index].hardware_buffer = buffer;
     rasterizer_vertex_buffer_slots[index].vertex_type = vertex_type;
     rasterizer_vertex_buffer_slots[index].length = length;
     rasterizer_vertex_buffer_slots[index].fvf = fvf;
@@ -1193,7 +1193,7 @@ void rasterizer_vertex_buffer_slot_recreate_lost(void)
     for (i = 0; i < rasterizer_vertex_buffer_slot_high_water; i++) {
         rasterizer_vertex_buffer_slot *slot = &rasterizer_vertex_buffer_slots[i];
         if (slot->length != 0 && slot->managed == 0) {
-            slot->hardware_buffer = (uint32_t)rasterizer_dx9_create_vertex_buffer(slot->vertex_type, slot->length,
+            slot->hardware_buffer = rasterizer_dx9_create_vertex_buffer(slot->vertex_type, slot->length,
                                                                                   slot->fvf, 0);
         }
     }

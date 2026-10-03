@@ -90,7 +90,7 @@ void rasterizer_glass_diffuse_draw(transparent_geometry_group *group)
 {
     int16_t vertex_type;
     int16_t shader_index;
-    uint32_t declaration;
+    void *declaration;
     int32_t has_lightmap;
     uint32_t pass_index;
 
@@ -110,13 +110,13 @@ void rasterizer_glass_diffuse_draw(transparent_geometry_group *group)
     if (vertex_type == 0 || vertex_type == 2) {
         shader_index = 0;
         declaration = (group->lightmap_bitmap == 0) ?
-            (uint32_t)rasterizer_vertex_declarations[0].declaration : rasterizer_vertex_declarations[2].declaration;
+            rasterizer_vertex_declarations[0].declaration : rasterizer_vertex_declarations[2].declaration;
     } else if (vertex_type == 4) {
         declaration = rasterizer_vertex_declarations[4].declaration;
         shader_index = 1;
     } else {
         shader_index = (int16_t)(uint32_t)group;
-        declaration = (uint32_t)rasterizer_vertex_declarations[0].declaration;
+        declaration = rasterizer_vertex_declarations[0].declaration;
     }
 
     render_device().set_vertex_declaration(declaration);
@@ -170,7 +170,7 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *group)
 {
     int16_t vertex_type;
-    uint32_t declaration;
+    void *declaration;
     uint32_t pass_count;
     uint32_t pass;
 
@@ -351,8 +351,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     case 0:
         shader_base = 0x32;
         if (effect_slot->constant_handles != 0) {
-            const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
-            uint32_t effect = effect_slot->effect;
+            void **handles = effect_slot->constant_handles;
+            void *effect = effect_slot->effect;
 
             for (i = 0; i < 4; i++) {
                 render_device().effect_set_vector(effect, handles[i], &vectors[i * 4]);
@@ -370,8 +370,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         effect_slot = &rasterizer_effects[108];
         shader_base = 0x36;
         if (effect_slot->constant_handles != 0) {
-            const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
-            uint32_t effect = effect_slot->effect;
+            void **handles = effect_slot->constant_handles;
+            void *effect = effect_slot->effect;
 
             for (i = 0; i < 3; i++) {
                 render_device().effect_set_vector(effect, handles[i], &vectors[i * 4]);
@@ -432,7 +432,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     }
 
     {
-        uint32_t effect = effect_slot->effect;
+        void *effect = effect_slot->effect;
         float bump_scale = glass->bump_map_scale;
         uint32_t bump_map_tag = halo::tag_id_bits(glass->bump_map.tag_id);
         uint32_t normalization_tag = halo::tag_id_bits(rasterizer_globals_data->vector_normalization.tag_id);
@@ -1580,7 +1580,7 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
             }
         }
     }
-    effect = (void *)(uintptr_t)rasterizer_effects[44].effect;
+    effect = rasterizer_effects[44].effect;
     if (effect == NULL) {
         return;
     }
@@ -1668,11 +1668,11 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[vertex_type].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[59].shader);
     for (pass = 0; pass < passes; pass++) {
-        effect = (void *)(uintptr_t)rasterizer_effects[44].effect;
+        effect = rasterizer_effects[44].effect;
         render_device().effect_pass(effect, pass);
         rasterizer_transparent_geometry_group_draw_vertices(group, 0);
     }
-    effect = (void *)(uintptr_t)rasterizer_effects[44].effect;
+    effect = rasterizer_effects[44].effect;
     render_device().effect_end(effect);
 }
 
@@ -1730,7 +1730,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
     ShaderTransparentWater *water = (ShaderTransparentWater *)(uintptr_t)group->shader;
     uint16_t frame = group->shader_permutation;
     int16_t vertex_type = -1;
-    uint32_t declaration;
+    void *declaration;
     uint8_t z_write;
     void *effect;
 
@@ -1742,7 +1742,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
     } else if (group->dynamic_vertex_slot != -1) {
         vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
-    declaration = (uint32_t)rasterizer_vertex_declarations[vertex_type].declaration;
+    declaration = rasterizer_vertex_declarations[vertex_type].declaration;
 
     if ((water->water_flags & k_water_draw_before_fog) != 0 && (group->flags & (_group_immediate_bit | _group_flag_10_bit)) == 0) {
         d3d_call3_fn set_texture_stage_state;
@@ -1772,7 +1772,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
 
     z_write = (uint8_t)((group->flags & _group_flag_10_bit) == 0 && (water->water_flags & k_water_draw_before_fog) == 0);
 
-    effect = (void *)rasterizer_effects[102].effect;
+    effect = rasterizer_effects[102].effect;
     if (effect != 0) {
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(0);
@@ -1807,7 +1807,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         }
     }
 
-    effect = (void *)rasterizer_effects[103].effect;
+    effect = rasterizer_effects[103].effect;
     if (effect != 0) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
         set_render_state(halo::d3d9::rs::color_write_enable, 7);
@@ -1900,7 +1900,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     uint16_t frame = group->shader_permutation;
     int16_t vertex_type = -1;
     int16_t shader_index = 0;
-    uint32_t declaration;
+    void *declaration;
     uint8_t z_write;
     void *effect;
 
@@ -1917,7 +1917,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     } else if (vertex_type == 4) {
         shader_index = 1;
     }
-    declaration = (uint32_t)rasterizer_vertex_declarations[vertex_type].declaration;
+    declaration = rasterizer_vertex_declarations[vertex_type].declaration;
 
     if ((water->water_flags & k_water_draw_before_fog) != 0 && (group->flags & (_group_immediate_bit | _group_flag_10_bit)) == 0) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
@@ -1948,7 +1948,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         halo::rasterizer::fields::water_ripple_update_pending = 0;
     }
 
-    effect = (void *)rasterizer_effects[102].effect;
+    effect = rasterizer_effects[102].effect;
     if (effect != 0) {
         float constants[8];
 
@@ -1991,7 +1991,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         }
     }
 
-    effect = (void *)rasterizer_effects[103].effect;
+    effect = rasterizer_effects[103].effect;
     if (effect != 0) {
         float vertex_constants[12];
 
@@ -2168,7 +2168,7 @@ namespace rasterizer_water_ripple_draw_impl {
  */
 void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const Shader *shader, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count)
 {
-    uint32_t effect = rasterizer_effects[112].effect;
+    void *effect = rasterizer_effects[112].effect;
     const render_fog *fog = &rasterizer_window.fog;
     uint8_t succeeded = 1;
     int16_t permutation;
@@ -2264,7 +2264,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
     if (rasterizer_water_enabled == 0) {
         return;
     }
-    effect = (void *)rasterizer_effects[104].effect;
+    effect = rasterizer_effects[104].effect;
     if (effect != 0) {
         static const float quad[4][6] = {
             {-1.0078125f, 1.0078125f, 0.0f, 0.0f, 0.0f, 0.0f},

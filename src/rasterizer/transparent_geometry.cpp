@@ -202,12 +202,12 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
     render_device().set_sampler_state(sampler, type, value);
 }
 
-static void set_vertex_declaration(uint32_t declaration)
+static void set_vertex_declaration(void *declaration)
 {
     render_device().set_vertex_declaration(declaration);
 }
 
-static void set_vertex_shader(uint32_t shader)
+static void set_vertex_shader(void *shader)
 {
     render_device().set_vertex_shader(shader);
 }
@@ -351,7 +351,7 @@ static void draw_particle_effect_shader(transparent_geometry_group *group, const
     render_device().set_vertex_shader_constant_f(0x0d, &texture_matrix[0][0], 4);
     set_vertex_declaration(rasterizer_vertex_declarations[6].declaration);
     set_vertex_shader(rasterizer_vertex_shaders[effect->vertex_shader_index].shader);
-    draw_effect_passes((void *)(uintptr_t)effect->effect, group);
+    draw_effect_passes(effect->effect, group);
 }
 
 static void draw_glass_shader(transparent_geometry_group *group, const uint8_t *shader)
@@ -534,7 +534,7 @@ static void draw_meter_shader(transparent_geometry_group *group, const uint8_t *
         set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
     }
     render_device().set_pixel_shader_constant_f(0, &pixel_constants[0][0], 6);
-    effect = (void *)(uintptr_t)rasterizer_effects[111].effect;
+    effect = rasterizer_effects[111].effect;
     draw_effect_passes(effect, group);
 }
 
@@ -832,7 +832,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
 
     if (rasterizer_caps_flag_688 == 0 && rasterizer_caps_flag_68a == 0 &&
         rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1) {
-        uint32_t effect = rasterizer_effects[105].effect;
+        void *effect = rasterizer_effects[105].effect;
 
         if (effect != 0) {
             const GlobalsRasterizerData *data = rasterizer_globals_data;

@@ -447,10 +447,10 @@ void * rasterizer_dynamic_vertex_cache_lock(int32_t slot_index)
     stride = rasterizer_vertex_sizes[slot->vertex_type];
 
     locked_data = 0;
-    hresult = render_device().buffer_lock((void *)buffer_slot->hardware_buffer, slot->first_vertex * stride, slot->vertex_count * stride, &locked_data, 0x2000);
+    hresult = render_device().buffer_lock(buffer_slot->hardware_buffer, slot->first_vertex * stride, slot->vertex_count * stride, &locked_data, 0x2000);
 
-    slot->locked_vertices = (uint32_t)(hresult < 0 ? 0 : locked_data);
-    return (void *)slot->locked_vertices;
+    slot->locked_vertices = hresult < 0 ? NULL : locked_data;
+    return slot->locked_vertices;
 }
 
 }  // namespace rasterizer_dynamic_vertex_cache_lock_impl
@@ -636,10 +636,10 @@ namespace rasterizer_dynamic_vertex_process_and_get_handle_impl {
  *
  * @address 0x51c790
  */
-uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer)
+void *rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer)
 {
     int16_t stride;
-    uint32_t handle;
+    void *handle;
 
     stride = rasterizer_vertex_sizes[vertex_buffer->type];
 
@@ -648,9 +648,9 @@ uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buff
 
     render_device().set_stream_source(0, vertex_buffer->hardware_buffer, 0, (uint32_t)stride);
 
-    handle = (uint32_t)rasterizer_vertex_buffer_slots[rasterizer_dynamic_vertex_caches[_rasterizer_vertex_type_model_processed].buffer_handle - 1].hardware_buffer;
+    handle = rasterizer_vertex_buffer_slots[rasterizer_dynamic_vertex_caches[_rasterizer_vertex_type_model_processed].buffer_handle - 1].hardware_buffer;
 
-    render_device().process_vertices(0, 0, (uint32_t)vertex_buffer->count, (void *)handle, 0, 1);
+    render_device().process_vertices(0, 0, (uint32_t)vertex_buffer->count, handle, 0, 1);
 
     render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 
@@ -680,7 +680,7 @@ void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dynamic_ver
 
         render_device().set_vertex_shader(rasterizer_vertex_shaders[27].shader);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[4].declaration);
-        processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : 0;
+        processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : NULL;
         processed.type = _rasterizer_vertex_type_model_processed;
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[15].declaration);

@@ -57,7 +57,7 @@ static uint8_t build_stage(int32_t *table, int32_t count, int effect_index, cons
         void *technique;
 
         sprintf(name, format, rasterizer_shader_technique_name_suffixes[suffix]);
-        technique = rasterizer_shader_technique_for_name((void *)(uintptr_t)rasterizer_effects[effect_index].effect, name);
+        technique = rasterizer_shader_technique_for_name(rasterizer_effects[effect_index].effect, name);
         table[i] = (int32_t)(uintptr_t)technique;
         if (technique == NULL) {
             return 0;
@@ -237,7 +237,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     }
     {
         rasterizer_vertex_buffer processed = *vertex_buffer;
-        uint32_t handle = 0;
+        void *handle = NULL;
 
         render_device().set_vertex_shader(rasterizer_vertex_shaders[27].shader);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[4].declaration);
@@ -276,7 +276,7 @@ static float environment_clamp01(float value)
     return value;
 }
 
-static void environment_set_vector(void *effect, uint32_t handle, float x, float y, float z, float w)
+static void environment_set_vector(void *effect, void *handle, float x, float y, float z, float w)
 {
     float vector[4];
 
@@ -354,7 +354,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         vertex_shader = 0x1c;
     }
 
-    effect = (void *)(uintptr_t)environment_effect_slot.effect;
+    effect = environment_effect_slot.effect;
     if (effect == 0) {
         rasterizer_clear_decal_zbias();
         return;
@@ -466,7 +466,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     }
 
     if (environment_effect_slot.constant_handles != 0) {
-        uint32_t *handles = (uint32_t *)(uintptr_t)environment_effect_slot.constant_handles;
+        void **handles = environment_effect_slot.constant_handles;
 
         environment_set_vector(effect, handles[0], 1.0f, 1.0f, 1.0f, 1.0f);
         environment_set_vector(effect, handles[1], fog[1], fog[2], fog[3], fog[0]);
@@ -566,7 +566,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     }
     {
         rasterizer_vertex_buffer processed = *vertex_buffer;
-        uint32_t handle = 0;
+        void *handle = NULL;
 
         render_device().set_vertex_shader(rasterizer_vertex_shaders[27].shader);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[4].declaration);
@@ -618,7 +618,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     uint32_t reflection_type;
     int16_t effect_index;
     rasterizer_effect_slot *effect_slot;
-    uint32_t effect;
+    void *effect;
     uint32_t bump_map_tag;
     uint32_t normalization_tag;
     float constants[12];
@@ -735,7 +735,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     vectors[10] = shader->parallel_color.blue;
     vectors[11] = shader->parallel_brightness;
     if (effect_slot->constant_handles != 0) {
-        const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
+        void **handles = effect_slot->constant_handles;
 
         render_device().effect_set_vector(effect, handles[0], &vectors[0]);
         render_device().effect_set_vector(effect, handles[1], &vectors[4]);
@@ -814,7 +814,7 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     render_device().set_vertex_declaration((*(uint32_t *)&rasterizer_vertex_declarations));
     render_device().set_vertex_shader(rasterizer_vertex_shaders[slot->vertex_shader_index].shader);
 
-    effect = (void *)(uintptr_t)slot->effect;
+    effect = slot->effect;
     render_device().effect_begin(effect, &passes, 3);
     for (pass = 0; pass < passes; pass++) {
         render_device().effect_pass(effect, pass);
@@ -978,7 +978,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
         return;
     }
     effect_slot = (env->shader_environment_flags & 2) != 0 ? &rasterizer_effects[42] : &rasterizer_effects[43];
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
@@ -1134,7 +1134,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
         return;
     }
     effect_slot = (env->shader_environment_flags & 2) != 0 ? &rasterizer_effects[40] : &rasterizer_effects[41];
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
@@ -1170,7 +1170,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     if (effect_slot->constant_handles != 0) {
-        const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
+        void **handles = effect_slot->constant_handles;
         float light = rasterizer_projected_light_luminance * env->brightness;
 
         vector[0] = light;
@@ -1274,7 +1274,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         break;
     }
     effect_slot = &rasterizer_effects[effect_index];
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
@@ -1331,7 +1331,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     if (effect_slot->constant_handles != 0) {
-        const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
+        void **handles = effect_slot->constant_handles;
 
         vector[0] = real_negate_pinned(rasterizer_window.camera.forward.i);
         vector[1] = real_negate_pinned(rasterizer_window.camera.forward.j);
@@ -1440,7 +1440,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         effect_index = (int16_t)(halo::rasterizer::fields::environment_effect_variant != 0 ? 1 : 0);
     }
     effect_slot = &rasterizer_effects[effect_index];
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
@@ -1531,7 +1531,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     material[2] = env->material_color.blue;
     material[3] = 1.0f;
     if (effect_slot->constant_handles != 0) {
-        render_device().effect_set_vector(effect, ((const uint32_t *)effect_slot->constant_handles)[0], material);
+        render_device().effect_set_vector(effect, effect_slot->constant_handles[0], material);
     }
 
     if (effect_index == 0) {
@@ -1556,7 +1556,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         vectors[18] = env->plasma_off_color.blue;
         vectors[19] = 1.0f;
         if (effect_slot->constant_handles != 0) {
-            const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
+            void **handles = effect_slot->constant_handles;
             int32_t i;
 
             for (i = 0; i < 5; i++) {
@@ -1837,7 +1837,7 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
     if (effect_slot == 0 || effect_slot->effect == 0) {
         return;
     }
-    effect = (void *)effect_slot->effect;
+    effect = effect_slot->effect;
     scale[0] = env->lightmap_brightness_scale;
     scale[1] = scale[0];
     scale[2] = scale[0];

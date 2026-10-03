@@ -455,12 +455,12 @@ void rasterizer_object_shadow_blur(void)
     if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::fields::object_shadows_enabled == 0 || halo::rasterizer::fields::shadow_convolution_enabled == 0) {
         return;
     }
-    effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
+    effect = rasterizer_effects[45].effect;
     if (effect == NULL) {
         return;
     }
     for (stage = 0; stage < 4; stage++) {
-        effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
+        effect = rasterizer_effects[45].effect;
         render_device().effect_set_texture(effect, rasterizer_effects[45].texture_handles[stage], rasterizer_render_targets[3].texture);
         set_sampler_state(stage, halo::d3d9::ss::address_u, 3);
         set_sampler_state(stage, halo::d3d9::ss::address_v, 3);
@@ -496,14 +496,14 @@ void rasterizer_object_shadow_blur(void)
     render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
-    effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
+    effect = rasterizer_effects[45].effect;
     render_device().effect_begin(effect, &passes, 3);
     for (pass = 0; pass < passes; pass++) {
-        effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
+        effect = rasterizer_effects[45].effect;
         render_device().effect_pass(effect, pass);
         render_device().draw_primitive_up(6, 2, rasterizer_object_shadow_blur_quad, sizeof(rasterizer_dynamic_screen_vertex));
     }
-    effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
+    effect = rasterizer_effects[45].effect;
     render_device().effect_end(effect);
 
     set_render_state(halo::d3d9::rs::color_write_enable, 7);
@@ -696,15 +696,15 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
     rasterizer_set_shader_stage_config(2);
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[vertex_buffer->type].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[19].shader);
-    effect = (void *)(uintptr_t)rasterizer_effects[47].effect;
+    effect = rasterizer_effects[47].effect;
     render_device().effect_begin(effect, &passes, 3);
     for (pass = 0; pass < passes; pass++) {
-        effect = (void *)(uintptr_t)rasterizer_effects[47].effect;
+        effect = rasterizer_effects[47].effect;
         render_device().effect_pass(effect, pass);
         chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot,
                                                                    first_primitive);
     }
-    effect = (void *)(uintptr_t)rasterizer_effects[47].effect;
+    effect = rasterizer_effects[47].effect;
     render_device().effect_end(effect);
 }
 
@@ -840,7 +840,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
 
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[4].declaration);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[27].shader);
-        processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : 0;
+        processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : NULL;
         processed.type = _rasterizer_vertex_type_model_processed;
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[15].declaration);
@@ -1043,7 +1043,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
 
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[4].declaration);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[27].shader);
-        processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : 0;
+        processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : NULL;
         processed.type = _rasterizer_vertex_type_model_processed;
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[15].declaration);
@@ -1080,8 +1080,8 @@ static float clamp01(float value)
 
 static void set_effect_vector(rasterizer_effect_slot *slot, int handle, float x, float y, float z, float w)
 {
-    uint32_t *handles = (uint32_t *)(uintptr_t)slot->constant_handles;
-    uint32_t effect = slot->effect;
+    void **handles = slot->constant_handles;
+    void *effect = slot->effect;
 
     rasterizer_model_effect_vector[0] = x;
     rasterizer_model_effect_vector[1] = y;
@@ -1231,8 +1231,8 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         rasterizer_model_effect_vector[1] = animated.green * scale;
         rasterizer_model_effect_vector[2] = animated.blue * scale;
         if (slot->constant_handles != 0) {
-            uint32_t *handles = (uint32_t *)(uintptr_t)slot->constant_handles;
-            uint32_t effect = slot->effect;
+            void **handles = slot->constant_handles;
+            void *effect = slot->effect;
 
             render_device().effect_set_vector(effect, handles[4], rasterizer_model_effect_vector);
         }

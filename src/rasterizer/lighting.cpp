@@ -32,7 +32,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
 {
     const uint8_t *raw = (const uint8_t *)shader;
     rasterizer_effect_slot *effect_slot = &rasterizer_effects[4];
-    uint32_t effect = effect_slot->effect;
+    void *effect = effect_slot->effect;
     uint32_t bump_map_tag;
     BitmapData *bump_bitmap = 0;
     float constants[12];
