@@ -261,6 +261,10 @@ inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101;
 inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
 inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
 
+/** D3DLIGHTTYPE values. */
+inline constexpr uint32_t k_light_point = 1;
+inline constexpr uint32_t k_light_spot = 2;
+
 /** D3DCOLORWRITEENABLE_RED | GREEN | BLUE | ALPHA. */
 inline constexpr uint32_t k_color_write_all = 0xf;
 

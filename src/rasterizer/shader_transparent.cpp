@@ -1491,8 +1491,10 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
     render_device().set_sampler_state(sampler, type, value);
 }
 
-#undef PLASMA_FLOAT
-#define PLASMA_FLOAT(offset) (*(const float *)(shader + (offset)))
+static inline float plasma_float(const uint8_t *shader, uint32_t offset)
+{
+    return *(const float *)(shader + offset);
+}
 
 /**
  * Direct3D 9 back end function rasterizer_shader_transparent_plasma_draw. The original author notes are in
@@ -1536,11 +1538,11 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         if (function_values != NULL) {
             source = *(const int16_t *)(shader + 0x2c);
             if (source >= 1 && source <= 4) {
-                intensity = (float)halo::libm::pow(function_values[source - 1], PLASMA_FLOAT(0x30));
+                intensity = (float)halo::libm::pow(function_values[source - 1], plasma_float(shader, 0x30));
             }
             source = *(const int16_t *)(shader + 0x34);
             if (source >= 1 && source <= 4) {
-                offset = (float)halo::libm::pow(function_values[source - 1], PLASMA_FLOAT(0x3c)) * PLASMA_FLOAT(0x38);
+                offset = (float)halo::libm::pow(function_values[source - 1], plasma_float(shader, 0x3c)) * plasma_float(shader, 0x38);
             }
         }
     }
@@ -1549,10 +1551,10 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         return;
     }
 
-    secondary_scale = PLASMA_FLOAT(0x118);
-    primary_phase = (float)(rasterizer_time.time / PLASMA_FLOAT(0xc0));
-    secondary_phase = (float)(rasterizer_time.time / PLASMA_FLOAT(0x108));
-    primary_scale = PLASMA_FLOAT(0xd0);
+    secondary_scale = plasma_float(shader, 0x118);
+    primary_phase = (float)(rasterizer_time.time / plasma_float(shader, 0xc0));
+    secondary_phase = (float)(rasterizer_time.time / plasma_float(shader, 0x108));
+    primary_scale = plasma_float(shader, 0xd0);
     if (offset < 0.0005f) {
         offset = 0.0f;
     }
@@ -1565,12 +1567,12 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     vertex_constants[0][0] = primary_scale;
     vertex_constants[1][1] = primary_scale;
     vertex_constants[2][2] = primary_scale;
-    vertex_constants[0][3] = primary_phase * PLASMA_FLOAT(0xc4);
-    vertex_constants[1][3] = primary_phase * PLASMA_FLOAT(0xc8);
-    vertex_constants[2][3] = primary_phase * PLASMA_FLOAT(0xcc);
-    vertex_constants[3][3] = secondary_phase * PLASMA_FLOAT(0x10c);
-    vertex_constants[4][3] = secondary_phase * PLASMA_FLOAT(0x110);
-    vertex_constants[5][3] = secondary_phase * PLASMA_FLOAT(0x114);
+    vertex_constants[0][3] = primary_phase * plasma_float(shader, 0xc4);
+    vertex_constants[1][3] = primary_phase * plasma_float(shader, 0xc8);
+    vertex_constants[2][3] = primary_phase * plasma_float(shader, 0xcc);
+    vertex_constants[3][3] = secondary_phase * plasma_float(shader, 0x10c);
+    vertex_constants[4][3] = secondary_phase * plasma_float(shader, 0x110);
+    vertex_constants[5][3] = secondary_phase * plasma_float(shader, 0x114);
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
 
         vertex_constants[0][2] = 0.01f;
@@ -1617,14 +1619,14 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     for (i = 0; i < 4; i++) {
         color_constants[0][i] = 1.0f;
     }
-    color_constants[1][0] = (PLASMA_FLOAT(0x64) - PLASMA_FLOAT(0x74)) * tint->red;
-    color_constants[1][1] = (PLASMA_FLOAT(0x68) - PLASMA_FLOAT(0x78)) * tint->green;
-    color_constants[1][2] = (PLASMA_FLOAT(0x6c) - PLASMA_FLOAT(0x7c)) * tint->blue;
-    color_constants[1][3] = (PLASMA_FLOAT(0x60) - PLASMA_FLOAT(0x70)) * intensity;
-    color_constants[2][0] = tint->red * PLASMA_FLOAT(0x74);
-    color_constants[2][1] = PLASMA_FLOAT(0x78) * tint->green;
-    color_constants[2][2] = PLASMA_FLOAT(0x7c) * tint->blue;
-    color_constants[2][3] = intensity * PLASMA_FLOAT(0x70);
+    color_constants[1][0] = (plasma_float(shader, 0x64) - plasma_float(shader, 0x74)) * tint->red;
+    color_constants[1][1] = (plasma_float(shader, 0x68) - plasma_float(shader, 0x78)) * tint->green;
+    color_constants[1][2] = (plasma_float(shader, 0x6c) - plasma_float(shader, 0x7c)) * tint->blue;
+    color_constants[1][3] = (plasma_float(shader, 0x60) - plasma_float(shader, 0x70)) * intensity;
+    color_constants[2][0] = tint->red * plasma_float(shader, 0x74);
+    color_constants[2][1] = plasma_float(shader, 0x78) * tint->green;
+    color_constants[2][2] = plasma_float(shader, 0x7c) * tint->blue;
+    color_constants[2][3] = intensity * plasma_float(shader, 0x70);
     render_device().set_vertex_shader_constant_f(10, &color_constants[0][0], 3);
 
     render_device().effect_begin(effect, &passes, 3);
@@ -1639,7 +1641,6 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     effect = (void *)(uintptr_t)rasterizer_effects[44].effect;
     render_device().effect_end(effect);
 }
-#undef PLASMA_FLOAT
 
 }  // namespace rasterizer_shader_transparent_plasma_draw_impl
 
@@ -2193,8 +2194,10 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 
 
 
-#undef F
-#define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
+static inline float &field_f(void *p, uint32_t o)
+{
+    return *(float *)((uint8_t *)p + o);
+}
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -2282,36 +2285,36 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                 *(int16_t *)(layers[k] + 0x38) = 1;
             }
         }
-        if (F(layers[0], 0x4) == 0.0f && F(layers[1], 0x4) == 0.0f) {
-            F(layers[1], 0x4) = 1.0f;
+        if (field_f(layers[0], 0x4) == 0.0f && field_f(layers[1], 0x4) == 0.0f) {
+            field_f(layers[1], 0x4) = 1.0f;
         }
-        if (F(layers[2], 0x4) == 0.0f && F(layers[3], 0x4) == 0.0f) {
-            F(layers[3], 0x4) = 1.0f;
+        if (field_f(layers[2], 0x4) == 0.0f && field_f(layers[3], 0x4) == 0.0f) {
+            field_f(layers[3], 0x4) = 1.0f;
         }
 
         for (k = 0; k < 4; k++) {
             float frame = (float)(int32_t)*(int16_t *)(layers[k] + 0x38);
-            float angle = F(layers[k], 0x28);
+            float angle = field_f(layers[k], 0x28);
             float *r = &vertex_constants[k * 8];
 
             r[0] = frame;
             r[1] = 0.0f;
             r[2] = 0.0f;
-            r[3] = (float)(halo::libm::cos((double)angle) * F(layers[k], 0x2c) * rasterizer_time.time + F(layers[k], 0x30));
+            r[3] = (float)(halo::libm::cos((double)angle) * field_f(layers[k], 0x2c) * rasterizer_time.time + field_f(layers[k], 0x30));
             r[4] = 0.0f;
             r[5] = frame;
             r[6] = 0.0f;
-            r[7] = (float)(halo::libm::sin((double)angle) * F(layers[k], 0x2c) * rasterizer_time.time + F(layers[k], 0x34));
+            r[7] = (float)(halo::libm::sin((double)angle) * field_f(layers[k], 0x2c) * rasterizer_time.time + field_f(layers[k], 0x34));
         }
         render_device().set_vertex_shader_constant_f(0xd, vertex_constants, 8);
 
         {
-            float sum01 = F(layers[1], 0x4) + F(layers[0], 0x4);
-            float sum23 = F(layers[3], 0x4) + F(layers[2], 0x4);
+            float sum01 = field_f(layers[1], 0x4) + field_f(layers[0], 0x4);
+            float sum23 = field_f(layers[3], 0x4) + field_f(layers[2], 0x4);
 
-            pixel_constants[3] = F(layers[0], 0x4) / sum01;
-            pixel_constants[7] = F(layers[2], 0x4) / sum23;
-            pixel_constants[11] = sum01 / (F(layers[1], 0x4) + F(layers[0], 0x4) + sum23);
+            pixel_constants[3] = field_f(layers[0], 0x4) / sum01;
+            pixel_constants[7] = field_f(layers[2], 0x4) / sum23;
+            pixel_constants[11] = sum01 / (field_f(layers[1], 0x4) + field_f(layers[0], 0x4) + sum23);
         }
         rasterizer_set_shader_stage_config(0);
 
@@ -2322,13 +2325,13 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
 
             if (*(int16_t *)(water + 0xd8) > 1) {
                 float fraction = (float)(int32_t)pass_index / (float)(int32_t)(*(int16_t *)(water + 0xd8) - 1);
-                float alpha = fraction * F(water, 0xdc);
+                float alpha = fraction * field_f(water, 0xdc);
                 uint32_t packed = ((uint32_t)halo::libm::lrint((double)alpha * 255.0) << 24) | 0x8080ff;
 
                 pixel_constants[12] = (float)(int32_t)((packed >> 16) & 0xff) * 0.003921569f;
                 pixel_constants[13] = (float)(int32_t)((packed >> 8) & 0xff) * 0.003921569f;
                 pixel_constants[14] = (float)(int32_t)(packed & 0xff) * 0.003921569f;
-                pixel_constants[15] = fraction * F(water, 0xdc);
+                pixel_constants[15] = fraction * field_f(water, 0xdc);
             } else {
                 pixel_constants[12] = 0.5019608f;
                 pixel_constants[13] = 0.5019608f;
@@ -2405,7 +2408,6 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
     rasterizer_set_shader_stage_config(2);
 }
-#undef F
 
 }  // namespace rasterizer_water_update_ripple_texture_impl
 

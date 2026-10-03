@@ -288,11 +288,6 @@ void rasterizer_light_disable_all(void)
 namespace rasterizer_light_set_impl {
 
 
-#undef D3DLIGHT_POINT
-#define D3DLIGHT_POINT 1
-
-#undef D3DLIGHT_SPOT
-#define D3DLIGHT_SPOT  2
 
 /**
  * D3DLIGHTTYPE Populates and enables one fixed-function Direct3D light from a game light object, for the pre-
@@ -323,7 +318,7 @@ void rasterizer_light_set(rasterizer_light *light)
             d3dlight[0x04 / 4] = light->color.red * 10.0f;
             d3dlight[0x38 / 4] = light->position.y;
             d3dlight[0x3c / 4] = light->position.z;
-            *(int32_t *)&d3dlight[0x00 / 4] = D3DLIGHT_POINT;
+            *(int32_t *)&d3dlight[0x00 / 4] = halo::d3d9::k_light_point;
             d3dlight[0x5c / 4] = 0.0f;
             d3dlight[0x08 / 4] = light->color.green * 10.0f;
             d3dlight[0x0c / 4] = light->color.blue * 10.0f;
@@ -337,7 +332,7 @@ void rasterizer_light_set(rasterizer_light *light)
             d3dlight[0x38 / 4] = light->position.y;
             radius_scale = light->radius * 2.5f;
             d3dlight[0x3c / 4] = light->position.z;
-            *(int32_t *)&d3dlight[0x00 / 4] = D3DLIGHT_SPOT;
+            *(int32_t *)&d3dlight[0x00 / 4] = halo::d3d9::k_light_spot;
             d3dlight[0x60 / 4] = 1.0f;
             d3dlight[0x04 / 4] = radius_scale * light->color.red;
             d3dlight[0x64 / 4] = 3.14f;
@@ -364,8 +359,6 @@ void rasterizer_light_set(rasterizer_light *light)
         rasterizer_fixed_function_light_count = rasterizer_fixed_function_light_count + 1;
     }
 }
-#undef D3DLIGHT_POINT
-#undef D3DLIGHT_SPOT
 
 }  // namespace rasterizer_light_set_impl
 
@@ -765,7 +758,7 @@ void rasterizer_set_shader_stage_config(int16_t mode)
         return;
     }
 
-    #define set_render_state(device, state, value)         render_device().set_render_state((state), (value))
+    auto set_render_state = [](void *, uint32_t state, uint32_t value) { return render_device().set_render_state(state, value); };
 
     switch (mode) {
     case 0:

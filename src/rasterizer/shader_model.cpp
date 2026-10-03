@@ -88,8 +88,14 @@ void chimera__rasterizer_set_up_node_parts(int32_t node_part_count, uint8_t *nod
 namespace rasterizer_model_draw_prepare_states_impl {
 
 
-#undef CLAMP01_X87
-#define CLAMP01_X87(x) do { if ((x) < 0.0f) (x) = 0.0f; else if ((x) > 1.0f) (x) = 1.0f; } while (0)
+static inline void clamp01_x87(float &x)
+{
+    if (x < 0.0f) {
+        x = 0.0f;
+    } else if (x > 1.0f) {
+        x = 1.0f;
+    }
+}
 
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
@@ -207,7 +213,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                                           -(rasterizer_window.fog.plane.normal.k * inv_depth) * context->center.z +
                                           -(rasterizer_window.fog.plane.normal.j * inv_depth) * context->center.y +
                                           -(inv_depth * rasterizer_window.fog.plane.normal.i) * context->center.x);
-            CLAMP01_X87(density_from_depth);
+            clamp01_x87(density_from_depth);
 
             density_from_distance = 1.0f -
                 (rasterizer_window.camera.forward.j * inv_distance * context->center.y +
@@ -216,7 +222,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                  (rasterizer_window.camera.position.x * rasterizer_window.camera.forward.i +
                   rasterizer_window.camera.position.y * rasterizer_window.camera.forward.j +
                   rasterizer_window.camera.position.z * rasterizer_window.camera.forward.k) * inv_distance);
-            CLAMP01_X87(density_from_distance);
+            clamp01_x87(density_from_distance);
 
             blend = density_from_depth + density_from_distance;
             if (1.0f < blend) blend = 1.0f;
@@ -226,17 +232,16 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                                  rasterizer_window.camera.position.y * rasterizer_window.fog.plane.normal.j +
                                  rasterizer_window.camera.position.z * rasterizer_window.fog.plane.normal.k) -
                                 rasterizer_window.fog.plane.d) * inv_depth);
-            CLAMP01_X87(plane_distance);
+            clamp01_x87(plane_distance);
 
             density_limit = rasterizer_window.fog.planar_maximum_density;
-            CLAMP01_X87(density_limit);
+            clamp01_x87(density_limit);
 
             halo::rasterizer::fields::planar_fog_attenuation = 1.0f - density_limit *
                 (plane_distance * ((1.0f - density_from_distance) * (1.0f - density_from_distance) - blend) + blend);
         }
     }
 }
-#undef CLAMP01_X87
 
 }  // namespace rasterizer_model_draw_prepare_states_impl
 
