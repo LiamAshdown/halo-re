@@ -1444,7 +1444,7 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
 
     encounter_index = (int16_t)packed_reference;
     if (packed_reference == halo::k_dword_none || encounter_index < 0 ||
-        global_scenario->encounters.count <= (int32_t)encounter_index) {
+        halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
         goto store;
     }
 

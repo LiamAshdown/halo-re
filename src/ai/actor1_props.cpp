@@ -168,7 +168,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
 
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-            halo::bitmaps::color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, 1,
+            halo::bitmaps::color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, (color_interpolation_flags)1,
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
         }

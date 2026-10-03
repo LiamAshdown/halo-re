@@ -249,7 +249,7 @@ uint8_t halo::ai::actor_ref::command_list_permits_escalation()
 
     conv = (ai_conversation *)((uint8_t *)ai_conversation_data->data +
                                 (self->conversation_index & halo::k_slot_mask) * sizeof(ai_conversation));
-    definition = (ScenarioAIConversation *)((TagReflexive *)((uint8_t *)global_scenario + 0x468))->pointer;
+    definition = (ScenarioAIConversation *)((TagReflexive *)((uint8_t *)halo::scenario::globals().scenario + 0x468))->pointer;
     definition = definition + conv->definition_index;
     flags = definition->flags;
 

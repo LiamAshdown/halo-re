@@ -237,7 +237,7 @@ uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(uint8_t *record)
 
     {
         prop *p = &((prop *)prop_data->data)[target_prop_index & halo::k_slot_mask];
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+        ScenarioEncounter *encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
         ScenarioFiringPosition *positions = (ScenarioFiringPosition *)encounters[a->encounter_index & halo::k_slot_mask].firing_positions.pointer;
         int16_t status;
         real_point3d self_position;
@@ -1635,7 +1635,7 @@ uint8_t halo::ai::combat_ops::is_target_within_engagement_range()
     }
 
     {
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+        ScenarioEncounter *encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
         ScenarioFiringPosition *positions = (ScenarioFiringPosition *)encounters[a->encounter_index & halo::k_slot_mask].firing_positions.pointer;
         fp = &positions[a->firing_position_index];
     }

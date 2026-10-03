@@ -110,7 +110,7 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
 char Parser::parse_ai(datum_index node_index) const
 {
     hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    uint8_t found = ai_reference_parse(hs_compiled_source + node->source_offset, global_scenario,
+    uint8_t found = ai_reference_parse(hs_compiled_source + node->source_offset, halo::scenario::globals().scenario,
         (uint32_t *)&node->data);
 
     if (!found) {
@@ -821,7 +821,7 @@ char Parser::parse_object_name(datum_index node_index) const
     ScenarioObjectName *object_names;
     int16_t match_index;
 
-    scenario = global_scenario;
+    scenario = halo::scenario::globals().scenario;
     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
 
     match_index = halo::scenario::scenario_object_name_find_index(scenario, hs_compiled_source + node->source_offset);
@@ -1168,7 +1168,7 @@ char Parser::parse_tag_reference(datum_index node_index) const
     char *token_text;
 
     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
-    count = (int32_t)global_scenario->references.count;
+    count = (int32_t)halo::scenario::globals().scenario->references.count;
     token_text = hs_compiled_source + node->source_offset;
     for (i = 0; i < count; i = i + 1) {
         reference = (ScenarioReference *)halo::scenario::globals().scenario->references.pointer + i;

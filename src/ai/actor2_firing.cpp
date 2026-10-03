@@ -252,7 +252,7 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
 
         if (actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
             path_find_test_direct_reachability(position, &((struct actor *)self)->body_position, 0,
-                global_structure_bsp, 0) != 0) {
+                halo::scenario::globals().structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
         }
@@ -973,7 +973,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
             return result;
         }
 
-        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                     [self->encounter_index & halo::k_slot_mask];
         firing_positions =
             (ScenarioFiringPosition *)encounter_definition->firing_positions.pointer;
@@ -1048,7 +1048,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
     if (((actor *)a)->encounter_index == k_datum_index_none) {
         return -1;
     }
-    squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)global_scenario + 0x430) +
+    squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) +
         (((actor *)a)->encounter_index & halo::k_slot_mask) * 0xb0 + 0x84) + ((actor *)a)->squad_index * 0xe8;
     if (select_mode == 1 && current != -1) {
         return position_index;

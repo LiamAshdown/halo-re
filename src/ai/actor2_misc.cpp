@@ -358,7 +358,7 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     swarm = (char)((*(uint32_t *)actor_definition >> 0x1a) & 1);
     actor_apply_unit_definition_properties(variant_tag, unit_index);
     if (encounter_index != k_datum_index_none) {
-        uint8_t *encounter = *(uint8_t **)((uint8_t *)global_scenario + 0x430) + (encounter_index & halo::k_slot_mask) * 0xb0;
+        uint8_t *encounter = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) + (encounter_index & halo::k_slot_mask) * 0xb0;
         uint8_t *squad = *(uint8_t **)(encounter + 0x84) + squad_index * 0xe8;
 
         initial_state = *(uint16_t *)(squad + 0x24);

@@ -24,7 +24,6 @@ extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, 
 extern data_array *object_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
-extern uint8_t *global_structure_bsp;
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern uint32_t object_get_root_object_index(uint32_t object_index);
@@ -203,7 +202,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
     if (((struct object *)source)->parent_object != k_datum_index_none) {
         location = OBJECT_DATA(object_get_root_object_index(source_unit_index)) + 0x98;
     }
-    cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
+    cluster_count = *(int32_t *)(halo::scenario::globals().structure_bsp + 0x134);
     memset(cluster_bits, 0, sizeof(cluster_bits));
     source_cluster = *(int16_t *)(location + 0x4);
     if (source_cluster != -1) {
@@ -215,9 +214,9 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             if (source_cluster != i) {
                 int32_t lo = source_cluster < i ? source_cluster : i;
                 int32_t hi = source_cluster < i ? i : source_cluster;
-                int32_t row = (uint16_t)(*(uint16_t *)(global_structure_bsp + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
+                int32_t row = (uint16_t)(*(uint16_t *)(halo::scenario::globals().structure_bsp + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
 
-                pas = (*(uint8_t **)(global_structure_bsp + 0x220))[(int16_t)(row + hi - 1)];
+                pas = (*(uint8_t **)(halo::scenario::globals().structure_bsp + 0x220))[(int16_t)(row + hi - 1)];
             }
             if (!(pas & 0x80) && (float)(int32_t)(pas & 0x7f) * 2.015748f < 40.0f) {
                 cluster_bits[i >> 5] |= 1u << (i & 0x1f);
@@ -1207,7 +1206,7 @@ void AiSystem::unassigned_actors_attach_to_structure_bsp()
         datum_index next = entry->next_in_encounter;
 
         if (encounter_index != k_datum_index_none &&
-            *(int16_t *)((uint8_t *)global_scenario->encounters.pointer + (encounter_index & halo::k_slot_mask) * 0xb0 + 0x7e) ==
+            *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (encounter_index & halo::k_slot_mask) * 0xb0 + 0x7e) ==
                 bsp_index) {
             ai_actor_unlink_from_unassigned_list(actor_index);
             encounter_add_actor(entry->original_squad_index, actor_index, entry->original_encounter_index, 1);

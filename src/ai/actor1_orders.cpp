@@ -156,7 +156,7 @@ uint32_t halo::ai::order_builder::face_seat_marker(int16_t firing_position_index
     }
 
     if (a->order_committed == 0 && a->swarm == 0 && a->encounter_index != (datum_index)k_datum_index_none && firing_position_index != -1) {
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+        ScenarioEncounter *encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
         ScenarioFiringPosition *fp = &((ScenarioFiringPosition *)encounters[a->encounter_index & halo::k_slot_mask].firing_positions.pointer)[firing_position_index];
 
         *(int16_t *)((uint8_t *)order + 0xa) = firing_position_index;
@@ -208,7 +208,7 @@ uint32_t halo::ai::order_builder::face_seat_marker_committed(int16_t firing_posi
     }
 
     if (a->order_committed == 0 && a->swarm == 0 && a->encounter_index != (datum_index)k_datum_index_none && firing_position_index != -1) {
-        ScenarioEncounter *encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+        ScenarioEncounter *encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
         ScenarioFiringPosition *fp = &((ScenarioFiringPosition *)encounters[a->encounter_index & halo::k_slot_mask].firing_positions.pointer)[firing_position_index];
 
         *((uint8_t *)order + 4) = byte_a;

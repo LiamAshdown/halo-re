@@ -99,7 +99,7 @@ uint8_t halo::ai::alert_mode::process()
         return 0;
     }
     if (D(0x34) != halo::k_dword_none) {
-        uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (D(0x34) & halo::k_slot_mask) * 0xb0;
+        uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (D(0x34) & halo::k_slot_mask) * 0xb0;
         uint8_t *squad = *(uint8_t **)(encounter + 0x84) + W(0x3a) * 0xe8;
         int16_t next = W(0xa4);
 

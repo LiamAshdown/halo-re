@@ -539,7 +539,7 @@ void ReferenceView::face_starting_location(uint8_t idle_only)
             a->encounter_index != (datum_index)k_datum_index_none) {
 
             squad_index = a->squad_index;
-            definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+            definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                 [a->encounter_index & halo::k_slot_mask];
             squads = (ScenarioSquad *)definition->squads.pointer;
 
@@ -958,7 +958,7 @@ int32_t ReferenceView::resolve_squad_datum()
         }
         if (packed_reference >> 0x1e == 1) {
             ScenarioEncounter *encounter_definition =
-                &((ScenarioEncounter *)global_scenario->encounters.pointer)[packed_reference & halo::k_slot_mask];
+                &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[packed_reference & halo::k_slot_mask];
             int32_t squad_count = encounter_definition->squads.count;
 
             if (squad_count <= 0) {
@@ -1188,7 +1188,7 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
     }
 
     encounter_index = packed_reference & halo::k_slot_mask;
-    if ((int32_t)encounter_index >= global_scenario->encounters.count) {
+    if ((int32_t)encounter_index >= halo::scenario::globals().scenario->encounters.count) {
         return;
     }
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
@@ -1307,7 +1307,7 @@ encounter_squad_state * ReferenceView::squad_iterator_next(ai_reference_squad_it
 
     enc = &((encounter *)encounter_data->data)[iterator->encounter_index & halo::k_slot_mask];
     encounter_definition =
-        &((ScenarioEncounter *)global_scenario->encounters.pointer)[iterator->encounter_index & halo::k_slot_mask];
+        &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[iterator->encounter_index & halo::k_slot_mask];
     squads = (ScenarioSquad *)encounter_definition->squads.pointer;
 
     if (iterator->squad_start > iterator->squad_end) {

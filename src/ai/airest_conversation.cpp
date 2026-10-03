@@ -265,7 +265,7 @@ uint8_t ConversationView::current_line_is_ready()
 {
     datum_index instance_handle = handle;
     uint8_t *inst = (uint8_t *)ai_conversation_data->data + (instance_handle & halo::k_slot_mask) * k_ai_conversation_size;
-    uint8_t *definition = *(uint8_t **)((uint8_t *)global_scenario + 0x46c) + ((struct ai_conversation *)inst)->definition_index * 0x74;
+    uint8_t *definition = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + ((struct ai_conversation *)inst)->definition_index * 0x74;
 
     if (inst[0x63]) {
         return inst[0x63];
@@ -379,7 +379,7 @@ uint8_t ConversationView::current_line_is_ready()
 int32_t Conversations::get_run_to_player_range(ai_conversation_range_lookup *out, uint32_t conversation_index)
 {
     ai_conversation *conv = &((ai_conversation *)ai_conversation_data->data)[conversation_index & halo::k_slot_mask];
-    ScenarioAIConversation *conversations = (ScenarioAIConversation *)global_scenario->ai_conversations.pointer;
+    ScenarioAIConversation *conversations = (ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer;
     ScenarioAIConversation *def = &conversations[conv->definition_index];
     float distance = def->run_to_player_dist;
 
@@ -621,7 +621,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
 
     instance = (ai_conversation *)((uint8_t *)ai_conversation_data->data +
                                    (conversation_index & halo::k_slot_mask) * k_ai_conversation_size);
-    definition = (ScenarioAIConversation *)((uint8_t *)(uintptr_t)global_scenario->ai_conversations.pointer +
+    definition = (ScenarioAIConversation *)((uint8_t *)(uintptr_t)halo::scenario::globals().scenario->ai_conversations.pointer +
                                             (int32_t)instance->definition_index * 0x74);
     participant = (ScenarioAIConversationParticipant *)
         ((uint8_t *)(uintptr_t)definition->participants.pointer + (int32_t)participant_index * 0x54);
@@ -1188,7 +1188,7 @@ void ConversationView::stop(uint8_t reason_a, uint8_t reason_b)
         return;
     }
     instance = &((ai_conversation *)ai_conversation_data->data)[instance_handle & halo::k_slot_mask];
-    definition = &((ScenarioAIConversation *)global_scenario->ai_conversations.pointer)[instance->definition_index];
+    definition = &((ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer)[instance->definition_index];
 
     cursor = ai_globals_ptr->conversation_event_cursor;
     ai_globals_ptr->conversation_event_cursor = (cursor + 1) & 0xf;

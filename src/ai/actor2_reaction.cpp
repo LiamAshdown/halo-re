@@ -330,7 +330,7 @@ void ActorView::push_recognition_entry(int16_t firing_position_index, uint8_t ty
     self->recognition[cursor].firing_position_index = firing_position_index;
     self->recognition_cursor = (int16_t)((cursor + 1) % 4);
 
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                [self->encounter_index & halo::k_slot_mask];
     firing_positions = (ScenarioFiringPosition *)encounter_definition->firing_positions.pointer;
 

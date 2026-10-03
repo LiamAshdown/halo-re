@@ -54,7 +54,7 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
         damage_apply_area_effect(&request, halo::k_dword_none);
         return;
     }
-    request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
+    request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
     damage_apply_area_effect(&request, halo::k_dword_none);
 }
 

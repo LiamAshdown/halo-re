@@ -731,7 +731,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
 {
     using namespace actor_squad_action_is_complete_local;
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
+    ScenarioCommandList *list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[command_list_index];
     datum_index unit_index = ((actor *)act)->unit_index;
     ScenarioCommand *entry;
     uint8_t done;
@@ -985,7 +985,7 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, uint8_t *s
 {
     using namespace actor_squad_action_reset_entry_local;
     actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    ScenarioCommandList *lists = (ScenarioCommandList *)global_scenario->command_lists.pointer;
+    ScenarioCommandList *lists = (ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer;
     ScenarioCommandList *list = &lists[command_list_index];
     uint32_t current_action_index = state[0];
 
@@ -1102,7 +1102,7 @@ int32_t ActorView::squad_action_status_broadcast(int16_t command_list_index, int
         ScenarioCommandList *list = &lists[command_list_index];
 
         if (a->swarm == 0 || a->swarm_index != (datum_index)k_datum_index_none) {
-            if (list->precomputed_bsp_index == halo::k_word_none || list->precomputed_bsp_index == global_structure_bsp_index) {
+            if (list->precomputed_bsp_index == halo::k_word_none || list->precomputed_bsp_index == halo::scenario::globals().structure_bsp_index) {
                 uint8_t allow_initiative = (uint8_t)(list->flags & 1);
                 uint8_t allow_look = (uint8_t)(~(list->flags >> 2)) & 1;
                 uint8_t allow_communication = (uint8_t)(~(list->flags >> 3)) & 1;

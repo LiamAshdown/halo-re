@@ -374,7 +374,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
         step_point.y = step_distance * direction->j + self->body_position.y;
         actor_update_target_lead_position(actor_index);
 
-        trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, &((struct actor *)self)->pathfinding_point,
+        trace_ok = path_find_test_segment_unobstructed(halo::scenario::globals().structure_bsp, &((struct actor *)self)->pathfinding_point,
             self->ignores_glass, (int32_t)self->pathfinding_surface_index, &step_point, -1, definition->pathfinding_radius, 0,
             (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {

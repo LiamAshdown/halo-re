@@ -1842,7 +1842,7 @@ extern float actor_compute_accuracy_scale(datum_index actor_index);
 #define A_F(o) (*(float *)(actor + (o)))
 static real_point3d *actor_held_firing_position(uint8_t *actor)
 {
-    uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (A_D(0x34) & halo::k_slot_mask) * 0xb0;
+    uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (A_D(0x34) & halo::k_slot_mask) * 0xb0;
 
     return (real_point3d *)(*(uint8_t **)(encounter + 0x9c) + A_W(0x3b8) * 0x18);
 }

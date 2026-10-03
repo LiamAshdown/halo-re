@@ -162,7 +162,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
 
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                 [self->encounter_index & halo::k_slot_mask];
 
     candidate_count = 0;
@@ -804,7 +804,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
         return 0;
     }
 
-    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                 [self->encounter_index & halo::k_slot_mask];
     group_mask = actor_get_firing_position_group_mask(actor_index, kind, 0);
 
@@ -1028,7 +1028,7 @@ uint32_t halo::ai::firing_position_ops::get_firing_position_group_mask(int16_t k
         return 0;
     }
 
-    encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+    encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
     squad = &((ScenarioSquad *)encounters[self->encounter_index & halo::k_slot_mask].squads.pointer)
                  [self->squad_index];
     groups = &squad->attacking;

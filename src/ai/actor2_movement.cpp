@@ -184,7 +184,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             actor_movement_action_complete(actor_index);
             return result;
         }
-        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                    [self->encounter_index & halo::k_slot_mask];
         firing_position = &((ScenarioFiringPosition *)encounter_definition->firing_positions.pointer)
                               [*(int16_t *)&self->active_movement.destination];
@@ -199,7 +199,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             actor_movement_action_complete(actor_index);
             return result;
         }
-        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                    [self->encounter_index & halo::k_slot_mask];
         squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)
                                [self->squad_index];
@@ -626,7 +626,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                     point.x = probe.i * 0.4f + ((actor *)act)->body_position.x;
                     point.y = probe.j * 0.4f + ((actor *)act)->body_position.y;
                     point.z = ((actor *)act)->body_position.z;
-                    if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], &((struct actor *)act)->body_position,
+                    if (path_find_trace_bsp_boundary(halo::scenario::globals().structure_bsp, act[0x376], &((struct actor *)act)->body_position,
                                                      surface, &point, -1, &crossing) &&
                         !(max_turn_cos > 0.95f)) {
                         max_turn_cos = 0.95f;
