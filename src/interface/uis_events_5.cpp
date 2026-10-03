@@ -1,0 +1,728 @@
+/**
+ * Widget event handlers reachable only through ui_event_function_table. Each handler takes the widget instance,
+ * the event record and an out-flag and returns whether the event was consumed.
+ */
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "interface.h"
+#include <stdio.h>
+#include "objects.h"
+#include "units.h"
+#include <string.h>
+#include "rasterizer.h"
+
+#include "halo/interface/uis_event_handlers.hpp"
+
+extern "C" {
+extern int16_t pending_difficulty;
+extern void widget_play_sound_effect(int16_t effect_id);
+extern uint32_t ui_restart_saved_game(void);
+extern uint8_t autopatch_launch_updater(void);
+extern uint8_t saved_game_file_exists(char *name);
+extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data);
+extern uint8_t ui_restoring_previous_widget;
+extern void widget_instance_close_and_restore_previous(widget_instance *widget);
+extern char *campaign_level_paths[];
+extern void main_queue_map_change(char *map_name);
+extern uint8_t network_wait_flag_00719739;
+extern uint8_t saved_game_load_checkpoint_by_name(char *name);
+extern growable_array ui_lists[3];
+extern int32_t ui_list_current;
+extern uint8_t ui_list_has_default;
+extern uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data);
+extern char pending_delete_saved_game_name_00718fd0[];
+extern void ui_list_free_all(void);
+extern uint8_t saved_game_delete_files(char *name);
+extern uint8_t game_checkpoint_save_new(void);
+extern uint8_t autopatch_status_state_00719234;
+extern uint16_t network_host_name_field_00719238[32];
+extern uint16_t network_host_subname_007191f0[9];
+extern int32_t network_host_edit_field_00719410;
+extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
+extern int32_t controls_capture_row;
+extern uint8_t controls_menu_list_mode;
+extern int32_t selected_saved_item;
+extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t input_controls_live_006b3a48[0x890];
+extern uint8_t ui_flag_00719444;
+extern void controls_build_device_label_table(void);
+extern int32_t controls_device_label_count;
+extern uint8_t controls_device_labels[];
+extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page);
+extern uint8_t controls_input_capture_flags;
+extern uint8_t controls_input_capture_buffer[0xa0 * 4];
+extern void input_bind_scan_set_active(uint8_t enable_scan);
+extern void controls_binding_rows_toggle_device_mode(widget_instance *widget, uint8_t mode);
+extern int32_t controls_selected_device;
+extern uint8_t controls_device_sensitivity_a[];
+extern uint8_t controls_device_sensitivity_b[];
+extern uint8_t ui_flag_007196d1;
+extern uint8_t ui_flag_007196d2;
+extern void video_options_menu_populate(uint8_t *context, uint8_t *settings);
+extern int32_t rasterizer_gamma_exponent;
+extern void chimera__gamma(void);
+extern int32_t video_resolution_count;
+extern video_resolution video_resolutions[0x20];
+extern int32_t video_gamma_setting;
+extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
+extern uint8_t unknown_006894ba;
+extern int32_t game_time_force_single_tick;
+extern d3d_display_mode rasterizer_desktop_display_mode;
+extern uint8_t rasterizer_needs_reset;
+extern void *rasterizer_device;
+extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested);
+extern void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterizer_display_mode *source);
+extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters);
+extern void rasterizer_resize_game_window(int32_t height, int32_t width);
+extern float sound_master_gain;
+extern void sound_set_master_gain(float gain);
+extern void display_mode_get_current(rasterizer_display_mode *out);
+extern uint32_t time_query_performance_counter_ms(void);
+}
+
+namespace halo::ui {
+
+namespace {
+
+/** Local helper shared by the handlers of this file. */
+static void show(widget_instance *child, uint8_t visible)
+{
+    if (visible) {
+        child->scale = 1.0f;
+        child->hidden = 0;
+    } else {
+        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        child->hidden = 1;
+    }
+}
+
+/** Local helper shared by the handlers of this file. */
+static void *list_item_data(int16_t index)
+{
+    if (index >= 0 && index < ui_lists[ui_list_current].count) {
+        return ((ui_list_item *)ui_lists[ui_list_current].data)[index].data;
+    }
+    return 0;
+}
+
+/** Local helper shared by the handlers of this file. */
+static widget_instance *first_list_child(widget_instance *widget)
+{
+    widget_instance *child = widget->first_child;
+
+    while (child != 0 && child->widget_type != 2) {
+        child = child->next_sibling;
+    }
+    return child;
+}
+
+/** Local helper shared by the handlers of this file. */
+static uint8_t clamp_selection(widget_instance *group, int16_t maximum)
+{
+    int16_t selection = first_list_child(group)->selection_index;
+
+    return (uint8_t)(selection < 0 ? 0 : selection > maximum ? maximum : selection);
+}
+
+}
+
+/**
+ * Slot 169 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4110
+ */
+uint8_t UiEventHandlers::event_4a4110(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *parent = widget->parent;
+    widget_instance *child = parent->first_child;
+    int16_t *committed = (int16_t *)((uint8_t *)parent + 0x3c);
+    int32_t i;
+
+    for (i = 0; child != widget; i++) {
+        if (i + 1 >= 4) {
+            return 1;
+        }
+        child = child->next_sibling;
+    }
+    if (*committed == i) {
+        if (i < 4) {
+            if (i >= 0) {
+                pending_difficulty = (int16_t)i;
+            }
+            widget_play_sound_effect(2);
+        }
+        ui_restart_saved_game();
+    }
+    *committed = (int16_t)i;
+    return 1;
+}
+
+/**
+ * Slot 172 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4190
+ */
+uint8_t UiEventHandlers::event_4a4190(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    autopatch_launch_updater();
+    return 1;
+}
+
+/**
+ * Slot 174 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a41a0
+ */
+uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    uint8_t has_save = saved_game_file_exists((char *)"savegame");
+    uint8_t has_checkpoints = (uint8_t)(game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
+    widget_instance *child = widget->first_child;
+
+    show(child, has_save);
+    if (!has_save) {
+        widget->focused_child = child->next_sibling;
+    }
+    child = child->next_sibling->next_sibling;
+    show(child, has_checkpoints);
+    if (!has_checkpoints) {
+        widget->focused_child = child->next_sibling;
+    }
+    if (has_save || has_checkpoints) {
+        return 1;
+    }
+    if (ui_restoring_previous_widget != 0) {
+        widget_instance_close_and_restore_previous(widget);
+        return 1;
+    }
+    main_queue_map_change(campaign_level_paths[0]);
+    network_wait_flag_00719739 = 0;
+    return (uint8_t)(ui_restoring_previous_widget != 0);
+}
+
+/**
+ * Slot 175 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4270
+ */
+uint8_t UiEventHandlers::event_4a4270(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    return saved_game_load_checkpoint_by_name((char *)"savegame");
+}
+
+/**
+ * Slot 176 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a44f0
+ */
+uint8_t UiEventHandlers::event_4a44f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    int32_t count;
+    int32_t i;
+
+    for (i = 0; i < 3; i++) {
+        ui_lists[i].element_size = 0x10;
+        ui_lists[i].count = 0;
+        ui_lists[i].data = 0;
+    }
+    ui_list_current = -1;
+    ui_list_has_default = 0;
+    count = game_checkpoint_enumerate_files(1, 1, (void *)checkpoint_list_add_row, 0);
+    pending_delete_saved_game_name_00718fd0[0] = 0;
+    if (count == 0) {
+        widget_instance_close_and_restore_previous(widget);
+    }
+    return (uint8_t)(count != 0);
+}
+
+/**
+ * Slot 177 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4570
+ */
+uint8_t UiEventHandlers::event_4a4570(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    ui_list_free_all();
+    return 1;
+}
+
+/**
+ * Slot 188 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4580
+ */
+uint8_t UiEventHandlers::event_4a4580(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
+
+    sprintf(pending_delete_saved_game_name_00718fd0, "checkpoints\\%s", (char *)(data + 0x48));
+    return 1;
+}
+
+/**
+ * Slot 189 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a45d0
+ */
+uint8_t UiEventHandlers::event_4a45d0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    if (pending_delete_saved_game_name_00718fd0[0] != 0) {
+        saved_game_delete_files(pending_delete_saved_game_name_00718fd0);
+    }
+    return 1;
+}
+
+/**
+ * Slot 178 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a45f0
+ */
+uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
+    char name[0x40];
+
+    sprintf(name, "checkpoints\\%s", (char *)(data + 0x48));
+    return saved_game_load_checkpoint_by_name(name);
+}
+
+/**
+ * Slot 179 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a47b0
+ */
+uint8_t UiEventHandlers::event_4a47b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    game_checkpoint_save_new();
+    return 1;
+}
+
+/**
+ * Slot 182 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4870
+ */
+uint8_t UiEventHandlers::event_4a4870(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    return autopatch_status_state_00719234;
+}
+
+/**
+ * Slot 185 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4a4af0
+ */
+uint8_t UiEventHandlers::event_4a4af0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *first = widget->parent->parent->first_child;
+
+    if (first == widget->parent && virtual_keyboard_open(network_host_name_field_00719238, 0x40, 0xd) != 0) {
+        network_host_edit_field_00719410 = 4;
+        return 1;
+    }
+    if (first->next_sibling == widget->parent && virtual_keyboard_open(network_host_subname_007191f0, 0x12, 0xc) != 0) {
+        network_host_edit_field_00719410 = 0;
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * Slot 113 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b4980
+ */
+uint8_t UiEventHandlers::event_4b4980(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *second = widget->first_child->next_sibling;
+    widget_instance *third = second->next_sibling;
+    uint8_t *live = input_controls_live_006b3a48;
+    uint8_t *profile;
+    widget_instance *list;
+
+    controls_capture_row = -1;
+    third->state = 0;
+    third->hidden = 1;
+    widget->focused_child = second;
+    second->state = 1;
+    second->hidden = 0;
+    controls_menu_list_mode = 0;
+    if ((selected_saved_item & 0xf) != 0) {
+        return 0;
+    }
+    profile = saved_item_working_copy;
+    memcpy(live + 0x220, profile + 0x134, 0xda);
+    memcpy(live + 0x10, profile + 0x20e, 0x10);
+    memcpy(live + 0x880, profile + 0x21e, 0xc);
+    memcpy(live + 0x380, profile + 0x22a, 0x100);
+    memcpy(live + 0x0, profile + 0x32a, 0x10);
+    memcpy(live + 0x20, profile + 0x33a, 0x200);
+    memcpy(live + 0x480, profile + 0x53a, 0x400);
+    ui_flag_00719444 = 0;
+    memcpy(live + 0x2fc, profile + 0x956, 4);
+    memcpy(live + 0x88c, profile + 0x95a, 4);
+    controls_build_device_label_table();
+    list = second->first_child->first_child->next_sibling;
+    list->selection_index = 0;
+    list->item_count = (uint16_t)controls_device_label_count;
+    list->list_items = controls_device_labels;
+    controls_binding_list_refresh_rows(second, 0);
+    return 1;
+}
+
+/**
+ * Slot 126 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b4af0
+ */
+uint8_t UiEventHandlers::event_4b4af0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    const uint8_t *live = input_controls_live_006b3a48;
+    widget_instance *list;
+
+    if (ui_flag_00719444 == 0 && (selected_saved_item & 0xf) == 0) {
+        uint8_t *profile = saved_item_working_copy;
+
+        memcpy(profile + 0x134, live + 0x220, 0xda);
+        memcpy(profile + 0x20e, live + 0x10, 0x10);
+        memcpy(profile + 0x21e, live + 0x880, 0xc);
+        memcpy(profile + 0x22a, live + 0x380, 0x100);
+        memcpy(profile + 0x32a, live + 0x0, 0x10);
+        memcpy(profile + 0x33a, live + 0x20, 0x200);
+        memcpy(profile + 0x53a, live + 0x480, 0x400);
+        memcpy(profile + 0x956, live + 0x2fc, 4);
+        memcpy(profile + 0x95a, live + 0x88c, 4);
+    }
+    list = widget->first_child->next_sibling->first_child->first_child->next_sibling;
+    list->item_count = 0;
+    list->list_items = 0;
+    ui_flag_00719444 = 0;
+    if (controls_capture_row != -1) {
+        controls_input_capture_flags &= 0xf7;
+        memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
+        controls_capture_row = -1;
+    }
+    return 1;
+}
+
+/**
+ * Slot 127 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b4c40
+ */
+uint8_t UiEventHandlers::event_4b4c40(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    ui_flag_00719444 = 1;
+    return 1;
+}
+
+/**
+ * Slot 115 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b52f0
+ */
+uint8_t UiEventHandlers::event_4b52f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *child = widget->parent->first_child->next_sibling->next_sibling;
+    widget_instance *second;
+    widget_instance *third;
+    int32_t i;
+
+    for (i = 0; child != widget; i++) {
+        if (i + 1 >= 8) {
+            return 1;
+        }
+        child = child->next_sibling;
+    }
+    controls_capture_row = i;
+    input_bind_scan_set_active(1);
+    second = child->first_child->next_sibling;
+    third = second->next_sibling;
+    *((uint8_t *)second + 0x54) = 1;
+    *((uint8_t *)third->first_child + 0x54) = 1;
+    *((uint8_t *)third->first_child->next_sibling + 0x54) = 1;
+    return 1;
+}
+
+/**
+ * Slot 152 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b5350
+ */
+uint8_t UiEventHandlers::event_4b5350(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    if (controls_menu_list_mode != 0) {
+        widget_instance *second = widget->first_child->next_sibling;
+        widget_instance *third = second->next_sibling;
+
+        third->state = 0;
+        third->hidden = 1;
+        widget->focused_child = second;
+        second->state = 1;
+        second->hidden = 0;
+        controls_menu_list_mode = 0;
+        return 1;
+    }
+    widget_instance_close_and_restore_previous(widget);
+    *out_handled = 1;
+    return 1;
+}
+
+/**
+ * Slot 153 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b54a0
+ */
+uint8_t UiEventHandlers::event_4b54a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    controls_binding_rows_toggle_device_mode(widget->parent->parent->parent, 1);
+    return 1;
+}
+
+/**
+ * Slot 154 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4b54c0
+ */
+uint8_t UiEventHandlers::event_4b54c0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *screen;
+    widget_instance *second;
+    widget_instance *third;
+
+    if ((selected_saved_item & 0xf) == 0) {
+        widget_instance *group = widget->parent->parent->first_child;
+        int32_t device = controls_selected_device;
+
+        controls_device_sensitivity_a[device] = (uint8_t)(first_list_child(group)->selection_index + 1);
+        controls_device_sensitivity_b[device] = (uint8_t)(first_list_child(group->next_sibling)->selection_index + 1);
+    }
+    screen = widget->parent->parent->parent->parent;
+    second = screen->first_child->next_sibling;
+    third = second->next_sibling;
+    third->state = 0;
+    third->hidden = 1;
+    screen->focused_child = second;
+    second->state = 1;
+    second->hidden = 0;
+    controls_menu_list_mode = 0;
+    return 1;
+}
+
+/**
+ * Slot 114 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4bb290
+ */
+uint8_t UiEventHandlers::event_4bb290(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    ui_flag_007196d1 = 0;
+    if (ui_flag_007196d2 != 0) {
+        widget_instance *root = widget;
+
+        while (root->parent != 0) {
+            root = root->parent;
+        }
+        root->milliseconds_to_auto_close = 1;
+        root->milliseconds_auto_close_fade = 0;
+        root->state = 0;
+        ui_flag_007196d2 = 0;
+        return 1;
+    }
+    if ((selected_saved_item & 0xf) != 0) {
+        return 0;
+    }
+    video_options_menu_populate((uint8_t *)widget, saved_item_working_copy);
+    return 1;
+}
+
+/**
+ * Slot 173 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4bb300
+ */
+uint8_t UiEventHandlers::event_4bb300(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *first = widget->first_child;
+
+    if (ui_flag_007196d1 == 0) {
+        uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+
+        rasterizer_gamma_exponent = profile[0xa76];
+        chimera__gamma();
+    }
+    first->first_child->next_sibling->list_items = 0;
+    first->next_sibling->first_child->next_sibling->list_items = 0;
+    return 1;
+}
+
+/**
+ * Slot 125 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4bb360
+ */
+uint8_t UiEventHandlers::event_4bb360(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    widget_instance *screen = widget->parent->parent;
+    uint8_t result = 1;
+
+    if (profile != 0) {
+        widget_instance *group = screen->first_child;
+        rasterizer_display_mode mode;
+        int32_t resolution;
+        int32_t refresh;
+
+        resolution = first_list_child(group)->selection_index;
+        if (resolution < 0 || resolution >= video_resolution_count) {
+            resolution = 0;
+        }
+        *(uint16_t *)(profile + 0xa68) = (uint16_t)video_resolutions[resolution].width;
+        *(uint16_t *)(profile + 0xa6a) = (uint16_t)video_resolutions[resolution].height;
+        group = group->next_sibling;
+        refresh = first_list_child(group)->selection_index;
+        if (refresh < 0 || (uint32_t)refresh >= video_resolutions[resolution].refresh_rate_count) {
+            refresh = 0;
+        }
+        *(uint16_t *)(profile + 0xa6c) = (uint16_t)video_resolutions[resolution].refresh_rates[refresh];
+        group = group->next_sibling;
+        profile[0xa6f] = clamp_selection(group, 2);
+        group = group->next_sibling;
+        profile[0xa70] = (uint8_t)(first_list_child(group)->selection_index != 0);
+        group = group->next_sibling;
+        profile[0xa71] = (uint8_t)(first_list_child(group)->selection_index != 0);
+        group = group->next_sibling;
+        profile[0xa72] = (uint8_t)(first_list_child(group)->selection_index != 0);
+        group = group->next_sibling;
+        profile[0xa73] = clamp_selection(group, 2);
+        group = group->next_sibling;
+        profile[0xa74] = clamp_selection(group, 2);
+        profile[0xa76] = (uint8_t)video_gamma_setting;
+        mode.width = *(int16_t *)(profile + 0xa68);
+        mode.height = *(int16_t *)(profile + 0xa6a);
+        mode.refresh_rate = *(int16_t *)(profile + 0xa6c);
+        mode.vsync = (uint8_t)(profile[0xa6f] != 0);
+        result = rasterizer_display_mode_differs(&mode);
+        if (result == 0) {
+            widget_instance_close_and_restore_previous(screen);
+        }
+    }
+    widget_play_sound_effect(3);
+    ui_flag_007196d1 = 1;
+    return result;
+}
+
+/**
+ * Slot 145 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4bb7e0
+ */
+uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    widget_instance *root;
+    int32_t changed = -1;
+
+    if ((selected_saved_item & 0xf) == 0) {
+        uint8_t *profile = saved_item_working_copy;
+        float gain = sound_master_gain;
+        rasterizer_display_mode mode;
+
+        mode.width = *(int16_t *)(profile + 0xa68);
+        mode.height = *(int16_t *)(profile + 0xa6a);
+        mode.refresh_rate = *(int16_t *)(profile + 0xa6c);
+        mode.vsync = (uint8_t)(profile[0xa6f] != 0);
+        display_mode_get_current(&ui_video_requested_display_mode_006b7010);
+        sound_set_master_gain(0.05f);
+        changed = 0;
+        if (rasterizer_display_mode_differs(&mode) != 0) {
+            d3d_present_parameters parameters;
+
+            rasterizer_build_present_parameters(&parameters, &mode);
+            rasterizer_device_reset(&parameters);
+            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)rasterizer_device)[0x20 / 4])(rasterizer_device, 0,
+                &rasterizer_desktop_display_mode);
+            changed = 1;
+            rasterizer_resize_game_window(mode.height, mode.width);
+            rasterizer_needs_reset = 0;
+        }
+        sound_set_master_gain(gain);
+        widget->creation_time = (int32_t)time_query_performance_counter_ms();
+    }
+    ui_flag_007196d2 = 0;
+    if (changed == 1) {
+        if (game_time_force_single_tick != 0) {
+            unknown_006894ba = 0;
+        } else {
+            unknown_006894ba = (uint8_t)(saved_item_working_copy[0xa6f] == 2);
+        }
+        return 1;
+    }
+    if (changed == 0) {
+        ui_flag_007196d2 = 1;
+    }
+    root = widget;
+    while (root->parent != 0) {
+        root = root->parent;
+    }
+    root->milliseconds_to_auto_close = 1;
+    root->milliseconds_auto_close_fade = 0;
+    root->state = 0;
+    return 0;
+}
+
+/**
+ * Slot 146 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4bb970
+ */
+uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    float gain;
+    uint8_t *profile;
+
+    if (ui_flag_007196d2 != 0) {
+        return 1;
+    }
+    gain = sound_master_gain;
+    profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    *(uint16_t *)(profile + 0xa68) = (uint16_t)ui_video_requested_display_mode_006b7010.width;
+    *(uint16_t *)(profile + 0xa6c) = (uint16_t)ui_video_requested_display_mode_006b7010.refresh_rate;
+    *(uint16_t *)(profile + 0xa6a) = (uint16_t)ui_video_requested_display_mode_006b7010.height;
+    if (ui_video_requested_display_mode_006b7010.vsync != 0) {
+        profile[0xa6f] = (uint8_t)((unknown_006894ba != 0) + 1);
+    }
+    if (game_time_force_single_tick != 0) {
+        unknown_006894ba = 0;
+    } else {
+        unknown_006894ba = (uint8_t)(profile[0xa6f] == 2);
+    }
+    sound_set_master_gain(0.05f);
+    if (rasterizer_display_mode_differs(&ui_video_requested_display_mode_006b7010) != 0) {
+        d3d_present_parameters parameters;
+
+        rasterizer_build_present_parameters(&parameters, &ui_video_requested_display_mode_006b7010);
+        rasterizer_device_reset(&parameters);
+        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)rasterizer_device)[0x20 / 4])(rasterizer_device, 0,
+            &rasterizer_desktop_display_mode);
+        rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
+        rasterizer_needs_reset = 0;
+    }
+    sound_set_master_gain(gain);
+    return 1;
+}
+
+/**
+ * Slot 147 of ui_event_function_table (widget event handler); only reachable through that table.
+ *
+ * @address 0x4bba80
+ */
+uint8_t UiEventHandlers::event_4bba80(widget_instance *widget, int16_t *event, uint8_t *out_handled)
+{
+    ui_flag_007196d2 = 1;
+    return 1;
+}
+
+}
