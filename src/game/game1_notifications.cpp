@@ -451,21 +451,21 @@ int32_t Notifications::get_multiplayer_sound_duration_ticks(int32_t sound_index)
 {
     GlobalsMultiplayerInformation *mp_info =
         (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
-    uint8_t *sound;
+    GlobalsSound *sound;
     uint32_t tag_id;
 
     if (mp_info == (GlobalsMultiplayerInformation *)0 || sound_index >= (int32_t)mp_info->sounds.count) {
         return 0;
     }
-    sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
-    if (sound == (uint8_t *)0) {
+    sound = (GlobalsSound *)mp_info->sounds.pointer + sound_index;
+    if (sound == (GlobalsSound *)0) {
         return 0;
     }
-    tag_id = *(uint32_t *)(sound + 0xc);
+    tag_id = *(uint32_t *)&sound->sound.tag_id;
     if (tag_id == halo::k_dword_none) {
         return 0;
     }
-    return (*(int32_t *)((uint8_t *)halo::game::tag_data_at(tag_id) + 0x84) * 30) / 1000;
+    return ((int32_t)((Sound *)halo::game::tag_data_at(tag_id))->longest_permutation_length * 30) / 1000;
 }
 
 /**
@@ -485,9 +485,9 @@ void Notifications::handle_sound_status_event(void *event)
                 (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
             if (mp_info != (GlobalsMultiplayerInformation *)0 &&
                 sound_index < (int32_t)mp_info->sounds.count) {
-                uint8_t *sound = (uint8_t *)mp_info->sounds.pointer + sound_index * 0x10;
-                if (sound != (uint8_t *)0 && *(int32_t *)(sound + 0xc) != -1) {
-                    halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
+                GlobalsSound *sound = (GlobalsSound *)mp_info->sounds.pointer + sound_index;
+                if (sound != (GlobalsSound *)0 && *(int32_t *)&sound->sound.tag_id != -1) {
+                    halo::sound::sound_start_unspatialized(*(datum_index *)&sound->sound.tag_id, 1.0f);
                 }
             }
         }
