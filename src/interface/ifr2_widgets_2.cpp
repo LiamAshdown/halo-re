@@ -10,6 +10,8 @@
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
+#include "halo/core/datum.hpp"
 
 #ifdef interface
 #undef interface
@@ -24,6 +26,8 @@ extern int32_t ui_time_milliseconds;
 extern heap *widget_memory_pool;
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 }
+
+static_assert(offsetof(UIWidgetDefinition, list_header_bitmap.tag_id) == 0x160 && offsetof(UIWidgetDefinition, list_footer_bitmap.tag_id) == 0x170 && offsetof(UIWidgetDefinition, header_bounds) == 0x174 && offsetof(UIWidgetDefinition, footer_bounds) == 0x17c && offsetof(UIWidgetDefinition, flags_1) == 0x11e, "UIWidgetDefinition list head layout");
 
 namespace halo::interface {
 
@@ -163,7 +167,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         int32_t arrow;
 
         for (arrow = 0; arrow < 2; arrow++) {
-            datum_index bitmap_tag = *(datum_index *)(t + (arrow == 0 ? 0x160 : 0x170));
+            datum_index bitmap_tag = *(datum_index *)&(arrow == 0 ? tag->list_header_bitmap : tag->list_footer_bitmap).tag_id;
             uint8_t *bitmap_tag_data = halo::interface::tag_data<uint8_t>(bitmap_tag);
             int16_t frame = (int16_t)(arrow == 0 ? scroll_dir_up : scroll_dir_down);
             int32_t bitmap;
@@ -175,7 +179,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             }
             bitmap = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, frame));
             if (bitmap != 0) {
-                Rectangle2D rect = *(Rectangle2D *)(t + (arrow == 0 ? 0x174 : 0x17c));
+                Rectangle2D rect = arrow == 0 ? tag->header_bounds : tag->footer_bounds;
                 float alpha = scale * 255.0f;
 
                 rect.top = (int16_t)(rect.top + y_off);
@@ -183,7 +187,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
                 rect.bottom = (int16_t)(rect.bottom + y_off);
                 rect.right = (int16_t)(rect.right + x_off);
                 halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, bitmap, (int16_t *)dest,
-                                     (uint32_t)((int32_t)(alpha + 0.5f) << 24) | 0xffffffu);
+                                     (uint32_t)((int32_t)(alpha + 0.5f) << 24) | halo::interface::k_rgb_mask);
             }
         }
     }
@@ -192,7 +196,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         return;
     }
 
-    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id == 0xffffffffu) {
+    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id == halo::k_dword_none) {
         text = (uint16_t *)widget->list_render_data;
     } else {
         uint16_t *src =
@@ -232,7 +236,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         }
     }
 
-    if (text != nullptr && *(uint32_t *)&tag->text_font.tag_id != 0xffffffffu) {
+    if (text != nullptr && *(uint32_t *)&tag->text_font.tag_id != halo::k_dword_none) {
         int16_t justification = tag->justification;
 
         if (justification >= 0 && justification < 3) {
@@ -257,7 +261,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
                 color.blue = rgb[2];
             }
             color.alpha = color.alpha * cumulative;
-            if (*(uint8_t *)&widget->selection_direction != 0 || (t[0x11e] & 4) != 0) {
+            if (*(uint8_t *)&widget->selection_direction != 0 || halo::interface::has_bit(((struct UIWidgetDefinition *)t)->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::flashing)) {
                 double td = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) td += 4294967296.0;
@@ -270,7 +274,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     }
 
 free_and_return:
-    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu && text != nullptr) {
+    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != halo::k_dword_none && text != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)text - 0x10);
         uint32_t size = block->size;
 
@@ -299,8 +303,8 @@ void WidgetList::adjust_rect_for_scroll_arrows(Rectangle2D *rect)
     if (tag->child_widgets.count >= 2) {
         return;
     }
-    if (*(uint32_t *)&tag->list_footer_bitmap.tag_id == 0xffffffffu ||
-        *(uint32_t *)&tag->list_header_bitmap.tag_id == 0xffffffffu) {
+    if (*(uint32_t *)&tag->list_footer_bitmap.tag_id == halo::k_dword_none ||
+        *(uint32_t *)&tag->list_header_bitmap.tag_id == halo::k_dword_none) {
         return;
     }
     rect->left = rect->left + tag->header_bounds.left - 10;

@@ -5,6 +5,8 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/flags.hpp"
+#include "halo/core/datum.hpp"
 
 #ifdef interface
 #undef interface
@@ -34,7 +36,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
     uint8_t *t = (uint8_t *)tag;
     int32_t i;
 
-    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu) {
+    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != halo::k_dword_none) {
         int16_t index = widget->selection_index;
         uint16_t *src;
         uint32_t byte_len;
@@ -82,7 +84,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
     }
 
-    if (*(uint32_t *)&tag->text_font.tag_id == 0xffffffffu) {
+    if (*(uint32_t *)&tag->text_font.tag_id == halo::k_dword_none) {
         return;
     }
     if (tag->justification < 0 || tag->justification >= 3) {
@@ -120,7 +122,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             }
             color.alpha = color.alpha * scale;
         }
-        if (w[0x54] != 0 || (t[0x11e] & 4) != 0) {
+        if (*(uint8_t *)&((struct widget_instance *)w)->selection_direction != 0 || halo::interface::has_bit(((struct UIWidgetDefinition *)t)->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::flashing)) {
             double time = (double)ui_time_milliseconds;
 
             if (ui_time_milliseconds < 0) {

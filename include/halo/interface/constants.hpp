@@ -51,4 +51,17 @@ inline constexpr uint32_t k_rgb_green = 0x00ff00;
 inline constexpr uint32_t k_rgb_yellow = 0xffff00;
 inline constexpr uint32_t k_rgb_purple = 0x7f00ff;
 
+/** Size in bytes of the controls input capture buffer the controls menu scans bindings into. */
+inline constexpr int32_t k_controls_capture_buffer_size = 656;
+
+/** The twelve menu buttons a widget close suppresses until they are released. */
+inline constexpr uint16_t k_menu_button_mask = 0xfff;
+
+/** Ticks a list spinner arrow flashes after a single step and after a page step (negative scroll_blink values count up). */
+inline constexpr int16_t k_scroll_blink_ticks = 4;
+inline constexpr int16_t k_scroll_blink_long = 15;
+
+/** The word a widget input event stores in an argument slot that holds no value. */
+inline constexpr int16_t k_event_argument_unset = INT16_MIN;
+
 }  // namespace halo::interface

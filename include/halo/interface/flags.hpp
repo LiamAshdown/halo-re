@@ -25,4 +25,7 @@ constexpr bool has_bit(V value, E bit) noexcept {
     return (static_cast<U>(value) & halo::to_bits(bit)) == halo::to_bits(bit);
 }
 
+/** The flag word of a ui_widget_definition tag. */
+using widget_flag = halo::tags::ui_widget_definition_tag_flag;
+
 }  // namespace halo::interface

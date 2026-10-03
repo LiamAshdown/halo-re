@@ -36,7 +36,7 @@ extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widg
 extern widget_history_node *ui_widget_history[3];
 extern int32_t controls_capture_row;
 extern uint8_t controls_input_capture_flags;
-extern uint8_t controls_input_capture_buffer[0x290];
+extern uint8_t controls_input_capture_buffer[halo::interface::k_controls_capture_buffer_size];
 extern uint8_t widget_creating_children;
 extern int32_t ui_cursor_x;
 extern int32_t last_controller_index_00879f50;
@@ -134,10 +134,10 @@ void WidgetLifecycle::close()
     widget->closing = 1;
 
     if (widget->controller_index != -1 && widget->parent == (widget_instance *)0) {
-        uint8_t *entry = (uint8_t *)halo::game::globals().player_control + (int16_t)widget->controller_index * 0x40 + 0x10;
+        local_player_control *entry = &halo::game::globals().player_control->local_players[0] + (int16_t)widget->controller_index;
 
-        *(uint16_t *)(entry + 8) |= 0xfff;
-        *(uint16_t *)(entry + 10) |= 0xfff;
+        entry->suppressed_buttons |= halo::interface::k_menu_button_mask;
+        entry->suppressed_until_released |= halo::interface::k_menu_button_mask;
     }
 
     {
@@ -255,7 +255,7 @@ void WidgetLifecycle::close()
 
 /**
  * Closes the (single) root widget, frees its go-back history list, resets ui_pause_depth to 0, and, when
- * controls_capture_row is armed, clears a 0x290 byte controls-related block.
+ * controls_capture_row is armed, clears the controls input capture buffer.
  *
  * @address 0x498650
  */
@@ -272,7 +272,7 @@ void WidgetLifecycle::close_all()
     ui_pause_depth = 0;
     if (controls_capture_row != -1) {
         controls_input_capture_flags = controls_input_capture_flags & 0xf7;
-        for (i = 0; i < 0x290; i++) {
+        for (i = 0; i < halo::interface::k_controls_capture_buffer_size; i++) {
             controls_input_capture_buffer[i] = 0;
         }
         controls_capture_row = -1;
@@ -379,7 +379,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     }
 
     if ((widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
-        *(uint32_t *)&tag->extended_description_widget.tag_id != 0xffffffffu) {
+        *(uint32_t *)&tag->extended_description_widget.tag_id != halo::k_dword_none) {
         widget_instance *desc = halo::interface::chimera__load_ui_widget(
             nullptr, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
             widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
@@ -472,7 +472,7 @@ uint32_t WidgetList::cyclable_list_nudge()
         if (new_index == widget->selection_index) {
             goto play_and_return;
         }
-        ((struct widget_instance *)widget)->scroll_blink = (int16_t)0xfffc;
+        ((struct widget_instance *)widget)->scroll_blink = -halo::interface::k_scroll_blink_ticks;
         ((struct widget_instance *)widget)->selection_direction = -1;
     } else {
         if (side != 1) {
@@ -485,7 +485,7 @@ uint32_t WidgetList::cyclable_list_nudge()
         if (new_index == widget->selection_index) {
             goto play_and_return;
         }
-        ((struct widget_instance *)widget)->scroll_blink = 4;
+        ((struct widget_instance *)widget)->scroll_blink = halo::interface::k_scroll_blink_ticks;
         ((struct widget_instance *)widget)->selection_direction = 1;
     }
     widget->selection_index = (int16_t)new_index;
@@ -563,18 +563,18 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
 void WidgetRender::draw_split_screen_region(Rectangle2D *viewport, int16_t controller_index)
 {
 
-    uint8_t table[0x4c] = {0};
+    Point2DInt offsets[19] = {};
     int32_t clamped_controller;
     int32_t i;
 
-    *(int16_t *)(table + 0x22) = 0xf0;
-    *(int16_t *)(table + 0x32) = 0xf0;
-    *(int16_t *)(table + 0x34) = 0x140;
-    *(int16_t *)(table + 0x36) = 0xf0;
-    *(int16_t *)(table + 0x40) = 0x140;
-    *(int16_t *)(table + 0x46) = 0xf0;
-    *(int16_t *)(table + 0x48) = 0x140;
-    *(int16_t *)(table + 0x4a) = 0xf0;
+    offsets[8].y = k_base_screen_height / 2;
+    offsets[12].y = k_base_screen_height / 2;
+    offsets[13].x = k_base_screen_width / 2;
+    offsets[13].y = k_base_screen_height / 2;
+    offsets[16].x = k_base_screen_width / 2;
+    offsets[17].y = k_base_screen_height / 2;
+    offsets[18].x = k_base_screen_width / 2;
+    offsets[18].y = k_base_screen_height / 2;
 
     if (virtual_keyboard.active != 0) {
         return;
@@ -595,8 +595,8 @@ void WidgetRender::draw_split_screen_region(Rectangle2D *viewport, int16_t contr
             (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest;
-            int32_t byte_offset = 4 * (clamped_controller + 4 * halo::game::globals().local_player_globals->local_player_count);
-            int32_t offset_xy = *(int32_t *)(table + byte_offset);
+            int32_t offset_index = clamped_controller + 4 * halo::game::globals().local_player_globals->local_player_count;
+            int32_t offset_xy = *(int32_t *)&offsets[offset_index];
 
             dest.top = 0;
             dest.left = 0;
@@ -871,7 +871,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget->selection_index = -1;
         widget->list_render_data = nullptr;
     }
-    if (*(uint32_t *)&tag->background_bitmap.tag_id != 0xffffffffu) {
+    if (*(uint32_t *)&tag->background_bitmap.tag_id != halo::k_dword_none) {
         tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & halo::k_slot_mask];
         Bitmap *bitmap = (Bitmap *)bg->data;
         BitmapGroupSequence *seq = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
@@ -1127,7 +1127,7 @@ after_close_check:
                     halo::interface::widget_focus_next_child(widget);
                     goto tab_commit;
                 } else if (event[0] == 1) {
-                    if (event[3] != (int16_t)0x8000) {
+                    if (event[3] != halo::interface::k_event_argument_unset) {
                         if (event[3] == halo::interface::k_action_none) {
                             goto tab_forward;
                         }
@@ -1163,7 +1163,7 @@ after_close_check:
                         goto tab_commit;
                     }
                 } else if (event[0] == 1) {
-                    if (event[2] == (int16_t)0x8000) {
+                    if (event[2] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_focus_previous_child(widget);
                         goto tab_commit;
                     }
@@ -1191,7 +1191,7 @@ after_close_check:
                     }
                     list_nav_done = 1;
                 } else if (event[0] == 1) {
-                    if (event[3] == (int16_t)0x8000) {
+                    if (event[3] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
@@ -1218,7 +1218,7 @@ after_close_check:
                     if (sound_effect == 0) sound_effect = 1;
                     list_nav_done = 1;
                 } else if (event[0] == 1) {
-                    if (event[2] == (int16_t)0x8000) {
+                    if (event[2] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
@@ -1254,8 +1254,8 @@ dispatch_to_children:
                 case 1:
                     switch (event_type) {
                     case 0x10: match = (event[3] == halo::interface::k_action_none); break;
-                    case 0x11: match = (event[3] == (int16_t)0x8000); break;
-                    case 0x12: match = (event[2] == (int16_t)0x8000); break;
+                    case 0x11: match = (event[3] == halo::interface::k_event_argument_unset); break;
+                    case 0x12: match = (event[2] == halo::interface::k_event_argument_unset); break;
                     case 0x13: match = (event[2] == halo::interface::k_action_none); break;
                     default: goto scan_next;
                     }
@@ -1263,8 +1263,8 @@ dispatch_to_children:
                 case 2:
                     switch (event_type) {
                     case 0x14: match = (event[3] == halo::interface::k_action_none); break;
-                    case 0x15: match = (event[3] == (int16_t)0x8000); break;
-                    case 0x16: match = (event[2] == (int16_t)0x8000); break;
+                    case 0x15: match = (event[3] == halo::interface::k_event_argument_unset); break;
+                    case 0x16: match = (event[2] == halo::interface::k_event_argument_unset); break;
                     case 0x17: match = (event[2] == halo::interface::k_action_none); break;
                     default: goto scan_next;
                     }
@@ -1305,9 +1305,10 @@ dispatch_to_children:
     {
         uint32_t flags = tag->flags;
 
-        if (((flags & 0x400) != 0 || list_nav_done == 0) && ((flags & 1) != 0 || (flags & 0x100) != 0) &&
+        if ((has_bit(flags, widget_flag::pass_handled_events_to_all_children) || list_nav_done == 0) &&
+            (has_bit(flags, widget_flag::pass_unhandled_events_to_focused_child) || has_bit(flags, widget_flag::pass_unhandled_events_to_all_children)) &&
             handled == 0) {
-            if ((flags & 0x100) == 0) {
+            if (!has_bit(flags, widget_flag::pass_unhandled_events_to_all_children)) {
                 widget_instance *child = widget->focused_child;
 
                 if (child != (widget_instance *)0 &&
@@ -1569,7 +1570,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
             }
 
             halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)clip_arg,
-                                 (uint32_t)((int32_t)(alpha * 255.0f + 0.5f) << 24) | 0xffffffu);
+                                 (uint32_t)((int32_t)(alpha * 255.0f + 0.5f) << 24) | halo::interface::k_rgb_mask);
             if ((int8_t)flag2 != 0) {
                 override_color_00879f40 = 0.0f;
                 override_color_00879f44 = 0.0f;
@@ -1602,7 +1603,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         widget_instance *child;
 
         for (child = widget->first_child; child != (widget_instance *)0; child = child->next_sibling) {
-            uint32_t child_flag1 = (flag1 & 0xffffff00) | (child == widget->focused_child);
+            uint32_t child_flag1 = (flag1 & ~0xffu) | (child == widget->focused_child);
             int32_t child_flag2;
 
             if (child == widget->focused_child && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list)) {
@@ -1856,7 +1857,7 @@ uint8_t WidgetList::select_next()
                     halo::interface::widget_instance_relink_focus(widget, focused->next_sibling);
                     widget->selection_index = next_index;
                     widget->selection_direction = 1;
-                    widget->scroll_blink = 0xf;
+                    widget->scroll_blink = halo::interface::k_scroll_blink_long;
                     return 1;
                 }
             }
@@ -1894,7 +1895,7 @@ uint8_t WidgetList::select_next()
             }
             widget->selection_direction = 1;
             widget->selection_index = index;
-            widget->scroll_blink = 0xf;
+            widget->scroll_blink = halo::interface::k_scroll_blink_long;
             return 1;
         }
     }
@@ -1903,13 +1904,13 @@ uint8_t WidgetList::select_next()
     if ((uint16_t)widget->selection_index == (uint16_t)widget->item_count) {
         widget->selection_direction = 1;
         widget->selection_index = 0;
-        widget->scroll_blink = 0xf;
+        widget->scroll_blink = halo::interface::k_scroll_blink_long;
         return 1;
     }
 
 commit:
     widget->selection_direction = 1;
-    widget->scroll_blink = 0xf;
+    widget->scroll_blink = halo::interface::k_scroll_blink_long;
     return 1;
 }
 
@@ -1939,7 +1940,7 @@ uint8_t WidgetList::select_previous()
             }
             halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
             widget->selection_index = prev_index;
-            widget->scroll_blink = (int16_t)0xfff1;
+            widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
@@ -1950,7 +1951,7 @@ uint8_t WidgetList::select_previous()
                 halo::interface::widget_instance_relink_focus(widget, widget->focused_child->previous_sibling);
             }
             widget->selection_index = prev_index;
-            widget->scroll_blink = (int16_t)0xfff1;
+            widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
@@ -1961,7 +1962,7 @@ uint8_t WidgetList::select_previous()
         widget->selection_index = widget->selection_index - 1;
         if (widget->selection_index < 0) {
             widget->selection_index = widget->item_count - 1;
-            widget->scroll_blink = (int16_t)0xfff1;
+            widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
@@ -2053,7 +2054,7 @@ uint8_t WidgetList::select_previous()
     }
 
 commit:
-    widget->scroll_blink = (int16_t)0xfff1;
+    widget->scroll_blink = -halo::interface::k_scroll_blink_long;
     widget->selection_direction = halo::k_word_none;
     return 1;
 }
