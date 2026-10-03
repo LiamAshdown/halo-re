@@ -30,18 +30,29 @@ file(GLOB _new_sources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/math/*.cpp")
 halo_math_objects(halo_math_reference "${_ref_root}" "${_ref_sources}")
 halo_math_objects(halo_math_converted "${CMAKE_SOURCE_DIR}" "${_new_sources}")
 
-add_library(halo_math_difftest_driver OBJECT math_difftest.cpp math_test_stubs.cpp)
-target_include_directories(halo_math_difftest_driver PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types"
-                           "${CMAKE_CURRENT_SOURCE_DIR}")
-target_compile_options(halo_math_difftest_driver PRIVATE ${_flags} "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
+foreach(part driver stubs api)
+    set(_src_driver math_difftest.cpp)
+    set(_src_stubs math_test_stubs.cpp)
+    set(_src_api math_api_test.cpp)
+    add_library(halo_math_difftest_${part} OBJECT ${_src_${part}})
+    target_include_directories(halo_math_difftest_${part} PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types"
+                               "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_compile_options(halo_math_difftest_${part} PRIVATE ${_flags} "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
+endforeach()
 add_library(halo_math_difftest_x87 OBJECT "${CMAKE_SOURCE_DIR}/harness/x87_shims.c")
 target_compile_options(halo_math_difftest_x87 PRIVATE /O2 /GS-)
 
 foreach(kind reference converted)
     add_executable(math_difftest_${kind} $<TARGET_OBJECTS:halo_math_${kind}>
-                   $<TARGET_OBJECTS:halo_math_difftest_driver> $<TARGET_OBJECTS:halo_math_difftest_x87>)
+                   $<TARGET_OBJECTS:halo_math_difftest_driver> $<TARGET_OBJECTS:halo_math_difftest_stubs>
+                   $<TARGET_OBJECTS:halo_math_difftest_x87>)
     target_link_libraries(math_difftest_${kind} PRIVATE kernel32 legacy_stdio_definitions)
 endforeach()
+# the C++ API (value-type members, operators, glm conversions, random_stream) against the C functions it wraps
+add_executable(math_api_test $<TARGET_OBJECTS:halo_math_converted> $<TARGET_OBJECTS:halo_math_difftest_api>
+               $<TARGET_OBJECTS:halo_math_difftest_stubs> $<TARGET_OBJECTS:halo_math_difftest_x87>)
+target_link_libraries(math_api_test PRIVATE kernel32 legacy_stdio_definitions)
+add_test(NAME math_api_test COMMAND math_api_test)
 
 add_test(NAME math_difftest
          COMMAND "${CMAKE_COMMAND}" -DREF=$<TARGET_FILE:math_difftest_reference>

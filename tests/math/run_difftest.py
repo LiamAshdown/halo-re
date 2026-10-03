@@ -75,6 +75,14 @@ def main():
             raise SystemExit("%s run failed (%d): %s" % (name, r.returncode, r.stdout + r.stderr))
         results[name] = open(txt, "rb").read()
         print("%s: %d objects, %s, %d bytes of output" % (name, len(objs), r.stdout.strip(), len(results[name])))
+    api = compile_all([os.path.join(ROOT, "tests", "math", "math_api_test.cpp")], os.path.join(OUT, "api"), ROOT,
+                      ["/I", os.path.join(ROOT, "tests", "math")])
+    exe = os.path.join(OUT, "math_api_test.exe")
+    link(api + shared[1:] + new_objs, exe)
+    r = subprocess.run([exe], capture_output=True, text=True, timeout=600)
+    print("api test (C++ members/operators/glm/random_stream vs the C functions): %s" % r.stdout.strip().splitlines()[-1])
+    if r.returncode:
+        print(r.stdout); return 1
     a, b = results["reference"].splitlines(), results["converted"].splitlines()
     if results["reference"] == results["converted"]:
         names = sorted({l.split(b" ", 1)[0].decode() for l in a if not l.startswith(b"calls")})

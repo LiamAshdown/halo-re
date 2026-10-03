@@ -48,7 +48,7 @@ void matrix4x3_from_euler_angles(real_matrix4x3 &out, real yaw, real pitch, real
  * Original register convention: EAX -> up, ECX -> forward, ESI -> position, stack -> out.
  * @address 0x004cbd60
  */
-void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, const real_point3d &position, real_matrix4x3 *out);
+void matrix4x3_from_forward_up_position(const real_vector3d *up, const real_vector3d *forward, const real_point3d &position, real_matrix4x3 *out);
 
 /**
  * Copies the forward row, up row and position out of a matrix4x3.
@@ -121,7 +121,7 @@ void matrix4x3_inverse_transform_normal(real_vector3d &out, const real_vector3d 
  * out = a * b (scalar build, the default matrix4x3_multiply_procedure); `out` may alias either operand.
  * @address 0x004cc0d0
  */
-void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
+void matrix4x3_multiply(const real_matrix4x3 *a, const real_matrix4x3 *b, real_matrix4x3 *out);
 
 /**
  * The SSE build of matrix4x3_multiply; computes the scalar product (see matrix4x3_multiply).
@@ -129,14 +129,14 @@ void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *ou
  * Original register convention: stack -> a, b, out (cdecl).
  * @address 0x004cc250
  */
-void matrix4x3_multiply_sse(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
+void matrix4x3_multiply_sse(const real_matrix4x3 *a, const real_matrix4x3 *b, real_matrix4x3 *out);
 
 /**
  * The 3DNow! build of matrix4x3_multiply, as scalar code with the packed routine's per-component summation
  * order; `out` may alias either operand.
  * @address 0x004cc3a0
  */
-void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
+void matrix4x3_multiply_3dnow(const real_matrix4x3 *a, const real_matrix4x3 *b, real_matrix4x3 *out);
 
 /**
  * Transposes a 3x3 matrix; `out` may alias `in`.
@@ -144,7 +144,7 @@ void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4
  * Original register convention: EAX -> out, ECX -> in.
  * @address 0x004cc500
  */
-void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in);
+void matrix3x3_transpose(real_matrix3x3 *out, const real_matrix3x3 *in);
 
 /**
  * Builds a 3x3 basis: forward and up as given, left = cross(up, forward).
@@ -160,7 +160,7 @@ void matrix3x3_from_forward_up(const real_vector3d &up, const real_vector3d &for
  * Original register convention: EAX -> out, EDX -> a, stack -> b.
  * @address 0x004cc5f0
  */
-void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b);
+void matrix3x3_multiply(real_matrix3x3 *out, const real_matrix3x3 *a, const real_matrix3x3 *b);
 
 /**
  * Multiplies `v` by the 3x3 basis columns (forward*i + left*j + up*k); `out` may alias `v`.

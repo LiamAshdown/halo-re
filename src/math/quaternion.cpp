@@ -5,13 +5,12 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/math_globals.h"
 
 #include "tags.h"
 
 extern "C" {
 extern double sqrt(double x);
-extern int16_t k_quaternion_next_index_matrix4x3[3];
-extern int16_t k_quaternion_next_index_matrix3x3[3];
 extern double atan2(double y, double x);
 }
 
@@ -19,16 +18,16 @@ namespace halo::math {
 
 namespace {
 
-static real m4x3_elem(real_matrix4x3 *m, int row, int col)
+real m4x3_elem(const real_matrix4x3 *m, int row, int col)
 {
-    real_vector3d *r;
+    const real_vector3d *r;
     r = (row == 0) ? &m->forward : (row == 1) ? &m->left : &m->up;
     return (col == 0) ? r->i : (col == 1) ? r->j : r->k;
 }
 
-static real m3x3_elem(real_matrix3x3 *m, int row, int col)
+real m3x3_elem(const real_matrix3x3 *m, int row, int col)
 {
-    real_vector3d *r;
+    const real_vector3d *r;
     r = (row == 0) ? &m->forward : (row == 1) ? &m->left : &m->up;
     return (col == 0) ? r->i : (col == 1) ? r->j : r->k;
 }
@@ -76,7 +75,7 @@ void matrix4x3_from_quaternion(const real_quaternion &q, real_matrix4x3 &out)
     out.up.k = 1.0f - (sjj + sii);
 }
 
-void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion &out)
+void quaternion_from_matrix4x3(const real_matrix4x3 *m, real_quaternion &out)
 {
     real trace;
     real s;
@@ -198,7 +197,7 @@ void quaternion_to_axis_angle(const real_quaternion &quat, real_vector3d *axis_o
     }
 }
 
-void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out)
+void quaternion_multiply(const real_quaternion *a, const real_quaternion *b, real_quaternion *out)
 {
     real_quaternion local;
     const real_quaternion *pa;

@@ -5,6 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/glm_interop.hpp"
 
 #include "tags.h"
 
@@ -21,7 +22,8 @@ namespace halo::math {
 
 real vector3d_magnitude_squared(const real_vector3d &v)
 {
-    return v.i * v.i + v.j * v.j + v.k * v.k;
+    const glm::vec3 v3 = to_glm(v);
+    return glm::dot(v3, v3);
 }
 
 real vector3d_distance_squared(const real_point3d &a, const real_point3d &b)
@@ -48,9 +50,7 @@ real vector2d_normalize_with_length(real_vector2d &v)
 
 void point3d_add_scaled(real_point3d &out, const real_vector3d &direction, const real_point3d &base, real scale)
 {
-    out.x = scale * direction.i + base.x;
-    out.y = scale * direction.j + base.y;
-    out.z = scale * direction.k + base.z;
+    out = point_from_glm(scale * to_glm(direction) + to_glm(base));
 }
 
 real vector3d_length(const real_vector3d &v)
@@ -90,9 +90,9 @@ real vector3d_distance(const real_point3d &a, const real_point3d &b)
 
 int16_t vector3d_major_axis_index(const real_vector3d &v)
 {
-    real x = (real)fabs(v.i);
-    real y = (real)fabs(v.j);
-    real z = (real)fabs(v.k);
+    real x = (real)fabs((double)v.i);
+    real y = (real)fabs((double)v.j);
+    real z = (real)fabs((double)v.k);
 
     if (!(z >= y) || !(z >= x)) {
         return !(y >= x) ? 0 : 1;
@@ -102,16 +102,14 @@ int16_t vector3d_major_axis_index(const real_vector3d &v)
 
 float vector3d_scalar_triple_product(const real_vector3d &a, const real_vector3d &b, const real_vector3d &c)
 {
-    return (b.k * a.j - a.k * b.j) * c.i +
-           (a.k * b.i - a.i * b.k) * c.j +
-           (a.i * b.j - b.i * a.j) * c.k;
+    return glm::dot(glm::cross(to_glm(a), to_glm(b)), to_glm(c));
 }
 
 void vector3d_positive_modulo(const real_vector3d &v, real_vector3d &out, float period)
 {
-    out.i = (float)fmod(v.i, period) + (v.i < 0.0f ? period : 0.0f);
-    out.j = (float)fmod(v.j, period) + (v.j < 0.0f ? period : 0.0f);
-    out.k = (float)fmod(v.k, period) + (v.k < 0.0f ? period : 0.0f);
+    out.i = (float)fmod((double)v.i, (double)period) + (v.i < 0.0f ? period : 0.0f);
+    out.j = (float)fmod((double)v.j, (double)period) + (v.j < 0.0f ? period : 0.0f);
+    out.k = (float)fmod((double)v.k, (double)period) + (v.k < 0.0f ? period : 0.0f);
 }
 
 void vector2d_normalize(real_vector2d &v)

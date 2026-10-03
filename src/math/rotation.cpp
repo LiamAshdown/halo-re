@@ -5,11 +5,11 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/math_globals.h"
 
 #include "tags.h"
 
 extern "C" {
-extern real_point3d global_origin3d;
 extern double acos(double x);
 extern double cos(double x);
 extern double sin(double x);

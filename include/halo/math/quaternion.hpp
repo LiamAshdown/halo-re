@@ -24,7 +24,7 @@ void matrix4x3_from_quaternion(const real_quaternion &q, real_matrix4x3 &out);
  * Original register convention: ECX -> m, stack -> out.
  * @address 0x004cbc00
  */
-void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion &out);
+void quaternion_from_matrix4x3(const real_matrix4x3 *m, real_quaternion &out);
 
 /**
  * Extracts the rotation quaternion of a 3x3 matrix (largest-diagonal method). Returns `out`.
@@ -56,7 +56,7 @@ void quaternion_to_axis_angle(const real_quaternion &quat, real_vector3d *axis_o
  * Original register convention: EAX -> a, ECX -> b, EDX -> out.
  * @address 0x004cdbf0
  */
-void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out);
+void quaternion_multiply(const real_quaternion *a, const real_quaternion *b, real_quaternion *out);
 
 /**
  * Componentwise lerp from `b` (t = 0) to `a` (t = 1), negating the weight of `a` when dot(a, b) < 0 so it takes

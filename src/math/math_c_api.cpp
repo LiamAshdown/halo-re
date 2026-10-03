@@ -340,12 +340,12 @@ extern "C" void periodic_function_tables_free(void)
 
 extern "C" real periodic_function_evaluate(periodic_function_t type, double time)
 {
-    return halo::math::periodic_function_evaluate(type, time);
+    return halo::math::periodic_function_evaluate(static_cast<halo::math::periodic_function_type>(type), time);
 }
 
 extern "C" real transition_function_evaluate(transition_function_t type, real phase)
 {
-    return halo::math::transition_function_evaluate(type, phase);
+    return halo::math::transition_function_evaluate(static_cast<halo::math::transition_function_type>(type), phase);
 }
 
 extern "C" void periodic_function_build_noise_table(real *table)
@@ -355,12 +355,12 @@ extern "C" void periodic_function_build_noise_table(real *table)
 
 extern "C" void periodic_function_build_transition_table(transition_function_t type, uint8_t *table)
 {
-    halo::math::periodic_function_build_transition_table(type, table);
+    halo::math::periodic_function_build_transition_table(static_cast<halo::math::transition_function_type>(type), table);
 }
 
 extern "C" void periodic_function_build_table(periodic_function_t type, uint8_t *out)
 {
-    halo::math::periodic_function_build_table(type, out);
+    halo::math::periodic_function_build_table(static_cast<halo::math::periodic_function_type>(type), out);
 }
 
 extern "C" uint32_t random_seed_generate(void)

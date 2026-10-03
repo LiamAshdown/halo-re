@@ -5,17 +5,11 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/math_globals.h"
 
 #include "win32.h"
 #include "tags.h"
 
-extern "C" {
-extern real_point3d k_octahedron_vertices[6];
-extern int16_t k_octahedron_faces[8][3];
-extern random_seed effect_random_seed;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
-}
 
 namespace halo::math {
 

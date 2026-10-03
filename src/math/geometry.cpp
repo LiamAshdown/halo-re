@@ -5,13 +5,14 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/glm_interop.hpp"
+#include "halo/math/math_globals.h"
 
 #include "tags.h"
 
 extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
-extern projection_axis_pair k_projection_axes[6];
 }
 
 namespace halo::math {
@@ -173,17 +174,13 @@ real_plane2d * plane2d_from_points(real_plane2d *out_plane, const real_point2d &
 
 void plane3d_from_point_and_normal(real_plane3d &out, const real_vector3d &normal, const real_point3d &point)
 {
-    out.normal.i = normal.i;
-    out.normal.j = normal.j;
-    out.normal.k = normal.k;
-    out.d = out.normal.i * point.x + out.normal.j * point.y + out.normal.k * point.z;
+    out.normal = normal;
+    out.d = glm::dot(to_glm(out.normal), to_glm(point));
 }
 
 void plane3d_negate(real_plane3d &out, const real_plane3d &in)
 {
-    out.normal.i = -in.normal.i;
-    out.normal.j = -in.normal.j;
-    out.normal.k = -in.normal.k;
+    out.normal = vector_from_glm(-to_glm(in.normal));
     out.d = -in.d;
 }
 

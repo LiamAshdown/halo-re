@@ -17,3 +17,4 @@
 #include "halo/math/sphere_mesh.hpp"
 #include "halo/math/utility.hpp"
 #include "halo/math/math_initialize.hpp"
+#include "halo/math/value_types.hpp"

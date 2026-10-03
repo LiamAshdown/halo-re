@@ -5,6 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/math_globals.h"
 #include "halo/math/math_c_api.h"
 
 #include "crt.h"
@@ -12,7 +13,6 @@
 
 extern "C" {
 extern int cpu_get_type(int feature);
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern int32_t shell_argc;
 extern char **shell_argv;
 extern int32_t safe_mode;

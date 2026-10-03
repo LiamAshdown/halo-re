@@ -5,6 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/glm_interop.hpp"
 
 #include "tags.h"
 
@@ -18,12 +19,8 @@ namespace halo::math {
 
 void vector3d_lerp(real_vector3d &out, const real_vector3d &a, const real_vector3d &b, real t)
 {
-    real one_minus_t;
-
-    one_minus_t = 1.0f - t;
-    out.i = t * a.i + one_minus_t * b.i;
-    out.j = t * a.j + one_minus_t * b.j;
-    out.k = t * a.k + one_minus_t * b.k;
+    const real one_minus_t = 1.0f - t;
+    out = vector_from_glm(t * to_glm(a) + one_minus_t * to_glm(b));
 }
 
 void real_lerp_clamped(real &out, real a, real b, real t)

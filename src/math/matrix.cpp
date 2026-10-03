@@ -5,6 +5,8 @@
  */
 
 #include "halo/math/math.hpp"
+#include "halo/math/glm_interop.hpp"
+#include "halo/math/math_globals.h"
 
 #include "tags.h"
 #include "memory.h"
@@ -14,23 +16,9 @@ extern double cos(double x);
 extern double sin(double x);
 extern uint8_t vector3d_is_unit_length(real_vector3d *v);
 extern uint8_t real_approximately_equal(real a, real b);
-extern const real_vector3d *global_forward3d_pointer;
-extern const real_vector3d *global_left3d_pointer;
-extern const real_vector3d *global_up3d_pointer;
 }
 
 namespace halo::math {
-
-namespace {
-
-static void cross(real_vector3d *out, real_vector3d *a, real_vector3d *b)
-{
-    out->i = a->j * b->k - a->k * b->j;
-    out->j = a->k * b->i - a->i * b->k;
-    out->k = a->i * b->j - a->j * b->i;
-}
-
-}  // namespace
 
 void matrix4x3_inverse(real_matrix4x3 *out, const real_matrix4x3 &in)
 {
@@ -114,15 +102,8 @@ void matrix4x3_from_axis_angle(real_matrix4x3 &out, const real_vector3d &axis, r
 
 void matrix4x3_from_forward_up(const real_vector3d &up, const real_vector3d &forward, real_matrix4x3 &out)
 {
-    out.scale = 1.0f;
-    out.forward = forward;
-    out.left.i = up.j * forward.k - up.k * forward.j;
-    out.left.j = up.k * forward.i - forward.k * up.i;
-    out.left.k = up.i * forward.j - up.j * forward.i;
-    out.up = up;
-    out.position.x = 0.0f;
-    out.position.y = 0.0f;
-    out.position.z = 0.0f;
+    out = matrix4x3_from_glm(glm::mat3(to_glm(forward), glm::cross(to_glm(up), to_glm(forward)), to_glm(up)), 1.0f,
+                             glm::vec3(0.0f));
 }
 
 void matrix4x3_from_euler_angles(real_matrix4x3 &out, real yaw, real pitch, real roll)
@@ -153,7 +134,7 @@ void matrix4x3_from_euler_angles(real_matrix4x3 &out, real yaw, real pitch, real
     out.up.k = cp * cy;
 }
 
-void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, const real_point3d &position, real_matrix4x3 *out)
+void matrix4x3_from_forward_up_position(const real_vector3d *up, const real_vector3d *forward, const real_point3d &position, real_matrix4x3 *out)
 {
     matrix4x3_from_forward_up(*up, *forward, *out);
     out->position = position;
@@ -168,82 +149,44 @@ void matrix4x3_extract_forward_up_position(real_vector3d &out_up, real_vector3d 
 
 void matrix4x3_transform_point(real_point3d &out, const real_point3d &point, const real_matrix4x3 &m)
 {
-    real x, y, z;
+    glm::vec3 p = to_glm(point);
 
-    x = point.x;
-    y = point.y;
-    z = point.z;
     if (m.scale != 1.0f) {
-        x = x * m.scale;
-        y = y * m.scale;
-        z = z * m.scale;
+        p = p * m.scale;
     }
-    out.x = x * m.forward.i + y * m.left.i + z * m.up.i + m.position.x;
-    out.y = x * m.forward.j + y * m.left.j + z * m.up.j + m.position.y;
-    out.z = x * m.forward.k + y * m.left.k + z * m.up.k + m.position.z;
+    out = point_from_glm(rotation_to_glm(m) * p + to_glm(m.position));
 }
 
 void matrix4x3_transform_vector(real_vector3d &out, const real_vector3d &v, const real_matrix4x3 &m)
 {
-    real i, j, k;
+    glm::vec3 v3 = to_glm(v);
 
-    i = v.i;
-    j = v.j;
-    k = v.k;
     if (m.scale != 1.0f) {
-        i = i * m.scale;
-        j = j * m.scale;
-        k = k * m.scale;
+        v3 = v3 * m.scale;
     }
-    out.i = i * m.forward.i + j * m.left.i + k * m.up.i;
-    out.j = i * m.forward.j + j * m.left.j + k * m.up.j;
-    out.k = i * m.forward.k + j * m.left.k + k * m.up.k;
+    out = vector_from_glm(rotation_to_glm(m) * v3);
 }
 
 void matrix4x3_transform_normal(real_vector3d &out, const real_vector3d &normal, const real_matrix4x3 &m)
 {
-    real i, j, k;
-
-    i = normal.i;
-    j = normal.j;
-    k = normal.k;
-    out.i = i * m.forward.i + j * m.left.i + k * m.up.i;
-    out.j = i * m.forward.j + j * m.left.j + k * m.up.j;
-    out.k = i * m.forward.k + j * m.left.k + k * m.up.k;
+    out = vector_from_glm(rotation_to_glm(m) * to_glm(normal));
 }
 
 void matrix4x3_transform_plane(real_plane3d &out, const real_matrix4x3 &m, const real_plane3d &plane)
 {
-    real i, j, k;
-
-    i = plane.normal.i;
-    j = plane.normal.j;
-    k = plane.normal.k;
-    out.normal.i = i * m.forward.i + j * m.left.i + k * m.up.i;
-    out.normal.j = i * m.forward.j + j * m.left.j + k * m.up.j;
-    out.normal.k = i * m.forward.k + j * m.left.k + k * m.up.k;
+    out.normal = vector_from_glm(rotation_to_glm(m) * to_glm(plane.normal));
     out.d = m.position.x * out.normal.i + out.normal.k * m.position.z +
              m.position.y * out.normal.j + plane.d * m.scale;
 }
 
 void matrix4x3_inverse_transform_point(const real_matrix4x3 &m, real_point3d &out, const real_point3d &point)
 {
-    real dx, dy, dz;
-    real inv_scale;
-
     if (m.scale != 0.0f) {
-        dx = point.x - m.position.x;
-        dy = point.y - m.position.y;
-        dz = point.z - m.position.z;
+        glm::vec3 d = to_glm(point) - to_glm(m.position);
         if (m.scale != 1.0f) {
-            inv_scale = 1.0f / m.scale;
-            dx = inv_scale * dx;
-            dy = inv_scale * dy;
-            dz = inv_scale * dz;
+            d = (1.0f / m.scale) * d;
         }
-        out.x = dx * m.forward.i + dy * m.forward.j + dz * m.forward.k;
-        out.y = dx * m.left.i + dy * m.left.j + dz * m.left.k;
-        out.z = dx * m.up.i + dy * m.up.j + dz * m.up.k;
+        out = point_from_glm(d * rotation_to_glm(m));
         return;
     }
     out.x = 0.0f;
@@ -253,36 +196,20 @@ void matrix4x3_inverse_transform_point(const real_matrix4x3 &m, real_point3d &ou
 
 void matrix4x3_inverse_transform_vector(real_vector3d &out, const real_vector3d &v, const real_matrix4x3 &m)
 {
-    real i, j, k;
-    real inv_scale;
+    glm::vec3 v3 = to_glm(v);
 
-    i = v.i;
-    j = v.j;
-    k = v.k;
     if (m.scale != 1.0f) {
-        inv_scale = 1.0f / m.scale;
-        i = inv_scale * i;
-        j = inv_scale * j;
-        k = inv_scale * k;
+        v3 = (1.0f / m.scale) * v3;
     }
-    out.i = i * m.forward.i + j * m.forward.j + k * m.forward.k;
-    out.j = i * m.left.i + j * m.left.j + k * m.left.k;
-    out.k = i * m.up.i + j * m.up.j + k * m.up.k;
+    out = vector_from_glm(v3 * rotation_to_glm(m));
 }
 
 void matrix4x3_inverse_transform_normal(real_vector3d &out, const real_vector3d &normal, const real_matrix4x3 &m)
 {
-    real i, j, k;
-
-    i = normal.i;
-    j = normal.j;
-    k = normal.k;
-    out.i = i * m.forward.i + j * m.forward.j + k * m.forward.k;
-    out.j = i * m.left.i + j * m.left.j + k * m.left.k;
-    out.k = i * m.up.i + j * m.up.j + k * m.up.k;
+    out = vector_from_glm(to_glm(normal) * rotation_to_glm(m));
 }
 
-void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out)
+void matrix4x3_multiply(const real_matrix4x3 *a, const real_matrix4x3 *b, real_matrix4x3 *out)
 {
     real_matrix4x3 scratch;
 
@@ -310,83 +237,33 @@ void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *ou
     out->scale = a->scale * b->scale;
 }
 
-void matrix4x3_multiply_sse(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out)
+void matrix4x3_multiply_sse(const real_matrix4x3 *a, const real_matrix4x3 *b, real_matrix4x3 *out)
 {
     matrix4x3_multiply(a, b, out);
 }
 
-void matrix4x3_multiply_3dnow(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out)
+void matrix4x3_multiply_3dnow(const real_matrix4x3 *a, const real_matrix4x3 *b, real_matrix4x3 *out)
 {
-    real_matrix4x3 scratch;
-    const float *A;
-    const float *B;
-    float *O = (float *)out;
-    int32_t column;
+    const glm::mat3 a_rotation = rotation_to_glm(*a);
+    const glm::mat3 rotation = a_rotation * rotation_to_glm(*b);
+    const glm::vec3 position = a_rotation * to_glm(b->position) * a->scale + to_glm(a->position);
 
-    if (a == out) {
-        scratch = *a;
-        a = &scratch;
-    }
-    if (b == out) {
-        scratch = *b;
-        b = &scratch;
-    }
-    A = (const float *)a;
-    B = (const float *)b;
-
-    for (column = 0; column < 3; column++) {
-        const float bx = B[1 + column * 3];
-        const float by = B[2 + column * 3];
-        const float bz = B[3 + column * 3];
-
-        O[1 + column * 3] = (bx * A[1] + by * A[4]) + bz * A[7];
-        O[2 + column * 3] = (bx * A[2] + by * A[5]) + bz * A[8];
-        O[3 + column * 3] = (bx * A[3] + by * A[6]) + bz * A[9];
-    }
-
-    O[10] = ((B[10] * A[1] + B[11] * A[4]) + B[12] * A[7]) * A[0] + A[10];
-    O[11] = ((B[10] * A[2] + B[11] * A[5]) + B[12] * A[8]) * A[0] + A[11];
-    O[12] = ((B[10] * A[3] + B[11] * A[6]) + B[12] * A[9]) * A[0] + A[12];
-    O[0] = B[0] * A[0];
+    *out = matrix4x3_from_glm(rotation, b->scale * a->scale, position);
 }
 
-void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in)
+void matrix3x3_transpose(real_matrix3x3 *out, const real_matrix3x3 *in)
 {
-    real t;
-
-    if (in == out) {
-        t = in->forward.j;
-        out->forward.j = in->left.i;
-        out->left.i = t;
-        t = in->forward.k;
-        out->forward.k = in->up.i;
-        out->up.i = t;
-        t = in->left.k;
-        out->left.k = in->up.j;
-        out->up.j = t;
-        return;
-    }
-    out->forward.i = in->forward.i;
-    out->forward.j = in->left.i;
-    out->forward.k = in->up.i;
-    out->left.i = in->forward.j;
-    out->left.j = in->left.j;
-    out->left.k = in->up.j;
-    out->up.i = in->forward.k;
-    out->up.j = in->left.k;
-    out->up.k = in->up.k;
+    *out = matrix3x3_from_glm(glm::transpose(to_glm(*in)));
 }
 
 void matrix3x3_from_forward_up(const real_vector3d &up, const real_vector3d &forward, real_matrix3x3 &out)
 {
     out.forward = forward;
-    out.left.i = up.j * forward.k - up.k * forward.j;
-    out.left.j = up.k * forward.i - forward.k * up.i;
-    out.left.k = up.i * forward.j - up.j * forward.i;
+    out.left = vector_from_glm(glm::cross(to_glm(up), to_glm(forward)));
     out.up = up;
 }
 
-void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b)
+void matrix3x3_multiply(real_matrix3x3 *out, const real_matrix3x3 *a, const real_matrix3x3 *b)
 {
     real_matrix3x3 scratch;
 
@@ -412,15 +289,7 @@ void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *
 
 void matrix3x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, const real_matrix3x3 &m)
 {
-    real_vector3d snapshot;
-
-    if (v == out) {
-        snapshot = *v;
-        v = &snapshot;
-    }
-    out->i = m.forward.i * v->i + m.left.i * v->j + m.up.i * v->k;
-    out->j = m.left.j * v->j + m.forward.j * v->i + m.up.j * v->k;
-    out->k = m.left.k * v->j + m.forward.k * v->i + m.up.k * v->k;
+    *out = vector_from_glm(to_glm(m) * to_glm(*v));
 }
 
 void euler_angles_to_basis_vectors(const real_euler_angles3d &angles, real_vector3d &up_out, real_vector3d &forward_out)
@@ -458,17 +327,17 @@ void real_matrix4x3_rotation_rebuild_orthonormal(real_vector3d *forward, real_ve
         *up = *global_up3d_pointer;
     }
 
-    cross(left, up, forward);
+    *left = vector_from_glm(glm::cross(to_glm(*up), to_glm(*forward)));
     if (vector3d_normalize_with_length(*left) == 0.0f) {
         *left = *global_left3d_pointer;
     }
 
-    cross(up, forward, left);
+    *up = vector_from_glm(glm::cross(to_glm(*forward), to_glm(*left)));
     if (vector3d_normalize_with_length(*up) == 0.0f) {
         *up = *global_up3d_pointer;
     }
 
-    cross(left, up, forward);
+    *left = vector_from_glm(glm::cross(to_glm(*up), to_glm(*forward)));
     if (vector3d_normalize_with_length(*left) == 0.0f) {
         *left = *global_forward3d_pointer;
     }
@@ -478,14 +347,14 @@ void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d 
 {
     *up = *global_up3d_pointer;
 
-    cross(left, up, forward);
+    *left = vector_from_glm(glm::cross(to_glm(*up), to_glm(*forward)));
     if (vector3d_normalize_with_length(*left) == 0.0f) {
         *up = *global_forward3d_pointer;
         vector3d_cross_product(*left, *forward, *up);
         vector3d_normalize_with_length(*left);
     }
 
-    cross(up, forward, left);
+    *up = vector_from_glm(glm::cross(to_glm(*forward), to_glm(*left)));
     vector3d_normalize_with_length(*up);
 }
 
