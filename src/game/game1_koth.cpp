@@ -202,29 +202,27 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
             return;
         }
-        if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)halo::k_dword_none) {
-            goto check_relocation;
-        }
-        if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
-            data_iterator iter;
-            void *element;
-            iter.data = halo::objects::globals().object_data;
-            iter.next_index = 0;
-            iter.index = (datum_index)halo::k_dword_none;
-            iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-            element = halo::memory::data_iterator_next(&iter);
-            while (element != 0) {
-                halo::game::chimera__kill_feed((datum_index)halo::k_dword_none, 0x26, (uint32_t)halo::k_dword_none, 1, 0);
+        if (halo::items::weapon_must_be_readied((datum_index)object_handle) != 0 && (obj->flags >> 0xb & 1) != 0 && obj->parent_object == (datum_index)halo::k_dword_none) {
+            if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
+                data_iterator iter;
+                void *element;
+                iter.data = halo::objects::globals().object_data;
+                iter.next_index = 0;
+                iter.index = (datum_index)halo::k_dword_none;
+                iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
                 element = halo::memory::data_iterator_next(&iter);
+                while (element != 0) {
+                    halo::game::chimera__kill_feed((datum_index)halo::k_dword_none, 0x26, (uint32_t)halo::k_dword_none, 1, 0);
+                    element = halo::memory::data_iterator_next(&iter);
+                }
             }
+            halo::game::game_engine_koth_relocate_object_hill(object_handle);
         }
-        halo::game::game_engine_koth_relocate_object_hill(object_handle);
     }
     tick = game_time->game_time;
     if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
-check_relocation:
     if (game_engine_variant.engine.oddball.ball_type < 1 || game_engine_variant.engine.oddball.ball_type > 2) {
         int16_t team = ((object *)obj)->owner_team;
         if (king_hill_occupant_last_tick[team] == -1 ||
@@ -1055,6 +1053,11 @@ void Koth::update_hill_occupancy_state(void)
 {
     data_iterator iter;
     void *element;
+    auto check_streak = []() {
+        if (king_hill_state_globals.hill_ticks == 300) {
+            halo::game::game_engine_queue_multiplayer_sound(0x28, halo::k_dword_none, 1);
+        }
+    };
 
     iter.data = player_data;
     iter.next_index = 0;
@@ -1098,7 +1101,8 @@ void Koth::update_hill_occupancy_state(void)
                     king_hill_state_globals.occupant = (datum_index)occupant;
                 }
                 king_hill_state_globals.hill_state = _king_hill_held;
-                goto check_streak;
+                check_streak();
+                return;
             }
         }
         king_hill_state_globals.hill_state = _king_hill_empty;
@@ -1138,7 +1142,8 @@ void Koth::update_hill_occupancy_state(void)
             if (king_hill_state_globals.hill_state == _king_hill_team_0) {
                 king_hill_state_globals.hill_ticks++;
                 king_hill_state_globals.hill_state = new_state;
-                goto check_streak;
+                check_streak();
+                return;
             }
         } else {
             if (team0_count != 0) {
@@ -1153,16 +1158,14 @@ void Koth::update_hill_occupancy_state(void)
             if (king_hill_state_globals.hill_state == _king_hill_team_1) {
                 king_hill_state_globals.hill_ticks++;
                 king_hill_state_globals.hill_state = new_state;
-                goto check_streak;
+                check_streak();
+                return;
             }
         }
         king_hill_state_globals.hill_ticks = 0;
         king_hill_state_globals.hill_state = new_state;
     }
-check_streak:
-    if (king_hill_state_globals.hill_ticks == 300) {
-        halo::game::game_engine_queue_multiplayer_sound(0x28, halo::k_dword_none, 1);
-    }
+    check_streak();
 }
 
 /**

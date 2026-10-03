@@ -88,22 +88,22 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
 {
     uint8_t *self = halo::game::object_bytes(object_index);
     uint8_t *vehicle = halo::game::object_bytes(vehicle_index);
-    uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
-    uint8_t *seat = *(uint8_t **)(halo::game::tag_data_at(*(datum_index *)vehicle) + 0x2e8) + ((::unit_object *)self)->unit.vehicle_seat_index * 0x11c;
-    uint8_t *model_nodes;
+    real_matrix4x3 *nodes = (real_matrix4x3 *)(self + ((struct object *)self)->nodes.offset);
+    UnitSeat *seat = (UnitSeat *)((Unit *)halo::game::tag_data_at(*(datum_index *)vehicle))->seats.pointer + ((::unit_object *)self)->unit.vehicle_seat_index;
+    ModelNode *model_nodes;
     object_marker marker;
     real_point3d offset;
     real_point3d default_translation;
     real_point3d position;
     real_matrix4x3 basis;
 
-    halo::objects::object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
-    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
-    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
-    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::game::tag_data_at(*(datum_index *)(halo::game::tag_data_at(*(datum_index *)self) + 0x34)) + 0xbc);
-    default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    halo::objects::object_get_node_local_transform(vehicle_index, seat->marker_name.string, &marker, 1);
+    offset.x = nodes->position.x - marker.node_transform.position.x;
+    offset.y = nodes->position.y - marker.node_transform.position.y;
+    offset.z = nodes->position.z - marker.node_transform.position.z;
+    model_nodes = (ModelNode *)((Model *)halo::game::tag_data_at(*(uint32_t *)&((Object *)halo::game::tag_data_at(*(datum_index *)self))->model.tag_id))->nodes.pointer;
+    default_translation = *(real_point3d *)&model_nodes->default_translation;
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && ((vehicle_object *)vehicle)->unit.animation_state != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
         halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
     }
@@ -124,7 +124,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
         uint8_t *reloaded = halo::game::object_bytes(object_index);
 
         halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
-            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
+            (real_matrix4x3 *)&model_nodes->scale, &basis);
     }
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
     *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
@@ -132,16 +132,16 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
         uint8_t *object = halo::game::object_bytes(object_index);
         uint8_t *object_tag = halo::game::tag_data_at(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (((struct object *)object)->flags & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((struct object *)object)->flags &= ~1u;
             halo::game::object_header_at(object_index).flags |= 2;
         }
     }
     ((::unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((::unit_object *)self)->unit.base_animation_state = 2;
     if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((vehicle_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -609,7 +609,7 @@ uint8_t PlayerView::execute_pending_interaction()
             datum_index self_index = record->unit;
             uint8_t *self = (uint8_t *)halo::objects::object_try_and_get(self_index, _object_mask_unit);
 
-            if (self != 0 && self[0x2a3] == 0x1b) {
+            if (self != 0 && ((unit_object *)self)->unit.animation_state == 0x1b) {
                 halo::units::unit_detach_from_seat(self_index, 1, 1, 0);
             }
         }
@@ -630,7 +630,7 @@ uint8_t PlayerView::execute_pending_interaction()
                     record->vehicle_updates.write_index = 0;
                 }
             }
-            goto notify;
+            break;
         }
         if (occupant == k_datum_index_none ||
             *(datum_index *)(halo::game::object_bytes(occupant) + 0x1f4) == k_datum_index_none) {
@@ -667,16 +667,15 @@ uint8_t PlayerView::execute_pending_interaction()
             direction = (int8_t)((side.k * ((struct object *)target)->forward.k + side.j * ((struct object *)target)->forward.j +
                                   side.i * ((struct object *)target)->forward.i > 0.0f) ? 2 : 1);
         }
-        target[0x4cc] |= 0x10;
-        target[0x4d1] = (uint8_t)direction;
-        target[0x4d2] = 0;
+        ((vehicle_object *)target)->vehicle.flags |= 0x10;
+        ((vehicle_object *)target)->vehicle.push_direction = (uint8_t)direction;
+        ((vehicle_object *)target)->vehicle.push_ticks = 0;
         break;
     }
     default:
         return 0;
     }
     handled = 1;
-notify:
     if (((unit_object *)unit)->base.network_role == 0) {
         halo::game::game_engine_notify_player_interaction(player_index, record->interaction_object, 0,
             *(uint16_t *)&record->interaction_type, *(uint16_t *)&record->interaction_seat, -1);
