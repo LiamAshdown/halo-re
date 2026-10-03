@@ -257,8 +257,8 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     using namespace actor_solve_grenade_lob_local;
     actor *self;
     ActorVariant *variant;
-    uint8_t *entry;
-    void *projectile_definition;
+    GlobalsGrenade *entry;
+    Projectile *projectile_definition;
     uint32_t projectile_tag;
     real_vector3d direction;
     real_vector3d velocity;
@@ -271,16 +271,16 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     self = halo::ai::actor_at(actor_index);
     variant = halo::ai::tag_data<ActorVariant>(self->actor_variant_tag);
 
-    entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)variant->grenade_type * 0x44;
+    entry = &halo::ai::reflexive_data<GlobalsGrenade>(global_globals->grenades)[(int32_t)variant->grenade_type];
     projectile_definition = nullptr;
     if (entry != nullptr) {
-        projectile_tag = *(uint32_t *)(entry + 0x40);
+        projectile_tag = halo::ai::tag_handle(entry->projectile);
         if (projectile_tag != halo::k_dword_none) {
-            projectile_definition = halo::cache::globals().tag_instances[projectile_tag & halo::k_slot_mask].data;
+            projectile_definition = halo::ai::tag_data<Projectile>(projectile_tag);
         }
     }
 
-    if (halo::ai::projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
+    if (halo::ai::projectile_get_aiming_vector(&self->grenade_impact_point, 0, projectile_definition,
                      point, 0, 0, &self->grenade_throw_speed, self->grenade_high_arc[0], &direction,
                      &speed, &arc, 0, &flat) == 0) {
         return 0;
@@ -304,7 +304,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     velocity.k = direction.k * speed;
     gravity = (flat != 0) ? 0.0f
                           : -(halo::physics::globals().gravity *
-                              *(float *)((uint8_t *)projectile_definition + 0x1cc));
+                              projectile_definition->air_gravity_scale);
 
     if (halo::ai::actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
                                            *(datum_index *)self->grenade_exclude_object_index,

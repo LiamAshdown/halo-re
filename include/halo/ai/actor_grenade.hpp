@@ -39,7 +39,7 @@ public:
     int32_t trace_from_source(real_point3d *target_point);
     static uint8_t trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index, datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop);
     uint32_t compute_grenade_throw_vector(real_point3d *grenade_position, real_vector3d *out_vector);
-    static void died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index);
+    static void died_unit_grenade_count_mod(object *unit_object, const ActorVariant *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index);
 
     datum_index datum;
 };

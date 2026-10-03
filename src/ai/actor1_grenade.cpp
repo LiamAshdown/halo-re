@@ -762,28 +762,28 @@ static auto &global_globals = halo::link::ref<::Globals *>(halo::game::vars().gl
 uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin, float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity, float *out_gravity)
 {
     using namespace c_actor_get_grenade_launch_velocity;
-    uint8_t *entry;
+    GlobalsGrenade *entry;
     uint32_t projectile_tag;
-    void *projectile_definition;
+    Projectile *projectile_definition;
     float scale;
     uint8_t used_straight_line;
 
-    entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)grenade_type * 0x44;
+    entry = &halo::ai::reflexive_data<GlobalsGrenade>(global_globals->grenades)[(int32_t)grenade_type];
     if (entry == nullptr) {
         return 0;
     }
-    projectile_tag = *(uint32_t *)(entry + 0x40);
+    projectile_tag = halo::ai::tag_handle(entry->projectile);
     if (projectile_tag == halo::k_dword_none) {
         return 0;
     }
 
-    projectile_definition = halo::cache::globals().tag_instances[projectile_tag & halo::k_slot_mask].data;
+    projectile_definition = halo::ai::tag_data<Projectile>(projectile_tag);
     if (projectile_definition == nullptr) {
         return 0;
     }
 
     used_straight_line = 0;
-    if (halo::ai::projectile_get_aiming_vector(point, &range, (Projectile *)projectile_definition,
+    if (halo::ai::projectile_get_aiming_vector(point, &range, projectile_definition,
             (real_point3d *)origin, 0, (real *)(uintptr_t)max_time, 0, 0, direction, speed,
             (real *)out_time_or_fraction, 0, &used_straight_line) == 0) {
         return 0;
@@ -801,7 +801,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
             *out_gravity = 0.0f;
         } else {
             *out_gravity = -(halo::physics::globals().gravity *
-                             *(float *)((uint8_t *)projectile_definition + 0x1cc));
+                             projectile_definition->air_gravity_scale);
         }
     }
     return 1;
