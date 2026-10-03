@@ -174,7 +174,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         }
         message_category = (is_suicide != 0) + 4;
     } else if (death_object != (datum_index)halo::k_dword_none) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[death_object & halo::k_datum_slot_mask].data;
+        object *obj = halo::game::object_at(death_object);
         if (obj->type == 0) {
             message_category = 2;
         } else if (obj->type == 1) {

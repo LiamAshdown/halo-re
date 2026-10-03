@@ -582,13 +582,13 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
 
     if (p->unit != (datum_index)halo::k_dword_none) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[(uint32_t)p->unit & halo::k_datum_slot_mask].data +
+            halo::game::object_at((uint32_t)p->unit) +
             k_unit_data_offset);
         if (unit->current_weapon_index != -1) {
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)halo::k_dword_none) {
-                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_datum_slot_mask].data;
-                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
+                object *weapon_obj = halo::game::object_at(weapon);
+                uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int32_t score = king_alt_player_score[idx];
                     if (score > 0 && score % 0x96 == 0 && score < king_alt_score_target) {
@@ -672,7 +672,7 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
  */
 uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_index)
 {
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_handle & halo::k_datum_slot_mask].data;
+    object *obj = halo::game::object_at(object_handle);
 
     if (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type < 3) {
         halo::game::game_engine_broadcast_kill_feed_by_relationship(player_index, 0x20, 0x21, 0x22, player_index, 0);
@@ -715,7 +715,7 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
     if (unit == (datum_index)halo::k_dword_none) {
         return 0;
     }
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(unit);
     z = unit_obj->bounding_center.z;
     if (z >= king_hill_boundary_min_z && z < king_hill_boundary_max_z) {
         real_point2d point;
@@ -829,7 +829,7 @@ void Koth::relocate_hill_marker(int32_t ball_index)
 void Koth::relocate_object_hill(uint32_t object_index)
 {
     if (halo::networking::globals().game_mode == 2) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
+        object *obj = halo::game::object_at(object_index);
         real_point3d discarded_position;
 
         halo::game::game_engine_koth_find_marker_position(&discarded_position, ((object *)obj)->owner_team);
@@ -940,7 +940,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
         }
 
-        tag_data = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_handle_as_uint & halo::k_datum_slot_mask].data + 0);
+        tag_data = *(int32_t *)((uint8_t *)halo::game::tag_data_at(tag_handle_as_uint) + 0);
         local_f0 = (vertex_source[0x33] + vertex_source[0x22] + vertex_source[0x11] + vertex_source[0]) * 0.25f;
         fStack_ec = (vertex_source[0x34] + vertex_source[0x23] + vertex_source[0x12] + vertex_source[1]) * 0.25f;
         {
@@ -1171,13 +1171,13 @@ void Koth::update_occupant_table(uint32_t index)
     unit = p->unit;
     if (unit != (datum_index)halo::k_dword_none) {
         unit_data *unit_obj = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
+            halo::game::object_at(unit) + k_unit_data_offset);
         int16_t slot = unit_obj->current_weapon_index;
         if (slot != -1) {
             datum_index weapon = unit_obj->weapons[slot];
             if (weapon != (datum_index)halo::k_dword_none) {
-                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_datum_slot_mask].data;
-                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
+                object *weapon_obj = halo::game::object_at(weapon);
+                uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(weapon_obj->definition_tag);
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;

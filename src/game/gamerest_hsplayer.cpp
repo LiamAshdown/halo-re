@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_hsplayer.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/units/api.hpp"
@@ -87,7 +88,7 @@ void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_in
         return;
     }
     if (args[0] != (int32_t)halo::k_dword_none) {
-        object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & halo::k_datum_slot_mask].data;
+        object *target = (object *)halo::game::object_at(args[0]);
         if ((char)args[1] != 0) {
             *((uint8_t *)&target->vitality_flags + 1) |= 0x01;
             halo::hs::hs_thread_return(0, thread_index);
@@ -111,7 +112,7 @@ void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (args != 0) {
-        object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & halo::k_datum_slot_mask].data;
+        object *target = (object *)halo::game::object_at(args[0]);
         *((uint8_t *)&target->vitality_flags) |= 0x20;
         halo::hs::hs_thread_return(0, thread_index);
     }

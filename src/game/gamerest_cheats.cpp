@@ -97,7 +97,7 @@ void Cheats::make_player_invincible(int16_t local_player_slot)
         player_index = local_player_globals->local_players[local_player_slot];
         if (player_index != k_datum_index_none) {
             unit_index = (halo::game::player_at(player_index))->unit;
-            unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
+            unit_obj = halo::game::object_at(unit_index);
             unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->active_camouflage_power = 1.0f;
             if ((unit->flags & 0x10) != 0) {
@@ -124,7 +124,7 @@ void Cheats::make_selected_object_invincible()
     player_index = Cheats::get_target_object_index();
     if (player_index != halo::k_dword_none) {
         unit_index = (halo::game::player_at(player_index))->unit;
-        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
+        unit_obj = halo::game::object_at(unit_index);
         unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
         unit->active_camouflage_power = 1.0f;
         if ((unit->flags & 0x10) != 0) {
@@ -188,7 +188,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         placement.position.y = (float)(sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
         if (halo::networking::globals().game_mode == 2) {
-            int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & halo::k_datum_slot_mask].data;
+            int16_t object_type = *(int16_t *)halo::game::tag_data_at(placement.definition_tag);
 
             if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {
                 role = 0;
@@ -250,7 +250,7 @@ void Cheats::teleport_to_camera()
             camera_row = (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
             if (*(int16_t *)(camera_row + 0x10) != -1) {
                 unit_index = (halo::game::player_at(player_index))->unit;
-                unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
+                unit_obj = halo::game::object_at(unit_index);
                 root = unit_obj->parent_object;
                 if (root == k_datum_index_none) {
                     root = unit_index;

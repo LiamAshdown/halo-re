@@ -37,8 +37,6 @@ extern game_engine_state game_engine_state_value;
 extern game_variant game_engine_variant;
 extern wchar_t empty_string;
 extern wchar_t missing_string_text[];
-extern void qsort(void *base, uint32_t count, uint32_t size,
-    uint32_t (*compare)(const void *, const void *));
 extern int32_t game_engine_bucket_scores[16];
 extern int32_t game_engine_bucket_scores_extra[16];
 extern float game_engine_end_game_timer;
@@ -122,7 +120,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
             wchar_t *text = &empty_string;
 
             if (tag_id != k_datum_index_none) {
-                int32_t *tag_data = (int32_t *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
+                int32_t *tag_data = (int32_t *)halo::game::tag_data_at(tag_id);
                 text = missing_string_text;
                 if (0x37 < *tag_data) {
                     uint8_t *entry = (uint8_t *)tag_data[1];
@@ -305,8 +303,8 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
     }
 
     qsort(out_entries, (uint32_t)count, sizeof(scoreboard_entry),
-        (mode == 0) ? (uint32_t (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare
-                    : (uint32_t (*)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare_by_unknown_04);
+        (mode == 0) ? (int (__cdecl *)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare
+                    : (int (__cdecl *)(const void *, const void *))(void *)halo::game::scoreboard_entry_compare_by_unknown_04);
 
     for (i = 0; i < count; i = i + 1) {
         entry = &out_entries[i];
@@ -626,7 +624,7 @@ datum_index Scoreboard::find_player_holding_object(datum_index target_object)
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         if (p->unit != (datum_index)halo::k_dword_none) {
-            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint32_t)p->unit & halo::k_datum_slot_mask].data;
+            object *unit_obj = halo::game::object_at((uint32_t)p->unit);
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             int32_t i;
             for (i = 0; i < k_maximum_weapons_per_unit; i++) {

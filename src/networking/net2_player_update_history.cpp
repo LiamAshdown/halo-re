@@ -3,6 +3,7 @@
  * Player update history ring, queue and replay.
  */
 #include "tags.h"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -110,7 +111,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     }
     history->next_update_id = next_id;
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(unit_index);
     unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
     biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
 
@@ -141,7 +142,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     *(datum_index *)(node->unit_state + 0xcc) = biped_ext->ground_surface_index;
 
     if (halo::game::player_unit_has_parent(unit_ext->controlling_player)) {
-        vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_obj->parent_object & halo::k_datum_slot_mask].data;
+        vehicle_obj = halo::game::object_at(unit_obj->parent_object);
         node->has_vehicle = 1;
         *(real_point3d *)(node->vehicle_state + 0x00) = vehicle_obj->position;
         *(real_vector3d *)(node->vehicle_state + 0x0c) = vehicle_obj->velocity;
@@ -316,7 +317,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             return result;
         }
     } else if (node != 0) {
-        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
+        unit_obj = halo::game::object_at(unit_index);
         unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
         biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
         parent_object = unit_obj->parent_object;
@@ -333,7 +334,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             if (node->has_vehicle != 1) {
                 return (int32_t)vehicle_ack;
             }
-            vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & halo::k_datum_slot_mask].data;
+            vehicle_obj = halo::game::object_at(parent_object);
             vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
             if (((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending != 0) {
                 ((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending = 0;

@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_netgame.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -123,7 +124,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     halo::game::game_engine_ctf_respawn_team_flag((int32_t)toggled, (real_point3d *)0, 0);
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
-                    flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & halo::k_datum_slot_mask].data;
+                    flag_obj = halo::game::object_at(flag_handle);
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
                     halo::game::game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), halo::k_dword_none, 1);
                     halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
@@ -159,7 +160,7 @@ notify_teams:
         goto weapon_coordination;
     }
     {
-        int16_t obj_type = *(int16_t *)halo::cache::globals().tag_instances[(uint32_t)flag_obj->definition_tag & halo::k_datum_slot_mask].data;
+        int16_t obj_type = *(int16_t *)halo::game::tag_data_at((uint32_t)flag_obj->definition_tag);
         object_type_definition *type_def = object_type_definitions[obj_type];
         if ((*(uint32_t *)((uint8_t *)type_def + 0x308) >> 3 & 1) == 0) {
             goto weapon_coordination;
@@ -239,7 +240,7 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
         return;
     }
 
-    flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_object_index & halo::k_datum_slot_mask].data;
+    flag_obj = halo::game::object_at(flag_object_index);
 
     halo::objects::object_set_position_and_orientation(flag_object_index, halo::math::globals().global_forward3d_pointer,
                                          halo::math::globals().global_up3d_pointer, position);

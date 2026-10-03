@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_savegame.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -735,7 +736,7 @@ wchar_t * UnicodeStringLists::get_string(char *path, int16_t index)
     source = missing_string_text;
 
     if (tag_id != k_datum_index_none && index >= 0) {
-        list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
+        list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
         if (index < (int32_t)list->strings.count) {
             entry = (UnicodeStringListString *)list->strings.pointer + index;
             char_count = (int32_t)entry->string.size;

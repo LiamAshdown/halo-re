@@ -129,7 +129,7 @@ uint16_t *King::multiplayer_text(int16_t index)
         return (uint16_t *)L"";
     }
     {
-        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & halo::k_datum_slot_mask].data;
+        uint8_t *strings = (uint8_t *)halo::game::tag_data_at(list);
 
         if (*(int32_t *)strings > index) {
             uint8_t *element = *(uint8_t **)(strings + 4) + index * 0x14;

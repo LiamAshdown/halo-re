@@ -48,7 +48,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
     count = 0;
     object_index = start_object;
     do {
-        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
+        obj = halo::game::object_at(object_index);
         type_bit = 1u << (obj->type & 0x1f);
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
             *(real *)((uint8_t *)obj + 0x37c) < 1.0f) {
@@ -62,7 +62,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
                     (void)candidate_team_player;
                     candidate_team = obj->owner_team;
                     if (halo::game::teams_are_enemies(candidate_team, observer_team) != 0) {
-                        tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data;
+                        tag = (Item *)halo::game::tag_data_at(obj->definition_tag);
                         if ((tag->item_flags & 0x200000) == 0) {
                             if (CameraObserver::target_score(facing, cone, object_index, &temp, observer_position)  != 0 &&
                                 count < (uint16_t)capacity) {
@@ -324,7 +324,7 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     if (current != k_datum_index_none) {
         do {
             root = current;
-            current = ((object_header *)halo::objects::globals().object_data->data)[current & halo::k_datum_slot_mask].data->parent_object;
+            current = halo::game::object_at(current)->parent_object;
         } while (current != k_datum_index_none);
     }
 
@@ -391,8 +391,8 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
         out->weight_secondary = halo::game::distance_falloff_fraction(angle, cone->angle_b) *
                                  halo::game::distance_falloff_fraction(out->distance, cone->distance_b);
         if (0.0f < out->weight_secondary) {
-            target_object = ((object_header *)halo::objects::globals().object_data->data)[target & halo::k_datum_slot_mask].data;
-            target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & halo::k_datum_slot_mask].data;
+            target_object = halo::game::object_at(target);
+            target_tag = (Unit *)halo::game::tag_data_at(target_object->definition_tag);
             if ((target_tag->unit_flags & 0x80000) != 0) {
                 out->weight_secondary = out->weight_secondary *
                     ((GlobalsPlayerControl *)global_globals->player_control.pointer)

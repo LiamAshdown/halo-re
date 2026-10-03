@@ -60,7 +60,7 @@ void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_
                 uint32_t current = (uint32_t)pl->unit;
                 object *root;
                 do {
-                    root = (object *)((object_header *)halo::objects::globals().object_data->data)[current & halo::k_datum_slot_mask].data;
+                    root = (object *)halo::game::object_at(current);
                     current = (uint32_t)root->parent_object;
                 } while (current != halo::k_dword_none);
 
@@ -248,7 +248,7 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
     count = halo::objects::object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);
 
     for (i = 0; i < count; i = i + 1) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[candidates[i] & halo::k_datum_slot_mask].data;
+        object *obj = halo::game::object_at(candidates[i]);
 
         if (obj != 0 && obj->type == 1) {
             return 1;

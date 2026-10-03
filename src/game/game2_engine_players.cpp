@@ -782,18 +782,18 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
     unknown_result = (int32_t)halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)0, (real_point3d *)0);
     if (unknown_result == -1 || skip_trigger_check != 0) {
-        object *current_parent_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask].data;
+        object *current_parent_obj = halo::game::object_at(unit_handle);
         if (target_obj->parent_object != (datum_index)-1 &&
             target_obj->parent_object != current_parent_obj->parent_object &&
             halo::networking::globals().game_mode != 1) {
-            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask].data;
+            object *unit_obj = halo::game::object_at(unit_handle);
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             datum_index driver = unit->driver_unit_index;
 
             if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
-                object *driver_obj = ((object_header *)halo::objects::globals().object_data->data)[driver & halo::k_datum_slot_mask].data;
+                object *driver_obj = halo::game::object_at(driver);
                 unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
-                Unit *driver_tag = (Unit *)halo::cache::globals().tag_instances[driver_obj->definition_tag & halo::k_datum_slot_mask].data;
+                Unit *driver_tag = (Unit *)halo::game::tag_data_at(driver_obj->definition_tag);
                 real_matrix4x3 local_transform;
                 real_matrix4x3 result_transform;
                 Unit *unit_tag;
@@ -804,9 +804,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                                        *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c)),
                     (object_marker *)&local_transform, 1);
 
-                unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_datum_slot_mask].data;
-                unit_as_vehicle_tag = (Vehicle *)halo::cache::globals().tag_instances[
-                    ((TagID *)((uint8_t *)unit_tag + 0x34))->index & halo::k_datum_slot_mask].data;
+                unit_tag = (Unit *)halo::game::tag_data_at(unit_obj->definition_tag);
+                unit_as_vehicle_tag = (Vehicle *)halo::game::tag_data_at(((TagID *)((uint8_t *)unit_tag + 0x34))->index);
                 {
                     uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
 
@@ -832,7 +831,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                     unit_obj->up = result_transform.up;
 
                     {
-                        uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_datum_slot_mask].data;
+                        uint8_t *unit_tag_data = (uint8_t *)halo::game::tag_data_at(unit_obj->definition_tag);
                         if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
                             if ((unit_obj->flags & 1) != 0) {
                                 halo::objects::object_for_each_light_attachment(0, 1, 0);
@@ -965,7 +964,7 @@ void EnginePlayers::reset_all_unit_grenade_counts(void)
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)halo::k_dword_none) {
-            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
+            object *unit_obj = halo::game::object_at(p->unit);
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;

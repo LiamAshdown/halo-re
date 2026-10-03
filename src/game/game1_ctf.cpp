@@ -242,7 +242,7 @@ uint16_t *Ctf::multiplayer_text(int16_t index)
         return (uint16_t *)L"";
     }
     {
-        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & halo::k_datum_slot_mask].data;
+        uint8_t *strings = (uint8_t *)halo::game::tag_data_at(list);
 
         if (*(int32_t *)strings > index) {
             uint8_t *element = *(uint8_t **)(strings + 4) + index * 0x14;
@@ -307,7 +307,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
 
     role = 3;
     if (halo::networking::globals().game_mode == 2) {
-        int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[(uint32_t)placement.definition_tag & halo::k_datum_slot_mask].data;
+        int16_t object_type = *(int16_t *)halo::game::tag_data_at((uint32_t)placement.definition_tag);
         if (object_type_definitions[object_type]->network_delta_message_type != -1) {
             role = 0;
         }
@@ -614,7 +614,7 @@ void Ctf::notify_flag_carried_throttled(int32_t target_player)
  */
 void Ctf::object_expired(datum_index object_index)
 {
-    uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
+    uint8_t *object = (uint8_t *)halo::game::object_at(object_index);
 
     *(int32_t *)&((struct object *)object)->owner_linkage = -1;
 }
@@ -683,7 +683,7 @@ void Ctf::player_drop_flag(uint32_t player_index, datum_index flag_object_index)
 {
     player *p = halo::game::player_at(player_index);
     uint32_t unit_index = (uint32_t)p->unit;
-    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
+    object *unit_obj = halo::game::object_at(unit_index);
 
     if (unit_obj->network_role == 0) {
         halo::units::unit_dispatch_scripted_event_1b(1, unit_index);
@@ -702,7 +702,7 @@ void Ctf::player_drop_flag(uint32_t player_index, datum_index flag_object_index)
  */
 uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 {
-    object *flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & halo::k_datum_slot_mask].data;
+    object *flag_obj = halo::game::object_at(flag_handle);
     int16_t team = ((struct object *)flag_obj)->owner_team;
 
     if (player_index != halo::k_dword_none && halo::networking::globals().game_mode == 2) {
@@ -859,7 +859,7 @@ void Ctf::reset_round(void)
  */
 void Ctf::reset_team_return_credit(uint32_t object_index)
 {
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
+    object *obj = halo::game::object_at(object_index);
     int16_t team = ((object *)obj)->owner_team;
 
     ctf_team_return_credit_active[team] = 0;
@@ -948,8 +948,8 @@ uint8_t Ctf::unit_weapon_must_be_readied(datum_index unit_handle)
         return 0;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask].data;
-    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(unit_handle);
+    weapon_tag = (Weapon *)halo::game::tag_data_at(unit_obj->definition_tag);
     return (uint8_t)((weapon_tag->weapon_flags >> 3) & 1);
 }
 

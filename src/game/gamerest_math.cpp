@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_math.hpp"
+#include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include <stdint.h>
@@ -349,7 +350,7 @@ void RandomTable::get_table_point(real_point3d *out)
  */
 int32_t RandomTable::pick_weighted_random_index(datum_index tag_id)
 {
-    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
+    TagReflexive *reflexive = (TagReflexive *)halo::game::tag_data_at(tag_id);
     int32_t count = (int32_t)reflexive->count;
     int16_t total = (int16_t)RandomTable::advance_draws(reflexive);
     uint8_t *element;

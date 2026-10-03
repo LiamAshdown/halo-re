@@ -3,6 +3,7 @@
  */
 
 #include "win32.h"
+#include "halo/game/records.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
@@ -229,7 +230,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                 walk = unit_handle;
                 do {
                     root = walk;
-                    next = ((object_header *)halo::objects::globals().object_data->data)[walk & halo::k_datum_slot_mask].data->parent_object;
+                    next = halo::game::object_at(walk)->parent_object;
                     walk = next;
                 } while (next != (datum_index)-1);
 
@@ -272,7 +273,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                     if (plr->unit == (datum_index)-1) {
                         success = 0;
                     } else {
-                        root_obj = ((object_header *)halo::objects::globals().object_data->data)[best_root & halo::k_datum_slot_mask].data;
+                        root_obj = halo::game::object_at(best_root);
                         success = halo::game::player_attach_unit_to_parent(player_handle, best_root, (uint8_t *)root_obj + 0xa0);
                     }
                 }
@@ -349,7 +350,7 @@ void Lifecycle::end_game_sequence_stage2(void)
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)halo::k_dword_none) {
-            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
+            object *unit_obj = halo::game::object_at(p->unit);
             unit_obj->vitality_flags = unit_obj->vitality_flags | 0x0020;
         }
         p = (player *)halo::memory::data_iterator_next(&iterator);

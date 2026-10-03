@@ -121,7 +121,7 @@ void ObjectCleanup::cleanup_stray_items(void)
                     (salt == 0 || hdr->identifier == salt) &&
                     ((1 << (hdr->type & 0x1f)) & _object_mask_weapon) != 0) {
                     if (hdr->data != (object *)0) {
-                        uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data;
+                        uint32_t *tag_data = (uint32_t *)halo::game::tag_data_at(obj->definition_tag);
 
                         if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {
@@ -199,7 +199,7 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
         return;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(p->unit);
     unit_obj->shield_vitality = 0.0f;
     unit_obj->maximum_shield_vitality = 0.0f;
 }
@@ -235,7 +235,7 @@ void ObjectCleanup::flag_local_player_units(void)
                     iterator.index = k_datum_index_none;
                     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 } else {
-                    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
+                    unit_obj = halo::game::object_at(p->unit);
                     *((uint8_t *)unit_obj + 0x107) |= 0x20;
                 }
             }

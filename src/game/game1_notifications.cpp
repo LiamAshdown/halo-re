@@ -120,7 +120,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     }
 
     if (!halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::loadout_override)) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
+        object *obj = halo::game::object_at(unit);
         if (obj->network_role == 0 || obj->network_role == 3) {
             halo::game::game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
         }
@@ -139,7 +139,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             return;
         }
         {
-            object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
+            object *obj = halo::game::object_at(unit);
 
             if (obj->network_role != 0 && obj->network_role != 3) {
                 return;
@@ -471,7 +471,7 @@ int32_t Notifications::get_multiplayer_sound_duration_ticks(int32_t sound_index)
     if (tag_id == halo::k_dword_none) {
         return 0;
     }
-    return (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data + 0x84) * 30) / 1000;
+    return (*(int32_t *)((uint8_t *)halo::game::tag_data_at(tag_id) + 0x84) * 30) / 1000;
 }
 
 /**
@@ -536,7 +536,7 @@ void Notifications::multiplayer_sound_queue_tick(void)
  */
 void Notifications::notify_item_expired(datum_index object_index)
 {
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
+    object *obj = halo::game::object_at(object_index);
     item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
     uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
 
@@ -569,9 +569,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
     if (weapon == 0) {
         return 1;
     }
-    weapon_definition = (Object *)halo::cache::globals().tag_instances[
-        (((object_header *)halo::objects::globals().object_data->data)[weapon_index & halo::k_datum_slot_mask].data->definition_tag) & halo::k_datum_slot_mask
-    ].data;
+    weapon_definition = (Object *)halo::game::tag_data_at(((object_header *)halo::objects::globals().object_data->data)[weapon_index & halo::k_datum_slot_mask].data->definition_tag);
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;
     }

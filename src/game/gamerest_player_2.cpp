@@ -66,7 +66,7 @@ static void player_respawn_drop_lights(datum_index object_index)
 {
     uint8_t *header = (uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_datum_slot_mask) * 0xc;
     uint8_t *obj = *(uint8_t **)(header + 8);
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & halo::k_datum_slot_mask].data;
+    uint8_t *tag = (uint8_t *)halo::game::tag_data_at(*(datum_index *)obj);
 
     if (*(int32_t *)&((Object *)tag)->model.tag_id == -1) {
         return;
@@ -82,7 +82,7 @@ static void player_respawn_drop_lights(datum_index object_index)
 }
 static object *object_from_index(datum_index object_index)
 {
-    return ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
+    return halo::game::object_at(object_index);
 }
 static int32_t player_update_queue_count(const circular_queue *queue)
 {
@@ -256,7 +256,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
         return;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(plr->unit);
     if (unit_obj->parent_object == (datum_index)-1) {
         return;
     }
@@ -267,7 +267,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
     }
 
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    parent_definition = (Unit *)halo::cache::globals().tag_instances[parent_obj->definition_tag & halo::k_datum_slot_mask].data;
+    parent_definition = (Unit *)halo::game::tag_data_at(parent_obj->definition_tag);
     seat = &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
     if ((seat->flags & 0x10) != 0) {
         return;
@@ -356,7 +356,7 @@ int16_t PlayerView::pick_random_starting_location()
 void KillStreak::begin(int16_t slot)
 {
     player *p = halo::game::player_at(player_handle);
-    unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
+    unit_data *unit = (unit_data *)((uint8_t *)halo::game::object_at(p->unit) + k_unit_data_offset);
 
     if (slot == 0) {
         unit->flags = unit->flags | _unit_flag_unknown_10;
@@ -374,7 +374,7 @@ void KillStreak::continue_streak(int16_t slot)
 {
     if (slot == 0) {
         player *p = halo::game::player_at(player_handle);
-        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
+        unit_data *unit = (unit_data *)((uint8_t *)halo::game::object_at(p->unit) + k_unit_data_offset);
         unit->flags = unit->flags | 0x20;
     }
 }
@@ -508,7 +508,7 @@ void Players::server_catchup_on_client_updates()
                 if (unit->current_weapon_index != -1) {
                     datum_index weapon_index = unit->weapons[unit->current_weapon_index];
                     if (weapon_index != (datum_index)-1) {
-                        Weapon *weapon = (Weapon *)halo::cache::globals().tag_instances[object_from_index(weapon_index)->definition_tag & halo::k_datum_slot_mask].data;
+                        Weapon *weapon = (Weapon *)halo::game::tag_data_at(object_from_index(weapon_index)->definition_tag);
                         if ((weapon->weapon_flags & 0x8) != 0) {
                             action.weapon_index = unit->current_weapon_index;
                         }
@@ -605,7 +605,7 @@ void StructureBsp::switch_structure_bsp()
             } else if (*fade_ticks < 0x5a) {
                 halo::effects::player_effect_apply_generic_damage_feedback(player_handle, (real)*fade_ticks * 0.011111111f);
             } else if (plr->unit != (datum_index)-1) {
-                object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data;
+                object *unit_obj = halo::game::object_at(plr->unit);
                 if ((*((uint8_t *)unit_obj + 0x106) & 0x20) == 0) {
                     if (halo::networking::globals().game_mode == 2) {
 
@@ -625,9 +625,9 @@ void StructureBsp::switch_structure_bsp()
             walk = plr->unit;
             do {
                 root = walk;
-                walk = ((object_header *)halo::objects::globals().object_data->data)[root & halo::k_datum_slot_mask].data->parent_object;
+                walk = halo::game::object_at(root)->parent_object;
             } while (walk != (datum_index)-1);
-            root_obj = ((object_header *)halo::objects::globals().object_data->data)[root & halo::k_datum_slot_mask].data;
+            root_obj = halo::game::object_at(root);
 
             if ((root_obj->flags & 0x200000) == 0 && halo::scenario::globals().scenario->bsp_switch_trigger_volumes.count > 0) {
                 ScenarioBSPSwitchTriggerVolume *volumes =

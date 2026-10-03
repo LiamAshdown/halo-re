@@ -105,9 +105,9 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
     }
     ack.update_id = *(uint8_t *)(plr_bytes + 0xe8);
     ack.baseline_id = *(uint8_t *)(plr_bytes + 0xf4);
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[static_cast<uint32_t>(plr->unit) & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(static_cast<uint32_t>(plr->unit));
     parent_object = unit_obj->parent_object;
-    vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & halo::k_datum_slot_mask].data;
+    vehicle_obj = halo::game::object_at(parent_object);
     network_hash = 0;
     if (parent_object != (datum_index)-1) {
         network_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index,
@@ -465,9 +465,9 @@ int32_t PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *ca
     *(real *)&staged[10] = direction_y;
     *(real *)&staged[11] = direction_z;
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[static_cast<uint32_t>(((player *)cache)->unit) & halo::k_datum_slot_mask].data;
+    unit_obj = halo::game::object_at(static_cast<uint32_t>(((player *)cache)->unit));
     parent_object = unit_obj->parent_object;
-    vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & halo::k_datum_slot_mask].data;
+    vehicle_obj = halo::game::object_at(parent_object);
     vehicle_hash = 0;
     if (parent_object != (datum_index)-1) {
         vehicle_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), parent_object);

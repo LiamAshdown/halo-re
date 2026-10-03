@@ -219,7 +219,7 @@ uint32_t EnginePlacement::remap_placement_by_type(uint32_t handle)
     if (current_game_engine == 0 || handle == halo::k_dword_none) {
         return handle;
     }
-    type = **(int16_t **)&halo::cache::globals().tag_instances[handle & halo::k_datum_slot_mask].data;
+    type = *reinterpret_cast<int16_t *>(halo::game::tag_data_at(handle));
     if (type == 2) {
         return (uint32_t)halo::game::game_engine_resolve_netgame_flag_role(handle);
     }
@@ -243,7 +243,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     int32_t index;
     int32_t i;
 
-    tag_data = (handle == halo::k_dword_none) ? 0 : (uint8_t *)halo::cache::globals().tag_instances[handle & halo::k_datum_slot_mask].data;
+    tag_data = (handle == halo::k_dword_none) ? 0 : (uint8_t *)halo::game::tag_data_at(handle);
 
     weapon_list_count = (int32_t)global_globals->weapon_list.count;
     weapon_list = (weapon_list_count == 0) ? 0
@@ -508,7 +508,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
 
     new_object = halo::objects::object_new_with_datum_role_control(&placement, 1);
     if (new_object != (datum_index)halo::k_dword_none) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & halo::k_datum_slot_mask].data;
+        object *obj = halo::game::object_at(new_object);
 
         halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
         halo::objects::object_list_membership_set(new_object, 0);
@@ -552,7 +552,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                 respawn_interval = equipment->spawn_time * 0x1e;
             } else if (item_collection_tag != (datum_index)halo::k_dword_none) {
                 int16_t permutation_count =
-                    *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[item_collection_tag & 0xffff].data + 0x0c);
+                    *(int16_t *)((uint8_t *)halo::game::tag_data_at(item_collection_tag) + 0x0c);
                 if (permutation_count != 0) {
                     respawn_interval = permutation_count * 0x1e;
                 }
@@ -597,7 +597,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                         new_object = halo::objects::object_new_with_datum_role_control(&placement, 3);
                         if (new_object != (datum_index)halo::k_dword_none) {
-                            object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & halo::k_datum_slot_mask].data;
+                            object *obj = halo::game::object_at(new_object);
                             item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
                             halo::objects::object_list_membership_set(new_object, 0);
@@ -610,7 +610,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                             item->held_game_time = item->held_game_time + respawn_interval - 900;
 
-                            if (*(int32_t *)halo::cache::globals().tag_instances[item_collection_tag & halo::k_datum_slot_mask].data == 1) {
+                            if (*(int32_t *)halo::game::tag_data_at(item_collection_tag) == 1) {
                                 item->flags = item->flags | 0x40;
                                 equipment->spawned_item = new_object;
                             } else {
@@ -640,7 +640,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
     if (unit == (datum_index)halo::k_dword_none) {
         return;
     }
-    unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
+    unit_object = halo::game::object_at(unit);
 
     if (p->teleporter_flag_index != (datum_index)halo::k_dword_none) {
         ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer
@@ -676,7 +676,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             physics_model_contact contact;
             uint8_t blocked;
 
-            unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
+            unit_object = halo::game::object_at(unit);
             forward = unit_object->forward;
             p = halo::game::player_at(player_index);
             halo::units::unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
@@ -696,7 +696,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                 datum_index obstruction = contact.object_index;
 
                 if (obstruction != (datum_index)halo::k_dword_none) {
-                    object *blocker = ((object_header *)halo::objects::globals().object_data->data)[obstruction & halo::k_datum_slot_mask].data;
+                    object *blocker = halo::game::object_at(obstruction);
                     if (((1 << blocker->type) & _object_mask_unit) != 0) {
                         datum_index controller =
                             ((unit_data *)((uint8_t *)blocker +
@@ -818,7 +818,7 @@ void EnginePlacement::touch_tag_if_valid(int32_t tag_id)
 {
     uint8_t *tag_data;
     if (tag_id != -1) {
-        tag_data = (uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
+        tag_data = (uint8_t *)halo::game::tag_data_at(tag_id);
         halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
     }
 }
@@ -924,7 +924,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
         item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
         if ((item->flags & _item_in_inventory_bit) == 0) {
-            Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data;
+            Item *tag = (Item *)halo::game::tag_data_at(obj->definition_tag);
             obj->scale = (tag->scale == 0.0f) ? 1.0f : tag->scale;
         } else {
             obj->scale = 1.0f;
@@ -934,7 +934,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
             object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
-                ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data + 0x308) >> 3) & 1) != 0) {
+                ((*(uint32_t *)((uint8_t *)halo::game::tag_data_at(obj->definition_tag) + 0x308) >> 3) & 1) != 0) {
                 halo::game::game_engine_notify_item_expired(iterator.handle);
                 ((void (*)(datum_index, object *))current_game_engine->object_in_play_update)(
                     iterator.handle, hdr->data);

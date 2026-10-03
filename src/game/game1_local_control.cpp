@@ -122,7 +122,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     yaw_rate = 0.0f;
     pitch_rate = 0.0f;
     if (plr->unit != (datum_index)-1) {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data;
+        object *unit_object = halo::game::object_at(plr->unit);
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
         yaw_rate = look_yaw_rate_setting[local_player_index] *
@@ -132,9 +132,9 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
         if (unit_object->parent_object != (datum_index)-1 && unit->vehicle_seat_index != -1) {
             object *parent =
-                ((object_header *)halo::objects::globals().object_data->data)[unit_object->parent_object & halo::k_datum_slot_mask].data;
+                halo::game::object_at(unit_object->parent_object);
             Unit *parent_definition =
-                (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & halo::k_datum_slot_mask].data;
+                (Unit *)halo::game::tag_data_at(parent->definition_tag);
             UnitSeat *seat =
                 &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
 
@@ -185,7 +185,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data +
+                    halo::game::object_at(plr->unit) +
                     k_unit_data_offset);
 
                 scale = (1.0f - unit->stun * player_information->stun_turning_penalty) * scale;
@@ -226,7 +226,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data +
+                    halo::game::object_at(plr->unit) +
                     k_unit_data_offset);
                 real stun_scale =
                     1.0f - unit->stun * player_information->stun_turning_penalty;
@@ -347,7 +347,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     if (halo::networking::globals().game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
+            halo::game::object_at(plr->unit) + k_unit_data_offset);
 
         if (unit->current_weapon_index != -1) {
             object *weapon_object = ((object_header *)halo::objects::globals().object_data->data)

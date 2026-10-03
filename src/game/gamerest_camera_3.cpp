@@ -39,7 +39,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
     datum_index unit = ((struct player *)player)->unit;
     datum_index target = (datum_index)k_datum_index_none;
     uint32_t aim_unit = halo::units::UnitView(unit).resolve_camera_object();
-    uint8_t *aim_unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[aim_unit & halo::k_datum_slot_mask].data;
+    uint8_t *aim_unit_obj = (uint8_t *)halo::game::object_at(aim_unit);
     real cone[5];
 
     if (halo::game::unit_get_current_weapon_autoaim_cone(aim_unit, (int16_t)(int8_t)aim_unit_obj[0x320], cone)) {
@@ -79,7 +79,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
             target = *(datum_index *)(record + 0x00);
         }
 
-        unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[aim_unit & halo::k_datum_slot_mask].data;
+        unit_obj = (uint8_t *)halo::game::object_at(aim_unit);
         dx = camera_position.x - *(real *)(unit_obj + 0x5c);
         dy = camera_position.y - *(real *)(unit_obj + 0x60);
         dz = camera_position.z - *(real *)(unit_obj + 0x64);
