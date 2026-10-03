@@ -1294,23 +1294,18 @@ void rasterizer_select_hardware_codepaths(void)
 
     if (rasterizer_caps.max_streams < 2) {
         halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_single_stream;
-        if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
-            halo::rasterizer::fields::light_cone_draw = (void *)rasterizer_light_cone_draw;
-            goto set_vertex_buffer_slot;
-        }
     } else {
         halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
             halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw;
-            if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
-                halo::rasterizer::fields::light_cone_draw = (void *)rasterizer_light_cone_draw;
-                goto set_vertex_buffer_slot;
-            }
         }
     }
-    halo::rasterizer::fields::light_cone_draw = (void *)halo::cseries::function_do_nothing;
+    if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
+        halo::rasterizer::fields::light_cone_draw = (void *)rasterizer_light_cone_draw;
+    } else {
+        halo::rasterizer::fields::light_cone_draw = (void *)halo::cseries::function_do_nothing;
+    }
 
-set_vertex_buffer_slot:
     rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_fixed_function;
     if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
         rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_pixel_shader;

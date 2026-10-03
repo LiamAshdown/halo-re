@@ -1271,49 +1271,43 @@ int transparent_geometry_group_compare(int16_t *a, int16_t *b)
     Shader *shader_b = (Shader *)gb->shader;
     int result;
 
-    if (is_batched_shader(shader_a)) {
-        result = -1;
-        goto first_person_check;
-    }
-    if (is_batched_shader(shader_b)) {
-        result = 1;
-        goto first_person_check;
-    }
+    auto order = [&]() -> int {
+        if (is_batched_shader(shader_a)) {
+            return -1;
+        }
+        if (is_batched_shader(shader_b)) {
+            return 1;
+        }
 
-    if (shader_a == (Shader *)0 || shader_a->shader_type != 8) {
-        if (shader_b != (Shader *)0 && shader_b->shader_type == 8) {
-            result = 1;
-            goto first_person_check;
-        }
-        if ((ga->flags & 0x80) == 0) {
-            if ((gb->flags & 0x80) != 0) {
-                result = -1;
-                goto first_person_check;
+        if (shader_a == (Shader *)0 || shader_a->shader_type != 8) {
+            if (shader_b != (Shader *)0 && shader_b->shader_type == 8) {
+                return 1;
             }
-        } else {
-            if ((gb->flags & 0x80) == 0) {
-                result = 1;
-                goto first_person_check;
+            if ((ga->flags & 0x80) == 0) {
+                if ((gb->flags & 0x80) != 0) {
+                    return -1;
+                }
+            } else {
+                if ((gb->flags & 0x80) == 0) {
+                    return 1;
+                }
             }
-        }
-        if (gb->depth < ga->depth) {
-            result = 1;
-            goto first_person_check;
-        }
-        if (gb->depth <= ga->depth) {
-            if (gb->sort_key < ga->sort_key) {
-                result = 1;
-                goto first_person_check;
+            if (gb->depth < ga->depth) {
+                return 1;
             }
-            if (gb->sort_key <= ga->sort_key) {
-                result = 0;
-                goto first_person_check;
+            if (gb->depth <= ga->depth) {
+                if (gb->sort_key < ga->sort_key) {
+                    return 1;
+                }
+                if (gb->sort_key <= ga->sort_key) {
+                    return 0;
+                }
             }
         }
-    }
-    result = -1;
+        return -1;
+    };
+    result = order();
 
-first_person_check:
     if (ga->first_person == 0) {
         if (gb->first_person == 0) {
             return result;
