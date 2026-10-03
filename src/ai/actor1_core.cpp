@@ -800,7 +800,7 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     using namespace c_actor_handle_death;
     datum_index actor_index = datum;
     actor *self;
-    uint8_t local_data[0x30];
+    actor_mode_flee_data local_data;
     int32_t previous_target;
 
     self = halo::ai::actor_at(actor_index);
@@ -811,23 +811,21 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
 
     previous_target = self->target_unit_index;
 
-    for (uint32_t i = 0; i < sizeof(local_data) / 4; i++) {
-        ((uint32_t *)local_data)[i] = 0;
-    }
-    *(int16_t *)(local_data + 0xc) = 0;
-    *(int16_t *)(local_data + 0) = 0;
-    *(int16_t *)(local_data + 8) = -1;
-    local_data[4] = param_2;
-    local_data[5] = param_3;
-    *(int32_t *)(local_data + 0x1c) = previous_target;
+    memset(&local_data, 0, sizeof(local_data));
+    local_data.panic = 0;
+    local_data.countdown_180 = 0;
+    local_data.destination = -1;
+    local_data.use_last_seen_position = param_2;
+    local_data.cover_flag = param_3;
+    local_data.reference = previous_target;
 
     if (previous_target != -1) {
         halo::ai::actor_consider_target_candidate(actor_index, (datum_index)previous_target);
     }
     if (self->swarm == 0) {
-        halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(local_data));
-        if (*(int16_t *)(local_data + 8) != -1) {
-            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, local_data);
+        halo::ai::actor_check_melee_target_reachable(actor_index, &local_data);
+        if (local_data.destination != -1) {
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, &local_data);
             return 1;
         }
     }

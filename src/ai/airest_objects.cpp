@@ -189,9 +189,8 @@ ai_object_attention_record * AiObjects::object_attention_find_or_create(datum_in
     ai_object_attention_record *table;
     ai_object_attention_record *record;
     int16_t index;
-    int32_t i;
 
-    table = (ai_object_attention_record *)halo::ai::globals().state->object_attention_table;
+    table = halo::ai::globals().state->object_attention_table;
     record = 0;
 
     if (object_index == (datum_index)k_datum_index_none) {
@@ -214,9 +213,7 @@ ai_object_attention_record * AiObjects::object_attention_find_or_create(datum_in
 
     record = &table[index];
     if (halo::ai::globals().state->object_attention_count <= index) {
-        for (i = 0; i < 10; i = i + 1) {
-            ((int32_t *)record)[i] = 0;
-        }
+        memset(record, 0, sizeof(*record));
         record->object_index = object_index;
         record->weight = 8.0f;
         halo::ai::globals().state->object_attention_count = halo::ai::globals().state->object_attention_count + 1;
@@ -234,11 +231,8 @@ void AiObjects::object_attention_remove(datum_index object_index)
     ai_object_attention_record *table;
     int16_t index;
     int16_t last;
-    int32_t i;
-    int32_t *src;
-    int32_t *dst;
 
-    table = (ai_object_attention_record *)halo::ai::globals().state->object_attention_table;
+    table = halo::ai::globals().state->object_attention_table;
 
     if (object_index == (datum_index)k_datum_index_none) {
         return;
@@ -258,13 +252,7 @@ void AiObjects::object_attention_remove(datum_index object_index)
     last = halo::ai::globals().state->object_attention_count - 1;
     halo::ai::globals().state->object_attention_count = last;
     if (index < last) {
-        src = (int32_t *)&table[last];
-        dst = (int32_t *)&table[index];
-        for (i = 10; i != 0; i = i - 1) {
-            *dst = *src;
-            src = src + 1;
-            dst = dst + 1;
-        }
+        table[index] = table[last];
     }
 }
 

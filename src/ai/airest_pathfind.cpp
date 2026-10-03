@@ -1617,18 +1617,12 @@ uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint
  */
 uint8_t PathFindGeometry::validate_and_record_goal(ai_path_candidate_goal *candidate, void *context, uint32_t point_b, uint32_t unused_c, const real_point3d *position)
 {
-    uint32_t *clear;
-    int32_t i;
     real_point3d reached;
     uint8_t reachable;
 
     (void)unused_c;
 
-    clear = (uint32_t *)candidate;
-    for (i = 0x17; i != 0; i = i - 1) {
-        *clear = 0;
-        clear = clear + 1;
-    }
+    memset(candidate, 0, sizeof(*candidate));
 
     if (halo::ai::path_find_test_direct_reachability(position, (const real_point3d *)point_b, &reached, context,
                                            &reachable) != 0) {

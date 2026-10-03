@@ -780,8 +780,6 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     datum_index unit_index;
     float radius;
     uint8_t ignores_glass;
-    uint32_t *clear;
-    int32_t i;
 
     self = halo::ai::actor_at(actor_index);
     unit_index = self->unit_index;
@@ -800,11 +798,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     halo::ai::actor_update_target_lead_position(actor_index);
     ignores_glass = self->ignores_glass;
 
-    clear = (uint32_t *)request;
-    for (i = 0x12; i != 0; i--) {
-        *clear = 0;
-        clear++;
-    }
+    memset(request, 0, sizeof(*request));
 
     request->exclude_object_index_a = unit_index;
     request->pathfinding_radius = radius;
