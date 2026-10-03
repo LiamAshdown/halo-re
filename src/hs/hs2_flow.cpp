@@ -6,6 +6,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,6 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t hs_global_get_value(hs_global_reference reference);
 extern void hs_global_write_value(hs_global_reference reference);
 extern data_array *hs_globals_data;
-extern data_array *object_list_header_data;
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern game_time_globals *game_time;
 extern datum_index hs_thread_find_by_script_index(int16_t script_index);
@@ -42,7 +42,7 @@ static void object_list_adjust_references(hs_global_reference reference, int16_t
     int32_t list = hs_global_get_value(reference);
 
     if (list != k_datum_index_none) {
-        *(int16_t *)((uint8_t *)object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 4) += delta;
+        *(int16_t *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 4) += delta;
     }
 }
 

@@ -5,13 +5,14 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/flags.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_update_firing_state_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern player_globals *local_player_globals;
 extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind);
@@ -35,15 +36,11 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int32_t fistp_round(float x);
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point, uint32_t reference_direction,
-    uint32_t offsets, real_point3d *accumulator);
-extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta);
 #define F(p, o) (*(float *)((p) + (o)))
 #define W(p, o) (*(int16_t *)((p) + (o)))
 #define D(p, o) (*(datum_index *)((p) + (o)))
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -120,7 +117,7 @@ void ActorView::update_firing_state()
         int16_t grenade = W(variant, 0x180);
 
         if (grenade != -1 && *(int8_t *)(OBJECT_DATA(D(a, 0x18)) + 0x31e + grenade) == 0) {
-            unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
+            halo::units::unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
         }
         ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::grenade);
         ai_communication_broadcast(9, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
@@ -324,7 +321,7 @@ dispatch:
         final_point->z = aim_point->z + F(a, 0x66c);
 
         if (D(a, 0x158) != k_datum_index_none) {
-            unit_get_camera_position(D(a, 0x18), &origin);
+            halo::units::unit_get_camera_position(D(a, 0x18), &origin);
         } else {
             uint8_t *offset = 0;
 
@@ -358,7 +355,7 @@ dispatch:
                 } else {
                     facing = *(real_vector3d *)&((actor *)a)->facing.i;
                 }
-                unit_add_marker_relative_offset(D(a, 0x18), 3, (float *)(a + 0x12c), (uint32_t)&facing,
+                halo::units::unit_add_marker_relative_offset(D(a, 0x18), 3, (float *)(a + 0x12c), (uint32_t)&facing,
                                                 (uint32_t)offset, &origin);
             }
         }

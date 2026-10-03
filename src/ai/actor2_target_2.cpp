@@ -3,19 +3,17 @@
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 extern int32_t object_cluster_stamp;
 extern game_time_globals *game_time;
 extern double sqrt(double x);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index,
     char stamp_group);
@@ -28,7 +26,7 @@ extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind);
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
     char allow_reassign);
-#define OBJ(i) ((uint8_t *)((object_header *)object_data->data)[(i) & halo::k_slot_mask].data)
+#define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
     int16_t count = *(int16_t *)(list + 2);
@@ -63,7 +61,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
     float distance_squared;
     uint8_t *list;
 
-    object_get_position(&position, object_index);
+    halo::objects::object_get_position(&position, object_index);
     actor_get_firing_positions(actor_index, block, &position);
     if (*(datum_index *)(object + 0x1f8) != k_datum_index_none) {
         target_actor_index = *(datum_index *)(object + 0x1f8);
@@ -72,7 +70,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
             return;
         }
         unit = OBJ(target);
-        object_get_position(&position, target);
+        halo::objects::object_get_position(&position, target);
     } else {
         target_actor_index = *(datum_index *)(object + 0x1f4);
     }
@@ -221,7 +219,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     if (((struct object *)object)->parent_object != k_datum_index_none && (object[0x22c] & 0x20) == 0) {
         return;
     }
-    object_get_position(&position, object_index);
+    halo::objects::object_get_position(&position, object_index);
     actor_get_firing_positions(actor_index, block, &position);
     {
         float dx = position.x - block_point->x;
@@ -250,7 +248,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, uint8_t *self, 
     ((actor *)self)->danger_owner_relation = 0;
     owner = ((struct object *)object)->creator_object;
     if (owner != k_datum_index_none) {
-        uint8_t *owner_object = (uint8_t *)object_try_and_get(owner, halo::k_dword_none);
+        uint8_t *owner_object = (uint8_t *)halo::objects::object_try_and_get(owner, halo::k_dword_none);
 
         if (owner_object != 0 && ((1u << owner_object[0xb4]) & 3) != 0) {
             owner_unit = owner;

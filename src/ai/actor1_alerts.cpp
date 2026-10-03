@@ -5,6 +5,8 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/main/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
@@ -26,8 +28,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 }
 }
@@ -51,11 +51,11 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
         return 0;
     }
     if (D(0x18) != halo::k_dword_none) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & halo::k_slot_mask].data;
+        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[D(0x18) & halo::k_slot_mask].data;
         datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.flaming_responsible_object;
 
         if (attacker != k_datum_index_none) {
-            uint8_t *attacker_unit = (uint8_t *)object_try_and_get(attacker, 3);
+            uint8_t *attacker_unit = (uint8_t *)halo::objects::object_try_and_get(attacker, 3);
 
             if (attacker_unit != 0) {
                 if (*(datum_index *)(attacker_unit + 0x328) != k_datum_index_none) {
@@ -206,7 +206,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 }
 }
@@ -230,10 +229,10 @@ uint8_t halo::ai::alert_ops::alert_from_projectile()
     if (D(0x1b0) == halo::k_dword_none) {
         return 0;
     }
-    noticed = (uint8_t *)object_try_and_get(D(0x1b0), halo::k_dword_none);
+    noticed = (uint8_t *)halo::objects::object_try_and_get(D(0x1b0), halo::k_dword_none);
     if (noticed != 0 && *(datum_index *)(noticed + 0xc4) != k_datum_index_none) {
         datum_index creator = *(datum_index *)(noticed + 0xc4);
-        uint8_t *creator_unit = (uint8_t *)object_try_and_get(creator, 3);
+        uint8_t *creator_unit = (uint8_t *)halo::objects::object_try_and_get(creator, 3);
 
         if (creator_unit != 0) {
             datum_index who;
@@ -458,7 +457,6 @@ namespace c_actor_consider_combat_mode {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 
 extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration);
@@ -466,8 +464,6 @@ extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
     float radius);
 extern void actor_movement_actions_cancel(datum_index actor_index);
-extern uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame,
-    uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
 }
 }
 
@@ -511,7 +507,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         if (actor[6] != 0) {
             goto done;
         }
-        unit = (uint8_t *)((object_header *)object_data->data)[((struct actor *)actor)->unit_index & halo::k_slot_mask].data;
+        unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((struct actor *)actor)->unit_index & halo::k_slot_mask].data;
         if ((unit[0x106] & 0x80) != 0 || ((struct actor *)actor)->target_unit_index == k_datum_index_none) {
             goto done;
         }
@@ -531,7 +527,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
                 mode = 3;
             }
         }
-        if (!unit_get_weapon_marker_indices(((struct actor *)actor)->unit_index, leap, (uint32_t)&dx_to_key_frame,
+        if (!halo::units::unit_get_weapon_marker_indices(((struct actor *)actor)->unit_index, leap, (uint32_t)&dx_to_key_frame,
                 (uint32_t)&dx_total, &frame_count, &key_frame)) {
             goto done;
         }
@@ -876,7 +872,6 @@ extern "C" uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index)
 namespace c_actor_evaluate_combat_state_transition {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
@@ -890,7 +885,7 @@ extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consider
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
 
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 }
 }
 
@@ -1103,9 +1098,7 @@ extern "C" char actor_evaluate_combat_state_transition(uint32_t actor_index)
 namespace c_actor_is_within_alert_range {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -1121,7 +1114,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
 {
     using namespace c_actor_is_within_alert_range;
     actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    object *obj = ((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     uint8_t result = 0;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0) {
@@ -1129,7 +1122,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
             float radius = (use_radius_b == 0) ? radius_b : radius_a;
             real_point3d obj_position;
 
-            object_get_position(&obj_position, object_index);
+            halo::objects::object_get_position(&obj_position, object_index);
 
             if (vitality_only != 0 ||
 

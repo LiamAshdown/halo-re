@@ -5,6 +5,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -22,8 +24,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern game_time_globals *game_time;
 extern director directors[1];
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern double atan2(double y, double x);
 extern void (*matrix4x3_multiply_ptr)(void *a, void *b, void *out);
@@ -643,7 +643,7 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
     {
         player *p = &((player *)player_data->data)[halo::datum_slot(local_player)];
         if (p->unit != (datum_index)k_datum_index_none) {
-            object *unit_object = object_try_and_get(p->unit, 3  );
+            object *unit_object = halo::objects::object_try_and_get(p->unit, 3  );
             if (unit_object != 0 && unit_object->parent_object != (datum_index)k_datum_index_none) {
                 return;
             }
@@ -655,7 +655,7 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
         return;
     }
 
-    if (unit_predict_movement_delta(&position_delta, &forward_delta, &up_delta, time_fraction) !=
+    if (halo::units::unit_predict_movement_delta(&position_delta, &forward_delta, &up_delta, time_fraction) !=
         0) {
         observers[0].camera.position.x += position_delta.i;
         observers[0].camera.position.y += position_delta.j;

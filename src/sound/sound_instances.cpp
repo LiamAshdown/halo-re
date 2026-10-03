@@ -9,6 +9,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::sound {
 
@@ -145,7 +147,7 @@ void impulse_start(datum_index object_index, datum_index definition_index, float
         Vector3D forward;
         int16_t node_index;
 
-        if ((int16_t)object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1) != 0) {
+        if ((int16_t)halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1) != 0) {
             position = *(Point3D *)&marker.transform.position;
             forward = *(Vector3D *)&marker.transform.forward;
             node_index = marker.node_index;
@@ -158,7 +160,7 @@ void impulse_start(datum_index object_index, datum_index definition_index, float
         new_sound = instances::start_at_object_marker(object_index, &position, &forward, definition_index, node_index,
             scale, 0);
         if (new_sound != k_datum_index_none) {
-            object_type_definitions_notify_0x58(object_index, definition_index, new_sound);
+            halo::objects::object_type_definitions_notify_0x58(object_index, definition_index, new_sound);
         }
     }
 
@@ -191,11 +193,11 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
     object *obj;
     real_matrix4x3 *node_matrix;
 
-    if (object_try_and_get(owner, 0xffffffff) == 0) {
+    if (halo::objects::object_try_and_get(owner, 0xffffffff) == 0) {
         return 0;
     }
 
-    object_get_root_location(root_location, owner);
+    halo::objects::object_get_root_location(root_location, owner);
     if ((int16_t)root_location[1] == -1) {
         return 0;
     }
@@ -208,7 +210,7 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
     *(int32_t *)&location->cluster_index = root_location[1];
     halo::math::matrix4x3_transform_point(*((real_point3d *)&location->position), *((real_point3d *)&marker->position), *node_matrix);
     halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location->forward), *((real_vector3d *)&marker->forward), *node_matrix);
-    object_get_root_object_velocities(owner, (real_vector3d *)&location->velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(owner, (real_vector3d *)&location->velocity, (real_vector3d *)0);
     return 1;
 }
 
@@ -785,8 +787,8 @@ void update_active(void)
                 }
 
                 if (game_looping_sound_data->valid &&
-                    object_try_and_get(instance->owner_index, 3) != 0) {
-                    unit_accumulate_clamped_offset(instance->owner_index, lip_sync_value);
+                    halo::objects::object_try_and_get(instance->owner_index, 3) != 0) {
+                    halo::units::unit_accumulate_clamped_offset(instance->owner_index, lip_sync_value);
                 }
             }
         }

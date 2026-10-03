@@ -11,20 +11,17 @@
 #include "halo/scenario/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
-extern void antenna_apply_marker_delta(real_vector3d *out_forward, real_point3d *out_position, antenna *ant, Antenna *antenna_tag, bsp_leaf_reference *node_ref);
 extern data_array *antenna_data;
-extern void antenna_render_geometry(Antenna *antenna_tag, antenna *ant);
 extern uint8_t antenna_sprite_shader[];
-extern void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern double sin(double x);
 extern double sqrt(double x);
 }
@@ -190,12 +187,12 @@ void halo::objects::AntennaSystem::render_callback(datum_index object_index, dat
     }
     self->object_index = object_index;
     if (self->update_counter > 5) {
-        antenna_update_physics(self, tag, 0.05f);
-        antenna_update_physics(self, tag, 0.05f);
-        antenna_update_physics(self, tag, 0.05f);
+        halo::objects::antenna_update_physics(self, tag, 0.05f);
+        halo::objects::antenna_update_physics(self, tag, 0.05f);
+        halo::objects::antenna_update_physics(self, tag, 0.05f);
     }
     self->update_counter = 0;
-    antenna_render_geometry(tag, self);
+    halo::objects::antenna_render_geometry(tag, self);
 }
 
 /**
@@ -217,7 +214,7 @@ void halo::objects::AntennaSystem::update(float dt)
             if ((ant->object_index != k_datum_index_none) && (ant->update_counter < 5)) {
                 Antenna *tag = (Antenna *)halo::cache::globals().tag_instances[halo::datum_slot(ant->definition_tag)].data;
                 float clamped_dt = (dt <= 0.06666667f) ? dt : 0.06666667f;
-                antenna_update_physics(ant, tag, clamped_dt);
+                halo::objects::antenna_update_physics(ant, tag, clamped_dt);
             }
         }
 
@@ -237,7 +234,7 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
     real_point3d marker_position;
     bsp_leaf_reference node_ref;
 
-    antenna_apply_marker_delta(&marker_forward, &marker_position, ant, antenna_tag, &node_ref);
+    halo::objects::antenna_apply_marker_delta(&marker_forward, &marker_position, ant, antenna_tag, &node_ref);
 
     if (ant->degenerate == 0 && dt > 0.0f) {
         int32_t vertex_count = antenna_tag->vertices.count;
@@ -363,7 +360,7 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
     antenna *ant = self;
     object_marker marker;
 
-    object_get_node_local_transform(ant->object_index, (char *)antenna_tag, &marker, 1);
+    halo::objects::object_get_node_local_transform(ant->object_index, (char *)antenna_tag, &marker, 1);
     *out_position = marker.node_transform.position;
     *out_forward = marker.node_transform.forward;
 

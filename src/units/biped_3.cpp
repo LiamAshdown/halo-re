@@ -3,9 +3,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern double cos(double x);
 extern double sin(double x);
 }
@@ -26,7 +27,7 @@ namespace halo::units {
 void BipedView::update_facing(int8_t *out_animation_state)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;

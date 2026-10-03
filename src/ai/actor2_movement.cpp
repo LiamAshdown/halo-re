@@ -5,6 +5,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -860,12 +861,7 @@ void ActorOps::movement_choose_strafe_axis(const real_vector3d *direction, uint8
 
 namespace actor_movement_collect_obstacle_candidates_local {
 extern "C" {
-extern data_array *object_data;
 extern double sqrt(double x);
-extern int16_t object_find_in_sphere(int32_t kind, int32_t type_mask, const void *from,
-                                     const real_point3d *center, float radius,
-                                     datum_index *out_objects, int32_t maximum_count);
-extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 }
 }
 
@@ -898,8 +894,8 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     int32_t remaining;
     datum_index *cursor;
 
-    unit_object = ((object_header *)object_data->data)[context->unit_index & halo::k_slot_mask].data;
-    found = object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[context->unit_index & halo::k_slot_mask].data;
+    found = halo::objects::object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
                                   context->search_radius, candidates, 0x800);
     context->obstacle_count = 0;
     if (found <= 0) {
@@ -910,18 +906,18 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     remaining = (int32_t)(uint16_t)found;
     do {
         if (*cursor != (datum_index)k_datum_index_none && *cursor != context->unit_index) {
-            candidate_object = ((object_header *)object_data->data)[*cursor & halo::k_slot_mask].data;
+            candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & halo::k_slot_mask].data;
             candidate_definition = (Object *)halo::cache::globals().tag_instances[candidate_object->definition_tag & halo::k_slot_mask].data;
             collision_model = (ModelCollisionGeometry *)
                 halo::cache::globals().tag_instances[candidate_definition->collision_model.tag_id.index].data;
             if ((int32_t)collision_model->pathfinding_spheres.count > 0) {
-                candidate_object = ((object_header *)object_data->data)[*cursor & halo::k_slot_mask].data;
+                candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & halo::k_slot_mask].data;
                 origin_x = ((struct object *)candidate_object)->bounding_center.x;
                 origin_y = ((struct object *)candidate_object)->bounding_center.y;
                 origin_z = ((struct object *)candidate_object)->bounding_center.z;
                 origin_top = ((struct object *)candidate_object)->bounding_radius;
                 extent = 0.0f;
-                object_get_world_matrix(*cursor, &world_matrix);
+                halo::objects::object_get_world_matrix(*cursor, &world_matrix);
 
                 sphere_count = (int32_t)collision_model->pathfinding_spheres.count;
                 spheres = (ModelCollisionGeometrySphere *)collision_model->pathfinding_spheres.pointer;
@@ -932,7 +928,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                                                   world_matrix);
                         reach = world_matrix.scale * sphere->radius;
                     } else {
-                        candidate_object = ((object_header *)object_data->data)[*cursor & halo::k_slot_mask].data;
+                        candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & halo::k_slot_mask].data;
                         node_matrix = (const real_matrix4x3 *)
                             ((uint8_t *)candidate_object +
                              (int32_t)((struct object *)candidate_object)->nodes.offset +
@@ -974,7 +970,6 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
 namespace actor_movement_flying_needs_steering_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 }
 }
 
@@ -1000,7 +995,7 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
     needs_steering = 1;
 
     if (self->vehicle_driving_type == 4) {
-        unit_object = ((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
         vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         avoidance_distance = vehicle_definition->ai_avoidance_distance;
         if (avoidance_distance > 0.0f && self->avoidance_emergency > 0.9f) {
@@ -1027,8 +1022,6 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
 namespace actor_movement_get_stopping_distances_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -1057,7 +1050,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
 
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
-            unit_object = (object *)object_try_and_get(self->unit_index, 1);
+            unit_object = (object *)halo::objects::object_try_and_get(self->unit_index, 1);
             if (unit_object != (object *)0) {
                 biped_definition = (Biped *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
                 speed = unit_object->velocity.i * unit_object->forward.i +
@@ -1076,7 +1069,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
             }
         }
     } else if (self->vehicle_driving_type > 1 && self->vehicle_driving_type < 4) {
-        unit_object = ((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
         vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         speed = unit_object->velocity.i * unit_object->forward.i +
                 unit_object->velocity.j * unit_object->forward.j +

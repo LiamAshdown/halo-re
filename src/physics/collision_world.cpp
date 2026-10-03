@@ -17,6 +17,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -27,8 +29,6 @@ extern "C" { uint8_t halo::physics::object_collision_context_test_segment(object
 extern "C" { uint8_t halo::physics::object_collision_test_nearby_chain(uint32_t start_object_index, uint32_t type_mask, real_point3d *position, uint32_t exclude_object_index); }
 extern "C" { uint8_t halo::physics::object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint32_t type_mask, uint32_t test_flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *out_result); }
 
-extern "C" { extern data_array *object_data; }
-extern "C" { extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out); }
 namespace halo::physics {
 
 /**
@@ -47,7 +47,7 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
     uint32_t object_index = start_object_index;
 
     do {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
         float reach;
         float dx, dy, dz;
 
@@ -79,7 +79,7 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
                     float pill_height;
                     float pill_radius;
 
-                    unit_get_crouch_height_offset(&position, object_index, &pill_height, &pill_radius);
+                    halo::units::unit_get_crouch_height_offset(&position, object_index, &pill_height, &pill_radius);
                     position.z += pill_height;
                     halo::physics::physics_shape_vertex_to_sphere(model, &position, -1, pill_height + x_offset,
                         pill_radius + y_offset, object_index, -1, 0, -1);
@@ -196,9 +196,7 @@ uint8_t CollisionWorld::test_movement_pill(uint32_t flags, real_point3d *origin,
 
 }
 
-extern "C" { extern object_globals *object_globals_pointer; }
 extern "C" { extern int32_t object_cluster_stamp; }
-extern "C" { extern datum_index *collideable_cluster_first; }
 extern "C" { extern data_array *collideable_object_references; }
 extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
@@ -369,7 +367,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                 flags |= _collision_test_object_type_mask_default;
             }
             halo::structures::globals().cluster_flood_stamp++;
-            object_globals_pointer->collecting_in_clusters = 1;
+            halo::objects::globals().object_globals->collecting_in_clusters = 1;
             stamp = object_cluster_stamp + 1;
             halo::structures::globals().cluster_flood_in_progress = 1;
             object_cluster_stamp = stamp;
@@ -383,12 +381,12 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     datum_index ref;
 
                     halo::structures::globals().cluster_visit_stamp[cluster_index] = halo::structures::globals().cluster_flood_stamp;
-                    ref = collideable_cluster_first[cluster_index];
+                    ref = halo::physics::globals().collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
                             collideable_object_references->data + (ref & 0xffff);
                         datum_index object_index = node->object_index;
-                        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
                         if (obj->cluster_stamp != stamp) {
                             obj->cluster_stamp = stamp;
@@ -402,7 +400,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                 }
             }
 
-            object_globals_pointer->collecting_in_clusters = 0;
+            halo::objects::globals().object_globals->collecting_in_clusters = 0;
             halo::structures::globals().cluster_flood_in_progress = 0;
         }
 
@@ -496,7 +494,7 @@ namespace halo::physics {
  */
 uint8_t CollisionWorld::context_build(uint32_t object_index, object_collision_context *out_context)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
 
     if (object_tag->collision_model.tag_id.index != 0xffff ||
@@ -760,7 +758,6 @@ uint8_t CollisionWorld::context_test_segment(object_collision_context *context, 
 
 }
 
-extern "C" { extern datum_index object_resolve_collideable_reference(datum_index *next_reference, int16_t cluster_index); }
 namespace halo::physics {
 
 /**
@@ -787,7 +784,7 @@ uint8_t CollisionWorld::test_cluster_group(uint32_t flags, real_point3d *positio
                 (ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer;
             datum_index next_reference;
             datum_index object_index =
-                object_resolve_collideable_reference(&next_reference,
+                halo::objects::object_resolve_collideable_reference(&next_reference,
                     (int16_t)*(uint16_t *)((uint8_t *)leaves + (leaf_index & 0x7fffffff) * 0x10 + 8));
 
             while (object_index != k_datum_index_none) {
@@ -831,7 +828,7 @@ uint8_t CollisionWorld::test_nearby_chain(uint32_t start_object_index, uint32_t 
     uint32_t object_index = start_object_index;
 
     do {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
         if (object_index != exclude_object_index && (obj->flags & 1) == 0) {
             uint8_t type = (uint8_t)obj->type;
@@ -901,7 +898,7 @@ uint8_t CollisionWorld::test_ray_nearby_chain(uint32_t start_object_index, uint3
     uint8_t improved = 0;
 
     do {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
         if (object_index != exclude_object_index && (obj->flags & 1) == 0) {
             uint8_t type = (uint8_t)obj->type;

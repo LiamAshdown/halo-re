@@ -18,6 +18,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -30,7 +32,6 @@ extern data_array *player_data;
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern game_variant game_engine_variant;
-extern data_array *object_data;
 extern void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index,
     int32_t *frag_count, int32_t *plasma_count);
 extern uint32_t game_engine_pack_object_flags_or_passthrough(uint32_t input);
@@ -38,14 +39,10 @@ extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table;
 extern uint8_t player_execute_pending_interaction(uint32_t handle);
 extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats);
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern uint8_t game_engine_teams_enabled_flag;
 extern int16_t network_game_mode;
@@ -55,7 +52,6 @@ extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_
 extern void game_engine_end_game_sequence_stage1(void);
 extern void game_engine_end_game_sequence_stage2(void);
 extern void game_engine_end_game_sequence_stage3(void);
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t network_object_index_cache[];
 extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
 extern uint8_t network_message_scratch[0x7ff8];
@@ -143,7 +139,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     }
 
     if ((game_engine_variant.flags & 0x20) == 0) {
-        object *obj = ((object_header *)object_data->data)[unit & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
         if (obj->network_role == 0 || obj->network_role == 3) {
             game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
         }
@@ -162,7 +158,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             return;
         }
         {
-            object *obj = ((object_header *)object_data->data)[unit & 0xffff].data;
+            object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
 
             if (obj->network_role != 0 && obj->network_role != 3) {
                 return;
@@ -317,7 +313,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                 datum_index new_unit = (datum_index)((int32_t *)object_network_id_table->handles)[
                     message.unit_pooled_id];
                 if (new_unit != (datum_index)0xffffffff) {
-                    object *unit_obj = object_try_and_get(new_unit, 3);
+                    object *unit_obj = halo::objects::object_try_and_get(new_unit, 3);
                     if (unit_obj != 0) {
                         p->unit = new_unit;
                         p->team = message.team;
@@ -325,7 +321,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         unit_obj->owner_linkage = (uint32_t)owner_handle;
                         unit_obj->owner_team = (int16_t)p->team;
                         ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->controlling_player = owner_handle;
-                        unit_refresh_targeting_flag_and_weapons(new_unit, 1);
+                        halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
 
                         if (p->local_player_index == -1) {
                             ((struct player *)p)->position_updates.read_index = 0;
@@ -361,7 +357,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                                 if (weapon == -1) {
                                     unit->weapons[i] = (datum_index)0xffffffff;
                                 } else {
-                                    unit_pickup_weapon(0, (uint32_t)weapon, new_unit);
+                                    halo::units::unit_pickup_weapon(0, (uint32_t)weapon, new_unit);
                                 }
                             }
                             unit->current_weapon_index = -1;
@@ -372,7 +368,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                             datum_index vehicle = (datum_index)((int32_t *)object_network_id_table->handles)[
                                 message.seat_vehicle_pooled_id];
                             if (vehicle != (datum_index)0xffffffff) {
-                                unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit);
+                                halo::units::unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit);
                             }
                         }
 
@@ -456,7 +452,7 @@ void Notifications::dispatch_item_pickup_event(int32_t machine_id, int32_t picke
 
     fields.slot = 0;
     if (machine_id != -1) {
-        fields.slot = hash_table_get(&object_network_id_table->id_to_index, (int32_t)machine_id);
+        fields.slot = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)machine_id);
     }
     if (fields.slot == -1) {
         fields.slot = network_index_cache_find_or_allocate_slot(network_object_index_cache, machine_id);
@@ -559,7 +555,7 @@ void Notifications::multiplayer_sound_queue_tick(void)
  */
 void Notifications::notify_item_expired(datum_index object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
     uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
 
@@ -588,12 +584,12 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
     if (current_game_engine == 0) {
         return 1;
     }
-    weapon = object_try_and_get(weapon_index, _object_mask_weapon);
+    weapon = halo::objects::object_try_and_get(weapon_index, _object_mask_weapon);
     if (weapon == 0) {
         return 1;
     }
     weapon_definition = (Object *)halo::cache::globals().tag_instances[
-        (((object_header *)object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
+        (((object_header *)halo::objects::globals().object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
     ].data;
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;

@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -15,7 +16,6 @@ extern void hud_add_item_message(int16_t local_player_index, int32_t source, uin
 extern void player_trigger_shield_recharge_effect(uint32_t player_index);
 extern void player_trigger_kill_streak_effect(uint32_t player_index);
 extern void player_trigger_full_health_effect(uint32_t player_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
 namespace halo::interface {
@@ -77,7 +77,7 @@ void HudMessaging::receive_item_message(void **message)
         case 2:
             player_trigger_shield_recharge_effect(iterator.index);
             if (network_game_mode == 1) {
-                object *unit = object_try_and_get(p->unit, 1);
+                object *unit = halo::objects::object_try_and_get(p->unit, 1);
                 if (unit != 0) {
                     *((uint8_t *)unit + 0x106) |= 0x10;
                 }

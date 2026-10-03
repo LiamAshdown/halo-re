@@ -12,6 +12,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -35,7 +36,6 @@ extern void first_person_weapon_interface_tick(void);
 extern void hud_update_dispatch(void);
 extern void network_client_send_local_player_updates(void);
 extern void network_event_feed_flush(void *queue);
-extern void objects_update(void);
 extern void network_server_broadcast_object_type_changes(void);
 extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
@@ -144,7 +144,7 @@ after_role_update:
     game_engine_tick();
     hs_runtime_update();
     halo::cutscene::recorded_animations_update();
-    objects_update();
+    halo::objects::objects_update();
     main_switch_structure_bsp();
     hud_update_dispatch();
     halo::effects::player_effect_clear_dead_players();
@@ -236,7 +236,7 @@ void GameLifecycle::start_new_map(void)
     }
     *((uint8_t *)((uint32_t *)tag_cache_bytes + 0xc)) = 0;
 
-    objects_reset();
+    halo::objects::objects_reset();
     object_render_state_cache->valid = 1;
     halo::memory::data_delete_all(object_render_state_cache);
 
@@ -247,7 +247,7 @@ void GameLifecycle::start_new_map(void)
     }
     *((uint8_t *)halo::structures::globals().detail_objects + 0x520e) = 0;
     *(uint32_t *)halo::structures::globals().runtime_decals_suppressed = 0;
-    breakable_surfaces_reset();
+    halo::objects::breakable_surfaces_reset();
 
     dst = (uint32_t *)decal_grid_block;
     for (i = 0xa00; i != 0; i = i - 1) {
@@ -341,7 +341,7 @@ void GameLifecycle::start_new_map(void)
 
     halo::main::globals().game_globals->active = 1;
     *object_globals_pointer = 1;
-    scenario_objects_place(halo::scenario::globals().scenario);
+    halo::objects::scenario_objects_place((uint8_t *)(halo::scenario::globals().scenario));
     *object_globals_pointer = 0;
     encounters_spawn_initial();
 }
@@ -384,7 +384,7 @@ void GameLifecycle::stop_current_map(void)
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {
         object_render_state_cache->valid = 0;
     }
-    objects_flush_dirty_state();
+    halo::objects::objects_flush_dirty_state();
 
     had_network_predicted_globals = halo::sound::globals().game_looping_sound_data != (data_array *)0;
     halo::camera::globals().directors[0].pov_proc = 0;

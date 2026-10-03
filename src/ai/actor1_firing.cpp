@@ -7,6 +7,7 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/tags/flags.hpp"
+#include "halo/units/api.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -100,9 +101,6 @@ extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, c
 extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point,
     float *out_distance, float *out_secondary, real_vector3d *out_direction);
 extern uint8_t path_find_run(path_find_context *context);
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
-extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out);
 
 extern uint8_t actor_firing_position_compare(int32_t element, int32_t other);
 }
@@ -231,7 +229,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         query->target_danger_radius = 0.0f;
         query->target_distance = (float)sqrt((double)(delta.i * delta.i + delta.j * delta.j +
                                                       delta.k * delta.k));
-        unit_add_marker_relative_offset(self->unit_index, 1, (float *)&query->target_position, 0, 0,
+        halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)&query->target_position, 0, 0,
             &query->target_aim_position);
         query->target_lead_position = query->target_aim_position;
     }
@@ -352,7 +350,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                         h->kind = 2;
                         h->position = pr->last_known_position;
 
-                        unit_get_aiming_vector(pr->relationship_object_index != -1 ? (uint32_t)pr->relationship_object_index
+                        halo::units::unit_get_aiming_vector(pr->relationship_object_index != -1 ? (uint32_t)pr->relationship_object_index
                                                                                     : (uint32_t)pr->object_index,
                                                &h->direction);
                         query->hazard_count = query->hazard_count + 1;

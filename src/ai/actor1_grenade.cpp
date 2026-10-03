@@ -6,19 +6,18 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern ai_globals *ai_globals_ptr;
 
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
-extern void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags);
 extern void encounter_recompute_morale(datum_index encounter_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 
 static uint32_t actor_death_random_16(void)
 {
@@ -50,7 +49,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
     if (((actor *)a)->awareness_level == 3 && ((struct actor *)a)->combat_status >= 2) {
         unit = OBJECT_DATA(((actor *)a)->unit_index);
         if (((((unit_object *)unit)->unit.flags >> 6) & 1) &&
-            unit_get_weapon_object_index(((actor *)a)->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&
+            halo::units::unit_get_weapon_object_index(((actor *)a)->unit_index, ((unit_object *)unit)->unit.current_weapon_index) != k_datum_index_none &&
             ((struct unit_object *)unit)->unit.delayed_weapon_drop_ticks > 0) {
             float chance = ((ActorVariant *)variant)->death_fire_wildly_chance;
 
@@ -81,7 +80,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
                     seconds = 1.3f;
                 }
                 ticks = (int16_t)(int32_t)(seconds * 30.0f);
-                unit_set_control_countdown(((actor *)a)->unit_index, ticks, 0x800);
+                halo::units::unit_set_control_countdown(((actor *)a)->unit_index, ticks, 0x800);
                 unit[0x28c] = (uint8_t)ticks;
             }
         }
@@ -206,11 +205,9 @@ extern "C" uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
 namespace c_actor_check_grenade_facing_and_commit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 extern game_time_globals *game_time;
 
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 }
 }
@@ -236,11 +233,11 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     unit_index = self->unit_index;
 
-    if (unit_is_in_busy_animation_state(self->unit_index) != 0) {
+    if (halo::units::unit_is_in_busy_animation_state(self->unit_index) != 0) {
         return 0;
     }
 
-    unit_header = (object_header *)object_data->data + (unit_index & halo::k_slot_mask);
+    unit_header = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
     unit_obj = unit_header->data;
     body_damage = unit_obj->current_body_damage;
     if (body_damage > 0.0f) {
@@ -483,12 +480,9 @@ extern "C" uint8_t actor_consider_grenade_throw(datum_index actor_index)
 namespace c_actor_evaluate_grenade_target_position {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
     uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param);
-extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command);
 extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
 }
 }
@@ -515,13 +509,13 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
     if (((actor *)a)->active_unit_index != k_datum_index_none || ((actor *)a)->secondary_action != -1) {
         return 0;
     }
-    if (((actor *)a)->unit_index != k_datum_index_none && unit_is_in_busy_animation_state(((actor *)a)->unit_index)) {
+    if (((actor *)a)->unit_index != k_datum_index_none && halo::units::unit_is_in_busy_animation_state(((actor *)a)->unit_index)) {
         return 0;
     }
     if (a[0x504] || ((actor *)a)->target_unit_index == k_datum_index_none) {
         return 0;
     }
-    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((uint8_t *)((object_header *)object_data->data)
+    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
         [((actor *)a)->unit_index & halo::k_slot_mask].data) & halo::k_slot_mask].data;
     p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & halo::k_slot_mask) * k_prop_size;
     if (!(*(float *)(unit_tag + 0x234) > 0.0f)) {
@@ -557,7 +551,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
             return 0;
         }
         action = (int16_t)side == 1 ? 7 : 6;
-        if (unit_scripted_action_animation_exists(((actor *)a)->unit_index, action)) {
+        if (halo::units::unit_scripted_action_animation_exists(((actor *)a)->unit_index, action)) {
             queued = actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
         }
     }
@@ -739,7 +733,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern ai_globals *ai_globals_ptr;
 
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
@@ -799,7 +792,7 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
 
         if (p->enemy == 0 && p->dead == 0 && p->state == 3 &&
             p->relationship_object_index == -1) {
-            tracked_object = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
+            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
             if (tracked_object->type == _object_type_biped) {
                 int excluded = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none &&
@@ -898,8 +891,6 @@ extern "C" uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_
 
 namespace c_actor_grenade_avoidance_entry_init {
 extern "C" {
-extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height,
-    float *pill_radius_out);
 }
 }
 
@@ -917,7 +908,7 @@ void halo::ai::grenade_ops::avoidance_entry_init(ai_grenade_avoidance_entry *ent
     float offset;
     float deadline;
 
-    unit_get_crouch_height_offset(&entry->target_position, object_index, &offset, &deadline);
+    halo::units::unit_get_crouch_height_offset(&entry->target_position, object_index, &offset, &deadline);
     entry->already_clear = (offset == 0.0f);
     entry->unknown_10 = 0;
     entry->unknown_14 = 0;
@@ -1058,8 +1049,6 @@ namespace c_actor_grenade_trace_from_source {
 extern "C" {
 extern data_array *actor_data;
 
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 
 }
 }
@@ -1085,7 +1074,7 @@ int32_t halo::ai::grenade_ops::trace_from_source(real_point3d *target_point)
         if (a->movement_action_complete == 0) {
             return 0;
         }
-        unit_add_marker_relative_offset(a->unit_index, 1, (float *)((uint8_t *)a + 0x4ac), 0, 0, &source);
+        halo::units::unit_add_marker_relative_offset(a->unit_index, 1, (float *)((uint8_t *)a + 0x4ac), 0, 0, &source);
     } else {
         source.x = a->aim_origin.x;
         source.y = a->aim_origin.y;

@@ -2,20 +2,18 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_danger_update_reaction {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
-extern data_array *object_data;
 
 extern double sqrt(double x);
 extern int32_t fistp_round(float x);
 
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
@@ -25,7 +23,6 @@ extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t 
     uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
 extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index,
     void *target_ref, int16_t gate, real_point3d *listener_position);
-extern int32_t unit_get_animation_frames_remaining(uint32_t unit_index, int16_t *out_animation_state);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, void *context);
 
 #define A_W(o) (*(int16_t *)(actor + (o)))
@@ -84,12 +81,12 @@ void halo::ai::prop_ops::danger_update_reaction()
     if (A_W(0x280) <= 0) {
         return;
     }
-    object = (uint8_t *)object_try_and_get(A_D(0x28c), halo::k_dword_none);
+    object = (uint8_t *)halo::objects::object_try_and_get(A_D(0x28c), halo::k_dword_none);
     if (object == 0) {
         A_W(0x280) = 0;
         return;
     }
-    object_get_position(position, A_D(0x28c));
+    halo::objects::object_get_position(position, A_D(0x28c));
     actor_get_firing_positions(actor_index, block, position);
     *(real_vector3d *)(actor + 0x2bc) = *(real_vector3d *)&((struct object *)object)->velocity.i;
     {
@@ -126,7 +123,7 @@ void halo::ai::prop_ops::danger_update_reaction()
                 noticed = seen;
             }
         }
-        frames = unit_get_animation_frames_remaining(A_D(0x28c), &state);
+        frames = halo::units::unit_get_animation_frames_remaining(A_D(0x28c), &state);
         A_W(0x2e8) = state == 0x19 ? (int16_t)frames : -1;
         break;
     }
@@ -156,7 +153,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         }
         cluster = ((struct object *)object)->location_cluster_index;
         if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
-            uint8_t *root = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data;
+            uint8_t *root = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data;
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
@@ -197,7 +194,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         asleep = actor_danger_asleep(actor);
         location = object + 0x98;
         if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
-            location = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data + 0x98;
+            location = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data + 0x98;
         }
         status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
             *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != halo::k_dword_none);

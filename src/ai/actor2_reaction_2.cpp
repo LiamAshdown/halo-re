@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -88,8 +89,6 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 
 namespace actor_react_to_threat_event_local {
 extern "C" {
-extern data_array *object_data;
-extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor_index, float delta,
     const real_vector3d *direction);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -117,12 +116,12 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     int32_t reason;
     int32_t event_code;
 
-    self_obj = ((object_header *)object_data->data)[self_object_index & halo::k_slot_mask].data;
+    self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
     relationship_object_index = (datum_index)k_datum_index_none;
     relationship_obj = 0;
 
     if (other_object_index != (datum_index)k_datum_index_none) {
-        vehicle_obj = (object *)object_try_and_get(other_object_index, 3);
+        vehicle_obj = (object *)halo::objects::object_try_and_get(other_object_index, 3);
         if (vehicle_obj != 0) {
             vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
             relationship_object_index = (datum_index)k_datum_index_none;
@@ -138,7 +137,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
                     goto no_relationship_object;
                 }
             }
-            relationship_obj = ((object_header *)object_data->data)[relationship_object_index & halo::k_slot_mask].data;
+            relationship_obj = ((object_header *)halo::objects::globals().object_data->data)[relationship_object_index & halo::k_slot_mask].data;
         }
     }
 no_relationship_object:

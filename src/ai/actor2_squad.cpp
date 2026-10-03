@@ -7,6 +7,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/ai_constants.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -28,9 +30,6 @@ void ActorView::obey_member_advance(datum_index unit_index, uint16_t command_lis
 }
 
 namespace actor_obey_member_enter_local {
-extern "C" {
-extern data_array *object_data;
-}
 }
 
 /**
@@ -48,7 +47,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     (void)secondary_record;
     (void)callback_extra;
     if (list[0x20] & 0x10) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
 
         ((unit_object *)unit)->unit.flags |= 0x1000;
     }
@@ -56,7 +55,6 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
 
 namespace actor_obey_member_exit_local {
 extern "C" {
-extern data_array *object_data;
 extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state,
     int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out);
 }
@@ -70,7 +68,7 @@ extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_
 void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
     using namespace actor_obey_member_exit_local;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
     uint8_t *record = (uint8_t *)component_record;
 
     (void)callback_extra;
@@ -120,7 +118,6 @@ extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *player_data;
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
@@ -137,25 +134,8 @@ extern datum_index actor_find_prop_for_object(datum_index object_index, datum_in
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator);
 extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator);
 extern char hs_call_script_by_name(char *name);
-extern void object_reset_velocity_and_wake(uint32_t object_index);
-extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
-                                                real_vector3d *up, real_point3d *position);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern datum_index object_lookup_table_get(int16_t name_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int32_t object_iterator_next(object_iterator *iterator);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index,
-    int32_t *chain_value);
-extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
-extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
-extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
-extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta);
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate);
 extern const char k_empty_string[];
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -232,7 +212,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         if (check_object_index == unit_index) {
             *start = *(real_point3d *)&((actor *)act)->body_position.x;
         } else {
-            object_get_position(start, check_object_index);
+            halo::objects::object_get_position(start, check_object_index);
         }
         if (point_index >= 0 && point_index < point_count) {
             real_vector3d *direction = (real_vector3d *)(state + 0xc);
@@ -324,7 +304,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                         real_point3d eye;
                         float distance;
 
-                        unit_get_primary_eye_marker_position(player_unit, &eye);
+                        halo::units::unit_get_primary_eye_marker_position(player_unit, &eye);
                         distance = halo::math::vector3d_distance_squared(((struct actor *)act)->aim_origin, eye);
                         if (distance <= best) {
                             best = distance;
@@ -337,9 +317,9 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             int16_t name = (int16_t)entry->object_name;
 
             if (name >= 0 && name < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x204)) {
-                datum_index object_index = object_lookup_table_get(name);
+                datum_index object_index = halo::objects::object_lookup_table_get(name);
 
-                if (object_try_and_get(object_index, 3) != 0) {
+                if (halo::objects::object_try_and_get(object_index, 3) != 0) {
                     look_prop = actor_find_prop_for_object(object_index, actor_index);
                     look_object = object_index;
                 }
@@ -366,7 +346,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         } else {
             context.code = 3;
             if (look_object != k_datum_index_none) {
-                unit_get_primary_eye_marker_position(look_object, &context.payload.point);
+                halo::units::unit_get_primary_eye_marker_position(look_object, &context.payload.point);
             } else {
                 context.payload.point = *(real_point3d *)&points[(int16_t)look_point].position;
             }
@@ -413,7 +393,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         if (grenade_type == -1 || p < 0 || p >= point_count) {
             return 0;
         }
-        unit_set_grenade_type_and_count_delta(unit_index, grenade_type, 1);
+        halo::units::unit_set_grenade_type_and_count_delta(unit_index, grenade_type, 1);
         aim_state[0x49] = 0;
         aim_state[0x48] = 0;
         *(real_point3d *)(aim_state + 0x4c) = *(real_point3d *)&points[p].position;
@@ -439,12 +419,12 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         it.flags_mask = 0;
         it.index = 0;
         it.handle = k_datum_index_none;
-        while (object_iterator_next(&it) != 0) {
+        while (halo::objects::object_iterator_next(&it) != 0) {
             datum_index vehicle_index = it.handle;
             real_point3d position;
             float distance;
 
-            object_get_position(&position, vehicle_index);
+            halo::objects::object_get_position(&position, vehicle_index);
             distance = halo::math::vector3d_distance_squared(position, ((struct actor *)act)->body_position);
             if (entry->parameter1 == 0.0f || distance <= entry->parameter1 * entry->parameter1) {
                 samples[sample_count].distance_squared = distance;
@@ -537,10 +517,10 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         case 5: interpolate = 0; flag_8 = 1; flag_4 = 1; break;
         default: break;
         }
-        if (!unit_start_user_animation(check_object_index, graph, (const char *)reference, interpolate)) {
+        if (!halo::units::unit_start_user_animation(check_object_index, graph, (const char *)reference, interpolate)) {
             return 0;
         }
-        biped = (uint8_t *)object_try_and_get(check_object_index, 1);
+        biped = (uint8_t *)halo::objects::object_try_and_get(check_object_index, 1);
         if (biped != 0) {
             uint32_t *flags = (uint32_t *)(biped + 0x4cc);
 
@@ -592,7 +572,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         int32_t mode;
         unit_speech speech;
 
-        mode = unit_animation_change_priority_check(check_object_index, 1, 6, 1, 0, &dialogue, &chain);
+        mode = halo::units::unit_animation_change_priority_check(check_object_index, 1, 6, 1, 0, &dialogue, &chain);
         if ((int16_t)mode <= 0) {
             return 0;
         }
@@ -601,7 +581,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         speech.scream_type = dialogue;
         speech.sound_tag = (datum_index)chain;
         ai_communication_target_result_reset((ai_communication_target_result *)((uint8_t *)&speech + 0x10));
-        unit_commit_speech(check_object_index, &speech, (int16_t)mode);
+        halo::units::unit_commit_speech(check_object_index, &speech, (int16_t)mode);
         return 1;
     }
 
@@ -667,10 +647,10 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             return 0;
         }
         destination = (real_point3d *)&points[p].position;
-        unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
+        halo::units::unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
         if (facing_point >= 0 && facing_point < point_count) {
             real_point3d *facing = (real_point3d *)&points[facing_point].position;
-            uint8_t *biped = (uint8_t *)object_try_and_get(check_object_index, 1);
+            uint8_t *biped = (uint8_t *)halo::objects::object_try_and_get(check_object_index, 1);
             uint8_t *biped_tag = biped != 0 ? TAG_DATA(*(datum_index *)biped) : 0;
             float length;
 
@@ -684,12 +664,12 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                 length = halo::math::vector2d_normalize_with_length(*((real_vector2d *)&forward));
             }
             if (length == 0.0f) {
-                unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
+                halo::units::unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
             }
         }
-        object_set_position_and_orientation(check_object_index, &forward, 0, destination);
-        object_reset_velocity_and_wake(check_object_index);
-        object_recalculate_bounding_radius_recursive(check_object_index);
+        halo::objects::object_set_position_and_orientation(check_object_index, &forward, 0, destination);
+        halo::objects::object_reset_velocity_and_wake(check_object_index);
+        halo::objects::object_recalculate_bounding_radius_recursive(check_object_index);
         if (check_object_index == unit_index) {
             actor_fill_unit_position_context(unit_index, (actor_unit_position_context *)(act + 0x120));
             actor_movement_action_stop(actor_index);
@@ -708,7 +688,6 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
 namespace actor_squad_action_is_complete_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle,
                                           uint32_t exclude_object_index);
 extern void actor_movement_action_stop(datum_index actor_index);
@@ -717,7 +696,7 @@ extern float actor_compute_accuracy_scale(datum_index actor_index);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -815,7 +794,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
         if (check_object_index == unit_index) {
             position = *(real_point3d *)&((actor *)act)->body_position.x;
         } else {
-            object_get_position(&position, check_object_index);
+            halo::objects::object_get_position(&position, check_object_index);
         }
         if ((position.x - *(float *)(state + 0x18)) * *(float *)(state + 0xc) +
             (position.y - *(float *)(state + 0x1c)) * *(float *)(state + 0x10) +
@@ -847,7 +826,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
             *(int16_t *)(state + 0x2) = ticks;
             return ticks == 0;
         }
-        if (!unit_is_in_busy_animation_state(check_object_index)) {
+        if (!halo::units::unit_is_in_busy_animation_state(check_object_index)) {
             real_point3d target = *(real_point3d *)(aim_state + 0x4c);
 
             if (actor_commit_grenade_toss(actor_index, &target, halo::k_dword_none, halo::k_dword_none)) {
@@ -866,7 +845,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
         if (check_object_index == unit_index) {
             landed = act[0x15c];
         } else {
-            landed = (uint8_t)unit_get_biped_specific_value(check_object_index);
+            landed = (uint8_t)halo::units::unit_get_biped_specific_value(check_object_index);
         }
         if ((state[0x5] & 8) && landed) {
             *(int16_t *)(state + 0x2) = 0;
@@ -972,7 +951,6 @@ extern "C" {
 extern data_array *actor_data;
 extern void actor_clear_vocalization(uint32_t actor_index);
 extern void actor_movement_action_stop(datum_index actor_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -1035,7 +1013,7 @@ void ActorView::squad_action_reset_entry(uint32_t check_object_index, uint8_t *s
             state[9] = 0;
             return;
         case 0xd: {
-            uint32_t *obj = (uint32_t *)object_try_and_get(check_object_index, 1);
+            uint32_t *obj = (uint32_t *)halo::objects::object_try_and_get(check_object_index, 1);
             if (obj != 0) {
                 uint32_t *flags = (uint32_t *)((uint8_t *)obj + 0x4cc);
                 *flags &= 0xfffffff3;
@@ -1211,13 +1189,11 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
 
 namespace actor_squad_react_to_grenade_for_vehicle_occupants_local {
 extern "C" {
-extern data_array *object_data;
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
     int16_t grenade_type);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 }
 }
 
@@ -1240,7 +1216,7 @@ void ActorOps::squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_
     if (vehicle_object_index == k_datum_index_none) {
         return;
     }
-    vehicle = (uint8_t *)object_try_and_get(vehicle_object_index, 3);
+    vehicle = (uint8_t *)halo::objects::object_try_and_get(vehicle_object_index, 3);
     if (vehicle == 0) {
         return;
     }

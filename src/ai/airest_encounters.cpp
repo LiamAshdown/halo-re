@@ -14,13 +14,13 @@
 #include "halo/ai/ai_constants.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data;
 extern encounter_squad_state *encounter_squad_states;
 extern double fabs(double x);
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern void ai_recompute_all_relationship_flags(void);
 extern data_array *actor_data;
@@ -69,8 +69,6 @@ extern void encounter_release_stale_props(datum_index encounter_index);
 extern void encounter_choose_vocalizations(datum_index encounter_index);
 extern data_array *player_data;
 extern void *ai_actor_mode_dispatch_table;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
@@ -174,7 +172,7 @@ void EncounterView::stamp_team_from_unit(datum_index unit_index)
     encounter *enc = &((encounter *)encounter_data->data)[encounter_index & halo::k_slot_mask];
 
     if (current_game_engine == 0 && enc->team == 0) {
-        object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
+        object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
         enc->team = *(int16_t *)((uint8_t *)header->data + 0xb8);
         if (enc->activation_tick != (datum_index)k_datum_index_none) {
             ai_recompute_all_relationship_flags();
@@ -1002,7 +1000,7 @@ void EncounterView::choose_vocalizations()
             }
 
             if (has_unit_prop != 0) {
-                obj = ((object_header *)object_data->data)[a->unit_index & halo::k_slot_mask].data;
+                obj = ((object_header *)halo::objects::globals().object_data->data)[a->unit_index & halo::k_slot_mask].data;
                 head_count = *(int16_t *)((uint8_t *)obj + 0x42a);
                 inserted = ai_insert_scored_candidate_pair(&buckets[3 * 2], current,
                     (float)(int32_t)head_count * 0.7f + proximity,
@@ -1604,11 +1602,11 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                 object_index = a->unit_index;
                 do {
                     root_index = object_index;
-                    obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+                    obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
                     object_index = ((object *)obj)->parent_object;
                 } while (object_index != (datum_index)k_datum_index_none);
             }
-            obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+            obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
             cluster = obj->location_cluster_index;
             if (cluster != -1) {
                 bit = 1 << (cluster & 0x1f);
@@ -1661,15 +1659,15 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
         } else {
             child_index = a->cluster_unit_index;
             while (child_index != (datum_index)k_datum_index_none) {
-                object *child = ((object_header *)object_data->data)[child_index & halo::k_slot_mask].data;
+                object *child = ((object_header *)halo::objects::globals().object_data->data)[child_index & halo::k_slot_mask].data;
                 root_index = (datum_index)k_datum_index_none;
                 object_index = child_index;
                 for (; object_index != (datum_index)k_datum_index_none;
                      object_index = *(datum_index *)((uint8_t *)((object_header *)
-                         object_data->data)[object_index & halo::k_slot_mask].data + 0x11c)) {
+                         halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data + 0x11c)) {
                     root_index = object_index;
                 }
-                obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+                obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
                 cluster = obj->location_cluster_index;
                 if (cluster != -1) {
                     bit = 1 << (cluster & 0x1f);
@@ -2075,7 +2073,7 @@ void EncounterView::recompute_morale()
             weight = a->cluster_count;
             sample = (float)(int32_t)weight / (float)(int32_t)a->total_cluster_count;
         } else {
-            obj = ((object_header *)object_data->data)[a->unit_index & halo::k_slot_mask].data;
+            obj = ((object_header *)halo::objects::globals().object_data->data)[a->unit_index & halo::k_slot_mask].data;
             sample = ((object *)obj)->body_vitality;
             weight = 1;
         }
@@ -2122,7 +2120,7 @@ void EncounterView::recompute_morale()
             }
             if (a->combat_status < 7) {
                 if (p->state < 2 || 3 < p->state) {
-                    obj = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
+                    obj = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
                     counts = *((uint8_t *)obj + 0x106) & 4;
                 } else {
                     counts = p->dead;
@@ -2269,7 +2267,7 @@ void EncounterView::redistribute_squads_toward_targets()
         } while (player_record != 0);
     } else if (target_mode == 2) {
         datum_index cached_target = self->follow_target;
-        if (object_try_and_get(cached_target, 3) == 0) {
+        if (halo::objects::object_try_and_get(cached_target, 3) == 0) {
             self->follow_target = (datum_index)halo::k_dword_none;
             return;
         }
@@ -2365,7 +2363,7 @@ have_targets:
 
     if (target_count == 1) {
         chosen_object = targets[0];
-        object_get_position(&chosen_position, targets[0]);
+        halo::objects::object_get_position(&chosen_position, targets[0]);
     } else {
         int16_t t;
         datum_index next_actor;
@@ -2375,7 +2373,7 @@ have_targets:
             best_distance_to_target[t] = 3.4028235e+38f;
         }
         for (t = 0; t < (int16_t)target_count; t = t + 1) {
-            object_get_position(&target_positions[t], targets[t]);
+            halo::objects::object_get_position(&target_positions[t], targets[t]);
         }
 
         have_target = 0;
@@ -3076,7 +3074,7 @@ void Encounters::note_hostile_object(datum_index object_index)
     int32_t pair;
     char hostile;
 
-    obj = ((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     object_team = ((object *)obj)->owner_team;
     if (object_team == -1) {
         return;
@@ -3348,11 +3346,11 @@ void Encounters::update_activation()
                 object_index = a->unit_index;
                 do {
                     root_index = object_index;
-                    obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+                    obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
                     object_index = ((object *)obj)->parent_object;
                 } while (object_index != (datum_index)k_datum_index_none);
             }
-            obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+            obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
             cluster = obj->location_cluster_index;
             if (cluster == -1) {
                 a->can_go_dormant = 1;
@@ -3370,10 +3368,10 @@ void Encounters::update_activation()
                         for (object_index = child_index;
                              object_index != (datum_index)k_datum_index_none;
                              object_index = *(datum_index *)((uint8_t *)((object_header *)
-                                 object_data->data)[object_index & halo::k_slot_mask].data + 0x11c)) {
+                                 halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data + 0x11c)) {
                             root_index = object_index;
                         }
-                        obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+                        obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
                         cluster = obj->location_cluster_index;
                         if (cluster != -1 &&
                             (visible_clusters[(int32_t)cluster >> 5] &
@@ -3381,7 +3379,7 @@ void Encounters::update_activation()
                             a->can_go_dormant = 0;
                             break;
                         }
-                        obj = ((object_header *)object_data->data)[child_index & halo::k_slot_mask].data;
+                        obj = ((object_header *)halo::objects::globals().object_data->data)[child_index & halo::k_slot_mask].data;
                         child_index = *(datum_index *)((uint8_t *)obj + 0x1fc);
                     } while (child_index != (datum_index)k_datum_index_none);
                 }
@@ -3395,10 +3393,10 @@ void Encounters::update_activation()
                         for (object_index = sw->unit_index[component_index];
                              object_index != (datum_index)k_datum_index_none;
                              object_index = *(datum_index *)((uint8_t *)((object_header *)
-                                 object_data->data)[object_index & halo::k_slot_mask].data + 0x11c)) {
+                                 halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data + 0x11c)) {
                             root_index = object_index;
                         }
-                        obj = ((object_header *)object_data->data)[root_index & halo::k_slot_mask].data;
+                        obj = ((object_header *)halo::objects::globals().object_data->data)[root_index & halo::k_slot_mask].data;
                         cluster = obj->location_cluster_index;
                         if (cluster != -1 &&
                             (visible_clusters[(int32_t)cluster >> 5] &
@@ -3540,8 +3538,8 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void 
         }
         do {
             real_point3d position;
-            obj = ((object_header *)object_data->data)[cursor & halo::k_slot_mask].data;
-            object_get_position(&position, cursor);
+            obj = ((object_header *)halo::objects::globals().object_data->data)[cursor & halo::k_slot_mask].data;
+            halo::objects::object_get_position(&position, cursor);
             dx = rx - position.x;
             dy = ry - position.y;
             dz = rz - position.z;
@@ -3587,7 +3585,7 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void 
             }
 
             if (stamp_group != 0) {
-                stamp_target = ((object_header *)object_data->data)[group->unit_index[i] & halo::k_slot_mask].data;
+                stamp_target = ((object_header *)halo::objects::globals().object_data->data)[group->unit_index[i] & halo::k_slot_mask].data;
                 if (stamp_target->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
                     stamp_target->cluster_stamp = halo::physics::globals().object_cluster_stamp;
                 }

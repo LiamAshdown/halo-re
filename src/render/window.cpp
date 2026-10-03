@@ -27,6 +27,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern float sky_animation_times[9];
@@ -272,8 +273,8 @@ void sky(void)
             up.j = up.j * inverse;
             up.k = up.k * inverse;
         }
-        light_transient_add(tag_id_of(light->lens_flare.tag_id), global_white_color, &position,
-                            &toward_camera, &up, 1.0f);
+        halo::objects::light_transient_add(tag_id_of(light->lens_flare.tag_id), (real_vector3d *)global_white_color, &position,
+                            (uint32_t)&toward_camera, (uint32_t)&up, 1.0f);
     }
 
     sky_transform = *k_render_identity_matrix_ptr;
@@ -350,7 +351,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     halo::render::billboard_system_frame_init();
     halo::render::render_sky();
     first_person_weapon_update_active_state();
-    object_lights_update_all();
+    halo::objects::object_lights_update_all();
     halo::render::render_objects();
     halo::structures::structure_picked_polygon_refresh();
     halo::structures::structure_picked_polygon_draw();
@@ -364,7 +365,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         shadow_data.shadow_radius = 0.0f;
         halo::render::render_object_shadows(&shadow_data);
     }
-    lights_apply_spot_falloff();
+    halo::objects::lights_apply_spot_falloff();
 
     if (console_debug_toggle_6893e4 == 0 && halo::effects::globals().decals_for_all_responses) {
         halo::rasterizer::rasterizer_decal_pass_begin(2);
@@ -390,7 +391,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         draw_visible_cluster_decals();
         reset_decal_fog_and_depth_bias();
     }
-    lights_apply_spot_falloff_specular();
+    halo::objects::lights_apply_spot_falloff_specular();
 
     if (halo::structures::globals().picked_surfaces_valid) {
         saved_69c67c = halo::render::globals().force_flag;

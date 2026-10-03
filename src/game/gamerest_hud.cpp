@@ -4,6 +4,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -19,11 +21,7 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 extern player_control_globals *player_control_globals_ptr;
-extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern void game_engine_compute_local_player_look_vector(real_vector3d *out_forward, int16_t local_player_index);
-extern int32_t object_collect_local_player_relevant_objects(real_point3d *point, uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t max_count, datum_index *out);
 extern uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_vector3d *facing, real_point3d *reference_position, datum_index object, datum_index exclude_object, real_vector3d *out_direction, real *out_distance, real *out_angle);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t hud_nameplate_candidate_filter(uint32_t object_index, void *player_handle);
@@ -187,23 +185,23 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
         if (track->nameplate_weight > 0.0f) {
             datum_index target = track->nameplate_target;
 
-            best = object_try_and_get(target, 0xffffffff) != 0 ? target : (datum_index)0xffffffff;
+            best = halo::objects::object_try_and_get(target, 0xffffffff) != 0 ? target : (datum_index)0xffffffff;
             if (best != (datum_index)0xffffffff) {
                 return player_index_from_unit_index(best);
             }
         }
     }
 
-    unit_get_camera_position(p->unit, &camera);
+    halo::units::unit_get_camera_position(p->unit, &camera);
     game_engine_compute_local_player_look_vector(&look, p->local_player_index);
-    candidate_count = object_collect_local_player_relevant_objects(&camera, hud_nameplate_candidate_filter,
+    candidate_count = halo::objects::object_collect_local_player_relevant_objects(&camera, hud_nameplate_candidate_filter,
         &player_handle, 0x20, candidates);
     if (candidate_count <= 0) {
         return best;
     }
 
     for (i = 0; i < candidate_count; i++) {
-        uint8_t *candidate = (uint8_t *)((object_header *)object_data->data)[candidates[i] & 0xffff].data;
+        uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
         real dx = ((struct object *)candidate)->position.x - camera.x;
         real dy = ((struct object *)candidate)->position.y - camera.y;
         real dz = ((struct object *)candidate)->position.z - camera.z;
@@ -236,7 +234,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
 uint8_t HudNameplates::nameplate_candidate_filter(uint32_t object_index, void *context)
 {
     datum_index player_handle = *(datum_index *)context;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
     if ((obj[0x10] & 1) != 0) {
         return 0;

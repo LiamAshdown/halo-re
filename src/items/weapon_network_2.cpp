@@ -1,14 +1,13 @@
 #include "halo/items/items.hpp"
 #include "halo/items/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern data_array *object_data;
 void halo::items::weapon_notify_ammo_pickup(datum_index item_index, int16_t magazine_index, int16_t rounds);
 void halo::items::weapon_notify_reload_begin(datum_index item_index, int16_t magazine_index);
 void halo::items::weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
@@ -30,7 +29,7 @@ void weapon_ref::notify_ammo_pickup(int16_t magazine_index, int16_t rounds)
 
     message.object_hash = 0;
     if (item_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
+        message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }
@@ -56,12 +55,12 @@ void weapon_ref::notify_reload_begin(int16_t magazine_index)
     weapon_magazine_ammo_message message;
     void *items[2];
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     message.object_hash = 0;
     if (item_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
+        message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }
@@ -88,12 +87,12 @@ void weapon_ref::notify_reload_cancel(int16_t magazine_index)
     weapon_magazine_ammo_message message;
     void *items[2];
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     message.object_hash = 0;
     if (item_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
+        message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }
@@ -120,12 +119,12 @@ void weapon_ref::notify_reload_step(int16_t magazine_index)
     weapon_magazine_ammo_message message;
     void *items[2];
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     message.object_hash = 0;
     if (item_index != (datum_index)0xffffffff) {
-        message.object_hash = hash_table_get(&object_network_id_table->id_to_index, item_index);
+        message.object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }

@@ -21,12 +21,12 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
 extern game_engine_definition *current_game_engine;
-extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
-extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal, real_vector3d *incident, real_point3d *impact_position, uint32_t object_index);
 extern ModelCollisionGeometryMaterial default_collision_material;
 extern uint8_t g_00689481;
 extern uint8_t g_006f1cf4;
@@ -40,7 +40,6 @@ extern game_time_globals *game_time;
 extern real_vector3d *global_down3d_pointer;
 extern Globals *global_globals;
 extern real_vector3d *global_origin3d_pointer;
-extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
 extern player_globals *local_player_globals;
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value);
@@ -50,43 +49,13 @@ extern int16_t network_game_mode;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane, uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags, float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local);
-extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity);
-extern void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_t *material, uint8_t *effect_block, uint32_t *notify_flags, float *shield_damage_out, float *remaining_damage, uint8_t is_local, uint8_t apply_state, object_shield_impulse_result *record);
-extern void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index, int8_t continue_flag);
-extern void object_damage_notify_and_impulse(uint32_t target_index, damage_data *dd, uint32_t notify_flags, float shield_damage, float body_damage, uint32_t unused_6, int32_t region_index, uint32_t is_local);
 extern data_array *object_data;
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
-extern void object_delete_teardown(uint32_t object_index);
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_destroy_region(uint32_t object_index, int32_t region_index);
-extern void object_dispatch_effect_notify(uint32_t forwarded_eax, uint32_t forwarded_ecx);
-extern uint16_t object_find_in_sphere(int32_t unknown_0, int32_t unknown_1, int32_t *location_leaf_index, real_point3d *center, float radius, datum_index *out_buffer, int32_t max_count);
-extern int32_t object_get_controlling_player_index(datum_index object_index);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern network_id_table *object_network_id_table;
-extern void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index);
-extern void object_queue_pickup_denied_event(void *param_1, int32_t key, uint32_t *source);
-extern void object_regions_reset_permutation_lock(uint32_t object_index, int8_t unlock);
-extern void object_set_health_frozen_flag(uint32_t object_index);
-extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
-extern void object_set_shield_depleted_flag(uint32_t object_index);
 extern int32_t object_sound_event_last_tick;
-extern void object_throttled_multiplayer_sound_event(void);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_type_definitions_notify_region_damage(uint32_t object_index, uint32_t argument_1, uint32_t argument_2);
 extern data_array *player_data;
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t *team_pair_data;
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index);
-extern void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t flags, float shield_damage, float body_damage, int32_t region_index, uint8_t is_local);
-extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse);
-extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse);
-extern uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index);
-extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 }
@@ -186,7 +155,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                 if ((flags & 4) == 0 && effect != k_datum_index_none) {
                     damage_data dd;
 
-                    damage_data_initialize(&dd, effect);
+                    halo::objects::damage_data_initialize(&dd, effect);
                     dd.flags |= 4;
                     dd.random_blend = 1.0f;
                     if (flags & 0x40) {
@@ -195,7 +164,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                     if (kill_request) {
                         dd.flags |= 0x80;
                     }
-                    object_apply_damage(&dd, object_index, -1, -1, -1, 0);
+                    halo::objects::object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
                 *vitality_flags &= 0xdf9f;
             }
@@ -233,9 +202,9 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                         float value;
 
                         if ((uint8_t)((struct object *)obj)->vitality_flags & 8) {
-                            object_dispatch_effect_notify(object_index, *(uint32_t *)(geometry + 0x1b4));
+                            halo::objects::object_dispatch_effect_notify(object_index, *(uint32_t *)(geometry + 0x1b4));
                             obj[0x106] &= 0xf7;
-                            object_regions_reset_permutation_lock(object_index, 1);
+                            halo::objects::object_regions_reset_permutation_lock(object_index, 1);
                         }
                         obj[0x107] |= 0x10;
                         value = rate + *shield;
@@ -358,7 +327,7 @@ void halo::objects::ObjectDamage::set_health_frozen_flag()
         }
     }
 
-    object_set_shield_depleted_flag(object_index);
+    halo::objects::object_set_shield_depleted_flag(object_index);
 }
 
 /**
@@ -392,7 +361,7 @@ void halo::objects::ObjectDamage::set_shield_depleted_flag()
     obj->vitality_flags |= _object_shield_depleted_bit;
     obj->current_shield_damage = 0.0f;
 
-    object_regions_reset_permutation_lock(object_index, 0);
+    halo::objects::object_regions_reset_permutation_lock(object_index, 0);
 }
 
 /**
@@ -434,13 +403,13 @@ void halo::objects::DamageDataView::apply_area_effect()
     damage_data *dd = self;
     datum_index candidates[k_maximum_damage_candidates + 1];
     DamageEffect *effect = (DamageEffect *)halo::cache::globals().tag_instances[halo::datum_slot(dd->damage_effect_tag)].data;
-    int16_t found = (int16_t)object_find_in_sphere(0, 0, &dd->location_leaf_index, &dd->epicentre,
+    int16_t found = (int16_t)halo::objects::object_find_in_sphere(0, 0, &dd->location_leaf_index, &dd->epicentre,
         effect->radius[1], candidates, k_maximum_damage_candidates);
 
     if (found > 0) {
         int32_t i;
         for (i = 0; i < found; i++) {
-            object_damage_apply_line_of_sight(dd, candidates[i], 0);
+            halo::objects::object_damage_apply_line_of_sight(dd, candidates[i], 0);
         }
     }
 
@@ -503,12 +472,12 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 offset.i = side->i * radius;
                 offset.j = side->j * radius;
                 offset.k = side->k * radius;
-                halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), origin, &offset, object_get_root_object_index(target_index), &hit);
+                halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), origin, &offset, halo::objects::object_get_root_object_index(target_index), &hit);
                 sample = hit.point;
                 back.i = ((struct object *)target)->bounding_center.x - sample.x;
                 back.j = ((struct object *)target)->bounding_center.y - sample.y;
                 back.k = ((struct object *)target)->bounding_center.z - sample.z;
-                if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &sample, &back, object_get_root_object_index(target_index), &hit)) {
+                if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &sample, &back, halo::objects::object_get_root_object_index(target_index), &hit)) {
                     blocked = 0;
                 }
             }
@@ -582,7 +551,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 dd->random_blend = blend;
             }
             if (blend > 0.0f) {
-                object_apply_damage(dd, target_index, -1, -1, -1, 0);
+                halo::objects::object_apply_damage(dd, target_index, -1, -1, -1, 0);
                 applied = 1;
             }
             {
@@ -590,7 +559,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
 
                 if (model != k_datum_index_none && (*TAG_DATA(model) & 8) &&
                     ((struct object *)target)->first_child_object != k_datum_index_none) {
-                    object_damage_apply_line_of_sight(dd, ((struct object *)target)->first_child_object, 1);
+                    halo::objects::object_damage_apply_line_of_sight(dd, ((struct object *)target)->first_child_object, 1);
                 }
             }
         }
@@ -648,7 +617,7 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
         int32_t effect = ((int32_t *)object_network_id_table->handles)[network_id];
 
         if (effect != -1) {
-            object *target = object_try_and_get(effect, _object_mask_unit);
+            object *target = halo::objects::object_try_and_get(effect, _object_mask_unit);
 
             if (target != 0) {
                 if (0.0f < shield_damage) {
@@ -665,14 +634,14 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
                     }
                 }
                 if (notify == 1) {
-                    object_set_shield_depleted_flag(0);
+                    halo::objects::object_set_shield_depleted_flag(0);
                 }
-                unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
+                halo::units::unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
             }
         }
     }
 
-    object_throttled_multiplayer_sound_event();
+    halo::objects::object_throttled_multiplayer_sound_event();
 }
 
 namespace {
@@ -750,7 +719,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
              dd->random_blend + (1.0f - dd->random_blend) * *(float *)(effect_block + 0x0c);
     amount = amount * dd->multiplier;
     if (dd->responsible_object != k_datum_index_none) {
-        uint8_t *responsible = (uint8_t *)object_try_and_get(dd->responsible_object, 3);
+        uint8_t *responsible = (uint8_t *)halo::objects::object_try_and_get(dd->responsible_object, 3);
 
         if (responsible != 0) {
             datum_index actor;
@@ -768,8 +737,8 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         }
     }
     if (current_game_engine != 0) {
-        int32_t target_player = object_get_controlling_player_index(target_index);
-        int32_t responsible_player = object_get_controlling_player_index(dd->responsible_object);
+        int32_t target_player = halo::objects::object_get_controlling_player_index(target_index);
+        int32_t responsible_player = halo::objects::object_get_controlling_player_index(dd->responsible_object);
 
         amount = game_engine_compute_time_scale(responsible_player, target_player) * amount;
     } else if (dd->team_index != -1) {
@@ -836,7 +805,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             } else {
                 dd->flags &= ~0x20u;
             }
-            object_apply_damage(dd, child, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(dd, child, -1, -1, -1, 0);
             dd->flags &= ~0x20u;
         }
         dd->multiplier = 1.0f;
@@ -1009,18 +978,18 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         if (halo::hs::fields::omnipotent && dd->responsible_player != k_datum_index_none) {
             kill = 1;
         }
-        if (*(int16_t *)effect_block == 2 && unit_point_in_front_and_asleep(&dd->origin, id) &&
+        if (*(int16_t *)effect_block == 2 && halo::units::unit_point_in_front_and_asleep(&dd->origin, id) &&
             ((uint8_t)(((struct object *)obj)->vitality_flags >> 8) & 8) == 0) {
             kill = 1;
         }
         if (target_is_local == 1 && kill && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && (!friendly || body_allowed)) {
             ((object *)obj)->body_vitality = 0.0f;
-            object_set_health_frozen_flag(id);
+            halo::objects::object_set_health_frozen_flag(id);
             notify_flags |= 0x41;
         }
         if ((dd->flags & 0x20) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x200) == 0 &&
             ((object *)obj)->maximum_shield_vitality > 0.0f && (!friendly || shield_allowed) && (i == 0 || (*geometry & 1))) {
-            object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
+            halo::objects::object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
                 target_is_local, apply_state, &record);
         }
         if ((i == 0 || (parents_take_damage && (*geometry & 2))) &&
@@ -1029,7 +998,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 (friendly && !body_allowed)) {
                 amount = 0.0f;
             }
-            object_apply_body_damage(id, (i == 0) ? region_index : -1, (i == 0) ? node_index : -1,
+            halo::objects::object_apply_body_damage(id, (i == 0) ? region_index : -1, (i == 0) ? node_index : -1,
                 (void *)(uintptr_t)((i == 0) ? hit_plane : 0), geometry, material, effect_block, dd, &notify_flags,
                 &body_damage, &material_multiplier, amount, target_is_local);
             remaining = 0;
@@ -1050,21 +1019,21 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             }
             reported = 1;
         }
-        object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
+        halo::objects::object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
         if (shield_damage > 0.0f && ((object *)obj)->type == 0) {
             ((struct object *)obj)->shield_update_pending = 1;
         }
 notify:
-        object_damage_notify_and_impulse(id, dd, notify_flags, shield_damage, body_damage,
+        halo::objects::object_damage_notify_and_impulse(id, dd, notify_flags, shield_damage, body_damage,
             *(uint32_t *)&material_multiplier, region, target_is_local);
         if (notify_flags & 4) {
             int32_t role = *(int32_t *)(object_get(id) + 0x4);
 
             if (role == 0) {
-                object_delete_unparented(id);
-                object_delete_recursive(id, 0);
+                halo::objects::object_delete_unparented(id);
+                halo::objects::object_delete_recursive(id, 0);
             } else if (role == 3) {
-                object_delete_recursive(id, 0);
+                halo::objects::object_delete_recursive(id, 0);
             }
         }
         if (!(amount > 0.0f)) {
@@ -1160,7 +1129,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             obj[0x178 + region] = region_damage;
             if (*(float *)(region_block + 0x28) > 0.0f &&
                 (float)region_damage * 0.0039215689f > *(float *)(region_block + 0x28)) {
-                object_destroy_region(target_index, region_index);
+                halo::objects::object_destroy_region(target_index, region_index);
                 *notify_flags |= 2;
             }
         }
@@ -1205,7 +1174,7 @@ bookkeeping:
         float destroyed = *(float *)(geometry + 0xb8);
 
         if (destroyed < 0.0f && absolute < destroyed) {
-            object_delete_teardown(target_index);
+            halo::objects::object_delete_teardown(target_index);
             *notify_flags |= 5;
         } else if (absolute < 0.0f) {
             if ((*vitality_flags & 4) == 0) {
@@ -1213,10 +1182,10 @@ bookkeeping:
 
                 for (i = 0; i < *(int32_t *)(geometry + 0x240); i++) {
                     if (*(*(uint8_t **)(geometry + 0x244) + i * 0x54 + 0x20) & 4) {
-                        object_destroy_region(target_index, i);
+                        halo::objects::object_destroy_region(target_index, i);
                     }
                 }
-                object_set_health_frozen_flag(target_index);
+                halo::objects::object_set_health_frozen_flag(target_index);
                 *notify_flags |= 1;
             }
         } else if (absolute < *(float *)(geometry + 0x94) && (*vitality_flags & 1) == 0) {
@@ -1225,7 +1194,7 @@ bookkeeping:
         }
     }
     if ((dd->flags & 2) && *(datum_index *)(geometry + 0x7c) != k_datum_index_none) {
-        damage_effect_new_at_location(*(datum_index *)(geometry + 0x7c), (int16_t)node_index, &dd->direction,
+        halo::objects::damage_effect_new_at_location(*(datum_index *)(geometry + 0x7c), (int16_t)node_index, &dd->direction,
             (real_vector3d *)plane, &dd->origin, target_index);
     }
     if ((dd->flags & 1) && body > *(float *)(geometry + 0x80) &&
@@ -1322,7 +1291,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(uint8_t *geometry, uint8_t
                 *shield = 0.0f;
             }
             if ((*vitality_flags & 8) == 0 && apply_state == 1) {
-                object_set_shield_depleted_flag(target_index);
+                halo::objects::object_set_shield_depleted_flag(target_index);
                 *notify_flags |= 8;
                 record->depleted_this_call = 1;
             }
@@ -1331,7 +1300,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(uint8_t *geometry, uint8_t
                 *shield = *shield - dealt;
             }
             if ((*vitality_flags & 2) == 0 && *shield < *(float *)(geometry + 0x184)) {
-                object_dispatch_effect_notify(target_index, *(uint32_t *)(geometry + 0x194));
+                halo::objects::object_dispatch_effect_notify(target_index, *(uint32_t *)(geometry + 0x194));
                 *vitality_flags |= 2;
             }
         }
@@ -1389,7 +1358,7 @@ void halo::objects::DamageSystem::queue_pickup_denied_event(void *param_1, int32
 
     block.looked_up = 0;
     if (key != -1) {
-        block.looked_up = hash_table_get(&object_network_id_table->id_to_index, key);
+        block.looked_up = halo::objects::hash_table_get(&object_network_id_table->id_to_index, key);
     }
     block.source1 = source[1];
     block.source0 = source[0];
@@ -1471,15 +1440,15 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         case 1:
             if (*(float *)(effect + 0x1f4) > 0.0001f && (*(uint32_t *)(obj + 0x204) & 0x800000) == 0) {
                 if (type == 0) {
-                    unit_apply_impulse(target_index, &impulse);
+                    halo::units::unit_apply_impulse(target_index, &impulse);
                 } else {
                     if (*(uint32_t *)(effect + 0x1c8) & 0x20) {
                         impulse.i = impulse.i + impulse.i;
                         impulse.j = impulse.j + impulse.j;
                         impulse.k = impulse.k + impulse.k;
                     }
-                    if (((object *)obj)->network_role != 1 || unit_any_flagged_seat_occupied(target_index) == 1) {
-                        unit_apply_impulse_to_seat(target_index, &impulse);
+                    if (((object *)obj)->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(target_index) == 1) {
+                        halo::units::unit_apply_impulse_to_seat(target_index, &impulse);
                     }
                 }
             }
@@ -1495,7 +1464,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
                 significant = 1;
             }
             if (((object *)obj)->network_role == 0 && significant == 1) {
-                object_queue_pickup_denied_event(*(void **)&scale, (int32_t)target_index, (uint32_t *)&direction);
+                halo::objects::object_queue_pickup_denied_event(*(void **)&scale, (int32_t)target_index, (uint32_t *)&direction);
             }
             role = ((object *)obj)->network_role;
             if (role == 0 || role == 3 || !significant) {
@@ -1505,7 +1474,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
             break;
         }
         case 5:
-            object_apply_impulse_and_spin(target_index, &impulse);
+            halo::objects::object_apply_impulse_and_spin(target_index, &impulse);
             break;
         default:
             break;
@@ -1524,7 +1493,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         }
     }
     if ((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 3) {
-        unit_apply_damage_effects(target_index, dd, notify_flags, shield_damage, body_damage, region_index,
+        halo::units::unit_apply_damage_effects(target_index, dd, notify_flags, shield_damage, body_damage, region_index,
             (uint8_t)is_local);
     }
 }
@@ -1576,7 +1545,7 @@ void halo::objects::DamageSystem::effect_new_at_location(datum_index effect_tag,
         real_vector3d away;
         float dot2;
 
-        object_get_position(&object_position, object_index);
+        halo::objects::object_get_position(&object_position, object_index);
         away.i = impact_position->x - object_position.x;
         away.j = impact_position->y - object_position.y;
         away.k = impact_position->z - object_position.z;
@@ -1653,7 +1622,7 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
 
             halo::effects::effect_new_on_object(object_index, *(datum_index *)&((struct ModelCollisionGeometryRegion *)region)->destroyed_effect.tag_id, object_index, -1,
                 0.0f, 0.0f, 0, 0);
-            object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
+            halo::objects::object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
 
             if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_melee_attack)) {
                 obj->vitality_flags |= _object_region_response_80_bit;
@@ -1668,11 +1637,11 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
                 *((uint8_t *)obj + 0x107) |= 4;
             }
             if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::forces_object_to_die)) {
-                object_set_health_frozen_flag(object_index);
+                halo::objects::object_set_health_frozen_flag(object_index);
             }
 
             obj->destroyed_region_flags |= (uint16_t)(1 << (region_index & 0x1f));
-            object_type_definitions_notify_region_damage(object_index, (uint32_t)region_index, region->flags);
+            halo::objects::object_type_definitions_notify_region_damage(object_index, (uint32_t)region_index, region->flags);
 
         }
     }

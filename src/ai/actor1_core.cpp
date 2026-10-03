@@ -6,11 +6,12 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/ai_constants.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
 extern data_array *actor_data;
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 }
 }
 
@@ -31,7 +32,7 @@ uint8_t halo::ai::actor_ref::action_has_queued_secondary()
     if (self->secondary_action != (int16_t)-1) {
         return 1;
     }
-    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index)) {
+    if (self->unit_index != (datum_index)k_datum_index_none && halo::units::unit_is_in_busy_animation_state(self->unit_index)) {
         return 1;
     }
     return 0;
@@ -91,7 +92,6 @@ extern "C" uint8_t actor_apply_perception_scale(datum_index actor_index, const u
 namespace c_actor_attach_to_unit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 
 extern void actor_unlink_unit(datum_index actor_index);
@@ -99,8 +99,6 @@ extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index 
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_refresh_combat_context(datum_index actor_index);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
-extern void object_mark_pending_delete(datum_index object_index);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 }
 }
 
@@ -117,7 +115,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     using namespace c_actor_attach_to_unit;
     datum_index actor_index = datum;
     actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
@@ -159,16 +157,16 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
         uint8_t flags_before = header->flags;
         header->flags = flags_before & ~_object_header_in_pvs_pass_bit;
         if ((flags_before & _object_header_active_bit) == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         }
         if (self->keep_unit_alive == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         } else if ((header->flags & _object_header_active_bit) != 0) {
             header->flags &= ~_object_header_active_bit;
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+    halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
 }
 
 extern "C" void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
@@ -377,15 +375,10 @@ extern "C" void actor_delete(datum_index actor_index, uint32_t flag)
 namespace c_actor_delete_or_release_unit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern uint8_t actor_attempt_grenade_throw(datum_index actor_index);
-extern void object_delete_recursive(datum_index object_index, uint32_t flag);
-extern void object_delete_unparented(datum_index object_index);
-extern void object_delete(datum_index object_index);
-extern void object_delete_4f9030(datum_index object_index, uint32_t flag);
 }
 }
 
@@ -407,11 +400,11 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
         datum_index unit_index = self->unit_index;
         actor_attempt_grenade_throw(actor_index);
         if (is_dead != 0) {
-            object_delete_recursive(unit_index, 0);
-            object_delete_4f9030(unit_index, 0);
+            halo::objects::object_delete_recursive(unit_index, 0);
+            halo::objects::object_delete_4f9030(unit_index, 0);
             return;
         }
-        object_delete(unit_index);
+        halo::objects::object_delete(unit_index);
         return;
     }
 
@@ -423,17 +416,17 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
         }
         actor_remove_from_unit_cluster(actor_index, unit_index);
         if (is_dead == 0) {
-            object *unit_object = ((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
             int32_t network_role = unit_object->network_role;
             if (network_role == 0) {
-                object_delete_unparented(unit_index);
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_unparented(unit_index);
+                halo::objects::object_delete_recursive(unit_index, 0);
             } else if (network_role == 3) {
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_recursive(unit_index, 0);
             }
         } else {
-            object_delete_recursive(unit_index, 0);
-            object_delete_4f9030(unit_index, 0);
+            halo::objects::object_delete_recursive(unit_index, 0);
+            halo::objects::object_delete_4f9030(unit_index, 0);
         }
     }
 }
@@ -634,7 +627,6 @@ extern "C" void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_
 namespace c_actor_get_actor_definition {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 }
 }
@@ -660,7 +652,7 @@ void * halo::ai::actor_ref::get_actor_definition()
 
     weapon_object = actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
-        object_header *hdr = (object_header *)object_data->data + (weapon_object & halo::k_slot_mask);
+        object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (weapon_object & halo::k_slot_mask);
         object *obj = hdr->data;
         void *weapon_definition = halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
         if (weapon_definition != 0) {
@@ -681,10 +673,8 @@ extern "C" void * actor_get_actor_definition(datum_index actor_index)
 namespace c_actor_get_body_axis_vector {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 
-extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
 }
 }
 
@@ -709,7 +699,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
         reference.k = a->facing.k;
     } else {
 
-        unit_get_forward_vector_or_marker_normal(unit_index, &reference);
+        halo::units::unit_get_forward_vector_or_marker_normal(unit_index, &reference);
     }
 
     switch (request->axis) {
@@ -728,7 +718,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 
             halo::math::vector3d_cross_product(perp, reference, *halo::math::globals().global_up3d_pointer);
             if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
-                object *obj = ((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+                object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
 
                 halo::math::vector3d_cross_product(perp, reference, obj->up);
                 if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
@@ -784,7 +774,6 @@ namespace c_actor_get_ranged_attack_vector {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 
 extern uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position);
 }
@@ -825,7 +814,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
         return 0;
     }
 
-    unit_obj = ((object_header *)object_data->data)[target->object_index & halo::k_slot_mask].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & halo::k_slot_mask].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     *out_vector = unit->aiming_vector;
 
@@ -1054,7 +1043,6 @@ extern "C" actor * actor_iterator_next(actor_iterator_state *iterator)
 namespace c_actor_link_to_unit_cluster {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *encounter_data;
@@ -1064,8 +1052,6 @@ extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_unlink_unit(datum_index actor_index);
 extern void swarm_add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
-extern void object_mark_pending_delete(datum_index object_index);
-extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
 }
 }
 
@@ -1082,7 +1068,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     using namespace c_actor_link_to_unit_cluster;
     datum_index actor_index = datum;
     actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     datum_index new_component = (datum_index)k_datum_index_none;
@@ -1112,7 +1098,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     unit->swarm_next_unit_index = self->cluster_unit_index;
     *(uint32_t *)((uint8_t *)unit_object + 0x200) = halo::k_dword_none;
     if (self->cluster_unit_index != (datum_index)k_datum_index_none) {
-        object *head_object = ((object_header *)object_data->data)[self->cluster_unit_index & halo::k_slot_mask].data;
+        object *head_object = ((object_header *)halo::objects::globals().object_data->data)[self->cluster_unit_index & halo::k_slot_mask].data;
         *(uint32_t *)((uint8_t *)head_object + 0x200) = unit_index;
     }
     self->cluster_unit_index = unit_index;
@@ -1135,16 +1121,16 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
         uint8_t flags_before = header->flags;
         header->flags = flags_before & ~_object_header_in_pvs_pass_bit;
         if ((flags_before & _object_header_active_bit) == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         }
         if (self->keep_unit_alive == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         } else if ((header->flags & _object_header_active_bit) != 0) {
             header->flags &= ~_object_header_active_bit;
         }
     }
 
-    unit_refresh_targeting_flag_and_weapons(unit_index, 1);
+    halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
     return 1;
 }
 
@@ -1156,7 +1142,6 @@ extern "C" uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_ind
 namespace c_actor_mark_units_and_release {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern void actor_unlink_unit(datum_index actor_index);
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
@@ -1180,7 +1165,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
     datum_index encounter_index = self->encounter_index;
 
     if (self->swarm == 0) {
-        object *unit_object = ((object_header *)object_data->data)[self->unit_index & halo::k_slot_mask].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
         uint8_t *flags = (uint8_t *)unit_object + 0x106;
         *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 
@@ -1191,7 +1176,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
     } else {
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
-            object *unit_object = ((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
             uint8_t *flags = (uint8_t *)unit_object + 0x106;
             *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 

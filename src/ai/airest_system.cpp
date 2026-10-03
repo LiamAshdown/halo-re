@@ -14,6 +14,8 @@
 #include "halo/ai/ai_constants.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -22,12 +24,9 @@ extern data_array *swarm_component_data;
 extern ai_globals *ai_globals_ptr;
 extern int32_t game_engine_get_current_tick(void);
 extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);
-extern data_array *object_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position);
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
@@ -46,7 +45,6 @@ extern float actor_rate_potential_target(datum_index actor_index, datum_index ta
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
 extern float k_random_scale_65536;
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request);
-extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern void actor_dispatch_perception_reset(datum_index actor_index);
@@ -54,8 +52,6 @@ extern player_globals *local_player_globals;
 extern actor_mode_definition actor_mode_definitions[16];
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index unit_index, datum_index actor_variant_tag, uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68);
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
 extern void actor_movement_action_cancel(datum_index actor_index);
 extern void actor_clear_target_state(datum_index actor_index);
@@ -173,7 +169,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
@@ -197,7 +193,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         owner_actor = *(datum_index *)(source + 0x1f4);
     }
     if (((struct object *)source)->parent_object != k_datum_index_none) {
-        location = OBJECT_DATA(object_get_root_object_index(source_unit_index)) + 0x98;
+        location = OBJECT_DATA(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
     }
     cluster_count = *(int32_t *)(halo::scenario::globals().structure_bsp + 0x134);
     memset(cluster_bits, 0, sizeof(cluster_bits));
@@ -220,7 +216,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             }
         }
     }
-    object_get_position(&source_position, source_unit_index);
+    halo::objects::object_get_position(&source_position, source_unit_index);
     if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
@@ -683,7 +679,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
     return chosen;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 /**
  * Behaviour of ai process vehicle entry queue, moved unchanged from the original free function.
  *
@@ -720,7 +716,7 @@ void AiSystem::process_vehicle_entry_queue()
             }
             actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
-                unit_enter_vehicle_seat(vehicle_index, seat_index,
+                halo::units::unit_enter_vehicle_seat(vehicle_index, seat_index,
                     *(datum_index *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size + 0x18));
             }
         }
@@ -769,7 +765,7 @@ void AiSystem::recompute_all_relationship_flags()
             p = &((prop *)prop_data->data)[current_prop_index & halo::k_slot_mask];
             prop_cursor = p->next_in_actor;
 
-            tracked_object = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
+            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
             object_team = ((struct object *)tracked_object)->owner_team;
             p->team = object_team;
             actor_team = a->team;
@@ -830,7 +826,7 @@ void AiSystem::reset_all_actors_perception()
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJ(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJ(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
 namespace {
 
@@ -921,10 +917,10 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
             int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
 
             if (kind == 0) {
-                object_delete_unparented(unit_index);
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_unparented(unit_index);
+                halo::objects::object_delete_recursive(unit_index, 0);
             } else if (kind == 3) {
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_recursive(unit_index, 0);
             }
         }
     }
@@ -1090,13 +1086,13 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
 
     while (p != 0) {
         if (p->is_parented && p->enemy) {
-            tracked_object = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
+            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
             if (((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player !=
                 (datum_index)k_datum_index_none) {
                 a = &((actor *)actor_data->data)[p->actor_index & halo::k_slot_mask];
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;
 
-                linked_object = ((object_header *)object_data->data)[linked_unit_index & halo::k_slot_mask].data;
+                linked_object = ((object_header *)halo::objects::globals().object_data->data)[linked_unit_index & halo::k_slot_mask].data;
                 linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & halo::k_slot_mask].data;
 
                 skip_close_check = 0;

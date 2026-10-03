@@ -7,12 +7,10 @@
 #include "halo/networking/net2_message_delta_index.hpp"
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t message_delta_item_count_bits[];
-extern void hash_table_initialize(hash_table *table, int32_t bucket_count);
-extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value);
-extern void hash_table_dispose(hash_table *table);
 extern uint32_t item_placement_bits_x;
 extern uint32_t item_placement_bits_y;
 extern uint32_t item_placement_bits_z;
@@ -164,12 +162,12 @@ uint8_t IndexFieldCodec::index_initialize(message_delta_field_type *field_type)
     if (field_type->initialized == 0) {
         int32_t *table;
 
-        hash_table_initialize((hash_table *)(descriptor + 3), descriptor[1]);
+        halo::objects::hash_table_initialize((hash_table *)(descriptor + 3), descriptor[1]);
         table = (int32_t *)GlobalAlloc(0, descriptor[0] * 4);
         descriptor[10] = (int32_t)table;
         descriptor[9] = 0;
         memset(table, 0xff, descriptor[0] * 4);
-        hash_table_set_or_remove((hash_table *)(descriptor + 3), -1, 0);
+        halo::objects::hash_table_set_or_remove((hash_table *)(descriptor + 3), -1, 0);
         *(int32_t *)descriptor[10] = 1;
     }
     return 1;
@@ -180,7 +178,7 @@ void IndexFieldCodec::index_teardown(message_delta_field_type *field_type)
     int32_t *descriptor = FieldCodecRegistry::kind_flag(13) == 1 ? (int32_t *)field_type->array_descriptor : 0;
 
     GlobalFree((void *)descriptor[10]);
-    hash_table_dispose((hash_table *)(descriptor + 3));
+    halo::objects::hash_table_dispose((hash_table *)(descriptor + 3));
 }
 
 int32_t IndexFieldCodec::item_placement_compute_size(message_delta_field_type *field_type)

@@ -5,19 +5,19 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_movement_choose_avoidance_direction_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern uint32_t global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern const real_vector3d *global_origin3d_pointer;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern void actor_movement_collect_obstacle_candidates(actor_movement_context *context);
 extern int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
     real_point3d *out_end_point, actor_movement_context *context, float *out_distance,
@@ -76,11 +76,11 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             return;
         }
     }
-    obj = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
     context.structure_bsp = global_structure_bsp;
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
-    object_get_position(&context.position, unit_index);
+    halo::objects::object_get_position(&context.position, unit_index);
     context.forward = *(real_vector3d *)&((object *)obj)->forward.i;
     context.up = *(real_vector3d *)&((object *)obj)->up.i;
     context.left.i = context.forward.k * context.up.j - context.up.k * context.forward.j;
@@ -395,7 +395,6 @@ done:
 namespace actor_movement_update_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern const real_vector3d *global_origin3d_pointer;
 extern const real_vector2d *global_forward2d_pointer;
@@ -422,9 +421,6 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
                                        uint32_t *param_g);
-extern uint8_t unit_try_ready_weapon_variant(datum_index unit_index, const real_vector2d *facing);
-extern uint8_t unit_is_in_busy_animation_state(datum_index actor_index);
-extern uint8_t unit_get_average_active_marker_direction(datum_index unit_index, real_vector3d *out_direction);
 }
 }
 
@@ -619,7 +615,7 @@ void ActorView::movement_update()
             }
         }
     } else {
-        object *unit_object = ((object_header *)object_data->data)[a->active_unit_index & halo::k_slot_mask].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[a->active_unit_index & halo::k_slot_mask].data;
         Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         uint8_t take_sideslip = 0;
 
@@ -664,7 +660,7 @@ void ActorView::movement_update()
             take_sideslip = 1;
         } else if (movement_style == 4) {
             real_vector3d direction;
-            if (unit_get_average_active_marker_direction(a->active_unit_index, &direction) == 0) {
+            if (halo::units::unit_get_average_active_marker_direction(a->active_unit_index, &direction) == 0) {
                 cached_axis = 0;
                 sidestep_mode = 1;
                 order_failed = 1;
@@ -740,7 +736,7 @@ void ActorView::movement_update()
     }
 
     if (a->secondary_action == -1 &&
-        (a->unit_index == (datum_index)k_datum_index_none || unit_is_in_busy_animation_state(a->unit_index) == 0) &&
+        (a->unit_index == (datum_index)k_datum_index_none || halo::units::unit_is_in_busy_animation_state(a->unit_index) == 0) &&
         a->active_unit_index == (datum_index)k_datum_index_none &&
         a->airborne == 0 && a->berserking != 0 && a->berserk_announced == 0) {
         real_vector2d facing;
@@ -782,7 +778,7 @@ void ActorView::movement_update()
                     facing = *global_forward2d_pointer;
                 }
             }
-            if (unit_try_ready_weapon_variant(a->unit_index, &facing) != 0) {
+            if (halo::units::unit_try_ready_weapon_variant(a->unit_index, &facing) != 0) {
                 ai_communication_broadcast(0x2f, a->unit_index,
                                            (datum_index)k_datum_index_none, -1,
                                            (datum_index)k_datum_index_none,

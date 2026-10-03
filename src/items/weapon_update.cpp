@@ -3,12 +3,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
-extern uint8_t unit_updates_suppressed;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
 extern char *weapon_blur_permutation_names[2];
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 extern game_time_globals *game_time;
@@ -23,7 +21,7 @@ namespace halo::items {
  */
 static uint32_t weapon_blur_target(uint32_t item_index)
 {
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[item_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
 
     if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != (datum_index)0xffffffff) {
         return ((object *)obj)->parent_object;
@@ -48,12 +46,12 @@ int32_t weapon_ref::update()
     Weapon *weapon_tag;
     int16_t i;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
-    if (unit_updates_suppressed == 1) {
+    if (halo::units::globals().updates_suppressed == 1) {
         return 1;
     }
 
@@ -78,7 +76,7 @@ int32_t weapon_ref::update()
         if (item_obj->parent_object == (datum_index)0xffffffff) {
             skip_decrement = 0;
         } else {
-            object *holder = object_try_and_get(item_obj->parent_object, _object_mask_unit);
+            object *holder = halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit);
             if (holder == 0) {
                 skip_decrement = 0;
             } else if (holder->definition_tag == (datum_index)0xffffffff) {
@@ -379,7 +377,7 @@ int32_t weapon_ref::update()
                 trigger->firing_rate = (new_rate < 0.0f) ? 0.0f : new_rate;
                 if ((trigger->flags & _weapon_trigger_blur_applied_bit) != 0 &&
                     trigger->firing_rate < tag_trigger->blurred_rate_of_fire) {
-                    object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
+                    halo::objects::object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
                                                    -1, 0);
                     trigger->flags = trigger->flags & ~(uint32_t)_weapon_trigger_blur_applied_bit;
                 }
@@ -389,7 +387,7 @@ int32_t weapon_ref::update()
                 if (tag_trigger->blurred_rate_of_fire != 0.0f &&
                     (trigger->flags & _weapon_trigger_blur_applied_bit) == 0 &&
                     tag_trigger->blurred_rate_of_fire < trigger->firing_rate) {
-                    object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
+                    halo::objects::object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
                                                    -1, 1);
                     trigger->flags = trigger->flags | _weapon_trigger_blur_applied_bit;
                 }
@@ -419,13 +417,13 @@ int32_t weapon_ref::update()
 void weapon_ref::update_function_values()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     Weapon *tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     object *destination = obj;
 
     while ((destination->flags & _object_no_collision_bit) != 0 &&
            destination->parent_object != (datum_index)k_datum_index_none) {
-        destination = ((object_header *)object_data->data)[destination->parent_object & 0xffff].data;
+        destination = ((object_header *)halo::objects::globals().object_data->data)[destination->parent_object & 0xffff].data;
     }
 
     {

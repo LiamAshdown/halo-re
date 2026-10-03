@@ -6,6 +6,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -13,15 +15,10 @@ extern player_globals *local_player_globals;
 extern director_pov_proc director_last_pov_proc;
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern real game_engine_get_max_look_pitch(int16_t local_player_index);
-extern data_array *object_data;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern void unit_get_camera_position(datum_index unit, real_point3d *out);
 extern double asin(double x);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int16_t object_get_node_local_transform(datum_index object_index, const char *marker_name, object_marker *markers, int32_t maximum_count);
 extern const real_point3d *global_origin3d_pointer;
-extern void object_get_root_object_velocities(datum_index object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern Globals *global_globals;
 extern double fcos(double angle);
 extern double fsin(double angle);
@@ -137,9 +134,9 @@ void FirstPersonCamera::apply_weapon_offset(real_point3d *position, datum_index 
     float horizontal_i, horizontal_j;
     float magnitude;
 
-    unit_object = ((object_header *)object_data->data)[(uint16_t)unit].data;
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)unit].data;
     properties = halo::camera::unit_get_camera_properties(unit);
-    unit_get_camera_position(unit, position);
+    halo::units::unit_get_camera_position(unit, position);
 
     unit_extension = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     *aiming_direction = unit_extension->aiming_vector;
@@ -173,7 +170,7 @@ void FirstPersonCamera::apply_weapon_offset(real_point3d *position, datum_index 
  */
 void FirstPersonCamera::command_for_unit(datum_index unit, observer_command *command)
 {
-    object_header *headers = (object_header *)object_data->data;
+    object_header *headers = (object_header *)halo::objects::globals().object_data->data;
     object *obj = headers[halo::datum_slot(unit)].data;
     Vector3D *aiming_vector = (Vector3D *)&((unit_data *)((uint8_t *)obj + k_unit_data_offset))->aiming_vector; 
 
@@ -191,11 +188,11 @@ void FirstPersonCamera::command_for_unit(datum_index unit, observer_command *com
  */
 void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction)
 {
-    object_header *headers = (object_header *)object_data->data;
+    object_header *headers = (object_header *)halo::objects::globals().object_data->data;
     object *unit_object = headers[halo::datum_slot(unit)].data;
     datum_index parent;
 
-    unit_get_camera_position(unit, (real_point3d *)out_position);
+    halo::units::unit_get_camera_position(unit, (real_point3d *)out_position);
     *out_direction = *(Vector3D *)&((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->aiming_vector; 
 
     parent = unit_object->parent_object;
@@ -204,7 +201,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
     }
 
     {
-        object *parent_object = object_try_and_get(parent, 2);
+        object *parent_object = halo::objects::object_try_and_get(parent, 2);
         if (parent_object == (object *)0) {
             return;
         }
@@ -217,7 +214,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
 
             if (seat_flags < 0) { 
                 object_marker marker; 
-                int16_t ok = object_get_node_local_transform(parent, "primary trigger", &marker, 1);
+                int16_t ok = halo::objects::object_get_node_local_transform(parent, (char *)("primary trigger"), &marker, 1);
                 if (ok != 0) {
                     real_matrix4x3 *m = &marker.node_transform; 
                     *out_position = *(Point3D *)&m->position;
@@ -252,13 +249,13 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
     }
 
     {
-        object_header *headers = (object_header *)object_data->data;
+        object_header *headers = (object_header *)halo::objects::globals().object_data->data;
         object *unit_object = headers[halo::datum_slot(unit)].data;
         datum_index parent;
         object *parent_object;
 
-        unit_get_camera_position(unit, (real_point3d *)&command->parameters.position);
-        object_get_root_object_velocities(unit, (real_vector3d *)&command->velocity, (real_vector3d *)0);
+        halo::units::unit_get_camera_position(unit, (real_point3d *)&command->parameters.position);
+        halo::objects::object_get_root_object_velocities(unit, (real_vector3d *)&command->velocity, (real_vector3d *)0);
 
         parent = unit_object->parent_object;
         if (parent == k_datum_index_none) {
@@ -266,7 +263,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
             return;
         }
 
-        parent_object = object_try_and_get(parent, 2);
+        parent_object = halo::objects::object_try_and_get(parent, 2);
         if (parent_object == (object *)0) {
             command->flags = 1;
             return;
@@ -280,7 +277,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
 
             if ((seat_flags & 0x80) != 0) { 
                 object_marker marker; 
-                int16_t ok = object_get_node_local_transform(parent, "primary trigger", &marker, 1);
+                int16_t ok = halo::objects::object_get_node_local_transform(parent, (char *)("primary trigger"), &marker, 1);
                 if (ok != 0) {
                     real_matrix4x3 *m = &marker.node_transform; 
                     command->parameters.position = *(Point3D *)&m->position;
@@ -403,10 +400,10 @@ unit_camera_properties * FirstPersonCamera::unit_properties(datum_index unit)
     Unit *vehicle_tag;
     UnitSeat *seat;
 
-    unit_object = ((object_header *)object_data->data)[halo::datum_slot(unit)].data;
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit)].data;
 
     if (unit_object->parent_object != (datum_index)k_datum_index_none) {
-        vehicle_object = object_try_and_get(unit_object->parent_object, _object_mask_vehicle);
+        vehicle_object = halo::objects::object_try_and_get(unit_object->parent_object, _object_mask_vehicle);
         if (vehicle_object != 0) {
             unit_extension = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
             vehicle_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(vehicle_object->definition_tag)].data;
@@ -458,7 +455,7 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
     tp->seat_index = basis.seat_index;
 
     if (basis.marker_offset != 0) {
-        unit_object = ((object_header *)object_data->data)[halo::datum_slot(basis.unit)].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(basis.unit)].data;
         crouch_or_jump = (uint8_t)((((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))
             ->control_flags & 3) != 0);
 
@@ -540,7 +537,7 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
             command->parameters.distance = distance;
         }
 
-        object_get_root_object_velocities(basis.unit, (real_vector3d *)&command->velocity, 0);
+        halo::objects::object_get_root_object_velocities(basis.unit, (real_vector3d *)&command->velocity, 0);
         command->flags |= _observer_command_valid_bit;
     }
 
@@ -564,7 +561,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
     Point3D focus_position;
 
     if (dead->target_unit != k_datum_index_none) {
-        object *target = object_try_and_get(dead->target_unit, k_all_object_types);
+        object *target = halo::objects::object_try_and_get(dead->target_unit, k_all_object_types);
         if (target != (object *)0) {
             focus_position = *(Point3D *)&target->bounding_center;
         } else {
@@ -660,7 +657,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     switch (camera_script.mode) {
     case _camera_script_mode_point: {
         if (camera_script.object != k_datum_index_none) {
-            object *obj = object_try_and_get(camera_script.object, k_all_object_types);
+            object *obj = halo::objects::object_try_and_get(camera_script.object, k_all_object_types);
             if (obj == (object *)0) {
                 break; 
             }
@@ -738,7 +735,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     }
 
     case _camera_script_mode_first_person: {
-        object *obj = object_try_and_get(camera_script.object, 3);
+        object *obj = halo::objects::object_try_and_get(camera_script.object, 3);
         if (obj != (object *)0) {
             halo::camera::first_person_camera_command_for_unit(camera_script.object, command);
         }
@@ -746,7 +743,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     }
 
     case _camera_script_mode_dead: {
-        object *obj = object_try_and_get(camera_script.object, 3);
+        object *obj = halo::objects::object_try_and_get(camera_script.object, 3);
         if (obj != (object *)0) {
             director_camera_data *track_data = data;
             if (camera_script.changed) {
@@ -856,7 +853,7 @@ void FlyingCamera::attach_to_object(datum_index object_index)
         return;
     }
     if (object_index != k_datum_index_none) {
-        object *attached = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+        object *attached = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
 
         flying_camera_attached_offset.i = flying_camera_data->position.x - attached->bounding_center.x;
         flying_camera_attached_offset.j = flying_camera_data->position.y - attached->bounding_center.y;
@@ -1076,13 +1073,13 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
     move_z = flying_camera_speed * input->move_up;
 
     if (flying_camera_attached_object != k_datum_index_none &&
-        object_try_and_get(flying_camera_attached_object, k_all_object_types) != 0) {
+        halo::objects::object_try_and_get(flying_camera_attached_object, k_all_object_types) != 0) {
         object *attached;
 
         flying_camera_attached_offset.i = flying_camera_attached_offset.i + move_x;
         flying_camera_attached_offset.j = flying_camera_attached_offset.j + move_y;
         flying_camera_attached_offset.k = flying_camera_attached_offset.k + move_z;
-        attached = ((object_header *)object_data->data)[halo::datum_slot(flying_camera_attached_object)].data;
+        attached = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(flying_camera_attached_object)].data;
         position.x = flying_camera_attached_offset.i + attached->bounding_center.x;
         position.y = flying_camera_attached_offset.j + attached->bounding_center.y;
         position.z = flying_camera_attached_offset.k + attached->bounding_center.z;
@@ -1145,7 +1142,7 @@ void OrbitingCamera::update(director_camera_data *data, camera_input *input, obs
         command->parameters.forward.j = (float)sin(orbit->yaw) * cos_pitch;
         command->parameters.forward.k = (float)sin(orbit->pitch);
         halo::camera::vector3d_compute_up_from_forward(&command->parameters.forward, &command->parameters.up);
-        object_get_root_object_velocities(basis.unit, (real_vector3d *)&command->velocity, 0);
+        halo::objects::object_get_root_object_velocities(basis.unit, (real_vector3d *)&command->velocity, 0);
         command->flags = _observer_command_valid_bit;
     }
 

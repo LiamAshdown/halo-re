@@ -1,12 +1,12 @@
 #include "halo/game/game2_engine_match.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_time_globals *game_time;
 extern data_array *player_data;
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern void game_engine_player_profile_cache_sync_all(datum_index player_handle);
@@ -177,7 +177,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         }
         message_category = (is_suicide != 0) + 4;
     } else if (death_object != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)object_data->data)[death_object & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[death_object & 0xffff].data;
         if (obj->type == 0) {
             message_category = 2;
         } else if (obj->type == 1) {

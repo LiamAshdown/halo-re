@@ -4,13 +4,13 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_reassign_vehicle_seat_local {
 extern "C" {
-extern data_array *object_data;
-extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
@@ -35,7 +35,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
 
     occupant = (datum_index)k_datum_index_none;
     if (vehicle_object_index != (datum_index)k_datum_index_none) {
-        vehicle_obj = (object *)object_try_and_get(vehicle_object_index, 3);
+        vehicle_obj = (object *)halo::objects::object_try_and_get(vehicle_object_index, 3);
         if (vehicle_obj != 0) {
             vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
             occupant = (datum_index)k_datum_index_none;
@@ -56,8 +56,8 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else if (occupant == (datum_index)k_datum_index_none) {
         reason = 0;
     } else {
-        object *occupant_obj = ((object_header *)object_data->data)[occupant & halo::k_slot_mask].data;
-        object *self_obj = ((object_header *)object_data->data)[self_object_index & halo::k_slot_mask].data;
+        object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[occupant & halo::k_slot_mask].data;
+        object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
         reason = teams_are_enemies(((struct object *)occupant_obj)->owner_team,
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
@@ -76,27 +76,22 @@ extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *encounter_data;
 extern encounter_squad_state *encounter_squad_states;
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
-    uint32_t flags);
 extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
     int16_t squad_index);
-extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
 #define A_U8(offset) (*(uint8_t *)(self + (offset)))
 #define A_I16(offset) (*(int16_t *)(self + (offset)))
 #define A_I32(offset) (*(int32_t *)(self + (offset)))
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
 }
 }
 }
@@ -131,7 +126,7 @@ void ActorView::refresh_combat_context()
             datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
                 *(datum_index *)(creature_object + 0x4d8) : k_datum_index_none;
 
-            object_get_position((real_point3d *)(creature + 4), creature_unit);
+            halo::objects::object_get_position((real_point3d *)(creature + 4), creature_unit);
             *(datum_index *)(creature + 0x10) = vehicle;
             center->x = *(float *)(creature + 4) + center->x;
             center->y = *(float *)(creature + 8) + center->y;
@@ -163,7 +158,7 @@ void ActorView::refresh_combat_context()
         object_marker marker;
         real_point3d head;
 
-        object_get_node_local_transform(A_I32(0x18), ai_marker_name_b, &marker, 1);
+        halo::objects::object_get_node_local_transform(A_I32(0x18), ai_marker_name_b, &marker, 1);
         head = marker.node_transform.position;
         A_U8(0x15d) = halo::scenario::scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)(self + 0x144), 0);
     }
@@ -283,7 +278,7 @@ void ActorView::refresh_combat_context()
         A_I32(0x164) = *(int32_t *)(unit_object + 0x4dc);
         *(real_vector3d *)&((struct actor *)self)->pathfinding_point = *(real_vector3d *)(unit_object + 0x4e0);
     }
-    unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
+    halo::units::unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
         &((struct actor *)self)->facing);
     if (A_U8(0x99) == 0) {
         if (halo::math::vector2d_normalize_with_length(*(real_vector2d *)(self + 0x174)) > 0.0f) {
@@ -297,7 +292,7 @@ void ActorView::refresh_combat_context()
         uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
 
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
-            unit_get_forward_vector_or_marker_normal(A_I32(0x18), &((struct actor *)self)->unit_aiming_vector);
+            halo::units::unit_get_forward_vector_or_marker_normal(A_I32(0x18), &((struct actor *)self)->unit_aiming_vector);
         } else {
             *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
@@ -323,7 +318,6 @@ namespace actor_reset_queued_look_vector_local {
 extern "C" {
 extern data_array *actor_data;
 extern const real_vector3d *global_origin3d_pointer;
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_wants_reload_or_swap(datum_index actor_index);
 }
 }
@@ -344,7 +338,7 @@ uint8_t ActorView::reset_queued_look_vector()
         return 0;
     }
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        if (unit_is_in_busy_animation_state(self->unit_index)) {
+        if (halo::units::unit_is_in_busy_animation_state(self->unit_index)) {
             return 0;
         }
     }

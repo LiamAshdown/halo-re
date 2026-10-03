@@ -2,6 +2,8 @@
 #include "halo/devices/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -11,7 +13,6 @@ extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset);
 extern void hud_waypoint_activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind, float vertical_offset);
 extern uint8_t *breakable_surface_state;
-extern void breakable_surfaces_reset(void);
 extern void cheat_make_selected_object_invincible(void);
 extern void cheat_make_player_invincible(int16_t local_player_slot);
 extern Globals *global_globals;
@@ -19,14 +20,11 @@ extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t co
 extern void cheat_all_weapons(void);
 extern void cheat_spawn_warthog(void);
 extern void cheat_teleport_to_camera(void);
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name, uint8_t interpolate);
 extern uint8_t ai_object_list_start_user_animation_until_failure(datum_index object_list_header_handle, datum_index graph_tag_id, const char *animation_name, uint8_t interpolate);
 extern void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect);
 extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect);
 extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
 extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
-extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
 namespace halo::hs {
@@ -236,7 +234,7 @@ void WorldStateCommands::run_breakable_surfaces_reset(int16_t function_index, ui
 {
     (void)function_index;
     (void)first;
-    breakable_surfaces_reset();
+    halo::objects::breakable_surfaces_reset();
     hs_thread_return(0, thread_index);
 }
 
@@ -252,7 +250,7 @@ void WorldStateCommands::custom_animation(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
+    hs_thread_return((int32_t)halo::units::unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
         (const char *)arguments[2], *(uint8_t *)&arguments[3]), thread_index);
     }
 }
@@ -469,7 +467,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
     int32_t result = 0;
 
     if (device != k_datum_index_none) {
-        result = *(int32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x208);
+        result = *(int32_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x208);
     }
     hs_thread_return(result, thread_index);
     }
@@ -490,7 +488,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
         int32_t power = 0;
 
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            power = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data + 0x1fc);
+            power = *(int32_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & halo::k_slot_mask].data + 0x1fc);
         }
         hs_thread_return(power, thread_index);
     }
@@ -586,7 +584,7 @@ void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
+        uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
 
         if (device != 0) {
             if (*(uint8_t *)&arguments[1] != 0) {
@@ -611,7 +609,7 @@ void DeviceCommands::device_operates_automatically_set(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
+    uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
 
     if (device != 0) {
         if (*(uint8_t *)&arguments[1]) {
@@ -637,7 +635,7 @@ void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uin
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
+            uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
 
             if (device != 0) {
                 if (*(uint8_t *)&arguments[1] != 0) {

@@ -8,6 +8,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
@@ -76,7 +77,6 @@ extern data_packet_group network_game_messages_group;
 extern void network_game_server_handle_client_join(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine, uint8_t bl_passthrough);
 extern char network_server_build_full_game_info_packet(network_machine *machine);
 extern data_array *player_data;
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
 extern int32_t game_engine_notify_object_value_event(int32_t team);
@@ -661,7 +661,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                                 game_engine_capture_player_profile(0);
                             }
                             if ((uint32_t)unit != 0xffffffff) {
-                                hdr = &((object_header *)object_data->data)[unit & 0xffff];
+                                hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff];
                                 unit_obj = hdr->data;
                                 if ((unit_obj->vitality_flags & 0x04) == 0) {
                                     game_engine_send_unit_weapon_loadout(owner, team, machine_id);

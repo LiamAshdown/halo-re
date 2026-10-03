@@ -5,6 +5,8 @@
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -139,9 +141,7 @@ extern "C" int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, 
 namespace c_actor_get_threat_weapon_object_index {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 }
 }
 
@@ -161,7 +161,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
     datum_index result = (datum_index)k_datum_index_none;
 
     if (self->vehicle_gunner != 0 && self->active_unit_index != (datum_index)k_datum_index_none) {
-        object *unit_object = ((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
         int16_t slot = *(int16_t *)((uint8_t *)unit_object + 0x2f2);
 
         result = (datum_index)k_datum_index_none;
@@ -177,8 +177,8 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
         uint8_t *variant_tag = (uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
         if ((*variant_tag & 0x40) == 0) {
 
-            object *own_unit = ((object_header *)object_data->data)[self->unit_index & halo::k_slot_mask].data;
-            return unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
+            object *own_unit = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
+            return halo::units::unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
         }
     }
     return result;
@@ -192,7 +192,6 @@ extern "C" datum_index actor_get_threat_weapon_object_index(datum_index actor_in
 namespace c_actor_has_unshielded_threat_weapon {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 }
@@ -214,7 +213,7 @@ uint8_t halo::ai::combat_ops::has_unshielded_threat_weapon()
     uint8_t has_weapon = actor_get_threat_weapon_object_index(actor_index) != (datum_index)k_datum_index_none;
 
     if (has_weapon && self->unit_index != (datum_index)k_datum_index_none) {
-        object *unit_object = ((object_header *)object_data->data)[self->unit_index & halo::k_slot_mask].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
         if ((*((uint8_t *)unit_object + 0x107) & 1) != 0) {
             has_weapon = 0;
         }
@@ -229,7 +228,6 @@ extern "C" uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index)
 
 namespace c_actor_issue_multi_target_vocalization {
 extern "C" {
-extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context);
 }
@@ -251,7 +249,7 @@ void halo::ai::combat_ops::issue_multi_target_vocalization(int16_t line, datum_i
 
     if (actor_index != (datum_index)k_datum_index_none && 0 < variant &&
         vehicle_object_index != (datum_index)k_datum_index_none) {
-        obj = object_try_and_get(vehicle_object_index, -1);
+        obj = halo::objects::object_try_and_get(vehicle_object_index, -1);
         if (obj != 0) {
             context.code = 0;
             context.payload.handle = (datum_index)k_datum_index_none;

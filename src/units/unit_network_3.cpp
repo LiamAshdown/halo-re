@@ -5,20 +5,18 @@
 #include "win32.h"
 #include "halo/math/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag, int32_t message_type, void *changed, void *items, void *types, int32_t count, char force_changed);
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 }
@@ -58,7 +56,7 @@ typedef struct biped_network_create_message {
  *
  * @address 0x55b110
  */
-void unit_network_create_update_apply(void *incoming_record)
+void halo::units::unit_network_create_update_apply(void *incoming_record)
 {
     using namespace unit_network_create_update_apply_local;
     biped_network_create_message message;
@@ -96,12 +94,12 @@ void unit_network_create_update_apply(void *incoming_record)
     memcpy(placement + 0x34, &message.forward, 12);
     memcpy(placement + 0x40, &message.up, 12);
     memcpy(placement + 0x58, message.block_44, 0x30);
-    biped_index = object_new_with_datum_role_control((object_placement_data *)placement, 1);
+    biped_index = halo::objects::object_new_with_datum_role_control((object_placement_data *)placement, 1);
     if (biped_index == k_datum_index_none) {
         return;
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
-    biped = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(biped_index)].data;
+    biped = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(biped_index)].data;
     *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality = message.body_vitality;
     ((biped_object *)biped)->biped.network_shield_vitality = message.shield_vitality;
     biped[0x538] = message.shield_stunned;
@@ -154,7 +152,7 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
 {
     using namespace unit_submit_periodic_network_update_local;
     datum_index object_index = datum_handle;
-    object *obj = object_try_and_get(object_index, 1);
+    object *obj = halo::objects::object_try_and_get(object_index, 1);
     unit_data *unit;
     biped_data *biped;
     biped_network_update_header header;
@@ -172,7 +170,7 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
     biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if (object_index != k_datum_index_none) {
-        key = hash_table_get(&object_network_id_table->id_to_index, (int32_t)object_index);
+        key = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)object_index);
         if (key == -1) {
             key = 0;
         }

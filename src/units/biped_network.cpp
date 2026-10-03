@@ -1,10 +1,11 @@
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
 namespace halo::units {
@@ -14,7 +15,7 @@ namespace halo::units {
  *
  * @address 0x55e9ff
  */
-void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
+void halo::units::biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
 {
     unit_data *unit = (unit_data *)((uint8_t *)object_base + k_unit_data_offset);
 
@@ -48,7 +49,7 @@ void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *ob
 void BipedView::network_baseline_take()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)object_try_and_get(object_index, 1);
+    uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(object_index, 1);
 
     if (obj == 0) {
         return;

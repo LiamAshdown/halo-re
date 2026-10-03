@@ -6,19 +6,18 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern Globals *global_globals;
 extern char ai_marker_name_a[];
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 }
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_melee_attack_scan.
@@ -46,7 +45,7 @@ void UnitView::melee_attack_scan()
     int32_t row;
     int32_t col;
 
-    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
+    halo::objects::object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
     origin = marker.node_transform.position;
     halo::math::vector3d_build_perpendicular(perp, *aim);
     halo::math::vector3d_normalize_with_length(perp);
@@ -178,7 +177,7 @@ void UnitView::melee_attack_scan()
                 dd.random_blend = 1.5f;
             }
             if (((struct object *)OBJECT_DATA(best_object))->type == 0) {
-                object_apply_damage(&dd, best_object, -1, -1, -1, 0);
+                halo::objects::object_apply_damage(&dd, best_object, -1, -1, -1, 0);
             }
         }
     }
@@ -203,7 +202,7 @@ void UnitView::melee_attack_scan()
             dd.random_blend = 1.0f;
             dd.multiplier = 1.0f;
             dd.material_type = -1;
-            object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
     ((struct unit_object *)obj)->unit.melee_state = 0;

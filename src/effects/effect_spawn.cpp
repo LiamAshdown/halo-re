@@ -5,20 +5,14 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern int16_t light_count_enabled;
 extern const real_vector3d *global_origin3d_pointer;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
-extern void damage_apply_area_effect(damage_data *dd);
-extern datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, int16_t marker_sub_index, real_point3d *position, uint32_t param_5, real_vector3d *direction);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
-extern datum_index object_new(object_placement_data *placement);
 extern const ColorRGB *global_white_color;
 extern data_array *effect_location_data;
-extern data_array *object_data;
 extern const real_vector3d *global_down3d_pointer;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker);
@@ -60,16 +54,16 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
 
     if (group == 0x6c696768u) {
         if (light_count_enabled > 0) {
-            light_new_positioned(tag, (int32_t)SELF_FIELD(datum_index, 0x3c),
+            halo::objects::light_new_positioned(tag, (int32_t)SELF_FIELD(datum_index, 0x3c),
                 (int16_t)effect_event_apply_marker_index(marker), marker_position, *(uint32_t *)&scale,
                 marker_forward);
         }
     } else if (group == 0x6a707421u) {
         damage_data dd;
         uint8_t *raw = (uint8_t *)&dd;
-        uint8_t *creator = (uint8_t *)object_try_and_get(SELF_FIELD(datum_index, 0x40), 0xffffffff);
+        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(SELF_FIELD(datum_index, 0x40), 0xffffffff);
 
-        damage_data_initialize(&dd, tag);
+        halo::objects::damage_data_initialize(&dd, tag);
         if (creator != 0) {
             *(uint32_t *)(raw + 0x08) = ((struct object *)creator)->owner_linkage;
             *(datum_index *)(raw + 0x0c) = SELF_FIELD(datum_index, 0x40);
@@ -81,7 +75,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         *(real_point3d *)(raw + 0x28) = *position;
         *(real_point3d *)(raw + 0x1c) = *position;
         *(real_vector3d *)(raw + 0x34) = *forward;
-        damage_apply_area_effect(&dd);
+        halo::objects::damage_apply_area_effect(&dd);
     } else if (group == 0x64656361u) {
         real_vector3d out_direction;
         real_vector3d direction;
@@ -98,7 +92,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         real_vector3d out_direction;
         real_vector3d *velocity = (real_vector3d *)(raw + 0x28);
 
-        object_placement_data_initialize(&placement, tag, SELF_FIELD(datum_index, 0x40));
+        halo::objects::object_placement_data_initialize(&placement, tag, SELF_FIELD(datum_index, 0x40));
         *(real_point3d *)(raw + 0x18) = *position;
         *(real_vector3d *)(raw + 0x34) = *forward;
         *(real_vector3d *)(raw + 0x40) = *up;
@@ -110,7 +104,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
         velocity->k = velocity->k + SELF_FIELD(real, 0x2c);
         halo::effects::effect_random_direction_vector(&halo::math::globals().random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
             PART_FIELD(real, 0x50), self, PART_FIELD(uint32_t, 0x60), PART_FIELD(uint32_t, 0x64));
-        object_new(&placement);
+        halo::objects::object_new(&placement);
     } else if (group == 0x7063746cu) {
         ColorARGB color;
         real_vector3d out_direction;
@@ -132,7 +126,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
 
         if (object_index != k_datum_index_none) {
             uint8_t first_person = 0;
-            uint8_t *creator = (uint8_t *)object_try_and_get(SELF_FIELD(datum_index, 0x40), 3);
+            uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(SELF_FIELD(datum_index, 0x40), 3);
 
             if (creator != 0) {
                 uint8_t *owner = (uint8_t *)halo::memory::datum_get(*(datum_index *)(creator + 0x218), player_data);

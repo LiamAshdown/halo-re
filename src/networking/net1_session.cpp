@@ -14,12 +14,11 @@
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern object *object_iterator_next(object_iterator *iterator);
 extern void *object_type_definitions[12];
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t object_type_override_get_0x64(uint8_t *out_buffer, int32_t out_buffer_size);
 extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits, int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);
 extern datum_index machine_to_player[16];
 extern data_array *player_data;
@@ -182,18 +181,18 @@ void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t 
     iterator.index = 0;
     iterator.handle = 0xffffffff;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
         if (obj->network_role == 0 &&
             *(int32_t *)((uint8_t *)object_type_definitions[obj->type] + 0x10) != -1) {
-            encoded_bits = object_type_override_get_0x64(network_message_scratch, 0x7ff8);
+            encoded_bits = halo::objects::object_type_override_get_0x64(iterator.handle, network_message_scratch, 0x7ff8);
             if (encoded_bits > 0) {
                 *bytes_sent = *bytes_sent + encoded_bits;
                 *object_count = *object_count + 1;
                 network_session_send_to_machine(1, network_message_scratch, encoded_bits, 1, 0, 0, 3);
             }
         }
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 }
 

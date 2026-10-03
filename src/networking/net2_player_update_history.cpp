@@ -18,10 +18,11 @@
 #include "crt.h"
 #include "halo/networking/net2_player_update_history.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
-extern data_array * object_data;
 extern game_time_globals * game_time;
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern uint16_t local_player_name_filter[0x400];
@@ -31,13 +32,7 @@ extern uint8_t player_update_log_flags;
 extern char * player_update_history_log_path;
 extern char player_update_log_file_mode_string[];
 extern double sqrt(double x);
-extern uint8_t unit_updates_suppressed;
-extern uint8_t unit_seat_flag_bit2(datum_index parent_object, int16_t vehicle_seat_index);
 extern void player_compute_view_forward_vector(void);
-extern void unit_apply_control_block(void);
-extern void unit_propagate_position_delta_to_children(void);
-extern void biped_update(void);
-extern void object_update(void);
 extern network_client_globals * network_client;
 extern void players_find_local_owned_unclear(void);
 extern network_id_table * machine_table;
@@ -141,7 +136,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     }
     history->next_update_id = next_id;
 
-    unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
     unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
     biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
 
@@ -172,7 +167,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     *(datum_index *)(node->unit_state + 0xcc) = biped_ext->ground_surface_index;
 
     if (player_unit_has_parent(unit_ext->controlling_player)) {
-        vehicle_obj = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
+        vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_obj->parent_object & 0xffff].data;
         node->has_vehicle = 1;
         *(real_point3d *)(node->vehicle_state + 0x00) = vehicle_obj->position;
         *(real_vector3d *)(node->vehicle_state + 0x0c) = vehicle_obj->velocity;
@@ -347,13 +342,13 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             return result;
         }
     } else if (node != 0) {
-        unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
         unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
         biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
         parent_object = unit_obj->parent_object;
 
         if (parent_object != (datum_index)-1) {
-            in_vehicle_check = unit_seat_flag_bit2(parent_object, unit_ext->vehicle_seat_index);
+            in_vehicle_check = halo::units::unit_seat_flag_bit2(parent_object, unit_ext->vehicle_seat_index);
             if (in_vehicle_check != 1) {
 
                 return in_vehicle_check;
@@ -364,7 +359,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             if (node->has_vehicle != 1) {
                 return (int32_t)vehicle_ack;
             }
-            vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
+            vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & 0xffff].data;
             vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
             if (((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending != 0) {
                 ((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending = 0;
@@ -429,7 +424,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
             vehicle_ext->driver_seat_power = *(float *)(node->vehicle_state + 0x214);
             vehicle_ext->gunner_seat_power = *(float *)(node->vehicle_state + 0x218);
             memcpy((uint8_t *)vehicle_obj + 0x4cc, node->vehicle_state + 0x220, 0xf4);
-            unit_propagate_position_delta_to_children();
+            halo::units::unit_propagate_position_delta_to_children(&vehicle_obj->position, unit_index);
             vehicle_obj->velocity = vehicle_ack->vehicle.velocity;
             vehicle_obj->angular_velocity = vehicle_ack->vehicle.angular_velocity;
             vehicle_obj->forward = vehicle_ack->vehicle.forward;
@@ -440,21 +435,21 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
 
         do {
             player_compute_view_forward_vector();
-            unit_apply_control_block();
+            halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)node->control, -1);
             remaining_ticks = node->tick_count;
             updates_this_call = updates_this_call + 1;
             if (0 < remaining_ticks) {
                 ticks_this_call = ticks_this_call + remaining_ticks;
                 do {
-                    unit_updates_suppressed = 1;
+                    halo::units::globals().updates_suppressed = 1;
                     if (vehicle_obj == 0) {
-                        biped_update();
-                        biped_update();
+                        halo::units::biped_update(unit_index);
+                        halo::units::biped_update(unit_index);
                     } else {
-                        object_update();
+                        halo::objects::object_update(unit_index);
                     }
                     remaining_ticks = remaining_ticks - 1;
-                    unit_updates_suppressed = 0;
+                    halo::units::globals().updates_suppressed = 0;
                 } while (remaining_ticks != 0);
             }
             node = node->next;

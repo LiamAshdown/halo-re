@@ -4,6 +4,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_mode_charge_enter {
 extern "C" {
@@ -47,7 +49,6 @@ namespace c_actor_mode_charge_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -72,8 +73,6 @@ extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d
     real_vector3d *out_direction, real *max_speed_override, real *out_speed,
     real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
     real *out_horizontal_speed);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const real_vector2d *direction);
 }
 }
 
@@ -206,7 +205,7 @@ uint8_t halo::ai::charge_mode::process()
     if (md[0x6]) {
         datum_index unit_index = ((actor *)act)->unit_index;
 
-        md[0x7] = (uint8_t)!(unit_index != k_datum_index_none && unit_is_in_busy_animation_state(unit_index));
+        md[0x7] = (uint8_t)!(unit_index != k_datum_index_none && halo::units::unit_is_in_busy_animation_state(unit_index));
     } else if (!md[0xc] && (*(int16_t *)(md + 0x4) == 2 || *(int16_t *)(md + 0x4) == 3) && target != 0) {
         real_vector3d direction;
         float along = 0.0f;
@@ -225,7 +224,7 @@ uint8_t halo::ai::charge_mode::process()
             float factor = 0.0f;
             real_point3d lead;
 
-            unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & halo::k_slot_mask].data;
+            unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((actor *)act)->unit_index & halo::k_slot_mask].data;
             if (speed > 0.0f) {
                 factor = ((velocity->k * facing->k + velocity->j * facing->j + velocity->i * facing->i) / speed + 1.0f) * 0.5f;
             }
@@ -315,7 +314,7 @@ uint8_t halo::ai::charge_mode::process()
                 flat.i = ((actor *)act)->facing.i;
                 flat.j = ((actor *)act)->facing.j;
             }
-            if (unit_try_ready_weapon(((actor *)act)->unit_index, 0, &flat)) {
+            if (halo::units::unit_try_ready_weapon(((actor *)act)->unit_index, 0, &flat)) {
                 ai_communication_broadcast(0x2b, ((actor *)act)->unit_index, ((struct actor *)target)->unit_index, 3, -1, -1, 0);
                 md[0x6] = 1;
             }
@@ -588,7 +587,6 @@ extern data_array *actor_data;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-extern void unit_initialize_random_turn_angle(uint32_t object_index);
 }
 }
 
@@ -612,7 +610,7 @@ void halo::ai::flee_mode::enter()
         act[0x98] = 0;
     }
     if (((struct actor *)act)->mode_data.flee.countdown_02 == 0 && ((actor *)act)->unit_index != k_datum_index_none && kind >= 9 && kind <= 12) {
-        unit_initialize_random_turn_angle(((actor *)act)->unit_index);
+        halo::units::unit_initialize_random_turn_angle(((actor *)act)->unit_index);
     }
 }
 
@@ -629,7 +627,6 @@ extern data_array *actor_data;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-extern data_array *object_data;
 }
 }
 
@@ -648,7 +645,7 @@ void halo::ai::flee_mode::exit()
     datum_index unit_index = ((struct actor *)ACTOR(actor_index))->unit_index;
 
     if (unit_index != k_datum_index_none) {
-        uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+        uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
 
         *(uint32_t *)(obj + 0x204) &= ~0x2000000u;
     }
@@ -737,7 +734,6 @@ namespace c_actor_mode_flee_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -750,7 +746,6 @@ extern void actor_update_target_combat_status(datum_index actor_index);
 extern void actor_update_awareness_level(datum_index actor_index);
 extern uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record);
 extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order);
-extern uint8_t unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code);
 }
 }
 
@@ -846,7 +841,7 @@ uint8_t halo::ai::flee_mode::process()
 
     kind = ((actor_mode_flee_data *)mode_data)->panic;
     if (kind >= 9 && kind <= 12 && ((actor *)act)->unit_index != k_datum_index_none) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & halo::k_slot_mask].data;
+        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((actor *)act)->unit_index & halo::k_slot_mask].data;
 
         if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
             mode_data[0x10] = 0;
@@ -866,9 +861,9 @@ uint8_t halo::ai::flee_mode::process()
             now = game_time->game_time;
             if (!announced || *(int32_t *)(mode_data + 0x14) + 60 >= now) {
                 if (kind == 11 || kind == 12) {
-                    unit_dispatch_reaction_animation(unit_index, 2);
+                    halo::units::unit_dispatch_reaction_animation(unit_index, 2);
                 } else if (kind == 9 || kind == 10) {
-                    unit_dispatch_reaction_animation(unit_index, 1);
+                    halo::units::unit_dispatch_reaction_animation(unit_index, 1);
                 } else {
                     datum_index source_object = k_datum_index_none;
 
@@ -938,7 +933,6 @@ extern data_array *actor_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 extern game_time_globals *game_time;
-extern void unit_initialize_random_turn_angle(uint32_t object_index);
 }
 }
 
@@ -964,7 +958,7 @@ void halo::ai::flee_mode::tick()
         ((struct actor *)act)->mode_data.flee.countdown_02 -= 1;
         if (((struct actor *)act)->mode_data.flee.countdown_02 == 0 && ((actor *)act)->unit_index != k_datum_index_none &&
             ((struct actor *)act)->mode_data.flee.panic >= 9 && ((struct actor *)act)->mode_data.flee.panic <= 12) {
-            unit_initialize_random_turn_angle(((actor *)act)->unit_index);
+            halo::units::unit_initialize_random_turn_angle(((actor *)act)->unit_index);
         }
     }
     if (((struct actor *)act)->mode_data.flee.panic > 0) {

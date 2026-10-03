@@ -18,6 +18,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -39,29 +40,10 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server,
 extern datum_index *noncollideable_cluster_first;
 extern void *noncollideable_cluster_partition;
 extern data_array *noncollideable_object_references;
-extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, uint32_t marker_word);
-extern void object_children_recurse_prune(uint32_t object_index);
-extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
 extern data_array *object_data;
-extern void object_delete(uint32_t object_index);
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern int16_t object_get_root_parent_placement(uint32_t object_index, object_placement_cursor *out_cursor);
 extern object_globals *object_globals_pointer;
-extern void object_mark_pending_delete(uint32_t object_index);
 extern uint8_t object_marker_scratch[0x6c];
 extern datum_index *object_name_list;
-extern void object_notify_children_recursive(uint32_t object_index);
-extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix);
-extern void object_remove_from_sibling_list(datum_index *slot, uint32_t target_object_index);
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
-extern void object_throttled_multiplayer_sound_event(void);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_type_definitions_notify_0x4c(uint32_t object_index, void *nodes);
-extern void object_type_definitions_notify_0x50(uint32_t object_index);
-extern uint8_t object_type_definitions_query_0x44(uint32_t object_index);
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern data_array *player_data;
 extern int32_t player_index_from_unit_index(datum_index object_index);
 extern double sqrt(double x);
@@ -143,8 +125,8 @@ void halo::objects::ObjectRef::children_recurse_prune()
         object *child = headers[halo::datum_slot(child_index)].data;
         datum_index next_index = child->next_object;
 
-        if (object_type_definitions_query_0x44(child_index) == 0) {
-            object_children_recurse_prune(child_index);
+        if (halo::objects::object_type_definitions_query_0x44(child_index) == 0) {
+            halo::objects::object_children_recurse_prune(child_index);
         }
 
         child_index = next_index;
@@ -225,7 +207,7 @@ void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player
         }
 
         {
-            object *unit = object_try_and_get(object_index, _object_mask_unit);
+            object *unit = halo::objects::object_try_and_get(object_index, _object_mask_unit);
 
             if (unit == 0 || unit->type != _object_type_biped || unit->network_role != 0 ||
                 *(int32_t *)&((unit_object *)unit)->unit.controlling_player == (int32_t)player_index) {
@@ -246,7 +228,7 @@ void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player
                 return;
             }
 
-            object_throttled_multiplayer_sound_event();
+            halo::objects::object_throttled_multiplayer_sound_event();
         }
     }
 }
@@ -266,7 +248,7 @@ void halo::objects::ObjectRef::reset_velocity_and_wake()
     obj->velocity = *global_origin3d_pointer;
     obj->angular_velocity = *global_origin3d_pointer;
     obj->flags &= ~(uint32_t)_object_at_rest_bit;
-    object_type_definitions_notify_0x50(object_index);
+    halo::objects::object_type_definitions_notify_0x50(object_index);
 }
 
 /**
@@ -280,7 +262,7 @@ void halo::objects::ObjectRef::set_position_and_orientation(real_vector3d *forwa
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
-    object_unlink_cluster_or_notify_parent(object_index);
+    halo::objects::object_unlink_cluster_or_notify_parent(object_index);
 
     if (position != 0) {
         obj->position = *position;
@@ -308,8 +290,8 @@ void halo::objects::ObjectRef::set_position_and_orientation(real_vector3d *forwa
         }
     }
 
-    object_recalculate_bounding_radius(object_index);
-    object_set_cluster_and_parent(object_index, 0);
+    halo::objects::object_recalculate_bounding_radius(object_index);
+    halo::objects::object_set_cluster_and_parent(object_index, 0);
 }
 
 /**
@@ -335,10 +317,10 @@ void halo::objects::ObjectRef::set_position_and_recalculate(real_point3d *positi
             (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf & 0x7fffffff].cluster;
     }
     obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    object_unlink_cluster_or_notify_parent(object_index);
+    halo::objects::object_unlink_cluster_or_notify_parent(object_index);
     *(real_point3d *)&((object *)obj)->position.x = *position;
-    object_set_cluster_and_parent(object_index, &location);
-    object_recalculate_bounding_radius(object_index);
+    halo::objects::object_set_cluster_and_parent(object_index, &location);
+    halo::objects::object_recalculate_bounding_radius(object_index);
 }
 
 /**
@@ -353,9 +335,9 @@ void halo::objects::ObjectRef::set_position_and_relink(real_point3d *position, b
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
-    object_unlink_cluster_or_notify_parent(object_index);
+    halo::objects::object_unlink_cluster_or_notify_parent(object_index);
     *(real_point3d *)&((object *)obj)->position.x = *position;
-    object_set_cluster_and_parent(object_index, location);
+    halo::objects::object_set_cluster_and_parent(object_index, location);
 }
 
 /**
@@ -413,10 +395,10 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
                 (*(uint32_t *)&local_player_globals->cluster_pvs[(cluster >> 5)] &
                  (1u << (cluster & 0x1f))) == 0) {
                 if ((obj->flags & _object_connected_to_map_bit) != 0) {
-                    object_delete(object_index);
+                    halo::objects::object_delete(object_index);
                 }
             } else {
-                object_mark_pending_delete(object_index);
+                halo::objects::object_mark_pending_delete(object_index);
             }
         }
     } else {
@@ -459,10 +441,10 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
             }
         }
     } else {
-        object *parent = object_try_and_get(obj->parent_object, _object_mask_all);
+        object *parent = halo::objects::object_try_and_get(obj->parent_object, _object_mask_all);
         if (parent != 0) {
 
-            object_remove_from_sibling_list((datum_index *)((uint8_t *)parent + 0x118), object_index);
+            halo::objects::object_remove_from_sibling_list((datum_index *)((uint8_t *)parent + 0x118), object_index);
         }
     }
 
@@ -620,12 +602,12 @@ void halo::objects::ObjectRef::reorient_relative_to_marker(uint32_t parent_index
     object_marker own_marker;
     object_marker parent_marker;
 
-    object_get_node_local_transform(parent_index, parent_marker_name, &parent_marker, 1);
-    object_get_node_local_transform(object_index, object_marker_name, &own_marker, 1);
-    object_unlink_cluster_or_notify_parent(object_index);
+    halo::objects::object_get_node_local_transform(parent_index, parent_marker_name, &parent_marker, 1);
+    halo::objects::object_get_node_local_transform(object_index, object_marker_name, &own_marker, 1);
+    halo::objects::object_unlink_cluster_or_notify_parent(object_index);
 
     if (object_marker_name != 0 && *object_marker_name != '\0') {
-        object_recompute_basis_from_marker_delta(obj, &own_marker, &parent_marker.node_transform);
+        halo::objects::object_recompute_basis_from_marker_delta(obj, &own_marker, &parent_marker.node_transform);
     } else {
         real_matrix4x3 inverse;
         real_vector3d *forward = &parent_marker.node_transform.forward;
@@ -646,8 +628,8 @@ void halo::objects::ObjectRef::reorient_relative_to_marker(uint32_t parent_index
         obj->up.k = inverse.up.k * up->k + inverse.left.k * up->j + inverse.forward.k * up->i;
     }
 
-    object_set_cluster_and_parent(object_index, 0);
-    object_attach_to_object(parent_index, object_index,
+    halo::objects::object_set_cluster_and_parent(object_index, 0);
+    halo::objects::object_attach_to_object(parent_index, object_index,
                             *(uint32_t *)&parent_marker.node_index);
 }
 
@@ -719,7 +701,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
         real_vector3d v;
 
         if (needs_cluster_update) {
-            object_unlink_cluster_or_notify_parent(child_index);
+            halo::objects::object_unlink_cluster_or_notify_parent(child_index);
         }
 
         parent = ((object_header *)object_data->data)[halo::datum_slot(parent_index)].data;
@@ -743,7 +725,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
         child->parent_marker_index = (uint8_t)marker_index;
 
         if (needs_cluster_update) {
-            object_set_cluster_and_parent(child_index, 0);
+            halo::objects::object_set_cluster_and_parent(child_index, 0);
             child_header = (object_header *)object_data->data + halo::datum_slot(child_index);
         }
 
@@ -752,7 +734,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
         }
         child_header->flags |= _object_header_just_created_bit;
 
-        object_recalculate_bounding_radius(child_index);
+        halo::objects::object_recalculate_bounding_radius(child_index);
     }
 }
 
@@ -772,7 +754,7 @@ void halo::objects::ObjectRef::snap_to_parent_marker_and_detach()
     object *child = headers[halo::datum_slot(object_index)].data;
     object *old_parent = headers[halo::datum_slot(child->parent_object)].data;
 
-    object_unlink_cluster_or_notify_parent(object_index);
+    halo::objects::object_unlink_cluster_or_notify_parent(object_index);
 
     {
         object *parent_node_owner = ((object_header *)object_data->data)[halo::datum_slot(child->parent_object)].data;
@@ -805,7 +787,7 @@ void halo::objects::ObjectRef::snap_to_parent_marker_and_detach()
     child->parent_marker_index = 0xff;
     child->parent_object = k_datum_index_none;
 
-    object_set_cluster_and_parent(object_index, 0);
+    halo::objects::object_set_cluster_and_parent(object_index, 0);
 
     {
         object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
@@ -844,7 +826,7 @@ void halo::objects::ObjectRef::set_in_pvs_pass_flag(uint8_t in_pvs)
         uint8_t flags = header->flags & (uint8_t)~_object_header_in_pvs_pass_bit;
         header->flags = flags;
         if ((flags & _object_header_active_bit) == 0) {
-            object_mark_pending_delete(object_index);
+            halo::objects::object_mark_pending_delete(object_index);
         }
     }
 }
@@ -868,9 +850,9 @@ void halo::objects::ObjectRef::set_collision_enabled(uint8_t enable)
 
         if (currently_disabled != requesting_disabled) {
             if (enable != 0) {
-                object_for_each_light_attachment(object_index, 0, 1);
+                halo::objects::object_for_each_light_attachment(object_index, 0, 1);
             } else {
-                object_for_each_light_attachment(object_index, 1, 0);
+                halo::objects::object_for_each_light_attachment(object_index, 1, 0);
             }
         }
     } else if (enable != 0) {
@@ -1079,11 +1061,11 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     object_marker marker_a;
     object_marker marker_b;
 
-    if (object_get_node_local_transform(object_index, marker_a_name, &marker_a, 1) == 0) {
+    if (halo::objects::object_get_node_local_transform(object_index, marker_a_name, &marker_a, 1) == 0) {
         return;
     }
 
-    if (object_get_node_local_transform(marker_b_object_index, marker_b_name, &marker_b, 1) == 0) {
+    if (halo::objects::object_get_node_local_transform(marker_b_object_index, marker_b_name, &marker_b, 1) == 0) {
         return;
     }
 
@@ -1205,7 +1187,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
         ((obj->flags & _object_outside_map_bit) == 0)) {
 
         object_placement_cursor cursor;
-        int16_t placement = object_get_root_parent_placement(object_index, &cursor);
+        int16_t placement = halo::objects::object_get_root_parent_placement(object_index, &cursor);
 
         if (placement != -1) {
             uint32_t ref = (uint32_t)(uint16_t)placement;
@@ -1243,7 +1225,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
                         object_marker marker;
                         float dx, dy, dz;
 
-                        object_get_node_local_transform(zone_cluster_head, ai_marker_name_a, &marker, 1);
+                        halo::objects::object_get_node_local_transform(zone_cluster_head, ai_marker_name_a, &marker, 1);
                         dx = obj->bounding_center.x - marker.node_transform.position.x;
                         dy = obj->bounding_center.y - marker.node_transform.position.y;
                         dz = obj->bounding_center.z - marker.node_transform.position.z;
@@ -1306,7 +1288,7 @@ void halo::objects::ObjectRef::notify_children_recursive()
             halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
         }
 
-        object_notify_children_recursive(obj->first_child_object);
+        halo::objects::object_notify_children_recursive(obj->first_child_object);
         object_index = obj->next_object;
     }
 }
@@ -1334,11 +1316,11 @@ uint8_t halo::objects::ObjectRef::reposition_to_spawn_location(real_point3d *tar
     if (hit.leaf.cluster_index == -1) {
         return 0;
     }
-    object_unlink_cluster_or_notify_parent(object_index);
+    halo::objects::object_unlink_cluster_or_notify_parent(object_index);
     obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     *(real_point3d *)&((object *)obj)->position.x = hit.point;
-    object_set_cluster_and_parent(object_index, &hit.leaf);
-    object_recalculate_bounding_radius(object_index);
+    halo::objects::object_set_cluster_and_parent(object_index, &hit.leaf);
+    halo::objects::object_recalculate_bounding_radius(object_index);
     return 1;
 }
 
@@ -1389,7 +1371,7 @@ void halo::objects::ObjectRef::notify_node_array_if_animated()
     Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if ((definition->model.tag_id.index != halo::k_word_none) && (definition->animation_graph.tag_id.index != halo::k_word_none)) {
-        object_type_definitions_notify_0x4c(object_index, (uint8_t *)obj + obj->nodes.offset);
+        halo::objects::object_type_definitions_notify_0x4c(object_index, (uint32_t)((uint8_t *)obj + obj->nodes.offset));
     }
 }
 
@@ -1432,7 +1414,7 @@ void halo::objects::ObjectRef::set_scale_and_refresh_nodes(float scale, int16_t 
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
         obj->scale = scale;
         if (((1u << (obj->type & 0x1f)) & _object_mask_no_node_functions) == 0) {
-            object_copy_default_node_transforms(object_index, ticks);
+            halo::objects::object_copy_default_node_transforms(object_index, ticks);
         }
     }
 }

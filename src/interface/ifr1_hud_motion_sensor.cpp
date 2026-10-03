@@ -1,18 +1,17 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern motion_sensor_globals *motion_sensor;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern data_array *object_data;
 extern HUDGlobals *hud_globals_tag_data;
 extern game_engine_definition *current_game_engine;
 extern float motion_sensor_sweep;
 extern float motion_sensor_sweep_scale;
 extern double fmod(double x, double y);
-extern object *object_iterator_next(object_iterator *iterator);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
 extern void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index,
                                     motion_sensor_blip *blip);
@@ -92,7 +91,7 @@ void HudMotionSensor::update(void)
             cameras[local_player_index].y = 0.0f;
             cameras[local_player_index].z = 0.0f;
             if (unit_index != (datum_index)-1) {
-                unit_get_camera_position(unit_index, &cameras[local_player_index]);
+                halo::units::unit_get_camera_position(unit_index, &cameras[local_player_index]);
             }
             frame->blip_count = 0;
             for (i = 0; i < 0x10; i++) {
@@ -107,14 +106,14 @@ void HudMotionSensor::update(void)
         walk.iterator.index = 0;
         walk.iterator.handle = (datum_index)-1;
         walk.signature = 0x86868686;
-        while (object_iterator_next(&walk.iterator) != 0 && !all_full) {
+        while (halo::objects::object_iterator_next(&walk.iterator) != 0 && !all_full) {
             datum_index object_index = walk.iterator.handle;
             uint8_t *header = 0;
             int16_t full_players;
 
             if (object_index != (datum_index)-1 && (int16_t)object_index >= 0 &&
-                (int16_t)object_index < object_data->maximum_count) {
-                uint8_t *candidate = (uint8_t *)object_data->data + (int16_t)object_index * object_data->size;
+                (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
+                uint8_t *candidate = (uint8_t *)halo::objects::globals().object_data->data + (int16_t)object_index * halo::objects::globals().object_data->size;
                 int16_t salt = (int16_t)((uint32_t)object_index >> 16);
                 if (*(int16_t *)candidate != 0 && (salt == 0 || *(int16_t *)candidate == salt)) {
                     header = candidate;
@@ -125,7 +124,7 @@ void HudMotionSensor::update(void)
                 continue;
             }
             {
-                real_point3d position = *(real_point3d *)((uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data + 0xa0);
+                real_point3d position = *(real_point3d *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data + 0xa0);
 
                 full_players = 0;
                 for (k = 0; k < count; k++) {

@@ -37,6 +37,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -220,7 +221,6 @@ extern "C" { extern multiplayer_map_table_entry multiplayer_maps[k_main_multipla
 extern "C" { extern console_globals console_globals_data; }
 extern "C" { extern int32_t game_time_force_single_tick; }
 extern "C" { extern uint8_t main_unknown_696570; }
-extern "C" { extern data_array *object_data; }
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern input_event_queue input_event_queue_active; }
 extern "C" { extern char network_banlist_full_path[0x104]; }
@@ -639,7 +639,7 @@ void MainLoop::loop(void)
                     update_history = (player_update_history *)network_client->update_history;
                     if (local_player->unit != k_datum_index_none && update_history != 0 &&
                         update_history->tail != 0) {
-                        unit_header = (object_header *)object_data->data + datum_slot(local_player->unit);
+                        unit_header = (object_header *)halo::objects::globals().object_data->data + datum_slot(local_player->unit);
                         unit = (uint8_t *)unit_header->data;
                         player_update_history_log_write(0x10, 0,
                             "[%d]: Update [%d] ([%d]): ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",

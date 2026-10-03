@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -16,7 +17,6 @@ extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t cre
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const real_vector3d *global_down3d_pointer;
 extern char *particle_impact_vector_names[2];
-extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
@@ -24,10 +24,8 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 extern uint16_t effect_random_uint16(void);
 extern int effect_random_int_between(int16_t minimum, int16_t maximum);
 extern real particle_current_radius(datum_index particle_handle);
-extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color, real_vector3d *base_map_color, uint8_t wait_for_textures);
 extern void particle_impact(datum_index particle_handle);
 extern double sqrt(double x);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t any_local_player_within_10_units(real_point3d *position);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
@@ -239,7 +237,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     if (creation_data->object_index == (datum_index)0xffffffff) {
         position = creation_data->position;
     } else if (creation_data->first_person == 0) {
-        object *obj = ((object_header *)object_data->data)[creation_data->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[creation_data->object_index & 0xffff].data;
         real_matrix4x3 *marker = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset +
             creation_data->marker_index * 0x34);
         halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
@@ -330,7 +328,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             if ((tag->flags & 0x200) == 0 || (tag->flags & 0x40) != 0) {
                 real_vector3d ambient, incident;
 
-                object_sample_ambient_lightmap_point(&position, &ambient, &incident, 0);
+                halo::objects::object_sample_ambient_lightmap_point(&position, &ambient, &incident, 0);
                 if ((tag->flags & 0x200) == 0) {
                     self->color.red = self->color.red * ambient.i;
                     self->color.green = self->color.green * ambient.j;
@@ -456,7 +454,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         if (self->object_index == k_datum_index_none) {
             return 1;
         }
-        if (object_try_and_get(self->object_index, 0xffffffff) != 0) {
+        if (halo::objects::object_try_and_get(self->object_index, 0xffffffff) != 0) {
             return 1;
         }
         halo::memory::datum_delete(particle_data, particle_handle);
@@ -523,7 +521,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         real friction, mass_related, decay;
 
         if ((self->flags & _particle_first_person_bit) == 0 &&
-            object_try_and_get(self->object_index, 0xffffffff) == 0) {
+            halo::objects::object_try_and_get(self->object_index, 0xffffffff) == 0) {
             halo::memory::datum_delete(particle_data, particle_handle);
             return 0;
         }
@@ -612,7 +610,7 @@ void particle_ref::refresh_structure_locations()
             point = (real_point3d *)(first_person_weapon_interfaces + entry->first_person_weapon_index * 0x1ea0 +
                 entry->marker_index * 0x34 + 0x10b4);
         } else {
-            uint8_t *owner = (uint8_t *)object_try_and_get(entry->object_index, 0xffffffff);
+            uint8_t *owner = (uint8_t *)halo::objects::object_try_and_get(entry->object_index, 0xffffffff);
 
             if (owner == 0) {
                 halo::memory::datum_delete(particle_data, handle);

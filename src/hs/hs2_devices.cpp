@@ -2,6 +2,7 @@
 #include "halo/devices/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 
 #ifdef __cplusplus
@@ -11,7 +12,6 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern data_array *object_data;
 #ifdef __cplusplus
 }
 #endif
@@ -35,7 +35,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
     uint8_t result = 0;
 
     if (device != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
         uint16_t group = *(uint16_t *)(object + 0x204);
 
         if (group != halo::k_word_none) {
@@ -62,7 +62,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
     datum_index device = (datum_index)arguments[0];
 
     if (device != k_datum_index_none) {
-        uint16_t group = *(uint16_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x204);
+        uint16_t group = *(uint16_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x204);
 
         if (group != halo::k_word_none) {
             halo::devices::device_group_set_value_immediate(group, *(float *)&arguments[1]);
@@ -89,7 +89,7 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
     float power = *(float *)&arguments[1];
 
     if (device != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
 
         *(uint32_t *)(object + 0x1f4) |= 4;
         *(float *)(object + 0x1fc) = power;

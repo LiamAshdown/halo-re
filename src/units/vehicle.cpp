@@ -8,9 +8,9 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern int32_t k_vehicle_minimum_age_ticks;
@@ -23,8 +23,6 @@ extern double fabs(double x);
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step);
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target, float rate);
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points, real_vector3d *extra_force, real_vector3d *extra_torque);
-extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern char s_blur_permutation[];
 }
 
@@ -34,7 +32,7 @@ namespace vehicle_create_local {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 
 static uint8_t *object_definition(uint8_t *object)
@@ -86,7 +84,7 @@ uint8_t VehicleView::create()
 uint8_t VehicleView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
 
     if (stamp == -1) {
@@ -108,7 +106,7 @@ uint8_t VehicleView::is_old_enough()
 void VehicleView::reset_state()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
 
     vehicle->flags = 0;
@@ -136,7 +134,7 @@ void VehicleView::reset_state()
     vehicle->active_marker_mask = 0;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
@@ -353,7 +351,7 @@ uint32_t VehicleView::update()
                     dd.location_cluster_index = -1;
                     dd.random_blend = 1.0f;
                     dd.multiplier = 1.0f;
-                    object_apply_damage(&dd, child, -1, -1, -1, 0);
+                    halo::objects::object_apply_damage(&dd, child, -1, -1, -1, 0);
                     child = ((struct object *)child_obj)->next_object;
                 }
             }
@@ -369,7 +367,7 @@ uint32_t VehicleView::update()
         uint8_t over_blur = (uint8_t)(((struct Vehicle *)tag)->blur_speed <= (float)fabs(((struct vehicle_object *)obj)->vehicle.forward_velocity));
 
         if (over_blur != ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 1)) {
-            object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);
+            halo::objects::object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);
             if (over_blur) {
                 set_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::over_blur_speed);
             } else {

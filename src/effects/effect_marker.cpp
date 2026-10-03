@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern const real_vector3d *global_down3d_pointer;
@@ -15,7 +16,6 @@ extern uint8_t *effect_marker_callback_context;
 extern data_array *effect_data;
 extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
-extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 }
 
@@ -265,7 +265,7 @@ real_matrix4x3 * effect_view::resolve_marker_transform(int16_t marker)
     }
 
     {
-        object *obj = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & 0xffff].data;
         return (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset + node_index * 0x34);
     }
 }

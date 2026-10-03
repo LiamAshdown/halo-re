@@ -8,9 +8,9 @@
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
 extern float camera_forward_x;
 extern float camera_forward_y;
 extern float camera_forward_z;
@@ -20,7 +20,6 @@ extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern float curve_apply_exponent(float value, float exponent);
 extern real_vector3d *global_white_color;
 extern data_array *light_volume_instances;
-extern void light_volume_render_procedure(uint32_t object_index, datum_index light_volume_handle);
 extern data_array *lightning_instances;
 extern uint8_t *object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
@@ -174,7 +173,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
              *(float *)(*(int32_t *)(function_context + 4) - 4 + *(int16_t *)(tag + 0x44) * 4) > 0.0f)) {
             object_marker marker;
 
-            object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
+            halo::objects::object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
 
             if (*(float *)(tag + 0x38) == 0.0f ||
                 camera_forward_y * (marker.node_transform.position.y - camera_position_y) +
@@ -182,7 +181,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
                 camera_forward_z * (marker.node_transform.position.z - camera_position_z) <
                 *(float *)(tag + 0x38)) {
 
-                halo::rasterizer::rasterizer_lens_flare_occlusion_sample_add((void *)light_volume_render_procedure,
+                halo::rasterizer::rasterizer_lens_flare_occlusion_sample_add((void *)halo::objects::light_volume_render_procedure,
                     &marker.node_transform.position, object_index, light_volume_handle);
             }
         }
@@ -243,8 +242,8 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
     if (*(int16_t *)(tag + 0x6e) <= 0 || *(int32_t *)(tag + 0x120) <= 0) {
         return;
     }
-    frame = object_attachment_get_blended_marker(object_index, tag);
-    object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
+    frame = halo::objects::object_attachment_get_blended_marker(object_index, tag);
+    halo::objects::object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
     forward = &marker.node_transform.forward;
     origin = &marker.node_transform.position;
 
@@ -259,7 +258,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
         fade = clamp01((distance - *(float *)(tag + 0x38)) / (*(float *)(tag + 0x34) - *(float *)(tag + 0x38)));
     }
     brightness = clamp01((1.0f - facing) * *(float *)(tag + 0x3c) + facing * *(float *)(tag + 0x40)) * fade;
-    if (object_function_get_value(object_index, (int16_t)(*(uint16_t *)(tag + 0x44) - 1), &function_value)) {
+    if (halo::objects::object_function_get_value(object_index, (int16_t)(*(uint16_t *)(tag + 0x44) - 1), &function_value)) {
         brightness *= function_value;
     }
     if (brightness <= 0.0f) {
@@ -280,10 +279,10 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
         int32_t i;
 
         for (i = 0; i < count; i++) {
-            float t = curve_apply_exponent((float)i / last, *(float *)(frame + 0x14));
-            float radius_t = curve_apply_exponent(t, *(float *)(frame + 0x44));
+            float t = halo::objects::curve_apply_exponent((float)i / last, *(float *)(frame + 0x14));
+            float radius_t = halo::objects::curve_apply_exponent(t, *(float *)(frame + 0x44));
             float radius = (1.0f - radius_t) * *(float *)(frame + 0x3c) + radius_t * *(float *)(frame + 0x40);
-            float alpha_t = curve_apply_exponent(t, *(float *)(frame + 0x8c));
+            float alpha_t = halo::objects::curve_apply_exponent(t, *(float *)(frame + 0x8c));
             float along = t * *(float *)(frame + 0x18) + *(float *)(frame + 0x10);
             real_point3d point;
             ColorARGB color;
@@ -292,7 +291,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             point.x = forward->i * along + origin->x;
             point.y = forward->j * along + origin->y;
             point.z = forward->k * along + origin->z;
-            color_t = curve_apply_exponent(t, *(float *)(frame + 0x88));
+            color_t = halo::objects::curve_apply_exponent(t, *(float *)(frame + 0x88));
             halo::bitmaps::color_interpolate((ColorRGB *)(frame + 0x7c), (ColorRGB *)(frame + 0x6c), (ColorRGB *)&color.red,
                 (color_interpolation_flags)(tag[0x22] & 3), color_t);
             color.alpha = ((1.0f - alpha_t) * *(float *)(frame + 0x68) + alpha_t * *(float *)(frame + 0x78)) *
@@ -425,7 +424,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         object_marker root_marker;
-        int16_t markers_ok = (int16_t)object_get_node_local_transform(
+        int16_t markers_ok = (int16_t)halo::objects::object_get_node_local_transform(
             object_index, (char *)*(uint32_t *)(tag + 0x9c), &root_marker, 1);
         if (markers_ok <= 0) {
             return;
@@ -463,11 +462,11 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                 if (first_marker) {
                     object_marker m;
                     real_point3d pos;
-                    object_get_node_local_transform(object_index, (char *)marker_tag, &m, 1);
+                    halo::objects::object_get_node_local_transform(object_index, (char *)marker_tag, &m, 1);
                     pos = m.node_transform.position;
                     verts[1] = pos.y;
                     verts[2] = pos.z;
-                    antenna_tip_jitter((real_vector3d *)((uint8_t *)&m + 0x1c)  ,
+                    halo::objects::antenna_tip_jitter((real_vector3d *)((uint8_t *)&m + 0x1c)  ,
                                         &pos, &m.node_transform);
                     node_count = 0;
                     first_marker = 0;
@@ -481,13 +480,13 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                     int32_t base = node_count;
                     int32_t end = base + (1 << (octaves & 0x1f));
 
-                    object_get_node_local_transform(object_index, (char *)next_marker_tag, &m, 1);
+                    halo::objects::object_get_node_local_transform(object_index, (char *)next_marker_tag, &m, 1);
                     pos = m.node_transform.position;
 
                     verts[end * 8 + 0] = pos.x;
                     verts[end * 8 + 1] = pos.y;
                     verts[end * 8 + 2] = pos.z;
-                    antenna_tip_jitter((real_vector3d *)((uint8_t *)&m + 0x1c), &pos, &m.node_transform);
+                    halo::objects::antenna_tip_jitter((real_vector3d *)((uint8_t *)&m + 0x1c), &pos, &m.node_transform);
                     verts[end * 8 + 3] = *(float *)(next_marker_tag + 0x84);
                     verts[end * 8 + 4] = *(float *)(next_marker_tag + 0x88);
                     verts[end * 8 + 5] = *(float *)(next_marker_tag + 0x8c);

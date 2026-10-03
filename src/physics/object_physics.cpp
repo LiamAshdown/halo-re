@@ -18,6 +18,8 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -114,17 +116,12 @@ void ObjectPhysics::blend_friction_axes(int16_t friction_type, float parallel_sc
 
 }
 
-extern "C" { extern data_array *object_data; }
 extern "C" { extern Globals *global_globals; }
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern float k_impact_damage_scale_table[]; }
-extern "C" { extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out); }
 extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
 extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
 extern "C" { extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); }
-extern "C" { extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse); }
-extern "C" { extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location); }
-extern "C" { extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane); }
 extern "C" { extern double sqrt(double x); }
 namespace halo::physics {
 
@@ -151,7 +148,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     float relative_speed;
     float clamped_speed;
 
-    unit_get_crouch_height_offset(contact_point, candidate_object_index, &sample[0], &sample[1]);
+    halo::units::unit_get_crouch_height_offset(contact_point, candidate_object_index, &sample[0], &sample[1]);
 
     if (!halo::physics::object_collision_context_test_point((object_collision_context *)self_object_index, contact_point)) {
         physics_model model;
@@ -178,8 +175,8 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
         }
     }
 
-    self_obj = ((object_header *)object_data->data)[*self_object_index & 0xffff].data;
-    candidate_obj = ((object_header *)object_data->data)[candidate_object_index & 0xffff].data;
+    self_obj = ((object_header *)halo::objects::globals().object_data->data)[*self_object_index & 0xffff].data;
+    candidate_obj = ((object_header *)halo::objects::globals().object_data->data)[candidate_object_index & 0xffff].data;
     self_center = &self_obj->bounding_center;
 
     relative_speed = (float)sqrt((double)(self_obj->velocity.k * self_obj->velocity.k +
@@ -198,7 +195,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     impulse.j = (impulse.j * clamped_speed + self_obj->velocity.j) * 0.5f;
     impulse.k = (clamped_speed * impulse.k + self_obj->velocity.k) * 0.5f;
 
-    unit_apply_impulse(candidate_object_index, &impulse);
+    halo::units::unit_apply_impulse(candidate_object_index, &impulse);
 
     contact_point->x = impulse.i + impulse.i + contact_point->x;
     contact_point->y = impulse.j + impulse.j + contact_point->y;
@@ -212,7 +209,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
         if (recovered) {
             recovered_position.z = recovered_position.z - sample[1];
 
-            object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
+            halo::objects::object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
 
             if (*self_object_index == *(uint32_t *)((uint8_t *)candidate_obj + 0x32c) &&
                 game_time->game_time <=
@@ -241,7 +238,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             object *responsible_obj = self_obj;
 
             if (driver != 0xffffffff) {
-                responsible_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
+                responsible_obj = ((object_header *)halo::objects::globals().object_data->data)[driver & 0xffff].data;
                 responsible = driver;
             }
 
@@ -264,7 +261,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             dd.damage_effect_tag = impact_damage_tag_id;
 
             halo::math::vector3d_normalize_with_length(dd.direction);
-            object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
         }
 
         breakable_damage_tag_id = *(int32_t *)(collision_damage_tag + 0x58);
@@ -286,7 +283,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             dd.direction.k = impulse.k * -1.0f;
             dd.damage_effect_tag = breakable_damage_tag_id;
 
-            object_apply_damage(&dd, *self_object_index, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(&dd, *self_object_index, -1, -1, -1, 0);
         }
     }
 
@@ -318,7 +315,7 @@ namespace halo::physics {
  */
 void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, powered_mass_point_state *powered_states, uint32_t mass_points_address, real_vector3d *out_force, real_vector3d *out_torque)
 {
-    object *obj = ((object_header *)object_data->data)[context->object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[context->object_index & 0xffff].data;
     Physics *definition = (Physics *)context->definition;
     float gravity_scale = k_physics_gravity * definition->gravity_scale;
     mass_point_state *mass_points = (mass_point_state *)mass_points_address;
@@ -659,8 +656,6 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
 }
 
-extern "C" { extern void object_get_position(real_point3d *out, uint32_t object_index); }
-extern "C" { extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); }
 namespace halo::physics {
 
 /**
@@ -674,7 +669,7 @@ namespace halo::physics {
  */
 uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_context *out_context)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
     int32_t physics_tag_id = *(int32_t *)((uint8_t *)object_tag_data + 0x8c);
     void *physics_definition;
@@ -688,8 +683,8 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
     out_context->definition = physics_definition;
     out_context->scale = 1.0f;
 
-    object_get_position((real_point3d *)&out_context->position_x, object_index);
-    object_get_orientation((real_vector3d *)&out_context->forward_i, object_index, (real_vector3d *)&out_context->up_i);
+    halo::objects::object_get_position((real_point3d *)&out_context->position_x, object_index);
+    halo::objects::object_get_orientation((real_vector3d *)&out_context->forward_i, object_index, (real_vector3d *)&out_context->up_i);
     halo::math::vector3d_cross_product(*((real_vector3d *)&out_context->left_i), *((const real_vector3d *)&out_context->forward_i),
                            *((const real_vector3d *)&out_context->up_i));
     {
@@ -708,7 +703,6 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
 
 }
 
-extern "C" { extern uint16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); }
 namespace halo::physics {
 
 /**
@@ -739,15 +733,15 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
     }
 
     {
-        object *self = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *self = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
-        count = (int16_t)object_find_in_sphere(1, (uint32_t)(has_collision_context != 0) + 2, &self->location_leaf_index,
+        count = (int16_t)halo::objects::object_find_in_sphere(1, (uint32_t)(has_collision_context != 0) + 2, &self->location_leaf_index,
             &self->bounding_center, self->bounding_radius, candidates, 0x800);
     }
 
     for (i = 0; i < count; i++) {
         uint32_t candidate_index = candidates[i];
-        object_header *header = &((object_header *)object_data->data)[candidate_index & 0xffff];
+        object_header *header = &((object_header *)halo::objects::globals().object_data->data)[candidate_index & 0xffff];
 
         if (header->type == 0) {
             if ((*(uint16_t *)((uint8_t *)header->data + 0x106) & 4) == 0) {
@@ -770,7 +764,6 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
 }
 
 extern "C" { extern uint8_t physics_disable_integration; }
-extern "C" { extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); }
 namespace halo::physics {
 
 /**
@@ -789,7 +782,7 @@ namespace halo::physics {
  */
 void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, mass_point_state *mass_point_states, real_vector3d *torque, real_vector3d *force)
 {
-    object *self = ((object_header *)object_data->data)[context->object_index & 0xffff].data;
+    object *self = ((object_header *)halo::objects::globals().object_data->data)[context->object_index & 0xffff].data;
     Physics *definition = (Physics *)context->definition;
     real inverse_mass = 1.0f / definition->mass;
 
@@ -842,7 +835,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
         commit_position.z = new_position.k;
 
         if (physics_disable_integration != 0) {
-            object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
+            halo::objects::object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
         } else {
             int32_t substep;
             uint32_t hit_mask = 0;
@@ -904,7 +897,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
                 }
 
                 if (any_hit == 0) {
-                    object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
+                    halo::objects::object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
                     break;
                 }
 
@@ -986,7 +979,6 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
 }
 
 extern "C" { extern float k_default_resting_plane[4]; }
-extern "C" { extern void object_set_shield_depleted_flag(uint32_t object_index); }
 namespace halo::physics {
 
 /**
@@ -1030,7 +1022,7 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
                 halo::physics::physics_resolve_material_type(contact.object_index, contact.material_type);
 
             is_scenery = contact.object_index != 0xffffffff &&
-                (1u << (((object_header *)object_data->data)[contact.object_index & 0xffff].type &
+                (1u << (((object_header *)halo::objects::globals().object_data->data)[contact.object_index & 0xffff].type &
                         0x1f) & 0x40) != 0;
 
             if ((contact.surface_flags & 8) == 0 &&
@@ -1041,7 +1033,7 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
             }
 
             if (contact.object_index != 0xffffffff) {
-                object_set_shield_depleted_flag(contact.object_index);
+                halo::objects::object_set_shield_depleted_flag(contact.object_index);
             }
         }
     }
@@ -1092,7 +1084,6 @@ void ObjectPhysics::mass_point_update_orientation(real_vector3d *axis, real_vect
 }
 
 extern "C" { extern float k_physics_collision_damping; }
-extern "C" { extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index); }
 namespace halo::physics {
 
 /**
@@ -1191,8 +1182,8 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
                     contact_z = delta_z * contact_distance + self_world_position.z;
 
                     {
-                        object *self_object = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
-                        object *other_object = ((object_header *)object_data->data)[other->object_index & 0xffff].data;
+                        object *self_object = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & 0xffff].data;
+                        object *other_object = ((object_header *)halo::objects::globals().object_data->data)[other->object_index & 0xffff].data;
 
                         self_offset_x = contact_x - self_object->position.x;
                         self_offset_y = contact_y - self_object->position.y;
@@ -1223,10 +1214,10 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
     }
 
     if (overlapped != 0) {
-        object *self_object = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
-        object *other_object = ((object_header *)object_data->data)[other->object_index & 0xffff].data;
+        object *self_object = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & 0xffff].data;
+        object *other_object = ((object_header *)halo::objects::globals().object_data->data)[other->object_index & 0xffff].data;
 
-        if (self_object->network_role != 1 || unit_any_flagged_seat_occupied(self->object_index) == 1) {
+        if (self_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(self->object_index) == 1) {
             vehicle_data *self_vehicle = (vehicle_data *)((uint8_t *)self_object + k_unit_object_size);
             self_vehicle->accumulated_force.i += self_force.i;
             self_vehicle->accumulated_force.j += self_force.j;
@@ -1239,7 +1230,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
         }
 
         if (other_definition->radius <= 0.0f &&
-            (other_object->network_role != 1 || unit_any_flagged_seat_occupied(other->object_index) == 1)) {
+            (other_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(other->object_index) == 1)) {
             vehicle_data *other_vehicle = (vehicle_data *)((uint8_t *)other_object + k_unit_object_size);
             other_vehicle->accumulated_force.i += other_force.i;
             other_vehicle->accumulated_force.j += other_force.j;
@@ -1378,7 +1369,7 @@ namespace halo::physics {
  */
 void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points, real_vector3d *extra_force, real_vector3d *extra_torque)
 {
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[((object *)obj)->definition_tag & 0xffff].data;
     Physics *physics = (Physics *)halo::cache::globals().tag_instances[*(datum_index *)&object_tag->physics.tag_id & 0xffff].data;
     object_physics_context context;
@@ -1405,7 +1396,7 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
         }
     }
     halo::physics::object_physics_compute_mass_point_forces(&context, powered_states, mass_points, &force, &torque);
-    obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     force.i += *(float *)(obj + 0x508);
     force.j += *(float *)(obj + 0x50c);
     force.k += *(float *)(obj + 0x510);

@@ -9,12 +9,12 @@
 #include "objects.h"
 
 #include "halo/game/game1_kill_feed.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern uint8_t *network_server;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t *machine_table;
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
@@ -40,7 +40,7 @@ void KillFeed::notify_kill_event(uint32_t player_index, int32_t hash_key, int32_
 
     fields[0] = 0;
     if (hash_key != -1) {
-        fields[0] = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key);
+        fields[0] = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key);
         if (fields[0] == -1) {
             fields[0] = 0;
         }

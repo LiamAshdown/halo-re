@@ -6,9 +6,10 @@
 #include "halo/physics/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern data_array *player_data;
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -17,22 +18,17 @@ extern int32_t camera_observer_target_compare(const observer_target_candidate *a
 extern char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *observer_position, real_point3d *target_position, datum_index target_object);
 extern double sin(double x);
 extern double cos(double x);
-extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count, int16_t *cluster_indices, int16_t max_output, datum_index *out_objects);
 extern uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, datum_index start_object, real_point3d *observer_position, real_vector3d *facing, real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object, int16_t observer_team, int16_t capacity, observer_target_candidate *out);
 extern player_globals *local_player_globals;
 extern player_control_globals *player_control_globals_ptr;
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, observer_target_candidate *out);
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector, real_point3d *reference_point, real_point3d *out_closest);
 extern double acos(double x);
-extern datum_index object_get_root_object_index(datum_index object_index);
 extern Globals *global_globals;
 extern real distance_falloff_fraction(real value, real max_range);
-extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
 namespace halo::game {
@@ -59,7 +55,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
     count = 0;
     object_index = start_object;
     do {
-        obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
         type_bit = 1u << (obj->type & 0x1f);
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
             *(real *)((uint8_t *)obj + 0x37c) < 1.0f) {
@@ -162,7 +158,7 @@ int16_t CameraObserver::generate_target_candidates(observer_target_cone *cone, i
 
     collected_clusters = halo::structures::cluster_flood_fill_with_predicate(observer_position, facing, max_distance,
                                       sin_max_angle, cos_max_angle, 0x200, cluster_indices, start_cluster);
-    cluster_count = object_collect_in_clusters(1, collected_clusters, cluster_indices, 0x800,
+    cluster_count = halo::objects::object_collect_in_clusters(1, collected_clusters, cluster_indices, 0x800,
                                                cluster_heads);
 
     total = 0;
@@ -239,8 +235,8 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
     h2 = candidate.offset.i * candidate.offset.i + candidate.offset.j * candidate.offset.j;
     out_yaw_pitch[1] = (real)atan2((double)candidate.offset.k, sqrt((double)h2));
 
-    object_get_root_object_velocities(unit_index, &player_velocity, (real_vector3d *)0);
-    object_get_root_object_velocities(candidate.object, &target_velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(unit_index, &player_velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(candidate.object, &target_velocity, (real_vector3d *)0);
     dx = target_velocity.i - player_velocity.i;
     dy = target_velocity.j - player_velocity.j;
     dz = target_velocity.k - player_velocity.k;
@@ -335,7 +331,7 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     if (current != k_datum_index_none) {
         do {
             root = current;
-            current = ((object_header *)object_data->data)[current & 0xffff].data->parent_object;
+            current = ((object_header *)halo::objects::globals().object_data->data)[current & 0xffff].data->parent_object;
         } while (current != k_datum_index_none);
     }
 
@@ -349,8 +345,8 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     if (*(int16_t *)scratch != 3) {
         return 0;
     }
-    if (object_get_root_object_index(*(datum_index *)(scratch + 0x38)) ==
-        object_get_root_object_index(target_object)) {
+    if (halo::objects::object_get_root_object_index(*(datum_index *)(scratch + 0x38)) ==
+        halo::objects::object_get_root_object_index(target_object)) {
         return 1;
     }
     return 0;
@@ -402,7 +398,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
         out->weight_secondary = distance_falloff_fraction(angle, cone->angle_b) *
                                  distance_falloff_fraction(out->distance, cone->distance_b);
         if (0.0f < out->weight_secondary) {
-            target_object = ((object_header *)object_data->data)[target & 0xffff].data;
+            target_object = ((object_header *)halo::objects::globals().object_data->data)[target & 0xffff].data;
             target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & 0xffff].data;
             if ((target_tag->unit_flags & 0x80000) != 0) {
                 out->weight_secondary = out->weight_secondary *
@@ -431,13 +427,13 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
     out->seat_index = -1;
 
     if (unit != k_datum_index_none) {
-        object *u = (object *)(*(void **)((uint8_t *)object_data->data +
-            (uint32_t)(uint16_t)unit * object_data->size + 8));
+        object *u = (object *)(*(void **)((uint8_t *)halo::objects::globals().object_data->data +
+            (uint32_t)(uint16_t)unit * halo::objects::globals().object_data->size + 8));
 
-        unit_get_camera_position(unit, &out->position);
+        halo::units::unit_get_camera_position(unit, &out->position);
 
         if (u->parent_object != k_datum_index_none) {
-            object *parent = object_try_and_get(u->parent_object, _object_mask_vehicle);
+            object *parent = halo::objects::object_try_and_get(u->parent_object, _object_mask_vehicle);
 
             if (parent != 0) {
                 uint8_t *vehicle_tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)parent->definition_tag].data;
@@ -449,8 +445,8 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
                 out->marker_offset = seat + 0x84;
                 out->unit = u->parent_object;
                 out->seat_index = seat_index;
-                u = (object *)(*(void **)((uint8_t *)object_data->data +
-                    (uint32_t)(uint16_t)u->parent_object * object_data->size + 8));
+                u = (object *)(*(void **)((uint8_t *)halo::objects::globals().object_data->data +
+                    (uint32_t)(uint16_t)u->parent_object * halo::objects::globals().object_data->size + 8));
             }
         }
         if (out->seat_index == -1) {

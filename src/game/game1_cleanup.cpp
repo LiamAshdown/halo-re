@@ -14,14 +14,10 @@
 #include "halo/game/game1_cleanup.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
-extern data_array *object_data;
-extern object *object_iterator_next(object_iterator *iterator);
-extern void object_delete(datum_index object_index);
-extern void object_delete_unparented(datum_index object_index);
-extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern game_engine_definition *current_game_engine;
@@ -48,13 +44,13 @@ void ObjectCleanup::cleanup_dropped_objects(void)
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
         item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
         if ((int32_t)item->held_game_time < now - 900 &&
             (item->flags & _item_in_inventory_bit) == 0) {
-            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, object_data);
+            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
             uint8_t wake_flag = 0;
 
             if (hdr != 0) {
@@ -65,11 +61,11 @@ void ObjectCleanup::cleanup_dropped_objects(void)
             if ((hdr == 0 || (1u << hdr->type) != _object_mask_weapon ||
                  hdr->data == 0 || wake_flag == 0) &&
                 (obj->network_role != 1 && (item->flags & 0x40) == 0)) {
-                object_delete(iterator.handle);
+                halo::objects::object_delete(iterator.handle);
             }
         }
 
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 
     iterator.type_mask = _object_mask_biped;
@@ -77,17 +73,17 @@ void ObjectCleanup::cleanup_dropped_objects(void)
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
         if (900 < *(int16_t *)&((struct object *)obj)->dead_at_rest_ticks &&
             (*(uint8_t *)&((object *)obj)->vitality_flags & 4) != 0) {
             if (obj->network_role == 0) {
-                object_delete_unparented(iterator.handle);
+                halo::objects::object_delete_unparented(iterator.handle);
             } else if (obj->network_role == 3) {
-                object_delete_recursive(iterator.handle, 0);
+                halo::objects::object_delete_recursive(iterator.handle, 0);
             }
         }
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 }
 
@@ -107,15 +103,15 @@ void ObjectCleanup::cleanup_stray_items(void)
     iter.index = 0;
     iter.handle = (datum_index)0xffffffff;
 
-    obj = object_iterator_next(&iter);
+    obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
         if (network_game_mode != 1 || obj->network_role == 3) {
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
 
             if (iter.handle != (datum_index)0xffffffff && index16 >= 0 &&
-                index16 < object_data->maximum_count) {
+                index16 < halo::objects::globals().object_data->maximum_count) {
                 object_header *hdr = (object_header *)
-                    ((uint8_t *)object_data->data + (int32_t)object_data->size * index16);
+                    ((uint8_t *)halo::objects::globals().object_data->data + (int32_t)halo::objects::globals().object_data->size * index16);
                 int16_t salt = (int16_t)((uint32_t)iter.handle >> 16);
 
                 if (hdr->identifier != 0 &&
@@ -136,16 +132,16 @@ void ObjectCleanup::cleanup_stray_items(void)
                 item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
                 if ((item->flags & (_item_in_inventory_bit | _item_unknown_40_bit)) == 0) {
                     if (obj->network_role == 0) {
-                        object_delete_unparented(iter.handle);
+                        halo::objects::object_delete_unparented(iter.handle);
                     } else if (obj->network_role != 3) {
                         goto next;
                     }
-                    object_delete_recursive(iter.handle, 0);
+                    halo::objects::object_delete_recursive(iter.handle, 0);
                 }
             }
         }
 next:
-        obj = object_iterator_next(&iter);
+        obj = halo::objects::object_iterator_next(&iter);
     }
 }
 
@@ -166,15 +162,15 @@ void ObjectCleanup::cleanup_stray_projectiles(void)
     iter.index = 0;
     iter.handle = (datum_index)0xffffffff;
 
-    obj = object_iterator_next(&iter);
+    obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
         if (obj->network_role == 0) {
-            object_delete_unparented(iter.handle);
-            object_delete_recursive(iter.handle, 0);
+            halo::objects::object_delete_unparented(iter.handle);
+            halo::objects::object_delete_recursive(iter.handle, 0);
         } else if (obj->network_role == 3) {
-            object_delete_recursive(iter.handle, 0);
+            halo::objects::object_delete_recursive(iter.handle, 0);
         }
-        obj = object_iterator_next(&iter);
+        obj = halo::objects::object_iterator_next(&iter);
     }
 }
 
@@ -200,7 +196,7 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
         return;
     }
 
-    unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
     unit_obj->shield_vitality = 0.0f;
     unit_obj->maximum_shield_vitality = 0.0f;
 }
@@ -236,7 +232,7 @@ void ObjectCleanup::flag_local_player_units(void)
                     iterator.index = k_datum_index_none;
                     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 } else {
-                    unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
+                    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
                     *((uint8_t *)unit_obj + 0x107) |= 0x20;
                 }
             }

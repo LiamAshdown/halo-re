@@ -7,19 +7,15 @@
 #include "halo/effects/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
 extern uint8_t particle_systems_enabled;
-extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color, real_vector3d *base_map_color, uint8_t wait_for_textures);
-extern data_array *object_data;
 extern const ColorARGB *global_white_argb;
 extern const ColorRGB *global_white_color;
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
-extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern real_point3d *global_zero_vector3d_pointer;
@@ -291,7 +287,7 @@ datum_index particle_system_ref::new_at_point(uint32_t definition_index, real_po
             system->scale = scale;
             system->flags |= _particle_system_emitting_bit;
 
-            object_sample_ambient_lightmap_point(&system->position,
+            halo::objects::object_sample_ambient_lightmap_point(&system->position,
                 (real_vector3d *)&system->ambient_color, &incident_scratch, 0);
 
             if (!halo::effects::particle_system_new_type_states(handle)) {
@@ -315,7 +311,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
     if (particle_systems_enabled != 0) {
         handle = halo::memory::datum_new(particle_system_data);
         if (handle != (datum_index)0xffffffff) {
-            object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+            object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
             ObjectAttachment *attachment = (ObjectAttachment *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[
                 obj->definition_tag & 0xffff].data + 0x144) + attachment_index * 0x48);
             particle_system *system =
@@ -337,10 +333,10 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
                 system->color.alpha = 1.0f;
             }
 
-            object_get_node_local_transform(object_index, attachment->marker.string, &marker, 1);
+            halo::objects::object_get_node_local_transform(object_index, attachment->marker.string, &marker, 1);
             system->position = marker.node_transform.position;
 
-            object_get_root_object_velocities(object_index, &system->velocity,
+            halo::objects::object_get_root_object_velocities(object_index, &system->velocity,
                                                (real_vector3d *)0);
             system->velocity.i *= 30.0f;
             system->velocity.j *= 30.0f;
@@ -348,7 +344,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
 
             system->ambient_color = *global_white_color;
 
-            if (object_function_get_value(object_index, system->scale_function_index,
+            if (halo::objects::object_function_get_value(object_index, system->scale_function_index,
                                            &function_value)) {
                 system->flags |= _particle_system_emitting_bit;
             } else {
@@ -629,7 +625,7 @@ void particle_system_ref::resolve_local_players()
         int32_t type_index;
 
         if (((particle_system *)system)->object_index != k_datum_index_none) {
-            object_get_root_location((int32_t *)(system + 0x18), ((particle_system *)system)->object_index);
+            halo::objects::object_get_root_location((int32_t *)(system + 0x18), ((particle_system *)system)->object_index);
         } else {
             uint32_t leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)(system + 0x20));
             int16_t cluster = particle_leaf_cluster(leaf);
@@ -763,18 +759,18 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     }
 
     if (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8);
         uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
         char *marker_name = (char *)(*(uint8_t **)&((struct Object *)object_tag)->attachments.pointer + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
 
-        marker_count = (int16_t)object_get_node_local_transform(object_index, marker_name, markers, 8);
-        object_get_root_location((int32_t *)(system + 0x18), object_index);
+        marker_count = (int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, markers, 8);
+        halo::objects::object_get_root_location((int32_t *)(system + 0x18), object_index);
         if (marker_count == 0) {
             datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + current_local_player_index * 0x1ea0 + 8);
 
             if (weapon != k_datum_index_none) {
                 marker_count = (int16_t)first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
-                object_get_root_location((int32_t *)(system + 0x18), weapon);
+                halo::objects::object_get_root_location((int32_t *)(system + 0x18), weapon);
             }
         }
     } else {

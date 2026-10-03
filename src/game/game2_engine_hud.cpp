@@ -5,12 +5,13 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern data_array *player_data;
-extern data_array *object_data;
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 extern player_globals *local_player_globals;
@@ -55,7 +56,6 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, network_serve
 extern network_machine *network_machine_find_by_id(network_server_globals *server, int32_t machine_id);
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *reference_player, int32_t slot_index);
-extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern int16_t hud_waypoint_visibility(int16_t local_player_index, const real_point3d *eye, const real_point3d *target, datum_index ignore_object);
 extern void hud_waypoint_draw(const real_point3d *position, int16_t local_player_index, int16_t arrow_index, int16_t visibility, uint8_t show_distance);
 }
@@ -241,13 +241,13 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                     int16_t unit_index = (int16_t)p->unit;
                     int16_t unit_salt = (int16_t)((uint32_t)p->unit >> 16);
 
-                    if (unit_index >= 0 && unit_index < object_data->maximum_count) {
-                        object_header *unit_header = (object_header *)((uint8_t *)object_data->data +
-                                                                        (int32_t)object_data->size * unit_index);
+                    if (unit_index >= 0 && unit_index < halo::objects::globals().object_data->maximum_count) {
+                        object_header *unit_header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data +
+                                                                        (int32_t)halo::objects::globals().object_data->size * unit_index);
 
                         if (unit_header->identifier != 0 && (unit_salt == 0 || unit_header->identifier == unit_salt) &&
                             (((1u << (unit_header->type & 0x1f)) & 3) != 0) && unit_header->data != 0) {
-                            starred = (uint8_t)unit_find_weapon_index_by_flag(p->unit, 3);
+                            starred = (uint8_t)halo::units::unit_find_weapon_index_by_flag(p->unit, 3);
                         }
                     }
                 }
@@ -562,7 +562,7 @@ void EngineHud::update_custom_waypoint_navpoints(int16_t local_player_slot)
         return;
     }
 
-    unit_get_primary_eye_marker_position(p->unit, &eye);
+    halo::units::unit_get_primary_eye_marker_position(p->unit, &eye);
 
     for (slot = 0; slot < k_maximum_custom_waypoints; slot++) {
         if (custom_waypoint_matches_filter((int32_t)local_player, p, slot) != 0) {

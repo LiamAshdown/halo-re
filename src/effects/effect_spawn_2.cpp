@@ -5,10 +5,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t particle_spawn_debug_mode;
-extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_point3d *global_origin3d_pointer;
 }
@@ -196,7 +196,7 @@ void effect_view::spawn_particles()
                         node = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
                             self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
                     } else {
-                        uint8_t *owner = (uint8_t *)((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+                        uint8_t *owner = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
 
                         node = (real_matrix4x3 *)(owner + ((object *)owner)->nodes.offset + node_index * 0x34);
                     }

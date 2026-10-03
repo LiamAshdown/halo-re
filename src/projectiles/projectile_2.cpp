@@ -7,9 +7,10 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
@@ -17,22 +18,16 @@ extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 extern float sound_definition_maximum_distance(datum_index sound_definition);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
-extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 }
 
 namespace {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(h)].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(h)].data)
 #define F(p, o) (*(float *)((p) + (o)))
 static void projectile_raise_state(uint32_t projectile_index, int16_t state)
 {
@@ -53,7 +48,7 @@ namespace {
 constexpr int16_t k_guided_zoom_table_index = 19;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(h)].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(h)].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
  * Original function projectile_update; the author notes are in
@@ -174,7 +169,7 @@ int ProjectileHandle::update()
                     fade = 1.0f;
                 }
             }
-            unit_get_secondary_eye_marker_position(tracked_index, &target);
+            halo::units::unit_get_secondary_eye_marker_position(tracked_index, &target);
             angle_a = halo::math::periodic_function_evaluate(_periodic_function_wander,
                 (double)((real)(int32_t)((salt * 7 + tick) & halo::k_datum_slot_mask) * 0.011111111f)) * 6.2831855f;
             angle_b = 3.1415927f - halo::math::periodic_function_evaluate(_periodic_function_wander,
@@ -387,13 +382,13 @@ int ProjectileHandle::update()
         }
 
         
-        object_unlink_cluster_or_notify_parent(projectile_index);
+        halo::objects::object_unlink_cluster_or_notify_parent(projectile_index);
         self->base.position = swept;
-        object_set_cluster_and_parent(projectile_index, &hit.leaf);
+        halo::objects::object_set_cluster_and_parent(projectile_index, &hit.leaf);
         *velocity = vel;
         if (remaining != 0.0f && collisions != 0 && self->projectile.contrail_attachment_index != -1 &&
             self->base.attachment_handles[self->projectile.contrail_attachment_index] != k_datum_index_none) {
-            object_recalculate_bounding_radius(projectile_index);
+            halo::objects::object_recalculate_bounding_radius(projectile_index);
             halo::effects::contrail_advance(self->base.attachment_handles[self->projectile.contrail_attachment_index], 0,
                              (1.0f - remaining) * k_seconds_per_tick);
         }
@@ -421,10 +416,10 @@ int ProjectileHandle::update()
         int32_t role = ((object *)OBJECT_DATA(projectile_index))->network_role;
 
         if (role == 0) {
-            object_delete_unparented(projectile_index);
-            object_delete_recursive(projectile_index, 0);
+            halo::objects::object_delete_unparented(projectile_index);
+            halo::objects::object_delete_recursive(projectile_index, 0);
         } else if (role == 3) {
-            object_delete_recursive(projectile_index, 0);
+            halo::objects::object_delete_recursive(projectile_index, 0);
         }
         break;
     }

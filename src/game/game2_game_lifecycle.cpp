@@ -11,6 +11,8 @@
 #include "halo/scenario/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t game_state_cursor;
@@ -42,13 +44,10 @@ extern void player_profile_subsystem_initialize(void);
 extern void widget_memory_pool_initialize(void);
 extern void objects_initialize(void);
 extern void game_sound_initialize(void);
-extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t players_any_without_unit(void);
-extern uint8_t unit_any_dying_or_seat_transition(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);
 extern uint8_t debug_print_safety_checks;
 extern uint8_t players_any_pending_seat_or_respawn(void);
-extern uint8_t unit_is_area_clear_of_fast_objects(void);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 }
@@ -116,7 +115,7 @@ void GameLifecycle::initialize(void)
     *halo::camera::globals().hs_camera_control_pointer = 0;
 
     object_render_state_cache = (data_array *)halo::saved_games::game_state_new((char *)"cached object render states", 0x100, 0x100);
-    objects_initialize();
+    halo::objects::objects_initialize();
     halo::structures::detail_objects_globals_allocate();
 
     size = 4;
@@ -185,7 +184,7 @@ uint32_t GameLifecycle::no_player_is_dead(void)
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    if (object_iterator_next(&iterator) == (object *)0) {
+    if (halo::objects::object_iterator_next(&iterator) == (object *)0) {
         if (players_any_without_unit() == 0) {
             return 1;
         }
@@ -208,8 +207,8 @@ uint32_t GameLifecycle::safe_to_pause(void)
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    if (object_iterator_next(&iterator) == (object *)0) {
-        if (halo::items::item_any_detonating() == 0 && halo::effects::effect_check_object_collisions() == 0 && unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
+    if (halo::objects::object_iterator_next(&iterator) == (object *)0) {
+        if (halo::items::item_any_detonating() == 0 && halo::effects::effect_check_object_collisions() == 0 && halo::units::unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
             return 1;
         }
     }
@@ -239,7 +238,7 @@ uint8_t GameLifecycle::safe_to_save(void)
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    if (object_iterator_next(&iterator) != (object *)0) {
+    if (halo::objects::object_iterator_next(&iterator) != (object *)0) {
         if (debug_print_safety_checks != 0) {
             halo::main::console_print_va("not safe to save: dangerous_projectiles_near_player");
         }
@@ -257,7 +256,7 @@ uint8_t GameLifecycle::safe_to_save(void)
         }
         return 0;
     }
-    if (unit_any_dying_or_seat_transition() != 0) {
+    if (halo::units::unit_any_dying_or_seat_transition() != 0) {
         if (debug_print_safety_checks != 0) {
             halo::main::console_print_va("not safe to save: any_unit_is_dangerous");
         }
@@ -275,7 +274,7 @@ uint8_t GameLifecycle::safe_to_save(void)
         }
         return 0;
     }
-    if (unit_is_area_clear_of_fast_objects() != 0) {
+    if (halo::units::unit_is_area_clear_of_fast_objects() != 0) {
         if (debug_print_safety_checks != 0) {
             halo::main::console_print_va("not safe to save: vehicle_moving_near_any_player");
         }

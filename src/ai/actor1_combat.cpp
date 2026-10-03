@@ -6,6 +6,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 extern "C" {
@@ -156,7 +158,6 @@ extern "C" void actor_check_melee_target_reachable(uint32_t actor_index, int16_t
 namespace c_actor_check_vehicle_target_available {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
@@ -180,7 +181,7 @@ uint8_t halo::ai::combat_ops::check_vehicle_target_available(datum_index vehicle
     if (vehicle_object_index == (datum_index)k_datum_index_none) {
         return 0;
     }
-    vehicle_object = ((object_header *)object_data->data)[vehicle_object_index & halo::k_slot_mask].data;
+    vehicle_object = ((object_header *)halo::objects::globals().object_data->data)[vehicle_object_index & halo::k_slot_mask].data;
     vehicle_unit = (unit_data *)((uint8_t *)vehicle_object + k_unit_data_offset);
     if (vehicle_unit->controlling_player == (datum_index)k_datum_index_none) {
         return 0;
@@ -206,8 +207,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying);
@@ -242,7 +241,7 @@ uint8_t halo::ai::combat_ops::check_weapon_pickup_reachable(uint8_t *record)
         int16_t status;
         real_point3d self_position;
 
-        unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
+        halo::units::unit_add_marker_relative_offset(a->unit_index, 2, (float *)&positions[firing_position_index], 0, 0, &self_position);
         status = (int16_t)actor_evaluate_engagement_reachability(
             *(int16_t *)((uint8_t *)&positions[firing_position_index] + 0xe), p->cluster_index,
             (real_point3d *)&p->head_position_x, &self_position, 1, 0, p->relationship_object_index,
@@ -268,7 +267,6 @@ namespace c_actor_choose_best_target {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
 extern void actor_update_target_combat_status(datum_index actor_index);
@@ -330,7 +328,7 @@ void halo::ai::combat_ops::choose_best_target()
 
         if (p->state > 1 && p->state < 4 && p->dead == 0) {
             if (p->enemy == 0) {
-                tracked_object = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
+                tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
                 owning_actor_index = *(datum_index *)((uint8_t *)tracked_object + 0x1f4);
                 target_actor = (actor *)0;
                 if (owning_actor_index != (datum_index)k_datum_index_none) {
@@ -644,7 +642,6 @@ extern "C" void actor_clear_target_state(datum_index actor_index)
 namespace c_actor_compute_accuracy_scale {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 }
 }
 
@@ -664,7 +661,7 @@ float halo::ai::combat_ops::compute_accuracy_scale()
     float scale = 0.5f;
 
     if (self->active_unit_index != (datum_index)k_datum_index_none) {
-        object *unit_object = ((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
         void *tag_data = halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         scale = *(float *)((uint8_t *)tag_data + 0x384);
     }
@@ -836,12 +833,10 @@ extern "C" uint16_t actor_consider_target_candidate(datum_index actor_index, dat
 namespace c_actor_evaluate_custom_charge_trigger {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 
 extern void * actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator);
 }
 }
@@ -867,7 +862,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     uint8_t decision;
     int16_t variant_mode;
 
-    if (!unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
+    if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self[0x4a8] == 0) {
         goto return_true;
     }
     if (((actor *)self)->awareness_level < 3) {
@@ -876,7 +871,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (((struct actor *)self)->combat_status < 5) {
         goto return_false;
     }
-    unit = (const uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+    unit = (const uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
     if (*(uint32_t *)&((actor *)self)->target_unit_index != halo::k_dword_none) {
         target = (const uint8_t *)prop_data->data + (*(uint32_t *)&((actor *)self)->target_unit_index & halo::k_slot_mask) * k_prop_size;
     }
@@ -1170,9 +1165,6 @@ extern "C" void actor_forward_target_object_reference(datum_index actor_index, u
 namespace c_actor_get_aim_from_position {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
-extern uint8_t unit_clamp_direction_to_aim_or_look_bounds(uint32_t unit_index, real_vector3d *world_direction,
-                                                          uint8_t use_aiming_bounds);
 }
 }
 
@@ -1198,7 +1190,7 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
 
     if (self->vehicle_gunner != 0) {
         unit_index = self->active_unit_index;
-        hdr = (object_header *)object_data->data + (unit_index & halo::k_slot_mask);
+        hdr = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
         unit_obj = hdr->data;
         if ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_slot_mask].data + 0x2f0) & 0x100) != 0) {
             out_position[0] = *(uint32_t *)&unit_obj->forward.i;
@@ -1208,13 +1200,13 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
         }
     }
 
-    hdr = (object_header *)object_data->data + (unit_index & halo::k_slot_mask);
+    hdr = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
     unit_obj = hdr->data;
     out_position[0] = *(uint32_t *)((uint8_t *)unit_obj + 0x23c);
     out_position[1] = *(uint32_t *)((uint8_t *)unit_obj + 0x240);
     out_position[2] = *(uint32_t *)((uint8_t *)unit_obj + 0x244);
 
-    unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)out_position, 1);
+    halo::units::unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)out_position, 1);
 }
 
 extern "C" void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3])
@@ -1275,7 +1267,6 @@ extern "C" float actor_get_consideration_wait_threshold(uint32_t actor_index, in
 namespace c_actor_get_relevant_squad_member_target {
 extern "C" {
 extern data_array *prop_data;
-extern data_array *object_data;
 
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 }
@@ -1312,7 +1303,7 @@ datum_index halo::ai::combat_ops::get_relevant_squad_member_target(uint32_t unus
     (void)unused_param;
 
     member = (prop *)((uint8_t *)prop_data->data + (member_prop_index & halo::k_slot_mask) * sizeof(prop));
-    member_unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[member->object_index & halo::k_slot_mask].data +
+    member_unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[member->object_index & halo::k_slot_mask].data +
                                  k_unit_data_offset);
 
     best_prop = k_datum_index_none;
@@ -1323,8 +1314,8 @@ datum_index halo::ai::combat_ops::get_relevant_squad_member_target(uint32_t unus
         if (responsible != k_datum_index_none) {
             resolved_object = k_datum_index_none;
             responsible_index = (int16_t)responsible;
-            if (-1 < responsible_index && responsible_index < object_data->maximum_count) {
-                headers = (object_header *)object_data->data;
+            if (-1 < responsible_index && responsible_index < halo::objects::globals().object_data->maximum_count) {
+                headers = (object_header *)halo::objects::globals().object_data->data;
                 header_identifier = headers[responsible_index].identifier;
                 responsible_salt = (int16_t)(responsible >> 16);
                 if (header_identifier != 0 && (responsible_salt == 0 || header_identifier == responsible_salt)) {
@@ -1378,11 +1369,9 @@ extern "C" datum_index actor_get_relevant_squad_member_target(uint32_t unused_pa
 namespace c_actor_get_squad_recent_attacker_target {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -1407,7 +1396,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
     if (unit_index == k_datum_index_none) {
         return k_datum_index_none;
     }
-    record = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data + 0x430;
+    record = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data + 0x430;
     for (i = 4; i != 0; i--, record += 0x10) {
         datum_index responsible = *(datum_index *)(record + 0x8);
         uint8_t *unit;
@@ -1418,7 +1407,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
         if (responsible == k_datum_index_none) {
             continue;
         }
-        unit = (uint8_t *)object_try_and_get(responsible, 3);
+        unit = (uint8_t *)halo::objects::object_try_and_get(responsible, 3);
         if (unit == 0) {
             continue;
         }
@@ -1541,7 +1530,6 @@ extern "C" void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, u
 
 namespace c_actor_get_threat_weapon_definition {
 extern "C" {
-extern data_array *object_data;
 extern datum_index actor_get_threat_weapon_object_index(int32_t actor_index);
 }
 }
@@ -1562,7 +1550,7 @@ void * halo::ai::combat_ops::get_threat_weapon_definition()
 
     weapon_object = actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
-        object_header *hdr = (object_header *)object_data->data + (weapon_object & halo::k_slot_mask);
+        object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (weapon_object & halo::k_slot_mask);
         object *obj = hdr->data;
         return halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
     }

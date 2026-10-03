@@ -18,6 +18,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern network_id_table *machine_table;
@@ -27,7 +28,6 @@ extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t pla
 extern uint8_t game_engine_attribute_enabled;
 extern game_time_globals *game_time;
 extern data_array *player_data;
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern team_pair_globals *team_pair_data;
 extern datum_index player_index_from_unit_index(datum_index unit);
@@ -127,8 +127,8 @@ void KillFeed::attribute_player_death(datum_index victim_unit, datum_index kille
 
     current_tick = game_time->game_time;
     assist_window_start = current_tick - 0xb4;
-    victim_object = *(object **)((uint8_t *)object_data->data +
-        (uint32_t)(uint16_t)victim_unit * object_data->size + 8);
+    victim_object = *(object **)((uint8_t *)halo::objects::globals().object_data->data +
+        (uint32_t)(uint16_t)victim_unit * halo::objects::globals().object_data->size + 8);
     recent_damage = (unit_recent_damage *)((uint8_t *)victim_object + 0x430);
 
     compacted_count = 0;

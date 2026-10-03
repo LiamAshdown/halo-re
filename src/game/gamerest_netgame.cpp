@@ -4,6 +4,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -17,7 +19,6 @@ extern game_variant game_engine_variant;
 extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t ctf_single_flag_mode;
 extern data_array *player_data;
-extern data_array *object_data;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern player_globals *local_player_globals;
 extern uint8_t ctf_active_team;
@@ -27,13 +28,7 @@ extern uint8_t ctf_team_return_credit_active[2];
 extern int32_t ctf_team_return_credit_ticks[2];
 extern datum_index ctf_team_flag_object[2];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
-extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force);
-extern void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index);
-extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
-extern void object_delete(datum_index object_index);
 extern void game_engine_ctf_respawn_team_flag(int32_t team, real_point3d *forwarded_position, uint16_t forwarded_name_index);
 extern void game_engine_ctf_notify_both_teams(int32_t team);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
@@ -42,16 +37,8 @@ extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);
 extern datum_index game_engine_find_player_holding_object(datum_index target_object);
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, float height_offset, datum_index player_filter, int16_t team_filter);
 extern int16_t hud_waypoint_arrow_find(void);
-extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
-extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern game_engine_definition *current_game_engine;
 extern uint8_t network_message_scratch[0x7ff8];
-extern object *object_iterator_next(object_iterator *iterator);
-extern uint8_t object_type_override_call_0x74(uint32_t object_index);
-extern int object_type_override_call_0x6c(uint32_t object_index, void *buffer, int32_t bit_budget, int32_t full_update);
-extern void object_type_override_call_0x68(uint32_t object_index);
-extern void object_type_override_call_0x7c(uint32_t object_index);
-extern uint8_t object_datum_consume_pending_flag(uint32_t object_index);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);
 }
@@ -83,27 +70,27 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                         player *carrier = (player *)halo::memory::datum_get(
                             (datum_index)((struct object *)flag_obj)->owner_linkage, player_data);
                         if (carrier != (player *)0) {
-                            object *unit_obj = object_try_and_get(carrier->unit, _object_mask_unit);
+                            object *unit_obj = halo::objects::object_try_and_get(carrier->unit, _object_mask_unit);
                             if (unit_obj != (object *)0) {
                                 unit_data *unit =
                                     (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
                                 datum_index current_weapon =
-                                    unit_get_weapon_object_index((uint32_t)carrier->unit, unit->current_weapon_index);
+                                    halo::units::unit_get_weapon_object_index((uint32_t)carrier->unit, unit->current_weapon_index);
                                 if (current_weapon != (datum_index)flag_handle) {
                                     int32_t slot;
                                     for (slot = 0; slot < k_maximum_weapons_per_unit; slot++) {
                                         if (unit->weapons[slot] == (datum_index)flag_handle) {
                                             unit->current_weapon_index = (int16_t)slot;
-                                            unit_ready_desired_weapon((uint32_t)carrier->unit, 1);
+                                            halo::units::unit_ready_desired_weapon((uint32_t)carrier->unit, 1);
                                             break;
                                         }
                                     }
                                 }
-                                current_weapon = unit_get_weapon_object_index(
+                                current_weapon = halo::units::unit_get_weapon_object_index(
                                     (uint32_t)carrier->unit, unit->current_weapon_index);
                                 if (current_weapon == (datum_index)flag_handle) {
-                                    unit_dispatch_scripted_event_1b(1, (uint32_t)carrier->unit);
-                                    unit_drop_current_weapon((uint32_t)carrier->unit, 1);
+                                    halo::units::unit_dispatch_scripted_event_1b(1, (uint32_t)carrier->unit);
+                                    halo::units::unit_drop_current_weapon((uint32_t)carrier->unit, 1);
                                 }
                             }
                         }
@@ -114,7 +101,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                 {
                     data_iterator iter;
                     void *element;
-                    iter.data = object_data;
+                    iter.data = halo::objects::globals().object_data;
                     iter.next_index = 0;
                     iter.index = (datum_index)0xffffffff;
                     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -138,11 +125,11 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     if ((int32_t)toggled < 0) {
                         toggled = (toggled - 1 | 0xfffffffe) + 1;
                     }
-                    object_delete((datum_index)flag_handle);
+                    halo::objects::object_delete((datum_index)flag_handle);
                     game_engine_ctf_respawn_team_flag((int32_t)toggled, (real_point3d *)0, 0);
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
-                    flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
+                    flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & 0xffff].data;
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
                     game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), 0xffffffff, 1);
                     game_engine_ctf_reset_team_return_credit(flag_handle);
@@ -258,11 +245,11 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
         return;
     }
 
-    flag_obj = ((object_header *)object_data->data)[flag_object_index & 0xffff].data;
+    flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_object_index & 0xffff].data;
 
-    object_set_position_and_orientation(flag_object_index, halo::math::globals().global_forward3d_pointer,
+    halo::objects::object_set_position_and_orientation(flag_object_index, halo::math::globals().global_forward3d_pointer,
                                          halo::math::globals().global_up3d_pointer, position);
-    object_reset_velocity_and_wake(flag_object_index);
+    halo::objects::object_reset_velocity_and_wake(flag_object_index);
 
     unknown_22c = (uint32_t *)((uint8_t *)flag_obj + 0x22c);
     *unknown_22c = *unknown_22c & 0xffffffdf;
@@ -337,22 +324,22 @@ void NetgameRules::broadcast_object_type_changes()
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != (object *)0) {
-        if (obj->network_role == 0 && object_type_override_call_0x74(iterator.handle) == 1 &&
+        if (obj->network_role == 0 && halo::objects::object_type_override_call_0x74(iterator.handle) == 1 &&
             object_type_definitions[obj->type]->network_delta_message_type != -1) {
-            changed = object_datum_consume_pending_flag(iterator.handle);
+            changed = halo::objects::object_datum_consume_pending_flag(iterator.handle);
             if (changed != 0) {
-                object_type_override_call_0x68(iterator.handle);
+                halo::objects::object_type_override_call_0x68(iterator.handle);
             }
 
-            encode_result = object_type_override_call_0x6c(iterator.handle, network_message_scratch, 0x7ff8, changed == 0);
+            encode_result = halo::objects::object_type_override_call_0x6c(iterator.handle, network_message_scratch, 0x7ff8, changed == 0);
             if (0 < encode_result) {
                 network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, changed != 0, 0, 0, 3);
             }
-            object_type_override_call_0x7c(iterator.handle);
+            halo::objects::object_type_override_call_0x7c(iterator.handle);
         }
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 }
 

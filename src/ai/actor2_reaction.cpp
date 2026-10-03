@@ -8,6 +8,8 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/tags/flags.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -130,7 +132,6 @@ void TargetView::notify_target_engaged(datum_index actor_index, uint8_t alternat
 
 namespace actor_notify_weapon_pickup_once_local {
 extern "C" {
-extern data_array *object_data;
 extern data_array *actor_data;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 }
@@ -149,7 +150,7 @@ void ActorOps::notify_weapon_pickup_once(datum_index object_index)
     datum_index actor_index;
     actor *a;
 
-    obj = ((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     actor_index = unit->actor_index;
     if (actor_index != (datum_index)k_datum_index_none) {
@@ -257,9 +258,6 @@ int32_t ActorOps::pick_dialogue_variant_b(int16_t category)
 namespace actor_play_first_valid_vocalization_local {
 extern "C" {
 extern data_array *actor_data;
-extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index);
-extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
-                                                       int16_t *out_indices, int16_t max_indices);
 extern uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index,
                                                              uint8_t *order);
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
@@ -281,12 +279,12 @@ uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index 
 
     if (seat_list == 0) {
         seat_list = local_list;
-        count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, (uint16_t)seat_flags, local_list, 16);
+        count = halo::units::unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, (uint16_t)seat_flags, local_list, 16);
     }
     for (i = 0; i < count; i++) {
         int16_t seat = seat_list[i];
 
-        if (seat == -1 || !unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
+        if (seat == -1 || !halo::units::unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
             continue;
         }
         if (actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {
@@ -649,7 +647,6 @@ namespace actor_queue_secondary_action_local {
 extern "C" {
 extern data_array *actor_data;
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 }
 }
 
@@ -669,7 +666,7 @@ uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
     if (self->secondary_action != (int16_t)-1) {
         return 0;
     }
-    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index)) {
+    if (self->unit_index != (datum_index)k_datum_index_none && halo::units::unit_is_in_busy_animation_state(self->unit_index)) {
         return 0;
     }
 
@@ -683,7 +680,6 @@ namespace actor_queue_sighted_target_dialogue_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern uint8_t ai_debug_gate_87abc6;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
@@ -808,12 +804,12 @@ broadcast_check:
         self->type != 15 && halo::hs::fields::medusa != 0) {
         if (self->swarm == 0) {
             datum_index unit_index = self->unit_index;
-            object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
+            object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
             ((uint8_t *)header->data + 0x106)[0] |= 0x20;
         } else {
             datum_index cluster_index = self->cluster_unit_index;
             while (cluster_index != (datum_index)k_datum_index_none) {
-                object_header *header = &((object_header *)object_data->data)[cluster_index & halo::k_slot_mask];
+                object_header *header = &((object_header *)halo::objects::globals().object_data->data)[cluster_index & halo::k_slot_mask];
                 struct object *unit_object = header->data;
                 ((struct object *)unit_object)->vitality_flags |= 0x20;
                 cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
@@ -851,7 +847,6 @@ void ActorOps::queue_velocity_search_from_prop(datum_index prop_index, datum_ind
 namespace actor_react_to_flee_point_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern double fabs(double x);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
@@ -893,7 +888,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     actor_queue_search_position(actor_index, 0, 3, &direction, halo::k_dword_none, 0, 90, halo::k_dword_none, 0, 0);
 
     if (flee_source_object != -1) {
-        object *source = ((object_header *)object_data->data)[flee_source_object & halo::k_slot_mask].data;
+        object *source = ((object_header *)halo::objects::globals().object_data->data)[flee_source_object & halo::k_slot_mask].data;
         if (teams_are_enemies(source->owner_team , self->team) != 0) {
             actor_record_perception_event(actor_index, 2, 0x384);
         }
@@ -1001,7 +996,6 @@ namespace actor_react_to_seen_target_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern data_array *player_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
@@ -1032,7 +1026,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
     prop *target = &((prop *)prop_data->data)[target_prop_index & halo::k_slot_mask];
 
     if (target->enemy == 0) {
-        object *tracked = ((object_header *)object_data->data)[target->object_index & halo::k_slot_mask].data;
+        object *tracked = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & halo::k_slot_mask].data;
         unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
 
         actor_queue_search_and_relay_perception(target_prop_index, actor_index);
@@ -1043,7 +1037,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
             int32_t unknown_44 = ((struct player *)player)->observer_state;
 
             if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) {
-                object *player_unit = ((object_header *)object_data->data)[unknown_40 & halo::k_slot_mask].data;
+                object *player_unit = ((object_header *)halo::objects::globals().object_data->data)[unknown_40 & halo::k_slot_mask].data;
                 if (teams_are_enemies(player_unit->owner_team , self->team) != 0) {
                     actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
                 }

@@ -25,6 +25,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/objects/api.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);
@@ -55,7 +56,6 @@ extern double fabs(double x);
 extern render_camera render_camera_global;
 extern float unknown_00672f20;
 extern data_array *contrail_point_data;
-extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
@@ -759,7 +759,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             color.blue = (next_color.blue - color.blue) * t + color.blue;
         }
         if (c->object_index != k_dword_none) {
-            object *o = ((object_header *)object_data->data)[(uint16_t)c->object_index].data;
+            object *o = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)c->object_index].data;
             Object *object_definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(o->definition_tag)].data;
             int16_t change_color = (int16_t)(((ObjectAttachment *)object_definition->attachments.pointer)[c->attachment_index].change_color - 1);
 
@@ -1086,14 +1086,14 @@ void particles(void)
                         int16_t object_slot = (int16_t)p->object_index;
                         int16_t salt = (int16_t)(p->object_index >> 16);
 
-                        if (object_slot >= 0 && object_slot < object_data->maximum_count) {
-                            object_header *header = (object_header *)((uint8_t *)object_data->data +
-                                (int32_t)object_data->size * (int32_t)object_slot);
+                        if (object_slot >= 0 && object_slot < halo::objects::globals().object_data->maximum_count) {
+                            object_header *header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data +
+                                (int32_t)halo::objects::globals().object_data->size * (int32_t)object_slot);
 
                             if (header->identifier != 0 &&
                                 (salt == 0 || header->identifier == salt) &&
                                 (1 << (header->type & 0x1f)) != 0 && header->data != 0) {
-                                object *o = ((object_header *)object_data->data)[
+                                object *o = ((object_header *)halo::objects::globals().object_data->data)[
                                     (uint16_t)p->object_index].data;
 
                                 m = (real_matrix4x3 *)((uint8_t *)o + o->nodes.offset) + p->marker_index;

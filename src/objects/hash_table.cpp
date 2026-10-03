@@ -1,7 +1,7 @@
 #include "halo/objects/hash_table.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern void hash_table_grow_freelist(hash_table *table);
 extern data_array *object_data;
 extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
@@ -198,7 +198,7 @@ void halo::objects::HashTableView::set_or_remove(int32_t key, int32_t value)
     }
 
     if (table->freelist == 0) {
-        hash_table_grow_freelist(table);
+        halo::objects::hash_table_grow_freelist(table);
     }
     node = table->freelist;
     table->freelist = node->next;

@@ -1,6 +1,7 @@
 #include "halo/game/game2_engines.hpp"
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_variant;
@@ -30,7 +31,6 @@ extern void qr2_buffer_add(void *buffer, const char *value);
 extern void game_time_format_minutes_seconds_ascii(uint32_t ticks, uint32_t count, char *dest);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern uint8_t custom_waypoints[];
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern int16_t hud_waypoint_arrow_find(const char *name);
@@ -458,7 +458,7 @@ void OddballEngine::unknown_48(void)
         if (unit_index == 0xffffffff) {
             continue;
         }
-        unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
+        unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
         *(datum_index *)(waypoint + 0x18) = carrier;
         *(int16_t *)(waypoint + 0x1c) = hud_waypoint_arrow_find("target_blue");
         waypoint[0x0c] = 1;

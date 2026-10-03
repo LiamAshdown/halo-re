@@ -3,10 +3,10 @@
 #include "halo/math/api.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t message_delta_decode_compound_field_forced(void **context, void *destination, int32_t changed_offset, int32_t force);
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
@@ -14,7 +14,6 @@ extern double sqrt(double x);
 extern network_id_table *object_network_id_table;
 extern uint8_t *machine_table;
 extern uint8_t network_object_index_cache[];
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
 extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 }
@@ -44,7 +43,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
 {
     using namespace vehicle_apply_network_update_local;
     datum_index vehicle_index = datum_handle;
-    uint8_t *vehicle = (uint8_t *)object_try_and_get(vehicle_index, 2);
+    uint8_t *vehicle = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
     uint8_t *record;
     uint8_t *guard;
     vehicle_network_baseline baseline;
@@ -62,7 +61,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         return;
     }
     record = (uint8_t *)message[0x11];
-    guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
+    guard = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
     if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && **(int32_t **)message == 1) {
         int32_t incoming = record[5];
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
@@ -159,7 +158,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
 {
     using namespace vehicle_encode_network_create_local;
     datum_index vehicle_index = datum_handle;
-    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
+    uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
     hash_table *keys = &object_network_id_table->id_to_index;
     vehicle_network_create_record record;
     void *item = &record;
@@ -169,16 +168,16 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
     int32_t i;
 
     if (vehicle_index != k_datum_index_none) {
-        key = hash_table_get(keys, (int32_t)vehicle_index);
+        key = halo::objects::hash_table_get(keys, (int32_t)vehicle_index);
     }
     if (*(int32_t *)&((unit_object *)vehicle)->base.creator_object != -1) {
-        creator = hash_table_get(keys, *(int32_t *)&((unit_object *)vehicle)->base.creator_object);
+        creator = halo::objects::hash_table_get(keys, *(int32_t *)&((unit_object *)vehicle)->base.creator_object);
         if (creator == -1) {
             creator = 0;
         }
     }
     if (*(int32_t *)&((unit_object *)vehicle)->base.owner_linkage != -1) {
-        machine = hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)&((unit_object *)vehicle)->base.owner_linkage);
+        machine = halo::objects::hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)&((unit_object *)vehicle)->base.owner_linkage);
         if (machine == -1) {
             machine = 0;
         }
@@ -194,7 +193,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
     for (i = 0; i < 4; i++) {
         int32_t seat = ((int32_t *)&((struct unit_object *)vehicle)->unit.weapons)[i];
 
-        record.seat_keys[i] = seat == -1 ? 0 : hash_table_get(keys, seat);
+        record.seat_keys[i] = seat == -1 ? 0 : halo::objects::hash_table_get(keys, seat);
     }
     record.network_epoch = ((struct vehicle_object *)vehicle)->vehicle.network_epoch;
     memcpy(record.vectors[0], vehicle + 0x52c, 12);
@@ -225,7 +224,7 @@ void VehicleView::network_baseline_take()
 {
     using namespace vehicle_network_baseline_take_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)object_try_and_get(object_index, 2);
+    uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(object_index, 2);
 
     if (obj == 0) {
         return;

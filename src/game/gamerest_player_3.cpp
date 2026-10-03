@@ -1,12 +1,10 @@
 #include "halo/game/gamerest_player.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_delete(datum_index object_index);
-extern void unit_drop_inventory_weapons_except_current(datum_index unit_handle);
 extern datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_tag, datum_index owner_unit_handle);
-extern uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
 }
 
 namespace halo::game {
@@ -36,7 +34,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         return;
     }
 
-    obj = object_try_and_get(unit_handle, _object_mask_unit);
+    obj = halo::objects::object_try_and_get(unit_handle, _object_mask_unit);
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     if (unit->controlling_player == (datum_index)-1) {
         return;
@@ -46,7 +44,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
                                                  + (uint32_t)(uint16_t)starting_profile_index * sizeof(ScenarioPlayerStartingProfile));
 
     if (reset_stats != 0) {
-        unit_drop_inventory_weapons_except_current(unit_handle);
+        halo::units::unit_drop_inventory_weapons_except_current(unit_handle);
         obj->shield_vitality = 0.0f;
         obj->body_vitality = 0.0f;
         unit->grenade_counts[0] = 0;
@@ -56,8 +54,8 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     if (profile->primary_weapon.tag_id.index != 0xffff || profile->primary_weapon.tag_id.id != 0xffff) {
         weapon_object = player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
-            if (unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) {
-                object_delete(weapon_object);
+            if (halo::units::unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) {
+                halo::objects::object_delete(weapon_object);
             }
         }
     }
@@ -65,8 +63,8 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     if (profile->secondary_weapon.tag_id.index != 0xffff || profile->secondary_weapon.tag_id.id != 0xffff) {
         weapon_object = player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
-            if (unit_pickup_weapon(0, weapon_object, unit_handle) == 0) {
-                object_delete(weapon_object);
+            if (halo::units::unit_pickup_weapon(0, weapon_object, unit_handle) == 0) {
+                halo::objects::object_delete(weapon_object);
             }
         }
     }

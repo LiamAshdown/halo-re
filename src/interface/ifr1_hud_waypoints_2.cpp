@@ -4,6 +4,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -14,8 +15,6 @@ extern uint8_t render_camera_global[];
 extern int16_t render_viewport_top;
 extern float waypoint_fade_near;
 extern float waypoint_fade_far;
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name,
-                                                object_marker *marker, uint32_t flags);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *view_point,
                                               const void *frustum, const void *camera);
 extern void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs,
@@ -43,7 +42,7 @@ void HudWaypoints::draw_one(datum_index player_index)
     BitmapData *bitmap;
     float fade;
 
-    object_get_node_local_transform(p->unit, ai_marker_name_a, &marker, 1);
+    halo::objects::object_get_node_local_transform(p->unit, ai_marker_name_a, &marker, 1);
     world_point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     world_point.z = world_point.z + 0.3f;
     halo::math::matrix4x3_transform_point(view_point, world_point, halo::render::globals().camera_world_to_view);

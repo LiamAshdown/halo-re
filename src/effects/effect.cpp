@@ -5,21 +5,18 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
 extern data_array *effect_location_data;
-extern data_array *object_data;
 extern data_array *player_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern game_time_globals *game_time;
 extern void effect_delete(datum_index effect_handle);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern player_globals *local_player_globals;
-extern uint32_t object_get_root_object_index(uint32_t object_index);
-extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 }
 
 namespace halo::effects {
@@ -68,7 +65,7 @@ uint32_t effect_ref::check_object_collisions()
                     continue;
                 }
 
-                object *unit = ((object_header *)object_data->data)[(uint16_t)p->unit].data;
+                object *unit = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)p->unit].data;
                 datum_index marker_handle = self->location_markers[0];
 
                 while (marker_handle != k_datum_index_none) {
@@ -95,7 +92,7 @@ uint32_t effect_ref::check_object_collisions()
                                 self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
                         } else {
                             object *owner =
-                                ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+                                ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
                             node = (real_matrix4x3 *)((uint8_t *)owner + owner->nodes.offset +
                                 node_index * 0x34);
                         }
@@ -173,7 +170,7 @@ void effect_ref::destroy()
  */
 uint8_t effect_ref::first_person_screen_timer_active(datum_index object_index)
 {
-    object *self = object_try_and_get(object_index, 1);
+    object *self = halo::objects::object_try_and_get(object_index, 1);
 
     if (self == 0 || (*((uint8_t *)self + 0x106) & 4) == 0) {
         return 0;
@@ -293,15 +290,15 @@ void effect_ref::update(real dt)
     int16_t steps;
 
     if (object_index != k_datum_index_none) {
-        uint8_t *obj = (uint8_t *)object_try_and_get(object_index, 0xffffffff);
+        uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(object_index, 0xffffffff);
         uint8_t *root;
 
         if (obj == 0) {
             halo::effects::effect_delete(effect_index);
             return;
         }
-        root = *(uint8_t **)((uint8_t *)object_data->data +
-            (object_get_root_object_index(object_index) & 0xffff) * 0xc + 8);
+        root = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data +
+            (halo::objects::object_get_root_object_index(object_index) & 0xffff) * 0xc + 8);
         if (*(uint32_t *)(root + 0x10) & 0x800) {
             *(uint32_t *)&((struct effect *)self)->location.leaf_index = *(uint32_t *)(root + 0x98);
             *(uint32_t *)&((struct effect *)self)->location.cluster_index = *(uint32_t *)(root + 0x9c);
@@ -310,7 +307,7 @@ void effect_ref::update(real dt)
             ((struct effect *)self)->location.cluster_index = -1;
         }
         if (self->flags & 2) {
-            if (object_function_get_value(object_index, self->a_scale_function_index, &self->a_scale)) {
+            if (halo::objects::object_function_get_value(object_index, self->a_scale_function_index, &self->a_scale)) {
                 if (self->flags & 8) {
                     if (self->flags & 0x20) {
                         halo::effects::effect_delete(effect_index);
@@ -334,7 +331,7 @@ void effect_ref::update(real dt)
             } else if ((self->flags & 0xc) == 0) {
                 halo::effects::effect_stop(effect_index, 0);
             }
-            object_function_get_value(self->object_index, self->b_scale_function_index, &self->b_scale);
+            halo::objects::object_function_get_value(self->object_index, self->b_scale_function_index, &self->b_scale);
             if (self->change_color_index != -1) {
                 self->color = *(ColorRGB *)(obj + 0x1b8 + self->change_color_index * 0xc);
             }

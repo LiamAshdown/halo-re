@@ -14,16 +14,16 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern uint8_t *cinematic_globals_ptr;
 extern uint8_t unit_updates_suppressed;
 extern double fcos(double x);
 extern double fsin(double x);
 extern game_time_globals *game_time;
 extern Globals *global_globals;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern real_vector3d *global_down3d_pointer;
 extern int16_t network_game_mode;
 extern uint32_t k_default_resting_plane[4];
@@ -42,12 +42,6 @@ extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
 extern void player_update_history_free_all(void *history);
-extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern double sqrt(double x);
 extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
@@ -68,7 +62,7 @@ namespace halo::units {
 void BipedView::advance_frame_counter_trigger(char *state_out)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     int8_t frame_count = biped->landing_ticks + 1;
 
@@ -97,7 +91,7 @@ void BipedView::advance_frame_counter_trigger(char *state_out)
 void BipedView::apply_idle_fidget(uint8_t *state_out)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint32_t already_idle = 0;
@@ -155,7 +149,7 @@ tail:
 void BipedView::check_evade_reaction()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
@@ -176,7 +170,7 @@ void BipedView::check_evade_reaction()
             float radius = *(float *)((uint8_t *)table + 0x94);
             float v = obj->velocity.k;
 
-            object_get_position(&position, object_index);
+            halo::objects::object_get_position(&position, object_index);
             if (v <= 0.0f && !(radius * radius > (position.z - ground.z) * halo::physics::globals().gravity * 2.0f + v * v)) {
                 UnitView((int32_t)object_index).dispatch_reaction_animation(0);
             }
@@ -193,7 +187,7 @@ void BipedView::check_evade_reaction()
 void BipedView::clear_ground_surface_references()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     biped->ground_surface_index = k_datum_index_none;
@@ -205,7 +199,7 @@ namespace biped_create_local {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 
 static uint8_t *object_definition(uint8_t *object)
@@ -234,7 +228,7 @@ uint8_t BipedView::create()
     ((struct biped_object *)object)->biped.jump_ticks = 0x7f;
     ((struct biped_object *)object)->biped.ground_surface_index = -1;
     ((struct biped_object *)object)->biped.cached_ground_surface_index = -1;
-    object_get_position((real_point3d *)&((struct biped_object *)object)->biped.cached_ground_point, object_index);
+    halo::objects::object_get_position((real_point3d *)&((struct biped_object *)object)->biped.cached_ground_point, object_index);
     ((struct biped_object *)object)->biped.last_ground_surface_index = -1;
     ((struct biped_object *)object)->biped.cached_ground_point_tick = -1;
     ((struct biped_object *)object)->biped.melee_target_index = -1;
@@ -264,13 +258,13 @@ uint8_t BipedView::create()
 datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if (test_flag(tag->biped_flags, tags::biped_tag_flag::flying) && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
         biped->cached_ground_surface_index = k_datum_index_none;
-        object_get_position(out_position, object_index);
+        halo::objects::object_get_position(out_position, object_index);
     } else if (biped->cached_ground_surface_index == k_datum_index_none && game_time->game_time > (int32_t)biped->cached_ground_point_tick) {
         ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
         int32_t surface = (int32_t)biped->ground_surface_index;
@@ -322,7 +316,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
 uint32_t BipedView::is_idle_eligible()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -338,7 +332,7 @@ uint32_t BipedView::is_idle_eligible()
 uint8_t BipedView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
 
     if (stamp == -1) {
@@ -355,7 +349,7 @@ uint8_t BipedView::is_old_enough()
 void BipedView::placement_offset_centered_pill(object_placement_data *placement)
 {
     datum_index object_index = datum_handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
     uint8_t *biped_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
     uint32_t flags = ((struct Biped *)biped_tag)->biped_flags;
     float radius;
@@ -378,7 +372,7 @@ void BipedView::placement_offset_centered_pill(object_placement_data *placement)
 void BipedView::trigger_on_velocity_threshold()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
     if ((int8_t)biped->slipping_ticks > 3 &&
@@ -390,8 +384,8 @@ void BipedView::trigger_on_velocity_threshold()
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace biped_update_local {
 
@@ -408,7 +402,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     real_point3d position;
     real_matrix4x3 basis;
 
-    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    halo::objects::object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
@@ -416,7 +410,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
-        ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
+        halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
     ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
@@ -426,11 +420,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     if (((unit_object *)self)->unit.gunner_unit_index == object_index) {
         ((unit_object *)self)->unit.gunner_unit_index = k_datum_index_none;
     }
-    object_snap_to_parent_marker_and_detach(object_index);
+    halo::objects::object_snap_to_parent_marker_and_detach(object_index);
     position.x = offset.x + ((unit_object *)self)->base.position.x;
     position.y = offset.y + ((unit_object *)self)->base.position.y;
     position.z = offset.z + ((unit_object *)self)->base.position.z - default_translation.z;
-    object_set_position_and_orientation(object_index, 0, 0, &position);
+    halo::objects::object_set_position_and_orientation(object_index, 0, 0, &position);
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
@@ -444,7 +438,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
-            object_for_each_light_attachment(object_index, 0, 1);
+            halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
@@ -470,9 +464,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     if (((unit_object *)self)->base.type == 0) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }
-    object_recalculate_bounding_radius_recursive(object_index);
+    halo::objects::object_recalculate_bounding_radius_recursive(object_index);
     if (UnitView(vehicle_index).all_seats_unoccupied() == 1) {
-        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
+        uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
@@ -542,7 +536,7 @@ uint8_t BipedView::update()
         }
         UnitView(object_index).evaluate_flee_reaction();
         if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && network_game_mode != 1) {
-            uint8_t *self = (uint8_t *)object_try_and_get(object_index, 3);
+            uint8_t *self = (uint8_t *)halo::objects::object_try_and_get(object_index, 3);
             datum_index vehicle_index;
 
             if (self != 0 && (vehicle_index = ((unit_object *)self)->base.parent_object) != k_datum_index_none &&
@@ -568,7 +562,7 @@ uint8_t BipedView::update()
                         object_tag = TAG_DATA(*(datum_index *)object);
                         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                             if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
-                                object_for_each_light_attachment(object_index, 0, 1);
+                                halo::objects::object_for_each_light_attachment(object_index, 0, 1);
                             }
                             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                                 clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
@@ -718,7 +712,7 @@ tail:
  *
  * @address 0x55eaa0
  */
-void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
+void halo::units::biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
 {
     uint8_t *biped = (uint8_t *)object_base;
     float t0 = *(float *)(timing_table + 0x3dc) * 0.033333335f;
@@ -770,7 +764,7 @@ void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table
 void BipedView::update_idle_basis(uint8_t *state_out)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
@@ -808,7 +802,7 @@ void BipedView::update_idle_basis(uint8_t *state_out)
 void BipedView::update_scale_function_inputs()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     const int16_t *selector = &tag->biped_a_in;
     float *function_in = obj->function_in_values;
@@ -841,9 +835,9 @@ void BipedView::update_scale_function_inputs()
  *
  * @address 0x55e0a0
  */
-void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
+void halo::units::biped_update_target_lock_timer(datum_index target, uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     object *target_obj;
@@ -859,7 +853,7 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
     if (target == k_datum_index_none) {
         return;
     }
-    target_obj = ((object_header *)object_data->data)[halo::datum_slot(target)].data;
+    target_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(target)].data;
     actor_squad_react_to_grenade_for_vehicle_occupants(target, object_index);
     if (unit->controlling_player == k_datum_index_none && !halo::cutscene::recorded_animation_object_is_playing(object_index)) {
         return;

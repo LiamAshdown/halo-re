@@ -5,6 +5,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -19,7 +20,6 @@ extern int32_t hs_global_get_value(hs_global_reference reference);
 extern int32_t hs_coerce_value(int32_t value, hs_type_t dest_type, hs_type_t source_type);
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern void hs_thread_pop_frame(uint32_t thread_index);
-extern int32_t object_lookup_table_get(int32_t value);
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 }
 
@@ -346,7 +346,7 @@ void ThreadMachine::return_value(int32_t value, uint32_t thread_index) const
 
             value = hs_type_conversion_procedures[expected_type][actual_type](value);
         } else if (0x2a < actual_type && actual_type < 0x31) {
-            value = object_lookup_table_get(value);
+            value = halo::objects::object_lookup_table_get(value);
         }
     }
 

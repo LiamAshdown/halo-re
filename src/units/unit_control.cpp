@@ -15,19 +15,17 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern double atan2(double y, double x);
 extern double fcos(double x);
 extern double fsin(double x);
 extern double sqrt(double x);
-extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 extern game_time_globals *game_time;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern real_point3d *global_origin3d_pointer;
 extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction);
 extern char ai_marker_name_a[];
@@ -35,23 +33,16 @@ extern void *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
 extern data_array *player_data;
 extern void *memcpy(void *dst, const void *src, uint32_t n);
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern uint8_t *global_scenario;
 extern int32_t control_binding_device_type;
 extern uint8_t *object_type_definitions_ex;
-extern void object_reset_velocity_and_wake(uint32_t object_index);
-extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern double cos(double x);
 extern double sin(double x);
 extern game_engine_definition *current_game_engine;
 extern char *s_stand;
 extern double fabs(double x);
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);
-extern void object_delete_teardown(uint32_t object_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
 extern double acos(double x);
 }
 
@@ -65,7 +56,7 @@ namespace halo::units {
 void UnitView::accumulate_clamped_offset(float new_value)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     float delta = new_value - unit->mouth_aperture;
 
@@ -89,7 +80,7 @@ void UnitView::accumulate_clamped_offset(float new_value)
 void UnitView::apply_control_block(const unit_control_data *control, int32_t source_id)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (network_game_mode == 2) {
@@ -133,7 +124,7 @@ void UnitView::apply_control_block(const unit_control_data *control, int32_t sou
 uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_direction, uint8_t use_aiming_bounds)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     uint8_t clamped = 0;
     uint8_t valid;
     float *bounds;
@@ -153,7 +144,7 @@ uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_dir
     }
 
     m.scale = 1.0f;
-    object_get_orientation(&m.forward, unit_index, &m.up);
+    halo::objects::object_get_orientation(&m.forward, unit_index, &m.up);
     m.left.i = m.forward.k * m.up.j - m.forward.j * m.up.k;
     m.left.j = m.up.k * m.forward.i - m.forward.k * m.up.i;
     m.left.k = m.forward.j * m.up.i - m.up.j * m.forward.i;
@@ -199,7 +190,7 @@ uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_dir
 void UnitView::get_aiming_vector(real_vector3d *out)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     *out = unit->aiming_vector;
     return;
@@ -215,14 +206,14 @@ void UnitView::get_aiming_vector(real_vector3d *out)
 void UnitView::get_camera_position(real_point3d *out)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     object_marker marker;
 
     if (unit_obj->parent_object == k_datum_index_none) {
         if (((unit_obj->vitality_flags & _object_health_frozen_bit) == 0) && (unit_obj->type == _object_type_biped)) {
             Biped *biped_tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
-            object_get_position(out, unit_index);
+            halo::objects::object_get_position(out, unit_index);
             biped_data *biped = (biped_data *)((uint8_t *)unit_obj + k_unit_object_size);
             float height = biped->crouch_fraction;
             if ((!test_flag(biped->flags, units::biped_flag::airborne)) && (0.0f < height) && (height < 1.0f)) {
@@ -237,18 +228,18 @@ void UnitView::get_camera_position(real_point3d *out)
             return;
         }
         if (unit->gunner_unit_index == k_datum_index_none) {
-            object_get_node_local_transform(unit_index, (char *)"head", &marker, 1);
+            halo::objects::object_get_node_local_transform(unit_index, (char *)"head", &marker, 1);
         } else {
-            object *gunner = ((object_header *)object_data->data)[halo::datum_slot(unit->gunner_unit_index)].data;
+            object *gunner = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit->gunner_unit_index)].data;
             Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
             UnitSeat *seat = (UnitSeat *)unit_tag->seats.pointer +
                 ((unit_data *)((uint8_t *)gunner + k_unit_data_offset))->vehicle_seat_index;
-            object_get_node_local_transform(unit_index, seat->marker_name.string, &marker, 1);
+            halo::objects::object_get_node_local_transform(unit_index, seat->marker_name.string, &marker, 1);
         }
         *out = marker.node_transform.position;
         return;
     } else {
-        object *parent = ((object_header *)object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
+        object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
         Unit *parent_tag;
         UnitSeat *seat;
         *out = parent->position;
@@ -263,7 +254,7 @@ void UnitView::get_camera_position(real_point3d *out)
         if (parent->type == _object_type_vehicle && seat->camera_marker_name.string[0] == '\0') {
             return;
         }
-        object_get_node_local_transform(unit_obj->parent_object, seat->camera_marker_name.string, &marker, 1);
+        halo::objects::object_get_node_local_transform(unit_obj->parent_object, seat->camera_marker_name.string, &marker, 1);
         *out = marker.node_transform.position;
         return;
     }
@@ -280,7 +271,7 @@ void UnitView::get_camera_position(real_point3d *out)
 void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_vector3d *out_direction, real_point3d *out_origin)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
 
@@ -328,7 +319,7 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
 void UnitView::initialize_random_turn_angle()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     float half_range;
 
@@ -369,7 +360,7 @@ uint8_t UnitView::is_look_target_valid()
         return 1;
     }
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if (unit->controlling_player != k_datum_index_none &&
@@ -385,16 +376,16 @@ uint8_t UnitView::is_look_target_valid()
  *
  * @address 0x56c100
  */
-uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point)
+uint8_t halo::units::unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point)
 {
     if (unit_index == k_datum_index_none) {
         return 0;
     }
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     object_marker marker;
-    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1)  ;
+    halo::objects::object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1)  ;
 
     real_vector3d to_point;
     float cos_angle;
@@ -420,7 +411,7 @@ uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_
 int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     real_point3d base_position;
     real_vector3d delta;
@@ -429,11 +420,11 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
     int32_t hit_result = 0;
     collision_bsp_segment_result segment_result;
 
-    object_get_position(&base_position, unit_index);
+    halo::objects::object_get_position(&base_position, unit_index);
 
     switch (tag->vehicle_type) {
     case 0: case 1: case 4: case 6:
-        object_get_position(&base_position, unit_index);
+        halo::objects::object_get_position(&base_position, unit_index);
         base_position.x += halo::math::globals().global_up3d_pointer->i * 0.4f;
         base_position.y += halo::math::globals().global_up3d_pointer->j * 0.4f;
         base_position.z += halo::math::globals().global_up3d_pointer->k * 0.4f;
@@ -469,7 +460,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
  *
  * @address 0x55cca0
  */
-uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction)
+uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction)
 {
     if (game_time->paused != 0) {
         return 0;
@@ -502,7 +493,7 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
             }
 
             {
-                object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+                object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
                 void *tag_data = halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
                 uint8_t working_copy[0x550];
                 object *copy = (object *)working_copy;
@@ -582,7 +573,7 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
 void UnitView::project_onto_aiming_axis(real *out_speed, uint8_t project_point, uint8_t use_unit_aiming_vector, real_point3d *point, real_vector3d *axis)
 {
     datum_index unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     real_point3d camera;
     real_vector3d velocity;
     real distance;
@@ -600,7 +591,7 @@ void UnitView::project_onto_aiming_axis(real *out_speed, uint8_t project_point, 
         point->z = distance * axis->k + camera.z;
     }
 
-    object_get_root_object_velocities(unit_index, &velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(unit_index, &velocity, (real_vector3d *)0);
     *out_speed = velocity.j * axis->j + velocity.k * axis->k + velocity.i * axis->i;
 }
 
@@ -616,7 +607,7 @@ void UnitView::project_onto_aiming_axis(real *out_speed, uint8_t project_point, 
 void UnitView::reset_orientation_and_find_position(uint32_t vehicle_index)
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
 
     forward->k = 0.0f;
@@ -626,7 +617,7 @@ void UnitView::reset_orientation_and_find_position(uint32_t vehicle_index)
     *(real_vector3d *)&((unit_object *)obj)->base.up.i = *halo::math::globals().global_up3d_pointer;
     *(uint32_t *)(obj + 0x4cc) |= 1;
     if (!(uint8_t)::halo::units::unit_find_placement_position(object_index, vehicle_index, 0, 2.0f, 1, 0, 1, 0, 0)) {
-        uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
+        uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
         real_point3d center = *(real_point3d *)&((unit_object *)vehicle)->base.bounding_center.x;
 
         ::halo::units::unit_find_placement_position(object_index, vehicle_index, 0, ((unit_object *)vehicle)->base.bounding_radius, 1, 0, 0, 0, (real_vector3d *)&center);
@@ -643,7 +634,7 @@ void UnitView::reset_orientation_and_find_position(uint32_t vehicle_index)
 void UnitView::rotate_basis_about_axis()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     real_vector3d axis = obj->angular_velocity;
     float angle = halo::math::vector3d_normalize_with_length(axis);
     float angle_cos = (float)fcos(angle);
@@ -679,7 +670,7 @@ void UnitView::rotate_basis_about_axis()
 void UnitView::sample_camera_shake_from_velocity()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     real_point3d camera_position;
     real_vector3d delta;
     collision_result hit;
@@ -693,7 +684,7 @@ void UnitView::sample_camera_shake_from_velocity()
         real_point3d position = hit.point;
 
         position.z += 0.25f;
-        object_set_position_and_relink(&position, unit_index, 0);
+        halo::objects::object_set_position_and_relink(&position, unit_index, 0);
     }
 }
 
@@ -707,7 +698,7 @@ void UnitView::sample_camera_shake_from_velocity()
 void UnitView::set_control_countdown(int32_t countdown, uint32_t extra_control_flags)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     unit->persistent_control_ticks = countdown;
@@ -736,11 +727,11 @@ void UnitView::set_facing_from_index_table()
         return;
     }
 
-    obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     facing_index = *(int16_t *)((uint8_t *)obj + 0x5b0);
 
-    object_reset_velocity_and_wake(object_index);
+    halo::objects::object_reset_velocity_and_wake(object_index);
 
     {
         real_point3d *spawn_position;
@@ -762,7 +753,7 @@ void UnitView::set_facing_from_index_table()
         forward.i = (float)cos((double)angle);
         forward.j = (float)sin((double)angle);
         forward.k = 0.0f;
-        object_set_position_and_orientation(object_index, &forward, halo::math::globals().global_up3d_pointer, spawn_position);
+        halo::objects::object_set_position_and_orientation(object_index, &forward, halo::math::globals().global_up3d_pointer, spawn_position);
     }
 
     if (*(int32_t *)&((struct Object *)tag)->physics.tag_id == -1) {
@@ -780,7 +771,7 @@ void UnitView::set_facing_from_index_table()
  *
  * @address 0x565ca0
  */
-uint8_t unit_state_allows_control(const uint8_t *animation_block)
+uint8_t halo::units::unit_state_allows_control(const uint8_t *animation_block)
 {
     switch ((int8_t)animation_block[0xb]) {
     case 1: case 2: case 3:
@@ -802,7 +793,7 @@ uint8_t unit_state_allows_control(const uint8_t *animation_block)
 void UnitView::track_target_lock_timeout()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -840,7 +831,7 @@ void UnitView::update_look_delta_controls()
 {
     using namespace unit_update_look_delta_controls_local;
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     real_point3d sample;
     real_vector3d forward, up;
@@ -856,12 +847,12 @@ void UnitView::update_look_delta_controls()
             scale = (real_vector3d *)&((struct Unit *)tag)->seat_acceleration_scale;
         }
     } else {
-        object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
+        object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(obj->parent_object)].data;
         Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
         UnitSeat *seat = (UnitSeat *)((uint8_t *)*(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer +
                                        unit->vehicle_seat_index * sizeof(UnitSeat));
         object_marker marker;
-        int16_t found = object_get_node_local_transform(obj->parent_object, seat->marker_name.string,
+        int16_t found = halo::objects::object_get_node_local_transform(obj->parent_object, seat->marker_name.string,
                                                           &marker, 1);
         if (found == 0) {
             unit->animation_controls[0] = 0.5f;
@@ -869,7 +860,7 @@ void UnitView::update_look_delta_controls()
             unit->animation_controls[2] = 0.5f;
             return;
         }
-        object_get_position(&sample, obj->parent_object);
+        halo::objects::object_get_position(&sample, obj->parent_object);
         forward = marker.node_transform.forward;
         up = marker.node_transform.up;
         scale = (real_vector3d *)&seat->acceleration_scale;
@@ -907,7 +898,7 @@ void UnitView::update_look_delta_controls()
 void UnitView::update_random_turn_angle(real_vector3d *out_axis)
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint8_t is_actor_controlled = 0;
     float yaw_low, yaw_high;
@@ -1000,7 +991,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
 {
     using namespace unit_update_stance_and_jump_local;
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
+    uint8_t *obj = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
     uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t forced = force_ready;
     uint8_t soft_ping;
@@ -1108,7 +1099,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         if (forced) {
             ((struct unit_object *)obj)->unit.animation_state_flags = (uint16_t)((((struct unit_object *)obj)->unit.animation_state_flags & 0xfff7) | 4);
             if ((uint8_t)((struct Unit *)unit_tag)->unit_flags & 2) {
-                object_delete_teardown(unit_index);
+                halo::objects::object_delete_teardown(unit_index);
                 UnitView(unit_index).pick_random_spawned_actor_count();
             }
         }
@@ -1118,7 +1109,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         if ((uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x21) {
             UnitView(unit_index).release_thrown_grenade(1);
         }
-        object_copy_default_node_transforms(unit_index, 3);
+        halo::objects::object_copy_default_node_transforms(unit_index, 3);
         ((struct unit_object *)obj)->unit.animation_state = (uint8_t)new_state;
         UnitView(unit_index).set_custom_animation(graph_tag, animation);
         set_flag(((struct unit_object *)obj)->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
@@ -1128,7 +1119,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             if (!keep_still && network_game_mode != 0) {
                 datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)obj)->unit.current_weapon_index);
 
-                if (object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
+                if (halo::objects::object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
                     keep_still = 1;
                 }
             }
@@ -1208,7 +1199,7 @@ static void level_to_world_up(object *obj)
  *
  * @address 0x560800
  */
-void unit_update_up_vector(Biped *biped_tag, object *obj)
+void halo::units::unit_update_up_vector(Biped *biped_tag, object *obj)
 {
     using namespace unit_update_up_vector_local;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);

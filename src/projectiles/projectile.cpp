@@ -6,9 +6,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern double sqrt(double x);
 extern double fsin(double x);
@@ -19,14 +19,6 @@ extern char k_empty_string[1];
 extern game_engine_definition *current_game_engine;
 extern ProjectileMaterialResponse projectile_default_material_response;
 extern real_vector3d *global_down3d_pointer;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
-extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, ObjectNoise_t noise, int32_t param_5);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern game_time_globals *game_time;
@@ -53,7 +45,7 @@ uint8_t ProjectileHandle::construct()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     float rate;
@@ -77,7 +69,7 @@ uint8_t ProjectileHandle::construct()
         datum_index cursor = (datum_index)obj->creator_object;
         do {
             root = cursor;
-            cursor = ((object_header *)object_data->data)[halo::datum_slot(cursor)].data->parent_object;
+            cursor = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(cursor)].data->parent_object;
         } while (cursor != (datum_index)k_datum_index_none);
     }
     proj->ignore_object_index = root;
@@ -170,7 +162,7 @@ void ProjectileHandle::update_function_values()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     ProjectileFunctionIn_t *function_in = &tag->projectile_a_in; 
@@ -213,7 +205,7 @@ void ProjectileHandle::compute_deceleration()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     real near_range;
@@ -248,7 +240,7 @@ void ProjectileHandle::compute_rotation()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     real magnitude = (real)sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
@@ -283,7 +275,7 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
     real_vector3d sweep_delta;
@@ -364,7 +356,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     char *effect_names[2];
     datum_index effect_tag_id;
@@ -383,14 +375,14 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
          _projectile_super_detonation_counted_bit) == 0 &&
         obj->parent_object != (datum_index)k_datum_index_none) {
 
-        object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
+        object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(obj->parent_object)].data;
         datum_index first_child = parent->first_child_object;
         datum_index cursor;
         int16_t sibling_count = 0;
 
         cursor = first_child;
         while (cursor != (datum_index)k_datum_index_none) {
-            object *sibling = ((object_header *)object_data->data)[halo::datum_slot(cursor)].data;
+            object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(cursor)].data;
             projectile_data *sibling_proj = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
             if (sibling->definition_tag == obj->definition_tag &&
                 (sibling_proj->flags & _projectile_super_detonation_counted_bit) == 0) {
@@ -406,7 +398,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
 
             cursor = first_child;
             while (cursor != (datum_index)k_datum_index_none) {
-                object *sibling = ((object_header *)object_data->data)[halo::datum_slot(cursor)].data;
+                object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(cursor)].data;
                 projectile_data *sibling_proj = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
                 if (sibling->definition_tag == obj->definition_tag &&
                     (sibling_proj->flags & _projectile_super_detonation_counted_bit) == 0) {
@@ -431,12 +423,12 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             
             real_point3d parent_position;   
 
-            object_get_position(&parent_position, obj->parent_object);
-            object_snap_to_parent_marker_and_detach(object_index);
-            relink_position = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data->position;
-            object_set_position_and_relink(&parent_position, object_index, 0);
-            object_reposition_to_spawn_location(object_index, &relink_position, k_datum_index_none);
-            object_recalculate_bounding_radius_recursive(object_index);
+            halo::objects::object_get_position(&parent_position, obj->parent_object);
+            halo::objects::object_snap_to_parent_marker_and_detach(object_index);
+            relink_position = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data->position;
+            halo::objects::object_set_position_and_relink(&parent_position, object_index, 0);
+            halo::objects::object_reposition_to_spawn_location(object_index, &relink_position, k_datum_index_none);
+            halo::objects::object_recalculate_bounding_radius_recursive(object_index);
         }
     }
 
@@ -444,7 +436,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
         if (first_collision != 0 && proj->contrail_attachment_index != -1 &&
             obj->attachment_handles[proj->contrail_attachment_index] != (datum_index)k_datum_index_none) {
-            object_recalculate_bounding_radius(object_index);
+            halo::objects::object_recalculate_bounding_radius(object_index);
             
             halo::effects::contrail_advance(obj->attachment_handles[proj->contrail_attachment_index], 0,
                 (1.0f - remaining_tick_fraction) * 0.033333335f);
@@ -454,8 +446,8 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
     {
         real_vector3d forward_scratch; 
 
-        object_get_position(&position_block[0], object_index); 
-        object_get_orientation(&forward_scratch, object_index, &direction_block[0]);
+        halo::objects::object_get_position(&position_block[0], object_index); 
+        halo::objects::object_get_orientation(&forward_scratch, object_index, &direction_block[0]);
         position_block[1] = position_block[0]; 
         direction_block[1] = *global_down3d_pointer;
 
@@ -482,14 +474,14 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         dd.multiplier = 1.0f;
         dd.damage_effect_tag = *(datum_index *)&tag->attached_detonation_damage.tag_id;
 
-        object_get_orientation(0, object_index, 0); 
-        object_get_position(&dd.epicentre, object_index); 
+        halo::objects::object_get_orientation(0, object_index, 0); 
+        halo::objects::object_get_position(&dd.epicentre, object_index); 
         dd.origin = dd.epicentre;
         dd.responsible_object = obj->creator_object;   
         dd.responsible_player = obj->owner_linkage; 
         dd.team_index = (int16_t)obj->owner_team; 
 
-        object_apply_damage(&dd, obj->parent_object, -1, -1, -1, 0);
+        halo::objects::object_apply_damage(&dd, obj->parent_object, -1, -1, -1, 0);
     }
 
     {
@@ -527,13 +519,13 @@ uint8_t ProjectileHandle::force_detonate()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     proj->arming_timer = 1.0f;
     proj->detonation_timer = 1.0f;
     proj->flags &= ~(uint32_t)_projectile_attached_bit;
-    object_snap_to_parent_marker_and_detach(object_index);
+    halo::objects::object_snap_to_parent_marker_and_detach(object_index);
 
     return 1;
 }
@@ -553,7 +545,7 @@ uint8_t ProjectileHandle::is_old_enough()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     int32_t stamp = obj->network_update_tick;
 
     if (stamp == -1) {
@@ -577,7 +569,7 @@ void ProjectileHandle::notify_object_deleted(datum_index dying_object_index)
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     if (proj->tracked_object_index == dying_object_index) {

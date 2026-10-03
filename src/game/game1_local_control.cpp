@@ -21,6 +21,8 @@
 #include "halo/items/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -29,7 +31,6 @@
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern data_array *object_data;
 extern player_control_globals *player_control_globals_ptr;
 extern game_time_globals *game_time;
 extern Globals *global_globals;
@@ -48,7 +49,6 @@ extern uint32_t camera_observer_get_target_angles(real *out_weight_primary,
     real *out_weight_secondary, real *out_yaw_pitch, real *out_yaw_pitch_rate,
     int16_t local_player_slot);
 extern uint32_t camera_observer_get_target_id(datum_index *out_id, int16_t local_player_slot);
-extern float unit_get_active_weapon_scale(uint32_t unit_index, int16_t zoom_level);
 extern double sqrt(double x);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch,
     real_vector3d *out_forward);
@@ -130,7 +130,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     yaw_rate = 0.0f;
     pitch_rate = 0.0f;
     if (plr->unit != (datum_index)-1) {
-        object *unit_object = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
         yaw_rate = look_yaw_rate_setting[local_player_index] *
@@ -140,7 +140,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
         if (unit_object->parent_object != (datum_index)-1 && unit->vehicle_seat_index != -1) {
             object *parent =
-                ((object_header *)object_data->data)[unit_object->parent_object & 0xffff].data;
+                ((object_header *)halo::objects::globals().object_data->data)[unit_object->parent_object & 0xffff].data;
             Unit *parent_definition =
                 (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & 0xffff].data;
             UnitSeat *seat =
@@ -189,11 +189,11 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             out->throttle_x = input->throttle_x;
             out->throttle_y = input->throttle_y;
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
-                scale = 1.0f / unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
+                scale = 1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)object_data->data)[plr->unit & 0xffff].data +
+                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data +
                     k_unit_data_offset);
 
                 scale = (1.0f - unit->stun * player_information->stun_turning_penalty) * scale;
@@ -227,14 +227,14 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
             if (plr->unit != (datum_index)-1 && control->desired_zoom_level != -1) {
                 real inverse_scale =
-                    1.0f / unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
+                    1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
 
                 yaw_delta = yaw_delta * inverse_scale;
                 pitch_delta = inverse_scale * pitch_delta;
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)object_data->data)[plr->unit & 0xffff].data +
+                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data +
                     k_unit_data_offset);
                 real stun_scale =
                     1.0f - unit->stun * player_information->stun_turning_penalty;
@@ -355,10 +355,10 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     if (network_game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)object_data->data)[plr->unit & 0xffff].data + k_unit_data_offset);
+            ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data + k_unit_data_offset);
 
         if (unit->current_weapon_index != -1) {
-            object *weapon_object = ((object_header *)object_data->data)
+            object *weapon_object = ((object_header *)halo::objects::globals().object_data->data)
                 [unit->weapons[unit->current_weapon_index] & 0xffff].data;
             weapon_data *weapon =
                 (weapon_data *)((uint8_t *)weapon_object + k_item_extension_offset);
@@ -573,8 +573,8 @@ real LocalControl::get_max_look_pitch(int16_t local_player_index)
     real result = 1.2217305f;
 
     if (look->unit != k_datum_index_none) {
-        void *base = *(void **)((uint8_t *)object_data->data +
-            (uint32_t)(uint16_t)look->unit * object_data->size + 8);
+        void *base = *(void **)((uint8_t *)halo::objects::globals().object_data->data +
+            (uint32_t)(uint16_t)look->unit * halo::objects::globals().object_data->size + 8);
         object *o = (object *)base;
         unit_data *u = (unit_data *)((uint8_t *)base + k_unit_data_offset);
         uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)o->definition_tag].data;
@@ -613,8 +613,8 @@ void LocalControl::init_player_look_state_from_object(datum_index unit, int16_t 
     look->suppressed_until_released = 0;
 
     if (unit != k_datum_index_none) {
-        unit_data *u = *(unit_data **)((uint8_t *)object_data->data +
-            (uint32_t)(uint16_t)unit * object_data->size + 8);
+        unit_data *u = *(unit_data **)((uint8_t *)halo::objects::globals().object_data->data +
+            (uint32_t)(uint16_t)unit * halo::objects::globals().object_data->size + 8);
         real horizontal;
 
         look->yaw = (real)atan2((double)u->desired_facing_vector.j, (double)u->desired_facing_vector.i);

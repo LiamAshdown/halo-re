@@ -12,17 +12,17 @@
 #include "halo/sound/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
 extern uint8_t event9_target;
 extern int32_t network_role_0071c2d4;
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern data_array *object_data;
 extern data_array *player_data;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t *ai_update_stagger;
@@ -38,7 +38,6 @@ extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
 extern void weapon_set_ready_timer(datum_index item_index, real value);
-extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 }
 
@@ -52,11 +51,11 @@ namespace halo::units {
  *
  * @address 0x56c370
  */
-void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
+void halo::units::unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
 {
     int32_t looked_up = 0;
     if (hash_key != -1) {
-        looked_up = hash_table_get((hash_table *)(object_network_id_table + 0xc), hash_key);
+        looked_up = halo::objects::hash_table_get((hash_table *)(object_network_id_table + 0xc), hash_key);
         if (looked_up == -1) {
             looked_up = 0;
         }
@@ -75,7 +74,7 @@ void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define LOOK_BLEND_NEW 0.3f
 #define LOOK_BLEND_OLD 0.7f
@@ -318,7 +317,7 @@ controls:
             real_matrix4x3 basis;
 
             basis.scale = 1.0f;
-            object_get_orientation(&basis.forward, unit_index, &basis.up);
+            halo::objects::object_get_orientation(&basis.forward, unit_index, &basis.up);
             halo::math::vector3d_cross_product(basis.left, basis.forward, basis.up);
             basis.position = *zero_vector;
             halo::math::vector3d_rotate_toward_bounded((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_velocity,
@@ -351,7 +350,7 @@ controls:
             real_matrix4x3 basis;
 
             basis.scale = 1.0f;
-            object_get_orientation(&basis.forward, unit_index, &basis.up);
+            halo::objects::object_get_orientation(&basis.forward, unit_index, &basis.up);
             halo::math::vector3d_cross_product(basis.left, basis.forward, basis.up);
             basis.position = *zero_vector;
             halo::math::vector3d_rotate_toward_bounded((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.looking_velocity,

@@ -5,6 +5,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -42,7 +44,6 @@ extern "C" void actor_mode_alert_movement_cancelled(datum_index actor_index)
 namespace c_actor_mode_alert_process {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -87,7 +88,7 @@ uint8_t halo::ai::alert_mode::process()
             }
         }
         if (ready && !(W(0x9e) > 0) && B(0xa6) == 0) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & halo::k_slot_mask].data;
+            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[D(0x18) & halo::k_slot_mask].data;
 
             if (unit[0x2a3] != 0x1c) {
                 W(0xa4) = (int16_t)actor_select_move_position(actor_index, count, current, actor + 0xa0);
@@ -170,15 +171,12 @@ extern "C" void actor_mode_alert_target_cleared(datum_index actor_index)
 namespace c_actor_mode_alert_tick {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
-    uint8_t interpolate);
 }
 }
 
@@ -219,11 +217,11 @@ void halo::ai::alert_mode::tick()
         datum_index graph = *(datum_index *)(animation + 0x2c);
 
         if (graph == k_datum_index_none) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & halo::k_slot_mask].data;
+            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[D(0x18) & halo::k_slot_mask].data;
 
             graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data + 0x44);
         }
-        unit_start_user_animation(D(0x18), graph, (const char *)animation, 1);
+        halo::units::unit_start_user_animation(D(0x18), graph, (const char *)animation, 1);
     }
     B(0xa6) = 0;
 }
@@ -241,7 +239,6 @@ extern "C" void actor_mode_alert_tick(uint32_t actor_index)
 namespace c_actor_mode_alert_update {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -667,7 +664,6 @@ extern "C" {
 extern data_array *actor_data;
 extern real_vector2d *global_forward2d_pointer;
 
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -744,7 +740,7 @@ void halo::ai::obey_mode::update()
     W(0x42c) = W(0xca);
 
     if (B(0xf8) != 0 && W(0x418) == -1 &&
-        (D(0x18) == halo::k_dword_none || !unit_is_in_busy_animation_state(D(0x18)))) {
+        (D(0x18) == halo::k_dword_none || !halo::units::unit_is_in_busy_animation_state(D(0x18)))) {
         if (W(0xfa) != -1) {
             uint32_t direction[2];
 
@@ -771,7 +767,7 @@ void halo::ai::obey_mode::update()
         if (!(W(0xac) > 0)) {
             return;
         }
-    } else if (W(0xac) == 0 && B(0x15c) == 0 && !unit_is_in_busy_animation_state(D(0x18))) {
+    } else if (W(0xac) == 0 && B(0x15c) == 0 && !halo::units::unit_is_in_busy_animation_state(D(0x18))) {
         real_vector2d direction;
         float x;
         float y;
@@ -904,8 +900,6 @@ extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying);
@@ -958,7 +952,7 @@ uint8_t halo::ai::search_mode::process()
         } else {
             real_point3d in_view;
 
-            unit_add_marker_relative_offset(((actor *)act)->unit_index, 1, (float *)(act + 0xb0), 0, 0, &in_view);
+            halo::units::unit_add_marker_relative_offset(((actor *)act)->unit_index, 1, (float *)(act + 0xb0), 0, 0, &in_view);
             ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(actor_evaluate_engagement_reachability(*(int16_t *)(act + 0x148), ((struct actor *)act)->mode_data.search.target_cluster,
                                                                          &in_view, &((struct actor *)act)->aim_origin, 0, 0, -1,
                                                                          (uint8_t)(((actor *)act)->active_unit_index !=

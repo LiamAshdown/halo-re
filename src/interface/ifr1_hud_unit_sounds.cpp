@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
@@ -11,7 +12,6 @@ extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t u
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
 extern player_globals *local_player_globals;
 extern hud_unit_meter_globals *hud_unit_meters;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern uint8_t game_engine_object_flag_bit3_clear(datum_index player_index);
 extern void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int32_t *handles,
@@ -101,7 +101,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (unit_index == (datum_index)-1) {
         unit_index = state->last_unit;
     }
-    unit = (uint8_t *)object_try_and_get(unit_index, 3);
+    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     if (unit == 0) {
         return;
     }

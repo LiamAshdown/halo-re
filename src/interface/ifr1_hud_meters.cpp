@@ -4,6 +4,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t ui_real_to_int_truncate(float value);
@@ -22,7 +23,6 @@ extern data_array *player_data;
 extern hud_unit_meter_globals *hud_unit_meters;
 extern player_globals *local_player_globals;
 extern void hud_unit_meters_update_for_player(int16_t local_player_index);
-extern data_array *object_data;
 extern hud_globals_flags *hud_flags;
 extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled);
 }
@@ -370,7 +370,7 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
             datum_index unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->unit;
 
             if (unit_index != (datum_index)-1) {
-                uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+                uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
                 hud_unit_meter_state *state = &hud_unit_meters->players[local_player_index];
                 float shield = ((unit_object *)unit)->base.shield_vitality;
 

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -31,7 +32,6 @@ extern float cosf(float x);
 extern float sqrtf(float x);
 extern float atan2f(float y, float x);
 extern long lrint(double x);
-extern data_array *object_data;
 extern data_array *player_data;
 extern player_control_globals *player_control_globals_ptr;
 extern float hud_multitexture_effector_counter;
@@ -479,7 +479,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
             if (player_index != (datum_index)-1) {
                 unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->unit;
             }
-            aim = (const float *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + 0x23c);
+            aim = (const float *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data + 0x23c);
             value = atan2f(aim[2], sqrtf(aim[0] * aim[0] + aim[1] * aim[1]));
             break;
         }

@@ -3,6 +3,8 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -271,8 +273,6 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
 namespace actor_report_firing_position_request_local {
 extern "C" {
 extern data_array *actor_data;
-extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
-    uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
     real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
     datum_index exclude_object_index, uint8_t flying);
@@ -302,7 +302,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 
     if (query->goal_kind == 5) {
         if (candidate->distance_from_actor < 6.0f) {
-            unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
+            halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
             candidate->request_result = (int16_t)actor_evaluate_engagement_reachability(
                 *(int16_t *)((uint8_t *)self + 0x148), *(int16_t *)((uint8_t *)candidate->position + 0xe),
                 &marker_point, &((struct actor *)self)->aim_origin, 0, 0, halo::k_dword_none,
@@ -335,7 +335,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
         mode = 1;
     }
 
-    unit_add_marker_relative_offset(self->unit_index, mode, (float *)candidate->position, (uint32_t)direction,
+    halo::units::unit_add_marker_relative_offset(self->unit_index, mode, (float *)candidate->position, (uint32_t)direction,
         (uint32_t)offset, &marker_point);
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
@@ -646,9 +646,7 @@ void ActorView::score_firing_positions_by_standoff(actor_firing_position_query *
 namespace actor_score_firing_positions_by_threat_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern double sqrt(double x);
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -786,8 +784,8 @@ next_candidate:
         return;
     }
 
-    vehicle = (object *)((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
-    object_get_position(&vehicle_position, self->active_unit_index);
+    vehicle = (object *)((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+    halo::objects::object_get_position(&vehicle_position, self->active_unit_index);
 
     for (i = 0; i < (int16_t)count; i++) {
         c = &candidates[i];

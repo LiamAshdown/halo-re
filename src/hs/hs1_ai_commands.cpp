@@ -2,6 +2,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -25,7 +26,6 @@ extern void ai_reference_reset_or_wake_awareness(uint32_t packed_reference, char
 extern void ai_object_list_reset_or_wake_awareness(datum_index object_list_header_handle, char flag);
 extern void ai_reference_flee_if_ready(uint32_t packed_reference, uint32_t readiness_param);
 extern void ai_reference_invoke_squad_callback_406f80(uint32_t packed_reference);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void actor_swarm_for_each_component_thunk(uint32_t actor_index);
 extern void ai_unit_flee_if_ready(datum_index unit_index, uint32_t readiness_param);
 extern int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle);
@@ -35,7 +35,6 @@ extern int16_t ai_conversation_get_line_index(int16_t conversation_definition_in
 extern int32_t ai_conversation_get_status(int16_t conversation_definition_index);
 extern void ai_conversation_stop_all(int16_t conversation_definition_index);
 extern void ai_platoon_range_set_defending(uint32_t packed_reference);
-extern data_array *object_data;
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle);
 extern void ai_object_list_set_unit_flag_400(datum_index object_list_header_handle, char flag);
@@ -1199,7 +1198,7 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x1f4);
+        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x1f4);
 
         if (actor != k_datum_index_none) {
             actor_delete(actor, 0);
@@ -1549,7 +1548,7 @@ void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index,
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)arguments[0], 3);
+            uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
             if (unit != 0) {
                 if (*(int32_t *)&((unit_object *)unit)->unit.actor_index != -1) {

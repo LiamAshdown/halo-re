@@ -1,13 +1,12 @@
 #include "halo/objects/object_type_definitions.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern object_type_definition *object_type_definition_list;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern void object_type_override_call_0x70(uint32_t object_index, uint32_t edi_argument, uint32_t stack_argument);
 }
 
 /**
@@ -429,7 +428,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x58(uint32_t object_index, ui
  */
 int halo::objects::ObjectTypeDefinitions::override_get_0x64(uint32_t object_index, void *buffer, int32_t buffer_size)
 {
-    object *obj = object_try_and_get(object_index, _object_mask_all);
+    object *obj = halo::objects::object_try_and_get(object_index, _object_mask_all);
     object_type_definition *def;
     int16_t i;
 
@@ -456,7 +455,7 @@ int halo::objects::ObjectTypeDefinitions::override_get_0x64(uint32_t object_inde
  */
 void halo::objects::ObjectTypeDefinitions::override_call_0x68(uint32_t object_index)
 {
-    object *obj = object_try_and_get(object_index, _object_mask_all);
+    object *obj = halo::objects::object_try_and_get(object_index, _object_mask_all);
     object_type_definition *def;
     int16_t i;
 
@@ -508,7 +507,7 @@ int halo::objects::ObjectTypeDefinitions::override_call_0x6c(uint32_t object_ind
 void halo::objects::ObjectTypeDefinitions::override_call_0x70(uint32_t object_index, uint32_t edi_argument,
     uint32_t stack_argument)
 {
-    object *obj = object_try_and_get(object_index, _object_mask_all);
+    object *obj = halo::objects::object_try_and_get(object_index, _object_mask_all);
     object_type_definition *def;
     int16_t i;
 
@@ -544,7 +543,7 @@ void halo::objects::ObjectTypeDefinitions::override_call_0x70_release_node(int32
         next = ((int32_t *)object_network_id_table->handles)[node];
     }
     **slot = next;
-    object_type_override_call_0x70(0, 0, 0);
+    halo::objects::object_type_override_call_0x70(0, 0, 0);
 }
 
 /**

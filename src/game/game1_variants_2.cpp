@@ -9,12 +9,12 @@
 #include "objects.h"
 
 #include "halo/game/game1_variants.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern player_profile player_profile_cache[16];
 extern data_array *player_data;
 extern game_variant game_engine_variant;
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t *machine_table;
 extern void game_engine_send_player_profile_update(void *has_payload, void *profile_tail,
                                                      int32_t target);
@@ -41,7 +41,7 @@ void Variants::capture_player_profile(int32_t slot, int32_t commit)
 
     lookup_result = 0;
     if (player_handle != (datum_index)0xffffffff) {
-        lookup_result = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
+        lookup_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
         if (lookup_result == -1) {
             lookup_result = 0;
         }

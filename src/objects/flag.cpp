@@ -8,22 +8,18 @@
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
 extern int32_t __ftol(double);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void flag_cloth_init_shape_constraints(flag *entry);
-extern void flag_cloth_mark_border_cells(flag *entry);
-extern void flag_cloth_stamp_region_split_flags(int16_t outer_start, Flag *tag, flag *entry, int16_t inner_start, int16_t size, uint16_t split_code);
-extern void flag_cloth_update(flag *entry, Flag *tag, float dt);
 extern data_array *flag_data;
 extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
 extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *object_data;
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t rasterizer_dynamic_index_cache_reserve(void);
 extern void *rasterizer_dynamic_index_slot_lock(void);
 extern void *rasterizer_dynamic_vertex_cache_lock(void);
@@ -131,8 +127,8 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
                     }
                 }
 
-                flag_cloth_mark_border_cells(entry);
-                flag_cloth_init_shape_constraints(entry);
+                halo::objects::flag_cloth_mark_border_cells(entry, tag);
+                halo::objects::flag_cloth_init_shape_constraints(entry, tag);
                 return handle;
             }
             entry->invalid = 1;
@@ -173,8 +169,8 @@ void halo::objects::FlagView::cloth_mark_border_cells(Flag *tag)
             half = clamped & ~1;
             split = half / 2;
 
-            flag_cloth_stamp_region_split_flags(0, tag, entry, col, split, 4);
-            flag_cloth_stamp_region_split_flags(0, tag, entry, col + split, split, 5);
+            halo::objects::flag_cloth_stamp_region_split_flags(0, tag, entry, col, split, 4);
+            halo::objects::flag_cloth_stamp_region_split_flags(0, tag, entry, col + split, split, 5);
 
             col = col + half;
             point_index = point_index + 1;
@@ -210,15 +206,15 @@ void halo::objects::FlagView::cloth_init_shape_constraints(Flag *tag)
         }
 
         if (shape == 3) {
-            flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 3);
+            halo::objects::flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 3);
         } else if (shape == 4) {
-            flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 2);
+            halo::objects::flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 2);
         } else if (shape == 1) {
-            flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 2);
-            flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, si, si, 3);
+            halo::objects::flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 2);
+            halo::objects::flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, si, si, 3);
         } else if (shape == 2) {
-            flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 3);
-            flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, si, si, 2);
+            halo::objects::flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, 0, si, 3);
+            halo::objects::flag_cloth_stamp_region_split_flags((int16_t)edge_count, tag, entry, si, si, 2);
         }
     }
 }
@@ -295,12 +291,12 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
 
     *(datum_index *)(self + 8) = object_index;
     if (*(int16_t *)(self + 6) > 5 || self[3] == 0) {
-        flag_cloth_update((flag *)self, tag, 5.0f);
+        halo::objects::flag_cloth_update((flag *)self, tag, 5.0f);
         self[3] = 1;
     }
     *(int16_t *)(self + 6) = 0;
     if (self[2] == 0) {
-        flag_render((uint32_t *)self, (uint32_t *)arg3, tag, (uint8_t *)arg4);
+        halo::objects::flag_render((uint32_t *)self, (uint32_t *)arg3, tag, (uint8_t *)arg4);
     }
 }
 
@@ -332,7 +328,7 @@ void halo::objects::FlagSystem::update(float dt)
 
             *update_counter = *update_counter + 1;
             if (object_index != k_datum_index_none && *update_counter < 5 && dt != 0.0f) {
-                flag_cloth_update(entry, (Flag *)tag_data, dt);
+                halo::objects::flag_cloth_update(entry, (Flag *)tag_data, dt);
                 flags = flag_data;
             }
         }
@@ -381,7 +377,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
     int16_t column_marker_index[40];
     int8_t moving;
 
-    flag_pole_get_marker_positions(entry, &node_ref, marker_positions, row_table,
+    halo::objects::flag_pole_get_marker_positions(entry, &node_ref, marker_positions, row_table,
                                     row_start_scratch, column_marker_index, tag);
     real_point3d water_probe_point = {0.0f, 0.0f, 0.0f};
     int16_t water_probe_weather = -1;
@@ -540,7 +536,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
 
     for (i = 0; i < (int32_t)tag->attachment_points.count; i++) {
         object_marker marker;
-        object_get_node_local_transform(entry->object_index,
+        halo::objects::object_get_node_local_transform(entry->object_index,
             (char *)((uint8_t *)tag->attachment_points.pointer + i * 0x34 + 0x14),
             &marker, 1);
         marker_positions[i] = marker.node_transform.position;

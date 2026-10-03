@@ -15,10 +15,9 @@
 #include "halo/memory/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
-extern int16_t objects_get_ambient_cluster(void);
 extern data_array *player_data;
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
@@ -28,8 +27,6 @@ extern uint8_t custom_waypoint_matches_filter(int32_t candidate, player *referen
 extern int game_engine_find_valid_starting_locations(real_point3d *origin,
     float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type,
     int32_t max_results, int32_t *results);
-extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location,
-    real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
 }
 
 namespace halo::game::engine1 {
@@ -51,7 +48,7 @@ void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_
         out_bitmask[i] = 0;
     }
 
-    player_gate_result = objects_get_ambient_cluster();
+    player_gate_result = halo::objects::objects_get_ambient_cluster();
 
     iterator.data = player_data;
     iterator.next_index = 0;
@@ -65,7 +62,7 @@ void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_
                 uint32_t current = (uint32_t)pl->unit;
                 object *root;
                 do {
-                    root = (object *)((object_header *)object_data->data)[current & 0xffff].data;
+                    root = (object *)((object_header *)halo::objects::globals().object_data->data)[current & 0xffff].data;
                     current = (uint32_t)root->parent_object;
                 } while (current != 0xffffffff);
 
@@ -250,10 +247,10 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
         location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[location.leaf_index & 0x7fffffff].cluster;
     }
 
-    count = object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);
+    count = halo::objects::object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);
 
     for (i = 0; i < count; i = i + 1) {
-        object *obj = ((object_header *)object_data->data)[candidates[i] & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
 
         if (obj != 0 && obj->type == 1) {
             return 1;

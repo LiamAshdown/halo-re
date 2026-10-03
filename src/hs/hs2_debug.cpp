@@ -5,6 +5,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/objects/api.hpp"
 
 
 #ifdef __cplusplus
@@ -21,7 +22,6 @@ extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
 extern uint8_t hs_preserve_token_case;
-extern data_array *object_list_header_data;
 extern int32_t object_list_nth_reference(datum_index header_index, int16_t n);
 extern void message_delta_metrics_dump(char *suffix);
 extern uint8_t network_bandwidth_graph_globals[];
@@ -116,7 +116,7 @@ void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_
     uint16_t count = 0;
 
     if (list != k_datum_index_none) {
-        count = *(uint16_t *)((uint8_t *)object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 6);
+        count = *(uint16_t *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 6);
     }
     hs_thread_return((int32_t)count, thread_index);
     }

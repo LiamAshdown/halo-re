@@ -14,6 +14,8 @@
 #include "halo/networking/net2_player_update_client.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
@@ -41,13 +43,11 @@ extern int32_t player_update_queue_offset_from_head(player *target_player, int32
 extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y, real z,
     int32_t tick, int32_t sequence);
 extern int32_t circular_queue_count(circular_queue *queue);
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj,
     datum_index unit_index);
 extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
     const char *format, ...);
 extern uint8_t circular_queue_push(circular_queue *queue, void *source);
-extern void unit_propagate_position_delta_to_children(const real_point3d *position, datum_index object_index);
 void player_update_client_local_player_update_from_network(int32_t *decode_context);
 void player_update_client_local_player_vehicle_update_from_network(int32_t *decode_context);
 void player_update_client_remote_player_action_update_from_network(int32_t **decode_context);
@@ -367,7 +367,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                 target->position_update_ignored_count = 0;
 
                 if (target->unit != -1) {
-                    object *unit = object_try_and_get(target->unit, 3);
+                    object *unit = halo::objects::object_try_and_get(target->unit, 3);
 
                     if (unit != 0 && unit->parent_object == -1 && unit->network_role == 1) {
                         real_point3d new_position;
@@ -730,13 +730,13 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                 target->vehicle_update_ignored_count = 0;
 
                 if (target->unit != -1) {
-                    object *unit = object_try_and_get(target->unit, 3);
+                    object *unit = halo::objects::object_try_and_get(target->unit, 3);
 
                     if (unit != 0 && unit->parent_object == vehicle.parent_or_tag) {
-                        object *vehicle_object = object_try_and_get(vehicle.parent_or_tag, 3);
+                        object *vehicle_object = halo::objects::object_try_and_get(vehicle.parent_or_tag, 3);
 
                         if (vehicle_object != 0) {
-                            unit_propagate_position_delta_to_children(&vehicle.position, vehicle.parent_or_tag);
+                            halo::units::unit_propagate_position_delta_to_children(&vehicle.position, vehicle.parent_or_tag);
                             vehicle_object->velocity = vehicle.velocity;
                             vehicle_object->angular_velocity = vehicle.angular_velocity;
                             vehicle_object->forward = vehicle.forward;

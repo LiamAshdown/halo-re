@@ -9,6 +9,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/objects/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -27,8 +28,6 @@ extern float hud_text_draw_color_b;
 extern void hud_state_reset(void);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int16_t profile_slot_id[];
 extern char player_help_name_a10[];
 extern char player_help_name_a30[];
@@ -210,7 +209,7 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
         if (record->unit == (datum_index)0xffffffff) {
             continue;
         }
-        header = &((object_header *)object_data->data)[record->unit & 0xffff];
+        header = &((object_header *)halo::objects::globals().object_data->data)[record->unit & 0xffff];
         u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
         slot = u->current_weapon_index;
         if (slot != -1 && weapon_index == u->weapons[slot]) {
@@ -239,7 +238,7 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
         return (datum_index)-1;
     }
-    unit = object_try_and_get(p->unit, 3);
+    unit = halo::objects::object_try_and_get(p->unit, 3);
     if (unit == 0 || ((unit_object *)unit)->base.parent_object == (datum_index)-1 ||
         ((unit_object *)unit)->unit.vehicle_seat_index == -1) {
         return (datum_index)-1;
@@ -974,10 +973,10 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
     object_marker marker;
     int16_t result;
 
-    header = &((object_header *)object_data->data)[object_index & 0xffff];
+    header = &((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff];
     obj = header->data;
 
-    parent_header = &((object_header *)object_data->data)[obj->parent_object & 0xffff];
+    parent_header = &((object_header *)halo::objects::globals().object_data->data)[obj->parent_object & 0xffff];
     parent_unit = (unit_data *)((uint8_t *)parent_header->data + k_unit_data_offset);
     controlling_player = parent_unit->controlling_player;
 
