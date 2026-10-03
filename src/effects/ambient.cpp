@@ -13,6 +13,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &weather_particle_system_count = halo::link::ref<int16_t>(halo::effects::vars().weather_particle_system_count);
 static auto &weather_wind_states = halo::link::ref<weather_particle_system_state [8]>(halo::effects::vars().weather_wind_states);
@@ -74,7 +75,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
 
     if (cluster != -1) {
         uint32_t skip_non_water = filter_flags & 4;
-        int16_t region = halo::scenario::location_view(location).fog_region(skip_non_water ? (real_point3d *)0 : position);
+        int16_t region = halo::scenario::location_view(location).fog_region(skip_non_water ? nullptr : position);
 
         weather_row = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster * 0x68 + 8);
         if (region != -1) {
@@ -210,13 +211,13 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
             spawn_position.y = offset->j * 0.01f + position->y;
             spawn_position.z = offset->k * 0.01f + position->z;
 
-            if (*(uint32_t *)&entry->effect.tag_id != halo::k_dword_none) {
-                halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (const real_vector3d *)0, 1, 0,
-                    &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, (const ColorRGB *)0,
-                    (const effect_tint_source *)0, 0);
+            if (halo::objects::tag_handle(entry->effect) != halo::k_dword_none) {
+                halo::effects::effect_new_with_color(halo::objects::tag_handle(entry->effect), k_datum_index_none, nullptr, 1, 0,
+                    &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, nullptr,
+                    nullptr, 0);
             }
 
-            if (*(uint32_t *)&entry->sound.tag_id != halo::k_dword_none) {
+            if (halo::objects::tag_handle(entry->sound) != halo::k_dword_none) {
                 struct {
                     real_point3d position;
                     real_vector3d normal;
@@ -231,7 +232,7 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
                 sound_args.bundle_word0 = location_bundle[0];
                 sound_args.bundle_word1 = location_bundle[1];
 
-                halo::sound::sound_start_at_location(*(datum_index *)&entry->sound.tag_id, (sound_placement *)&sound_args,
+                halo::sound::sound_start_at_location(halo::objects::tag_handle(entry->sound), (sound_placement *)&sound_args,
                     *(float *)&sound_param);
             }
         }

@@ -1,6 +1,7 @@
 #include "halo/networking/game_mode.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/object_factory.hpp"
+#include "halo/objects/scenario_placement.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -50,7 +51,7 @@ static auto &object_visibility_computed_mask = halo::link::ref<uint16_t>(halo::o
 namespace {
 static datum_index palette_tag(TagReflexive *palette, int16_t type)
 {
-    return *(datum_index *)((uint8_t *)palette->pointer + type * 0x30 + 0xc);
+    return halo::objects::palette_tag_of(*palette, type);
 }
 }
 
@@ -84,11 +85,11 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
             int16_t i;
 
             for (i = 0; i < (int32_t)placements->count; i++) {
-                uint8_t *placement = (uint8_t *)placements->pointer + i * size;
-                int16_t kind = *(int16_t *)placement;
+                ScenarioVehicle &placement = reinterpret_cast<ScenarioVehicle &>(halo::objects::placement_at(*placements, i, size));
+                int16_t kind = static_cast<int16_t>(placement.type);
                 if (kind != -1) {
-                    halo::input::control_binding_table_register_single(palette_tag(palette, kind), placement[0x58], i,
-                                                          (uint32_t)*(int16_t *)(placement + 0x5a));
+                    halo::input::control_binding_table_register_single(palette_tag(palette, kind), static_cast<uint8_t>(placement.multiplayer_team_index), i,
+                                                          (uint32_t)static_cast<int16_t>(placement.multiplayer_spawn_flags));
                 }
             }
         }
@@ -123,20 +124,20 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         placements = (TagReflexive *)(scenario + definition->scenario_placement_offset);
         palette = (TagReflexive *)(scenario + definition->scenario_palette_offset);
         for (i = 0; i < (int32_t)placements->count; i++) {
-            uint8_t *placement = (uint8_t *)placements->pointer + i * size;
+            scenario_placement_header *placement = &halo::objects::placement_at(*placements, i, size);
             datum_index object;
 
             if (type == _object_type_vehicle) {
-                if (joining || !halo::input::control_binding_table_query(palette_tag(palette, *(int16_t *)placement), i)) {
+                if (joining || !halo::input::control_binding_table_query(palette_tag(palette, placement->type), i)) {
                     continue;
                 }
             }
             if (placement == 0) {
                 continue;
             }
-            object = halo::objects::object_new_from_scenario_placement(placement, palette);
+            object = halo::objects::object_new_from_scenario_placement(reinterpret_cast<uint8_t *>(placement), palette);
             if (object != k_datum_index_none && type == _object_type_vehicle) {
-                vehicle_object *vehicle = reinterpret_cast<vehicle_object *>(*(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8));
+                vehicle_object *vehicle = halo::objects::object_as<vehicle_object>(object);
                 vehicle->vehicle.cinematic_facing_index = i;
             }
             halo::objects::objects_garbage_collection();
@@ -192,8 +193,8 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
 
         if ((object_visibility_computed_mask & bsp_bit) == 0) {
             for (i = 0; i < (int32_t)placements->count; i++) {
-                uint8_t *placement = (uint8_t *)placements->pointer + i * size;
-                int16_t kind = *(int16_t *)placement;
+                scenario_placement_header *placement = &halo::objects::placement_at(*placements, i, size);
+                int16_t kind = placement->type;
                 real_matrix4x3 basis;
                 real_point3d origin;
                 datum_index tag;
@@ -202,16 +203,16 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 if (kind == -1) {
                     continue;
                 }
-                halo::math::matrix4x3_from_euler_angles(basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
-                                            *(float *)(placement + 0x1c));
-                tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
+                halo::math::matrix4x3_from_euler_angles(basis, placement->rotation.yaw, placement->rotation.pitch,
+                                            placement->rotation.roll);
+                tag = palette_tag(palette, kind);
                 definition_data = halo::objects::tag_record_bytes(tag);
                 halo::math::matrix4x3_transform_point(origin, *((real_point3d *)(definition_data + 8)), basis);
-                if (halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == k_datum_index_none &&
+                if (halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, reinterpret_cast<real_point3d *>(&placement->position)) == k_datum_index_none &&
                     halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == k_datum_index_none) {
-                    *(uint16_t *)(placement + 0x20) &= (uint16_t)~bsp_bit;
+                    placement->bsp_indices &= (uint16_t)~bsp_bit;
                 } else {
-                    *(uint16_t *)(placement + 0x20) |= bsp_bit;
+                    placement->bsp_indices |= bsp_bit;
                 }
             }
         }
@@ -219,16 +220,16 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
             halo::objects::objects_garbage_collection();
             halo::memory::block_list_compact(object_memory_pool);
             for (i = 0; i < (int32_t)placements->count; i++) {
-                uint8_t *placement = (uint8_t *)placements->pointer + i * size;
-                int16_t name = *(int16_t *)(placement + 2);
+                scenario_placement_header *placement = &halo::objects::placement_at(*placements, i, size);
+                int16_t name = placement->name;
 
                 if (name != -1 && name >= 0 && name < 0x200 && object_name_list[name] != k_datum_index_none) {
                     continue;
                 }
-                if ((placement[4] & 1) != 0 || (*(uint16_t *)(placement + 0x20) & bsp_bit) == 0) {
+                if (test_flag(placement->not_placed, scenario_not_placed_flag::automatically) || (placement->bsp_indices & bsp_bit) == 0) {
                     continue;
                 }
-                halo::objects::object_new_from_scenario_placement(placement, palette);
+                halo::objects::object_new_from_scenario_placement(reinterpret_cast<uint8_t *>(placement), palette);
                 halo::objects::objects_garbage_collection();
             }
         }
@@ -413,7 +414,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     obj->owner_team = (int16_t)placement->owner_team;
     obj->owner_linkage = placement->owner_linkage;
     obj->creator_object = placement->role;
-    *(int16_t *)((uint8_t *)obj + 0xbe) = placement->permutation_group;
+    obj->permutation_group = placement->permutation_group;
     obj->forced_shader_permutation = (uint16_t)object_tag->forced_shader_permutation_index;
 
     if (halo::objects::tag_handle(object_tag->model) == k_datum_index_none) {
@@ -493,7 +494,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (halo::objects::tag_handle(object_tag->creation_effect) != k_datum_index_none) {
 
         halo::effects::effect_new_on_object(new_index, halo::objects::tag_handle(object_tag->creation_effect), new_index, -1,
-            0.0f, 0.0f, (const ColorRGB *)0, (const effect_tint_source *)0);
+            0.0f, 0.0f, nullptr, nullptr);
         return new_index;
     }
     return new_index;
@@ -508,14 +509,13 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
  */
 datum_index halo::objects::ObjectFactory::create_from_scenario_name(int16_t name_index)
 {
-    uint8_t *name = *(uint8_t **)(global_scenario + 0x208) + name_index * 0x24;
-    object_type_definition *definition = object_type_definitions[*(int16_t *)(name + 0x20)];
+    ScenarioObjectName &name = halo::objects::block_element<ScenarioObjectName>(reinterpret_cast<Scenario *>(global_scenario)->object_names, name_index);
+    object_type_definition *definition = object_type_definitions[static_cast<int16_t>(name.object_type)];
     TagReflexive *placements = (TagReflexive *)(global_scenario + definition->scenario_placement_offset);
     TagReflexive *palette = (TagReflexive *)(global_scenario + definition->scenario_palette_offset);
-    uint8_t *placement = (uint8_t *)placements->pointer +
-                         definition->scenario_placement_size * *(int16_t *)(name + 0x22);
+    scenario_placement_header *placement = &halo::objects::placement_at(*placements, static_cast<int16_t>(name.object_index), definition->scenario_placement_size);
 
-    return halo::objects::object_new_from_scenario_placement(placement, palette);
+    return halo::objects::object_new_from_scenario_placement(reinterpret_cast<uint8_t *>(placement), palette);
 }
 
 /**
@@ -554,10 +554,11 @@ void halo::objects::ObjectFactory::notify_predicted_resources_if_valid(datum_ind
  *
  * @address 0x004f9b70
  */
-datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t *placement, TagReflexive *palette)
+datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t *placement_bytes, TagReflexive *palette)
 {
-    int16_t type = *(int16_t *)placement;
-    int16_t name = *(int16_t *)(placement + 2);
+    scenario_placement_header *placement = reinterpret_cast<scenario_placement_header *>(placement_bytes);
+    int16_t type = placement->type;
+    int16_t name = placement->name;
     datum_index tag;
     datum_index object;
     object_placement_data data;
@@ -565,23 +566,23 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t
     if (type == -1) {
         return k_datum_index_none;
     }
-    if (*(uint8_t *)object_globals_pointer != 0 && (placement[4] & 1) != 0) {
+    if (*(uint8_t *)object_globals_pointer != 0 && test_flag(placement->not_placed, scenario_not_placed_flag::automatically)) {
         return k_datum_index_none;
     }
     if (name != -1 && name >= 0 && name < 0x200 && object_name_list[name] != k_datum_index_none) {
         return k_datum_index_none;
     }
-    tag = *(datum_index *)((uint8_t *)palette->pointer + type * 0x30 + 0xc);
+    tag = palette_tag(palette, type);
     if (tag == k_datum_index_none) {
         return k_datum_index_none;
     }
     halo::objects::object_placement_data_initialize(&data, tag, k_datum_index_none);
-    data.position = *(real_point3d *)&((struct object_placement_data *)placement)->owner_linkage;
-    halo::math::euler_angles_to_basis_vectors(*(real_euler_angles3d *)(placement + 0x14), data.up, data.forward);
-    data.permutation_group = *(int16_t *)(placement + 0x06);
+    data.position = *reinterpret_cast<real_point3d *>(&placement->position);
+    halo::math::euler_angles_to_basis_vectors(reinterpret_cast<const real_euler_angles3d &>(placement->rotation), data.up, data.forward);
+    data.permutation_group = placement->desired_permutation;
     object = halo::objects::object_new(&data);
     if (object != k_datum_index_none) {
-        halo::objects::object_type_definitions_notify_two_args_0x2c(object, (uint32_t)placement);
+        halo::objects::object_type_definitions_notify_two_args_0x2c(object, (uint32_t)placement_bytes);
         if (name != -1) {
             halo::objects::object_reserve_render_cache_slot(object, name);
         }
@@ -599,11 +600,11 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t
 uint8_t halo::objects::SceneryObject::initialize()
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *object = halo::objects::object_record_bytes(object_index);
     Object *definition = halo::objects::tag_as<Object>(*(datum_index *)object);
     datum_index graph = halo::objects::tag_handle(definition->animation_graph);
 
-    if (graph != k_datum_index_none && *(int32_t *)(halo::objects::tag_record_bytes(graph) + 0x74) > 0) {
+    if (graph != k_datum_index_none && static_cast<int32_t>(halo::objects::tag_as<ModelAnimations>(graph)->animations.count) > 0) {
         int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, (animation_random_stream)1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
@@ -618,7 +619,7 @@ uint8_t halo::objects::SceneryObject::initialize()
 namespace {
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    return halo::objects::object_record_bytes(object_index);
 }
 }
 
@@ -635,7 +636,7 @@ uint8_t halo::objects::SceneryObject::update()
     uint8_t *object = object_get(object_index);
 
     if ((object[0x1f4] & 1) != 0 &&
-        halo::models::animation_state_advance(((struct object *)object)->animation_graph, (animation_state *)(object + 0xd0), 0, (animation_random_stream)1) == 2) {
+        halo::models::animation_state_advance(((struct object *)object)->animation_graph, (animation_state *)&((struct object *)object)->animation_index, 0, (animation_random_stream)1) == 2) {
         ((struct object *)object)->animation_frame -= 1;
     }
     return 1;

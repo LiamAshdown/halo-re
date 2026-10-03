@@ -21,6 +21,15 @@
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
+#include <iterator>
+#include "halo/objects/record_access.hpp"
+#include "halo/scenario/leaf.hpp"
+
+namespace {
+/** A BSP plane reference: the low 31 bits index the plane, the top bit says the surface sits behind it. */
+constexpr uint32_t k_plane_back_face_bit = 0x80000000u;
+constexpr uint32_t k_plane_index_mask = 0x7fffffffu;
+}
 
 
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
@@ -55,7 +64,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
             radius + 0.0625f);
 
         if (found_surface && (flags & 0x20) != 0) {
-            halo::physics::physics_shape_build_proxies_from_query(&sphere_result, (real_matrix4x3 *)0,
+            halo::physics::physics_shape_build_proxies_from_query(&sphere_result, nullptr,
                 global_structure_collision_bsp, x_offset, y_offset, -1, model);
         }
 
@@ -73,8 +82,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
             object_cluster_stamp = stamp;
 
             for (i = 0; i < sphere_result.leaf_count; i++) {
-                int16_t cluster_index = ((ScenarioStructureBSPLeaf *)
-                    halo::scenario::globals().structure_bsp->leaves.pointer)[sphere_result.leaves[i] & 0x7fffffff].cluster;
+                int16_t cluster_index = halo::scenario::structure_leaf_cluster(sphere_result.leaves[i]);
 
                 if (halo::structures::globals().cluster_visit_stamp[cluster_index] != halo::structures::globals().cluster_flood_stamp) {
                     datum_index ref;
@@ -512,18 +520,17 @@ void PhysicsModelOps::shape_add_edge_proxy(int32_t edge_index, ModelCollisionGeo
         return;
     }
 
-    start = (real_point3d *)((uint8_t *)bsp->vertices.pointer + edge->start_vertex * 0x10);
-    end = (real_point3d *)((uint8_t *)bsp->vertices.pointer + edge->end_vertex * 0x10);
+    start = reinterpret_cast<real_point3d *>(&halo::objects::block_element<ModelCollisionGeometryBSPVertex>(bsp->vertices, edge->start_vertex).point);
+    end = reinterpret_cast<real_point3d *>(&halo::objects::block_element<ModelCollisionGeometryBSPVertex>(bsp->vertices, edge->end_vertex).point);
     direction.i = end->x - start->x;
     direction.j = end->y - start->y;
     direction.k = end->z - start->z;
 
-    if ((left_plane & 0x7fffffffu) != (right_plane & 0x7fffffffu)) {
-        uint8_t *planes = (uint8_t *)bsp->planes.pointer;
-        real_vector3d *left_normal = (real_vector3d *)(planes + (left_plane & 0x7fffffffu) * 0x10);
-        real_vector3d *right_normal = (real_vector3d *)(planes + (right_plane & 0x7fffffffu) * 0x10);
+    if ((left_plane & k_plane_index_mask) != (right_plane & k_plane_index_mask)) {
+        real_vector3d *left_normal = reinterpret_cast<real_vector3d *>(&halo::objects::block_element<ModelCollisionGeometryBSPPlane>(bsp->planes, left_plane & k_plane_index_mask).plane);
+        real_vector3d *right_normal = reinterpret_cast<real_vector3d *>(&halo::objects::block_element<ModelCollisionGeometryBSPPlane>(bsp->planes, right_plane & k_plane_index_mask).plane);
         real triple = halo::math::vector3d_scalar_triple_product(*left_normal, *right_normal, direction);
-        if (((left_plane & 0x80000000u) != 0) == ((right_plane & 0x80000000u) != 0)) {
+        if (((left_plane & k_plane_back_face_bit) != 0) == ((right_plane & k_plane_back_face_bit) != 0)) {
             if (triple <= -0.0001f) {
                 return;
             }
@@ -691,7 +698,7 @@ namespace halo::physics {
  */
 void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_point3d *near_vertex, real_vector3d *edge_dir, float height_offset, float thickness, uint32_t object_index, int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index, int16_t material_type)
 {
-    if (model->pill_count < 0x100) {
+    if (model->pill_count < static_cast<int16_t>(std::size(model->pills))) {
         physics_model_pill *pill = &model->pills[model->pill_count];
         model->pill_count += 1;
         pill->object_index = object_index;
@@ -709,7 +716,7 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
     }
 
     if (0.0f < height_offset) {
-        if (model->pill_count < 0x100) {
+        if (model->pill_count < static_cast<int16_t>(std::size(model->pills))) {
             physics_model_pill *pill = &model->pills[model->pill_count];
             model->pill_count += 1;
             pill->object_index = object_index;
@@ -752,7 +759,7 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
                     quad[2][1] = quad[1][1];
                     quad[2][2] = quad[1][2] - height_offset;
 
-                    if (model->shape_count < 0x100) {
+                    if (model->shape_count < static_cast<int16_t>(std::size(model->shapes))) {
                         physics_model_shape *shape = &model->shapes[model->shape_count];
                         model->shape_count += 1;
                         shape->object_index = object_index;
@@ -792,7 +799,7 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
                         new_quad[3][1] = quad[1][1];
                         new_quad[3][2] = quad[1][2];
 
-                        if (model->shape_count < 0x100) {
+                        if (model->shape_count < static_cast<int16_t>(std::size(model->shapes))) {
                             physics_model_shape *shape = &model->shapes[model->shape_count];
                             model->shape_count += 1;
                             shape->object_index = object_index;
@@ -1393,7 +1400,7 @@ namespace halo::physics {
  */
 void PhysicsModelOps::shape_surface_to_polygon(int16_t vertex_count, real_point3d *vertices, real_plane3d *plane, float margin, float thickness, uint32_t object_index, int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index, int16_t material_type, physics_model *model)
 {
-    if (model->shape_count < 0x100) {
+    if (model->shape_count < static_cast<int16_t>(std::size(model->shapes))) {
         physics_model_shape *shape = &model->shapes[model->shape_count];
         model->shape_count += 1;
 
@@ -1464,7 +1471,7 @@ uint32_t PhysicsModelOps::shape_test_point(physics_model *model, real_point3d *p
     int32_t type;
 
     for (type = 0; type < 3; type++) {
-        int16_t count = ((int16_t *)model)[type];
+        int16_t count = (&model->sphere_count)[type];
         int32_t i;
         for (i = 0; i < count; i++) {
             float depth;
@@ -1547,7 +1554,7 @@ uint32_t PhysicsModelOps::shape_test_ray(physics_model *model, real_point3d *ori
     int32_t type;
 
     for (type = 0; type < 3; type++) {
-        int16_t count = ((int16_t *)model)[type];
+        int16_t count = (&model->sphere_count)[type];
         int32_t i;
 
         for (i = 0; i < count; i++) {
@@ -1632,7 +1639,7 @@ void PhysicsModelOps::shape_vertex_to_sphere(physics_model *model, real_point3d 
 {
     float lowered_z;
 
-    if (model->sphere_count < 0x100) {
+    if (model->sphere_count < static_cast<int16_t>(std::size(model->spheres))) {
         physics_model_sphere *sphere = &model->spheres[model->sphere_count];
         model->sphere_count += 1;
         sphere->object_index = object_index;
@@ -1651,7 +1658,7 @@ void PhysicsModelOps::shape_vertex_to_sphere(physics_model *model, real_point3d 
     }
     lowered_z = vertex->z - height_offset;
 
-    if (model->sphere_count < 0x100) {
+    if (model->sphere_count < static_cast<int16_t>(std::size(model->spheres))) {
         physics_model_sphere *sphere = &model->spheres[model->sphere_count];
         float x, y;
         model->sphere_count += 1;
@@ -1667,7 +1674,7 @@ void PhysicsModelOps::shape_vertex_to_sphere(physics_model *model, real_point3d 
         sphere->center_z = lowered_z;
         sphere->radius = radius;
     }
-    if (model->pill_count < 0x100) {
+    if (model->pill_count < static_cast<int16_t>(std::size(model->pills))) {
         physics_model_pill *pill = &model->pills[model->pill_count];
         float x, y;
         model->pill_count += 1;

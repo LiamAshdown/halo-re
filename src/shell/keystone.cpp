@@ -83,34 +83,41 @@ void KeystoneLibrary::use_codepage_locale()
     }
 }
 
+namespace {
+/** One Keystone export: its name and the call slot (a function pointer of any signature) it resolves into. */
+struct Export {
+    const char *name;
+    void **slot;
+
+    template <typename Slot>
+    Export(const char *export_name, Slot &call_slot) : name(export_name), slot(reinterpret_cast<void **>(&call_slot)) {}
+};
+}
+
 /**
  * Resolves every Keystone export the game uses into its global call slot, in the order the library
  * documents them.
  */
 void KeystoneLibrary::resolve_exports()
 {
-    struct Export {
-        const char *name;
-        void **slot;
-    };
     const Export exports[] = {
-        {"KeystoneCreate", (void **)&keystone_create},
-        {"Call_KsTranslateAccelerator", (void **)&keystone_translate_accelerator},
-        {"Call_KsCreateWindow", (void **)&keystone_create_window},
-        {"Call_KsGetWindow", (void **)&chat_gui_find_object},
-        {"Call_KsUpdate", (void **)&keystone_update},
-        {"Call_KsDispatchMessage", (void **)&keystone_dispatch_message},
-        {"Call_KW_Release", (void **)&chat_gui_release},
-        {"Call_KsSetFocusWindow", (void **)&keystone_set_focus_window},
-        {"Call_KW_GetControlByID", (void **)&chat_gui_find_child},
-        {"Call_KC_GetAttribute", (void **)&keystone_control_get_attribute},
-        {"Call_KC_SetAttribute", (void **)&keystone_control_set_attribute},
-        {"Call_KC_SendMessage", (void **)&chat_gui_set_property_int},
-        {"Call_KW_ReLayout", (void **)&chat_gui_finalize},
-        {"Call_KW_SetFocusControl", (void **)&chat_gui_set_focus},
-        {"Call_KW_AddDirtyControl", (void **)&keystone_window_add_dirty_control},
-        {"Call_KsRelease", (void **)&keystone_release},
-        {"Call_KW_ShowWindow", (void **)&chat_gui_set_state},
+        {"KeystoneCreate", keystone_create},
+        {"Call_KsTranslateAccelerator", keystone_translate_accelerator},
+        {"Call_KsCreateWindow", keystone_create_window},
+        {"Call_KsGetWindow", chat_gui_find_object},
+        {"Call_KsUpdate", keystone_update},
+        {"Call_KsDispatchMessage", keystone_dispatch_message},
+        {"Call_KW_Release", chat_gui_release},
+        {"Call_KsSetFocusWindow", keystone_set_focus_window},
+        {"Call_KW_GetControlByID", chat_gui_find_child},
+        {"Call_KC_GetAttribute", keystone_control_get_attribute},
+        {"Call_KC_SetAttribute", keystone_control_set_attribute},
+        {"Call_KC_SendMessage", chat_gui_set_property_int},
+        {"Call_KW_ReLayout", chat_gui_finalize},
+        {"Call_KW_SetFocusControl", chat_gui_set_focus},
+        {"Call_KW_AddDirtyControl", keystone_window_add_dirty_control},
+        {"Call_KsRelease", keystone_release},
+        {"Call_KW_ShowWindow", chat_gui_set_state},
     };
     uint32_t i;
 

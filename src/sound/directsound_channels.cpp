@@ -289,7 +289,7 @@ uint8_t DirectSoundDevice::lock_and_fill(int16_t channel_index, uint32_t fill_si
 
     fill_pcm_data(channel_index, (uint8_t *)ptr1, channel->write_cursor, &channel->source_crosslap,
         (int32_t)bytes1);
-    if (ptr2 != (void *)0) {
+    if (ptr2 != nullptr) {
         fill_pcm_data(channel_index, (uint8_t *)ptr2, 0, &channel->source_crosslap, (int32_t)bytes2);
     }
 
@@ -308,7 +308,7 @@ void DirectSoundDevice::fill_pcm_data(int16_t channel_index, uint8_t *destinatio
     while (byte_count > 0) {
         SoundPermutation *source = channel->source;
 
-        if (source != (SoundPermutation *)0 && channel->source_started == 0) {
+        if (source != nullptr && channel->source_started == 0) {
             channel->source_started = 1;
             if (source->format == soundformat_16_bit_pcm || source->format == soundformat_xbox_adpcm) {
                 channel->decoder.position = 0;
@@ -318,7 +318,7 @@ void DirectSoundDevice::fill_pcm_data(int16_t channel_index, uint8_t *destinatio
         }
 
         source = channel->source;
-        if (source == (SoundPermutation *)0) {
+        if (source == nullptr) {
             int32_t i;
 
             for (i = 0; i < byte_count; i++) {
@@ -348,7 +348,7 @@ void DirectSoundDevice::fill_pcm_data(int16_t channel_index, uint8_t *destinatio
         channel->source = channel->next_source;
         channel->source_crosslap = channel->next_source_crosslap;
         channel->next_source_crosslap = 0;
-        channel->next_source = (SoundPermutation *)0;
+        channel->next_source = nullptr;
     }
 }
 
@@ -358,10 +358,10 @@ int32_t DirectSoundDevice::restore_buffer(void *buffer, uint8_t *was_restored_ou
     uint32_t status;
     int32_t hr;
 
-    if (buffer == (void *)0) {
+    if (buffer == nullptr) {
         return (int32_t)0x800401f0;
     }
-    if (was_restored_out != (uint8_t *)0) {
+    if (was_restored_out != nullptr) {
         *was_restored_out = 0;
     }
 
@@ -380,7 +380,7 @@ int32_t DirectSoundDevice::restore_buffer(void *buffer, uint8_t *was_restored_ou
         }
     } while (((directsound_buffer_restore_proc)vtable[halo::sound::dsound_slot::sb_restore])(buffer) == (int32_t)0x88780096);
 
-    if (was_restored_out != (uint8_t *)0) {
+    if (was_restored_out != nullptr) {
         *was_restored_out = 1;
     }
     return 0;
@@ -399,7 +399,7 @@ void DirectSoundDevice::queue_source(int16_t channel_index, SoundPermutation *so
 
     switch (channel->state) {
     case _directsound_channel_queued:
-        if (channel->next_source != (SoundPermutation *)0) {
+        if (channel->next_source != nullptr) {
             channel->next_source = source;
             channel->next_source_crosslap = 1;
             stream_update(channel_index, channel->source_crosslap);
@@ -429,7 +429,7 @@ void DirectSoundDevice::queue_source(int16_t channel_index, SoundPermutation *so
 
     case _directsound_channel_playing:
         channel->state = _directsound_channel_queued;
-        if (channel->source != (SoundPermutation *)0) {
+        if (channel->source != nullptr) {
             channel->next_source = source;
             channel->next_source_crosslap = crosslap;
         } else {
@@ -503,8 +503,8 @@ void DirectSoundDevice::reset_channel(int16_t channel_index)
     directsound_channel *channel = &directsound_channels[channel_index];
     uint8_t keep_streaming = (halo::shell::globals().enable_stop_start == 0);
 
-    channel->source = (SoundPermutation *)0;
-    channel->next_source = (SoundPermutation *)0;
+    channel->source = nullptr;
+    channel->next_source = nullptr;
 
     if (keep_streaming && (channel->type_flags & _sound_channel_3d_bit) != 0 &&
         channel->sound_class == soundclass_weapon_fire && sound_stopping_all == 0) {

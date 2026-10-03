@@ -52,7 +52,7 @@ struct CrashSession {
     void *event_done;
     void *event_alive;
     void *mutex;
-    char file_list[0x410];
+    char file_list[k_crash_file_list_size];
 };
 
 /**
@@ -256,7 +256,7 @@ void WatsonCrashReporter::run_dxdiag(CrashSession *session)
     uint32_t priority_class;
     uint32_t wait_result;
     char temp_path[k_shell_path_length];
-    char dxdiag_command[0x208];
+    char dxdiag_command[k_dxdiag_command_size];
 
     __try {
         memset(&startup_info, 0, sizeof(startup_info));

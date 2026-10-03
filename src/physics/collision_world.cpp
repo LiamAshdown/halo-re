@@ -26,6 +26,7 @@
 #include "halo/core/link.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/records.hpp"
 
 
 namespace halo::physics {
@@ -70,7 +71,7 @@ void CollisionWorld::gather_nearby_object_shapes(uint32_t flags, uint32_t start_
             switch (obj->type) {
             case _object_type_biped: {
                 biped_data *biped = (biped_data *)((uint8_t *)obj + 0x4cc);
-                unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+                unit_data *unit = halo::units::unit_data_of(obj);
 
                 if (((flags & 0x200000) == 0 || (biped->flags & 0x10) == 0) &&
                     (obj->parent_object == k_datum_index_none || unit->vehicle_seat_index == -1)) {

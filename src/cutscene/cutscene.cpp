@@ -166,7 +166,7 @@ void CutsceneDirector::letterbox()
     if (cinematic_globals_ptr->show_letterbox != 0 || cinematic_globals_ptr->letterbox_scale > 0.0f) {
         
         
-        uint8_t widget_open = halo::interface::globals().widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0;
+        uint8_t widget_open = halo::interface::globals().widget_memory_pool_valid != 0 && ui_root_widget[0] != nullptr;
 
         if (!widget_open) {
             int32_t old_tick = cinematic_globals_ptr->letterbox_last_tick;
@@ -287,7 +287,7 @@ void CutsceneDirector::letterbox()
                              title->text_bounds.bottom == title->text_bounds.top)
                     ? &halo::interface::globals().hud_globals_tag_data->default_chapter_title_bounds
                     : &title->text_bounds;
-                halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)dest_rect, 0, 0,
+                halo::rasterizer::chimera__draw_16_bit_text(nullptr, (int32_t *)dest_rect, 0, 0,
                     (const int16_t *)help_text);
                 text_shadow_color_argb = 0;
 

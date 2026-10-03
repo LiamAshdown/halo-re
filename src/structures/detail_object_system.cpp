@@ -49,7 +49,7 @@ void detail_object_system::update_render_list(void)
     }
 
     detail_data = (halo::scenario::globals().structure_bsp->detail_objects.count == 0)
-        ? (ScenarioStructureBSPDetailObjectData *)0
+        ? nullptr
         : (ScenarioStructureBSPDetailObjectData *)halo::scenario::globals().structure_bsp->detail_objects.pointer;
 
     cell_x = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.x * 0.125f - 0.5f));

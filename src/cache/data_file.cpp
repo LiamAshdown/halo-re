@@ -10,6 +10,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/cache/layout.hpp"
 
 
 namespace halo::cache {
@@ -26,11 +27,11 @@ uint8_t data_file_view::read_data_block()
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(this->file, this->data_offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
+    if (SetFilePointer(this->file, this->data_offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
         block_size = this->table_offset - this->data_offset;
         buffer = GlobalAlloc(0, block_size);
         this->data = buffer;
-        if (ReadFile(this->file, buffer, block_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == block_size) {
+        if (ReadFile(this->file, buffer, block_size, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == block_size) {
             this->data_capacity = block_size;
             this->data_size = block_size;
             return 1;
@@ -50,7 +51,7 @@ int32_t data_file_view::read_header(int32_t expected_file_id)
 {
     uint32_t bytes_read;
 
-    if (ReadFile(this->file, this, 0x10, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == 0x10) {
+    if (ReadFile(this->file, this, 0x10, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == 0x10) {
         if (this->file_id != expected_file_id) {
             this->file_id = 0;
             this->data_offset = 0;
@@ -77,11 +78,11 @@ uint8_t data_file_view::read_offset_table()
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(this->file, this->table_offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
+    if (SetFilePointer(this->file, this->table_offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
         table_size = this->entry_count * 0xc;
         buffer = GlobalAlloc(0, table_size);
         this->references = (data_file_reference *)buffer;
-        if (ReadFile(this->file, buffer, table_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == table_size) {
+        if (ReadFile(this->file, buffer, table_size, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == table_size) {
             this->reference_count = this->entry_count;
             return 1;
         }
@@ -103,19 +104,19 @@ void data_files::open()
     uint32_t flags;
 
     halo::cache::data_files::zero(&globals().bitmaps_data_file);
-    globals().cache_file_index = (int16_t)0xffff;
+    globals().cache_file_index = -1;
     globals().bitmaps_data_file.name = (char *)"bitmaps";
     globals().bitmaps_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "bitmaps");
 
-    flags = 0x48000080;
+    flags = halo::win32::k_file_flag_overlapped | halo::win32::k_file_flag_sequential_scan | halo::win32::k_file_attribute_normal;
     if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
     if (globals().os_platform < 3) {
-        flags = 0x8000080;
+        flags = halo::win32::k_file_flag_sequential_scan | halo::win32::k_file_attribute_normal;
     }
-    globals().bitmaps_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags, (void *)0);
+    globals().bitmaps_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_always, flags, nullptr);
     if (globals().bitmaps_data_file.file == halo::win32::invalid_handle()) {
         printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
     } else {
@@ -133,7 +134,7 @@ void data_files::open()
             }
             printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
         } else {
-            SetFilePointer(globals().bitmaps_data_file.file, globals().bitmaps_data_file.data_offset, (PLONG)((void *)0), 0);
+            SetFilePointer(globals().bitmaps_data_file.file, globals().bitmaps_data_file.data_offset, nullptr, 0);
         }
     }
 
@@ -142,19 +143,19 @@ void data_files::open()
     globals().sounds_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "sounds");
 
-    flags = 0x48000080;
+    flags = halo::win32::k_file_flag_overlapped | halo::win32::k_file_flag_sequential_scan | halo::win32::k_file_attribute_normal;
     if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
     if (globals().os_platform < 3) {
-        flags = 0x8000080;
+        flags = halo::win32::k_file_flag_sequential_scan | halo::win32::k_file_attribute_normal;
     }
-    globals().sounds_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags, (void *)0);
+    globals().sounds_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_always, flags, nullptr);
     if (globals().sounds_data_file.file != halo::win32::invalid_handle()) {
         if (halo::cache::view(&globals().sounds_data_file)->read_header(2) != 0 &&
             halo::cache::view(&globals().sounds_data_file)->read_data_block() != 0 &&
             halo::cache::view(&globals().sounds_data_file)->read_offset_table() != 0) {
-            SetFilePointer(globals().sounds_data_file.file, globals().sounds_data_file.data_offset, (PLONG)((void *)0), 0);
+            SetFilePointer(globals().sounds_data_file.file, globals().sounds_data_file.data_offset, nullptr, 0);
             goto allocate_io_queue;
         }
         if (globals().sounds_data_file.data != 0) {
@@ -169,7 +170,7 @@ void data_files::open()
     printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
 
 allocate_io_queue:
-    globals().cache_io_requests = (cache_io_request *)GlobalAlloc(0, 0x6000);
+    globals().cache_io_requests = (cache_io_request *)GlobalAlloc(0, k_cache_io_request_count * sizeof(cache_io_request));
     halo::cache::cache_io::thread_start();
 }
 
@@ -181,16 +182,11 @@ allocate_io_queue:
  */
 void data_files::close()
 {
-    uint32_t *destination;
-    int32_t i;
 
     if (globals().cache_file_index != -1) {
         halo::cache::cache_io::wait_all_requests();
         CloseHandle(globals().cache_file_slots[globals().cache_file_index].file);
-        destination = (uint32_t *)&globals().cache_file_slots[globals().cache_file_index];
-        for (i = 0x203; i != 0; i--) {
-            *destination++ = 0;
-        }
+        memset(&globals().cache_file_slots[globals().cache_file_index], 0, sizeof(cache_file_slot));
         globals().cache_file_index = -1;
     }
 
@@ -226,13 +222,7 @@ void data_files::close()
  */
 void data_files::zero(data_file *file)
 {
-    uint32_t *word;
-    int32_t i;
-
-    word = (uint32_t *)file;
-    for (i = 0x10; i != 0; i--) {
-        *word++ = 0;
-    }
+    memset(file, 0, k_data_file_cleared_bytes);
 }
 
 } // namespace halo::cache

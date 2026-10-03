@@ -1,4 +1,13 @@
 #include "halo/hs/records.hpp"
+#include "halo/core/bit_cast.hpp"
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "ai.h"
+#include "game.h"
+#include "networking.h"
+#include "interface.h"
+#include "saved_games.h"
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
 #include "halo/hs/api.hpp"
@@ -18,9 +27,19 @@
 
 static auto &player_control_look_rates_0070facc = halo::link::ref<uint8_t []>(halo::hs::vars().player_control_look_rates_0070facc);
 static auto &input_globals = halo::link::ref<uint8_t []>(halo::main::vars().input_globals);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile>(halo::ui::vars().profile_globals_block);
 
-static const uint32_t k_turn_rate_display_bits = 0x431f27aa;
+static constexpr float k_turn_rate_display_scale = halo::bit_cast<float>(0x431f27aaU);
+
+static player_control_settings &control_settings(int16_t slot)
+{
+    return reinterpret_cast<player_control_settings *>(input_globals)[slot];
+}
+
+static player_control_settings &look_rate_settings(int16_t slot)
+{
+    return reinterpret_cast<player_control_settings *>(player_control_look_rates_0070facc)[slot];
+}
 
 namespace halo::hs {
 
@@ -37,14 +56,14 @@ void InputSettingsCommands::evaluate_get_digital_forward_throttle(int16_t functi
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x810);
+        float value = control_settings((int16_t)arguments[0]).forward_rate;
 
         if (value < 0.0f) {
             value = 0.0f;
         } else if (value > 1.0f) {
             value = 1.0f;
         }
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -61,9 +80,9 @@ void InputSettingsCommands::evaluate_get_digital_pitch_increment(int16_t functio
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x81c) * *(const float *)&k_turn_rate_display_bits;
+        float value = control_settings((int16_t)arguments[0]).look_y_rate * k_turn_rate_display_scale;
 
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -80,14 +99,14 @@ void InputSettingsCommands::evaluate_get_digital_strafe_throttle(int16_t functio
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x814);
+        float value = control_settings((int16_t)arguments[0]).strafe_rate;
 
         if (value < 0.0f) {
             value = 0.0f;
         } else if (value > 1.0f) {
             value = 1.0f;
         }
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -104,9 +123,9 @@ void InputSettingsCommands::evaluate_get_digital_yaw_increment(int16_t function_
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x818) * *(const float *)&k_turn_rate_display_bits;
+        float value = control_settings((int16_t)arguments[0]).look_x_rate * k_turn_rate_display_scale;
 
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -123,7 +142,7 @@ void InputSettingsCommands::evaluate_get_gamepad_forward_threshold(int16_t funct
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return(*(int32_t *)&*(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x830), thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(control_settings((int16_t)arguments[0]).gamepad_axis_scale_x), thread_index);
     }
 }
 
@@ -140,7 +159,7 @@ void InputSettingsCommands::evaluate_get_gamepad_strafe_threshold(int16_t functi
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return(*(int32_t *)&*(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x834), thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(control_settings((int16_t)arguments[0]).gamepad_axis_scale_y), thread_index);
     }
 }
 
@@ -174,7 +193,7 @@ void InputSettingsCommands::evaluate_get_mouse_forward_threshold(int16_t functio
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return(*(int32_t *)&*(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x820), thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(control_settings((int16_t)arguments[0]).mouse_forward_scale), thread_index);
     }
 }
 
@@ -191,9 +210,9 @@ void InputSettingsCommands::evaluate_get_mouse_pitch_scale(int16_t function_inde
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x82c) * *(const float *)&k_turn_rate_display_bits;
+        float value = control_settings((int16_t)arguments[0]).mouse_look_y_sensitivity * k_turn_rate_display_scale;
 
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -210,7 +229,7 @@ void InputSettingsCommands::evaluate_get_mouse_strafe_threshold(int16_t function
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return(*(int32_t *)&*(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x824), thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(control_settings((int16_t)arguments[0]).mouse_strafe_scale), thread_index);
     }
 }
 
@@ -227,9 +246,9 @@ void InputSettingsCommands::evaluate_get_mouse_yaw_scale(int16_t function_index,
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)(input_globals + (int16_t)arguments[0] * 0x85c + 0x828) * *(const float *)&k_turn_rate_display_bits;
+        float value = control_settings((int16_t)arguments[0]).mouse_look_x_sensitivity * k_turn_rate_display_scale;
 
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -246,7 +265,7 @@ void InputSettingsCommands::evaluate_get_pitch_rate(int16_t function_index, uint
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return(*(int32_t *)&*(float *)(player_control_look_rates_0070facc + (int16_t)arguments[0] * 0x85c + 0x4), thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(look_rate_settings((int16_t)arguments[0]).look_rate_40), thread_index);
     }
 }
 
@@ -263,7 +282,7 @@ void InputSettingsCommands::evaluate_get_yaw_rate(int16_t function_index, uint32
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return(*(int32_t *)&*(float *)(player_control_look_rates_0070facc + (int16_t)arguments[0] * 0x85c + 0x0), thread_index);
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(look_rate_settings((int16_t)arguments[0]).look_rate_80), thread_index);
     }
 }
 
@@ -275,7 +294,7 @@ void InputSettingsCommands::evaluate_get_yaw_rate(int16_t function_index, uint32
  */
 void InputSettingsCommands::evaluate_player0_joystick_set_is_normal(int16_t function_index, uint32_t thread_index, char first)
 {
-    uint8_t joystick_set = profile_globals_block[0x12d];
+    uint8_t joystick_set = profile_globals_block.joystick_set;
 
     halo::hs::hs_thread_return((int32_t)(joystick_set == 0 || joystick_set == 1), thread_index);
 }
@@ -306,7 +325,7 @@ void InputSettingsCommands::evaluate_player0_look_invert_pitch(int16_t function_
  */
 void InputSettingsCommands::evaluate_player0_look_pitch_is_inverted(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)profile_globals_block[0x12f], thread_index);
+    halo::hs::hs_thread_return((int32_t)profile_globals_block.look_inverted, thread_index);
 }
 
 /**
@@ -325,7 +344,7 @@ void InputSettingsCommands::evaluate_set_digital_forward_throttle(int16_t functi
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x810) = halo::input::GameActions::clamp_unit_float(halo::hs::argument_real(arguments[1]));
+            control_settings(slot).forward_rate = halo::input::GameActions::clamp_unit_float(halo::hs::argument_real(arguments[1]));
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -347,7 +366,7 @@ void InputSettingsCommands::evaluate_set_digital_pitch_increment(int16_t functio
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x81c) = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
+            control_settings(slot).look_y_rate = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -369,7 +388,7 @@ void InputSettingsCommands::evaluate_set_digital_strafe_throttle(int16_t functio
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x814) = halo::input::GameActions::clamp_unit_float(halo::hs::argument_real(arguments[1]));
+            control_settings(slot).strafe_rate = halo::input::GameActions::clamp_unit_float(halo::hs::argument_real(arguments[1]));
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -391,7 +410,7 @@ void InputSettingsCommands::evaluate_set_digital_yaw_increment(int16_t function_
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x818) = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
+            control_settings(slot).look_x_rate = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -449,7 +468,7 @@ void InputSettingsCommands::evaluate_set_mouse_forward_threshold(int16_t functio
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x820) = halo::hs::argument_real(arguments[1]);
+            control_settings(slot).mouse_forward_scale = halo::hs::argument_real(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -471,7 +490,7 @@ void InputSettingsCommands::evaluate_set_mouse_pitch_scale(int16_t function_inde
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x82c) = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
+            control_settings(slot).mouse_look_y_sensitivity = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -493,7 +512,7 @@ void InputSettingsCommands::evaluate_set_mouse_strafe_threshold(int16_t function
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x824) = halo::hs::argument_real(arguments[1]);
+            control_settings(slot).mouse_strafe_scale = halo::hs::argument_real(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -515,7 +534,7 @@ void InputSettingsCommands::evaluate_set_mouse_yaw_scale(int16_t function_index,
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(input_globals + slot * 0x85c + 0x828) = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
+            control_settings(slot).mouse_look_x_sensitivity = halo::input::GameActions::sensitivity_to_turn_rate(halo::hs::argument_real(arguments[1]));
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -537,7 +556,7 @@ void InputSettingsCommands::evaluate_set_pitch_rate(int16_t function_index, uint
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(player_control_look_rates_0070facc + slot * 0x85c + 0x4) = halo::hs::argument_real(arguments[1]);
+            look_rate_settings(slot).look_rate_40 = halo::hs::argument_real(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -559,7 +578,7 @@ void InputSettingsCommands::evaluate_set_yaw_rate(int16_t function_index, uint32
         int16_t slot = (int16_t)arguments[0];
 
         if (slot >= 0 && slot < 4) {
-            *(float *)(player_control_look_rates_0070facc + slot * 0x85c + 0x0) = halo::hs::argument_real(arguments[1]);
+            look_rate_settings(slot).look_rate_80 = halo::hs::argument_real(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }

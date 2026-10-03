@@ -31,7 +31,7 @@ void sound_looping_evict_sound_samples(Sound *tag)
             SoundPermutation *permutation = (SoundPermutation *)range->permutations.pointer + j;
             datum_index cache_index = (datum_index)permutation->samples_pointer;
 
-            if (cache_index != (datum_index)0xffffffff &&
+            if (cache_index != k_datum_index_none &&
                 ((sound_cache_entry *)halo::cache::globals().sound_cache_entries->data)[cache_index & halo::k_slot_mask].lock_count == 0) {
                 halo::memory::cache_evict_entry(cache_index, halo::cache::globals().sound_cache);
                 permutation->samples_pointer = halo::k_dword_none;
@@ -246,7 +246,7 @@ void touch(int32_t reference)
     if (sound_initialized != 0 && sound_enabled != 0 && sound_disabled == 0) {
         datum_index found = looping::find_by_owner(reference);
 
-        if (found != (datum_index)0xffffffff) {
+        if (found != k_datum_index_none) {
             ((looping_sound *)looping_sound_data->data)[(uint16_t)found].update_toggle = sound_update_toggle;
         }
     }
@@ -268,13 +268,13 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
 
     handle = looping::find_by_owner(owner);
     is_new = 0;
-    if (handle == (datum_index)0xffffffff) {
+    if (handle == k_datum_index_none) {
         if (state == 2) {
             return 1;
         }
         handle = looping::state_new(definition_index, owner, location);
         is_new = 1;
-        if (handle == (datum_index)0xffffffff) {
+        if (handle == k_datum_index_none) {
             return 0;
         }
     }
@@ -311,7 +311,7 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
         bool stop_track = false;
 
         if (is_new) {
-            self->track_sounds[i] = (datum_index)0xffffffff;
+            self->track_sounds[i] = k_datum_index_none;
         }
 
         if (state == 0) {
@@ -337,23 +337,23 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
                 continue;
             }
 
-            if (self->track_sounds[i] == (datum_index)0xffffffff ||
+            if (self->track_sounds[i] == k_datum_index_none ||
                 (state == 0 && (track->flags & 0x01) != 0)) {
                 datum_index new_sound = looping::create_detail_sound(handle, loop_tag, i, _sound_play_loop);
 
-                if (new_sound != (datum_index)0xffffffff) {
+                if (new_sound != k_datum_index_none) {
                     if (state != 0) {
-                        instances::schedule_gain_fade(new_sound, _sound_fade_linear, 2.0f, (datum_index)0xffffffff);
+                        instances::schedule_gain_fade(new_sound, _sound_fade_linear, 2.0f, k_datum_index_none);
                     } else if ((track->flags & 0x01) != 0) {
                         instances::schedule_gain_fade(new_sound, _sound_fade_linear, track->fade_in_duration,
-                            (datum_index)0xffffffff);
+                            k_datum_index_none);
                     }
                     self->track_sounds[i] = new_sound;
                 }
             } else if (alternate != self->alternate && (track->flags & 0x04) != 0) {
                 datum_index new_sound = looping::create_detail_sound(handle, loop_tag, i, _sound_play_loop);
 
-                if (new_sound != (datum_index)0xffffffff) {
+                if (new_sound != k_datum_index_none) {
                     instances::schedule_gain_fade(new_sound, _sound_fade_linear, track->fade_out_duration,
                         self->track_sounds[i]);
                     self->track_sounds[i] = new_sound;
@@ -368,15 +368,15 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
             continue;
         }
         if (fade_duration != 0.0f) {
-            instances::schedule_gain_fade((datum_index)0xffffffff, _sound_fade_linear, fade_duration,
+            instances::schedule_gain_fade(k_datum_index_none, _sound_fade_linear, fade_duration,
                 self->track_sounds[i]);
             continue;
         }
 
-        if (self->track_sounds[i] != (datum_index)0xffffffff &&
+        if (self->track_sounds[i] != k_datum_index_none &&
             ((track->flags & 0x02) != 0 ||
              (TRACK_TAG(track, end) == halo::k_dword_none && (definition->flags & 0x02) == 0))) {
-            instances::schedule_gain_fade((datum_index)0xffffffff, _sound_fade_linear, track->fade_out_duration,
+            instances::schedule_gain_fade(k_datum_index_none, _sound_fade_linear, track->fade_out_duration,
                 self->track_sounds[i]);
         }
 
@@ -392,7 +392,7 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
             } else {
                 datum_index track_sound = self->track_sounds[i];
 
-                if (track_sound != (datum_index)0xffffffff) {
+                if (track_sound != k_datum_index_none) {
                     sound *playing = &((sound *)sound_data->data)[track_sound & halo::k_slot_mask];
 
                     if (playing->channel_index != -1) {
@@ -433,7 +433,7 @@ datum_index state_new(datum_index definition_index, int32_t owner, sound_locatio
     int16_t detail_index;
 
     if (!sound_initialized || !sound_enabled || sound_disabled) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     handle = halo::memory::datum_new(looping_sound_data);
@@ -558,11 +558,11 @@ datum_index create_detail_sound(datum_index owner, datum_index definition_index,
     definition = (Sound *)halo::cache::globals().tag_instances[definition_index & halo::k_slot_mask].data;
 
     if (definition->pitch_ranges.count == 0) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
     if (((SoundPitchRange *)definition->pitch_ranges.pointer)->permutations.count == 0 ||
         sound_class_definitions[definition->sound_class].muted != 0) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     max_distance = definition->maximum_distance;
@@ -571,7 +571,7 @@ datum_index create_detail_sound(datum_index owner, datum_index definition_index,
     }
     listener_index = view(&state->location)->check_audibility(max_distance);
     if (listener_index == -1) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     handle = halo::memory::datum_new(sound_data);
@@ -821,7 +821,7 @@ datum_index find_by_owner(int32_t owner)
         }
         handle = halo::memory::datum_next((int16_t)handle, looping_sound_data);
     }
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 void check_audibility_gate(datum_index definition_index, sound_location *location)

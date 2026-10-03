@@ -210,7 +210,7 @@ uint8_t StreamDecoder::open_stream(void *data, int32_t size)
 
     this->decoded_bytes = 0;
 
-    result = ov_open_callbacks(memory_file, ogg_vorbis_file, (char *)0, 0,
+    result = ov_open_callbacks(memory_file, ogg_vorbis_file, nullptr, 0,
         (void *)stream::read_memory_file, (void *)stream::seek_memory_file, (void *)stream::close_memory_file, (void *)stream::tell_memory_file);
 
     if (result < 0) {
@@ -277,7 +277,7 @@ void StreamDecoder::close_slot(uint8_t smart_toggle)
         if (this->memory_files[1].data != 0) {
             sound_stream_decoder_clear_ogg_vorbis_file(this->ogg_vorbis_file[1]);
             this->memory_files[1].position = 0;
-            this->memory_files[1].data = (void *)0;
+            this->memory_files[1].data = nullptr;
             this->memory_files[1].size = 0;
             this->memory_files[1].end_of_file = 0;
         }
@@ -297,7 +297,7 @@ void StreamDecoder::close_slot(uint8_t smart_toggle)
         if (this->active_file == 0) {
             sound_stream_decoder_clear_ogg_vorbis_file(this->ogg_vorbis_file[1]);
             this->memory_files[1].position = 0;
-            this->memory_files[1].data = (void *)0;
+            this->memory_files[1].data = nullptr;
             this->memory_files[1].size = 0;
             this->memory_files[1].end_of_file = 0;
             this->open = 0;
@@ -307,7 +307,7 @@ void StreamDecoder::close_slot(uint8_t smart_toggle)
 
     sound_stream_decoder_clear_ogg_vorbis_file(this->ogg_vorbis_file[0]);
     this->memory_files[0].position = 0;
-    this->memory_files[0].data = (void *)0;
+    this->memory_files[0].data = nullptr;
     this->memory_files[0].size = 0;
     this->memory_files[0].end_of_file = 0;
     this->open = 0;

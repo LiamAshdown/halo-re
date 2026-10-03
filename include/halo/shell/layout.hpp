@@ -86,6 +86,31 @@ inline constexpr uint32_t k_memory_class_large_mb = 0x200;
 /** Video memory estimates of shared-memory graphics, in bytes. */
 inline constexpr uint32_t k_video_memory_8mb = 0x800000;
 inline constexpr uint32_t k_video_memory_16mb = 0x1000000;
+
+/** Smallest capacity at which an MSVC std::string keeps its text on the heap instead of the inline buffer. */
+inline constexpr uint32_t k_msvc_string_heap_capacity = 0x10;
+
+/** Granules a video memory total is rounded up to: 8 MB up to 16 MB, 32 MB up to 64 MB and 64 MB above that. */
+inline constexpr uint32_t k_video_memory_granule_small = 0x800000;
+inline constexpr uint32_t k_video_memory_granule_medium = 0x2000000;
+inline constexpr uint32_t k_video_memory_granule_large = 0x4000000;
+
+/** Rounds the physical memory size up to 16 MB, reported in megabytes with the low four bits dropped. */
+inline constexpr uint32_t k_physical_memory_round_bytes = 0xffffff;
+inline constexpr uint32_t k_physical_memory_megabyte_mask = 0xff0;
+
+/** Byte sizes of the crash reporter and requirements parser scratch strings. */
+inline constexpr uint32_t k_crash_file_list_size = 0x410;
+inline constexpr uint32_t k_dxdiag_command_size = 0x208;
+inline constexpr uint32_t k_hwreq_message_size = 0x100;
+
+/** The leading dwords of the version resource VS_FIXEDFILEINFO the driver version is read from. */
+inline constexpr int32_t k_version_fixed_info_dwords = 0xd;
+
+/** `value` rounded up to a multiple of the power of two `granule`. */
+constexpr uint32_t align_up(uint32_t value, uint32_t granule) noexcept {
+    return (value + granule - 1) & ~(granule - 1);
+}
 inline constexpr uint32_t k_video_memory_32mb = 0x2000000;
 inline constexpr uint32_t k_video_memory_64mb = 0x4000000;
 inline constexpr uint32_t k_video_memory_2gb = 0x80000000u;

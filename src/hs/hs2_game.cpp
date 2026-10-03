@@ -1,10 +1,14 @@
 #include "halo/main/main_globals_fields.hpp"
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/hs/records.hpp"
+#include "effects.h"
 
 #include "objects.h"
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "interface.h"
+#include "saved_games.h"
 #include "halo/core/datum.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
@@ -33,12 +37,12 @@ static auto &main_globals_word_0071976e = halo::link::ref<int16_t>(halo::hs::var
 static auto &main_globals_byte_0071976c = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071976c);
 static auto &main_globals_byte_0071974e = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071974e);
 static auto &console_debug_flag_4 = halo::link::ref<uint8_t>(halo::shell::vars().console_debug_flag_4);
-static auto &player_effect_globals_pointer = halo::link::ref<uint8_t *>(halo::effects::vars().player_effect_globals_pointer);
+static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 static auto &local_player_count = halo::link::ref<int16_t>(halo::game::vars().local_player_count);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &game_state_revert_time = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_revert_time);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile>(halo::ui::vars().profile_globals_block);
 static auto &ui_event_byte_0071975b = halo::link::ref<uint8_t>(halo::ui::vars().ui_event_byte_0071975b);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 
@@ -68,7 +72,7 @@ void GameCommands::evaluate_error_overflow_suppression(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         console_debug_flag_4 = (uint8_t)arguments[0];
@@ -86,15 +90,15 @@ void GameCommands::evaluate_fade_in(int16_t function_index, uint32_t thread_inde
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    *(int32_t *)(player_effect_globals_pointer + 0xf0) = arguments[1];
-    *(int16_t *)(player_effect_globals_pointer + 0xfc) = *(int16_t *)&arguments[3];
-    *(int32_t *)(player_effect_globals_pointer + 0xf4) = arguments[2];
-    *(int32_t *)(player_effect_globals_pointer + 0xec) = arguments[0];
-    player_effect_globals_pointer[0xfe] = 0;
-    *(int32_t *)(player_effect_globals_pointer + 0xf8) = halo::game::globals().game_time->game_time;
+    player_effect_globals_pointer->scripted_flash_color.green = argument_real(arguments[1]);
+    player_effect_globals_pointer->scripted_flash_ticks = argument_short(arguments[3]);
+    player_effect_globals_pointer->scripted_flash_color.blue = argument_real(arguments[2]);
+    player_effect_globals_pointer->scripted_flash_color.red = argument_real(arguments[0]);
+    player_effect_globals_pointer->scripted_flash_fade_in = 0;
+    player_effect_globals_pointer->scripted_flash_start_tick = halo::game::globals().game_time->game_time;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -109,15 +113,15 @@ void GameCommands::evaluate_fade_out(int16_t function_index, uint32_t thread_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    *(int32_t *)(player_effect_globals_pointer + 0xf0) = arguments[1];
-    *(int16_t *)(player_effect_globals_pointer + 0xfc) = *(int16_t *)&arguments[3];
-    *(int32_t *)(player_effect_globals_pointer + 0xf4) = arguments[2];
-    *(int32_t *)(player_effect_globals_pointer + 0xec) = arguments[0];
-    player_effect_globals_pointer[0xfe] = 1;
-    *(int32_t *)(player_effect_globals_pointer + 0xf8) = halo::game::globals().game_time->game_time;
+    player_effect_globals_pointer->scripted_flash_color.green = argument_real(arguments[1]);
+    player_effect_globals_pointer->scripted_flash_ticks = argument_short(arguments[3]);
+    player_effect_globals_pointer->scripted_flash_color.blue = argument_real(arguments[2]);
+    player_effect_globals_pointer->scripted_flash_color.red = argument_real(arguments[0]);
+    player_effect_globals_pointer->scripted_flash_fade_in = 1;
+    player_effect_globals_pointer->scripted_flash_start_tick = halo::game::globals().game_time->game_time;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -132,10 +136,10 @@ void GameCommands::evaluate_fast_setup_network_server(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::interface::network_game_host_start((char *)arguments[0], (char *)arguments[1], *(uint8_t *)&arguments[2]);
+        halo::interface::network_game_host_start(argument_string(arguments[0]), argument_string(arguments[1]), argument_byte(arguments[2]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -188,7 +192,7 @@ void GameCommands::evaluate_game_difficulty_set(int16_t function_index, uint32_t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int16_t difficulty = (int16_t)arguments[0];
@@ -359,10 +363,10 @@ void GameCommands::evaluate_game_skip_ticks(int16_t function_index, uint32_t thr
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    int16_t ticks = *(int16_t *)&arguments[0];
+    int16_t ticks = argument_short(arguments[0]);
 
     if (ticks <= 0xf) {
         main_globals_word_0071976e = ticks;
@@ -382,10 +386,10 @@ void GameCommands::evaluate_game_speed(int16_t function_index, uint32_t thread_i
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    halo::game::globals().game_time->speed = *(float *)&arguments[0];
+    halo::game::globals().game_time->speed = argument_real(arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -400,10 +404,10 @@ void GameCommands::evaluate_game_variant(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::game::game_engine_set_variant_by_name((const char *)arguments[0]);
+        halo::game::game_engine_set_variant_by_name(argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -445,10 +449,10 @@ void GameCommands::evaluate_map_name(int16_t function_index, uint32_t thread_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::main::main_queue_map_change((char *)arguments[0]);
+        halo::main::main_queue_map_change(argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -478,10 +482,10 @@ void GameCommands::evaluate_multiplayer_map_name(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear((char *)arguments[0]);
+        halo::main::main_queue_map_change_by_name_or_clear(argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -496,10 +500,10 @@ void GameCommands::evaluate_profile_load(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::saved_games::saved_game_delete_by_display_name((const char *)arguments[0]);
+        halo::saved_games::saved_game_delete_by_display_name(argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -515,11 +519,11 @@ void GameCommands::evaluate_profile_unlock_solo_levels(int16_t function_index, u
     int32_t level;
 
     for (level = 0; level < 10; level++) {
-        profile_globals_block[0x11e + level] |= 0xf;
+        profile_globals_block.campaign_progress[level] |= 0xf;
     }
-    profile_globals_block[0x11c] |= 4;
+    profile_globals_block.flags |= _saved_player_profile_end_credits_reached_bit;
     if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-        halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
+        halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, &profile_globals_block);
     }
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -550,7 +554,7 @@ void GameCommands::evaluate_rcon(int16_t function_index, uint32_t thread_index, 
     int32_t *values = 0;
 
     if (halo::hs::hs_evaluate_variadic_arguments(thread_index, (int32_t)first, &count, &values) != 0) {
-        halo::networking::rcon((int32_t)count, (char **)values);
+        halo::networking::rcon((int32_t)count, reinterpret_cast<char **>(values));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -565,10 +569,10 @@ void GameCommands::evaluate_remote_player_stats(int16_t function_index, uint32_t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::networking::player_update_queue_flush_by_name((char *)arguments[0]);
+        halo::networking::player_update_queue_flush_by_name(argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

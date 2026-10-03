@@ -33,6 +33,8 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 
 namespace {
@@ -233,7 +235,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
     {
         GlobalsFallingDamage *collision_damage_tag = (GlobalsFallingDamage *)global_globals->falling_damage.pointer;
-        int32_t impact_damage_tag_id = *(int32_t *)&collision_damage_tag->vehicle_collision_damage.tag_id;
+        int32_t impact_damage_tag_id = halo::objects::tag_handle(collision_damage_tag->vehicle_collision_damage);
         int32_t breakable_damage_tag_id;
 
         if (impact_damage_tag_id != -1) {
@@ -268,7 +270,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             halo::objects::object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
         }
 
-        breakable_damage_tag_id = *(int32_t *)&collision_damage_tag->vehicle_killed_unit_damage.tag_id;
+        breakable_damage_tag_id = halo::objects::tag_handle(collision_damage_tag->vehicle_killed_unit_damage);
         if (breakable_damage_tag_id != -1) {
             void *candidate_tag = halo::cache::globals().tag_instances[candidate_obj->definition_tag & halo::k_slot_mask].data;
 
@@ -911,7 +913,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
                 }
             }
 
-            ((vehicle_data *)((uint8_t *)self + k_unit_object_size))->active_marker_mask = hit_mask;
+            (halo::units::vehicle_data_of(self))->active_marker_mask = hit_mask;
         }
     }
 
@@ -1192,7 +1194,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
         object *other_object = ((object_header *)halo::objects::globals().object_data->data)[other->object_index & halo::k_slot_mask].data;
 
         if (self_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(self->object_index) == 1) {
-            vehicle_data *self_vehicle = (vehicle_data *)((uint8_t *)self_object + k_unit_object_size);
+            vehicle_data *self_vehicle = halo::units::vehicle_data_of(self_object);
             self_vehicle->accumulated_force.i += self_force.i;
             self_vehicle->accumulated_force.j += self_force.j;
             self_vehicle->accumulated_force.k += self_force.k;
@@ -1205,7 +1207,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
 
         if (other_definition->radius <= 0.0f &&
             (other_object->network_role != 1 || halo::units::unit_any_flagged_seat_occupied(other->object_index) == 1)) {
-            vehicle_data *other_vehicle = (vehicle_data *)((uint8_t *)other_object + k_unit_object_size);
+            vehicle_data *other_vehicle = halo::units::vehicle_data_of(other_object);
             other_vehicle->accumulated_force.i += other_force.i;
             other_vehicle->accumulated_force.j += other_force.j;
             other_vehicle->accumulated_force.k += other_force.k;
@@ -1344,7 +1346,7 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
 {
     uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[((object *)obj)->definition_tag & halo::k_slot_mask].data;
-    Physics *physics = (Physics *)halo::cache::globals().tag_instances[*(datum_index *)&object_tag->physics.tag_id & halo::k_slot_mask].data;
+    Physics *physics = (Physics *)halo::cache::globals().tag_instances[halo::objects::tag_handle(object_tag->physics) & halo::k_slot_mask].data;
     object_physics_context context;
     real_vector3d torque;
     real_vector3d force;
@@ -1362,7 +1364,7 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
             float *m = &state->matrix_scale;
             float t;
 
-            halo::math::matrix4x3_from_quaternion(*(real_quaternion *)state->unknown_1c, *(real_matrix4x3 *)m);
+            halo::math::matrix4x3_from_quaternion(state->rotation, *(real_matrix4x3 *)m);
             t = m[2]; m[2] = m[4]; m[4] = t;
             t = m[3]; m[3] = m[7]; m[7] = t;
             t = m[6]; m[6] = m[8]; m[8] = t;

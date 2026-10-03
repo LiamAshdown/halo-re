@@ -16,6 +16,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/items/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &equipment_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().equipment_network_update_position_tolerance);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
@@ -46,7 +48,7 @@ void equipment_ref::apply_network_update(uint32_t *update_record)
         halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
-    ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
+    ed = halo::items::equipment_data_of(obj);
     header = (weapon_network_update_header *)update_record[0x11];
 
     if ((obj->flags & _object_took_network_update_bit) != 0 && *(int32_t *)update_record[0] == 1 &&
@@ -291,7 +293,7 @@ void equipment_ref::create_from_creation_message(void *incoming_record)
     halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[new_object_index & halo::k_slot_mask].data;
-    ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
+    ed = halo::items::equipment_data_of(obj);
 
     obj->flags |= decoded.object_flags;
     ed->network_state.position = decoded.position;
@@ -319,13 +321,13 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
     uint8_t parameters[16];
 
     tag = (Equipment *)halo::cache::globals().tag_instances[equipment_tag_id & halo::k_slot_mask].data;
-    pickup_sound_tag_id = *(int32_t *)&tag->pickup_sound.tag_id;
+    pickup_sound_tag_id = halo::objects::tag_handle(tag->pickup_sound);
 
     if (pickup_sound_tag_id != -1) {
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 
@@ -362,7 +364,7 @@ void equipment_ref::network_baseline_take()
     object *obj = halo::objects::object_try_and_get(item_index, _object_mask_equipment);
 
     if (obj != 0) {
-        equipment_data *ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
+        equipment_data *ed = halo::items::equipment_data_of(obj);
 
         ed->network_baseline_index++;
         ed->network_state.position = obj->position;
@@ -386,7 +388,7 @@ uint8_t equipment_ref::create()
 {
     uint32_t object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
-    equipment_data *ed = (equipment_data *)((uint8_t *)obj + k_item_extension_offset);
+    equipment_data *ed = halo::items::equipment_data_of(obj);
 
     if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         ed->network_state_valid = 0;
@@ -409,7 +411,7 @@ void equipment_ref::new_from_placement(ScenarioEquipment *placement)
 {
     uint32_t equipment_object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[equipment_object_index & halo::k_slot_mask].data;
-    item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *id = halo::items::item_data_of(obj);
 
     if ((placement->misc_flags & 1) == 0) {
         obj->flags = obj->flags & ~(uint32_t)_object_at_rest_bit;
@@ -447,15 +449,15 @@ void equipment_ref::pickup_play_sound()
     obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     tag = (Equipment *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
 
-    item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item = halo::items::item_data_of(obj);
     item->flags &= ~(uint32_t)_item_unknown_40_bit;
 
-    pickup_sound_tag_id = *(int32_t *)&tag->pickup_sound.tag_id;
+    pickup_sound_tag_id = halo::objects::tag_handle(tag->pickup_sound);
     if (pickup_sound_tag_id != -1) {
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 
@@ -471,7 +473,7 @@ void equipment_ref::send_creation(uint32_t arg2, uint32_t arg3)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
-    item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *id = halo::items::item_data_of(obj);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {
         halo::items::equipment_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);

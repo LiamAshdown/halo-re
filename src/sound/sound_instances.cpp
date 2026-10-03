@@ -102,7 +102,7 @@ datum_index start_at_location(datum_index definition_index, sound_placement *pla
     location.scale = scale;
     location.gain = 1.0f;
 
-    return instances::play_new(definition_index, &location, k_datum_index_none, (sound_location_proc)0, (void *)0, 0, 0);
+    return instances::play_new(definition_index, &location, k_datum_index_none, (sound_location_proc)0, nullptr, 0, 0);
 }
 
 datum_index start_unspatialized(datum_index definition_index, float scale)
@@ -113,7 +113,7 @@ datum_index start_unspatialized(datum_index definition_index, float scale)
     location.scale = scale;
     location.gain = 1.0f;
 
-    return instances::play_new(definition_index, &location, k_datum_index_none, (sound_location_proc)0, (void *)0, 0, 0);
+    return instances::play_new(definition_index, &location, k_datum_index_none, (sound_location_proc)0, nullptr, 0, 0);
 }
 
 void impulse_start(datum_index object_index, datum_index definition_index, float scale)
@@ -142,7 +142,7 @@ void impulse_start(datum_index object_index, datum_index definition_index, float
         location.scale = scale;
         location.gain = 1.0f;
         new_sound = instances::play_new(definition_index, &location, k_datum_index_none, (sound_location_proc)0,
-            (void *)0, 0, 0);
+            nullptr, 0, 0);
     } else {
         object_marker marker;
         Point3D position;
@@ -195,7 +195,7 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
     object *obj;
     real_matrix4x3 *node_matrix;
 
-    if (halo::objects::object_try_and_get(owner, 0xffffffff) == 0) {
+    if (halo::objects::object_try_and_get(owner, _object_mask_all) == 0) {
         return 0;
     }
 
@@ -212,7 +212,7 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
     *(int32_t *)&location->cluster_index = root_location[1];
     halo::math::matrix4x3_transform_point(*((real_point3d *)&location->position), *((real_point3d *)&marker->position), *node_matrix);
     halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location->forward), *((real_vector3d *)&marker->forward), *node_matrix);
-    halo::objects::object_get_root_object_velocities(owner, (real_vector3d *)&location->velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(owner, (real_vector3d *)&location->velocity, nullptr);
     return 1;
 }
 
@@ -389,7 +389,7 @@ void impulse_fade_out(datum_index sound_index)
     int16_t salt = (int16_t)(sound_index >> 16);
     int16_t identifier;
 
-    if (sound_data == (data_array *)0 || sound_index == k_datum_index_none) {
+    if (sound_data == nullptr || sound_index == k_datum_index_none) {
         return;
     }
     if (slot < 0 || slot >= sound_data->maximum_count) {

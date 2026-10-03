@@ -725,7 +725,7 @@ void halo::objects::FlagSystem::render(Flag *tag, flag *entry, const render_ligh
     int16_t row;
 
     if (shader_index == k_datum_index_none) {
-        shader_index = *(datum_index *)&tag->blue_flag_shader.tag_id;
+        shader_index = halo::objects::tag_handle(tag->blue_flag_shader);
     }
 
     triangle_total = (int16_t)((uint16_t)(height * 2 - 2) * (uint16_t)(width - 1));

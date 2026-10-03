@@ -20,6 +20,28 @@
 #include "halo/physics/vars.hpp"
 #include <stdio.h>
 #include "halo/networking/api.hpp"
+#include "halo/units/records.hpp"
+
+namespace {
+/** Byte size of the object memory pool and the game state regions the object system reserves. */
+constexpr int32_t k_object_memory_pool_size = 0x200000;
+constexpr int32_t k_object_globals_state_size = 0x98;
+constexpr int32_t k_object_name_list_state_size = k_maximum_object_names * sizeof(datum_index);
+
+/** Garbage collection thresholds: free pool bytes (2.5%, 5% and 10% of the pool) and free object slots. */
+constexpr int32_t k_pool_free_critical_bytes = 0xcccc;
+constexpr int32_t k_pool_free_low_bytes = 0x19999;
+constexpr int32_t k_pool_free_recovered_bytes = 0x33333;
+constexpr int32_t k_object_slots_critical = 0x33;
+constexpr int32_t k_object_slots_low = 0x66;
+constexpr int32_t k_object_slots_recovered = 0xcc;
+constexpr int32_t k_active_garbage_minimum = 0x32;
+constexpr int32_t k_active_garbage_target = 0x1e;
+
+/** Objects the garbage collection callbacks may look at in one pass, and the rows an object memory dump keeps per definition. */
+constexpr int32_t k_gc_callback_object_limit = 0x1000;
+constexpr int16_t k_maximum_dump_definitions = 0x400;
+}
 
 static auto &ai_gc_callback_table = halo::link::ref<void *>(halo::objects::vars().ai_gc_callback_table);
 static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
@@ -99,18 +121,18 @@ void halo::objects::ObjectManager::initialize()
     halo::objects::widgets_initialize();
     halo::objects::object_type_definition_chain_build();
     halo::objects::lights_initialize();
-    object_data = halo::saved_games::game_state_new((char *)"object", k_maximum_objects, 0xc  );
+    object_data = halo::saved_games::game_state_new((char *)"object", k_maximum_objects, sizeof(object_header));
 
-    object_memory_pool = halo::saved_games::game_state_new_pool((char *)"objects", 0x200000);
+    object_memory_pool = halo::saved_games::game_state_new_pool((char *)"objects", k_object_memory_pool_size);
 
     globals_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x98;
-    size = 0x98;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_object_globals_state_size;
+    size = k_object_globals_state_size;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
     name_list_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x800;
-    size = 0x800;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_object_name_list_state_size;
+    size = k_object_name_list_state_size;
     object_globals_pointer = (object_globals *)globals_region;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
@@ -383,7 +405,7 @@ void halo::objects::ObjectManager::update()
             (header->flags & _object_header_needs_update_bit) == 0) {
             if (!restrict_to_units ||
                 (((1 << (header->type & 0x1f)) & _object_mask_unit) != 0 &&
-                 *(int32_t *)((uint8_t *)header->data + 0x218) != -1)) {
+                 halo::units::unit_data_of(header->data)->controlling_player != k_datum_index_none)) {
                 halo::objects::object_update(((uint32_t)header->identifier << 16) | (uint16_t)i);
             }
         }
@@ -431,7 +453,7 @@ void halo::objects::ObjectManager::sweep_refresh_cluster_membership()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
             halo::objects::object_unlink_cluster_or_notify_parent(iterator.handle);
@@ -460,7 +482,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
             object_header *header = (object_header *)object_data->data + halo::datum_slot(iterator.handle);
@@ -475,7 +497,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
 
             leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
+                static_cast<int16_t>(halo::objects::block_element<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & halo::k_leaf_index_mask).cluster);
             if (leaf == -1 || cluster == -1) {
                 halo::physics::collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
@@ -485,7 +507,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
                     leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
-                    *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
+                    static_cast<int16_t>(halo::objects::block_element<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & halo::k_leaf_index_mask).cluster);
             }
 
             location.leaf_index = leaf;
@@ -549,8 +571,7 @@ void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_pl
 
         if (leaf != -1) {
 
-            int16_t cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
-                                           (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
+            int16_t cluster = static_cast<int16_t>(halo::objects::block_element<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & halo::k_leaf_index_mask).cluster);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;
                 object_globals_pointer->ambient_cluster_index = cluster;
@@ -621,19 +642,19 @@ void halo::objects::ObjectManager::garbage_collection()
         used = (object_memory_pool->last_block == 0) ? 0 :
             (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
                       (uint8_t *)object_memory_pool->base);
-        if (object_memory_pool->size - used <= 0x19999) {
+        if (object_memory_pool->size - used <= k_pool_free_low_bytes) {
             halo::memory::block_list_compact(object_memory_pool);
             used = (object_memory_pool->last_block == 0) ? 0 :
                 (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
                           (uint8_t *)object_memory_pool->base);
-            if (object_memory_pool->size - used > 0x33333) {
+            if (object_memory_pool->size - used > k_pool_free_recovered_bytes) {
                 object_globals_pointer->garbage_collect_requested = 0;
                 return;
             }
             mode = 2;
-        } else if (0x800 - object_data->actual_count <= 0x66) {
+        } else if (k_maximum_objects - object_data->actual_count <= k_object_slots_low) {
             mode = 2;
-        } else if (object_globals_pointer->active_garbage_object_count < 0x32) {
+        } else if (object_globals_pointer->active_garbage_object_count < k_active_garbage_minimum) {
             object_globals_pointer->garbage_collect_requested = 0;
             return;
         } else {
@@ -642,7 +663,7 @@ void halo::objects::ObjectManager::garbage_collection()
     }
 
     for (handle = object_globals_pointer->first_tracked_object; handle != k_datum_index_none;
-         handle = *(datum_index *)(halo::objects::object_record_bytes(handle) + 0x110)) {
+         handle = halo::objects::object_as<object>(handle)->next_tracked_object) {
         list[count++] = handle;
     }
 
@@ -653,12 +674,12 @@ void halo::objects::ObjectManager::garbage_collection()
         if (mode == 0) {
             done = 0;
         } else if (mode == 1) {
-            done = (uint8_t)(object_globals_pointer->active_garbage_object_count <= 0x1e);
+            done = (uint8_t)(object_globals_pointer->active_garbage_object_count <= k_active_garbage_target);
             if (done) {
                 break;
             }
         } else if (mode == 2) {
-            if (object_memory_pool->free_bytes >= 0x33333 && 0x800 - object_data->last_index >= 0xcc) {
+            if (object_memory_pool->free_bytes >= k_pool_free_recovered_bytes && k_maximum_objects - object_data->last_index >= k_object_slots_recovered) {
                 done = 1;
                 break;
             }
@@ -713,19 +734,19 @@ void halo::objects::ObjectManager::garbage_collection()
                     (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
                               (uint8_t *)object_memory_pool->base);
                 free_bytes = object_memory_pool->size - used;
-                free_slots = 0x800 - object_data->last_index;
-                if (free_bytes <= 0xcccc) {
+                free_slots = k_maximum_objects - object_data->last_index;
+                if (free_bytes <= k_pool_free_critical_bytes) {
                     critical = 1;
                     significant = 1;
                     sprintf(free_text, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
-                } else if (free_slots <= 0x33) {
+                } else if (free_slots <= k_object_slots_critical) {
                     critical = 1;
                     significant = 1;
                     sprintf(free_text, "%d slots free", free_slots);
-                } else if (free_bytes <= 0x19999) {
+                } else if (free_bytes <= k_pool_free_low_bytes) {
                     significant = 1;
                     sprintf(free_text, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
-                } else if (free_slots > 0x66) {
+                } else if (free_slots > k_object_slots_low) {
                     sprintf(free_text, "%4.2f%% memory free", (double)((float)free_bytes * 100.0f * 4.7683716e-07f));
                 } else {
                     significant = 1;
@@ -759,11 +780,11 @@ void halo::objects::ObjectManager::garbage_collection()
                     uint8_t more = 0;
 
                     if (!prepared && entry[0] != 0) {
-                        ((void (*)(void *, int32_t))entry[0])(list, 0x1000);
+                        ((void (*)(void *, int32_t))entry[0])(list, k_gc_callback_object_limit);
                         prepared = 1;
                     }
                     removed = ((uint8_t (*)(char *, uint8_t *, void *, int32_t))entry[1])(callback_text, &more,
-                        list, 0x1000);
+                        list, k_gc_callback_object_limit);
                     if (removed) {
                         sprintf(removing_text, "removing objects: %s", callback_text);
                         halo::main::console_print_error_va(0, network_log_path_format, removing_text);
@@ -886,7 +907,7 @@ void halo::objects::ObjectMemoryDumpRecordView::write(void *file)
 void halo::objects::ObjectManager::dump_memory()
 {
     object_memory_dump_record by_type[k_maximum_object_types];
-    object_memory_dump_record by_definition[0x400];
+    object_memory_dump_record by_definition[k_maximum_dump_definitions];
     int16_t definition_count = 0;
     int16_t overflow_count = 0;
     uint8_t stats_buffer[8];
@@ -913,7 +934,7 @@ void halo::objects::ObjectManager::dump_memory()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         int16_t slot = -1;
         int16_t j;
 
@@ -925,7 +946,7 @@ void halo::objects::ObjectManager::dump_memory()
         }
 
         if (slot == -1) {
-            if (definition_count < 0x400) {
+            if (definition_count < k_maximum_dump_definitions) {
                 by_definition[definition_count].type = -1;
                 by_definition[definition_count].definition_tag = obj->definition_tag;
                 by_definition[definition_count].maximum_size = 0;
@@ -981,7 +1002,7 @@ void halo::objects::ObjectManager::dump_memory()
             }
             fprintf((FILE *)file, "\n");
             if (overflow_count > 0) {
-                fprintf((FILE *)file, "WARNING: overflowed MAXIMUM_DUMPS (%d), this dump does not include %d objects that would not fit!\n", 0x400);
+                fprintf((FILE *)file, "WARNING: overflowed MAXIMUM_DUMPS (%d), this dump does not include %d objects that would not fit!\n", k_maximum_dump_definitions);
             }
             fprintf((FILE *)file, "\n");
             fclose((FILE *)file);

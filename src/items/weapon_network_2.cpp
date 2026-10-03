@@ -7,6 +7,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/game/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/items/records.hpp"
 
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
@@ -53,7 +54,7 @@ void weapon_ref::notify_reload_begin(int16_t magazine_index)
     void *items[2];
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     message.object_hash = 0;
     if (item_index != k_datum_index_none) {
@@ -85,7 +86,7 @@ void weapon_ref::notify_reload_cancel(int16_t magazine_index)
     void *items[2];
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     message.object_hash = 0;
     if (item_index != k_datum_index_none) {
@@ -117,7 +118,7 @@ void weapon_ref::notify_reload_step(int16_t magazine_index)
     void *items[2];
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+    wd = halo::items::weapon_data_of(item_obj);
 
     message.object_hash = 0;
     if (item_index != k_datum_index_none) {

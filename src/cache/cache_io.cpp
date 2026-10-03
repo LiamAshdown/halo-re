@@ -23,7 +23,7 @@ namespace halo::cache {
  */
 void cache_io::completion_routine(uint32_t error_code, uint32_t bytes_transferred, cache_io_request *overlapped)
 {
-    if (overlapped->completion.procedure != (void *)0) {
+    if (overlapped->completion.procedure != nullptr) {
         overlapped->completion.procedure(&overlapped->completion);
         *overlapped->completion.flag = 1;
         return;
@@ -58,11 +58,11 @@ void cache_io::read_file_ex_retry(void *read_file_ex, void *file, void *buffer, 
     request->internal_high = 0;
     request->offset = 0;
     request->offset_high = 0;
-    request->event = (void *)0;
+    request->event = nullptr;
 
     request->offset = offset;
     request->offset_high = 0;
-    request->event = (void *)0;
+    request->event = nullptr;
 
     SleepEx(0, 1);
     SetLastError(0);
@@ -195,24 +195,24 @@ uint32_t cache_io::thread_proc_async(void *parameter)
         } while (wait_result == 0xc0);
 
         for (;;) {
-            best = (cache_io_request *)0;
+            best = nullptr;
             for (i = 0; i < k_cache_io_request_count; i++) {
                 candidate = &globals().cache_io_requests[i];
                 if (candidate->pending != 0 && candidate->started == 0) {
-                    if (best == (cache_io_request *)0 ||
+                    if (best == nullptr ||
                         (candidate->priority < best->priority && candidate->offset < best->offset)) {
                         best = candidate;
                     }
                 }
             }
 
-            if (best == (cache_io_request *)0) {
+            if (best == nullptr) {
                 break;
             }
 
             file_handle = globals().cache_file_slots[globals().cache_file_index].file;
             if (best->data_file_index != 0) {
-                source = (data_file *)0;
+                source = nullptr;
                 if (best->data_file_index == 1) {
                     source = &globals().bitmaps_data_file;
                 } else if (best->data_file_index == 2) {
@@ -247,24 +247,24 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
         WaitForSingleObject(globals().cache_io_event, halo::win32::k_infinite);
 
         for (;;) {
-            best = (cache_io_request *)0;
+            best = nullptr;
             for (i = 0; i < k_cache_io_request_count; i++) {
                 candidate = &globals().cache_io_requests[i];
                 if (candidate->pending != 0 && candidate->started == 0) {
-                    if (best == (cache_io_request *)0 ||
+                    if (best == nullptr ||
                         (candidate->priority < best->priority && candidate->offset < best->offset)) {
                         best = candidate;
                     }
                 }
             }
 
-            if (best == (cache_io_request *)0) {
+            if (best == nullptr) {
                 break;
             }
 
             file_handle = globals().cache_file_slots[globals().cache_file_index].file;
             if (best->data_file_index != 0) {
-                source = (data_file *)0;
+                source = nullptr;
                 if (best->data_file_index == 1) {
                     source = &globals().bitmaps_data_file;
                 } else if (best->data_file_index == 2) {
@@ -273,8 +273,8 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
                 file_handle = source->file;
             }
 
-            if (SetFilePointer(file_handle, (int32_t)best->offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
-                ReadFile(file_handle, best->destination, best->size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0));
+            if (SetFilePointer(file_handle, (int32_t)best->offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
+                ReadFile(file_handle, best->destination, best->size, (LPDWORD)(&bytes_read), nullptr);
             }
 
             *best->completion.flag = 1;
@@ -294,18 +294,18 @@ void cache_io::thread_start()
 {
     uint32_t thread_id;
 
-    globals().cache_io_event = CreateEventA((LPSECURITY_ATTRIBUTES)((void *)0), 0, 0, (char *)0);
+    globals().cache_io_event = CreateEventA(nullptr, 0, 0, nullptr);
 
     if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
 
     if (globals().os_platform < 3) {
-        globals().cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_sync), (void *)0, 0, (LPDWORD)(&thread_id));
+        globals().cache_io_thread = CreateThread(nullptr, 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_sync), nullptr, 0, (LPDWORD)(&thread_id));
         return;
     }
 
-    globals().cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_async), (void *)0, 0, (LPDWORD)((uint32_t *)0));
+    globals().cache_io_thread = CreateThread(nullptr, 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_async), nullptr, 0, nullptr);
     return;
 }
 

@@ -118,9 +118,9 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                         } else if (bitmap_type == 2) {
                             halo::rasterizer::rasterizer_bitmap_upload_cubemap_mipmaps_by_face(bitmap);
                         }
-                        if (bitmap->pixel_base != (void *)0) {
+                        if (bitmap->pixel_base != nullptr) {
                             GlobalFree(bitmap->pixel_base);
-                            bitmap->pixel_base = (void *)0;
+                            bitmap->pixel_base = nullptr;
                         }
                         entry->texture = *(void **)&bitmap->hardware_texture;
                     }
@@ -134,20 +134,20 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                     halo::sound::sound_idle_update();
                 }
                 if (wait == 0) {
-                    return (void *)0;
+                    return nullptr;
                 }
                 Sleep(0);
             }
         } else {
-            result = (void *)0;
+            result = nullptr;
         }
     } else {
         result = *(void **)&bitmap->hardware_texture;
     }
 
-    if (wait != 0 && result == (void *)0) {
+    if (wait != 0 && result == nullptr) {
 
-        result = halo::rasterizer::rasterizer_get_capture_surface((uint8_t *)bitmap, (void *)0);
+        result = halo::rasterizer::rasterizer_get_capture_surface((uint8_t *)bitmap, nullptr);
         return result;
     }
     return result;
@@ -166,7 +166,7 @@ void texture_cache_manager::initialize()
     globals().texture_cache_entries = halo::memory::data_array_view::create(sizeof(texture_cache_entry), (char *)"pc texture", k_texture_cache_maximum_entries);
 
     cache_memory = GlobalAlloc(0, 0x1c07c);
-    if (cache_memory != (void *)0) {
+    if (cache_memory != nullptr) {
         halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
     }
     globals().texture_cache = (struct cache *)cache_memory;

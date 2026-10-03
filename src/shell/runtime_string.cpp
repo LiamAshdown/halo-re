@@ -221,11 +221,11 @@ void StdString::grow_reserve(uint32_t new_capacity, uint32_t preserve_count)
     }
 
     if (self->capacity > k_string_inline_capacity) {
-        free((void *)self->buffer.heap_buffer);
+        free(StdString::heap_pointer(*self));
     }
 
     self->buffer.inline_buffer[0] = 0;
-    self->buffer.heap_buffer = (uint32_t)new_buffer;
+    StdString::set_heap_pointer(*self, new_buffer);
     self->capacity = capacity;
     self->size = preserve_count;
 
@@ -260,7 +260,7 @@ msvc_std_string *StdString::construct_cstr(const char *source)
 void StdString::destroy()
 {
     if (self->capacity >= k_string_inline_capacity + 1) {
-        free((void *)self->buffer.heap_buffer);
+        free(StdString::heap_pointer(*self));
     }
     self->capacity = k_string_inline_capacity;
     self->size = 0;
@@ -340,14 +340,14 @@ hwreq_string_pair *StringPair::copy_construct(const hwreq_string_pair *source)
 void StringPair::destroy()
 {
     if (self->second.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->second.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->second));
     }
     self->second.capacity = k_msvc_string_inline_capacity;
     self->second.size = 0;
     self->second.buffer.inline_buffer[0] = 0;
 
     if (self->first.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->first.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->first));
     }
     self->first.size = 0;
     self->first.capacity = k_msvc_string_inline_capacity;
@@ -561,8 +561,8 @@ void PropertySet::upsert(char *key, char *value)
     end = (hwreq_string_pair *)self->flags.last;
 
     while (cursor != end) {
-        first_text = (cursor->first.capacity < 0x10) ? cursor->first.buffer.inline_buffer
-                                                       : (const char *)cursor->first.buffer.heap_buffer;
+        first_text = (cursor->first.capacity < k_msvc_string_heap_capacity) ? cursor->first.buffer.inline_buffer
+                                                       : StdString::heap_pointer(cursor->first);
         if (_stricmp(first_text, key) == 0) {
             StdString(&cursor->second).assign_n(value, cstr_length(value));
             return;
@@ -589,10 +589,10 @@ void PropertySet::upsert(char *key, char *value)
         StringPair(&new_pair).destroy();
 
         if (value_string.capacity > k_msvc_string_inline_capacity) {
-            free((void *)value_string.buffer.heap_buffer);
+            free(StdString::heap_pointer(value_string));
         }
         if (key_string.capacity > k_msvc_string_inline_capacity) {
-            free((void *)key_string.buffer.heap_buffer);
+            free(StdString::heap_pointer(key_string));
         }
     }
 }
@@ -629,8 +629,8 @@ uint32_t PropertySet::find_value(const char *key, char *out_value, uint32_t capa
     end = (hwreq_string_pair *)self->flags.last;
 
     while (cursor != end) {
-        first_text = (cursor->first.capacity < 0x10) ? cursor->first.buffer.inline_buffer
-                                                       : (const char *)cursor->first.buffer.heap_buffer;
+        first_text = (cursor->first.capacity < k_msvc_string_heap_capacity) ? cursor->first.buffer.inline_buffer
+                                                       : StdString::heap_pointer(cursor->first);
         if (_stricmp(first_text, key) == 0) {
             break;
         }
@@ -640,8 +640,8 @@ uint32_t PropertySet::find_value(const char *key, char *out_value, uint32_t capa
         return 0;
     }
 
-    second_text = (cursor->second.capacity < 0x10) ? cursor->second.buffer.inline_buffer
-                                                     : (const char *)cursor->second.buffer.heap_buffer;
+    second_text = (cursor->second.capacity < k_msvc_string_heap_capacity) ? cursor->second.buffer.inline_buffer
+                                                     : StdString::heap_pointer(cursor->second);
     strncpy(out_value, second_text, capacity);
     return 1;
 }

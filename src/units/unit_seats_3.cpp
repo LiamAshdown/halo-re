@@ -21,7 +21,7 @@ int16_t UnitView::find_seats_matching_name_and_flags(char *name_filter, uint16_t
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     uint8_t name_is_empty;
-    if (name_filter != (char *)0) {
+    if (name_filter != nullptr) {
         int32_t len = 0;
         while (name_filter[len] != '\0') len++;
         name_is_empty = (len == 0);

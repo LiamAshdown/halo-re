@@ -16,6 +16,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
 void effect_set_placement(effect *self, const ColorRGB *color, const effect_tint_source *tint_source, real a_scale, real b_scale);
@@ -48,7 +49,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
 {
     effect * self = record;
     uint32_t group = part->type_class;
-    datum_index tag = *(datum_index *)&part->type.tag_id;
+    datum_index tag = halo::objects::tag_handle(part->type);
     real_point3d *marker_position = (real_point3d *)((uint8_t *)marker + 0x30);
     real_vector3d *marker_forward = (real_vector3d *)((uint8_t *)marker + 0x0c);
 
@@ -61,7 +62,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
     } else if (group == halo::groups::damage_effect) {
         damage_data dd;
         uint8_t *raw = (uint8_t *)&dd;
-        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(self->creator_object_index, 0xffffffff);
+        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(self->creator_object_index, _object_mask_all);
 
         halo::objects::damage_data_initialize(&dd, tag);
         if (creator != 0) {
@@ -258,7 +259,7 @@ void effect_view::change_color_evaluate()
                     if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0) {
                         entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
-                    if (entry == (effect_location_marker *)0) {
+                    if (entry == nullptr) {
                         break;
                     }
 

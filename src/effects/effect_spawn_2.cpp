@@ -16,6 +16,7 @@
 #include "halo/effects/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 using particle_scale = halo::tags::effect_particle_scales_values_tag_flag;
 using particle_flag = halo::tags::effect_particle_tag_flag;
@@ -240,7 +241,7 @@ void effect_view::spawn_particles()
                     continue;
                 }
 
-                record.definition_index = *(datum_index *)&pt->particle_type.tag_id;
+                record.definition_index = halo::objects::tag_handle(pt->particle_type);
                 flags = pt->flags;
                 if ((flags & halo::to_bits(particle_flag::stay_attached_to_marker)) != 0) {
                     record.object_index = self->object_index;

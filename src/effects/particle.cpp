@@ -22,6 +22,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 void particle_new(particle_creation_data *creation_data);
 void particles_delete_by_first_person_weapon(uint8_t first_person_weapon_index);
@@ -161,9 +162,9 @@ void particle_ref::impact()
     particle *self = &((particle *)particle_data->data)[(uint16_t)particle_handle];
     Particle *tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)self->definition_index].data;
 
-    if (*(uint32_t *)&tag->death_effect.tag_id != halo::k_dword_none) {
+    if (halo::objects::tag_handle(tag->death_effect) != halo::k_dword_none) {
         halo::effects::particle_impact_response_dispatch(self, *(tag_group *)&tag->death_effect.tag_fourcc,
-            *(datum_index *)&tag->death_effect.tag_id, 0.0f);
+            halo::objects::tag_handle(tag->death_effect), 0.0f);
     }
 
     halo::memory::datum_delete(particle_data, particle_handle);
@@ -448,7 +449,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         if (self->object_index == k_datum_index_none) {
             return 1;
         }
-        if (halo::objects::object_try_and_get(self->object_index, 0xffffffff) != 0) {
+        if (halo::objects::object_try_and_get(self->object_index, _object_mask_all) != 0) {
             return 1;
         }
         halo::memory::datum_delete(particle_data, particle_handle);
@@ -464,32 +465,32 @@ uint8_t particle_ref::update_motion(real delta_time)
         uint8_t collided;
 
         collision_flags = halo::physics::point_physics_tick(&self->velocity, 0, physics, &self->location,
-            0xffffffff, &self->position, (real_vector3d *)0, &out_normal, &out_material_type,
+            0xffffffff, &self->position, nullptr, &out_normal, &out_material_type,
             radius, delta_time);
 
         collided = (collision_flags & _point_physics_collided_bit) != 0;
 
         if (collided) {
-            if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none ||
-                *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0u) {
+            if (halo::objects::tag_handle(tag->collision_effect) != halo::k_dword_none ||
+                halo::objects::tag_handle(tag->sir_marty_exchanged_his_children_for_thine) != 0u) {
                 real speed = (real)halo::libm::sqrt((double)(self->velocity.k * self->velocity.k +
                     self->velocity.j * self->velocity.j + self->velocity.i * self->velocity.i)) - 0.5f;
                 speed = (speed < 0.0f) ? 0.0f : (speed > 1.0f ? 1.0f : speed);
 
-                if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none) {
+                if (halo::objects::tag_handle(tag->collision_effect) != halo::k_dword_none) {
                     halo::effects::particle_impact_response_dispatch(self, *(tag_group *)&tag->collision_effect.tag_fourcc,
-                        *(datum_index *)&tag->collision_effect.tag_id, speed);
+                        halo::objects::tag_handle(tag->collision_effect), speed);
                 }
-                if (*(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != halo::k_dword_none &&
+                if (halo::objects::tag_handle(tag->sir_marty_exchanged_his_children_for_thine) != halo::k_dword_none &&
                     halo::game::any_local_player_within_10_units(&self->position) != 0) {
                     halo::effects::material_effects_play_at_marker(
-                        *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id,
+                        halo::objects::tag_handle(tag->sir_marty_exchanged_his_children_for_thine),
                         8, out_material_type, (uint32_t *)&self->location,
                         *(uint32_t *)&speed, &self->position, &out_normal);
                 }
             }
             if (particle_tag_has(tag->flags, particle_tag_flag::dies_on_contact_with_structure)) {
-                if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none) {
+                if (halo::objects::tag_handle(tag->collision_effect) != halo::k_dword_none) {
                     halo::memory::datum_delete(particle_data, particle_handle);
                     return 0;
                 }
@@ -515,7 +516,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         real friction, mass_related, decay;
 
         if ((self->flags & _particle_first_person_bit) == 0 &&
-            halo::objects::object_try_and_get(self->object_index, 0xffffffff) == 0) {
+            halo::objects::object_try_and_get(self->object_index, _object_mask_all) == 0) {
             halo::memory::datum_delete(particle_data, particle_handle);
             return 0;
         }
@@ -603,7 +604,7 @@ void particle_ref::refresh_structure_locations()
         } else if (entry->flags & _particle_first_person_bit) {
             point = &first_person_marker_node(first_person_weapon_interfaces, entry->first_person_weapon_index, entry->marker_index)->position;
         } else {
-            object *owner = halo::objects::object_try_and_get(entry->object_index, 0xffffffff);
+            object *owner = halo::objects::object_try_and_get(entry->object_index, _object_mask_all);
 
             if (owner == 0) {
                 halo::memory::datum_delete(particle_data, handle);

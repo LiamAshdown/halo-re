@@ -37,7 +37,7 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 
-static auto &savegames_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().savegames_directory);
+static auto &savegames_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().savegames_directory);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 static auto &savegame_index_dirty = halo::link::ref<uint8_t>(halo::saved_games::vars().savegame_index_dirty);
 static auto &default_profile_data = halo::link::ref<saved_player_profile>(halo::ui::vars().default_profile_data);
@@ -47,17 +47,17 @@ static auto &saved_game_files_mutex = halo::link::ref<network_mutex_record *>(ha
 static auto &savegame_index_mutex = halo::link::ref<network_mutex_record *>(halo::game::vars().savegame_index_mutex);
 static auto &savegame_index_file = halo::link::ref<file_reference_record>(halo::game::vars().savegame_index_file);
 static auto &saved_game_files_initialized = halo::link::ref<uint8_t>(halo::saved_games::vars().saved_game_files_initialized);
-static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games::vars().profile_directory);
-static auto &saved_game_root_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().saved_game_root_directory);
-static auto &saved_game_root_path = halo::link::ref<char [0x100]>(halo::game::vars().saved_game_root_path);
-static auto &saved_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().saved_directory);
-static auto &player_profiles_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().player_profiles_directory);
-static auto &default_player_profiles_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().default_player_profiles_directory);
-static auto &playlists_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().playlists_directory);
-static auto &default_playlists_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().default_playlists_directory);
-static auto &last_profile_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().last_profile_path);
-static auto &last_game_variant_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().last_game_variant_path);
-static auto &last_multiplayer_map_path = halo::link::ref<char [0x100]>(halo::saved_games::vars().last_multiplayer_map_path);
+static auto &profile_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size + 5]>(halo::saved_games::vars().profile_directory);
+static auto &saved_game_root_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().saved_game_root_directory);
+static auto &saved_game_root_path = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::game::vars().saved_game_root_path);
+static auto &saved_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().saved_directory);
+static auto &player_profiles_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().player_profiles_directory);
+static auto &default_player_profiles_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().default_player_profiles_directory);
+static auto &playlists_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().playlists_directory);
+static auto &default_playlists_directory = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().default_playlists_directory);
+static auto &last_profile_path = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().last_profile_path);
+static auto &last_game_variant_path = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().last_game_variant_path);
+static auto &last_multiplayer_map_path = halo::link::ref<char [halo::saved_games::k_path_buffer_size]>(halo::saved_games::vars().last_multiplayer_map_path);
 static auto &default_player_profile_initialized = halo::link::ref<uint8_t>(halo::saved_games::vars().default_player_profile_initialized);
 static auto &variant_write_request_state = halo::link::ref<variant_write_request>(halo::saved_games::vars().variant_write_request_state);
 static auto &default_game_variant_count = halo::link::ref<int16_t>(halo::saved_games::vars().default_game_variant_count);
@@ -89,7 +89,7 @@ void allocate_new_slot(uint16_t *out_name)
     int32_t number;
     int32_t next_number;
     uint32_t create_result;
-    char scratch_path[0x100];
+    char scratch_path[k_path_buffer_size];
 
     out_name[0] = 0;
     tag_index = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\saved_game_file_strings");
@@ -139,7 +139,7 @@ int32_t check_storage_availability(void)
     int32_t ok;
     int32_t handle;
     int32_t count;
-    uint8_t find_data[0x344];
+    uint8_t find_data[k_find_data_buffer_size];
     uint8_t found;
     uint8_t removed;
 
@@ -308,13 +308,13 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
 {
     int32_t storage_status;
     int32_t entry_count;
-    char directory[0x100];
+    char directory[k_path_buffer_size];
     int32_t create_result;
     saved_game_index_entry entry;
     int32_t appended_slot;
     void *storage_handle;
     file_reference_record ref;
-    uint8_t body[0x2000];
+    uint8_t body[k_file_body_buffer_size];
     uint32_t body_size;
     uint8_t ok;
     int32_t registered;
@@ -430,7 +430,7 @@ void delete_by_display_name(const char *name)
 {
     int32_t handles[100];
     uint16_t capacity_and_count;
-    uint16_t name_wide[0x200];
+    uint16_t name_wide[k_display_name_search_characters];
     int32_t length;
     int32_t i;
     saved_player_profile profile;
@@ -438,10 +438,10 @@ void delete_by_display_name(const char *name)
     int32_t handle;
 
     length = (int32_t)strlen(name);
-    if ((uint32_t)(length * 2 + 2) > 0x400) {
-        length = 0x1ff;
+    if ((uint32_t)(length * 2 + 2) > sizeof(name_wide)) {
+        length = k_display_name_search_characters - 1;
     }
-    if ((uint32_t)(length * 2 + 2) < 0x401) {
+    if ((uint32_t)(length * 2 + 2) < sizeof(name_wide) + 1) {
         name_wide[length] = 0;
         for (i = length - 1; i >= 0; i--) {
             name_wide[i] = (uint16_t)(uint8_t)name[i];
@@ -682,7 +682,7 @@ void files_initialize(void)
     int32_t mutex2_ok;
 
     zero_cursor = (uint8_t *)&savegame_index_file;
-    for (i = 0x2c7; i != 0; i--) {
+    for (i = k_savegame_index_file_clear_dwords; i != 0; i--) {
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }
@@ -997,7 +997,7 @@ int16_t index_register_default_playlists(void)
     uint8_t opened;
     uint8_t read_ok;
     uint32_t checksum;
-    uint8_t body[0x2000];
+    uint8_t body[k_file_body_buffer_size];
     uint8_t written;
 
     count = default_game_variant_count;
@@ -1194,7 +1194,7 @@ void last_mp_map_clear(const void *data)
     if (ok != 0) {
         ok = halo::saved_games::file_reference_open(&ref, 2);
         if (ok != 0) {
-            halo::saved_games::file_reference_write(&ref, data, 0x100);
+            halo::saved_games::file_reference_write(&ref, data, k_path_buffer_size);
             halo::saved_games::file_reference_close(&ref);
         }
     }
@@ -1217,7 +1217,7 @@ uint8_t last_mp_map_read(uint8_t *out_data)
     halo::saved_games::file_reference_init(&ref, last_multiplayer_map_path, 0);
     ok = halo::saved_games::file_reference_open(&ref, 1);
     if (ok != 0) {
-        read_ok = halo::saved_games::file_reference_read(&ref, out_data, 0x100);
+        read_ok = halo::saved_games::file_reference_read(&ref, out_data, k_path_buffer_size);
         halo::saved_games::file_reference_close(&ref);
         out_data[0xff] = 0;
         return read_ok;
@@ -1241,7 +1241,7 @@ void last_mp_variant_clear(const void *data)
     if (ok != 0) {
         ok = halo::saved_games::file_reference_open(&ref, 2);
         if (ok != 0) {
-            halo::saved_games::file_reference_write(&ref, data, 0x100);
+            halo::saved_games::file_reference_write(&ref, data, k_path_buffer_size);
             halo::saved_games::file_reference_close(&ref);
         }
     }
@@ -1264,7 +1264,7 @@ uint8_t last_mp_variant_read(uint8_t *out_data)
     halo::saved_games::file_reference_init(&ref, last_game_variant_path, 0);
     ok = halo::saved_games::file_reference_open(&ref, 1);
     if (ok != 0) {
-        read_ok = halo::saved_games::file_reference_read(&ref, out_data, 0x100);
+        read_ok = halo::saved_games::file_reference_read(&ref, out_data, k_path_buffer_size);
         halo::saved_games::file_reference_close(&ref);
         out_data[0xff] = 0;
         return read_ok;
@@ -1288,7 +1288,7 @@ void last_profile_clear(const void *data)
     if (ok != 0) {
         ok = halo::saved_games::file_reference_open(&ref, 2);
         if (ok != 0) {
-            halo::saved_games::file_reference_write(&ref, data, 0x100);
+            halo::saved_games::file_reference_write(&ref, data, k_path_buffer_size);
             halo::saved_games::file_reference_close(&ref);
         }
     }
@@ -1311,7 +1311,7 @@ uint8_t last_profile_read(uint8_t *out_data)
     halo::saved_games::file_reference_init(&ref, last_profile_path, 0);
     ok = halo::saved_games::file_reference_open(&ref, 1);
     if (ok != 0) {
-        read_ok = halo::saved_games::file_reference_read(&ref, out_data, 0x100);
+        read_ok = halo::saved_games::file_reference_read(&ref, out_data, k_path_buffer_size);
         halo::saved_games::file_reference_close(&ref);
         out_data[0xff] = 0;
         return read_ok;
@@ -1351,7 +1351,7 @@ void list_rebuild_index(void)
     uint8_t opened;
     uint8_t read_ok;
     uint32_t checksum;
-    uint8_t body[0x2000];
+    uint8_t body[k_file_body_buffer_size];
     uint8_t write_ok;
     uint8_t find_ok;
     uint8_t removed;
@@ -1465,7 +1465,7 @@ void list_rebuild_index(void)
  */
 uint8_t name_is_available(const uint16_t *name)
 {
-    char scratch[0x100];
+    char scratch[k_path_buffer_size];
     uint32_t result;
 
     if (name != 0 && *name != 0) {
@@ -1550,7 +1550,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
 
         remaining = total_size - header_size;
         while (0 < remaining) {
-            uint8_t chunk_buffer[0x20000];
+            uint8_t chunk_buffer[k_game_state_crc_chunk_size];
 
             chunk = remaining;
             if (k_game_state_crc_chunk_size - 1 < remaining) {

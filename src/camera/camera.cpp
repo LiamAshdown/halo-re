@@ -12,6 +12,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/camera/vars.hpp"
+#include "halo/units/records.hpp"
 
 static auto &camera_director_globals = halo::link::ref<director_globals>(halo::camera::vars().camera_director_globals);
 static auto &directors = halo::link::ref<director [1]>(halo::camera::vars().directors);
@@ -272,17 +273,17 @@ int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state
         if ((1 << (parent_object->type & 0x1f)) & 3) {
             Unit *parent_unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
-            int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
+            int16_t seat_index = (halo::units::unit_data_of(unit_object))->vehicle_seat_index;
             uint32_t seat_flags = *(uint32_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
 
             result = (seat_flags & 0x10) != 0; 
 
             if ((seat_flags & 0x40) != 0) { 
-                if (((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->animation_state == _unit_animation_state_seat_enter) {
+                if ((halo::units::unit_data_of(unit_object))->animation_state == _unit_animation_state_seat_enter) {
                     *out_state = _director_seat_camera_entering;
                     return 1;
                 }
-                if (((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->animation_state == _unit_animation_state_seat_exit) {
+                if ((halo::units::unit_data_of(unit_object))->animation_state == _unit_animation_state_seat_exit) {
                     *out_state = _director_seat_camera_exiting;
                     return 1;
                 }
@@ -377,7 +378,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
     best = k_datum_index_none;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
-    while (p != (player *)0) {
+    while (p != nullptr) {
         if (iterator.index != reference_player && p->unit != k_datum_index_none &&
             (!require_same_team || p->team == team)) {
             if (best == k_datum_index_none) {
@@ -418,7 +419,7 @@ uint8_t CameraSystem::dead_player_has_teammate(datum_index reference_player)
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
-    while (p != (player *)0) {
+    while (p != nullptr) {
         if (iterator.index != reference_player && p->team == team) {
             return 1;
         }
@@ -571,7 +572,7 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     observer_camera *source;
     datum_index local_player;
 
-    source = (local_player_index != -1) ? &observers[local_player_index].camera : (observer_camera *)0;
+    source = (local_player_index != -1) ? &observers[local_player_index].camera : nullptr;
     self->focus = *(Point3D *)&source->position; 
 
     self->field_of_view = 1.2217305f; 
@@ -590,7 +591,7 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 
     } else {
-        self->retarget_time = (halo::game::globals().current_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
+        self->retarget_time = (halo::game::globals().current_engine != nullptr) ? 15.0f : 3.0f;
     }
 
     if (local_player_index == -1 || local_player_index > 0) {

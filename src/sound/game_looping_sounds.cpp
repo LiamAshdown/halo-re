@@ -85,7 +85,7 @@ void reconcile_scripting_state(void)
     iterator.group_tag = 0x736e6421;
 
     tag_id = halo::cache::tag_iterator_next(&iterator);
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != k_datum_index_none) {
         Sound *sound_tag = (Sound *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         sound_tag->scripting_time = halo::k_dword_none;
         tag_id = halo::cache::tag_iterator_next(&iterator);
@@ -199,7 +199,7 @@ static void update_sound_body(datum_index looping_sound_index, int32_t *root_loc
         halo::math::matrix4x3_transform_point(*((real_point3d *)&location.position), *((real_point3d *)&self->position), *node_matrix);
         halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location.forward), *((real_vector3d *)&self->forward), *node_matrix);
         halo::objects::object_get_root_object_velocities(self->object_index, (real_vector3d *)&location.velocity,
-            (real_vector3d *)0);
+            nullptr);
         location.leaf_index = root_location[0];
         *(int32_t *)&location.cluster_index = root_location[1];
         location.type = _sound_location_absolute;
@@ -298,9 +298,9 @@ void update(void)
             datum_index object_index = self->object_index;
 
             if (object_index == k_datum_index_none) {
-                game_looping::update_sound(index, (int32_t *)0);
+                game_looping::update_sound(index, nullptr);
             } else if ((self->flags & _game_looping_sound_script_gain_bit) == 0 ||
-                       halo::objects::object_try_and_get(object_index, 0xffffffff) != 0) {
+                       halo::objects::object_try_and_get(object_index, _object_mask_all) != 0) {
                 object *obj = (object *)((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
 
                 if ((obj->flags & _object_needs_cluster_update_bit) != 0) {

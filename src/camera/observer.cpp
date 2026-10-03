@@ -17,6 +17,17 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 
+namespace {
+/** The floats of an observer parameter record (parameters, derivatives, command vectors), which the spline code walks channel by channel. */
+template <typename T>
+float *float_view(T &record)
+{
+    static_assert(sizeof(T) % sizeof(float) == 0);
+    return reinterpret_cast<float *>(&record);
+}
+}
+
+
 static auto &observers = halo::link::ref<observer [1]>(halo::camera::vars().observers);
 static auto &observer_dt = halo::link::ref<float>(halo::camera::vars().observer_dt);
 static auto &observer_derivative_float_counts = halo::link::ref<int16_t [5]>(halo::camera::vars().observer_derivative_float_counts);
@@ -49,8 +60,8 @@ void ObserverHandle::advance()
         return;
     }
 
-    halo::camera::observer_compute_remaining_offset((float *)&o->current_command.parameters,
-        (float *)&o->parameters, (float *)&o->remaining_offset);
+    halo::camera::observer_compute_remaining_offset(float_view(o->current_command.parameters),
+        float_view(o->parameters), float_view(o->remaining_offset));
     halo::camera::observer_compute_spline_coefficients(local_player_index);
     halo::camera::observer_evaluate_spline_acceleration(local_player_index);
     halo::camera::observer_evaluate_spline_velocity(local_player_index);
@@ -237,16 +248,16 @@ void ObserverHandle::compute_spline_coefficients()
     int16_t local_player_index = (int16_t)player_handle;
 
     observer *o = &observers[local_player_index];
-    float *remaining_offset = (float *)&o->remaining_offset;
-    float *derivative_velocity = (float *)&o->velocity;
-    float *acceleration = (float *)&o->acceleration;
-    float *coefficient_t5 = (float *)&o->coefficient_t5;
-    float *coefficient_t4 = (float *)&o->coefficient_t4;
-    float *coefficient_t3 = (float *)&o->coefficient_t3;
-    float *coefficient_t2 = (float *)&o->coefficient_t2;
-    float *coefficient_t1 = (float *)&o->coefficient_t1;
-    float *coefficient_t0 = (float *)&o->coefficient_t0;
-    float *command_velocity = (float *)&o->current_command.velocity;
+    float *remaining_offset = float_view(o->remaining_offset);
+    float *derivative_velocity = float_view(o->velocity);
+    float *acceleration = float_view(o->acceleration);
+    float *coefficient_t5 = float_view(o->coefficient_t5);
+    float *coefficient_t4 = float_view(o->coefficient_t4);
+    float *coefficient_t3 = float_view(o->coefficient_t3);
+    float *coefficient_t2 = float_view(o->coefficient_t2);
+    float *coefficient_t1 = float_view(o->coefficient_t1);
+    float *coefficient_t0 = float_view(o->coefficient_t0);
+    float *command_velocity = float_view(o->current_command.velocity);
     int16_t channel;
     int32_t float_index = 0;
 
@@ -303,11 +314,11 @@ void ObserverHandle::evaluate_spline_acceleration()
     int16_t local_player_index = (int16_t)player_handle;
 
     observer *o = &observers[local_player_index];
-    float *coefficient_t5 = (float *)&o->coefficient_t5;
-    float *coefficient_t4 = (float *)&o->coefficient_t4;
-    float *coefficient_t3 = (float *)&o->coefficient_t3;
-    float *coefficient_t2 = (float *)&o->coefficient_t2;
-    float *acceleration = (float *)&o->acceleration;
+    float *coefficient_t5 = float_view(o->coefficient_t5);
+    float *coefficient_t4 = float_view(o->coefficient_t4);
+    float *coefficient_t3 = float_view(o->coefficient_t3);
+    float *coefficient_t2 = float_view(o->coefficient_t2);
+    float *acceleration = float_view(o->acceleration);
     int16_t channel;
     int32_t float_index = 0;
 
@@ -364,15 +375,15 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
     int16_t local_player_index = (int16_t)player_handle;
 
     observer *o = &observers[local_player_index];
-    float *command_parameters = (float *)&o->current_command.parameters;
-    float *coefficient_t5 = (float *)&o->coefficient_t5;
-    float *coefficient_t4 = (float *)&o->coefficient_t4;
-    float *coefficient_t3 = (float *)&o->coefficient_t3;
-    float *coefficient_t2 = (float *)&o->coefficient_t2;
-    float *coefficient_t1 = (float *)&o->coefficient_t1;
-    float *coefficient_t0 = (float *)&o->coefficient_t0;
-    float *velocity = (float *)&o->velocity;
-    float *parameters = (float *)&o->parameters;
+    float *command_parameters = float_view(o->current_command.parameters);
+    float *coefficient_t5 = float_view(o->coefficient_t5);
+    float *coefficient_t4 = float_view(o->coefficient_t4);
+    float *coefficient_t3 = float_view(o->coefficient_t3);
+    float *coefficient_t2 = float_view(o->coefficient_t2);
+    float *coefficient_t1 = float_view(o->coefficient_t1);
+    float *coefficient_t0 = float_view(o->coefficient_t0);
+    float *velocity = float_view(o->velocity);
+    float *parameters = float_view(o->parameters);
     float value[14];
     int16_t channel;
     int32_t derivative_index = 0;
@@ -483,13 +494,13 @@ void ObserverHandle::evaluate_spline_velocity()
     int16_t local_player_index = (int16_t)player_handle;
 
     observer *o = &observers[local_player_index];
-    float *remaining_offset = (float *)&o->remaining_offset;
-    float *coefficient_t5 = (float *)&o->coefficient_t5;
-    float *coefficient_t4 = (float *)&o->coefficient_t4;
-    float *coefficient_t3 = (float *)&o->coefficient_t3;
-    float *coefficient_t2 = (float *)&o->coefficient_t2;
-    float *coefficient_t1 = (float *)&o->coefficient_t1;
-    float *velocity = (float *)&o->velocity;
+    float *remaining_offset = float_view(o->remaining_offset);
+    float *coefficient_t5 = float_view(o->coefficient_t5);
+    float *coefficient_t4 = float_view(o->coefficient_t4);
+    float *coefficient_t3 = float_view(o->coefficient_t3);
+    float *coefficient_t2 = float_view(o->coefficient_t2);
+    float *coefficient_t1 = float_view(o->coefficient_t1);
+    float *velocity = float_view(o->velocity);
     double inv_dt = 1.0 / (double)observer_dt; 
     int16_t channel;
     int32_t float_index = 0;

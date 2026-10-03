@@ -3,6 +3,7 @@
 #include "halo/core/link.hpp"
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/shell/runtime.hpp"
 
 static auto &hwreq_parser_vtable_instance = halo::link::ref<hwreq_parser_vtable>(halo::shell::vars().hwreq_parser_vtable_instance);
 static auto &hwreq_open_error_text = halo::link::ref<char []>(halo::shell::vars().hwreq_open_error_text);
@@ -141,35 +142,35 @@ void HwreqParser::destruct()
     self->property_sets.size = 0;
 
     if (self->sound_vendor_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->sound_vendor_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->sound_vendor_name));
     }
     self->sound_vendor_name.capacity = k_msvc_string_inline_capacity;
     self->sound_vendor_name.size = 0;
     self->sound_vendor_name.buffer.inline_buffer[0] = 0;
 
     if (self->sound_device_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->sound_device_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->sound_device_name));
     }
     self->sound_device_name.capacity = k_msvc_string_inline_capacity;
     self->sound_device_name.size = 0;
     self->sound_device_name.buffer.inline_buffer[0] = 0;
 
     if (self->graphics_vendor_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->graphics_vendor_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->graphics_vendor_name));
     }
     self->graphics_vendor_name.capacity = k_msvc_string_inline_capacity;
     self->graphics_vendor_name.size = 0;
     self->graphics_vendor_name.buffer.inline_buffer[0] = 0;
 
     if (self->graphics_device_name.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->graphics_device_name.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->graphics_device_name));
     }
     self->graphics_device_name.capacity = k_msvc_string_inline_capacity;
     self->graphics_device_name.size = 0;
     self->graphics_device_name.buffer.inline_buffer[0] = 0;
 
     if (self->error_message.capacity > k_msvc_string_inline_capacity) {
-        free((void *)self->error_message.buffer.heap_buffer);
+        free(StdString::heap_pointer(self->error_message));
     }
     self->error_message.capacity = k_msvc_string_inline_capacity;
     self->error_message.size = 0;
@@ -197,7 +198,7 @@ void HwreqParser::scalar_deleting_destruct()
 char *HwreqParser::error_message_text()
 {
     if (self->error_message.capacity > k_string_inline_capacity) {
-        return (char *)self->error_message.buffer.heap_buffer;
+        return StdString::heap_pointer(self->error_message);
     }
     return self->error_message.buffer.inline_buffer;
 }
@@ -269,7 +270,7 @@ hwreq_property_set *HwreqParser::flags_set()
 char *HwreqParser::graphics_device_name_text()
 {
     if (self->graphics_device_name.capacity > k_string_inline_capacity) {
-        return (char *)self->graphics_device_name.buffer.heap_buffer;
+        return StdString::heap_pointer(self->graphics_device_name);
     }
     return self->graphics_device_name.buffer.inline_buffer;
 }
@@ -392,7 +393,7 @@ hwreq_property_set *HwreqParser::find_property_set(const char *name)
     }
 
     if (key.capacity >= k_string_inline_capacity + 1) {
-        free((void *)key.buffer.heap_buffer);
+        free(StdString::heap_pointer(key));
     }
     return result;
 }
@@ -407,8 +408,8 @@ hwreq_property_set *HwreqParser::find_property_set(const char *name)
  */
 uint8_t HwreqParser::parse(const char *path, const shell_sound_device *sound_device, const d3d_adapter_identifier9 *adapter, const d3d_caps9 *caps, uint32_t memory, uint32_t video_memory, uint32_t cpu_speed)
 {
-    uint32_t *driver_version = (uint32_t *)((uint8_t *)&self->adapter + 0x420);
-    char directory[0x104];
+    large_integer &driver_version = self->adapter.driver_version;
+    char directory[win32::k_max_path];
     char *end;
     void *file;
     uint32_t size;
@@ -430,24 +431,24 @@ uint8_t HwreqParser::parse(const char *path, const shell_sound_device *sound_dev
     self->caps = *caps;
     self->error_reported = 0;
 
-    if ((driver_version[0] | driver_version[1]) == 0) {
+    if ((driver_version.parts.low_part | static_cast<uint32_t>(driver_version.parts.high_part)) == 0) {
         uint32_t handle;
-        uint32_t info_size = GetFileVersionInfoSizeA((const char *)&self->adapter, (LPDWORD)&handle);
+        uint32_t info_size = GetFileVersionInfoSizeA(self->adapter.driver, (LPDWORD)&handle);
 
         if (info_size != 0) {
             void *info = malloc(info_size);
             void *fixed;
             uint32_t fixed_length;
 
-            if (GetFileVersionInfoA((const char *)&self->adapter, handle, info_size, info) &&
+            if (GetFileVersionInfoA(self->adapter.driver, handle, info_size, info) &&
                 VerQueryValueA(info, hwreq_version_root_block, &fixed, &fixed_length)) {
-                uint32_t fixed_info[0xd];
+                uint32_t fixed_info[k_version_fixed_info_dwords];
 
-                for (i = 0; i < 0xd; i++) {
+                for (i = 0; i < k_version_fixed_info_dwords; i++) {
                     fixed_info[i] = ((uint32_t *)fixed)[i];
                 }
-                driver_version[1] = fixed_info[2];
-                driver_version[0] = fixed_info[3];
+                driver_version.parts.high_part = static_cast<int32_t>(fixed_info[2]);
+                driver_version.parts.low_part = fixed_info[3];
             }
             free(info);
         }

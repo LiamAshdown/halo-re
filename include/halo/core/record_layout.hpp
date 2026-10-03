@@ -98,6 +98,10 @@ static_assert(offsetof(player_update_history_node, unit_state) == 0x30);
 static_assert(offsetof(player_update_history_node, vehicle_state) == 0x100);
 static_assert(offsetof(s_network_address, ipv6_1) == 0x4);
 static_assert(offsetof(unit_object, unit.controlling_player) == 0x218);
+static_assert(offsetof(unit_object, unit.desired_facing_vector) == 0x224 && offsetof(unit_object, unit.desired_aiming_vector) == 0x230 &&
+              offsetof(unit_object, unit.desired_looking_vector) == 0x254);
+static_assert(offsetof(unit_object, unit.base_animation_state) == 0x2a7);
+static_assert(offsetof(unit_object, unit.ai_communication_count) == 0x42a && offsetof(unit_object, unit.ai_communication_tick) == 0x42c);
 static_assert(offsetof(unit_object, unit.driver_unit_index) == 0x324);
 static_assert(offsetof(unit_object, unit.gunner_unit_index) == 0x328);
 static_assert(offsetof(unit_object, unit.last_parent_object_index) == 0x32c);

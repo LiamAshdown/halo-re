@@ -531,7 +531,7 @@ typedef struct powered_mass_point_state {
     float air_lift;                 // 0x10 flag 0x10
     float thrust;                   // 0x14 flag 0x20
     float antigrav;                 // 0x18 flag 0x40
-    uint8_t unknown_1c[0x10];       // 0x1c untouched by this module
+    real_quaternion rotation;       // 0x1c the orientation 0x00507840 turns into the matrix below
     float matrix_scale;             // 0x2c the real_matrix4x3 0x00507840 writes
     float matrix[3][3];             // 0x30
     float matrix_position[3];       // 0x54

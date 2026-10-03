@@ -1,5 +1,6 @@
 #include "halo/shell/hwreq.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/shell/runtime.hpp"
 
 namespace halo::shell {
 
@@ -345,7 +346,7 @@ const char *HwreqParser::parse_flag_assignment(hwreq_property_set *property_set)
         StdString(&value_string).assign_n(value, (uint32_t)(value_out - value));
         *StdMap(&self->graphic_detail_sets).index_property_set(&value_string) = property_set;
         if (value_string.capacity >= k_string_inline_capacity + 1) {
-            free((void *)value_string.buffer.heap_buffer);
+            free(StdString::heap_pointer(value_string));
         }
     }
 
@@ -424,7 +425,7 @@ uint8_t HwreqParser::parse_propertyset_directive()
                         free(set);
                     }
                     if (name.capacity > k_msvc_string_inline_capacity) {
-                        free((void *)name.buffer.heap_buffer);
+                        free(StdString::heap_pointer(name));
                     }
                     return 0;
                 }
@@ -433,7 +434,7 @@ uint8_t HwreqParser::parse_propertyset_directive()
                 *slot = set;
 
                 if (name.capacity > k_msvc_string_inline_capacity) {
-                    free((void *)name.buffer.heap_buffer);
+                    free(StdString::heap_pointer(name));
                 }
                 name.capacity = k_msvc_string_inline_capacity;
                 name.size = 0;

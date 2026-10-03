@@ -81,12 +81,12 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
     memset(mass_point_states, 0, definition->mass_points.count * sizeof(mass_point_state));
 
-    if (extra_force != (real_vector3d *)0) {
+    if (extra_force != nullptr) {
         total_force.i += extra_force->i;
         total_force.j += extra_force->j;
         total_force.k += extra_force->k;
     }
-    if (extra_torque != (real_vector3d *)0) {
+    if (extra_torque != nullptr) {
         total_torque.i += extra_torque->i;
         total_torque.j += extra_torque->j;
         total_torque.k += extra_torque->k;

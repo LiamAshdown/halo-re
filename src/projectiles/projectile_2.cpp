@@ -14,6 +14,8 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 
@@ -139,7 +141,7 @@ int ProjectileHandle::update()
             real angle_a;
             real angle_b;
 
-            if (((1u << (tracked_object->type & 0x1f)) & 3) && ((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player != k_datum_index_none) {
+            if (((1u << (tracked_object->type & 0x1f)) & 3) && (halo::units::unit_data_of(tracked_object))->controlling_player != k_datum_index_none) {
                 turn *= halo::game::weapon_get_zoom_fov(k_guided_zoom_table_index, halo::main::globals().game_globals->difficulty);
             }
             {
@@ -310,14 +312,14 @@ int ProjectileHandle::update()
                 moved.j = swept.y - self->base.position.y;
                 moved.k = swept.z - self->base.position.z;
                 self->projectile.distance_travelled = (real)halo::libm::sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
-                if (!flyby_played && *(datum_index *)&definition->flyby_sound.tag_id != k_datum_index_none &&
+                if (!flyby_played && halo::objects::tag_handle(definition->flyby_sound) != k_datum_index_none &&
                     *(datum_index *)halo::game::globals().local_player_globals->local_players != k_datum_index_none) {
                     datum_index local_player = *(datum_index *)halo::game::globals().local_player_globals->local_players;
                     datum_index listener = ((player *)halo::game::globals().player_data->data)[halo::datum_slot(local_player)].unit;
 
                     if (listener != k_datum_index_none && listener != shooter) {
                         real_point3d *center = &((object *)OBJECT_DATA(listener))->bounding_center;
-                        real radius = halo::sound::sound_definition_maximum_distance(*(datum_index *)&definition->flyby_sound.tag_id);
+                        real radius = halo::sound::sound_definition_maximum_distance(halo::objects::tag_handle(definition->flyby_sound));
                         real_vector3d to_listener;  
                         real_vector3d projected;    
                         real_vector3d perpendicular; 
@@ -340,7 +342,7 @@ int ProjectileHandle::update()
                             *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                             placement.leaf_index = *(int32_t *)&hit.leaf;
                             *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
-                            halo::sound::sound_start_at_location(*(datum_index *)&definition->flyby_sound.tag_id, &placement, 1.0f);
+                            halo::sound::sound_start_at_location(halo::objects::tag_handle(definition->flyby_sound), &placement, 1.0f);
                             flyby_played = 1;
                         }
                     }

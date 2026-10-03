@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/items/vars.hpp"
+#include "halo/items/records.hpp"
 
 static auto &weapon_infinite_ammo = halo::link::ref<uint8_t>(halo::items::vars().weapon_infinite_ammo);
 static auto &weapon_bottomless_clip = halo::link::ref<uint8_t>(halo::items::vars().weapon_bottomless_clip);
@@ -48,8 +49,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     real effect_scale_b;
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
-    id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
+    wd = halo::items::weapon_data_of(item_obj);
+    id = halo::items::item_data_of(item_obj);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
     trigger = &wd->triggers[trigger_index];

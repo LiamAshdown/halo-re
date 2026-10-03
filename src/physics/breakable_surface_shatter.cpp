@@ -31,6 +31,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &breakable_surfaces_enabled = halo::link::ref<uint8_t>(halo::physics::vars().breakable_surfaces_enabled);
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
@@ -286,7 +287,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
             int16_t i_min, i_max, j_min, j_max;
             int16_t j;
 
-            if (*(int32_t *)&particles->particle_type.tag_id == -1) {
+            if (halo::objects::tag_handle(particles->particle_type) == -1) {
                 continue;
             }
             if (spacing == 0.0f) {
@@ -380,7 +381,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         }
 
                         memset(&creation, 0, sizeof creation);
-                        creation.definition_index = *(datum_index *)&particles->particle_type.tag_id;
+                        creation.definition_index = halo::objects::tag_handle(particles->particle_type);
                         creation.object_index = k_datum_index_none;
                         creation.marker_index = -1;
                         creation.first_person_weapon_index = 0xff;
@@ -443,7 +444,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         }
     } while (queue_read < queue_count);
 
-    if (*(int32_t *)&shatter->sound.tag_id != -1 && have_bounds) {
+    if (halo::objects::tag_handle(shatter->sound) != -1 && have_bounds) {
         sound_location location;
 
         memset(&location, 0, sizeof location);
@@ -462,7 +463,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         location.leaf_index = damage->location_leaf_index;
         location.cluster_index = damage->location_cluster_index;
         location.unknown_36 = damage->unknown_1a;
-        halo::sound::sound_play_new(*(int32_t *)&shatter->sound.tag_id, &location, k_datum_index_none, 0, 0, 0, 0);
+        halo::sound::sound_play_new(halo::objects::tag_handle(shatter->sound), &location, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 

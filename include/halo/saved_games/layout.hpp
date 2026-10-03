@@ -20,6 +20,21 @@ inline constexpr uint32_t k_crc32_seed = 0xffffffffu;
 /** Number of usable characters of the fixed path buffers (the buffers are one byte larger). */
 inline constexpr uint32_t k_path_maximum_length = 0xff;
 
+/** Byte size of the fixed path and last-used-file buffers (the usable length is k_path_maximum_length). */
+inline constexpr uint32_t k_path_buffer_size = 0x100;
+
+/** Byte size of the scratch file body the profile and variant files are built in. */
+inline constexpr uint32_t k_file_body_buffer_size = 0x2000;
+
+/** Size of the Win32 find-data buffer the disk space check hands to the directory scan. */
+inline constexpr uint32_t k_find_data_buffer_size = 0x344;
+
+/** Dwords cleared from the savegame index file global at start-up. */
+inline constexpr int32_t k_savegame_index_file_clear_dwords = 0x2c7;
+
+/** Wide characters of the display-name search buffer (the last one is the terminator). */
+inline constexpr int32_t k_display_name_search_characters = 0x200;
+
 /** Largest number of entries the savegames directory may hold before saving is refused. */
 inline constexpr int32_t k_maximum_saved_game_entries = 0x3e6;
 

@@ -26,7 +26,7 @@ void UnitView::choose_dialogue_variant()
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = halo::units::unit_data_of(obj);
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
+    int16_t permutation_group = obj->permutation_group;
 
     TagID chosen;
     bool picked = false;
@@ -98,7 +98,7 @@ void UnitView::dialogue_determine_variant()
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Unit *tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    int16_t *variant = (int16_t *)((uint8_t *)obj + 0xbe);
+    int16_t *variant = &obj->permutation_group;
     int16_t candidates[16];
     uint16_t count = 0;
     int16_t i;

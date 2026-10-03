@@ -1,4 +1,8 @@
 #include "halo/hs/records.hpp"
+#include "halo/core/bit_cast.hpp"
+#include "halo/objects/record_access.hpp"
+#include "halo/objects/flags.hpp"
+#include "devices.h"
 #include "halo/hs/hs1_world_commands.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/core/datum.hpp"
@@ -305,7 +309,7 @@ void CheatCommands::cheat_active_camouflage_local_player(int16_t function_index,
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::game::cheat_make_player_invincible(*(int16_t *)arguments);
+        halo::game::cheat_make_player_invincible(halo::hs::argument_short(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -317,9 +321,9 @@ void CheatCommands::cheat_active_camouflage_local_player(int16_t function_index,
  */
 void CheatCommands::cheat_all_powerups(int16_t function_index, uint32_t thread_index, char first)
 {
-    TagDependency *list = *(int32_t *)&global_globals->cheat_powerups.count != 0 ? (TagDependency *)global_globals->cheat_powerups.pointer : 0;
+    TagDependency *list = static_cast<int32_t>(global_globals->cheat_powerups.count) != 0 ? halo::objects::block_elements<TagDependency>(global_globals->cheat_powerups) : 0;
 
-    halo::game::cheat_spawn_objects_near_camera(list, *(int16_t *)&global_globals->cheat_powerups.count);
+    halo::game::cheat_spawn_objects_near_camera(list, static_cast<int16_t>(global_globals->cheat_powerups.count));
     halo::hs::hs_thread_return(0, thread_index);
 }
 
@@ -330,10 +334,10 @@ void CheatCommands::cheat_all_powerups(int16_t function_index, uint32_t thread_i
  */
 void CheatCommands::cheat_all_vehicles(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (*(int32_t *)&global_globals->multiplayer_information.count != 0) {
-        uint8_t *element = (uint8_t *)global_globals->multiplayer_information.pointer;
+    if (static_cast<int32_t>(global_globals->multiplayer_information.count) != 0) {
+        GlobalsMultiplayerInformation &element = halo::objects::block_element<GlobalsMultiplayerInformation>(global_globals->multiplayer_information, 0);
 
-        halo::game::cheat_spawn_objects_near_camera(*(TagDependency **)(element + 0x24), (int16_t)*(uint16_t *)(element + 0x20));
+        halo::game::cheat_spawn_objects_near_camera(halo::objects::block_elements<TagDependency>(element.vehicles), static_cast<int16_t>(element.vehicles.count));
     }
     halo::hs::hs_thread_return(0, thread_index);
 }
@@ -458,7 +462,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
     int32_t result = 0;
 
     if (device != k_datum_index_none) {
-        result = *(int32_t *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(device)) + 0x208);
+        result = halo::bit_cast<int32_t>(reinterpret_cast<device_object *>(halo::ai::object_at(device))->device.position);
     }
     halo::hs::hs_thread_return(result, thread_index);
     }
@@ -479,7 +483,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
         int32_t power = 0;
 
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            power = *(int32_t *)((uint8_t *)halo::ai::object_at(arguments[0]) + 0x1fc);
+            power = halo::bit_cast<int32_t>(reinterpret_cast<device_object *>(halo::ai::object_at(arguments[0]))->device.power);
         }
         halo::hs::hs_thread_return(power, thread_index);
     }
@@ -500,14 +504,14 @@ void DeviceCommands::device_group_change_only_once_more_set(int16_t function_ind
         int16_t group = halo::hs::argument_short(arguments[0]);
 
         if (group != -1) {
-            uint8_t *record = (uint8_t *)halo::devices::globals().device_groups->data + (uint16_t)group * 8;
+            device_group &record = reinterpret_cast<device_group *>(halo::devices::globals().device_groups->data)[(uint16_t)group];
 
             if (halo::hs::argument_byte(arguments[1]) != 0) {
-                record[2] |= 1;
+                record.flags |= 1u << _device_group_can_change_only_once_bit;
             } else {
-                record[2] &= 0xfe;
+                record.flags &= ~(1u << _device_group_can_change_only_once_bit);
             }
-            record[2] &= 0xfd;
+            record.flags &= ~(1u << _device_group_changed_bit);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -525,8 +529,8 @@ void DeviceCommands::device_group_get(int16_t function_index, uint32_t thread_in
         definition->parameters, first);
 
     if (arguments != 0) {
-        float value = *(float *)((uint8_t *)halo::devices::globals().device_groups->data + (uint16_t)halo::hs::argument_ushort(arguments[0]) * 8 + 4);
-        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
+        float value = reinterpret_cast<device_group *>(halo::devices::globals().device_groups->data)[halo::hs::argument_ushort(arguments[0])].value;
+        halo::hs::hs_thread_return(halo::bit_cast<int32_t>(value), thread_index);
     }
 }
 
@@ -575,13 +579,13 @@ void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t threa
         definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
+        device_object *device = reinterpret_cast<device_object *>(halo::objects::object_try_and_get((datum_index)arguments[0], static_cast<uint32_t>(halo::objects::object_mask::device_machine)));
 
         if (device != 0) {
             if (halo::hs::argument_byte(arguments[1]) != 0) {
-                *(uint32_t *)(device + 0x214) |= 2;
+                device->device.type_flags |= 1u << _device_machine_one_sided_bit;
             } else {
-                *(uint32_t *)(device + 0x214) &= 0xfffffffd;
+                device->device.type_flags &= ~(1u << _device_machine_one_sided_bit);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -600,13 +604,13 @@ void DeviceCommands::device_operates_automatically_set(int16_t function_index, u
         definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
+    device_object *device = reinterpret_cast<device_object *>(halo::objects::object_try_and_get((datum_index)arguments[0], static_cast<uint32_t>(halo::objects::object_mask::device_machine)));
 
     if (device != 0) {
         if (halo::hs::argument_byte(arguments[1])) {
-            *(uint32_t *)(device + 0x214) &= 0xfffffffe;
+            device->device.type_flags &= ~(1u << _device_machine_does_not_operate_automatically_bit);
         } else {
-            *(uint32_t *)(device + 0x214) |= 1;
+            device->device.type_flags |= 1u << _device_machine_does_not_operate_automatically_bit;
         }
     }
     halo::hs::hs_thread_return(0, thread_index);
@@ -626,13 +630,13 @@ void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uin
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
+            device_object *device = reinterpret_cast<device_object *>(halo::objects::object_try_and_get((datum_index)arguments[0], static_cast<uint32_t>(halo::objects::object_mask::device_machine)));
 
             if (device != 0) {
                 if (halo::hs::argument_byte(arguments[1]) != 0) {
-                    *(uint32_t *)(device + 0x214) |= 4;
+                    device->device.type_flags |= 1u << _device_machine_never_appears_locked_bit;
                 } else {
-                    *(uint32_t *)(device + 0x214) &= 0xfffffffb;
+                    device->device.type_flags &= ~(1u << _device_machine_never_appears_locked_bit);
                 }
             }
         }

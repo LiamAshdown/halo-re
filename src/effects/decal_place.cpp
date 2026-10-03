@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
 static auto &k_decal_type_parameters = halo::link::ref<const decal_type_parameters [4]>(halo::effects::vars().k_decal_type_parameters);
@@ -593,7 +594,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             rasterizer_decal_vertex_cache);
 
         inherit_geometry = (uint8_t)(*(const uint8_t *)&definition->flags & 1);
-        decal_tag_index = *(datum_index *)&definition->next_decal_in_chain.tag_id;
+        decal_tag_index = halo::objects::tag_handle(definition->next_decal_in_chain);
         halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         if (decal_tag_index == k_datum_index_none) {
             return;

@@ -14,6 +14,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/structures/globals.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
+#include "halo/objects/record_access.hpp"
 
 
 namespace halo::structures {
@@ -157,17 +158,17 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     bsp = halo::scenario::globals().structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(*(uint32_t *)&material->shader.tag_id)].data;
+    shader = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(halo::objects::tag_handle(material->shader))].data;
 
     if (*(int16_t *)&((struct Shader *)shader)->shader_type != shadertype_environment ||
-        *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
+        halo::objects::tag_handle(bsp->lightmaps_bitmap) == -1 ||
         (int16_t)lightmap->bitmap == -1 ||
         *(int32_t *)(shader + k_shader_environment_base_map_tag_offset) == -1) {
         return 0;
     }
 
     triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
-    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
         (int16_t)lightmap->bitmap);
     base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(*(uint32_t *)(shader + k_shader_environment_base_map_tag_offset))].data;
     base_map_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)(shader + k_shader_environment_base_map_tag_offset),

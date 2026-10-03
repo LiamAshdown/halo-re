@@ -390,9 +390,11 @@ typedef struct object {
                                     //       0..9; object_placement_data_initialize (0x4f5411)
                                     //       copies the creating object's team (inheritance)
     int16_t render_cache_slot;      // 0x0ba -1 at create; object_reserve_render_cache_slot
-    uint32_t dead_at_rest_ticks;    // 0x0bc low word ++ in biped_update while vitality health_frozen(4) and object
+    uint16_t dead_at_rest_ticks;    // 0x0bc ++ in biped_update while vitality health_frozen(4) and object
                                     //    at_rest(0x20), else 0; game_engine_cleanup_dropped_objects deletes bipeds
                                     //    past 900 ticks
+    int16_t permutation_group;      // 0x0be the region probability group the object's permutations were drawn from (the unit
+                                    //    variant); object_update refreshes it, unit_dialogue and the conversation code read it
     uint32_t owner_linkage;         // 0x0c0 seeded from the creating object at the same offset
     datum_index creator_object;     // 0x0c4 the creating object (formerly unknown_0c4), from
                                     //       object_placement_data 0x0c (0x4f5705);

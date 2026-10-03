@@ -50,15 +50,15 @@ void read_time_stamp_counter(large_integer *result)
 uint32_t round_video_memory(uint32_t bytes)
 {
     if (bytes <= k_video_memory_16mb) {
-        return (bytes + 0x7fffff) & 0xff800000;
+        return align_up(bytes, k_video_memory_granule_small);
     }
     if (bytes <= k_video_memory_64mb) {
-        return (bytes + 0x1ffffff) & 0xfe000000;
+        return align_up(bytes, k_video_memory_granule_medium);
     }
     if (bytes > k_video_memory_2gb) {
         return k_video_memory_2gb;
     }
-    return (bytes + 0x3ffffff) & 0xfc000000;
+    return align_up(bytes, k_video_memory_granule_large);
 }
 
 constexpr Win32HardwareProbe k_win32_hardware_probe{};
@@ -97,7 +97,7 @@ void Win32HardwareProbe::measure_physical_memory()
     if (memory_status.total_physical > k_shell_physical_memory_clamp) {
         memory_status.total_physical = k_shell_physical_memory_clamp;
     }
-    physical_memory = ((memory_status.total_physical + 0xffffff) >> 20) & 0xff0;
+    physical_memory = ((memory_status.total_physical + k_physical_memory_round_bytes) >> 20) & k_physical_memory_megabyte_mask;
 }
 
 /**

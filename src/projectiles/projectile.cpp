@@ -18,6 +18,9 @@
 #include "halo/projectiles/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/units/records.hpp"
+#include "halo/projectiles/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
 static auto &projectile_default_material_response = halo::link::ref<ProjectileMaterialResponse>(halo::projectiles::vars().projectile_default_material_response);
@@ -46,7 +49,7 @@ uint8_t ProjectileHandle::construct()
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
     float rate;
     datum_index root;
     int16_t i;
@@ -120,7 +123,7 @@ uint8_t ProjectileHandle::construct()
         if (region->fog != (uint16_t)-1) {
             ScenarioStructureBSPFogPalette *fog_entry =
                 &((ScenarioStructureBSPFogPalette *)halo::scenario::globals().structure_bsp->fog_palette.pointer)[region->fog];
-            datum_index fog_tag_id = *(datum_index *)&fog_entry->fog.tag_id;
+            datum_index fog_tag_id = halo::objects::tag_handle(fog_entry->fog);
             if (fog_tag_id != (datum_index)k_datum_index_none) {
                 Fog *fog_tag = (Fog *)halo::cache::globals().tag_instances[halo::datum_slot(fog_tag_id)].data;
                 in_water = (*(uint8_t *)fog_tag & 1) != 0;
@@ -162,7 +165,7 @@ void ProjectileHandle::update_function_values()
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
     ProjectileFunctionIn_t *function_in = &tag->projectile_a_in; 
     float *out = obj->function_in_values;
     int32_t i;
@@ -205,7 +208,7 @@ void ProjectileHandle::compute_deceleration()
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
     real near_range;
 
     if ((obj->flags & _object_in_water_bit) == 0) {
@@ -239,7 +242,7 @@ void ProjectileHandle::compute_rotation()
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
     real magnitude = (real)halo::libm::sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
                                  (double)obj->angular_velocity.i * (double)obj->angular_velocity.i);
@@ -275,7 +278,7 @@ uint8_t ProjectileHandle::collision_test(real_point3d *target, void *out_record)
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
     real_vector3d sweep_delta;
     uint8_t hit;
 
@@ -366,10 +369,10 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
 
     effect_names[0] = k_empty_string;
     effect_names[1] = (char *)"gravity";
-    effect_tag_id = *(datum_index *)&tag->effect.tag_id;
+    effect_tag_id = halo::objects::tag_handle(tag->effect);
 
     if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0 &&
-        (((projectile_data *)((uint8_t *)obj + k_projectile_data_offset))->flags &
+        ((halo::projectiles::projectile_data_of(obj))->flags &
          _projectile_super_detonation_counted_bit) == 0 &&
         obj->parent_object != (datum_index)k_datum_index_none) {
 
@@ -381,7 +384,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         cursor = first_child;
         while (cursor != (datum_index)k_datum_index_none) {
             object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(cursor)].data;
-            projectile_data *sibling_proj = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
+            projectile_data *sibling_proj = halo::projectiles::projectile_data_of(sibling);
             if (sibling->definition_tag == obj->definition_tag &&
                 (sibling_proj->flags & _projectile_super_detonation_counted_bit) == 0) {
                 sibling_count = sibling_count + 1;
@@ -390,14 +393,14 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         }
 
         if (parent->type == _object_type_biped &&
-            (((unit_data *)((uint8_t *)parent + k_unit_data_offset))->controlling_player == (datum_index)k_datum_index_none ||
+            ((halo::units::unit_data_of(parent))->controlling_player == (datum_index)k_datum_index_none ||
              halo::game::globals().current_engine != 0) &&
             sibling_count > k_projectile_super_combine_detonate_threshold) {
 
             cursor = first_child;
             while (cursor != (datum_index)k_datum_index_none) {
                 object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(cursor)].data;
-                projectile_data *sibling_proj = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
+                projectile_data *sibling_proj = halo::projectiles::projectile_data_of(sibling);
                 if (sibling->definition_tag == obj->definition_tag &&
                     (sibling_proj->flags & _projectile_super_detonation_counted_bit) == 0) {
                     if (sibling_count < k_projectile_super_combine_detonate_threshold + 1) {
@@ -413,7 +416,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
                 cursor = sibling->next_object;
             }
 
-            effect_tag_id = *(datum_index *)&tag->super_detonation.tag_id;
+            effect_tag_id = halo::objects::tag_handle(tag->super_detonation);
 
             
             
@@ -431,7 +434,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
     }
 
     {
-        projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+        projectile_data *proj = halo::projectiles::projectile_data_of(obj);
         if (first_collision != 0 && proj->contrail_attachment_index != -1 &&
             obj->attachment_handles[proj->contrail_attachment_index] != (datum_index)k_datum_index_none) {
             halo::objects::object_recalculate_bounding_radius(object_index);
@@ -454,7 +457,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
     }
 
     if (obj->parent_object != (datum_index)k_datum_index_none &&
-        *(int32_t *)&tag->attached_detonation_damage.tag_id != -1) {
+        halo::objects::tag_handle(tag->attached_detonation_damage) != -1) {
         damage_data dd;
         uint8_t *zero = (uint8_t *)&dd;
         int32_t i;
@@ -470,7 +473,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         dd.material_type = -1; 
         dd.random_blend = 1.0f;
         dd.multiplier = 1.0f;
-        dd.damage_effect_tag = *(datum_index *)&tag->attached_detonation_damage.tag_id;
+        dd.damage_effect_tag = halo::objects::tag_handle(tag->attached_detonation_damage);
 
         halo::objects::object_get_orientation(0, object_index, 0); 
         halo::objects::object_get_position(&dd.epicentre, object_index); 
@@ -483,7 +486,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
     }
 
     {
-        projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+        projectile_data *proj = halo::projectiles::projectile_data_of(obj);
         int16_t index = proj->material_response_index;
 
         if (index != -1) {
@@ -494,7 +497,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             } else {
                 response = (ProjectileMaterialResponse *)tag->projectile_material_response.pointer + index;
             }
-            halo::effects::effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
+            halo::effects::effect_new_with_color(halo::objects::tag_handle(response->detonation_effect), obj->creator_object, 0, 2,
                          (uint32_t)effect_names, position_block, (uint32_t)direction_block, 0, 0, 0, 0, 1);
         }
     }
@@ -518,7 +521,7 @@ uint8_t ProjectileHandle::force_detonate()
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
 
     proj->arming_timer = 1.0f;
     proj->detonation_timer = 1.0f;
@@ -568,7 +571,7 @@ void ProjectileHandle::notify_object_deleted(datum_index dying_object_index)
     uint32_t object_index = (uint32_t)handle;
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
+    projectile_data *proj = halo::projectiles::projectile_data_of(obj);
 
     if (proj->tracked_object_index == dying_object_index) {
         proj->tracked_object_index = (datum_index)k_datum_index_none;

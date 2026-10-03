@@ -19,6 +19,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/game/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/record_access.hpp"
 static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::vars().camera_forward_x);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
@@ -536,7 +537,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
 
         halo::physics::point_physics_tick(&p->velocity, flags_arg, physics,
             (bsp_leaf_reference *)((uint8_t *)instance + 0x10), (uint32_t)instance->cluster_index,
-            &p->position, (real_vector3d *)0, (real_vector3d *)0, &material_type, p->radius,
+            &p->position, nullptr, nullptr, &material_type, p->radius,
             instance->delta_time);
     }
 
@@ -580,7 +581,7 @@ void weather_system::update()
         weather_particle_system_state *wind = &weather_wind_states[i];
         uint8_t *active = (uint8_t *)&weather_wind_states[0] + i * 0x20;
 
-        if (*(uint32_t *)&row->wind.tag_id == halo::k_dword_none) {
+        if (halo::objects::tag_handle(row->wind) == halo::k_dword_none) {
             *active = 0;
         } else {
             Wind *wind_tag = (Wind *)halo::cache::globals().tag_instances[row->wind.tag_id.index].data;

@@ -137,30 +137,30 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
     uint32_t object_index = handle;
     unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
     Object *object_tag = halo::objects::tag_as<Object>(obj->base.definition_tag);
-    uint16_t *vitality_flags = (uint16_t *)&obj->base.vitality_flags;
-    float *shield = (float *)&obj->base.shield_vitality;
+    uint16_t *vitality_flags = &obj->base.vitality_flags;
+    float *shield = &obj->base.shield_vitality;
 
     if (halo::objects::tag_handle(object_tag->collision_model) != k_datum_index_none) {
         ModelCollisionGeometry *geometry = halo::objects::tag_as<ModelCollisionGeometry>(halo::objects::tag_handle(object_tag->collision_model));
 
         if (geometry != 0) {
             uint16_t flags = *vitality_flags;
-            uint16_t kill_request = (uint16_t)(flags & 0x2000);
+            uint16_t kill_request = (uint16_t)(flags & static_cast<uint16_t>(vitality_flag::shield_stationary));
 
-            if (kill_request || (flags & 0x60)) {
-                datum_index effect = *(datum_index *)((uint8_t *)global_globals->falling_damage.pointer + 0x1c);
+            if (kill_request || test_flag(flags, vitality_flag::unknown_20 | vitality_flag::unknown_40)) {
+                datum_index effect = halo::objects::tag_handle(halo::objects::block_element<GlobalsFallingDamage>(global_globals->falling_damage, 0).falling_damage);
 
-                if ((flags & 4) == 0 && effect != k_datum_index_none) {
+                if (!test_flag(flags, vitality_flag::health_frozen) && effect != k_datum_index_none) {
                     damage_data dd;
 
                     halo::objects::damage_data_initialize(&dd, effect);
-                    dd.flags |= 4;
+                    set_flag(dd.flags, damage_data_flag::kill_target);
                     dd.random_blend = 1.0f;
-                    if (flags & 0x40) {
-                        dd.flags |= 0x10;
+                    if (test_flag(flags, vitality_flag::unknown_40)) {
+                        set_flag(dd.flags, damage_data_flag::unknown_10);
                     }
                     if (kill_request) {
-                        dd.flags |= 0x80;
+                        set_flag(dd.flags, damage_data_flag::suppress_death_notification);
                     }
                     halo::objects::object_apply_damage(&dd, object_index, -1, -1, -1, 0);
                 }
@@ -240,19 +240,14 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
 void halo::objects::DamageDataView::initialize(datum_index damage_effect_tag)
 {
     damage_data *dd = self;
-    uint32_t *words = (uint32_t *)dd;
-    int i;
-
-    for (i = 0; i < 0x15; i++) {
-        words[i] = 0;
-    }
+    *dd = damage_data{};
 
     dd->damage_effect_tag = damage_effect_tag;
-    dd->material_type = (int16_t)0xffff;
+    dd->material_type = static_cast<int16_t>(-1);
     dd->responsible_player = k_datum_index_none;
     dd->responsible_object = k_datum_index_none;
-    dd->team_index = (int16_t)0xffff;
-    dd->location_cluster_index = (int16_t)0xffff;
+    dd->team_index = static_cast<int16_t>(-1);
+    dd->location_cluster_index = static_cast<int16_t>(-1);
     dd->random_blend = 1.0f;
     dd->multiplier = 1.0f;
 }
@@ -495,12 +490,12 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
         }
 
         flags = effect->damage_flags;
-        if ((flags & 1) && target_index == dd->responsible_object) {
+        if (test_flag(flags, tags::damage_effect_damage_tag_flag::does_not_hurt_owner) && target_index == dd->responsible_object) {
             apply = 0;
         }
-        if ((flags & 8) && !halo::game::teams_are_enemies(dd->team_index, target->base.owner_team)) {
+        if (test_flag(flags, tags::damage_effect_damage_tag_flag::does_not_hurt_friends) && !halo::game::teams_are_enemies(dd->team_index, target->base.owner_team)) {
             apply = 0;
-        } else if (apply && (flags & 0x1000)) {
+        } else if (apply && test_flag(flags, tags::damage_effect_damage_tag_flag::infection_form_pop)) {
             apply = 0;
             if (((1u << ((uint8_t)target->base.type & 0x1f)) & 3) &&
                 (*(uint32_t *)(halo::objects::tag_record_bytes(target->base.definition_tag) + 0x17c) & 0x80000) &&
@@ -508,7 +503,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 real scale = halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty);
 
                 apply = 1;
-                if ((scale > 0.0f || (flags & 0x400)) && (dd->flags & 0x40)) {
+                if ((scale > 0.0f || test_flag(flags, tags::damage_effect_damage_tag_flag::only_hurts_one_infection_form)) && test_flag(dd->flags, damage_data_flag::player_spared)) {
                     apply = 0;
                 }
                 if (scale > 0.0f && scale * 0.25f > halo::math::random_real()) {
@@ -517,7 +512,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 spared_player = 1;
             }
         }
-        dd->flags |= 1;
+        set_flag(dd->flags, damage_data_flag::area_damage);
 
         if (apply) {
 
@@ -557,7 +552,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             }
         }
         if (spared_player && (!apply || !applied)) {
-            dd->flags |= 0x40;
+            set_flag(dd->flags, damage_data_flag::player_spared);
         }
         if (!continue_flag || target->base.next_object == k_datum_index_none) {
             return;
@@ -743,7 +738,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
     }
 
     flags = dd->flags;
-    if ((flags & 1) || (flags & 4)) {
+    if (test_flag(flags, damage_data_flag::area_damage | damage_data_flag::kill_target)) {
         list[0] = target_index;
         count = 1;
     } else if (target_index != k_datum_index_none) {
@@ -793,12 +788,12 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 if (child != target->unit.driver_unit_index) {
                     continue;
                 }
-                dd->flags |= 0x20;
+                set_flag(dd->flags, damage_data_flag::recursing_into_child);
             } else {
-                dd->flags &= ~0x20u;
+                clear_flag(dd->flags, damage_data_flag::recursing_into_child);
             }
             halo::objects::object_apply_damage(dd, child, -1, -1, -1, 0);
-            dd->flags &= ~0x20u;
+            clear_flag(dd->flags, damage_data_flag::recursing_into_child);
         }
         dd->multiplier = 1.0f;
     }
@@ -897,7 +892,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         object_tag = tag_get<Object>(obj->base.definition_tag);
         if (halo::objects::tag_handle(object_tag->collision_model) != k_datum_index_none) {
             geometry = tag_get<ModelCollisionGeometry>(halo::objects::tag_handle(object_tag->collision_model));
-            kill = (uint8_t)((dd->flags >> 2) & 1);
+            kill = (uint8_t)test_flag(dd->flags, damage_data_flag::kill_target);
             *(datum_index *)record.unknown_00 = id;
             record.shield_damage_dealt = 0.0f;
             record.depleted_this_call = 0;
@@ -977,14 +972,14 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 halo::objects::object_set_health_frozen_flag(id);
                 notify_flags |= 0x41;
             }
-            if ((dd->flags & 0x20) == 0 && (effect_block->damage_flags & 0x200) == 0 &&
-                obj->base.maximum_shield_vitality > 0.0f && (!friendly || shield_allowed) && (i == 0 || (geometry->flags & 1))) {
+            if (!test_flag(dd->flags, damage_data_flag::recursing_into_child) && !test_flag(effect_block->damage_flags, tags::damage_effect_damage_tag_flag::skips_shields) &&
+                obj->base.maximum_shield_vitality > 0.0f && (!friendly || shield_allowed) && (i == 0 || test_flag(geometry->flags, tags::model_collision_geometry_tag_flag::takes_shield_damage_for_children))) {
                 halo::objects::object_apply_shield_damage(id, geometry, material, effect_block, &notify_flags, &shield_damage, &amount,
                     target_is_local, apply_state, &record);
             }
-            if ((i == 0 || (parents_take_damage && (geometry->flags & 2))) &&
-                (effect_block->damage_flags & 0x40) == 0) {
-                if (((geometry->flags & 0x20) && (effect_block->damage_flags & 0x20) == 0) ||
+            if ((i == 0 || (parents_take_damage && test_flag(geometry->flags, tags::model_collision_geometry_tag_flag::takes_body_damage_for_children))) &&
+                !test_flag(effect_block->damage_flags, tags::damage_effect_damage_tag_flag::only_hurts_shields)) {
+                if ((test_flag(geometry->flags, tags::model_collision_geometry_tag_flag::only_damaged_by_explosives) && !test_flag(effect_block->damage_flags, tags::damage_effect_damage_tag_flag::detonates_explosives)) ||
                     (friendly && !body_allowed)) {
                     amount = 0.0f;
                 }
@@ -996,7 +991,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             if (!reported && (shield_damage > 0.0001f || body_damage > 0.0001f)) {
                 if (shield_damage > body_damage) {
                     dd->material_type = geometry->shield_material_type;
-                    dd->remaining_vitality = *(uint32_t *)&obj->base.shield_vitality;
+                    dd->remaining_vitality = halo::bit_cast<uint32_t>(obj->base.shield_vitality);
                 } else {
                     float vitality = obj->base.body_vitality;
 
@@ -1005,7 +1000,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                     } else if (vitality > 1.0f) {
                         vitality = 1.0f;
                     }
-                    *(float *)&dd->remaining_vitality = vitality;
+                    dd->remaining_vitality = halo::bit_cast<uint32_t>(vitality);
                 }
                 reported = 1;
             }
@@ -1047,7 +1042,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     uint32_t target_index = handle;
     unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(target_index));
     uint16_t *vitality_flags = &obj->base.vitality_flags;
-    float *vitality = (float *)&obj->base.body_vitality;
+    float *vitality = &obj->base.body_vitality;
     float body = damage * material->body_damage_multiplier;
     float maximum;
     float inverse_maximum;
@@ -1079,7 +1074,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     }
     taken = value * inverse_maximum * material_damage_multiplier(*effect_block, material->material_type);
     bool skip_region_damage = false;
-    if (*vitality_flags & 0x800) {
+    if (test_flag(*vitality_flags, vitality_flag::hash_flag)) {
         if (is_local != 1) {
             skip_region_damage = true;
         }
@@ -1087,7 +1082,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
         if (body > 0.0f && (geometry->unknown_20 & 1)) {
             uint32_t effect_flags = effect_block->damage_flags;
 
-            if (effect_flags & 2) {
+            if (test_flag(effect_flags, tags::damage_effect_damage_tag_flag::can_cause_headshots)) {
                 if (!(halo::game::globals().current_engine == 0 && obj->base.type == _object_type_biped &&
                       obj->unit.controlling_player != k_datum_index_none)) {
                     if (is_local == 1) {
@@ -1098,7 +1093,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
                         *notify_flags |= 0x80;
                     }
                 }
-            } else if ((effect_flags & 0x800) && halo::game::globals().current_engine != 0) {
+            } else if (test_flag(effect_flags, tags::damage_effect_damage_tag_flag::can_cause_multiplayer_headshots) && halo::game::globals().current_engine != 0) {
                 taken = taken + taken;
                 if (taken > *vitality) {
                     *notify_flags |= 0x80;
@@ -1184,11 +1179,11 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             *vitality_flags |= 1;
         }
     }
-    if ((dd->flags & 2) && halo::objects::tag_handle(geometry->localized_damage_effect) != k_datum_index_none) {
+    if (test_flag(dd->flags, damage_data_flag::localized_damage) && halo::objects::tag_handle(geometry->localized_damage_effect) != k_datum_index_none) {
         halo::objects::damage_effect_new_at_location(halo::objects::tag_handle(geometry->localized_damage_effect), (int16_t)node_index, &dd->direction,
             (real_vector3d *)plane, &dd->origin, target_index);
     }
-    if ((dd->flags & 1) && body > geometry->area_damage_effect_threshold &&
+    if (test_flag(dd->flags, damage_data_flag::area_damage) && body > geometry->area_damage_effect_threshold &&
         halo::objects::tag_handle(geometry->area_damage_effect) != k_datum_index_none && effect_block->damage_category != 7) {
         halo::effects::effect_new_on_object(target_index, halo::objects::tag_handle(geometry->area_damage_effect), target_index, -1, 0.0f, 0.0f, 0, 0);
     }
@@ -1210,8 +1205,8 @@ void halo::objects::ObjectDamage::apply_shield_damage(ModelCollisionGeometry *ge
 {
     uint32_t target_index = handle;
     unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(target_index));
-    float *shield = (float *)&obj->base.shield_vitality;
-    uint16_t *vitality_flags = (uint16_t *)&obj->base.vitality_flags;
+    float *shield = &obj->base.shield_vitality;
+    uint16_t *vitality_flags = &obj->base.vitality_flags;
     float passthrough = *remaining_damage;
     float to_shield = *remaining_damage;
     float maximum;
@@ -1464,7 +1459,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         }
     }
     if ((uint8_t)is_local == 1 && (halo::game::globals().current_engine == 0 || halo::game::globals().state == 0)) {
-        if ((dd->flags & 0x80) == 0) {
+        if (!test_flag(dd->flags, damage_data_flag::suppress_death_notification)) {
             if (notify_flags & 1) {
                 halo::game::game_engine_attribute_player_death(target_index, dd->responsible_player, dd->responsible_object,
                     (int32_t)(uint16_t)dd->team_index, 1);

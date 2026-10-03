@@ -13,6 +13,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/items/records.hpp"
 
 static auto &global_structure_collision_bsp = halo::link::ref<uint8_t *>(halo::physics::vars().global_structure_collision_bsp);
 
@@ -29,7 +30,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *item = halo::items::item_data_of(obj);
 
     if ((item->flags & _item_does_not_accelerate_bit) != 0) {
         return;
@@ -194,7 +195,7 @@ void item_ref::compute_rotation()
 {
     uint32_t object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
-    item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
+    item_data *item = halo::items::item_data_of(obj);
     real magnitude = (real)halo::libm::sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
                                  (double)obj->angular_velocity.i * (double)obj->angular_velocity.i);
@@ -237,7 +238,7 @@ uint8_t item_ref::get_effective_position(real_point3d *out_position)
         return 0;
     }
 
-    if ((((item_data *)((uint8_t *)obj + k_item_data_offset))->flags & _item_in_inventory_bit) != 0) {
+    if (((halo::items::item_data_of(obj))->flags & _item_in_inventory_bit) != 0) {
         uint32_t owner_linkage = obj->owner_linkage;
         if (owner_linkage == (uint32_t)k_datum_index_none) {
             return 0;

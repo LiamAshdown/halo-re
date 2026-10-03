@@ -10,6 +10,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/core/bit_cast.hpp"
 
 static auto &config_maximum_resolution = halo::link::ref<int32_t>(halo::shell::vars().config_maximum_resolution);
 static auto &config_linear_texture_addressing = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing);
@@ -110,7 +111,7 @@ uint8_t Config::set_force_shader(const char *value)
 {
     int32_t parsed = (int32_t)(uintptr_t)value;
 
-    if (*(const uint16_t *)value == 0x6132 || *(const uint16_t *)value == 0x4132) {
+    if (value[0] == '2' && (value[1] == 'a' || value[1] == 'A')) {
         config_force_shader = k_force_shader_2_0a;
     } else {
         sscanf(value, "%d", &parsed);
@@ -158,10 +159,10 @@ void Config::reset_system_requirements()
     config_disable_buffering = 0;
 
     bits = k_decal_z_bias_default_bits;
-    config_decal_z_bias = *(float *)&bits;
+    config_decal_z_bias = halo::bit_cast<float>(bits);
     config_decal_slope_z_bias = 0.0f;
     bits = k_transparent_decal_z_bias_default_bits;
-    config_transparent_decal_z_bias = *(float *)&bits;
+    config_transparent_decal_z_bias = halo::bit_cast<float>(bits);
     config_transparent_decal_slope_z_bias = 0.0f;
 }
 

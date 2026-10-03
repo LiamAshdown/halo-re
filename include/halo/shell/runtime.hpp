@@ -1,6 +1,7 @@
 #pragma once
 
 #include "halo/shell/types.hpp"
+#include "halo/shell/layout.hpp"
 
 namespace halo::shell {
 
@@ -13,7 +14,18 @@ public:
 
     char *data() const
     {
-        return self->capacity >= 0x10 ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
+        return self->capacity >= k_msvc_string_heap_capacity ? heap_pointer(*self) : self->buffer.inline_buffer;
+    }
+
+    /** The heap block of a string whose capacity exceeds the inline buffer (the 32-bit pointer the MSVC layout stores). */
+    static char *heap_pointer(const msvc_std_string &string)
+    {
+        return reinterpret_cast<char *>(static_cast<uintptr_t>(string.buffer.heap_buffer));
+    }
+
+    static void set_heap_pointer(msvc_std_string &string, void *block)
+    {
+        string.buffer.heap_buffer = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(block));
     }
 
     void init_empty() const
