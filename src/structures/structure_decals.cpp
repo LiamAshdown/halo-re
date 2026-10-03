@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_decals.cpp
  * Runtime decals attached to structure bsp clusters.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/core/crt.hpp"

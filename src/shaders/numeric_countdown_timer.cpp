@@ -1,7 +1,6 @@
 /**
  * @file src/shaders/numeric_countdown_timer.cpp
  * The millisecond countdown displayed by numeric transparent_chicago shaders.
- * The original author notes and decompiles are in docs/original/shaders/.
  */
 
 #include "halo/shaders/shaders.hpp"

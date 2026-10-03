@@ -20,8 +20,7 @@ namespace c_actor_build_guard_mode_data {
 
 
 /**
- * actor_build_guard_mode_data: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_guard_mode_data.c.txt.
+ * actor_build_guard_mode_data: behaviour unchanged from the original routine.
  *
  * @address 0x404360
  */
@@ -85,8 +84,7 @@ namespace c_actor_build_order_default {
 
 
 /**
- * actor_build_order_default: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_default.c.txt.
+ * actor_build_order_default: behaviour unchanged from the original routine.
  *
  * @address 0x401090
  */
@@ -123,8 +121,7 @@ namespace c_actor_build_order_face_seat_marker {
 
 
 /**
- * actor_build_order_face_seat_marker: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_face_seat_marker.c.txt.
+ * actor_build_order_face_seat_marker: behaviour unchanged from the original routine.
  *
  * @address 0x408110
  */
@@ -168,8 +165,7 @@ namespace c_actor_build_order_face_seat_marker_committed {
 
 
 /**
- * actor_build_order_face_seat_marker_committed: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_face_seat_marker_committed.c.txt.
+ * actor_build_order_face_seat_marker_committed: behaviour unchanged from the original routine.
  *
  * @address 0x407820
  */
@@ -212,8 +208,7 @@ namespace c_actor_build_order_flee {
 
 
 /**
- * actor_build_order_flee: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_flee.c.txt.
+ * actor_build_order_flee: behaviour unchanged from the original routine.
  *
  * @address 0x4077d0
  */
@@ -247,8 +242,7 @@ namespace c_actor_build_order_grenade_or_melee {
 
 
 /**
- * actor_build_order_grenade_or_melee: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_grenade_or_melee.c.txt.
+ * actor_build_order_grenade_or_melee: behaviour unchanged from the original routine.
  *
  * @address 0x403630
  */
@@ -303,8 +297,7 @@ namespace c_actor_build_order_guard {
 
 
 /**
- * actor_build_order_guard: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_guard.c.txt.
+ * actor_build_order_guard: behaviour unchanged from the original routine.
  *
  * @address 0x404510
  */
@@ -350,8 +343,7 @@ namespace c_actor_build_order_investigate_encounter_point {
 
 
 /**
- * actor_build_order_investigate_encounter_point: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_investigate_encounter_point.c.txt.
+ * actor_build_order_investigate_encounter_point: behaviour unchanged from the original routine.
  *
  * @address 0x408a30
  */
@@ -405,8 +397,7 @@ namespace c_actor_build_order_look {
 
 
 /**
- * actor_build_order_look: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_look.c.txt.
+ * actor_build_order_look: behaviour unchanged from the original routine.
  *
  * @address 0x4046c0
  */
@@ -496,8 +487,7 @@ namespace c_actor_build_order_minimal_stop {
 
 
 /**
- * actor_build_order_minimal_stop: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_minimal_stop.c.txt.
+ * actor_build_order_minimal_stop: behaviour unchanged from the original routine.
  *
  * @address 0x4078f0
  */
@@ -531,8 +521,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_build_order_random_wait: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_random_wait.c.txt.
+ * actor_build_order_random_wait: behaviour unchanged from the original routine.
  *
  * @address 0x409a90
  */
@@ -571,8 +560,7 @@ namespace c_actor_build_order_return_to_anchor {
 
 
 /**
- * actor_build_order_return_to_anchor: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_return_to_anchor.c.txt.
+ * actor_build_order_return_to_anchor: behaviour unchanged from the original routine.
  *
  * @address 0x4044b0
  */
@@ -606,8 +594,7 @@ namespace c_actor_build_order_search_object {
 
 
 /**
- * actor_build_order_search_object: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_search_object.c.txt.
+ * actor_build_order_search_object: behaviour unchanged from the original routine.
  *
  * @address 0x408920
  */
@@ -663,8 +650,7 @@ namespace c_actor_build_order_search_wait {
 
 
 /**
- * actor_build_order_search_wait: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_search_wait.c.txt.
+ * actor_build_order_search_wait: behaviour unchanged from the original routine.
  *
  * @address 0x4045a0
  */
@@ -730,8 +716,7 @@ namespace c_actor_build_order_wait_byte {
 
 
 /**
- * actor_build_order_wait_byte: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_order_wait_byte.c.txt.
+ * actor_build_order_wait_byte: behaviour unchanged from the original routine.
  *
  * @address 0x4080c0
  */
@@ -764,8 +749,7 @@ namespace c_actor_build_path_find_request {
 
 
 /**
- * actor_build_path_find_request: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_build_path_find_request.c.txt.
+ * actor_build_path_find_request: behaviour unchanged from the original routine.
  *
  * @address 0x41a9c0
  */

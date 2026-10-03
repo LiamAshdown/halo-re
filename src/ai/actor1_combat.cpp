@@ -24,8 +24,7 @@ namespace c_actor_check_burst_length_exceeded {
 
 
 /**
- * actor_check_burst_length_exceeded: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_burst_length_exceeded.c.txt.
+ * actor_check_burst_length_exceeded: behaviour unchanged from the original routine.
  *
  * @address 0x4281b0
  */
@@ -54,8 +53,7 @@ namespace c_actor_check_melee_target_reachable {
 
 
 /**
- * actor_check_melee_target_reachable: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_melee_target_reachable.c.txt.
+ * actor_check_melee_target_reachable: behaviour unchanged from the original routine.
  *
  * @address 0x403f00
  */
@@ -153,8 +151,7 @@ namespace c_actor_check_vehicle_target_available {
 
 
 /**
- * actor_check_vehicle_target_available: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_vehicle_target_available.c.txt.
+ * actor_check_vehicle_target_available: behaviour unchanged from the original routine.
  *
  * @address 0x42b810
  */
@@ -196,8 +193,7 @@ namespace c_actor_check_weapon_pickup_reachable {
 
 
 /**
- * actor_check_weapon_pickup_reachable: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_weapon_pickup_reachable.c.txt.
+ * actor_check_weapon_pickup_reachable: behaviour unchanged from the original routine.
  *
  * @address 0x4041d0
  */
@@ -250,8 +246,7 @@ namespace c_actor_choose_best_target {
 
 
 /**
- * actor_choose_best_target: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_choose_best_target.c.txt.
+ * actor_choose_best_target: behaviour unchanged from the original routine.
  *
  * @address 0x4203a0
  */
@@ -480,8 +475,7 @@ namespace c_actor_choose_random_point_near {
 
 
 /**
- * actor_choose_random_point_near: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_choose_random_point_near.c.txt.
+ * actor_choose_random_point_near: behaviour unchanged from the original routine.
  *
  * @address 0x40faf0
  */
@@ -549,8 +543,7 @@ static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]
 
 
 /**
- * actor_clear_target_state: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_clear_target_state.c.txt.
+ * actor_clear_target_state: behaviour unchanged from the original routine.
  *
  * @address 0x4286c0
  */
@@ -604,8 +597,7 @@ namespace c_actor_compute_accuracy_scale {
 
 
 /**
- * actor_compute_accuracy_scale: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_compute_accuracy_scale.c.txt.
+ * actor_compute_accuracy_scale: behaviour unchanged from the original routine.
  *
  * @address 0x429620
  */
@@ -645,8 +637,7 @@ namespace c_actor_compute_target_priority_weight {
 
 
 /**
- * actor_compute_target_priority_weight: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_compute_target_priority_weight.c.txt.
+ * actor_compute_target_priority_weight: behaviour unchanged from the original routine.
  *
  * @address 0x414590
  */
@@ -731,8 +722,7 @@ namespace c_actor_consider_target_candidate {
 
 
 /**
- * actor_consider_target_candidate: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_consider_target_candidate.c.txt.
+ * actor_consider_target_candidate: behaviour unchanged from the original routine.
  *
  * @address 0x4208a0
  */
@@ -782,8 +772,7 @@ namespace c_actor_evaluate_custom_charge_trigger {
 
 
 /**
- * actor_evaluate_custom_charge_trigger: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_evaluate_custom_charge_trigger.c.txt.
+ * actor_evaluate_custom_charge_trigger: behaviour unchanged from the original routine.
  *
  * @address 0x424090
  */
@@ -1005,8 +994,7 @@ static float fabs_f(float x) { return (float)halo::libm::fabs((double)x); }
 
 
 /**
- * actor_evaluate_flank_offset: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_evaluate_flank_offset.c.txt.
+ * actor_evaluate_flank_offset: behaviour unchanged from the original routine.
  *
  * @address 0x420b10
  */
@@ -1076,8 +1064,7 @@ namespace c_actor_forward_target_object_reference {
 
 
 /**
- * actor_forward_target_object_reference: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_forward_target_object_reference.c.txt.
+ * actor_forward_target_object_reference: behaviour unchanged from the original routine.
  *
  * @address 0x428420
  */
@@ -1106,8 +1093,7 @@ namespace c_actor_get_aim_from_position {
 
 
 /**
- * actor_get_aim_from_position: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_aim_from_position.c.txt.
+ * actor_get_aim_from_position: behaviour unchanged from the original routine.
  *
  * @address 0x40f9b0
  */
@@ -1156,8 +1142,7 @@ namespace c_actor_get_consideration_wait_threshold {
 
 
 /**
- * actor_get_consideration_wait_threshold: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_consideration_wait_threshold.c.txt.
+ * actor_get_consideration_wait_threshold: behaviour unchanged from the original routine.
  *
  * @address 0x4028e0
  */
@@ -1202,8 +1187,7 @@ namespace c_actor_get_relevant_squad_member_target {
 
 
 /**
- * actor_get_relevant_squad_member_target: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_relevant_squad_member_target.c.txt.
+ * actor_get_relevant_squad_member_target: behaviour unchanged from the original routine.
  *
  * @address 0x41f550
  */
@@ -1300,8 +1284,7 @@ namespace c_actor_get_squad_recent_attacker_target {
 
 
 /**
- * actor_get_squad_recent_attacker_target: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_squad_recent_attacker_target.c.txt.
+ * actor_get_squad_recent_attacker_target: behaviour unchanged from the original routine.
  *
  * @address 0x41f6b0
  */
@@ -1374,8 +1357,7 @@ namespace c_actor_get_target_state_flags {
 
 
 /**
- * actor_get_target_state_flags: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_target_state_flags.c.txt.
+ * actor_get_target_state_flags: behaviour unchanged from the original routine.
  *
  * @address 0x40cc70
  */
@@ -1449,8 +1431,7 @@ namespace c_actor_get_threat_weapon_definition {
 
 
 /**
- * actor_get_threat_weapon_definition: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_threat_weapon_definition.c.txt.
+ * actor_get_threat_weapon_definition: behaviour unchanged from the original routine.
  *
  * @address 0x40f970
  */
@@ -1481,8 +1462,7 @@ namespace c_actor_is_burst_pending {
 
 
 /**
- * actor_is_burst_pending: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_is_burst_pending.c.txt.
+ * actor_is_burst_pending: behaviour unchanged from the original routine.
  *
  * @address 0x428180
  */
@@ -1506,8 +1486,7 @@ namespace c_actor_is_target_within_engagement_range {
 
 
 /**
- * actor_is_target_within_engagement_range: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_is_target_within_engagement_range.c.txt.
+ * actor_is_target_within_engagement_range: behaviour unchanged from the original routine.
  *
  * @address 0x403dc0
  */

@@ -1,7 +1,6 @@
 /**
  * @file src/sound/eax_backends.cpp
  * EAX 1, 2 and 3 effect backends.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/sound/directsound.hpp"

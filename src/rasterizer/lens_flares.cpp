@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/lens_flares.cpp
  * Lens flare instances, occlusion sampling and the flare sprite batcher.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include <cstddef>
@@ -119,8 +118,7 @@ static float dot3(const real_vector3d *a, const real_vector3d *b)
 }
 
 /**
- * Direct3D 9 back end function lens_flare_compute_rotation. The original author notes are in
- * docs/original/rasterizer/lens_flare_compute_rotation.c.txt.
+ * Direct3D 9 back end function lens_flare_compute_rotation.
  *
  * @address 0x513540
  */
@@ -208,8 +206,7 @@ static float lens_flare_clamp01(float x)
 }
 
 /**
- * Direct3D 9 back end function lens_flare_render_all. The original author notes are in
- * docs/original/rasterizer/lens_flare_render_all.c.txt.
+ * Direct3D 9 back end function lens_flare_render_all.
  *
  * @address 0x513cf0
  */
@@ -925,8 +922,7 @@ static void set_vertex(rasterizer_screen_vertex *vertex, int16_t x, int16_t y, f
 }
 
 /**
- * Direct3D 9 back end function rasterizer_lens_flare_occlusion_test_issue. The original author notes are in
- * docs/original/rasterizer/rasterizer_lens_flare_occlusion_test_issue.c.txt.
+ * Direct3D 9 back end function rasterizer_lens_flare_occlusion_test_issue.
  *
  * @address 0x537800
  */
@@ -1115,8 +1111,7 @@ void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const 
 }
 
 /**
- * Direct3D 9 back end function structure_cluster_add_lens_flares. The original author notes are in
- * docs/original/rasterizer/structure_cluster_add_lens_flares.c.txt.
+ * Direct3D 9 back end function structure_cluster_add_lens_flares.
  *
  * Registers: CX -> cluster_index
  *

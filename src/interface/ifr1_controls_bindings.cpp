@@ -97,8 +97,7 @@ static void controls_spinner_set_from_byte(widget_instance *spinner, uint8_t val
 namespace halo::interface {
 
 /**
- * Original engine function controls_action_column_is_bindable; the author notes are in
- * docs/original/interface/controls_action_column_is_bindable.txt.
+ *
  * blam-cc: ECX -> slot, EDX -> action_index
  *
  * @address 0x4b4df0
@@ -115,8 +114,7 @@ uint8_t ControlsBindings::action_column_is_bindable(int32_t slot, int32_t action
 }
 
 /**
- * Original engine function controls_action_display_name; the author notes are in
- * docs/original/interface/controls_action_display_name.txt.
+ *
  * blam-cc: device -> EAX, action_name -> EDI
  *
  * @address 0x4b44c0
@@ -136,8 +134,6 @@ uint16_t * ControlsBindings::action_display_name(int32_t device, const char *act
 }
 
 /**
- * Original engine function controls_apply_preset; the author notes are in
- * docs/original/interface/controls_apply_preset.txt.
  *
  * @address 0x4b4c50
  */
@@ -183,8 +179,7 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
 }
 
 /**
- * Original engine function controls_binding_clear; the author notes are in
- * docs/original/interface/controls_binding_clear.txt.
+ *
  * blam-cc: action_index -> EAX
  *
  * @address 0x4b4e20
@@ -229,8 +224,7 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
 }
 
 /**
- * Original engine function controls_binding_list_refresh_rows; the author notes are in
- * docs/original/interface/controls_binding_list_refresh_rows.txt.
+ *
  * blam-cc: widget -> EAX
  *
  * @address 0x4b4790
@@ -263,8 +257,6 @@ int32_t ControlsBindings::binding_list_refresh_rows(widget_instance *widget, int
 }
 
 /**
- * Original engine function controls_binding_row_handle_input; the author notes are in
- * docs/original/interface/controls_binding_row_handle_input.txt.
  *
  * @address 0x4b4f30
  */
@@ -408,8 +400,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
 }
 
 /**
- * Original engine function controls_binding_row_widget_update; the author notes are in
- * docs/original/interface/controls_binding_row_widget_update.txt.
+ *
  * blam-cc: action_index -> EAX
  *
  * @address 0x4b4520
@@ -469,8 +460,7 @@ void ControlsBindings::binding_row_widget_update(int32_t action_index, widget_in
 }
 
 /**
- * Original engine function controls_binding_rows_toggle_device_mode; the author notes are in
- * docs/original/interface/controls_binding_rows_toggle_device_mode.txt.
+ *
  * blam-cc: widget -> ESI
  *
  * @address 0x4b53a0
@@ -547,8 +537,6 @@ void ControlsBindings::build_device_label_table(void)
 }
 
 /**
- * Original engine function controls_device_label_add; the author notes are in
- * docs/original/interface/controls_device_label_add.txt.
  *
  * @address 0x4b4830
  */
@@ -567,8 +555,7 @@ void ControlsBindings::device_label_add(const uint16_t *name, int32_t device_typ
 }
 
 /**
- * Original engine function controls_enumerate_next_assignable_action; the author notes are in
- * docs/original/interface/controls_enumerate_next_assignable_action.txt.
+ *
  * blam-cc: device -> EAX, record -> ECX, action_name -> EDI
  *
  * @address 0x4b43e0

@@ -1,7 +1,6 @@
 /**
  * @file src/models/model_render.cpp
  * Model view operations: bind pose and part rendering, and the top-level model render call.
- * The original author notes and decompiles are in docs/original/models/.
  */
 
 #include "halo/models/models.hpp"

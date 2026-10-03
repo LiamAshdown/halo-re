@@ -32,8 +32,7 @@ static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t sourc
 
 
 /**
- * actor_alert_from_damage: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_alert_from_damage.c.txt.
+ * actor_alert_from_damage: behaviour unchanged from the original routine.
  *
  * @address 0x40a500
  */
@@ -93,8 +92,7 @@ static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t sourc
 
 
 /**
- * actor_alert_from_disturbance: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_alert_from_disturbance.c.txt.
+ * actor_alert_from_disturbance: behaviour unchanged from the original routine.
  *
  * @address 0x40a3d0
  */
@@ -125,8 +123,7 @@ namespace c_actor_alert_from_flag_1b4 {
 
 
 /**
- * actor_alert_from_flag_1b4: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_alert_from_flag_1b4.c.txt.
+ * actor_alert_from_flag_1b4: behaviour unchanged from the original routine.
  *
  * @address 0x40a6b0
  */
@@ -170,8 +167,7 @@ static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t sourc
 
 
 /**
- * actor_alert_from_projectile: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_alert_from_projectile.c.txt.
+ * actor_alert_from_projectile: behaviour unchanged from the original routine.
  *
  * @address 0x40a5e0
  */
@@ -234,8 +230,7 @@ static void actor_raise_alert(struct actor *actor, int16_t level, uint32_t sourc
 
 
 /**
- * actor_alert_from_squad_attack: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_alert_from_squad_attack.c.txt.
+ * actor_alert_from_squad_attack: behaviour unchanged from the original routine.
  *
  * @address 0x40a460
  */
@@ -276,8 +271,7 @@ namespace c_actor_check_pain_reaction {
 
 
 /**
- * actor_check_pain_reaction: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_pain_reaction.c.txt.
+ * actor_check_pain_reaction: behaviour unchanged from the original routine.
  *
  * @address 0x40de20
  */
@@ -306,8 +300,7 @@ namespace c_actor_combat_status_should_hold {
 
 
 /**
- * actor_combat_status_should_hold: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_combat_status_should_hold.c.txt.
+ * actor_combat_status_should_hold: behaviour unchanged from the original routine.
  *
  * @address 0x40d520
  */
@@ -341,8 +334,7 @@ namespace c_actor_conditional_state_transition_check {
 
 
 /**
- * actor_conditional_state_transition_check: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_conditional_state_transition_check.c.txt.
+ * actor_conditional_state_transition_check: behaviour unchanged from the original routine.
  *
  * @address 0x40d7a0
  */
@@ -390,8 +382,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_consider_combat_mode: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_consider_combat_mode.c.txt.
+ * actor_consider_combat_mode: behaviour unchanged from the original routine.
  *
  * @address 0x401a60
  */
@@ -502,8 +493,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_escalate_apply: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_escalate_apply.c.txt.
+ * actor_escalate_apply: behaviour unchanged from the original routine.
  *
  * @address 0x40aa70
  */
@@ -539,8 +529,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_escalate_check_leader_flag: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_escalate_check_leader_flag.c.txt.
+ * actor_escalate_check_leader_flag: behaviour unchanged from the original routine.
  *
  * @address 0x40a7f0
  */
@@ -575,8 +564,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_escalate_check_shield_damage: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_escalate_check_shield_damage.c.txt.
+ * actor_escalate_check_shield_damage: behaviour unchanged from the original routine.
  *
  * @address 0x40a9e0
  */
@@ -613,8 +601,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_escalate_check_target_close: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_escalate_check_target_close.c.txt.
+ * actor_escalate_check_target_close: behaviour unchanged from the original routine.
  *
  * @address 0x40a950
  */
@@ -653,8 +640,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_escalate_check_weapon_range: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_escalate_check_weapon_range.c.txt.
+ * actor_escalate_check_weapon_range: behaviour unchanged from the original routine.
  *
  * @address 0x40a860
  */
@@ -696,8 +682,7 @@ namespace c_actor_escalate_to_guard_or_combat {
 
 
 /**
- * actor_escalate_to_guard_or_combat: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_escalate_to_guard_or_combat.c.txt.
+ * actor_escalate_to_guard_or_combat: behaviour unchanged from the original routine.
  *
  * @address 0x40aaf0
  */
@@ -737,8 +722,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_evaluate_combat_state_transition: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_evaluate_combat_state_transition.c.txt.
+ * actor_evaluate_combat_state_transition: behaviour unchanged from the original routine.
  *
  * @address 0x40c620
  */
@@ -954,8 +938,7 @@ namespace c_actor_is_within_alert_range {
 
 
 /**
- * actor_is_within_alert_range: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_is_within_alert_range.c.txt.
+ * actor_is_within_alert_range: behaviour unchanged from the original routine.
  *
  * @address 0x408f30
  */

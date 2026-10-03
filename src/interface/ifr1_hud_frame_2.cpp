@@ -49,8 +49,7 @@ static const int16_t *weapon_hud_messaging(const object *weapon_object)
 namespace halo::interface {
 
 /**
- * Original engine function hud_update_interaction_prompt; the author notes are in
- * docs/original/interface/hud_update_interaction_prompt.txt.
+ *
  * blam-cc: player_index -> EDX
  *
  * @address 0x4a9b80

@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_draw.cpp
  * Drawing structure bsp surfaces: leaf face lists, picked polygon and debug draws.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/structures/structures.hpp"

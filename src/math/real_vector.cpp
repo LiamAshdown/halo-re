@@ -1,7 +1,6 @@
 /**
  * @file src/math/real_vector.cpp
  * Real vectors and points: length, normalize, cross/dot products, projections, angles.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

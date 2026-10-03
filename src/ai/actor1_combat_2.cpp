@@ -22,8 +22,7 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 
 
 /**
- * actor_evaluate_engagement_reachability: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_evaluate_engagement_reachability.c.txt.
+ * actor_evaluate_engagement_reachability: behaviour unchanged from the original routine.
  *
  * @address 0x42b270
  */
@@ -142,8 +141,7 @@ namespace c_actor_get_threat_weapon_object_index {
 
 
 /**
- * actor_get_threat_weapon_object_index: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_threat_weapon_object_index.c.txt.
+ * actor_get_threat_weapon_object_index: behaviour unchanged from the original routine.
  *
  * @address 0x4282c0
  */
@@ -190,8 +188,7 @@ namespace c_actor_has_unshielded_threat_weapon {
 
 
 /**
- * actor_has_unshielded_threat_weapon: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_has_unshielded_threat_weapon.c.txt.
+ * actor_has_unshielded_threat_weapon: behaviour unchanged from the original routine.
  *
  * @address 0x428370
  */
@@ -223,8 +220,7 @@ namespace c_actor_issue_multi_target_vocalization {
 
 
 /**
- * actor_issue_multi_target_vocalization: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_issue_multi_target_vocalization.c.txt.
+ * actor_issue_multi_target_vocalization: behaviour unchanged from the original routine.
  *
  * @address 0x4303a0
  */

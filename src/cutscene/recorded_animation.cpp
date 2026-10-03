@@ -19,8 +19,6 @@ static auto &recorded_animation_codecs_by_version = halo::link::ref<recorded_ani
 namespace halo::cutscene {
 
 /**
- * Original function recorded_animation_start; the author notes are in
- * docs/original/cutscene/recorded_animation_start.c.txt.
  *
  * Register convention in the original: unit_index in EAX (in_EAX), scenario
  * recorded_animations index in CX (in_CX, 16-bit); one plain stack argument, extra_flags (a
@@ -96,8 +94,6 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
 }
 
 /**
- * Original function recorded_animation_object_is_playing; the author notes are in
- * docs/original/cutscene/recorded_animation_object_is_playing.c.txt.
  *
  * Register convention in the original: ESI = unit_index (unaff_ESI), never modified by this
  * function.
@@ -131,8 +127,6 @@ uint8_t RecordedAnimationPlayer::is_playing()
 }
 
 /**
- * Original function recorded_animation_find_by_object; the author notes are in
- * docs/original/cutscene/recorded_animation_find_by_object.c.txt.
  *
  * Register convention in the original: `objdump -d -M intel --start-address=0x44ad20 --stop-
  * address=0x44ad80 bin/halo.exe`: EBX = unit_index to search for (unaff_EBX); one plain stack
@@ -167,8 +161,6 @@ recorded_animation * RecordedAnimationPlayer::find_by_object(datum_index *out_in
 }
 
 /**
- * Original function recorded_animation_find_by_name; the author notes are in
- * docs/original/cutscene/recorded_animation_find_by_name.c.txt.
  *
  * Register convention in the original: EBX = name (in_EBX), ESI = scenario (in_ESI); blam-cc:
  * (EBX, ESI) ->.

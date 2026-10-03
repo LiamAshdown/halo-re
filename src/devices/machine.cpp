@@ -31,8 +31,6 @@ static uint8_t *object_definition(uint8_t *object)
 namespace halo::devices {
 
 /**
- * Original function machine_create; the author notes are in
- * docs/original/devices/machine_create.c.txt.
  *
  * @address 0x44b020
  */
@@ -71,8 +69,6 @@ void MachineHandle::place(uint8_t *placement)
 }
 
 /**
- * Original function device_machine_melee_attacked; the author notes are in
- * docs/original/devices/device_machine_melee_attacked.c.txt.
  *
  * Register convention in the original: object index in ECX (in_ECX).
  *
@@ -93,8 +89,6 @@ void MachineHandle::melee_attacked()
 }
 
 /**
- * Original function device_machine_update; the author notes are in
- * docs/original/devices/device_machine_update.c.txt.
  *
  * Register convention in the original: object index is already a plain, genuinely-stack
  * parameter in Ghidra's own output (`device_machine_update(uint param_1)`); no unresolved

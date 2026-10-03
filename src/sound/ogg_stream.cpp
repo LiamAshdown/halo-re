@@ -1,7 +1,6 @@
 /**
  * @file src/sound/ogg_stream.cpp
  * Ogg Vorbis memory streams and PCM feed from the sound cache.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "internal/state.hpp"

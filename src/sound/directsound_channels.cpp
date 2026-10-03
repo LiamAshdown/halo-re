@@ -1,7 +1,6 @@
 /**
  * @file src/sound/directsound_channels.cpp
  * DirectSound hardware channel streaming, parameters and spatialization.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/sound/directsound.hpp"

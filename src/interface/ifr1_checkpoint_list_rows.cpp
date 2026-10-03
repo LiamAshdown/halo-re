@@ -32,8 +32,6 @@ static void widen(uint16_t *out, const char *in)
 namespace halo::interface {
 
 /**
- * Original engine function checkpoint_list_add_row; the author notes are in
- * docs/original/interface/checkpoint_list_add_row.txt.
  *
  * @address 0x4a4280
  */

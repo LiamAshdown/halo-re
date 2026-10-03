@@ -1,7 +1,6 @@
 /**
  * @file src/sound/sound_instances.cpp
  * Playing sound instances: starting, stopping, fading and per-update gain.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/core/lcg.hpp"

@@ -29,8 +29,7 @@ static uint32_t actor_death_random_16(void)
 
 
 /**
- * actor_attempt_grenade_throw: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_attempt_grenade_throw.c.txt.
+ * actor_attempt_grenade_throw: behaviour unchanged from the original routine.
  *
  * @address 0x428ab0
  */
@@ -132,8 +131,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_can_throw_grenade_at_target: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_can_throw_grenade_at_target.c.txt.
+ * actor_can_throw_grenade_at_target: behaviour unchanged from the original routine.
  *
  * @address 0x40d9c0
  */
@@ -199,8 +197,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_check_grenade_facing_and_commit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_grenade_facing_and_commit.c.txt.
+ * actor_check_grenade_facing_and_commit: behaviour unchanged from the original routine.
  *
  * @address 0x40db00
  */
@@ -269,8 +266,7 @@ namespace c_actor_commit_grenade_toss {
 
 
 /**
- * actor_commit_grenade_toss: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_commit_grenade_toss.c.txt.
+ * actor_commit_grenade_toss: behaviour unchanged from the original routine.
  *
  * @address 0x411180
  */
@@ -317,8 +313,7 @@ namespace c_actor_compute_grenade_aim_direction {
 
 
 /**
- * actor_compute_grenade_aim_direction: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_compute_grenade_aim_direction.c.txt.
+ * actor_compute_grenade_aim_direction: behaviour unchanged from the original routine.
  *
  * @address 0x40f7e0
  */
@@ -387,8 +382,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_consider_grenade_throw: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_consider_grenade_throw.c.txt.
+ * actor_consider_grenade_throw: behaviour unchanged from the original routine.
  *
  * @address 0x40dc30
  */
@@ -446,8 +440,7 @@ namespace c_actor_evaluate_grenade_target_position {
 
 
 /**
- * actor_evaluate_grenade_target_position: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_evaluate_grenade_target_position.c.txt.
+ * actor_evaluate_grenade_target_position: behaviour unchanged from the original routine.
  *
  * @address 0x40de70
  */
@@ -525,8 +518,7 @@ namespace c_actor_find_grenade_landing_spot {
 
 
 /**
- * actor_find_grenade_landing_spot: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_grenade_landing_spot.c.txt.
+ * actor_find_grenade_landing_spot: behaviour unchanged from the original routine.
  *
  * @address 0x410c90
  */
@@ -579,8 +571,7 @@ namespace c_actor_find_nearest_grenade_ally {
 
 
 /**
- * actor_find_nearest_grenade_ally: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_nearest_grenade_ally.c.txt.
+ * actor_find_nearest_grenade_ally: behaviour unchanged from the original routine.
  *
  * @address 0x40e540
  */
@@ -672,8 +663,7 @@ namespace c_actor_gather_nearby_grenade_targets {
 
 
 /**
- * actor_gather_nearby_grenade_targets: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_gather_nearby_grenade_targets.c.txt.
+ * actor_gather_nearby_grenade_targets: behaviour unchanged from the original routine.
  *
  * @address 0x42afc0
  */
@@ -752,8 +742,7 @@ static auto &global_globals = halo::link::ref<::Globals *>(halo::game::vars().gl
 
 
 /**
- * actor_get_grenade_launch_velocity: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_grenade_launch_velocity.c.txt.
+ * actor_get_grenade_launch_velocity: behaviour unchanged from the original routine.
  *
  * @address 0x410980
  */
@@ -817,8 +806,7 @@ namespace c_actor_grenade_avoidance_entry_init {
 
 
 /**
- * actor_grenade_avoidance_entry_init: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_grenade_avoidance_entry_init.c.txt.
+ * actor_grenade_avoidance_entry_init: behaviour unchanged from the original routine.
  *
  * @address 0x42af50
  */
@@ -850,8 +838,7 @@ namespace c_actor_grenade_behavior_kind_allowed {
 
 
 /**
- * actor_grenade_behavior_kind_allowed: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_grenade_behavior_kind_allowed.c.txt.
+ * actor_grenade_behavior_kind_allowed: behaviour unchanged from the original routine.
  *
  * @address 0x40f670
  */
@@ -886,8 +873,7 @@ namespace c_actor_grenade_parabolic_path_clear {
 
 
 /**
- * actor_grenade_parabolic_path_clear: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_grenade_parabolic_path_clear.c.txt.
+ * actor_grenade_parabolic_path_clear: behaviour unchanged from the original routine.
  *
  * @address 0x42b5d0
  */
@@ -965,8 +951,7 @@ namespace c_actor_grenade_trace_from_source {
 
 
 /**
- * actor_grenade_trace_from_source: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_grenade_trace_from_source.c.txt.
+ * actor_grenade_trace_from_source: behaviour unchanged from the original routine.
  *
  * @address 0x4029e0
  */
@@ -1009,8 +994,7 @@ namespace c_actor_grenade_trajectory_blocked {
 
 
 /**
- * actor_grenade_trajectory_blocked: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_grenade_trajectory_blocked.c.txt.
+ * actor_grenade_trajectory_blocked: behaviour unchanged from the original routine.
  *
  * @address 0x42b190
  */

@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/direct3d_native.cpp
  * Functions that need the real Direct3D 9 and D3DX headers.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"

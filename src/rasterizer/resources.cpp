@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/resources.cpp
  * Vertex/index buffers, vertex declarations, shaders, effects and render targets.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -487,8 +486,7 @@ namespace rasterizer_index_buffer_create_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_index_buffer_create. The original author notes are in
- * docs/original/rasterizer/rasterizer_index_buffer_create.c.txt.
+ * Direct3D 9 back end function rasterizer_index_buffer_create.
  *
  * @address 0x525030
  */
@@ -706,8 +704,7 @@ static void rasterizer_set_screen_quad_vertex(int32_t index, float x, float y, f
 }
 
 /**
- * Direct3D 9 back end function rasterizer_render_target_capture_frame. The original author notes are in
- * docs/original/rasterizer/rasterizer_render_target_capture_frame.c.txt.
+ * Direct3D 9 back end function rasterizer_render_target_capture_frame.
  *
  * @address 0x519b00
  */
@@ -864,8 +861,7 @@ namespace rasterizer_render_target_initialize_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_render_target_initialize. The original author notes are in
- * docs/original/rasterizer/rasterizer_render_target_initialize.c.txt.
+ * Direct3D 9 back end function rasterizer_render_target_initialize.
  *
  * @address 0x52ca20
  */

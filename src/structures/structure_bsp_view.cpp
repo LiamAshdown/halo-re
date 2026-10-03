@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_bsp_view.cpp
  * Operations on a ScenarioStructureBSP tag: visibility expansion, portal tests, surface lookup.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/core/crt.hpp"

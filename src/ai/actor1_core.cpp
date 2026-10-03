@@ -20,8 +20,7 @@ namespace c_actor_action_has_queued_secondary {
 
 
 /**
- * actor_action_has_queued_secondary: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_action_has_queued_secondary.c.txt.
+ * actor_action_has_queued_secondary: behaviour unchanged from the original routine.
  *
  * @address 0x417b70
  */
@@ -52,8 +51,7 @@ namespace c_actor_apply_perception_scale {
 
 
 /**
- * actor_apply_perception_scale: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_apply_perception_scale.c.txt.
+ * actor_apply_perception_scale: behaviour unchanged from the original routine.
  *
  * @address 0x42aa90
  */
@@ -96,8 +94,7 @@ namespace c_actor_attach_to_unit {
 
 
 /**
- * actor_attach_to_unit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_attach_to_unit.c.txt.
+ * actor_attach_to_unit: behaviour unchanged from the original routine.
  *
  * @address 0x427560
  */
@@ -173,8 +170,7 @@ static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(ha
 
 
 /**
- * actor_classify_communication_object_type: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_classify_communication_object_type.c.txt.
+ * actor_classify_communication_object_type: behaviour unchanged from the original routine.
  *
  * @address 0x42f9a0
  */
@@ -211,8 +207,7 @@ namespace c_actor_command_list_permits_escalation {
 
 
 /**
- * actor_command_list_permits_escalation: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_command_list_permits_escalation.c.txt.
+ * actor_command_list_permits_escalation: behaviour unchanged from the original routine.
  *
  * @address 0x40d580
  */
@@ -256,8 +251,7 @@ namespace c_actor_command_list_reset_record {
 
 
 /**
- * actor_command_list_reset_record: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_command_list_reset_record.c.txt.
+ * actor_command_list_reset_record: behaviour unchanged from the original routine.
  *
  * @address 0x406dd0
  */
@@ -294,8 +288,7 @@ namespace c_actor_delete {
 
 
 /**
- * actor_delete: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_delete.c.txt.
+ * actor_delete: behaviour unchanged from the original routine.
  *
  * @address 0x427e60
  */
@@ -352,8 +345,7 @@ namespace c_actor_delete_or_release_unit {
 
 
 /**
- * actor_delete_or_release_unit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_delete_or_release_unit.c.txt.
+ * actor_delete_or_release_unit: behaviour unchanged from the original routine.
  *
  * @address 0x4288e0
  */
@@ -410,8 +402,7 @@ namespace c_actor_dispatch_perception_reset {
 
 
 /**
- * actor_dispatch_perception_reset: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_dispatch_perception_reset.c.txt.
+ * actor_dispatch_perception_reset: behaviour unchanged from the original routine.
  *
  * @address 0x429000
  */
@@ -449,8 +440,7 @@ namespace c_actor_dispatch_squad_order {
 
 
 /**
- * actor_dispatch_squad_order: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_dispatch_squad_order.c.txt.
+ * actor_dispatch_squad_order: behaviour unchanged from the original routine.
  *
  * @address 0x42a540
  */
@@ -492,8 +482,7 @@ static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(ha
 
 
 /**
- * actor_dispatch_type_vtable_0x10: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_dispatch_type_vtable_0x10.c.txt.
+ * actor_dispatch_type_vtable_0x10: behaviour unchanged from the original routine.
  *
  * @address 0x426670
  */
@@ -522,8 +511,7 @@ static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(ha
 
 
 /**
- * actor_dispatch_type_vtable_0x18: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_dispatch_type_vtable_0x18.c.txt.
+ * actor_dispatch_type_vtable_0x18: behaviour unchanged from the original routine.
  *
  * @address 0x4266a0
  */
@@ -550,8 +538,7 @@ static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(ha
 
 
 /**
- * actor_dispatch_type_vtable_0x1c: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_dispatch_type_vtable_0x1c.c.txt.
+ * actor_dispatch_type_vtable_0x1c: behaviour unchanged from the original routine.
  *
  * @address 0x4266d0
  */
@@ -579,8 +566,7 @@ namespace c_actor_get_actor_definition {
 
 
 /**
- * actor_get_actor_definition: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_actor_definition.c.txt.
+ * actor_get_actor_definition: behaviour unchanged from the original routine.
  *
  * @address 0x40fa70
  */
@@ -622,8 +608,7 @@ namespace c_actor_get_body_axis_vector {
 
 
 /**
- * actor_get_body_axis_vector: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_body_axis_vector.c.txt.
+ * actor_get_body_axis_vector: behaviour unchanged from the original routine.
  *
  * @address 0x405390
  */
@@ -691,8 +676,7 @@ static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]
 
 
 /**
- * actor_get_current_mode_combat_grade: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_current_mode_combat_grade.c.txt.
+ * actor_get_current_mode_combat_grade: behaviour unchanged from the original routine.
  *
  * @address 0x40e760
  */
@@ -716,8 +700,7 @@ namespace c_actor_get_ranged_attack_vector {
 
 
 /**
- * actor_get_ranged_attack_vector: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_ranged_attack_vector.c.txt.
+ * actor_get_ranged_attack_vector: behaviour unchanged from the original routine.
  *
  * @address 0x420970
  */
@@ -790,8 +773,7 @@ namespace c_actor_handle_death {
 
 
 /**
- * actor_handle_death: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_handle_death.c.txt.
+ * actor_handle_death: behaviour unchanged from the original routine.
  *
  * @address 0x40dd50
  */
@@ -845,8 +827,7 @@ static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]
 
 
 /**
- * actor_invoke_type_handler: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_invoke_type_handler.c.txt.
+ * actor_invoke_type_handler: behaviour unchanged from the original routine.
  *
  * @address 0x409e70
  */
@@ -874,8 +855,7 @@ namespace c_actor_iterator_new {
 
 
 /**
- * actor_iterator_new: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_iterator_new.c.txt.
+ * actor_iterator_new: behaviour unchanged from the original routine.
  *
  * @address 0x436a30
  */
@@ -906,8 +886,7 @@ namespace c_actor_iterator_next {
 
 
 /**
- * actor_iterator_next: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_iterator_next.c.txt.
+ * actor_iterator_next: behaviour unchanged from the original routine.
  *
  * @address 0x436a70
  */
@@ -962,8 +941,7 @@ namespace c_actor_link_to_unit_cluster {
 
 
 /**
- * actor_link_to_unit_cluster: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_link_to_unit_cluster.c.txt.
+ * actor_link_to_unit_cluster: behaviour unchanged from the original routine.
  *
  * @address 0x4279f0
  */
@@ -1050,8 +1028,7 @@ namespace c_actor_mark_units_and_release {
 
 
 /**
- * actor_mark_units_and_release: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mark_units_and_release.c.txt.
+ * actor_mark_units_and_release: behaviour unchanged from the original routine.
  *
  * @address 0x4289c0
  */

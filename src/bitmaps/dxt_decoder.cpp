@@ -1,7 +1,6 @@
 /**
  * @file src/bitmaps/dxt_decoder.cpp
  * Software decoders for single texels of DXT1, DXT3 and DXT5 blocks.
- * The original author notes and decompiles are in docs/original/bitmaps/.
  */
 
 #include "halo/bitmaps/bitmaps.hpp"

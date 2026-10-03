@@ -1,7 +1,6 @@
 /**
  * @file src/sound/gain.cpp
  * Gain, millibel and attenuation conversions.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "internal/state.hpp"

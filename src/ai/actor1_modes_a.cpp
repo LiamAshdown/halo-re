@@ -20,8 +20,7 @@ namespace c_actor_mode_alert_movement_cancelled {
 
 
 /**
- * actor_mode_alert_movement_cancelled: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_alert_movement_cancelled.c.txt.
+ * actor_mode_alert_movement_cancelled: behaviour unchanged from the original routine.
  *
  * @address 0x401460
  */
@@ -49,8 +48,7 @@ namespace c_actor_mode_alert_process {
 
 
 /**
- * actor_mode_alert_process: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_alert_process.c.txt.
+ * actor_mode_alert_process: behaviour unchanged from the original routine.
  *
  * @address 0x4010e0
  */
@@ -127,8 +125,7 @@ namespace c_actor_mode_alert_target_cleared {
 
 
 /**
- * actor_mode_alert_target_cleared: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_alert_target_cleared.c.txt.
+ * actor_mode_alert_target_cleared: behaviour unchanged from the original routine.
  *
  * @address 0x401490
  */
@@ -156,8 +153,7 @@ namespace c_actor_mode_alert_tick {
 
 
 /**
- * actor_mode_alert_tick: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_alert_tick.c.txt.
+ * actor_mode_alert_tick: behaviour unchanged from the original routine.
  *
  * @address 0x4012e0
  */
@@ -212,8 +208,7 @@ namespace c_actor_mode_alert_update {
 
 
 /**
- * actor_mode_alert_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_alert_update.c.txt.
+ * actor_mode_alert_update: behaviour unchanged from the original routine.
  *
  * @address 0x401410
  */
@@ -243,8 +238,7 @@ namespace c_actor_mode_avoid_update {
 
 
 /**
- * actor_mode_avoid_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_avoid_update.c.txt.
+ * actor_mode_avoid_update: behaviour unchanged from the original routine.
  *
  * @address 0x401850
  */
@@ -284,8 +278,7 @@ namespace c_actor_mode_converse_exit {
 
 
 /**
- * actor_mode_converse_exit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_converse_exit.c.txt.
+ * actor_mode_converse_exit: behaviour unchanged from the original routine.
  *
  * @address 0x402f40
  */
@@ -314,8 +307,7 @@ namespace c_actor_mode_converse_process {
 
 
 /**
- * actor_mode_converse_process: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_converse_process.c.txt.
+ * actor_mode_converse_process: behaviour unchanged from the original routine.
  *
  * @address 0x402d70
  */
@@ -368,8 +360,7 @@ namespace c_actor_mode_converse_replace_reference {
 
 
 /**
- * actor_mode_converse_replace_reference: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_converse_replace_reference.c.txt.
+ * actor_mode_converse_replace_reference: behaviour unchanged from the original routine.
  *
  * @address 0x402f00
  */
@@ -398,8 +389,7 @@ namespace c_actor_mode_converse_update {
 
 
 /**
- * actor_mode_converse_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_converse_update.c.txt.
+ * actor_mode_converse_update: behaviour unchanged from the original routine.
  *
  * @address 0x402e70
  */
@@ -441,8 +431,7 @@ namespace c_actor_mode_obey_enter {
 
 
 /**
- * actor_mode_obey_enter: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_obey_enter.c.txt.
+ * actor_mode_obey_enter: behaviour unchanged from the original routine.
  *
  * @address 0x407280
  */
@@ -467,8 +456,7 @@ namespace c_actor_mode_obey_exit {
 
 
 /**
- * actor_mode_obey_exit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_obey_exit.c.txt.
+ * actor_mode_obey_exit: behaviour unchanged from the original routine.
  *
  * @address 0x4072c0
  */
@@ -494,8 +482,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_mode_obey_process: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_obey_process.c.txt.
+ * actor_mode_obey_process: behaviour unchanged from the original routine.
  *
  * @address 0x407340
  */
@@ -540,8 +527,7 @@ namespace c_actor_mode_obey_tick_members {
 
 
 /**
- * actor_mode_obey_tick_members: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_obey_tick_members.c.txt.
+ * actor_mode_obey_tick_members: behaviour unchanged from the original routine.
  *
  * @address 0x407300
  */
@@ -568,8 +554,7 @@ static auto &global_forward2d_pointer = halo::link::ref<real_vector2d *>(halo::a
 
 
 /**
- * actor_mode_obey_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_obey_update.c.txt.
+ * actor_mode_obey_update: behaviour unchanged from the original routine.
  *
  * @address 0x407400
  */
@@ -694,8 +679,7 @@ namespace c_actor_mode_search_enter {
 
 
 /**
- * actor_mode_search_enter: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_search_enter.c.txt.
+ * actor_mode_search_enter: behaviour unchanged from the original routine.
  *
  * @address 0x407940
  */
@@ -737,8 +721,7 @@ namespace c_actor_mode_search_movement_cancelled {
 
 
 /**
- * actor_mode_search_movement_cancelled: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_search_movement_cancelled.c.txt.
+ * actor_mode_search_movement_cancelled: behaviour unchanged from the original routine.
  *
  * @address 0x407f00
  */
@@ -768,8 +751,7 @@ namespace c_actor_mode_search_process {
 
 
 /**
- * actor_mode_search_process: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_search_process.c.txt.
+ * actor_mode_search_process: behaviour unchanged from the original routine.
  *
  * @address 0x407a10
  */
@@ -882,8 +864,7 @@ namespace c_actor_mode_search_tick {
 
 
 /**
- * actor_mode_search_tick: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_search_tick.c.txt.
+ * actor_mode_search_tick: behaviour unchanged from the original routine.
  *
  * @address 0x407d80
  */
@@ -954,8 +935,7 @@ namespace c_actor_mode_search_update {
 
 
 /**
- * actor_mode_search_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_search_update.c.txt.
+ * actor_mode_search_update: behaviour unchanged from the original routine.
  *
  * @address 0x407f40
  */
@@ -1011,8 +991,7 @@ namespace c_actor_mode_sleep_update {
 
 
 /**
- * actor_mode_sleep_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_sleep_update.c.txt.
+ * actor_mode_sleep_update: behaviour unchanged from the original routine.
  *
  * @address 0x408090
  */

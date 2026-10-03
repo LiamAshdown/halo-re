@@ -63,8 +63,6 @@ void UiWidgets::widget_sync_profile_status_flag(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_widget_text_ensure_and_refresh.c.txt for the recovery
- * notes.
  *
  * @address 0x4a4fe0
  */
@@ -89,8 +87,6 @@ void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_widget_text_from_hud_objective.c.txt for the recovery
- * notes.
  *
  * @address 0x4a6770
  */

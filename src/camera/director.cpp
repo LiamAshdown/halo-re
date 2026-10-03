@@ -28,8 +28,6 @@ static uint8_t camera_input_key_held(uint32_t key_bits, int16_t bit)
 namespace halo::camera {
 
 /**
- * Original function director_build_camera_input; the author notes are in
- * docs/original/camera/director_build_camera_input.c.txt.
  *
  * @address 0x445f90
  */
@@ -90,8 +88,6 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
 }
 
 /**
- * Original function director_choose_gameplay_camera; the author notes are in
- * docs/original/camera/director_choose_gameplay_camera.c.txt.
  *
  * @address 0x445dc0
  */
@@ -168,8 +164,6 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
 }
 
 /**
- * Original function director_set_flying_camera; the author notes are in
- * docs/original/camera/director_set_flying_camera.c.txt.
  *
  * @address 0x445f40
  */
@@ -188,8 +182,6 @@ void DirectorHandle::set_flying_camera(uint8_t force)
 }
 
 /**
- * Original function director_update_seat_camera; the author notes are in
- * docs/original/camera/director_update_seat_camera.c.txt.
  *
  * @address 0x445c00
  */
@@ -243,8 +235,6 @@ void DirectorHandle::update_seat_camera(uint8_t force)
 }
 
 /**
- * Original function camera_get_type_for_player; the author notes are in
- * docs/original/camera/camera_get_type_for_player.c.txt.
  *
  * Register convention in the original: local player index in CX (in_CX); no stack parameters.
  *
@@ -271,8 +261,6 @@ int16_t DirectorHandle::get_type_for_player()
 }
 
 /**
- * Original function camera_input_axes_update; the author notes are in
- * docs/original/camera/camera_input_axes_update.c.txt.
  *
  * @address 0x446170
  */
@@ -343,8 +331,6 @@ void DirectorHandle::input_axes_update(uint32_t key_bits, float zoom)
 }
 
 /**
- * Original function director_game_state_loaded; the author notes are in
- * docs/original/camera/director_game_state_loaded.c.txt.
  *
  * Register convention in the original: none; cdecl, no arguments.
  *

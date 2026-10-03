@@ -1,7 +1,6 @@
 /**
  * @file src/sound/directsound_device.cpp
  * DirectSound implementation of the AudioDevice interface.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/sound/directsound.hpp"

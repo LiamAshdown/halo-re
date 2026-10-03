@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_clusters.cpp
  * Cluster portal flooding and the per-cluster object reference chains.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/structures/structures.hpp"

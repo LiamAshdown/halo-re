@@ -61,8 +61,6 @@ static widget_instance *find_row_control_until(widget_instance *row, widget_inst
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_4wide_selector_refresh.c.txt for the recovery
- * notes.
  *
  * @address 0x4a4f60
  */
@@ -93,7 +91,6 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_options_free_list.c.txt for the recovery notes.
  *
  * @address 0x4a0a30
  */
@@ -108,8 +105,6 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_options_populate_from_profile.c.txt for the
- * recovery notes.
  *
  * @address 0x4a0050
  */
@@ -165,8 +160,6 @@ uint32_t UiControlsMenu::controls_options_populate_from_profile(widget_instance 
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_options_reload_profile.c.txt for the recovery
- * notes.
  *
  * @address 0x4a0b50
  */
@@ -186,7 +179,6 @@ uint8_t UiControlsMenu::controls_options_reload_profile(void)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_populate_bind_rows.c.txt for the recovery notes.
  *
  * @address 0x4a3180
  */
@@ -220,7 +212,6 @@ void UiControlsMenu::controls_populate_bind_rows(widget_instance *widget, uint32
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_populate_input_row.c.txt for the recovery notes.
  *
  * Register convention: EAX -> widget, EDI -> profile_record
  *
@@ -311,8 +302,6 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_controls_sensitivity_row_refresh.c.txt for the recovery
- * notes.
  *
  * @address 0x4a2270
  */

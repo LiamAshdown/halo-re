@@ -1,7 +1,6 @@
 /**
  * @file src/math/quaternion.cpp
  * Real_quaternion: normalize, multiply, lerp, rotate, matrix conversions.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

@@ -26,8 +26,7 @@ namespace c_actor_mode_charge_enter {
 
 
 /**
- * actor_mode_charge_enter: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_charge_enter.c.txt.
+ * actor_mode_charge_enter: behaviour unchanged from the original routine.
  *
  * @address 0x401d50
  */
@@ -59,8 +58,7 @@ namespace c_actor_mode_charge_process {
 
 
 /**
- * actor_mode_charge_process: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_charge_process.c.txt.
+ * actor_mode_charge_process: behaviour unchanged from the original routine.
  *
  * @address 0x401da0
  */
@@ -376,8 +374,7 @@ namespace c_actor_mode_charge_tick {
 
 
 /**
- * actor_mode_charge_tick: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_charge_tick.c.txt.
+ * actor_mode_charge_tick: behaviour unchanged from the original routine.
  *
  * @address 0x402aa0
  */
@@ -407,8 +404,7 @@ namespace c_actor_mode_charge_update {
 
 
 /**
- * actor_mode_charge_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_charge_update.c.txt.
+ * actor_mode_charge_update: behaviour unchanged from the original routine.
  *
  * @address 0x402af0
  */
@@ -477,8 +473,7 @@ namespace c_actor_mode_fight_tick {
 
 
 /**
- * actor_mode_fight_tick: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_fight_tick.c.txt.
+ * actor_mode_fight_tick: behaviour unchanged from the original routine.
  *
  * @address 0x403540
  */
@@ -511,8 +506,7 @@ namespace c_actor_mode_fight_update {
 
 
 /**
- * actor_mode_fight_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_fight_update.c.txt.
+ * actor_mode_fight_update: behaviour unchanged from the original routine.
  *
  * @address 0x4035b0
  */
@@ -549,8 +543,7 @@ namespace c_actor_mode_flee_enter {
 
 
 /**
- * actor_mode_flee_enter: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_enter.c.txt.
+ * actor_mode_flee_enter: behaviour unchanged from the original routine.
  *
  * @address 0x403740
  */
@@ -584,8 +577,7 @@ namespace c_actor_mode_flee_exit {
 
 
 /**
- * actor_mode_flee_exit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_exit.c.txt.
+ * actor_mode_flee_exit: behaviour unchanged from the original routine.
  *
  * @address 0x4037a0
  */
@@ -619,8 +611,7 @@ static auto &actor_mode_default_look_weights = halo::link::ref<const float *>(ha
 
 
 /**
- * actor_mode_flee_get_look_weights: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_get_look_weights.c.txt.
+ * actor_mode_flee_get_look_weights: behaviour unchanged from the original routine.
  *
  * @address 0x403d50
  */
@@ -650,8 +641,7 @@ namespace c_actor_mode_flee_movement_cancelled {
 
 
 /**
- * actor_mode_flee_movement_cancelled: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_movement_cancelled.c.txt.
+ * actor_mode_flee_movement_cancelled: behaviour unchanged from the original routine.
  *
  * @address 0x403d20
  */
@@ -680,8 +670,7 @@ namespace c_actor_mode_flee_process {
 
 
 /**
- * actor_mode_flee_process: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_process.c.txt.
+ * actor_mode_flee_process: behaviour unchanged from the original routine.
  *
  * @address 0x4037f0
  */
@@ -825,8 +814,7 @@ namespace c_actor_mode_flee_replace_reference {
 
 
 /**
- * actor_mode_flee_replace_reference: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_replace_reference.c.txt.
+ * actor_mode_flee_replace_reference: behaviour unchanged from the original routine.
  *
  * @address 0x404300
  */
@@ -856,8 +844,7 @@ namespace c_actor_mode_flee_tick {
 
 
 /**
- * actor_mode_flee_tick: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_tick.c.txt.
+ * actor_mode_flee_tick: behaviour unchanged from the original routine.
  *
  * @address 0x403af0
  */
@@ -897,8 +884,7 @@ namespace c_actor_mode_flee_update {
 
 
 /**
- * actor_mode_flee_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_flee_update.c.txt.
+ * actor_mode_flee_update: behaviour unchanged from the original routine.
  *
  * @address 0x403b90
  */
@@ -970,8 +956,7 @@ namespace c_actor_mode_guard_enter {
 
 
 /**
- * actor_mode_guard_enter: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_enter.c.txt.
+ * actor_mode_guard_enter: behaviour unchanged from the original routine.
  *
  * @address 0x404820
  */
@@ -1001,8 +986,7 @@ namespace c_actor_mode_guard_exit {
 
 
 /**
- * actor_mode_guard_exit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_exit.c.txt.
+ * actor_mode_guard_exit: behaviour unchanged from the original routine.
  *
  * @address 0x404870
  */
@@ -1037,8 +1021,7 @@ static auto &actor_mode_guard_look_weights_ambush = halo::link::ref<const float 
 
 
 /**
- * actor_mode_guard_get_look_weights: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_get_look_weights.c.txt.
+ * actor_mode_guard_get_look_weights: behaviour unchanged from the original routine.
  *
  * @address 0x4051c0
  */
@@ -1077,8 +1060,7 @@ namespace c_actor_mode_guard_movement_cancelled {
 
 
 /**
- * actor_mode_guard_movement_cancelled: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_movement_cancelled.c.txt.
+ * actor_mode_guard_movement_cancelled: behaviour unchanged from the original routine.
  *
  * @address 0x405100
  */
@@ -1115,8 +1097,7 @@ namespace c_actor_mode_guard_replace_reference {
 
 
 /**
- * actor_mode_guard_replace_reference: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_replace_reference.c.txt.
+ * actor_mode_guard_replace_reference: behaviour unchanged from the original routine.
  *
  * @address 0x405270
  */
@@ -1150,8 +1131,7 @@ namespace c_actor_mode_guard_target_cleared {
 
 
 /**
- * actor_mode_guard_target_cleared: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_target_cleared.c.txt.
+ * actor_mode_guard_target_cleared: behaviour unchanged from the original routine.
  *
  * @address 0x405180
  */
@@ -1180,8 +1160,7 @@ namespace c_actor_mode_guard_tick {
 
 
 /**
- * actor_mode_guard_tick: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_tick.c.txt.
+ * actor_mode_guard_tick: behaviour unchanged from the original routine.
  *
  * @address 0x404b90
  */
@@ -1264,8 +1243,7 @@ namespace c_actor_mode_guard_update {
 
 
 /**
- * actor_mode_guard_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_guard_update.c.txt.
+ * actor_mode_guard_update: behaviour unchanged from the original routine.
  *
  * @address 0x404d60
  */
@@ -1393,8 +1371,7 @@ namespace c_actor_mode_uncover_enter {
 
 
 /**
- * actor_mode_uncover_enter: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_uncover_enter.c.txt.
+ * actor_mode_uncover_enter: behaviour unchanged from the original routine.
  *
  * @address 0x4081e0
  */
@@ -1447,8 +1424,7 @@ static auto &hud_text_message_hold_color = halo::link::ref<const float *>(halo::
 
 
 /**
- * actor_mode_uncover_get_look_weights: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_uncover_get_look_weights.c.txt.
+ * actor_mode_uncover_get_look_weights: behaviour unchanged from the original routine.
  *
  * @address 0x408840
  */
@@ -1478,8 +1454,7 @@ namespace c_actor_mode_uncover_movement_cancelled {
 
 
 /**
- * actor_mode_uncover_movement_cancelled: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mode_uncover_movement_cancelled.c.txt.
+ * actor_mode_uncover_movement_cancelled: behaviour unchanged from the original routine.
  *
  * @address 0x408800
  */

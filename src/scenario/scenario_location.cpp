@@ -1,7 +1,6 @@
 /**
  * @file src/scenario/scenario_location.cpp
  * Locations (structure bsp leaf plus cluster) and the water, fog and weather questions asked of them.
- * The original author notes and decompiles are in docs/original/scenario/.
  */
 
 #include "halo/core/crt.hpp"

@@ -1,8 +1,0 @@
-// hs_cast_real_to_short  (not a Ghidra function; an hs type cast reached only through the cast table)
-// address 0x48ab60, size 19 bytes
-// name confidence: 0.6  rewrite confidence: 0.95
-// evidence: hs_thread_return / hs_coerce_value call dword [ecx*4+0x68bc10] with the value pushed; this is
-//   table 0x68bc10 entry 349 (to short from real).
-// objdump 0x48ab60..0x48ab72: fld of the float, __ftol (0x6391b4, truncating), the word stored over the
-//   argument's low word; the argument's upper word is returned unchanged.
-// blam-cc: stack -> value (cdecl)

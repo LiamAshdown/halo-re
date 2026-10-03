@@ -629,7 +629,6 @@ void UiGameDataInputs::input_4a73d0(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_game_data_input_4a7660.c.txt for the recovery notes.
  *
  * @address 0x4a7660
  */

@@ -1,7 +1,6 @@
 /**
  * @file src/structures/detail_object_system.cpp
  * Detail object (grass, debris sprites) game state and render list.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/core/crt.hpp"

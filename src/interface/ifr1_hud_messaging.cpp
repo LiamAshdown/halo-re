@@ -104,8 +104,7 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
 }
 
 /**
- * Original engine function hud_add_item_message; the author notes are in
- * docs/original/interface/hud_add_item_message.txt.
+ *
  * blam-cc: EAX -> local_player_index, ECX -> source, BL -> source_kind
  *
  * @address 0x4ae400
@@ -245,8 +244,6 @@ void HudMessaging::message_broadcast_to_local_players(const uint16_t *text)
 }
 
 /**
- * Original engine function hud_message_compare; the author notes are in
- * docs/original/interface/hud_message_compare.txt.
  *
  * @address 0x4ae500
  */
@@ -267,8 +264,7 @@ int32_t HudMessaging::message_compare(const void *a, const void *b)
 }
 
 /**
- * Original engine function hud_message_find_slot; the author notes are in
- * docs/original/interface/hud_message_find_slot.txt.
+ *
  * blam-cc: source -> ESI
  *
  * @address 0x4ae480
@@ -424,8 +420,7 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
 }
 
 /**
- * Original engine function hud_set_action_text_shown; the author notes are in
- * docs/original/interface/hud_set_action_text_shown.txt.
+ *
  * blam-cc: local_player_index -> EAX, shown -> BL
  *
  * @address 0x4ae110
@@ -468,8 +463,7 @@ void HudMessaging::set_help_text(int16_t message_index)
 }
 
 /**
- * Original engine function hud_set_message_icon_argument; the author notes are in
- * docs/original/interface/hud_set_message_icon_argument.txt.
+ *
  * blam-cc: local_player_index -> EAX, slot -> ESI
  *
  * @address 0x4ae050
@@ -486,8 +480,7 @@ void HudMessaging::set_message_icon_argument(int16_t local_player_index, int16_t
 }
 
 /**
- * Original engine function hud_set_message_string_argument; the author notes are in
- * docs/original/interface/hud_set_message_string_argument.txt.
+ *
  * blam-cc: local_player_index -> EAX, slot -> ESI
  *
  * @address 0x4ae0b0

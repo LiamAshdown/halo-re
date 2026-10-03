@@ -1,7 +1,6 @@
 /**
  * @file src/math/random.cpp
  * The 32-bit lcg random streams and random directions.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

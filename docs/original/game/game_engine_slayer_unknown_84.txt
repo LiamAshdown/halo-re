@@ -1,8 +1,0 @@
-// game_engine_slayer_unknown_84  (not a Ghidra function; the slayer game engine definition's +0x84 slot (unknown_84); no C existed, so that
-//   stored pointer trapped as unlisted_46f9d0)
-// address 0x46f9d0, size 12 bytes
-// name confidence: 0.6   rewrite confidence: 0.85
-// WRITTEN 2026-09-28 from objdump 0x46f9d0..0x46f9db: true for kind 1.
-// blam-cc: cdecl (called through the engine definition)
-
-

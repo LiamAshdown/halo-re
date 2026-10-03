@@ -1,7 +1,6 @@
 /**
  * @file src/text/text_encoding.cpp
  * Narrow and wide text layout: tokenising, column drawing and wrapping behind one strategy interface.
- * The original author notes and decompiles are in docs/original/text/.
  */
 
 #include "halo/text/text.hpp"

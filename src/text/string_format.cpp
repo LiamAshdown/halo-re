@@ -1,7 +1,6 @@
 /**
  * @file src/text/string_format.cpp
  * Wide-character formatting forwarded to the C runtime.
- * The original author notes are in docs/original/text/.
  */
 
 #include "halo/core/crt.hpp"

@@ -22,8 +22,6 @@ static auto &recorded_animation_v1_event_handlers = halo::link::ref<recorded_ani
 namespace halo::cutscene {
 
 /**
- * Original function recorded_animation_angle_to_vector; the author notes are in
- * docs/original/cutscene/recorded_animation_angle_to_vector.c.txt.
  *
  * Register convention in the original: EAX = out (in_EAX), ECX = angles (in_ECX).
  *
@@ -44,8 +42,6 @@ void RecordedAngles::angle_to_vector(real_vector3d *out, recorded_animation_angl
 }
 
 /**
- * Original function recorded_animation_apply_char_difference; the author notes are in
- * docs/original/cutscene/recorded_animation_apply_char_difference.c.txt.
  *
  * Register convention in the original: EAX = angles (in_EAX), EDX = delta (in_EDX).
  *
@@ -69,8 +65,6 @@ void RecordedAngles::apply_char_difference(recorded_animation_angles *angles, re
 }
 
 /**
- * Original function recorded_animation_apply_short_difference; the author notes are in
- * docs/original/cutscene/recorded_animation_apply_short_difference.c.txt.
  *
  * Register convention in the original: EAX = angles (in_EAX), EDX = delta (in_EDX).
  *
@@ -94,8 +88,6 @@ void RecordedAngles::apply_short_difference(recorded_animation_angles *angles, r
 }
 
 /**
- * Original function unit_control_data_unpack; the author notes are in
- * docs/original/cutscene/unit_control_data_unpack.c.txt.
  *
  * Register convention in the original: EBX = control (unaff_EBX); stack (cursor, version) in
  * Ghidra's own.
@@ -145,8 +137,6 @@ void UnitControlUnpacker::unpack(unit_control_data *control, uint8_t **cursor, u
 }
 
 /**
- * Original function recorded_animation_compressed_begin; the author notes are in
- * docs/original/cutscene/recorded_animation_compressed_begin.c.txt.
  *
  * Register convention in the original: objdump-traced call site 0x44a930
  * (recorded_animation_start) pushes.
@@ -169,8 +159,6 @@ void CompressedCodec::begin(recorded_animation_decoder_state *state, unit_contro
 }
 
 /**
- * Original function recorded_animation_compressed_update; the author notes are in
- * docs/original/cutscene/recorded_animation_compressed_update.c.txt.
  *
  * Register convention in the original: recorded_animation_update_proc (state, control,
  * event_ticks, cursor), all.
@@ -225,8 +213,6 @@ uint8_t CompressedCodec::update(recorded_animation_decoder_state *state, unit_co
 }
 
 /**
- * Original function recorded_animation_decode_aiming_speed_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_aiming_speed_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor), same slots as.
@@ -240,8 +226,6 @@ void CompressedCodec::decode_aiming_speed_event(recorded_animation_decoder_state
 }
 
 /**
- * Original function recorded_animation_decode_animation_state_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_animation_state_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor), same slots as.
@@ -255,8 +239,6 @@ void CompressedCodec::decode_animation_state_event(recorded_animation_decoder_st
 }
 
 /**
- * Original function recorded_animation_decode_char_difference_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_char_difference_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor), matching.
@@ -333,8 +315,6 @@ void CompressedCodec::decode_char_difference_event(recorded_animation_decoder_st
 }
 
 /**
- * Original function recorded_animation_decode_control_flags_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_control_flags_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor); objdump confirms.
@@ -348,8 +328,6 @@ void CompressedCodec::decode_control_flags_event(recorded_animation_decoder_stat
 }
 
 /**
- * Original function recorded_animation_decode_short_difference_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_short_difference_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor), matching.
@@ -426,8 +404,6 @@ void CompressedCodec::decode_short_difference_event(recorded_animation_decoder_s
 }
 
 /**
- * Original function recorded_animation_decode_throttle_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_throttle_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor); objdump confirms.
@@ -446,8 +422,6 @@ void CompressedCodec::decode_throttle_event(recorded_animation_decoder_state *st
 }
 
 /**
- * Original function recorded_animation_decode_weapon_index_event; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_weapon_index_event.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (state, control, header,
  * cursor); objdump confirms.
@@ -461,8 +435,6 @@ void CompressedCodec::decode_weapon_index_event(recorded_animation_decoder_state
 }
 
 /**
- * Original function recorded_animation_v1_begin; the author notes are in
- * docs/original/cutscene/recorded_animation_v1_begin.c.txt.
  *
  * Register convention in the original: same recorded_animation_begin_proc shape and call site
  * as.
@@ -476,8 +448,6 @@ void LegacyCodec::begin(recorded_animation_decoder_state *state, unit_control_da
 }
 
 /**
- * Original function recorded_animation_v1_update; the author notes are in
- * docs/original/cutscene/recorded_animation_v1_update.c.txt.
  *
  * Register convention in the original: recorded_animation_update_proc (state, control,
  * event_ticks, cursor),.
@@ -511,8 +481,6 @@ uint8_t LegacyCodec::update(recorded_animation_decoder_state *state, unit_contro
 }
 
 /**
- * Original function recorded_animation_decode_aiming_speed_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_aiming_speed_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -529,8 +497,6 @@ void LegacyCodec::decode_aiming_speed_event(unit_control_data *control, recorded
 }
 
 /**
- * Original function recorded_animation_decode_aiming_vector_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_aiming_vector_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -547,8 +513,6 @@ void LegacyCodec::decode_aiming_vector_event(unit_control_data *control, recorde
 }
 
 /**
- * Original function recorded_animation_decode_angle_vector_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_angle_vector_event_v1.c.txt.
  *
  * Register convention in the original: cdecl stack parameters (control, event, cursor),
  * matching Ghidra's own.
@@ -588,8 +552,6 @@ void LegacyCodec::decode_angle_vector_event(unit_control_data *control, recorded
 }
 
 /**
- * Original function recorded_animation_decode_animation_state_event_v1; the author notes are
- * in docs/original/cutscene/recorded_animation_decode_animation_state_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -606,8 +568,6 @@ void LegacyCodec::decode_animation_state_event(unit_control_data *control, recor
 }
 
 /**
- * Original function recorded_animation_decode_control_flags_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_control_flags_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -624,8 +584,6 @@ void LegacyCodec::decode_control_flags_event(unit_control_data *control, recorde
 }
 
 /**
- * Original function recorded_animation_decode_facing_vector_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_facing_vector_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -642,8 +600,6 @@ void LegacyCodec::decode_facing_vector_event(unit_control_data *control, recorde
 }
 
 /**
- * Original function recorded_animation_decode_looking_vector_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_looking_vector_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -660,8 +616,6 @@ void LegacyCodec::decode_looking_vector_event(unit_control_data *control, record
 }
 
 /**
- * Original function recorded_animation_decode_multi_vector_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_multi_vector_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -686,8 +640,6 @@ void LegacyCodec::decode_multi_vector_event(unit_control_data *control, recorded
 }
 
 /**
- * Original function recorded_animation_decode_throttle_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_throttle_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.
@@ -706,8 +658,6 @@ void LegacyCodec::decode_throttle_event(unit_control_data *control, recorded_ani
 }
 
 /**
- * Original function recorded_animation_decode_weapon_index_event_v1; the author notes are in
- * docs/original/cutscene/recorded_animation_decode_weapon_index_event_v1.c.txt.
  *
  * Register convention in the original: recorded_animation_v1_event_proc (control, event,
  * cursor), all cdecl.

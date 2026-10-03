@@ -27,8 +27,6 @@ static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars()
 namespace halo::interface {
 
 /**
- * Original engine function hud_text_message_queue_update_and_draw; the author notes are in
- * docs/original/interface/hud_text_message_queue_update_and_draw.txt.
  *
  * @address 0x4a3e30
  */

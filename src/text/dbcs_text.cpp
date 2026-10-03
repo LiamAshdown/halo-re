@@ -1,7 +1,6 @@
 /**
  * @file src/text/dbcs_text.cpp
  * Character-boundary logic for the narrow text encodings (single byte, DBCS code pages and |x markup escapes).
- * The original author notes and decompiles are in docs/original/text/.
  */
 
 #include "halo/text/text.hpp"

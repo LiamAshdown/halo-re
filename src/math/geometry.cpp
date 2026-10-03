@@ -1,7 +1,6 @@
 /**
  * @file src/math/geometry.cpp
  * Planes, rays, segments, spheres, cylinders, triangles: intersection and distance queries.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

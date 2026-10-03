@@ -1,7 +1,6 @@
 /**
  * @file src/math/utility.cpp
  * Bit vectors, integer log2, qsort comparators, colour packing.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

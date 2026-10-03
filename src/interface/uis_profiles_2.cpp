@@ -23,7 +23,6 @@ static auto &new_profile_name_flag_0071916e = halo::link::ref<uint8_t>(halo::ui:
 namespace halo::ui {
 
 /**
- * Original UI routine; see docs/original/interface/ui_new_profile_name_entry_open.c.txt for the recovery notes.
  *
  * @address 0x4a1940
  */
@@ -43,7 +42,6 @@ uint8_t UiProfiles::new_profile_name_entry_open(void *widget, int16_t *event, ui
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_profile_select_or_create.c.txt for the recovery notes.
  *
  * @address 0x4a29a0
  */

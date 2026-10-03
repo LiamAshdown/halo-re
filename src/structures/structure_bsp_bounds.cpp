@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_bsp_bounds.cpp
  * Bounding box, frustum plane and polygon bounds helpers used by the structure bsp queries.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/structures/structures.hpp"

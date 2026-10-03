@@ -1,7 +1,6 @@
 /**
  * @file src/sound/effects_objects.cpp
  * Lifetime of the global EAX sound effects object.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "internal/state.hpp"

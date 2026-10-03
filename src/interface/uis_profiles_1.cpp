@@ -143,8 +143,6 @@ uint32_t UiProfiles::free_profile_list(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_new_profile_name_entry_commit.c.txt for the recovery
- * notes.
  *
  * @address 0x4a19a0
  */
@@ -244,8 +242,6 @@ void UiProfiles::profile_carousel_fetch_sensitivity(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_profile_carousel_slot_cache_populate.c.txt for the
- * recovery notes.
  *
  * Register convention: candidate_ids -> EBX
  *
@@ -311,7 +307,6 @@ void UiProfiles::profile_details_list_widget_build(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_profile_list_apply_selection.c.txt for the recovery notes.
  *
  * Register convention: matches ui_event_function (widget, event, out_handled)
  *
@@ -395,7 +390,6 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_profile_require_existing.c.txt for the recovery notes.
  *
  * @address 0x4a1c30
  */

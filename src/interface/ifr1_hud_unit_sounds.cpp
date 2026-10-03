@@ -19,8 +19,6 @@ static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::u
 namespace halo::interface {
 
 /**
- * Original engine function hud_unit_sounds_play; the author notes are in
- * docs/original/interface/hud_unit_sounds_play.txt.
  *
  * @address 0x4afd30
  */
@@ -78,8 +76,7 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
 }
 
 /**
- * Original engine function hud_unit_sounds_update; the author notes are in
- * docs/original/interface/hud_unit_sounds_update.txt.
+ *
  * blam-cc: player -> EAX
  *
  * @address 0x4afee0

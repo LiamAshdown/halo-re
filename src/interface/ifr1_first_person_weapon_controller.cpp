@@ -745,8 +745,6 @@ void FirstPersonWeaponController::update_lighting(void)
 }
 
 /**
- * Original engine function first_person_weapon_update_screen_effects; the author notes are in
- * docs/original/interface/first_person_weapon_update_screen_effects.txt.
  *
  * @address 0x494730
  */

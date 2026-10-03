@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/vertex_packing.cpp
  * Packed 11:11:10 normals and the compressed BSP vertex unpackers.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "internal/state.hpp"

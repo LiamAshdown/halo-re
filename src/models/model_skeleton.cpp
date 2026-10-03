@@ -1,7 +1,6 @@
 /**
  * @file src/models/model_skeleton.cpp
  * Model node transforms: bind pose, blending, world matrices and two-bone IK.
- * The original author notes and decompiles are in docs/original/models/.
  */
 
 #include "halo/core/crt.hpp"

@@ -65,8 +65,6 @@ void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_host_setup_defaults_init.c.txt for the recovery
- * notes.
  *
  * @address 0x4a2ad0
  */

@@ -84,8 +84,7 @@ static void hud_messaging_draw_button_icon(int16_t button_icon, Rectangle2D *cur
 namespace halo::interface {
 
 /**
- * Original engine function hud_messaging_update; the author notes are in
- * docs/original/interface/hud_messaging_update.txt.
+ *
  * blam-cc: local_player_index -> AX
  *
  * @address 0x4ae550

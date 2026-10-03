@@ -355,7 +355,6 @@ uint8_t UiGameSetup::map_select_confirm_choice(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_restart_saved_game.c.txt for the recovery notes.
  *
  * @address 0x4a1110
  */

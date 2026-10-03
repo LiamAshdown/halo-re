@@ -26,8 +26,7 @@ namespace c_actor_allocate_paired_prop {
 
 
 /**
- * actor_allocate_paired_prop: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_allocate_paired_prop.c.txt.
+ * actor_allocate_paired_prop: behaviour unchanged from the original routine.
  *
  * @address 0x43e910
  */
@@ -61,8 +60,7 @@ namespace c_actor_allocate_paired_prop_with_kind {
 
 
 /**
- * actor_allocate_paired_prop_with_kind: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_allocate_paired_prop_with_kind.c.txt.
+ * actor_allocate_paired_prop_with_kind: behaviour unchanged from the original routine.
  *
  * @address 0x43e980
  */
@@ -128,8 +126,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
 
 
 /**
- * actor_apply_unit_definition_properties: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_apply_unit_definition_properties.c.txt.
+ * actor_apply_unit_definition_properties: behaviour unchanged from the original routine.
  *
  * @address 0x426cf0
  */
@@ -218,8 +215,7 @@ namespace c_actor_clear_perceived_props {
 
 
 /**
- * actor_clear_perceived_props: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_clear_perceived_props.c.txt.
+ * actor_clear_perceived_props: behaviour unchanged from the original routine.
  *
  * @address 0x427e00
  */
@@ -252,8 +248,7 @@ namespace c_actor_clear_recognition_history {
 
 
 /**
- * actor_clear_recognition_history: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_clear_recognition_history.c.txt.
+ * actor_clear_recognition_history: behaviour unchanged from the original routine.
  *
  * @address 0x414140
  */
@@ -289,8 +284,7 @@ static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai:
 
 
 /**
- * actor_copy_prop_and_reset: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_copy_prop_and_reset.c.txt.
+ * actor_copy_prop_and_reset: behaviour unchanged from the original routine.
  *
  * @address 0x43e840
  */
@@ -342,8 +336,7 @@ namespace c_actor_danger_register_point {
 
 
 /**
- * actor_danger_register_point: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_danger_register_point.c.txt.
+ * actor_danger_register_point: behaviour unchanged from the original routine.
  *
  * @address 0x41ec90
  */
@@ -411,8 +404,7 @@ static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
 
 
 /**
- * actor_danger_register_stationary_object: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_danger_register_stationary_object.c.txt.
+ * actor_danger_register_stationary_object: behaviour unchanged from the original routine.
  *
  * @address 0x41ea60
  */
@@ -522,8 +514,7 @@ static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(h
 
 
 /**
- * actor_find_danger_escape: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_danger_escape.c.txt.
+ * actor_find_danger_escape: behaviour unchanged from the original routine.
  *
  * @address 0x40bc40
  */
@@ -747,8 +738,7 @@ static int actor_prop_still_admitted(datum_index actor_index, actor *self, prop 
 
 
 /**
- * actor_find_or_allocate_prop: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_or_allocate_prop.c.txt.
+ * actor_find_or_allocate_prop: behaviour unchanged from the original routine.
  *
  * @address 0x43e270
  */
@@ -825,8 +815,7 @@ namespace c_actor_find_or_create_shared_prop {
 
 
 /**
- * actor_find_or_create_shared_prop: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_or_create_shared_prop.c.txt.
+ * actor_find_or_create_shared_prop: behaviour unchanged from the original routine.
  *
  * @address 0x43eb30
  */
@@ -912,8 +901,7 @@ namespace c_actor_find_prop_for_object {
 
 
 /**
- * actor_find_prop_for_object: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_prop_for_object.c.txt.
+ * actor_find_prop_for_object: behaviour unchanged from the original routine.
  *
  * @address 0x43ea80
  */
@@ -961,8 +949,7 @@ namespace c_actor_get_target_prop_object_index {
 
 
 /**
- * actor_get_target_prop_object_index: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_target_prop_object_index.c.txt.
+ * actor_get_target_prop_object_index: behaviour unchanged from the original routine.
  *
  * @address 0x4283d0
  */
@@ -992,8 +979,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_init_prop_from_object: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_init_prop_from_object.c.txt.
+ * actor_init_prop_from_object: behaviour unchanged from the original routine.
  *
  * @address 0x43e640
  */
@@ -1084,8 +1070,7 @@ namespace c_actor_mark_prop_seen_with_delta {
 
 
 /**
- * actor_mark_prop_seen_with_delta: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_mark_prop_seen_with_delta.c.txt.
+ * actor_mark_prop_seen_with_delta: behaviour unchanged from the original routine.
  *
  * @address 0x428840
  */

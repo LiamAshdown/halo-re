@@ -1,7 +1,6 @@
 /**
  * @file src/scenario/scenario_data.cpp
  * Scenario loading, object name lookup and the globals material table.
- * The original author notes and decompiles are in docs/original/scenario/.
  */
 
 #include "halo/scenario/scenario.hpp"

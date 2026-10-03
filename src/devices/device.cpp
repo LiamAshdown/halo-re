@@ -32,8 +32,6 @@ static uint8_t *object_get(datum_index object_index)
 namespace halo::devices {
 
 /**
- * Original function device_new; the author notes are in
- * docs/original/devices/device_new.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX), placement pointer in EDI
  * (unaff_EDI).
@@ -86,8 +84,6 @@ void DeviceHandle::construct(device_placement_data *placement)
 }
 
 /**
- * Original function device_create; the author notes are in
- * docs/original/devices/device_create.c.txt.
  *
  * @address 0x44b670
  */
@@ -104,8 +100,6 @@ uint8_t DeviceHandle::create()
 }
 
 /**
- * Original function device_delete; the author notes are in
- * docs/original/devices/device_delete.c.txt.
  *
  * @address 0x44b6b0
  */
@@ -126,8 +120,6 @@ void DeviceHandle::destroy()
 }
 
 /**
- * Original function device_blend_animations; the author notes are in
- * docs/original/devices/device_blend_animations.c.txt.
  *
  * @address 0x44bc20
  */
@@ -181,8 +173,6 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
 }
 
 /**
- * Original function device_can_change_position; the author notes are in
- * docs/original/devices/device_can_change_position.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX).
  *
@@ -275,8 +265,6 @@ void DeviceHandle::change_power_state(float fallback_value)
 }
 
 /**
- * Original function device_compute_function_values; the author notes are in
- * docs/original/devices/device_compute_function_values.c.txt.
  *
  * Register convention in the original: object index is already a plain, genuinely-stack
  * parameter; Ghidra's own `FUN_0044ba10(short *param_1)` reuses that one parameter register as
@@ -361,8 +349,6 @@ void DeviceHandle::compute_function_values()
 }
 
 /**
- * Original function device_frontfacing; the author notes are in
- * docs/original/devices/device_frontfacing.c.txt.
  *
  * Register convention in the original: device object index in ESI (unaff_ESI), a caller-owned
  * forward-vector.
@@ -393,8 +379,6 @@ uint8_t DeviceHandle::frontfacing(real_vector3d *forward)
 }
 
 /**
- * Original function device_play_state_change_effect; the author notes are in
- * docs/original/devices/device_play_state_change_effect.c.txt.
  *
  * Register convention in the original: tag id in ECX (in_ECX), packed as a TagID {index;id}
  * the way every.
@@ -426,8 +410,6 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
 }
 
 /**
- * Original function device_update_change_values; the author notes are in
- * docs/original/devices/device_update_change_values.c.txt.
  *
  * Register convention in the original: object index is already a plain, genuinely-stack
  * parameter (`device_update_change_values(uint param_1)`); no unresolved registers appear.
@@ -516,8 +498,6 @@ uint8_t DeviceHandle::update_change_values()
 }
 
 /**
- * Original function device_group_set_value; the author notes are in
- * docs/original/devices/device_group_set_value.c.txt.
  *
  * Register convention in the original: group index in ESI (unaff_SI), value as the sole
  * recognized stack.
@@ -583,8 +563,6 @@ uint8_t DeviceGroupHandle::set_value(float value)
 }
 
 /**
- * Original function device_group_set_value_immediate; the author notes are in
- * docs/original/devices/device_group_set_value_immediate.c.txt.
  *
  * Register convention in the original: group index in ESI (unaff_SI), value as the sole
  * recognized stack.
@@ -632,8 +610,6 @@ void DeviceGroupHandle::set_value_immediate(float value)
 }
 
 /**
- * Original function device_groups_allocate; the author notes are in
- * docs/original/devices/device_groups_allocate.c.txt.
  *
  * @address 0x44b620
  */
@@ -643,8 +619,6 @@ void DeviceGroupPool::allocate()
 }
 
 /**
- * Original function device_groups_clear_disposing_flag; the author notes are in
- * docs/original/devices/device_groups_clear_disposing_flag.c.txt.
  *
  * @address 0x44b660
  */
@@ -654,8 +628,6 @@ void DeviceGroupPool::clear_disposing_flag()
 }
 
 /**
- * Original function device_groups_dispose; the author notes are in
- * docs/original/devices/device_groups_dispose.c.txt.
  *
  * @address 0x44b640
  */
@@ -667,8 +639,6 @@ void DeviceGroupPool::dispose()
 }
 
 /**
- * Original function device_groups_initialize; the author notes are in
- * docs/original/devices/device_groups_initialize.c.txt.
  *
  * Register convention in the original: none; takes no parameters (Ghidra's own
  * `device_groups_initialize(void)`).

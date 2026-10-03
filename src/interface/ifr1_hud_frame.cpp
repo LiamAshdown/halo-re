@@ -183,8 +183,6 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
 }
 
 /**
- * Original engine function hud_draw_grenade_interface; the author notes are in
- * docs/original/interface/hud_draw_grenade_interface.txt.
  *
  * @address 0x4b2ac0
  */
@@ -254,8 +252,6 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
 }
 
 /**
- * Original engine function hud_draw_weapon_interface; the author notes are in
- * docs/original/interface/hud_draw_weapon_interface.txt.
  *
  * @address 0x4b1e20
  */
@@ -362,8 +358,6 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
 }
 
 /**
- * Original engine function hud_render_unit_interface; the author notes are in
- * docs/original/interface/hud_render_unit_interface.txt.
  *
  * @address 0x4b0320
  */

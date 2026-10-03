@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/bitmaps.cpp
  * Bitmap upload, texture binding and sampler state helpers.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -218,8 +217,7 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
 }
 
 /**
- * Direct3D 9 back end function chimera__rasterizer_set_texture. The original author notes are in
- * docs/original/rasterizer/chimera__rasterizer_set_texture.c.txt.
+ * Direct3D 9 back end function chimera__rasterizer_set_texture.
  *
  * Registers: EAX -> bitmap_tag_id, stack -> (stage, bitmap_type, default_index, frame)
  *
@@ -259,8 +257,7 @@ static BitmapData *bitmap_group_frame(uint32_t bitmap_tag_id, int16_t frame)
 }
 
 /**
- * Direct3D 9 back end function chimera__rasterizer_set_texture_direct_d3d9. The original author notes are in
- * docs/original/rasterizer/chimera__rasterizer_set_texture_direct_d3d9.c.txt.
+ * Direct3D 9 back end function chimera__rasterizer_set_texture_direct_d3d9.
  *
  * Registers: EAX -> bitmap_tag_id, stack -> (stage, frame)
  *
@@ -282,8 +279,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int1
 }
 
 /**
- * Direct3D 9 back end function chimera__rasterizer_set_texture_direct_d3dx. The original author notes are in
- * docs/original/rasterizer/chimera__rasterizer_set_texture_direct_d3dx.c.txt.
+ * Direct3D 9 back end function chimera__rasterizer_set_texture_direct_d3dx.
  *
  * Registers: EAX -> bitmap_tag_id, EDI -> effect_slot, stack -> (stage, frame)
  *
@@ -305,7 +301,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int1
 }
 
 /**
- * harness/x87_shims.c: FISTP in the current (round-to-nearest-even) mode VERIFIED against disassembly
+ * halo::x87 (include/halo/core/x87.hpp): FISTP in the current (round-to-nearest-even) mode VERIFIED against disassembly
  * 0x5132b0..0x5132ca (2026-09-30): the original is fmul 255.0, fstp dword, fld, FISTP (round to nearest, ties
  * to even, NOT `+ 0.5` then truncate: they differ on exact halves and on negatives) and returns only AL. The
  * multiply can overflow past 255 for an out-of-range input; the cast to uint8_t keeps the low byte exactly as
@@ -320,8 +316,7 @@ uint8_t color_channel_real_to_byte(float channel)
 
 
 /**
- * Direct3D 9 back end function rasterizer_bind_texture_d3d9. The original author notes are in
- * docs/original/rasterizer/rasterizer_bind_texture_d3d9.c.txt.
+ * Direct3D 9 back end function rasterizer_bind_texture_d3d9.
  *
  * Registers: ESI -> bitmap, stack -> stage
  *
@@ -344,8 +339,7 @@ namespace rasterizer_bind_texture_d3dx_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_bind_texture_d3dx. The original author notes are in
- * docs/original/rasterizer/rasterizer_bind_texture_d3dx.c.txt.
+ * Direct3D 9 back end function rasterizer_bind_texture_d3dx.
  *
  * Registers: ESI -> bitmap, EDI -> effect_slot, stack -> stage
  *
@@ -521,8 +515,7 @@ static int16_t level_dimension(uint16_t base, int16_t level, int16_t skip, uint8
 }
 
 /**
- * Direct3D 9 back end function rasterizer_bitmap_sample_texel. The original author notes are in
- * docs/original/rasterizer/rasterizer_bitmap_sample_texel.c.txt.
+ * Direct3D 9 back end function rasterizer_bitmap_sample_texel.
  *
  * @address 0x524590
  */
@@ -814,8 +807,7 @@ namespace rasterizer_force_bilinear_filtering_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_force_bilinear_filtering. The original author notes are in
- * docs/original/rasterizer/rasterizer_force_bilinear_filtering.c.txt.
+ * Direct3D 9 back end function rasterizer_force_bilinear_filtering.
  *
  * @address 0x51e9f0
  */
@@ -891,8 +883,7 @@ void * rasterizer_render_target_bind_texture_stage(int16_t target_index, int16_t
 }
 
 /**
- * Direct3D 9 back end function rasterizer_resolve_and_cache_submap_b. The original author notes are in
- * docs/original/rasterizer/rasterizer_resolve_and_cache_submap_b.c.txt.
+ * Direct3D 9 back end function rasterizer_resolve_and_cache_submap_b.
  *
  * Registers: EAX -> bitmap_tag_id, CX -> bitmap_type, stack -> (stage, default_index, frame, effect_slot)
  *
@@ -916,8 +907,7 @@ int16_t * rasterizer_resolve_and_cache_submap_b(uint32_t bitmap_tag_id, int16_t 
 }
 
 /**
- * Direct3D 9 back end function rasterizer_resolve_and_cache_submap_c. The original author notes are in
- * docs/original/rasterizer/rasterizer_resolve_and_cache_submap_c.c.txt.
+ * Direct3D 9 back end function rasterizer_resolve_and_cache_submap_c.
  *
  * Registers: EAX -> bitmap_tag_id, DI -> bitmap_type, stack -> (stage, default_index, frame)
  *
@@ -972,8 +962,7 @@ void rasterizer_unbind_stream_and_textures(void)
 }  // namespace rasterizer_unbind_stream_and_textures_impl
 
 /**
- * Direct3D 9 back end function rasterizer_validate_and_rebind_texture. The original author notes are in
- * docs/original/rasterizer/rasterizer_validate_and_rebind_texture.c.txt.
+ * Direct3D 9 back end function rasterizer_validate_and_rebind_texture.
  *
  * Registers: EAX -> bitmap_tag_id, stack -> (stage, frame)
  *

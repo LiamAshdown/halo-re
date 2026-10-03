@@ -1,7 +1,6 @@
 /**
  * @file src/scenario/structure_bsp_switch.cpp
  * Switching the resident structure bsp and the activate/deactivate callback tables.
- * The original author notes and decompiles are in docs/original/scenario/.
  */
 
 #include "halo/scenario/scenario.hpp"

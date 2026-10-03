@@ -23,7 +23,6 @@ static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [
 namespace halo::ui {
 
 /**
- * Original UI routine; see docs/original/interface/ui_tab_group_sync_5wide.c.txt for the recovery notes.
  *
  * @address 0x4a4cf0
  */
@@ -51,7 +50,6 @@ void UiTabGroups::tab_group_sync_5wide(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_tab_group_sync_7wide.c.txt for the recovery notes.
  *
  * @address 0x4a4cb0
  */
@@ -79,7 +77,6 @@ void UiTabGroups::tab_group_sync_7wide(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_tab_group_sync_9wide.c.txt for the recovery notes.
  *
  * @address 0x4a62d0
  */
@@ -135,7 +132,6 @@ void UiTabGroups::tab_group_sync_9wide(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_tab_group_sync_grouped.c.txt for the recovery notes.
  *
  * @address 0x4a4d30
  */

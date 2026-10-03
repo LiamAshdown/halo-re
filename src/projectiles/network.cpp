@@ -22,8 +22,6 @@ static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::g
 namespace halo::projectiles {
 
 /**
- * Original function projectile_apply_network_update; the author notes are in
- * docs/original/projectiles/projectile_apply_network_update.c.txt.
  *
  * Register convention in the original: item/projectile index in the first parameter; the
  * incoming update record pointer in the second.
@@ -225,8 +223,6 @@ void ProjectileNetwork::request_state(int16_t requested_state)
 }
 
 /**
- * Original function projectile_send_creation; the author notes are in
- * docs/original/projectiles/projectile_send_creation.c.txt.
  *
  * Register convention in the original: none -- Ghidra recovered a single stack parameter, the
  * projectile index.

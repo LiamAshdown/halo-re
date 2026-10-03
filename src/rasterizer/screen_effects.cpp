@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/screen_effects.cpp
  * Screen space effects, sun glow, motion sensor, UI quads and gamma.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -73,8 +72,7 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
 
 /**
- * Direct3D 9 back end function chimera__gamma. The original author notes are in
- * docs/original/rasterizer/chimera__gamma.c.txt.
+ * Direct3D 9 back end function chimera__gamma.
  *
  * @address 0x5227a0
  */
@@ -108,8 +106,7 @@ void chimera__gamma(void)
 }
 
 /**
- * Direct3D 9 back end function chimera__registry_check_3. The original author notes are in
- * docs/original/rasterizer/chimera__registry_check_3.c.txt.
+ * Direct3D 9 back end function chimera__registry_check_3.
  *
  * @address 0x5226c0
  */
@@ -200,8 +197,7 @@ namespace rasterizer_fog_screen_overlay_set_states_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_fog_screen_overlay_set_states. The original author notes are in
- * docs/original/rasterizer/rasterizer_fog_screen_overlay_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_fog_screen_overlay_set_states.
  *
  * @address 0x51def0
  */
@@ -353,8 +349,7 @@ static BitmapData *first_bitmap_data(const TagDependency &bitmap_reference)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_motion_sensor_begin. The original author notes are in
- * docs/original/rasterizer/rasterizer_motion_sensor_begin.c.txt.
+ * Direct3D 9 back end function rasterizer_motion_sensor_begin.
  *
  * @address 0x52b690
  */
@@ -541,8 +536,7 @@ static BitmapData *first_bitmap_data(const TagDependency &bitmap_reference)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_motion_sensor_end. The original author notes are in
- * docs/original/rasterizer/rasterizer_motion_sensor_end.c.txt.
+ * Direct3D 9 back end function rasterizer_motion_sensor_end.
  *
  * @address 0x52bc40
  */
@@ -676,8 +670,7 @@ static void texel_size(const BitmapData *bitmap, float *u, float *v)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_screen_effect_compute_uv_transform. The original author notes are in
- * docs/original/rasterizer/rasterizer_screen_effect_compute_uv_transform.c.txt.
+ * Direct3D 9 back end function rasterizer_screen_effect_compute_uv_transform.
  *
  * @address 0x52ce50
  */
@@ -922,8 +915,7 @@ static uint32_t select_filter_technique(const weapon_screen_effect_parameters *p
 }
 
 /**
- * Direct3D 9 back end function rasterizer_screen_effect_render. The original author notes are in
- * docs/original/rasterizer/rasterizer_screen_effect_render.c.txt.
+ * Direct3D 9 back end function rasterizer_screen_effect_render.
  *
  * @address 0x52d8a0
  */
@@ -1173,8 +1165,7 @@ static void draw_screen_quad(void)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_screen_effect_render_fixed_function. The original author notes are
- * in docs/original/rasterizer/rasterizer_screen_effect_render_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_screen_effect_render_fixed_function.
  *
  * @address 0x52e2d0
  */
@@ -1632,8 +1623,7 @@ static void set_quad_vertex(int i, float x, float y, float u, float v)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_sun_glow_blur. The original author notes are in
- * docs/original/rasterizer/rasterizer_sun_glow_blur.c.txt.
+ * Direct3D 9 back end function rasterizer_sun_glow_blur.
  *
  * @address 0x525720
  */
@@ -1714,8 +1704,7 @@ static void set_quad_vertex(int i, float x, float y, float u, float v)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_sun_glow_capture. The original author notes are in
- * docs/original/rasterizer/rasterizer_sun_glow_capture.c.txt.
+ * Direct3D 9 back end function rasterizer_sun_glow_capture.
  *
  * @address 0x525320
  */
@@ -1954,8 +1943,7 @@ static void set_screen_vertex_states(void)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_sun_glow_render. The original author notes are in
- * docs/original/rasterizer/rasterizer_sun_glow_render.c.txt.
+ * Direct3D 9 back end function rasterizer_sun_glow_render.
  *
  * @address 0x525ab0
  */
@@ -2133,8 +2121,7 @@ static uint32_t pack_argb(float alpha, float red, float green, float blue)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_ui_quad_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_ui_quad_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_ui_quad_draw.
  *
  * @address 0x51c9a0
  */
@@ -2366,8 +2353,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
 }  // namespace rasterizer_ui_quad_draw_impl
 
 /**
- * Direct3D 9 back end function rasterizer_underwater_tint_jitter_update. The original author notes are in
- * docs/original/rasterizer/rasterizer_underwater_tint_jitter_update.c.txt.
+ * Direct3D 9 back end function rasterizer_underwater_tint_jitter_update.
  *
  * Registers: EAX = lightmap
  *
@@ -2404,8 +2390,7 @@ namespace rasterizer_underwater_tint_set_states_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_underwater_tint_set_states. The original author notes are in
- * docs/original/rasterizer/rasterizer_underwater_tint_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_underwater_tint_set_states.
  *
  * @address 0x51f030
  */

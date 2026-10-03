@@ -17,7 +17,7 @@ static player *blip_player(datum_index player_index)
 namespace halo::interface {
 
 /**
- * Original engine function blip_type_get; the author notes are in docs/original/interface/blip_type_get.txt.
+ *
  * blam-cc: object -> EBX
  *
  * @address 0x4b3450

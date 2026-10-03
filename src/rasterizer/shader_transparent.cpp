@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/shader_transparent.cpp
  * Transparent shader draw passes: chicago, plasma, glass and water.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -87,8 +86,7 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 
 
 /**
- * Direct3D 9 back end function rasterizer_glass_diffuse_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_glass_diffuse_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_diffuse_draw.
  *
  * @address 0x523690
  */
@@ -182,8 +180,7 @@ namespace rasterizer_glass_diffuse_draw_fixed_function_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_glass_diffuse_draw_fixed_function. The original author notes are in
- * docs/original/rasterizer/rasterizer_glass_diffuse_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_diffuse_draw_fixed_function.
  *
  * @address 0x523d10
  */
@@ -249,8 +246,7 @@ void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *gr
 }  // namespace rasterizer_glass_diffuse_draw_fixed_function_impl
 
 /**
- * Direct3D 9 back end function rasterizer_glass_draw_procedures_select. The original author notes are in
- * docs/original/rasterizer/rasterizer_glass_draw_procedures_select.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_draw_procedures_select.
  *
  * @address 0x523ec0
  */
@@ -309,8 +305,7 @@ static float real_negate_pinned(float x)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_glass_reflection_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_glass_reflection_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_reflection_draw.
  *
  * @address 0x522c60
  */
@@ -553,8 +548,7 @@ namespace rasterizer_glass_reflection_draw_fixed_function_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_glass_reflection_draw_fixed_function. The original author notes are
- * in docs/original/rasterizer/rasterizer_glass_reflection_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_reflection_draw_fixed_function.
  *
  * @address 0x523b90
  */
@@ -599,8 +593,7 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 
 
 /**
- * Direct3D 9 back end function rasterizer_glass_tint_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_glass_tint_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_tint_draw.
  *
  * @address 0x522930
  */
@@ -706,8 +699,7 @@ namespace rasterizer_glass_tint_draw_fixed_function_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_glass_tint_draw_fixed_function. The original author notes are in
- * docs/original/rasterizer/rasterizer_glass_tint_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_glass_tint_draw_fixed_function.
  *
  * @address 0x523980
  */
@@ -800,8 +792,7 @@ static int32_t numeric_value(float limit, float value)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_transparent_chicago_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_transparent_chicago_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_transparent_chicago_draw.
  *
  * @address 0x531ed0
  */
@@ -1127,8 +1118,7 @@ static int32_t numeric_value(float limit, float value)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_transparent_chicago_extended_draw. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_transparent_chicago_extended_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_transparent_chicago_extended_draw.
  *
  * @address 0x532a40
  */
@@ -1509,8 +1499,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_transparent_chicago_set_texture_stages. The original author
- * notes are in docs/original/rasterizer/rasterizer_shader_transparent_chicago_set_texture_stages.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_transparent_chicago_set_texture_stages.
  *
  * @address 0x537bb0
  */
@@ -1573,8 +1562,7 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_transparent_plasma_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_transparent_plasma_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_transparent_plasma_draw.
  *
  * @address 0x52c4a0
  */
@@ -1761,8 +1749,7 @@ static void effect_draw(void *effect, int32_t only_pass, transparent_geometry_gr
 }
 
 /**
- * Direct3D 9 back end function rasterizer_water_draw_fixed_function. The original author notes are in
- * docs/original/rasterizer/rasterizer_water_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_water_draw_fixed_function.
  *
  * @address 0x5358b0
  */
@@ -1930,8 +1917,7 @@ static void effect_draw_pass(void *effect, uint32_t pass, transparent_geometry_g
 }
 
 /**
- * Direct3D 9 back end function rasterizer_water_draw_pixel_shader. The original author notes are in
- * docs/original/rasterizer/rasterizer_water_draw_pixel_shader.c.txt.
+ * Direct3D 9 back end function rasterizer_water_draw_pixel_shader.
  *
  * @address 0x535fd0
  */
@@ -2107,8 +2093,7 @@ namespace rasterizer_water_fade_compute_and_set_states_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_water_fade_compute_and_set_states. The original author notes are in
- * docs/original/rasterizer/rasterizer_water_fade_compute_and_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_water_fade_compute_and_set_states.
  *
  * @address 0x51eb20
  */
@@ -2200,8 +2185,7 @@ namespace rasterizer_water_ripple_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_water_ripple_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_water_ripple_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_water_ripple_draw.
  *
  * Registers: EAX -> vertex_buffer
  *
@@ -2292,8 +2276,7 @@ static void bind_ripple_bitmap(uint32_t stage, BitmapData *bitmap)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_water_update_ripple_texture. The original author notes are in
- * docs/original/rasterizer/rasterizer_water_update_ripple_texture.c.txt.
+ * Direct3D 9 back end function rasterizer_water_update_ripple_texture.
  *
  * @address 0x534f80
  */

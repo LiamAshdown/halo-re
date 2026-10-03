@@ -38,8 +38,7 @@ static uint32_t hud_flash_blend(ColorARGB *a, ColorARGB *b, float s)
 namespace halo::interface {
 
 /**
- * Original engine function hud_meter_draw_fill; the author notes are in
- * docs/original/interface/hud_meter_draw_fill.txt.
+ *
  * blam-cc: placement -> ESI
  *
  * @address 0x4abbc0
@@ -256,8 +255,7 @@ void HudMeters::permute_node_records(uint8_t *dest, uint8_t *source, uint32_t ta
 }
 
 /**
- * Original engine function hud_meter_resolve_bitmap_frame; the author notes are in
- * docs/original/interface/hud_meter_resolve_bitmap_frame.txt.
+ *
  * blam-cc: EAX -> frame_index, stack -> bitmap_tag, sequence_index, out_data, out_offset
  *
  * @address 0x4ab8d0
@@ -329,8 +327,6 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
 }
 
 /**
- * Original engine function hud_unit_meters_update; the author notes are in
- * docs/original/interface/hud_unit_meters_update.txt.
  *
  * @address 0x4b0110
  */
@@ -346,8 +342,7 @@ void HudMeters::unit_meters_update(void)
 }
 
 /**
- * Original engine function hud_unit_meters_update_for_player; the author notes are in
- * docs/original/interface/hud_unit_meters_update_for_player.txt.
+ *
  * blam-cc: local_player_index -> DI
  *
  * @address 0x4b0160

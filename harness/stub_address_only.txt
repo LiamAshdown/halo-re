@@ -1,8 +1,0 @@
-# stubs the C only takes the ADDRESS of (never calls directly), each verified in src and at the binary's own
-# registration site. MSVC LTCG gives custom register conventions only to functions whose address is never taken, so
-# an address-taken original follows its declared standard convention; gen_hooks clears these even when its
-# callee-saved scan is inconclusive. Add a stub here only with that verification written next to it.
-# network_channels_open.c: FUN_00614800(socket, cb) stores cb at socket+0x2c (0x614808); binary pushes 0x4410b0 /
-# 0x441200 before its calls; no other reference in src.
-_network_channel_gap_4410b0
-_network_channel_gap_441200

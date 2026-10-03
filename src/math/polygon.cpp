@@ -1,7 +1,6 @@
 /**
  * @file src/math/polygon.cpp
  * 2d/3d polygons: sutherland-hodgman clipping, convex hull, containment.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

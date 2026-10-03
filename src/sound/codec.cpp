@@ -1,7 +1,6 @@
 /**
  * @file src/sound/codec.cpp
  * Xbox ADPCM decoding.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "internal/state.hpp"

@@ -1,27 +1,17 @@
 # private: game binary, Ghidra DB, raw exports
 bin/
 ghidra/
-out/halo_decompiled.c
-out/*.log
+out/
 vendor/
 packs/
 
-# local backups and regenerable exports (rebuild with the headless Ghidra run and tools/make_*.py)
-out/*.tar
-out/functions.json
-out/functions.csv
-out/slices/
-out/phase2/*/*.md
-out/naming_report.json
-__pycache__/
-tools/__pycache__/
-
-# agent scratch space (disassembly dumps, temp packs)
+# build output and local scratch
+build/
+cmake-build-debug/
+.vs/
 scratchpad/
 scratchpad_pack/
+__pycache__/
+*.obj
 *.pkl
-build/
-harness/gen/
-cmake-build-*/
 .idea/
-build/field_uses.json

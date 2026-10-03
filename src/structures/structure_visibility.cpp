@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_visibility.cpp
  * Per-frame visibility of clusters, surfaces and objects from the render camera.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/structures/structures.hpp"

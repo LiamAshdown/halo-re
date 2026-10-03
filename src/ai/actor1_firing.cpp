@@ -21,8 +21,7 @@ namespace c_actor_claim_firing_position {
 
 
 /**
- * actor_claim_firing_position: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_claim_firing_position.c.txt.
+ * actor_claim_firing_position: behaviour unchanged from the original routine.
  *
  * @address 0x414060
  */
@@ -82,8 +81,7 @@ static auto &qsort_candidate_base = halo::link::ref<actor_firing_position_candid
 
 
 /**
- * actor_find_best_firing_position: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_best_firing_position.c.txt.
+ * actor_find_best_firing_position: behaviour unchanged from the original routine.
  *
  * @address 0x412ba0
  */
@@ -640,8 +638,7 @@ static auto &qsort_candidate_base = halo::link::ref<actor_firing_position_candid
 
 
 /**
- * actor_firing_position_compare: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_firing_position_compare.c.txt.
+ * actor_firing_position_compare: behaviour unchanged from the original routine.
  *
  * @address 0x4127b0
  */
@@ -672,8 +669,7 @@ namespace c_actor_firing_position_evaluate {
 
 
 /**
- * actor_firing_position_evaluate: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_firing_position_evaluate.c.txt.
+ * actor_firing_position_evaluate: behaviour unchanged from the original routine.
  *
  * @address 0x412820
  */
@@ -710,8 +706,7 @@ namespace c_actor_firing_position_near_point {
 
 
 /**
- * actor_firing_position_near_point: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_firing_position_near_point.c.txt.
+ * actor_firing_position_near_point: behaviour unchanged from the original routine.
  *
  * @address 0x412960
  */
@@ -801,8 +796,7 @@ static auto &actor_firing_position_reject_rules = halo::link::ref<actor_firing_p
 
 
 /**
- * actor_firing_position_probe_reject_rules: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_firing_position_probe_reject_rules.c.txt.
+ * actor_firing_position_probe_reject_rules: behaviour unchanged from the original routine.
  *
  * @address 0x412770
  */
@@ -846,8 +840,7 @@ static auto &actor_firing_position_reject_rules = halo::link::ref<actor_firing_p
 
 
 /**
- * actor_firing_position_run_reject_rules: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_firing_position_run_reject_rules.c.txt.
+ * actor_firing_position_run_reject_rules: behaviour unchanged from the original routine.
  *
  * @address 0x412730
  */
@@ -890,8 +883,7 @@ static auto &actor_firing_position_score_rules = halo::link::ref<actor_firing_po
 
 
 /**
- * actor_firing_position_run_score_rules: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_firing_position_run_score_rules.c.txt.
+ * actor_firing_position_run_score_rules: behaviour unchanged from the original routine.
  *
  * @address 0x4126f0
  */
@@ -926,8 +918,7 @@ namespace c_actor_get_firing_position_group_mask {
 
 
 /**
- * actor_get_firing_position_group_mask: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_firing_position_group_mask.c.txt.
+ * actor_get_firing_position_group_mask: behaviour unchanged from the original routine.
  *
  * @address 0x412880
  */
@@ -985,8 +976,7 @@ namespace c_actor_get_firing_positions {
 
 
 /**
- * actor_get_firing_positions: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_firing_positions.c.txt.
+ * actor_get_firing_positions: behaviour unchanged from the original routine.
  *
  * @address 0x41c1e0
  */

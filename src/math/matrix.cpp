@@ -1,7 +1,6 @@
 /**
  * @file src/math/matrix.cpp
  * Real_matrix3x3 / real_matrix4x3: build, invert, multiply (scalar, sse, 3dnow!), transform.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

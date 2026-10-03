@@ -53,7 +53,6 @@ static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_level_select_confirm_choice.c.txt for the recovery notes.
  *
  * @address 0x49ce00
  */

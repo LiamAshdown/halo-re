@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/decals.cpp
  * Decal vertex cache, decal pass state and per-cluster decal drawing.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include <cstddef>
@@ -98,8 +97,7 @@ void decal_and_font_system_reset(void)
 }
 
 /**
- * Direct3D 9 back end function decal_geometry_cache_restore_procs. The original author notes are in
- * docs/original/rasterizer/decal_geometry_cache_restore_procs.c.txt.
+ * Direct3D 9 back end function decal_geometry_cache_restore_procs.
  *
  * @address 0x511ed0
  */
@@ -110,8 +108,7 @@ void decal_geometry_cache_restore_procs(void)
 }
 
 /**
- * Direct3D 9 back end function decal_vertex_cache_in_use. The original author notes are in
- * docs/original/rasterizer/decal_vertex_cache_in_use.c.txt.
+ * Direct3D 9 back end function decal_vertex_cache_in_use.
  *
  * @address 0x51a670
  */
@@ -222,8 +219,7 @@ namespace rasterizer_decal_pass_begin_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_decal_pass_begin. The original author notes are in
- * docs/original/rasterizer/rasterizer_decal_pass_begin.c.txt.
+ * Direct3D 9 back end function rasterizer_decal_pass_begin.
  *
  * Registers: unaff_DI -> stage
  *
@@ -301,8 +297,7 @@ namespace rasterizer_decal_vertex_cache_lock_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_decal_vertex_cache_lock. The original author notes are in
- * docs/original/rasterizer/rasterizer_decal_vertex_cache_lock.c.txt.
+ * Direct3D 9 back end function rasterizer_decal_vertex_cache_lock.
  *
  * Registers: EAX -> decal_index, stack -> byte_count
  *
@@ -357,8 +352,7 @@ static void rasterizer_set_texture_stage_state(uint32_t stage, uint32_t type, ui
 }
 
 /**
- * Direct3D 9 back end function rasterizer_decals_draw_cluster. The original author notes are in
- * docs/original/rasterizer/rasterizer_decals_draw_cluster.c.txt.
+ * Direct3D 9 back end function rasterizer_decals_draw_cluster.
  *
  * @address 0x51aa50
  */
@@ -559,8 +553,7 @@ namespace rasterizer_shader_decal_pass_set_states_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_decal_pass_set_states. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_decal_pass_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_decal_pass_set_states.
  *
  * @address 0x520020
  */

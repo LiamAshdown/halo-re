@@ -1,7 +1,6 @@
 /**
  * @file src/bitmaps/color_codec.cpp
  * Colour conversion and interpolation helpers (packed int, RGB, HSV).
- * The original author notes and decompiles are in docs/original/bitmaps/.
  */
 
 #include "halo/core/crt.hpp"

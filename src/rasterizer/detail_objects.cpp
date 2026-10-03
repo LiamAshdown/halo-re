@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/detail_objects.cpp
  * Detail object vertex buffer and drawing.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -22,8 +21,7 @@ namespace halo::rasterizer {
 
 
 /**
- * Direct3D 9 back end function rasterizer_detail_object_vertex_buffer_create. The original author notes are in
- * docs/original/rasterizer/rasterizer_detail_object_vertex_buffer_create.c.txt.
+ * Direct3D 9 back end function rasterizer_detail_object_vertex_buffer_create.
  *
  * @address 0x51b370
  */
@@ -62,8 +60,7 @@ static void rasterizer_set_sampler_state(uint32_t sampler, uint32_t type, uint32
 }
 
 /**
- * Direct3D 9 back end function rasterizer_detail_objects_begin. The original author notes are in
- * docs/original/rasterizer/rasterizer_detail_objects_begin.c.txt.
+ * Direct3D 9 back end function rasterizer_detail_objects_begin.
  *
  * @address 0x51b3f0
  */
@@ -140,8 +137,7 @@ namespace rasterizer_detail_objects_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_detail_objects_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_detail_objects_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_detail_objects_draw.
  *
  * @address 0x51b890
  */
@@ -222,8 +218,7 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
 }  // namespace rasterizer_detail_objects_draw_impl
 
 /**
- * Direct3D 9 back end function rasterizer_detail_objects_expand_quad_vertices. The original author notes are
- * in docs/original/rasterizer/rasterizer_detail_objects_expand_quad_vertices.c.txt.
+ * Direct3D 9 back end function rasterizer_detail_objects_expand_quad_vertices.
  *
  * Registers: EAX -> quad_count, ECX -> vertices, EDX -> instances, stack -> (collection, draw)
  *
@@ -277,8 +272,7 @@ namespace rasterizer_detail_objects_vertex_buffer_fill_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_detail_objects_vertex_buffer_fill. The original author notes are in
- * docs/original/rasterizer/rasterizer_detail_objects_vertex_buffer_fill.c.txt.
+ * Direct3D 9 back end function rasterizer_detail_objects_vertex_buffer_fill.
  *
  * @address 0x51b6f0
  */

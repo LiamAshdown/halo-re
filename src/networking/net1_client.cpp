@@ -1296,7 +1296,6 @@ int32_t JoinView::connect_retry_tick()
 }
 
 /**
- * Original `network_join_handshake_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
  *
  * @address 0x4daa20
  */

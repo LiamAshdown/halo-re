@@ -1,7 +1,6 @@
 /**
  * @file src/math/rotation.cpp
  * Rotating vectors: axis-angle rotation and the bounded angular servos.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

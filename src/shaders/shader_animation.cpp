@@ -1,7 +1,6 @@
 /**
  * @file src/shaders/shader_animation.cpp
  * Texture animation evaluation for shader tags.
- * The original author notes and decompiles are in docs/original/shaders/.
  */
 
 #include "halo/core/crt.hpp"

@@ -44,8 +44,6 @@ static void apply_gain(void (*setter)(float), uint8_t stored_value)
 namespace halo::interface {
 
 /**
- * Original engine function audio_options_apply_from_profile; the author notes are in
- * docs/original/interface/audio_options_apply_from_profile.txt.
  *
  * @address 0x4a26a0
  */

@@ -1,7 +1,6 @@
 /**
  * @file src/text/string_codec.cpp
  * String conversion and lookup helpers.
- * The original author notes and decompiles are in docs/original/text/.
  */
 
 #include "halo/text/text.hpp"

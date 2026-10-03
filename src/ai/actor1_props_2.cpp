@@ -45,8 +45,7 @@ static uint8_t actor_danger_stance(datum_index actor_index)
 
 
 /**
- * actor_danger_update_reaction: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_danger_update_reaction.c.txt.
+ * actor_danger_update_reaction: behaviour unchanged from the original routine.
  *
  * @address 0x41eda0
  */

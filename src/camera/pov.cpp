@@ -58,8 +58,6 @@ static_assert(offsetof(flying_render_frame, camera) == 0x14);
 }
 
 /**
- * Original function camera_first_person_compute_pov; the author notes are in
- * docs/original/camera/camera_first_person_compute_pov.c.txt.
  *
  * Register convention in the original: matches director_pov_proc exactly --
  * (director_camera_data *data, camera_input *input, observer_command *command), cdecl, all
@@ -108,8 +106,6 @@ void FirstPersonCamera::compute_pov(director_camera_data *data, camera_input *in
 }
 
 /**
- * Original function first_person_camera_apply_weapon_offset; the author notes are in
- * docs/original/camera/first_person_camera_apply_weapon_offset.c.txt.
  *
  * Register convention in the original: EAX -> position (also the seed/output of
  * unit_get_camera_position), EBX.
@@ -151,8 +147,6 @@ void FirstPersonCamera::apply_weapon_offset(real_point3d *position, datum_index 
 }
 
 /**
- * Original function first_person_camera_command_for_unit; the author notes are in
- * docs/original/camera/first_person_camera_command_for_unit.c.txt.
  *
  * Register convention in the original: unit handle in ECX (in_ECX); command pointer as the
  * single cdecl stack parameter (confirmed with objdump: `mov ebx,[esp+8]` reads it right after
@@ -170,8 +164,6 @@ void FirstPersonCamera::command_for_unit(datum_index unit, observer_command *com
 }
 
 /**
- * Original function first_person_camera_deterministic; the author notes are in
- * docs/original/camera/first_person_camera_deterministic.c.txt.
  *
  * Register convention in the original: output position in EAX (in_EAX), unit handle in ECX
  * (in_ECX), output direction as the single cdecl stack parameter (confirmed with objdump).
@@ -218,8 +210,6 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
 }
 
 /**
- * Original function first_person_camera_for_unit_and_vector; the author notes are in
- * docs/original/camera/first_person_camera_for_unit_and_vector.c.txt.
  *
  * Register convention in the original: command pointer in EBX (unaff_EBX), direction vector in
  * EAX (in_EAX); the unit handle is the single cdecl stack parameter.
@@ -298,8 +288,6 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
 }
 
 /**
- * Original function first_person_camera_track_offset; the author notes are in
- * docs/original/camera/first_person_camera_track_offset.c.txt.
  *
  * Register convention in the original: unit_camera_properties * in ECX (in_ECX); angle and out
  * on the stack.
@@ -376,8 +364,6 @@ void FirstPersonCamera::track_offset(unit_camera_properties *properties, float a
 }
 
 /**
- * Original function unit_get_camera_properties; the author notes are in
- * docs/original/camera/unit_get_camera_properties.c.txt.
  *
  * Register convention in the original: unit's datum_index in EAX (in_EAX), no other
  * parameters.
@@ -412,8 +398,6 @@ unit_camera_properties * FirstPersonCamera::unit_properties(datum_index unit)
 }
 
 /**
- * Original function camera_third_person_compute_pov; the author notes are in
- * docs/original/camera/camera_third_person_compute_pov.c.txt.
  *
  * Register convention in the original: all three parameters are on the stack (cdecl, matching
  * director_pov_proc);.
@@ -538,8 +522,6 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
 }
 
 /**
- * Original function camera_track_compute_pov; the author notes are in
- * docs/original/camera/camera_track_compute_pov.c.txt.
  *
  * Register convention in the original: matches director_pov_proc exactly --
  * (director_camera_data *data, camera_input *input, observer_command *command), cdecl, all
@@ -622,8 +604,6 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
 }
 
 /**
- * Original function camera_debug_compute_pov; the author notes are in
- * docs/original/camera/camera_debug_compute_pov.c.txt.
  *
  * Register convention in the original: matches director_pov_proc exactly --
  * (director_camera_data *data, camera_input *input, observer_command *command), cdecl, all
@@ -756,8 +736,6 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
 }
 
 /**
- * Original function editor_camera_compute_pov; the author notes are in
- * docs/original/camera/editor_camera_compute_pov.c.txt.
  *
  * Register convention in the original: director_pov_proc (cdecl, three stack arguments; ecx =
  * [esp+0x8] input, ebx = [esp+0x14] data, ebp = [esp+0x20] command after the prologue).
@@ -812,8 +790,6 @@ void EditorCamera::compute_pov(director_camera_data *data, camera_input *input, 
 }
 
 /**
- * Original function editor_camera_set_position_and_direction; the author notes are in
- * docs/original/camera/editor_camera_set_position_and_direction.c.txt.
  *
  * Register convention in the original: output in EAX (in_EAX), direction vector in ECX
  * (in_ECX), position in EDX (in_EDX); no stack parameters.
@@ -833,8 +809,6 @@ void EditorCamera::set_position_and_direction(editor_camera_data *out, Vector3D 
 }
 
 /**
- * Original function flying_camera_attach_to_object; the author notes are in
- * docs/original/camera/flying_camera_attach_to_object.c.txt.
  *
  * @address 0x446470
  */
@@ -856,8 +830,6 @@ void FlyingCamera::attach_to_object(datum_index object_index)
 }
 
 /**
- * Original function flying_camera_compute_pov; the author notes are in
- * docs/original/camera/flying_camera_compute_pov.c.txt.
  *
  * Register convention in the original: director_pov_proc (cdecl, three stack arguments; edi =
  * [esp+0x10] input after the two pushes, the data / command arguments are re-read at 0x446591
@@ -896,8 +868,6 @@ void FlyingCamera::compute_pov(director_camera_data *data, camera_input *input, 
 }
 
 /**
- * Original function flying_camera_enter_flying; the author notes are in
- * docs/original/camera/flying_camera_enter_flying.c.txt.
  *
  * Register convention in the original: cdecl, the record as the only stack argument.
  *
@@ -917,8 +887,6 @@ void FlyingCamera::enter_flying(editor_camera_data *data)
 }
 
 /**
- * Original function flying_camera_enter_orbiting; the author notes are in
- * docs/original/camera/flying_camera_enter_orbiting.c.txt.
  *
  * Register convention in the original: cdecl, the record as the only stack argument.
  *
@@ -944,8 +912,6 @@ void FlyingCamera::enter_orbiting(editor_camera_data *data)
 }
 
 /**
- * Original function flying_camera_initialize; the author notes are in
- * docs/original/camera/flying_camera_initialize.c.txt.
  *
  * @address 0x446350
  */
@@ -999,8 +965,6 @@ void FlyingCamera::initialize(editor_camera_data *data, int16_t local_player_ind
 }
 
 /**
- * Original function flying_camera_update; the author notes are in
- * docs/original/camera/flying_camera_update.c.txt.
  *
  * Register convention in the original: director_pov_proc (cdecl, three stack arguments: esi =
  * [esp+0x28] data, ebx = [esp+0x24] input, ebp = [esp+0x34] command after the four pushes).
@@ -1090,8 +1054,6 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
 }
 
 /**
- * Original function orbiting_camera_update; the author notes are in
- * docs/original/camera/orbiting_camera_update.c.txt.
  *
  * Register convention in the original: director_pov_proc (cdecl, three stack arguments; ebx =
  * [esp+0x2c] data, edi = [esp+0x30] input, ebp = [esp+0x34] command after the four pushes).

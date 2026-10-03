@@ -1,3 +1,0 @@
-LIBRARY dinput8
-EXPORTS
-    DirectInput8Create=_proxy_DirectInput8Create@20

@@ -45,7 +45,6 @@ int32_t UiCarousels::carousel_slot_compare_valid_first(const int32_t *a, const i
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_level_carousel_refresh.c.txt for the recovery notes.
  *
  * @address 0x4a4ee0
  */
@@ -75,7 +74,6 @@ void UiCarousels::level_carousel_refresh(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_level_carousel_row_refresh.c.txt for the recovery notes.
  *
  * Register convention: ECX -> widget, EAX -> level_index
  *

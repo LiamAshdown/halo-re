@@ -21,8 +21,6 @@ static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().play
 namespace halo::interface {
 
 /**
- * Original engine function hud_messaging_clear_after_load; the author notes are in
- * docs/original/interface/hud_messaging_clear_after_load.txt.
  *
  * @address 0x4ae530
  */

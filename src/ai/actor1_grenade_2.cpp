@@ -14,8 +14,7 @@ namespace c_actor_compute_grenade_throw_vector {
 
 
 /**
- * actor_compute_grenade_throw_vector: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_compute_grenade_throw_vector.c.txt.
+ * actor_compute_grenade_throw_vector: behaviour unchanged from the original routine.
  *
  * @address 0x410a60
  */
@@ -87,8 +86,7 @@ namespace c_actor_died_unit_grenade_count_mod {
 
 
 /**
- * actor_died_unit_grenade_count_mod: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_died_unit_grenade_count_mod.c.txt.
+ * actor_died_unit_grenade_count_mod: behaviour unchanged from the original routine.
  *
  * @address 0x428d35
  */

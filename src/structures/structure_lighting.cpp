@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_lighting.cpp
  * Lightmap and base map sampling for object lighting.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/structures/structures.hpp"

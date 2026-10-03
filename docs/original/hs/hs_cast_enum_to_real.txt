@@ -1,7 +1,0 @@
-// hs_cast_enum_to_real  (not a Ghidra function; an hs type cast reached only through the cast table)
-// address 0x48ab40, size 23 bytes
-// name confidence: 0.6  rewrite confidence: 0.95
-// evidence: hs_thread_return / hs_coerce_value call dword [ecx*4+0x68bc10] with the value pushed; this is
-//   table 0x68bc10 entries 324..327 (to real from the four enum types).
-// objdump 0x48ab40..0x48ab56: movsx of the word plus one, fild, fstp as a float (the enums count from 1).
-// blam-cc: stack -> value (cdecl)

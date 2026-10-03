@@ -1,7 +1,6 @@
 /**
  * @file src/math/math_initialize.cpp
  * Math_initialize: table set-up and the matrix4x3_multiply cpu dispatch.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/math/math.hpp"

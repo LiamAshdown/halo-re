@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/shader_environment.cpp
  * ShaderEnvironment draw passes.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -80,8 +79,7 @@ static uint8_t build_stage(int32_t *table, int32_t count, int effect_index, cons
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_build_technique_table. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_build_technique_table.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_build_technique_table.
  *
  * @address 0x526930
  */
@@ -106,8 +104,7 @@ uint8_t rasterizer_shader_environment_build_technique_table(void)
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_draw_dispatch. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_draw_dispatch.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_draw_dispatch.
  *
  * @address 0x52b050
  */
@@ -196,8 +193,7 @@ static void set_combine_stages(Shader *shader, int16_t frame, const float *matri
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_draw_fixed_function. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_draw_fixed_function.
  *
  * @address 0x527ae0
  */
@@ -299,8 +295,7 @@ static void environment_set_vector(void *effect, void *handle, float x, float y,
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_draw_pixel_shader. The original author notes are
- * in docs/original/rasterizer/rasterizer_shader_environment_draw_pixel_shader.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_draw_pixel_shader.
  *
  * @address 0x528050
  */
@@ -520,8 +515,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_draw_single_stream. The original author notes are
- * in docs/original/rasterizer/rasterizer_shader_environment_draw_single_stream.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_draw_single_stream.
  *
  * @address 0x5276c0
  */
@@ -617,8 +611,7 @@ static float real_negate_pinned(float x)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_dynamic_mirror_draw. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_dynamic_mirror_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_dynamic_mirror_draw.
  *
  * Registers: EAX -> shader
  *
@@ -767,8 +760,7 @@ namespace rasterizer_shader_environment_lightmap_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_lightmap_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw.
  *
  * @address 0x51e2a0
  */
@@ -844,8 +836,7 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw_single_stream. The original author
- * notes are in docs/original/rasterizer/rasterizer_shader_environment_lightmap_draw_single_stream.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw_single_stream.
  *
  * @address 0x51e8f0
  */
@@ -884,8 +875,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw_two_stream. The original author
- * notes are in docs/original/rasterizer/rasterizer_shader_environment_lightmap_draw_two_stream.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw_two_stream.
  *
  * @address 0x51e570
  */
@@ -955,8 +945,7 @@ namespace rasterizer_shader_environment_lightmap_specular_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_lightmap_specular_draw. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_lightmap_specular_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_lightmap_specular_draw.
  *
  * Registers: EAX -> shader
  *
@@ -1120,8 +1109,7 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_projected_light_draw. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_projected_light_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_projected_light_draw.
  *
  * @address 0x521900
  */
@@ -1232,8 +1220,7 @@ static float real_negate_pinned(float x)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_reflection_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_reflection_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_reflection_draw.
  *
  * @address 0x5202f0
  */
@@ -1378,8 +1365,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 }  // namespace rasterizer_shader_environment_reflection_draw_impl
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_select_draw_functions. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_select_draw_functions.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_select_draw_functions.
  *
  * @address 0x52b630
  */
@@ -1416,8 +1402,7 @@ static float self_illumination_animation(WaveFunction_t function, float period, 
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_self_illumination_draw. The original author notes
- * are in docs/original/rasterizer/rasterizer_shader_environment_self_illumination_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_self_illumination_draw.
  *
  * @address 0x51f3e0
  */
@@ -1599,9 +1584,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_self_illumination_draw_single_stream. The
- * original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_self_illumination_draw_single_stream.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_self_illumination_draw_single_stream.
  *
  * @address 0x51fd80
  */
@@ -1689,9 +1672,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_self_illumination_draw_two_stream. The original
- * author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_self_illumination_draw_two_stream.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_self_illumination_draw_two_stream.
  *
  * @address 0x51fad0
  */
@@ -1769,8 +1750,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
 }  // namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_set_lightmap. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_set_lightmap.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_set_lightmap.
  *
  * Registers: EAX = lightmap
  *
@@ -1795,8 +1775,7 @@ namespace rasterizer_shader_environment_technique_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_technique_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_technique_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_technique_draw.
  *
  * Registers: EAX -> vertex_buffer, ECX -> shader
  *
@@ -1870,9 +1849,7 @@ namespace rasterizer_shader_environment_technique_multipurpose_set_states_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_technique_multipurpose_set_states. The original
- * author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_technique_multipurpose_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_technique_multipurpose_set_states.
  *
  * @address 0x520790
  */
@@ -1910,8 +1887,7 @@ namespace rasterizer_shader_environment_technique_ps2_set_states_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_technique_ps2_set_states. The original author
- * notes are in docs/original/rasterizer/rasterizer_shader_environment_technique_ps2_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_technique_ps2_set_states.
  *
  * @address 0x5212d0
  */
@@ -1969,9 +1945,7 @@ namespace rasterizer_shader_environment_technique_self_illumination_set_states_i
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Direct3D 9 back end function rasterizer_shader_environment_technique_self_illumination_set_states. The
- * original author notes are in
- * docs/original/rasterizer/rasterizer_shader_environment_technique_self_illumination_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_environment_technique_self_illumination_set_states.
  *
  * @address 0x520b90
  */

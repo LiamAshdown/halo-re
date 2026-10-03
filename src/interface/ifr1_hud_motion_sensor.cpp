@@ -25,8 +25,6 @@ static int16_t motion_sensor_next_local_player(int16_t local_player_index)
 namespace halo::interface {
 
 /**
- * Original engine function chimera__motion_sensor_update; the author notes are in
- * docs/original/interface/chimera__motion_sensor_update.txt.
  *
  * @address 0x4b3920
  */

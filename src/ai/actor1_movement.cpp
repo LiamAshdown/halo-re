@@ -28,8 +28,7 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 
 
 /**
- * actor_avoid_obstacle_and_project: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_avoid_obstacle_and_project.c.txt.
+ * actor_avoid_obstacle_and_project: behaviour unchanged from the original routine.
  *
  * @address 0x4095c0
  */
@@ -197,8 +196,7 @@ static auto &actor_avoidance_a_elevation = halo::link::ref<const float [2]>(halo
 
 
 /**
- * actor_avoidance_build_direction_tables: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_avoidance_build_direction_tables.c.txt.
+ * actor_avoidance_build_direction_tables: behaviour unchanged from the original routine.
  *
  * @address 0x41a2d0
  */
@@ -270,8 +268,7 @@ namespace c_actor_avoidance_interpolate_sample {
 
 
 /**
- * actor_avoidance_interpolate_sample: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_avoidance_interpolate_sample.c.txt.
+ * actor_avoidance_interpolate_sample: behaviour unchanged from the original routine.
  *
  * @address 0x419240
  */
@@ -332,8 +329,7 @@ static auto &global_structure_collision_bsp = halo::link::ref<int32_t>(halo::phy
 
 
 /**
- * actor_check_step_obstruction: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_step_obstruction.c.txt.
+ * actor_check_step_obstruction: behaviour unchanged from the original routine.
  *
  * @address 0x417bb0
  */
@@ -431,8 +427,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_check_vehicle_mode_timeout: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_check_vehicle_mode_timeout.c.txt.
+ * actor_check_vehicle_mode_timeout: behaviour unchanged from the original routine.
  *
  * @address 0x428270
  */
@@ -464,8 +459,7 @@ static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(h
 
 
 /**
- * actor_compute_swarm_avoidance_offset: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_compute_swarm_avoidance_offset.c.txt.
+ * actor_compute_swarm_avoidance_offset: behaviour unchanged from the original routine.
  *
  * @address 0x425c70
  */
@@ -572,8 +566,7 @@ namespace c_actor_create_swarm {
 
 
 /**
- * actor_create_swarm: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_create_swarm.c.txt.
+ * actor_create_swarm: behaviour unchanged from the original routine.
  *
  * @address 0x427f40
  */
@@ -636,8 +629,7 @@ namespace c_actor_delete_swarm {
 
 
 /**
- * actor_delete_swarm: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_delete_swarm.c.txt.
+ * actor_delete_swarm: behaviour unchanged from the original routine.
  *
  * @address 0x4280b0
  */
@@ -690,8 +682,7 @@ static actor *actor_try_get(datum_index handle)
 
 
 /**
- * actor_evaluate_search_node: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_evaluate_search_node.c.txt.
+ * actor_evaluate_search_node: behaviour unchanged from the original routine.
  *
  * @address 0x4091d0
  */
@@ -815,8 +806,7 @@ static uint8_t *object_get(datum_index object_index)
 
 
 /**
- * actor_fill_unit_position_context: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_fill_unit_position_context.c.txt.
+ * actor_fill_unit_position_context: behaviour unchanged from the original routine.
  *
  * @address 0x4296c0
  */
@@ -857,8 +847,7 @@ namespace c_actor_find_best_search_node {
 
 
 /**
- * actor_find_best_search_node: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_find_best_search_node.c.txt.
+ * actor_find_best_search_node: behaviour unchanged from the original routine.
  *
  * @address 0x409070
  */
@@ -914,8 +903,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_gate_jump_traversal: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_gate_jump_traversal.c.txt.
+ * actor_gate_jump_traversal: behaviour unchanged from the original routine.
  *
  * @address 0x40a700
  */
@@ -971,8 +959,7 @@ static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]
 
 
 /**
- * actor_get_cached_wander_position: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_cached_wander_position.c.txt.
+ * actor_get_cached_wander_position: behaviour unchanged from the original routine.
  *
  * @address 0x4281f0
  */
@@ -1007,8 +994,7 @@ namespace c_actor_get_requested_velocity {
 
 
 /**
- * actor_get_requested_velocity: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_requested_velocity.c.txt.
+ * actor_get_requested_velocity: behaviour unchanged from the original routine.
  *
  * @address 0x417fa0
  */

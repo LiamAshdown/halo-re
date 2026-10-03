@@ -1,7 +1,6 @@
 /**
  * @file src/sound/directsound_setup.cpp
  * DirectSound device bring-up and channel pool probing.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/sound/directsound.hpp"

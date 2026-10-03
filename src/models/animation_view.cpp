@@ -1,7 +1,6 @@
 /**
  * @file src/models/animation_view.cpp
  * Sampling and blending of model animation frames (base, overlay and replacement animations).
- * The original author notes and decompiles are in docs/original/models/.
  */
 
 #include "halo/core/crt.hpp"

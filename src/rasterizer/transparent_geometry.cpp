@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/transparent_geometry.cpp
  * The transparent geometry group queue: pools, depth sort and group drawing.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -50,8 +49,7 @@ int rasterizer_transparent_decals_enabled(void)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_transparent_geometry_group_build. The original author notes are in
- * docs/original/rasterizer/rasterizer_transparent_geometry_group_build.c.txt.
+ * Direct3D 9 back end function rasterizer_transparent_geometry_group_build.
  *
  * @address 0x52b180
  */
@@ -553,8 +551,7 @@ static void draw_meter_shader(transparent_geometry_group *group, const Shader *s
 }
 
 /**
- * Direct3D 9 back end function rasterizer_transparent_geometry_group_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_transparent_geometry_group_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_transparent_geometry_group_draw.
  *
  * @address 0x533850
  */
@@ -824,9 +821,7 @@ static float real_lerp(float from, float to, float t)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_transparent_geometry_group_draw_active_camouflage. The original
- * author notes are in
- * docs/original/rasterizer/rasterizer_transparent_geometry_group_draw_active_camouflage.c.txt.
+ * Direct3D 9 back end function rasterizer_transparent_geometry_group_draw_active_camouflage.
  *
  * @address 0x519f70
  */
@@ -994,8 +989,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
 }  // namespace rasterizer_transparent_geometry_group_draw_active_camouflage_impl
 
 /**
- * Direct3D 9 back end function rasterizer_transparent_geometry_group_draw_vertices. The original author notes
- * are in docs/original/rasterizer/rasterizer_transparent_geometry_group_draw_vertices.c.txt.
+ * Direct3D 9 back end function rasterizer_transparent_geometry_group_draw_vertices.
  *
  * @address 0x533660
  */

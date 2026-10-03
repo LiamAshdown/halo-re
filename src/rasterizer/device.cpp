@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/device.cpp
  * Window, display mode, device creation, reset, frame bracket, capture and shutdown.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -263,8 +262,7 @@ namespace rasterizer_capture_and_present_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_capture_and_present. The original author notes are in
- * docs/original/rasterizer/rasterizer_capture_and_present.c.txt.
+ * Direct3D 9 back end function rasterizer_capture_and_present.
  *
  * @address 0x518180
  */
@@ -578,8 +576,7 @@ static void rasterizer_set_quad_vertex(rasterizer_screen_vertex *vertex, float x
 }
 
 /**
- * Direct3D 9 back end function rasterizer_end_frame. The original author notes are in
- * docs/original/rasterizer/rasterizer_end_frame.c.txt.
+ * Direct3D 9 back end function rasterizer_end_frame.
  *
  * @address 0x517b90
  */
@@ -752,8 +749,7 @@ static void rasterizer_fpu_reset_control_word(uint16_t control_word)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_initialize_direct3d. The original author notes are in
- * docs/original/rasterizer/rasterizer_initialize_direct3d.c.txt.
+ * Direct3D 9 back end function rasterizer_initialize_direct3d.
  *
  * @address 0x5169c0
  */

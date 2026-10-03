@@ -152,7 +152,6 @@ void GameClientView::action_apply(void **context)
 }
 
 /**
- * Original `network_game_action_queue_drain`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
  *
  * @address 0x4db870
  */

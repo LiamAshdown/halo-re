@@ -1,7 +1,6 @@
 /**
  * @file src/bitmaps/bitmap_data.cpp
  * BitmapData records: mip arithmetic, pixel addressing, validation, teardown and Targa export.
- * The original author notes and decompiles are in docs/original/bitmaps/.
  */
 
 #include "halo/bitmaps/bitmaps.hpp"

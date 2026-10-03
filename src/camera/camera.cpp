@@ -241,8 +241,6 @@ uint8_t CameraSystem::is_local_player_default_first_person()
 }
 
 /**
- * Original function camera_get_seat_camera_state; the author notes are in
- * docs/original/camera/camera_get_seat_camera_state.c.txt.
  *
  * Register convention in the original: unit handle in ECX (in_ECX); output
  * director_seat_camera_state as the single cdecl stack parameter (confirmed with objdump: `mov
@@ -350,8 +348,6 @@ void CameraSystem::script_set_animation(datum_index animation_tag, char *name)
 }
 
 /**
- * Original function camera_dead_find_next_teammate; the author notes are in
- * docs/original/camera/camera_dead_find_next_teammate.c.txt.
  *
  * Register convention in the original: two cdecl stack parameters (reference_player,
  * current_target) plus a third argument in BL (require_same_team), confirmed at the only call
@@ -396,8 +392,6 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
 }
 
 /**
- * Original function camera_dead_player_has_teammate; the author notes are in
- * docs/original/camera/camera_dead_player_has_teammate.c.txt.
  *
  * Register convention in the original: single cdecl stack parameter (confirmed with objdump:
  * loaded from [esp+0x1c] right after the prologue, and the function returns with a bare
@@ -559,8 +553,6 @@ void CameraSystem::debug_save_to_file()
 }
 
 /**
- * Original function dead_camera_new; the author notes are in
- * docs/original/camera/dead_camera_new.c.txt.
  *
  * Register convention in the original: this-pointer in EAX (in_EAX), local player index in DX
  * (in_DX, 16-bit); the target unit (or -1 to use the local player's own current unit) is the

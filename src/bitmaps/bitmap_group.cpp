@@ -1,7 +1,6 @@
 /**
  * @file src/bitmaps/bitmap_group.cpp
  * Bitmap tag (group) level operations: element lookup and load-time postprocessing.
- * The original author notes and decompiles are in docs/original/bitmaps/.
  */
 
 #include "halo/bitmaps/bitmaps.hpp"

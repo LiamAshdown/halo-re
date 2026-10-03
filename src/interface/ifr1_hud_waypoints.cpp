@@ -235,8 +235,7 @@ void HudWaypoints::deactivate_for_team(int16_t kind, int16_t team, datum_index t
 }
 
 /**
- * Original engine function hud_waypoint_draw; the author notes are in
- * docs/original/interface/hud_waypoint_draw.txt.
+ *
  * blam-cc: position -> EAX
  *
  * @address 0x4af5e0

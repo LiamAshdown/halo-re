@@ -1,7 +1,6 @@
 /**
  * @file src/math/sphere_mesh.cpp
  * The subdivided-octahedron sphere mesh and the 1026-entry direction table.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/math/math.hpp"

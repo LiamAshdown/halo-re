@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/shader_model.cpp
  * ShaderModel draw passes, model draw state and object shadows.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -313,8 +312,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_object_shadow_begin. The original author notes are in
- * docs/original/rasterizer/rasterizer_object_shadow_begin.c.txt.
+ * Direct3D 9 back end function rasterizer_object_shadow_begin.
  *
  * @address 0x530ff0
  */
@@ -439,8 +437,7 @@ static void set_line_vertex(int i, float x, float y)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_object_shadow_blur. The original author notes are in
- * docs/original/rasterizer/rasterizer_object_shadow_blur.c.txt.
+ * Direct3D 9 back end function rasterizer_object_shadow_blur.
  *
  * @address 0x530830
  */
@@ -552,8 +549,7 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_object_shadow_model_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_object_shadow_model_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_object_shadow_model_draw.
  *
  * @address 0x531350
  */
@@ -621,8 +617,7 @@ static float dot_position(const real_vector3d *v)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_object_shadow_structure_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_object_shadow_structure_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_object_shadow_structure_draw.
  *
  * @address 0x531570
  */
@@ -749,8 +744,7 @@ static void set_transform(uint32_t state, const float *matrix)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_model_draw_fixed_function. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_model_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_model_draw_fixed_function.
  *
  * @address 0x529230
  */
@@ -940,8 +934,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_model_draw_limited. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_model_draw_limited.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_model_draw_limited.
  *
  * @address 0x528be0
  */
@@ -1100,8 +1093,7 @@ static void set_effect_vector(rasterizer_effect_slot *slot, int handle, float x,
 }
 
 /**
- * Direct3D 9 back end function rasterizer_shader_model_draw_pixel_shader. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_model_draw_pixel_shader.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_model_draw_pixel_shader.
  *
  * @address 0x529e00
  */
@@ -1465,8 +1457,7 @@ namespace rasterizer_shader_model_select_technique_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_shader_model_select_technique. The original author notes are in
- * docs/original/rasterizer/rasterizer_shader_model_select_technique.c.txt.
+ * Direct3D 9 back end function rasterizer_shader_model_select_technique.
  *
  * @address 0x527500
  */

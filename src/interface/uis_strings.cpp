@@ -38,7 +38,6 @@ static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widge
 namespace halo::ui {
 
 /**
- * Original UI routine; see docs/original/interface/ui_real_to_int_truncate.c.txt for the recovery notes.
  *
  * @address 0x4ab590
  */
@@ -62,7 +61,6 @@ int32_t UiStrings::real_to_int_truncate(float value)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_replace_empty.c.txt for the recovery notes.
  *
  * @address 0x4a8750
  */
@@ -72,7 +70,6 @@ void * UiStrings::replace_empty(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_replace_player_number.c.txt for the recovery notes.
  *
  * @address 0x4a8840
  */
@@ -93,7 +90,6 @@ void * UiStrings::replace_player_number(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_replace_product_id.c.txt for the recovery notes.
  *
  * @address 0x4a8810
  */
@@ -106,7 +102,6 @@ void * UiStrings::replace_product_id(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_replace_version.c.txt for the recovery notes.
  *
  * @address 0x4a8760
  */
@@ -119,7 +114,6 @@ void * UiStrings::replace_version(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_search_replace_function_call.c.txt for the recovery notes.
  *
  * Register convention: index -> AX, widget -> ECX
  *

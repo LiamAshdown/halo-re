@@ -1,7 +1,6 @@
 /**
  * @file src/models/animation_graph.cpp
  * Animation graph level helpers: state advance, lookup, keyframe search, quaternion codecs and node matrices.
- * The original author notes and decompiles are in docs/original/models/.
  */
 
 #include "halo/models/models.hpp"

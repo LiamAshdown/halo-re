@@ -1,7 +1,6 @@
 /**
  * @file src/math/periodic_functions.cpp
  * Periodic (wave) and transition (easing) function tables and evaluators.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

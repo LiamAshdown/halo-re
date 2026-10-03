@@ -1,7 +1,6 @@
 /**
  * @file src/sound/channels.cpp
  * Logical playback channels: assignment, stealing and the channel parameter policies.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/core/slot_mask.hpp"

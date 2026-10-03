@@ -78,8 +78,6 @@ static void overlay_channel(ModelAnimationsAnimation *animation, float value, in
 namespace halo::interface {
 
 /**
- * Original engine function first_person_weapon_update; the author notes are in
- * docs/original/interface/first_person_weapon_update.txt.
  *
  * @address 0x493150
  */
@@ -256,8 +254,6 @@ void FirstPersonWeaponController::update()
 }
 
 /**
- * Original engine function first_person_weapon_update_animation_controls; the author notes are in
- * docs/original/interface/first_person_weapon_update_animation_controls.txt.
  *
  * @address 0x493740
  */
@@ -370,8 +366,7 @@ void FirstPersonWeaponController::update_animation_controls()
 }
 
 /**
- * Original engine function first_person_weapon_update_zoom_static_tint; the author notes are in
- * docs/original/interface/first_person_weapon_update_zoom_static_tint.txt.
+ *
  * blam-cc: AL -> enabled
  *
  * @address 0x494af0

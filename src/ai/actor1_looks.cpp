@@ -25,8 +25,7 @@ static auto &actor_control_animation_state_table = halo::link::ref<const uint8_t
 
 
 /**
- * actor_apply_queued_look_to_unit: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_apply_queued_look_to_unit.c.txt.
+ * actor_apply_queued_look_to_unit: behaviour unchanged from the original routine.
  *
  * @address 0x42a640
  */
@@ -87,8 +86,7 @@ static auto &actor_vocalization_variant = halo::link::ref<int16_t [14][2]>(halo:
 
 
 /**
- * actor_begin_vocalization: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_begin_vocalization.c.txt.
+ * actor_begin_vocalization: behaviour unchanged from the original routine.
  *
  * @address 0x4142d0
  */
@@ -182,8 +180,7 @@ namespace c_actor_clear_vocalization {
 
 
 /**
- * actor_clear_vocalization: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_clear_vocalization.c.txt.
+ * actor_clear_vocalization: behaviour unchanged from the original routine.
  *
  * @address 0x414560
  */
@@ -215,8 +212,7 @@ static const float k_perception_range_class_scale[4] = {0.4f, 0.6f, 0.8f, 1.0f};
 
 
 /**
- * actor_dispatch_look_handler_by_posture: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_dispatch_look_handler_by_posture.c.txt.
+ * actor_dispatch_look_handler_by_posture: behaviour unchanged from the original routine.
  *
  * @address 0x41bb30
  */
@@ -301,8 +297,7 @@ namespace c_actor_flee_look_away {
 
 
 /**
- * actor_flee_look_away: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_flee_look_away.c.txt.
+ * actor_flee_look_away: behaviour unchanged from the original routine.
  *
  * @address 0x40d4c0
  */
@@ -339,8 +334,7 @@ namespace c_actor_get_idle_facing_range {
 
 
 /**
- * actor_get_idle_facing_range: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_get_idle_facing_range.c.txt.
+ * actor_get_idle_facing_range: behaviour unchanged from the original routine.
  *
  * @address 0x4150f0
  */
@@ -377,8 +371,7 @@ namespace c_actor_issue_order_or_vocalize {
 
 
 /**
- * actor_issue_order_or_vocalize: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_issue_order_or_vocalize.c.txt.
+ * actor_issue_order_or_vocalize: behaviour unchanged from the original routine.
  *
  * @address 0x4302e0
  */
@@ -435,8 +428,7 @@ namespace c_actor_look_get_wait_ticks {
 
 
 /**
- * actor_look_get_wait_ticks: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_look_get_wait_ticks.c.txt.
+ * actor_look_get_wait_ticks: behaviour unchanged from the original routine.
  *
  * @address 0x415150
  */
@@ -512,8 +504,7 @@ namespace c_actor_look_pick_random_point_in_cone {
 
 
 /**
- * actor_look_pick_random_point_in_cone: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_look_pick_random_point_in_cone.c.txt.
+ * actor_look_pick_random_point_in_cone: behaviour unchanged from the original routine.
  *
  * @address 0x415260
  */
@@ -600,8 +591,7 @@ namespace c_actor_look_randomize_direction {
 
 
 /**
- * actor_look_randomize_direction: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_look_randomize_direction.c.txt.
+ * actor_look_randomize_direction: behaviour unchanged from the original routine.
  *
  * @address 0x414f50
  */
@@ -677,8 +667,7 @@ static auto &actor_lookup_table_006555a8 = halo::link::ref<int16_t [12]>(halo::a
 
 
 /**
- * actor_lookup_small_table_entry: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_lookup_small_table_entry.c.txt.
+ * actor_lookup_small_table_entry: behaviour unchanged from the original routine.
  *
  * @address 0x40e790
  */

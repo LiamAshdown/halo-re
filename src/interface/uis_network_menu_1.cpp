@@ -61,8 +61,6 @@ static auto &server_browser_require_valid_entry = halo::link::ref<uint8_t>(halo:
 namespace halo::ui {
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_adapter_details_refresh.c.txt for the recovery
- * notes.
  *
  * @address 0x4a4650
  */
@@ -125,8 +123,6 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_client_connect_and_save.c.txt for the recovery
- * notes.
  *
  * @address 0x4a4a30
  */
@@ -158,8 +154,6 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_game_options_populate.c.txt for the recovery
- * notes.
  *
  * Register convention: ECX -> widget, ESI -> options_record
  *
@@ -186,7 +180,6 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_game_options_refresh.c.txt for the recovery notes.
  *
  * @address 0x4a3b30
  */
@@ -198,7 +191,6 @@ void UiNetworkMenu::network_game_options_refresh(widget_instance *widget, const 
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_host_setup_refresh.c.txt for the recovery notes.
  *
  * @address 0x4a2cb0
  */
@@ -312,7 +304,6 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_name_fields_refresh.c.txt for the recovery notes.
  *
  * @address 0x4a4b60
  */
@@ -362,7 +353,6 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_network_name_fields_reset.c.txt for the recovery notes.
  *
  * @address 0x4a49c0
  */
@@ -490,7 +480,6 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_server_type_option_selected.c.txt for the recovery notes.
  *
  * @address 0x4a47c0
  */

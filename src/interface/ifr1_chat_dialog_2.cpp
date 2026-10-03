@@ -118,8 +118,6 @@ void ChatDialog::queue_team_message(int32_t team_index)
 }
 
 /**
- * Original engine function chat_server_relay_incoming_message; the author notes are in
- * docs/original/interface/chat_server_relay_incoming_message.txt.
  *
  * @address 0x4aabd0
  */

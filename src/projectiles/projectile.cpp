@@ -196,8 +196,6 @@ void ProjectileHandle::update_function_values()
 }
 
 /**
- * Original function projectile_compute_deceleration; the author notes are in
- * docs/original/projectiles/projectile_compute_deceleration.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX).
  *
@@ -264,8 +262,6 @@ void ProjectileHandle::compute_rotation()
 }
 
 /**
- * Original function projectile_collision_test; the author notes are in
- * docs/original/projectiles/projectile_collision_test.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX); the swept-to point
  * (real_point3d *) in EDI (unaff_EDI); the caller's collision_result output buffer is Ghidra's

@@ -1,7 +1,6 @@
 /**
  * @file src/sound/spatial.cpp
  * Listener, environment and range handling for spatialized sounds.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/core/slot_mask.hpp"

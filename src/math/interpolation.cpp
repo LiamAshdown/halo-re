@@ -1,7 +1,6 @@
 /**
  * @file src/math/interpolation.cpp
  * Interpolation, lerps, cubic curves and the bounded acceleration ramp profile.
- * The original author notes and decompiles are in docs/original/math/.
  */
 
 #include "halo/core/crt.hpp"

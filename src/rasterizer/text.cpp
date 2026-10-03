@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/text.cpp
  * Debug text drawing and the font glyph atlas.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -48,8 +47,7 @@ static_assert(sizeof(ui_quad_render_state) == 0x8c, "ui quad render state size")
 namespace halo::rasterizer {
 
 /**
- * Direct3D 9 back end function chimera__draw_16_bit_text. The original author notes are in
- * docs/original/rasterizer/chimera__draw_16_bit_text.c.txt.
+ * Direct3D 9 back end function chimera__draw_16_bit_text.
  *
  * @address 0x514ab0
  */
@@ -112,8 +110,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
 }
 
 /**
- * Direct3D 9 back end function chimera__draw_8_bit_text. The original author notes are in
- * docs/original/rasterizer/chimera__draw_8_bit_text.c.txt.
+ * Direct3D 9 back end function chimera__draw_8_bit_text.
  *
  * @address 0x5148b0
  */
@@ -433,8 +430,7 @@ namespace rasterizer_draw_text_end_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_draw_text_end. The original author notes are in
- * docs/original/rasterizer/rasterizer_draw_text_end.c.txt.
+ * Direct3D 9 back end function rasterizer_draw_text_end.
  *
  * @address 0x531e90
  */
@@ -508,8 +504,7 @@ typedef struct text_glyph_vertex {
 
 
 /**
- * Direct3D 9 back end function text_draw_glyph_callback. The original author notes are in
- * docs/original/rasterizer/text_draw_glyph_callback.c.txt.
+ * Direct3D 9 back end function text_draw_glyph_callback.
  *
  * @address 0x514ce0
  */

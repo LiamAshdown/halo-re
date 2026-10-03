@@ -1,9 +1,0 @@
-# shaders module (0x53fd60..0x540295) names established by the phase-4 C rewrite and its review
-# in src/shaders/*.c. One row per file whose name differs from symbols/functions.txt; the
-# evidence is that file header comment (objdump traced).
-# addr name kind confidence source
-0x53fde0 shader_is_decal func 0.8 agent-phase4 shaders_review:src/shaders/shader_is_decal.c_(was_FUN_0053fde0)_returns_the_decal_bit_of_types_5..7(+0x29_bit1)/glass(+0x28_bit1)/meter(+0x28_bit0)
-0x53fe30 shader_draw_before_water func 0.8 agent-phase4 shaders_review:src/shaders/shader_draw_before_water.c_(was_FUN_0053fe30)_returns_ShaderTransparentGenericFlags_bit4_draw_before_water_of_types_5..7
-0x540060 shader_environment_texture_scrolling_evaluate func 0.8 agent-phase4 shaders_review:src/shaders/shader_environment_texture_scrolling_evaluate.c_(was_FUN_00540060)_evaluates_ShaderEnvironment_u/v_animation_function/period/scale_at_+0x150..+0x164
-0x5400c0 numeric_countdown_timer_get_digit func 0.8 agent-phase4 shaders_review:src/shaders/numeric_countdown_timer_get_digit.c_(was_game_timer_get_digit_pair)_called_by_hs_numeric_countdown_timer_get_0x47ae60;_returns_one_digit_in_AX
-0x540240 numeric_countdown_timer_update func 0.8 agent-phase4 shaders_review:src/shaders/numeric_countdown_timer_update.c_(was_game_timer_update)_counts_down_0x00721e50_driven_by_numeric_countdown_timer_set/stop/restart

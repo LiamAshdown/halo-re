@@ -540,8 +540,6 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
 }
 
 /**
- * Original engine function hud_draw_number; the author notes are in
- * docs/original/interface/hud_draw_number.txt.
  *
  * @address 0x4ac0b0
  */

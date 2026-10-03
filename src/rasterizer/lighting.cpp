@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/lighting.cpp
  * Light constants, lights, fog constants and shader stage configuration.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -39,8 +38,7 @@ const Light *light_tag(const rasterizer_light *light)
 
 
 /**
- * Direct3D 9 back end function rasterizer_light_cone_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_light_cone_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_light_cone_draw.
  *
  * @address 0x51dc50
  */
@@ -127,8 +125,7 @@ namespace rasterizer_light_cone_set_orientation_constants_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_light_cone_set_orientation_constants. The original author notes are
- * in docs/original/rasterizer/rasterizer_light_cone_set_orientation_constants.c.txt.
+ * Direct3D 9 back end function rasterizer_light_cone_set_orientation_constants.
  *
  * Registers: EAX = light_index
  *
@@ -207,8 +204,7 @@ namespace rasterizer_light_cone_set_texture_stage_states_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_light_cone_set_texture_stage_states. The original author notes are
- * in docs/original/rasterizer/rasterizer_light_cone_set_texture_stage_states.c.txt.
+ * Direct3D 9 back end function rasterizer_light_cone_set_texture_stage_states.
  *
  * @address 0x51d6a0
  */
@@ -435,8 +431,7 @@ static float clamp01(float value)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_prepare_lighting_constants. The original author notes are in
- * docs/original/rasterizer/rasterizer_prepare_lighting_constants.c.txt.
+ * Direct3D 9 back end function rasterizer_prepare_lighting_constants.
  *
  * @address 0x518ce0
  */
@@ -498,8 +493,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
 }  // namespace rasterizer_prepare_lighting_constants_impl
 
 /**
- * Direct3D 9 back end function rasterizer_projected_light_constants_build. The original author notes are in
- * docs/original/rasterizer/rasterizer_projected_light_constants_build.c.txt.
+ * Direct3D 9 back end function rasterizer_projected_light_constants_build.
  *
  * Registers: EAX = light_index
  *
@@ -559,8 +553,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_projected_light_constants_build_cube_map. The original author notes
- * are in docs/original/rasterizer/rasterizer_projected_light_constants_build_cube_map.c.txt.
+ * Direct3D 9 back end function rasterizer_projected_light_constants_build_cube_map.
  *
  * Registers: EAX = light_index
  *
@@ -638,8 +631,7 @@ static uint32_t real_bits(float value)
 }
 
 /**
- * Direct3D 9 back end function rasterizer_set_fog_constants. The original author notes are in
- * docs/original/rasterizer/rasterizer_set_fog_constants.c.txt.
+ * Direct3D 9 back end function rasterizer_set_fog_constants.
  *
  * Registers: EDX -> fog
  *

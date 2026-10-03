@@ -1,7 +1,6 @@
 /**
  * @file src/rasterizer/dynamic_geometry.cpp
  * Dynamic vertex and index caches and the indexed draw paths.
- * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
 #include "halo/render/d3d9.hpp"
@@ -48,8 +47,7 @@ void chimera__rasterizer_dispose_free_memory(void)
 
 
 /**
- * Direct3D 9 back end function chimera__rasterizer_draw_dynamic_triangles_static_vertices. The original author
- * notes are in docs/original/rasterizer/chimera__rasterizer_draw_dynamic_triangles_static_vertices.c.txt.
+ * Direct3D 9 back end function chimera__rasterizer_draw_dynamic_triangles_static_vertices.
  *
  * Registers: EAX -> primitive_count, ESI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive)
  *
@@ -94,9 +92,7 @@ namespace chimera__rasterizer_draw_dynamic_triangles_static_vertices2_impl {
 
 
 /**
- * Direct3D 9 back end function chimera__rasterizer_draw_dynamic_triangles_static_vertices2. The original
- * author notes are in
- * docs/original/rasterizer/chimera__rasterizer_draw_dynamic_triangles_static_vertices2.c.txt.
+ * Direct3D 9 back end function chimera__rasterizer_draw_dynamic_triangles_static_vertices2.
  *
  * Registers: EAX -> primitive_count, EDI -> vertex_buffer, stack -> (dynamic_index_slot, first_primitive,
  * second_stream)
@@ -168,8 +164,7 @@ namespace rasterizer_dynamic_geometry_chain_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_dynamic_geometry_chain_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_dynamic_geometry_chain_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_dynamic_geometry_chain_draw.
  *
  * Registers: EAX -> vertex_buffer, EDI -> index_buffer, stack -> primitive_count
  *
@@ -283,8 +278,7 @@ namespace rasterizer_dynamic_index_cache_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_dynamic_index_cache_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_dynamic_index_cache_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_dynamic_index_cache_draw.
  *
  * @address 0x51c090
  */
@@ -362,8 +356,7 @@ namespace rasterizer_dynamic_light_technique_ps2_set_states_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_dynamic_light_technique_ps2_set_states. The original author notes
- * are in docs/original/rasterizer/rasterizer_dynamic_light_technique_ps2_set_states.c.txt.
+ * Direct3D 9 back end function rasterizer_dynamic_light_technique_ps2_set_states.
  *
  * @address 0x521cc0
  */
@@ -490,8 +483,7 @@ namespace rasterizer_dynamic_vertex_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_dynamic_vertex_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_dynamic_vertex_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_dynamic_vertex_draw.
  *
  * @address 0x51bec0
  */
@@ -571,8 +563,7 @@ namespace rasterizer_dynamic_vertex_draw_indexed_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_dynamic_vertex_draw_indexed. The original author notes are in
- * docs/original/rasterizer/rasterizer_dynamic_vertex_draw_indexed.c.txt.
+ * Direct3D 9 back end function rasterizer_dynamic_vertex_draw_indexed.
  *
  * @address 0x51c490
  */
@@ -627,8 +618,7 @@ namespace rasterizer_dynamic_vertex_process_and_get_handle_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_dynamic_vertex_process_and_get_handle. The original author notes are
- * in docs/original/rasterizer/rasterizer_dynamic_vertex_process_and_get_handle.c.txt.
+ * Direct3D 9 back end function rasterizer_dynamic_vertex_process_and_get_handle.
  *
  * Registers: ESI = vertex_buffer (live-in)
  *
@@ -661,8 +651,7 @@ namespace rasterizer_geometry_draw_fixed_function_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_geometry_draw_fixed_function. The original author notes are in
- * docs/original/rasterizer/rasterizer_geometry_draw_fixed_function.c.txt.
+ * Direct3D 9 back end function rasterizer_geometry_draw_fixed_function.
  *
  * @address 0x528ae0
  */
@@ -693,8 +682,7 @@ namespace rasterizer_geometry_part_draw_impl {
 
 
 /**
- * Direct3D 9 back end function rasterizer_geometry_part_draw. The original author notes are in
- * docs/original/rasterizer/rasterizer_geometry_part_draw.c.txt.
+ * Direct3D 9 back end function rasterizer_geometry_part_draw.
  *
  * @address 0x533730
  */

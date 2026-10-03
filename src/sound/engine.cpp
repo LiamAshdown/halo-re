@@ -1,7 +1,6 @@
 /**
  * @file src/sound/engine.cpp
  * The sound engine lifecycle: initialize, update, pause, resume and device reopening.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "internal/state.hpp"

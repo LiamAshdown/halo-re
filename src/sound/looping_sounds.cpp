@@ -1,7 +1,6 @@
 /**
  * @file src/sound/looping_sounds.cpp
  * Looping sound table: tracks, detail sounds and the per-update state machine.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/core/slot_mask.hpp"

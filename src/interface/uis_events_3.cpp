@@ -622,7 +622,6 @@ uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, u
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_event_4a1c80.c.txt for the recovery notes.
  *
  * @address 0x4a1c80
  */
@@ -635,7 +634,6 @@ uint8_t UiEventHandlers::event_4a1c80(widget_instance *widget, int16_t *event, u
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_event_4a1ca0.c.txt for the recovery notes.
  *
  * @address 0x4a1ca0
  */

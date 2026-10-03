@@ -41,8 +41,6 @@ static auto &matrix4x3_multiply_ptr = halo::link::ref<void (*)(void *a, void *b,
 namespace halo::camera {
 
 /**
- * Original function observer_advance; the author notes are in
- * docs/original/camera/observer_advance.c.txt.
  *
  * Register convention in the original: local player index in DI (unaff_DI); no other
  * parameters.
@@ -78,8 +76,6 @@ void ObserverHandle::advance()
 }
 
 /**
- * Original function observer_commit; the author notes are in
- * docs/original/camera/observer_commit.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -190,8 +186,6 @@ void ObserverHandle::commit()
 }
 
 /**
- * Original function observer_set_command; the author notes are in
- * docs/original/camera/observer_set_command.c.txt.
  *
  * Register convention in the original: local player index in DX (in_DX); no other parameters.
  *
@@ -236,8 +230,6 @@ void ObserverHandle::set_command()
 }
 
 /**
- * Original function observer_compute_spline_coefficients; the author notes are in
- * docs/original/camera/observer_compute_spline_coefficients.c.txt.
  *
  * Register convention in the original: local player index in DX (in_DX); no other parameters.
  *
@@ -302,8 +294,6 @@ void ObserverHandle::compute_spline_coefficients()
 }
 
 /**
- * Original function observer_evaluate_spline_acceleration; the author notes are in
- * docs/original/camera/observer_evaluate_spline_acceleration.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -363,8 +353,6 @@ void ObserverHandle::evaluate_spline_acceleration()
 }
 
 /**
- * Original function observer_evaluate_spline_value_and_orthonormalize; the author notes are in
- * docs/original/camera/observer_evaluate_spline_value_and_orthonormalize.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -482,8 +470,6 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
 }
 
 /**
- * Original function observer_evaluate_spline_velocity; the author notes are in
- * docs/original/camera/observer_evaluate_spline_velocity.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -546,8 +532,6 @@ void ObserverHandle::evaluate_spline_velocity()
 }
 
 /**
- * Original function observer_get_camera; the author notes are in
- * docs/original/camera/observer_get_camera.c.txt.
  *
  * Register convention in the original: player index in CX (in_CX); no stack parameters.
  *
@@ -564,8 +548,6 @@ observer_camera * ObserverHandle::get_camera()
 }
 
 /**
- * Original function observer_initialize; the author notes are in
- * docs/original/camera/observer_initialize.c.txt.
  *
  * Register convention in the original: none; cdecl, no arguments (tail call into observer_new
  * with EDX).
@@ -578,8 +560,6 @@ void ObserverSystem::initialize()
 }
 
 /**
- * Original function observer_new; the author notes are in
- * docs/original/camera/observer_new.c.txt.
  *
  * Register convention in the original: observer * in EDX (in_EDX); no stack parameters.
  *
@@ -673,8 +653,6 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
 }
 
 /**
- * Original function observer_update_location; the author notes are in
- * docs/original/camera/observer_update_location.c.txt.
  *
  * Register convention in the original: none; cdecl, no arguments.
  *
@@ -699,8 +677,6 @@ void ObserverSystem::update_location()
 }
 
 /**
- * Original function observer_avoid_collision; the author notes are in
- * docs/original/camera/observer_avoid_collision.c.txt.
  *
  * Register convention in the original: forward in EAX (in_EAX); position, up, distance and
  * radius_scale on the.
@@ -858,8 +834,6 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
 }
 
 /**
- * Original function observer_collision_test_ray; the author notes are in
- * docs/original/camera/observer_collision_test_ray.c.txt.
  *
  * @address 0x449170
  */
@@ -881,8 +855,6 @@ uint8_t ObserverSystem::collision_test_ray(real_point3d *origin, uint8_t use_alt
 }
 
 /**
- * Original function observer_compute_remaining_offset; the author notes are in
- * docs/original/camera/observer_compute_remaining_offset.c.txt.
  *
  * Register convention in the original: target in EAX (in_EAX), current in ECX (in_ECX), output
  * in EDX (in_EDX);.

@@ -1,7 +1,6 @@
 /**
  * @file src/models/model_markers.cpp
  * Marker group lookup of model tags.
- * The original author notes and decompiles are in docs/original/models/.
  */
 
 #include "halo/models/models.hpp"

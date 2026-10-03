@@ -1,7 +1,6 @@
 /**
  * @file src/sound/sound_classes.cpp
  * Sound classes and the master, music and effects gain sliders.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "internal/state.hpp"

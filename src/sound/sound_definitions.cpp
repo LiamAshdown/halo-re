@@ -1,7 +1,6 @@
 /**
  * @file src/sound/sound_definitions.cpp
  * Sound tag queries: promotion, audibility, distance, permutation and pitch choice.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/core/lcg.hpp"

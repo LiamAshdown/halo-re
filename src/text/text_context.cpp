@@ -1,7 +1,6 @@
 /**
  * @file src/text/text_context.cpp
  * The shared text render context, fonts, localised string lists and measuring.
- * The original author notes and decompiles are in docs/original/text/.
  */
 
 #include "halo/text/text.hpp"

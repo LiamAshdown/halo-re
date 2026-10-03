@@ -1,7 +1,6 @@
 /**
  * @file src/structures/structure_bsp_query.cpp
  * Spatial queries over the resident structure bsp: surfaces in a box, leaf walks and surface picking.
- * The original author notes and decompiles are in docs/original/structures/.
  */
 
 #include "halo/structures/structures.hpp"

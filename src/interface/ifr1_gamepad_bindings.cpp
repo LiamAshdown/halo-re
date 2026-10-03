@@ -42,8 +42,6 @@ static void controls_gamepad_focus_visible_row(widget_instance *list)
 namespace halo::interface {
 
 /**
- * Original engine function controls_gamepad_bindings_restore; the author notes are in
- * docs/original/interface/controls_gamepad_bindings_restore.txt.
  *
  * @address 0x4b5a70
  */
@@ -70,8 +68,7 @@ uint8_t GamepadBindings::bindings_restore(void)
 }
 
 /**
- * Original engine function controls_gamepad_list_add; the author notes are in
- * docs/original/interface/controls_gamepad_list_add.txt.
+ *
  * blam-cc: EAX -> list
  *
  * @address 0x4b5800
@@ -100,8 +97,7 @@ uint8_t GamepadBindings::list_add(const controls_gamepad_record *entry, controls
 }
 
 /**
- * Original engine function controls_gamepad_list_find; the author notes are in
- * docs/original/interface/controls_gamepad_list_find.txt.
+ *
  * blam-cc: EDX -> list, stack -> entry
  *
  * @address 0x4b5760
@@ -128,8 +124,7 @@ int32_t GamepadBindings::list_find(const controls_gamepad_record *entry, control
 }
 
 /**
- * Original engine function controls_gamepad_list_remove; the author notes are in
- * docs/original/interface/controls_gamepad_list_remove.txt.
+ *
  * blam-cc: EDI -> list
  *
  * @address 0x4b5850
@@ -164,8 +159,6 @@ uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, contr
 }
 
 /**
- * Original engine function controls_gamepad_lists_load; the author notes are in
- * docs/original/interface/controls_gamepad_lists_load.txt.
  *
  * @address 0x4b58d0
  */
@@ -224,8 +217,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
 }
 
 /**
- * Original engine function controls_gamepad_lists_refresh; the author notes are in
- * docs/original/interface/controls_gamepad_lists_refresh.txt.
+ *
  * blam-cc: screen -> ECX
  *
  * @address 0x4b55d0
@@ -286,8 +278,6 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
 }
 
 /**
- * Original engine function controls_gamepad_toggle_assignment; the author notes are in
- * docs/original/interface/controls_gamepad_toggle_assignment.txt.
  *
  * @address 0x4b5b20
  */
@@ -357,8 +347,7 @@ uint8_t GamepadBindings::toggle_assignment(widget_instance *row)
 }
 
 /**
- * Original engine function controls_gamepad_widget_nodes_collect; the author notes are in
- * docs/original/interface/controls_gamepad_widget_nodes_collect.txt.
+ *
  * blam-cc: out -> EAX, screen -> ECX
  *
  * @address 0x4b5560

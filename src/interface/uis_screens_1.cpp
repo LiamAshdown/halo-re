@@ -222,7 +222,6 @@ void UiScreens::error_modal_update(void)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_get_saved_color.c.txt for the recovery notes.
  *
  * Register convention: EAX -> out
  *
@@ -237,7 +236,6 @@ ColorRGB * UiScreens::get_saved_color(ColorRGB *out)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_get_saved_pulse_color.c.txt for the recovery notes.
  *
  * Register convention: EAX -> out
  *
@@ -253,7 +251,6 @@ ColorARGB * UiScreens::get_saved_pulse_color(ColorARGB *out)
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_handler_4a68f0.c.txt for the recovery notes.
  *
  * @address 0x4a68f0
  */

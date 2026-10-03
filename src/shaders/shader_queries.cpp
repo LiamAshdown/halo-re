@@ -1,7 +1,6 @@
 /**
  * @file src/shaders/shader_queries.cpp
  * Questions the rasterizer asks of a shader tag: vertex shader permutation, decal flag, draw-before-water flag.
- * The original author notes and decompiles are in docs/original/shaders/.
  */
 
 #include "halo/shaders/shaders.hpp"

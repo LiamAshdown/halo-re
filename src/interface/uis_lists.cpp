@@ -88,7 +88,6 @@ void UiLists::list_add_entry(int32_t group_index, const uint16_t *name, int32_t 
 }
 
 /**
- * Original UI routine; see docs/original/interface/ui_list_default_item_format.c.txt for the recovery notes.
  *
  * @address 0x4a8310
  */

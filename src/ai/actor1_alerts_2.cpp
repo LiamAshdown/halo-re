@@ -16,8 +16,7 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 
 
 /**
- * actor_investigate_disturbance_update: behaviour unchanged from the original routine. The original author notes and decompile
- * remain in docs/original/ai/actor_investigate_disturbance_update.c.txt.
+ * actor_investigate_disturbance_update: behaviour unchanged from the original routine.
  *
  * @address 0x408ba0
  */

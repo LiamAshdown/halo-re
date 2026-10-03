@@ -1,7 +1,6 @@
 /**
  * @file src/sound/game_looping_sounds.cpp
  * Game-state looping sounds bound to objects, scripts and the BSP background sound.
- * The original author notes and decompiles are in docs/original/sound/.
  */
 
 #include "halo/core/slot_mask.hpp"

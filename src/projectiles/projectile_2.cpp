@@ -45,8 +45,6 @@ constexpr int16_t k_guided_zoom_table_index = 19;
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(h)].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
- * Original function projectile_update; the author notes are in
- * docs/original/projectiles/projectile_update.c.txt.
  *
  * @address 0x4bdc00
  */
