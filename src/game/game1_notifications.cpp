@@ -295,7 +295,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                 datum_index new_unit = (datum_index)((int32_t *)object_network_id_table->handles)[
                     message.unit_pooled_id];
                 if (new_unit != (datum_index)halo::k_dword_none) {
-                    object *unit_obj = halo::objects::object_try_and_get(new_unit, 3);
+                    object *unit_obj = halo::objects::object_try_and_get(new_unit, _object_mask_unit);
                     if (unit_obj != 0) {
                         p->unit = new_unit;
                         p->team = message.team;

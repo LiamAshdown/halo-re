@@ -12,10 +12,10 @@ extern "C" {
 extern game_engine_definition *current_game_engine;
 extern void *hud_globals_tag_data;
 extern uint32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_color_a;
-extern uint32_t hud_text_draw_color_r;
-extern uint32_t hud_text_draw_color_g;
-extern uint32_t hud_text_draw_color_b;
+extern float hud_text_draw_color_a;
+extern float hud_text_draw_color_r;
+extern float hud_text_draw_color_g;
+extern float hud_text_draw_color_b;
 extern uint16_t hud_text_draw_color_or_flags;
 extern uint32_t text_tab_stops;
 extern uint32_t hud_text_draw_box_field_474e;
@@ -35,7 +35,7 @@ namespace halo::game {
 /**
  * Renders the postgame carnage report / scoreboard overlay by formatting per-player or per-team score columns.
  */
-void EngineHud::post_game_set_text_color(const uint32_t *color)
+void EngineHud::post_game_set_text_color(const float *color)
 {
     hud_text_draw_color_a = color[0];
     hud_text_draw_color_r = color[1];
@@ -63,11 +63,11 @@ void EngineHud::post_game_set_tab_stops(uint32_t stops_a, uint32_t stops_b, uint
  */
 void EngineHud::post_rasterize_post_game(void)
 {
-    uint32_t color_normal[4] = { halo::game::k_float_one_bits, 0x3eeaeaeb, 0x3f3ababb, halo::game::k_float_one_bits };
-    uint32_t color_best[4] = { halo::game::k_float_one_bits, 0x3f7ae148, 0x3f75c28f, 0x3f75c28f };
-    uint32_t color_local[4] = { halo::game::k_float_one_bits, halo::game::k_float_one_bits, halo::game::k_float_one_bits, 0 };
-    uint32_t color_team[2][4] = { { halo::game::k_float_one_bits, 0x3f4ccccd, 0x3ecccccd, 0x3ecccccd },
-                                  { halo::game::k_float_one_bits, 0x3ecccccd, 0x3ecccccd, 0x3f4ccccd } };
+    float color_normal[4] = { 1.0f, 0.45882353f, 0.7294118f, 1.0f };
+    float color_best[4] = { 1.0f, 0.98f, 0.96f, 0.96f };
+    float color_local[4] = { 1.0f, 1.0f, 1.0f, 0.0f };
+    float color_team[2][4] = { { 1.0f, 0.8f, 0.4f, 0.4f },
+                                  { 1.0f, 0.4f, 0.4f, 0.8f } };
     const uint32_t tab_a = 0x007d0032u, tab_b = 0x015e00fau, tab_c = 0x01f4019au;
     const uint32_t team_tab_a = 0x00c80032u, team_tab_b = 0x015e012cu, team_tab_c = 0x01f4019au;
     wchar_t line[0x100];
@@ -215,7 +215,7 @@ void EngineHud::post_rasterize_post_game(void)
         row = row + 1;
     }
 
-    hud_text_draw_color_a = *(uint32_t *)&game_engine_post_game_fade;
+    hud_text_draw_color_a = game_engine_post_game_fade;
     hud_text_draw_color_r = color_normal[1];
     hud_text_draw_color_g = color_normal[2];
     hud_text_draw_color_b = color_normal[3];

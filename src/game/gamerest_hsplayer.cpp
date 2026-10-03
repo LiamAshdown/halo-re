@@ -22,7 +22,7 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        object *unit_obj = halo::objects::object_try_and_get((datum_index)arguments[0], 3);
+        object *unit_obj = halo::objects::object_try_and_get((datum_index)arguments[0], _object_mask_unit);
         datum_index gunner = (datum_index)halo::k_dword_none;
 
         if (unit_obj != 0) {

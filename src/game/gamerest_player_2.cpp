@@ -175,7 +175,7 @@ void PlayerView::respawn()
         if (new_unit == k_datum_index_none) {
             goto reset_player_state;
         }
-        unit = (uint8_t *)halo::objects::object_try_and_get(new_unit, 3);
+        unit = (uint8_t *)halo::objects::object_try_and_get(new_unit, _object_mask_unit);
         if (unit == 0) {
             goto reset_player_state;
         }

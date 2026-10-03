@@ -384,7 +384,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
     if (player == halo::k_dword_none || item_index == halo::k_dword_none || halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return 1;
     }
-    weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, 4);
+    weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, _object_mask_weapon);
     if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (weapon[0x22c] & 0x40) == 0 &&
         ((struct weapon_object *)weapon)->base.owner_team == halo::game::player_at(player)->team) {
         return 0;
