@@ -459,15 +459,15 @@ uint8_t rasterizer_dx9_vertex_shaders_reload(void)
 }
 
 /**
- * Returns the capture/blit render-target surface for the mode at object+10, or `fallback` for any other mode.
+ * Returns the capture/blit render-target surface for the bitmap type (cube map faces and 2D maps use different surfaces), or `fallback` for any other type.
  *
  * Registers: EAX -> object, ECX -> fallback
  *
  * @address 0x515c30
  */
-void * rasterizer_get_capture_surface(uint8_t *object, void *fallback)
+void * rasterizer_get_capture_surface(BitmapData *bitmap, void *fallback)
 {
-    int16_t mode = *(int16_t *)(object + 10);
+    int16_t mode = bitmap->type;
     switch (mode) {
     case 0:
     case 1:

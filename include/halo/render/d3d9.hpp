@@ -343,8 +343,9 @@ inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
 inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
 inline constexpr uint32_t k_pixel_shader_version_2_0 = 0xffff0200;
 
-/** D3DTRANSFORMSTATETYPE: D3DTS_WORLD. */
+/** D3DTRANSFORMSTATETYPE: D3DTS_WORLD and D3DTS_TEXTURE1. */
 inline constexpr uint32_t k_transform_world = 0x100;
+inline constexpr uint32_t k_transform_texture1 = 17;
 
 /** D3DLIGHTTYPE values. */
 inline constexpr uint32_t k_light_point = 1;

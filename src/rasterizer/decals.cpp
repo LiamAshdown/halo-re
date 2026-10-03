@@ -32,6 +32,10 @@ constexpr int k_decal_grid_columns = 0x200;
 constexpr int32_t k_decal_cache_block_count = 0xa00;
 constexpr int16_t k_decal_cache_maximum_count = 0x800;
 
+/** Game state bytes of the decal vertex cache: the cache header and one entry per decal. */
+constexpr uint32_t k_decal_cache_region_bytes = sizeof(::cache) + k_decal_cache_maximum_count * sizeof(cache_entry);
+static_assert(k_decal_cache_region_bytes == 0xe07c, "decal vertex cache region size");
+
 }  // namespace
 
 namespace halo::rasterizer {
@@ -232,14 +236,14 @@ void rasterizer_decal_pass_begin(int16_t stage)
     if (decals_for_all_responses == 0 && stage != 3) {
         proceed = 0;
     }
-    if (*(int16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || !proceed) {
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || !proceed) {
         rasterizer_decal_layer = stage;
         return;
     }
 
-    rasterizer_decal_blend_mode = 0xffff;
-    rasterizer_decal_bitmap_frame = 0xffff;
-    rasterizer_decal_bitmap_tag = 0xffffffff;
+    rasterizer_decal_blend_mode = halo::k_word_none;
+    rasterizer_decal_bitmap_frame = halo::k_word_none;
+    rasterizer_decal_bitmap_tag = halo::k_dword_none;
     halo::rasterizer::fields::decal_fog_state_applied = 0;
     rasterizer_decal_layer = stage;
 
@@ -518,14 +522,14 @@ void rasterizer_decals_initialize(void)
     void *buffer = 0;
     uint32_t usage = dynamic_vertex_buffer_usage(rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage, rasterizer_software_vertex_processing != 0);
     uint32_t pool = vertex_buffer_pool_for_usage(usage);
-    uint32_t region_size = 0xe07c;
+    uint32_t region_size = k_decal_cache_region_bytes;
     uint8_t *block;
     int32_t hr = render_device().create_vertex_buffer(k_decal_vertex_buffer_bytes, usage, 0, pool, &buffer, 0);
 
     rasterizer_decal_vertex_cache = hr < 0 ? 0 : buffer;
 
     block = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0xe07c;
+    game_state_cursor = game_state_cursor + k_decal_cache_region_bytes;
     halo::memory::crc32_update(&game_state_crc, &region_size, 4);
 
     halo::memory::cache_new((char *)"decal vertex cache", (::cache *)block, k_decal_cache_block_count, 6, k_decal_cache_maximum_count, reinterpret_cast<void *>(decal_vertex_cache_release),

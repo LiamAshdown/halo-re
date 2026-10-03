@@ -311,7 +311,11 @@ uint8_t rasterizer_dx9_vertex_shaders_initialize(void);
 namespace rasterizer_dx9_vertex_shaders_load_all_impl { uint32_t rasterizer_dx9_vertex_shaders_load_all(void); }
 using rasterizer_dx9_vertex_shaders_load_all_impl::rasterizer_dx9_vertex_shaders_load_all;
 uint8_t rasterizer_dx9_vertex_shaders_reload(void);
-void * rasterizer_get_capture_surface(uint8_t *object, void *fallback);
+void * rasterizer_get_capture_surface(BitmapData *bitmap, void *fallback);
+inline void * rasterizer_get_capture_surface(uint8_t *bitmap, void *fallback)
+{
+    return rasterizer_get_capture_surface(reinterpret_cast<BitmapData *>(bitmap), fallback);
+}
 namespace rasterizer_index_buffer_create_impl { uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_index_buffer *out, const void *source); }
 using rasterizer_index_buffer_create_impl::rasterizer_index_buffer_create;
 void rasterizer_ksml_ui_shutdown(void);
