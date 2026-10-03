@@ -8,7 +8,6 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern data_array *object_data;
 }
 
 namespace halo::hs::part3 {
@@ -49,7 +48,7 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
         uint8_t hover = *(uint8_t *)&arguments[1];
 
         if (vehicle != k_datum_index_none) {
-            uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[vehicle & 0xffff].data;
+            uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle & 0xffff].data;
 
             if (hover != 0) {
                 halo::objects::object_get_position((real_point3d *)(obj + 0x4fc), vehicle);

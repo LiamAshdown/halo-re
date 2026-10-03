@@ -10,7 +10,6 @@
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern data_array *object_data;
 extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
 extern void *global_zero_vector3d_pointer;
@@ -43,7 +42,7 @@ extern float cinematic_screen_effect_get_script_value(int16_t index);
 
 static object *object_get(datum_index object_index)
 {
-    return *(object **)((char *)object_data->data + 8 + (object_index & 0xffff) * 0xc);
+    return *(object **)((char *)halo::objects::globals().object_data->data + 8 + (object_index & 0xffff) * 0xc);
 }
 
 static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_weapon_list(
@@ -284,7 +283,7 @@ void FirstPersonWeaponController::update_animation_controls()
     }
 
     {
-        object *weapon_obj = *(object **)((char *)object_data->data + 8 +
+        object *weapon_obj = *(object **)((char *)halo::objects::globals().object_data->data + 8 +
                                           (fp->weapon_index & 0xffff) * 0xc);
         Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
         void *model = halo::cache::globals().tag_instances[weapon_tag->first_person_model.tag_id.index].data;

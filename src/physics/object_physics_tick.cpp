@@ -23,7 +23,6 @@ extern "C" { extern double fabs(double x); }
 extern "C" { extern double sqrt(double x); }
 extern "C" { extern double sin(double x); }
 extern "C" { extern double cos(double x); }
-extern "C" { extern data_array *object_data; }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
@@ -47,7 +46,7 @@ namespace halo::physics {
  */
 void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, mass_point_state *mass_point_states, real_vector3d *extra_force, real_vector3d *extra_torque)
 {
-    object *self = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *self = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     void *object_tag_data;
     Physics *definition;
     float gravity_scale;

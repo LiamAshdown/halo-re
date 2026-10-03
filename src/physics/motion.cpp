@@ -15,6 +15,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
 extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
@@ -84,7 +85,6 @@ void PhysicsMotion::clamp_value_to_spring_range(float *value, physics_scalar_rat
 
 }
 
-extern "C" { extern data_array *object_data; }
 namespace halo::physics {
 
 /**
@@ -102,7 +102,7 @@ int16_t PhysicsMotion::resolve_material_type(uint32_t object_index, int16_t vert
     }
 
     if (object_index != 0xffffffff) {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
         void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         int32_t collision_model_id = *(int32_t *)((uint8_t *)object_tag_data + 0x7c);
         ModelCollisionGeometry *geometry =

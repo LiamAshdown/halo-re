@@ -10,7 +10,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern data_array *player_data;
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -56,7 +55,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
     count = 0;
     object_index = start_object;
     do {
-        obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
         type_bit = 1u << (obj->type & 0x1f);
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
             *(real *)((uint8_t *)obj + 0x37c) < 1.0f) {
@@ -332,7 +331,7 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     if (current != k_datum_index_none) {
         do {
             root = current;
-            current = ((object_header *)object_data->data)[current & 0xffff].data->parent_object;
+            current = ((object_header *)halo::objects::globals().object_data->data)[current & 0xffff].data->parent_object;
         } while (current != k_datum_index_none);
     }
 
@@ -399,7 +398,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
         out->weight_secondary = distance_falloff_fraction(angle, cone->angle_b) *
                                  distance_falloff_fraction(out->distance, cone->distance_b);
         if (0.0f < out->weight_secondary) {
-            target_object = ((object_header *)object_data->data)[target & 0xffff].data;
+            target_object = ((object_header *)halo::objects::globals().object_data->data)[target & 0xffff].data;
             target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & 0xffff].data;
             if ((target_tag->unit_flags & 0x80000) != 0) {
                 out->weight_secondary = out->weight_secondary *
@@ -428,8 +427,8 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
     out->seat_index = -1;
 
     if (unit != k_datum_index_none) {
-        object *u = (object *)(*(void **)((uint8_t *)object_data->data +
-            (uint32_t)(uint16_t)unit * object_data->size + 8));
+        object *u = (object *)(*(void **)((uint8_t *)halo::objects::globals().object_data->data +
+            (uint32_t)(uint16_t)unit * halo::objects::globals().object_data->size + 8));
 
         halo::units::unit_get_camera_position(unit, &out->position);
 
@@ -446,8 +445,8 @@ void SpectateCamera::spectate_fp_camera_position(camera_basis_out *out, int16_t 
                 out->marker_offset = seat + 0x84;
                 out->unit = u->parent_object;
                 out->seat_index = seat_index;
-                u = (object *)(*(void **)((uint8_t *)object_data->data +
-                    (uint32_t)(uint16_t)u->parent_object * object_data->size + 8));
+                u = (object *)(*(void **)((uint8_t *)halo::objects::globals().object_data->data +
+                    (uint32_t)(uint16_t)u->parent_object * halo::objects::globals().object_data->size + 8));
             }
         }
         if (out->seat_index == -1) {

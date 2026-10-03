@@ -12,7 +12,6 @@
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t ui_split_screen;
@@ -149,7 +148,7 @@ void EnginePlayerSync::players_update_client(void)
         }
 
         if (plr->unit != (datum_index)-1) {
-            object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
             if ((unit->flags & 0x40) != 0) {
@@ -282,7 +281,7 @@ void EnginePlayerSync::players_update_server(void)
         }
 
         if (plr->unit != (datum_index)-1) {
-            object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
             if ((unit->flags & 0x40) != 0) {
@@ -307,7 +306,7 @@ void EnginePlayerSync::players_update_server(void)
                     if (unit->current_weapon_index != -1) {
                         datum_index weapon_handle = unit->weapons[unit->current_weapon_index];
                         if (weapon_handle != (datum_index)-1) {
-                            object *weapon_obj = ((object_header *)object_data->data)[weapon_handle & 0xffff].data;
+                            object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_handle & 0xffff].data;
                             Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                             if ((weapon_tag->weapon_flags & 0x08) != 0) {
                                 if ((action->control_flags & 0x1800) != 0) {
@@ -395,7 +394,7 @@ void EnginePlayerSync::server_update_player_positions(void)
     plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
         if (plr->unit != (datum_index)-1) {
-            object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
             if (*((uint8_t *)unit_obj + 0x4b8) == 1) {
                 object *position_source;
 
@@ -404,7 +403,7 @@ void EnginePlayerSync::server_update_player_positions(void)
 
                 position_source = unit_obj;
                 if (unit_obj->parent_object != (datum_index)-1) {
-                    position_source = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
+                    position_source = ((object_header *)halo::objects::globals().object_data->data)[unit_obj->parent_object & 0xffff].data;
                 }
                 *(float *)&((struct player *)plr)->unknown_f8 = position_source->position.x;
                 *(float *)((uint8_t *)plr + 0xfc) = position_source->position.y;
@@ -511,7 +510,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
     unit_data *unit;
     int i;
 
-    obj = (object *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     fields.player_hash = 0;
@@ -627,7 +626,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
         goto store_input;
     }
 
-    unit_object = ((object_header *)object_data->data)[control->unit & 0xffff].data;
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[control->unit & 0xffff].data;
     unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
     current_weapon = (datum_index)-1;
@@ -783,7 +782,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
     look->yaw = yaw_delta + look->yaw;
 
     if (camera.seat_index != -1) {
-        uint8_t *unit_object = (uint8_t *)((object_header *)object_data->data)[camera.unit & 0xffff].data;
+        uint8_t *unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[camera.unit & 0xffff].data;
         uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit_object & 0xffff].data;
         uint8_t *seat = *(uint8_t **)(unit_tag + 0x2e8) + (int32_t)camera.seat_index * 0x11c;
         real yaw_min = *(real *)(seat + 0xf0);
@@ -832,7 +831,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
     if (unit_camera != 0) {
         real target_pitch = *(real *)(unit_camera + 0x40);
 
-        unit = (uint8_t *)((object_header *)object_data->data)[camera.unit & 0xffff].data;
+        unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[camera.unit & 0xffff].data;
         if (*(real *)(unit_camera + 0x48) != 0.0f || *(real *)(unit_camera + 0x44) != 0.0f) {
             pitch_min = *(real *)(unit_camera + 0x44);
             pitch_max = *(real *)(unit_camera + 0x48);
@@ -1034,7 +1033,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
                 new_object = halo::objects::object_new_with_datum_role_control(&placement, role);
                 if (new_object != (datum_index)0xffffffff) {
                     if (!first_spawn) {
-                        datum_index previous = (datum_index)((object_header *)object_data->data)[new_object & 0xffff].data;
+                        datum_index previous = (datum_index)((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
                         if (halo::units::unit_has_weapon_of_type(new_object, previous) != 0) {
                             int32_t category = *(int32_t *)((uint8_t *)previous + 4);
                             if (category == 0) {

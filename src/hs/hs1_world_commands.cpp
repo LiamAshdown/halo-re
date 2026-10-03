@@ -23,7 +23,6 @@ extern void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_
 extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect);
 extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
 extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
-extern data_array *object_data;
 }
 
 namespace halo::hs {
@@ -466,7 +465,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
     int32_t result = 0;
 
     if (device != k_datum_index_none) {
-        result = *(int32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & 0xffff) * 0xc + 8) + 0x208);
+        result = *(int32_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & 0xffff) * 0xc + 8) + 0x208);
     }
     hs_thread_return(result, thread_index);
     }
@@ -487,7 +486,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
         int32_t power = 0;
 
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            power = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data + 0x1fc);
+            power = *(int32_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & 0xffff].data + 0x1fc);
         }
         hs_thread_return(power, thread_index);
     }

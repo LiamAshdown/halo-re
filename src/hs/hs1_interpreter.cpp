@@ -5,8 +5,6 @@
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
-extern data_array *object_list_header_data;
-extern datum_index *object_name_list;
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
@@ -82,13 +80,13 @@ datum_index ScriptCasts::object_name_to_object_list(int32_t name_index)
     if (name < 0 || name >= 0x200) {
         return k_datum_index_none;
     }
-    object_index = object_name_list[name];
+    object_index = halo::objects::globals().object_name_list[name];
     if (object_index == k_datum_index_none) {
         return k_datum_index_none;
     }
-    header_index = halo::memory::datum_new(object_list_header_data);
+    header_index = halo::memory::datum_new(halo::objects::globals().object_list_header_data);
     if (header_index != k_datum_index_none) {
-        object_list_header *header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+        object_list_header *header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (header_index & 0xffff) * 0x0c);
 
         header->count = 0;

@@ -1,11 +1,11 @@
 #include "halo/interface/ifr1_play_diagnostics.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t rasterizer_window[];
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern data_array *actor_data;
 extern team_pair_globals *team_pair_data;
@@ -51,7 +51,7 @@ void PlayDiagnostics::run(void)
         return;
     }
     if (fp->unit_index != (datum_index)0xffffffff) {
-        uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + 8 + (fp->unit_index & 0xffff) * 0xc);
+        uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (fp->unit_index & 0xffff) * 0xc);
 
         player_team = ((unit_object *)unit)->base.owner_team;
     }

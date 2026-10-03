@@ -4,9 +4,9 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern int32_t unit_dialogue_variant_counter;
 }
 
@@ -22,7 +22,7 @@ namespace halo::units {
 void UnitView::choose_dialogue_variant()
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
@@ -53,7 +53,7 @@ done:
 int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0 || source->priority == 10) {
@@ -95,7 +95,7 @@ int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
 void UnitView::dialogue_determine_variant()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Unit *tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t *variant = (int16_t *)((uint8_t *)obj + 0xbe);
     int16_t candidates[16];

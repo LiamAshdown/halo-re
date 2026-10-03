@@ -9,7 +9,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern float *global_zero_vector2d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern double atan2(double y, double x);
@@ -54,7 +53,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
 {
     using namespace unit_update_aiming_overlay_angles_local;
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
+    uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
     uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
     uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
@@ -165,7 +164,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
 void UnitView::update_autoaim_interaction()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     uint8_t *tracked = (uint8_t *)global_globals->falling_damage.pointer;
 
     clear_flag(((unit_object *)obj)->unit.flags, units::unit_flag::idle_turn_seeded);

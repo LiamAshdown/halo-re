@@ -7,7 +7,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern int16_t current_local_player_index;
@@ -40,7 +39,7 @@ extern void chimera__motion_sensor_update(void);
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 }
 
 static uint8_t *object_tag_data(datum_index object_index)

@@ -19,7 +19,6 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 extern ai_globals *ai_globals_ptr;
 extern int32_t game_engine_get_current_tick(void);
 extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);
-extern data_array *object_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
 extern uint8_t *global_structure_bsp;
@@ -170,7 +169,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
@@ -680,7 +679,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
     return chosen;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 /**
  * Behaviour of ai process vehicle entry queue, moved unchanged from the original free function.
  *
@@ -766,7 +765,7 @@ void AiSystem::recompute_all_relationship_flags()
             p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
             prop_cursor = p->next_in_actor;
 
-            tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
+            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & 0xffff].data;
             object_team = ((struct object *)tracked_object)->owner_team;
             p->team = object_team;
             actor_team = a->team;
@@ -827,7 +826,7 @@ void AiSystem::reset_all_actors_perception()
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJ(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJ(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
 namespace {
 
@@ -1087,13 +1086,13 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
 
     while (p != 0) {
         if (p->is_parented && p->enemy) {
-            tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
+            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & 0xffff].data;
             if (((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player !=
                 (datum_index)k_datum_index_none) {
                 a = &((actor *)actor_data->data)[p->actor_index & 0xffff];
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;
 
-                linked_object = ((object_header *)object_data->data)[linked_unit_index & 0xffff].data;
+                linked_object = ((object_header *)halo::objects::globals().object_data->data)[linked_unit_index & 0xffff].data;
                 linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & 0xffff].data;
 
                 skip_close_check = 0;

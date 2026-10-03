@@ -90,7 +90,6 @@ void ActorView::update_activation_state()
 namespace actor_update_aim_wander_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern double fcos(double x);
 extern double fsin(double x);
@@ -147,7 +146,7 @@ void ActorView::update_aim_wander()
     if (((actor *)a)->active_unit_index == k_datum_index_none) {
         moving = (a[0x15c] != 0 || a[0x504] != 0) ? 1 : 0;
     } else {
-        uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[((actor *)a)->active_unit_index & 0xffff].data;
+        uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((actor *)a)->active_unit_index & 0xffff].data;
         real_vector3d *velocity = (real_vector3d *)(vehicle + 0x68);
 
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
@@ -190,7 +189,7 @@ void ActorView::update_aim_wander()
         if (weapon != k_datum_index_none) {
             float rate;
             float damage = halo::items::weapon_trigger_get_average_damage(
-                *(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data, &rate);
+                *(datum_index *)((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data, &rate);
 
             if (((ActorVariant *)variant)->rate_of_fire > 0.0f && rate > ((ActorVariant *)variant)->rate_of_fire) {
                 rate = ((ActorVariant *)variant)->rate_of_fire;
@@ -1818,7 +1817,6 @@ namespace actor_update_movement_destination_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *point,
     int32_t start_surface_index, int16_t kind);
@@ -1918,7 +1916,7 @@ uint8_t ActorView::update_movement_destination()
                 float wait = halo::math::random_real_range(*(float *)(actor_tag + 0x3c0), *(float *)(actor_tag + 0x3c4));
 
                 if (A_W(0x15e) > 0) {
-                    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[A_D(0x158) & 0xffff].data;
+                    uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[A_D(0x158) & 0xffff].data;
                     uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & 0xffff].data;
                     float cap = *(float *)(vehicle_tag + 0x3a8);
 
@@ -2101,7 +2099,6 @@ uint8_t ActorView::update_squad_link_state()
 
 namespace actor_update_swarm_component_position_local {
 extern "C" {
-extern data_array *object_data;
 extern data_array *swarm_component_data;
 }
 }
@@ -2115,7 +2112,7 @@ extern data_array *swarm_component_data;
 void ActorOps::update_swarm_component_position(datum_index component_index, datum_index unit_index)
 {
     using namespace actor_update_swarm_component_position_local;
-    object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
     swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & 0xffff];
     datum_index marker;
 
@@ -2129,7 +2126,6 @@ namespace actor_update_target_combat_status_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 }
 }
 
@@ -2157,7 +2153,7 @@ void ActorView::update_target_combat_status()
     }
 
     target = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-    target_obj = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
+    target_obj = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & 0xffff].data;
 
     switch (target->state) {
     case 0:

@@ -19,7 +19,6 @@ extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum
 extern void actor_react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index);
 extern void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_object, const real_point3d *point);
 extern game_time_globals *game_time;
-extern data_array *object_data;
 extern data_array *actor_data;
 extern uint8_t *actor_type_procs[];
 extern uint8_t *team_pair_data;
@@ -130,7 +129,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define ACTOR_DATA(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
 namespace {
@@ -1021,7 +1020,7 @@ int16_t AiCommunication::line_fade_multiplier(uint32_t unit_index, int16_t prior
     return status;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define ai_communication_event_definitions (reinterpret_cast<uint8_t *>(ai_communication_event_definitions))
 namespace {
 
@@ -1215,20 +1214,20 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                             walk = (uint32_t)object_index;
                             do {
                                 previous = walk;
-                                walk = (uint32_t)((object_header *)object_data->data)
+                                walk = (uint32_t)((object_header *)halo::objects::globals().object_data->data)
                                            [previous & 0xffff].data->parent_object;
                             } while (walk != (uint32_t)k_datum_index_none);
                         }
-                        self_cluster = *(int16_t *)((uint8_t *)((object_header *)object_data->data)
+                        self_cluster = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                                                         [previous & 0xffff].data + 0x9c);
                         walk = (uint32_t)player_unit;
                         previous = (uint32_t)k_datum_index_none;
                         while (walk != (uint32_t)k_datum_index_none) {
                             previous = walk;
-                            walk = (uint32_t)((object_header *)object_data->data)
+                            walk = (uint32_t)((object_header *)halo::objects::globals().object_data->data)
                                        [previous & 0xffff].data->parent_object;
                         }
-                        player_cluster = *(int16_t *)((uint8_t *)((object_header *)object_data->data)
+                        player_cluster = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                                                           [previous & 0xffff].data + 0x9c);
                         if (self_cluster != -1 && player_cluster != -1) {
                         bitmap_row_dwords = (int32_t)(global_structure_bsp->clusters.count + 0x1f) >> 5;
@@ -1261,7 +1260,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                             score = score + 0.5f;
                         }
                         if (0.0001f < distance) {
-                            player_object = ((object_header *)object_data->data)
+                            player_object = ((object_header *)halo::objects::globals().object_data->data)
                                                 [player_unit & 0xffff].data;
                             facing = (((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.k * dz +
                                       ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.j * dy +
@@ -1361,7 +1360,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
     }
 
     if ((flags & 4) != 0 && object_a != (datum_index)k_datum_index_none &&
-        ((object_header *)object_data->data)[object_a & 0xffff].data->parent_object !=
+        ((object_header *)halo::objects::globals().object_data->data)[object_a & 0xffff].data->parent_object !=
             a->active_unit_index) {
         return 0.0f;
     }
@@ -1474,7 +1473,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     int32_t *entry;
     int32_t *slot;
 
-    obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     actor_index = *(datum_index *)(obj + 0x1f4);
 
     current_tick = game_time->game_time;
@@ -1745,7 +1744,7 @@ void AiCommunication::target_result_reset(ai_communication_target_result *record
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f4f0 final : public DialogueCondition {
@@ -1785,7 +1784,7 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f560 final : public DialogueCondition {
@@ -1820,7 +1819,7 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f5b0 final : public DialogueCondition {
@@ -1861,7 +1860,7 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f650 final : public DialogueCondition {
@@ -1893,7 +1892,7 @@ uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f690 final : public DialogueCondition {
@@ -1931,7 +1930,7 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f6f0 final : public DialogueCondition {
@@ -1976,7 +1975,7 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f7b0 final : public DialogueCondition {
@@ -2008,7 +2007,7 @@ uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 namespace {
 
 class DialogueCondition_42f7f0 final : public DialogueCondition {
@@ -2068,7 +2067,7 @@ void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index 
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 /**
  * Behaviour of ai propagate communication reaction, moved unchanged from the original free function.
  *
@@ -2221,7 +2220,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                                    (uint32_t)(uint16_t)comm_kind,
                                                    (uint32_t)(uint16_t)ai_communication_class_priority[comm_kind],
                                                    (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
-                                                   *(int16_t *)((uint8_t *)((object_header *)object_data->data)[param_a & 0xffff].data + 0xb8));
+                                                   *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[param_a & 0xffff].data + 0xb8));
                         } else if (target_kind == 3) {
                             vehicle_obj = object_try_and_get(param_b, 3);
                             result = -1;

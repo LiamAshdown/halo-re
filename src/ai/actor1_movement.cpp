@@ -10,7 +10,6 @@
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
 
@@ -23,7 +22,7 @@ extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_se
 extern double sqrt(double x);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
@@ -478,7 +477,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern const real_vector2d *global_forward2d_pointer;
 
@@ -515,7 +513,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
 
         for (i = 0; i < s->component_count; i++) {
             if (s->unit_index[i] == unit_index) {
-                object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+                object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
                 swarm_component *component = &((swarm_component *)swarm_component_data->data)[s->component_index[i] & 0xffff];
                 uint16_t flags = *(uint16_t *)&((struct swarm_component *)component)->flags;
                 datum_index target = component->leap_target_index;
@@ -600,7 +598,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
-extern data_array *object_data;
 
 }
 }
@@ -629,7 +626,7 @@ datum_index halo::ai::movement_ops::create_swarm()
             s->component_count = 0;
 
             while (unit_index != (datum_index)k_datum_index_none) {
-                object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+                object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
                 object *unit_object = header->data;
                 datum_index component_index = halo::memory::datum_new(swarm_component_data);
 
@@ -710,7 +707,6 @@ namespace c_actor_evaluate_search_node {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 
 extern double sqrt(double x);
 
@@ -853,13 +849,12 @@ extern "C" uint8_t actor_evaluate_search_node(datum_index actor_index, datum_ind
 
 namespace c_actor_fill_unit_position_context {
 extern "C" {
-extern data_array *object_data;
 extern char ai_marker_name_a[];
 
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8);
 }
 }
 }
@@ -906,7 +901,6 @@ extern "C" void actor_fill_unit_position_context(datum_index unit_index, actor_u
 
 namespace c_actor_find_best_search_node {
 extern "C" {
-extern data_array *object_data;
 
 extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
@@ -926,7 +920,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
 {
     using namespace c_actor_find_best_search_node;
     datum_index actor_index = datum;
-    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((object_header *)object_data->data)
+    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((object_header *)halo::objects::globals().object_data->data)
                                                         [vehicle_index & 0xffff].data & 0xffff].data;
     int16_t best_seat = -1;
     float best_score = 0.0f;

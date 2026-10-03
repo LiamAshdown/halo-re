@@ -10,7 +10,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern Globals *global_globals;
 extern char ai_marker_name_a[];
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
@@ -18,7 +17,7 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_melee_attack_scan.

@@ -49,7 +49,6 @@ extern void hs_dispose_dynamic_globals(void);
 extern void widget_close_all(void);
 extern void saved_game_files_dispose(void);
 extern void network_shutdown(void);
-extern data_array *object_data;
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param);
 extern void player_respawn(datum_index player_handle);
 extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
@@ -234,7 +233,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                 walk = unit_handle;
                 do {
                     root = walk;
-                    next = ((object_header *)object_data->data)[walk & 0xffff].data->parent_object;
+                    next = ((object_header *)halo::objects::globals().object_data->data)[walk & 0xffff].data->parent_object;
                     walk = next;
                 } while (next != (datum_index)-1);
 
@@ -277,7 +276,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                     if (plr->unit == (datum_index)-1) {
                         success = 0;
                     } else {
-                        root_obj = ((object_header *)object_data->data)[best_root & 0xffff].data;
+                        root_obj = ((object_header *)halo::objects::globals().object_data->data)[best_root & 0xffff].data;
                         success = player_attach_unit_to_parent(player_handle, best_root, (uint8_t *)root_obj + 0xa0);
                     }
                 }
@@ -354,7 +353,7 @@ void Lifecycle::end_game_sequence_stage2(void)
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
-            object *unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
             unit_obj->vitality_flags = unit_obj->vitality_flags | 0x0020;
         }
         p = (player *)halo::memory::data_iterator_next(&iterator);

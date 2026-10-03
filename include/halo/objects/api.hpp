@@ -7,6 +7,9 @@
 
 #include <stdint.h>
 
+struct memory_pool;
+struct object_globals;
+
 struct Antenna;
 struct ColorRGB;
 struct Flag;
@@ -38,6 +41,23 @@ typedef uint32_t datum_index;
 typedef float real;
 
 namespace halo::objects {
+
+/**
+ * The engine globals the objects module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    data_array *&object_data;
+    object_globals *&object_globals;
+    data_array *&object_list_header_data;
+    data_array *&object_list_reference_data;
+    datum_index *&object_name_list;
+    memory_pool *&object_memory_pool;
+    datum_index *&noncollideable_cluster_first;
+    data_array *&noncollideable_object_references;
+};
+
+Globals &globals();
 
 void object_get_center_of_mass_and_scale(real_point3d *out_center, uint32_t object_index, float *out_radius);
 void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity);

@@ -61,7 +61,6 @@ extern void game_engine_send_end_game_notification(uint32_t reason);
 extern int32_t ctf_flag_capture_limit_006b0ea0;
 extern data_array *player_data;
 extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern uint8_t unit_has_must_be_readied_weapon(uint32_t player_index);
 extern void unit_reset_gauge_if_flagged(uint32_t player_index);
@@ -436,7 +435,7 @@ void Ctf::update(datum_index player_index)
     if (unit_index == 0xffffffff) {
         return;
     }
-    unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
+    unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
     weapon_slot = ((unit_object *)unit)->unit.current_weapon_index;
     if (weapon_slot == -1) {
         return;
@@ -456,7 +455,7 @@ void Ctf::update(datum_index player_index)
         return;
     }
     if (game_engine_variant.engine.ctf.flag_at_home_to_score != 0 && game_engine_variant.engine.ctf.single_flag_time == 0) {
-        uint8_t *flag = *(uint8_t **)((uint8_t *)object_data->data + (ctf_team_flag_object[team] & 0xffff) * 12 + 8);
+        uint8_t *flag = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (ctf_team_flag_object[team] & 0xffff) * 12 + 8);
 
         if (((*(uint32_t *)(flag + 0x22c) >> 6) & 1) != 0) {
             game_engine_ctf_notify_flag_carried_throttled((int32_t)player_index);

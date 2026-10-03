@@ -5,12 +5,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern data_array *player_data;
-extern data_array *object_data;
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
 extern player_globals *local_player_globals;
@@ -240,9 +240,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                     int16_t unit_index = (int16_t)p->unit;
                     int16_t unit_salt = (int16_t)((uint32_t)p->unit >> 16);
 
-                    if (unit_index >= 0 && unit_index < object_data->maximum_count) {
-                        object_header *unit_header = (object_header *)((uint8_t *)object_data->data +
-                                                                        (int32_t)object_data->size * unit_index);
+                    if (unit_index >= 0 && unit_index < halo::objects::globals().object_data->maximum_count) {
+                        object_header *unit_header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data +
+                                                                        (int32_t)halo::objects::globals().object_data->size * unit_index);
 
                         if (unit_header->identifier != 0 && (unit_salt == 0 || unit_header->identifier == unit_salt) &&
                             (((1u << (unit_header->type & 0x1f)) & 3) != 0) && unit_header->data != 0) {

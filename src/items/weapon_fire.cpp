@@ -5,7 +5,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern uint8_t weapon_infinite_ammo;
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
@@ -50,7 +49,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     real effect_scale_a;
     real effect_scale_b;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
@@ -267,7 +266,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     }
 
     if (holder_index != (datum_index)0xffffffff && selected_damage_tag != (datum_index)0xffffffff) {
-        object *holder_obj = ((object_header *)object_data->data)[(uint16_t)holder_index].data;
+        object *holder_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)holder_index].data;
         uint8_t *holder_bytes = (uint8_t *)holder_obj;
         damage_data dd;
         int32_t *zero = (int32_t *)&dd;

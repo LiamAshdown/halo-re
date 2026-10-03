@@ -9,7 +9,6 @@
 
 extern "C" {
 extern data_array *recorded_animations;
-extern data_array *object_data;
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4];
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
@@ -84,9 +83,9 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
         record->flags = record->flags & ~(uint16_t)_recorded_animation_flag_restore_object_flag_40;
     }
 
-    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
+    unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
     unit->flags = unit->flags & ~to_bits(unit_playback_flags::restore_marker);
-    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
+    unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
     unit->flags = unit->flags | _unit_flag_unknown_8000000;
 
     halo::objects::object_set_in_pvs_pass_flag(unit_index, 0);
@@ -224,7 +223,7 @@ void RecordedAnimationPlayer::update_all()
         if (unit_object == (object *)0) {
             halo::memory::datum_delete(recorded_animations, iterator.index);
         } else if ((record->flags & _recorded_animation_flag_finished) != 0) {
-            object_header *header = &((object_header *)object_data->data)[halo::datum_slot(record->unit_index)];
+            object_header *header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];
             unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
             if ((record->flags & _recorded_animation_flag_restore_object_flag_40) != 0) {
@@ -232,13 +231,13 @@ void RecordedAnimationPlayer::update_all()
             } else {
                 unit->flags = unit->flags & ~0x00000040u;
             }
-            header = &((object_header *)object_data->data)[halo::datum_slot(record->unit_index)];
+            header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];
             unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
             unit->flags = unit->flags & ~(uint32_t)_unit_flag_unknown_8000000; 
 
             halo::units::unit_refresh_targeting_flag_and_weapons(record->unit_index, 0);
 
-            header = &((object_header *)object_data->data)[halo::datum_slot(record->unit_index)];
+            header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];
             header->flags = header->flags | _object_header_in_pvs_pass_bit;
             
             
@@ -256,7 +255,7 @@ void RecordedAnimationPlayer::update_all()
                 }
             }
             if (((record->flags & _recorded_animation_flag_mark_object_when_finished) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
-                object *obj = ((object_header *)object_data->data)[halo::datum_slot(record->unit_index)].data;
+                object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)].data;
                 biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
                 halo::objects::object_get_position((real_point3d *)&biped->bump_object_index, record->unit_index);
                 biped->flags = biped->flags | to_bits(biped_playback_flags::jumping);

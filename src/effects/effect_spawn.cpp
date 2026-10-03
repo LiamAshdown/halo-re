@@ -13,7 +13,6 @@ extern int16_t light_count_enabled;
 extern const real_vector3d *global_origin3d_pointer;
 extern const ColorRGB *global_white_color;
 extern data_array *effect_location_data;
-extern data_array *object_data;
 extern const real_vector3d *global_down3d_pointer;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker);

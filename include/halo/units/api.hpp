@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+
+
 struct Biped;
 struct TagID;
 struct Unit;
@@ -30,6 +32,16 @@ typedef uint32_t datum_index;
 typedef float real;
 
 namespace halo::units {
+
+/**
+ * The engine globals the units module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    uint8_t &updates_suppressed;
+};
+
+Globals &globals();
 
 void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out);
 void biped_clear_ground_surface_references(uint32_t object_index);

@@ -13,7 +13,6 @@ extern void effect_random_direction_from_table(real_point3d *out);
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
 extern uint8_t particle_systems_enabled;
-extern data_array *object_data;
 extern const ColorARGB *global_white_argb;
 extern const ColorRGB *global_white_color;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -315,7 +314,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
     if (particle_systems_enabled != 0) {
         handle = halo::memory::datum_new(particle_system_data);
         if (handle != (datum_index)0xffffffff) {
-            object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+            object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
             ObjectAttachment *attachment = (ObjectAttachment *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[
                 obj->definition_tag & 0xffff].data + 0x144) + attachment_index * 0x48);
             particle_system *system =
@@ -763,7 +762,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     }
 
     if (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8);
         uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
         char *marker_name = (char *)(*(uint8_t **)&((struct Object *)object_tag)->attachments.pointer + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
 

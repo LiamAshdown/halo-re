@@ -6,7 +6,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern real projectile_network_update_position_tolerance;
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
@@ -218,7 +217,7 @@ void ProjectileNetwork::request_state(int16_t requested_state)
 {
     datum_index projectile_index = (datum_index)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].data;
     projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     if (pd->state < requested_state) {
@@ -239,7 +238,7 @@ int32_t ProjectileNetwork::send_creation()
 {
     uint32_t projectile_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].data;
     int32_t projectile_hash = 0;
     int32_t creating_object_hash = 0;
     int32_t owner_hash = 0;
@@ -328,11 +327,11 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
         projectile_data *self_pd = (projectile_data *)((uint8_t *)self + k_projectile_data_offset);
 
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {
-            parent = ((object_header *)object_data->data)[halo::datum_slot(parent_handle)].data;
+            parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(parent_handle)].data;
             datum_index sibling_index = parent->first_child_object;
             int16_t sibling_count = 0;
             while (sibling_index != (datum_index)k_datum_index_none) {
-                object *sibling = ((object_header *)object_data->data)[halo::datum_slot(sibling_index)].data;
+                object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(sibling_index)].data;
                 projectile_data *sibling_pd = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
                 if (sibling->definition_tag == self->definition_tag &&
                     (sibling_pd->flags & _projectile_super_detonation_counted_bit) == 0) {
@@ -442,7 +441,7 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
 
     network_index_cache_insert_if_free(&network_object_index_cache, new_object_index, decoded.object_hash);
 
-    obj = ((object_header *)object_data->data)[halo::datum_slot(new_object_index)].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(new_object_index)].data;
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     proj->network_state.position = decoded.position;
@@ -489,7 +488,7 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
         return;
     }
 
-    if ((((object_header *)object_data->data)[halo::datum_slot(projectile_index)].flags & _object_header_delete_pending_bit) == 0) {
+    if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].flags & _object_header_delete_pending_bit) == 0) {
         network_index_cache_remove(&network_object_index_cache, projectile_index); 
     }
 

@@ -18,7 +18,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern data_array *player_data;
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
@@ -63,7 +62,7 @@ void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_
                 uint32_t current = (uint32_t)pl->unit;
                 object *root;
                 do {
-                    root = (object *)((object_header *)object_data->data)[current & 0xffff].data;
+                    root = (object *)((object_header *)halo::objects::globals().object_data->data)[current & 0xffff].data;
                     current = (uint32_t)root->parent_object;
                 } while (current != 0xffffffff);
 
@@ -251,7 +250,7 @@ uint8_t SpawnLocations::location_blocked_by_vehicle(real_point3d *point)
     count = halo::objects::object_find_in_sphere(0, 0x11f, &location, point, 0.1f, candidates, 0x10);
 
     for (i = 0; i < count; i = i + 1) {
-        object *obj = ((object_header *)object_data->data)[candidates[i] & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
 
         if (obj != 0 && obj->type == 1) {
             return 1;

@@ -7,7 +7,6 @@
 
 extern "C" {
 extern void unit_invalidate_local_player_zoom_level(void);
-extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
@@ -105,7 +104,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
         return;
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
-    vehicle = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
+    vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
     memcpy(vehicle + 0x52c, &message.position, 12);
     memcpy(vehicle + 0x538, &message.velocity, 12);
     memcpy(vehicle + 0x544, &message.angular_velocity, 12);

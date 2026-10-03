@@ -10,7 +10,6 @@
 extern "C" {
 extern data_array *effect_data;
 extern data_array *effect_location_data;
-extern data_array *object_data;
 extern data_array *player_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
@@ -66,7 +65,7 @@ uint32_t effect_ref::check_object_collisions()
                     continue;
                 }
 
-                object *unit = ((object_header *)object_data->data)[(uint16_t)p->unit].data;
+                object *unit = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)p->unit].data;
                 datum_index marker_handle = self->location_markers[0];
 
                 while (marker_handle != k_datum_index_none) {
@@ -93,7 +92,7 @@ uint32_t effect_ref::check_object_collisions()
                                 self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
                         } else {
                             object *owner =
-                                ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+                                ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
                             node = (real_matrix4x3 *)((uint8_t *)owner + owner->nodes.offset +
                                 node_index * 0x34);
                         }
@@ -298,7 +297,7 @@ void effect_ref::update(real dt)
             halo::effects::effect_delete(effect_index);
             return;
         }
-        root = *(uint8_t **)((uint8_t *)object_data->data +
+        root = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data +
             (halo::objects::object_get_root_object_index(object_index) & 0xffff) * 0xc + 8);
         if (*(uint32_t *)(root + 0x10) & 0x800) {
             *(uint32_t *)&((struct effect *)self)->location.leaf_index = *(uint32_t *)(root + 0x98);

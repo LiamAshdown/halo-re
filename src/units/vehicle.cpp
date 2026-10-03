@@ -11,7 +11,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern int32_t k_vehicle_minimum_age_ticks;
@@ -33,7 +32,7 @@ namespace vehicle_create_local {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 
 static uint8_t *object_definition(uint8_t *object)
@@ -85,7 +84,7 @@ uint8_t VehicleView::create()
 uint8_t VehicleView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
 
     if (stamp == -1) {
@@ -107,7 +106,7 @@ uint8_t VehicleView::is_old_enough()
 void VehicleView::reset_state()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
 
     vehicle->flags = 0;
@@ -135,7 +134,7 @@ void VehicleView::reset_state()
     vehicle->active_marker_mask = 0;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**

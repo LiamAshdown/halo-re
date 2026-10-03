@@ -14,7 +14,6 @@
 
 extern "C" {
 extern data_array *player_data;
-extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
@@ -73,7 +72,7 @@ extern void player_update_nearby_interactions_secondary(datum_index player_handl
 namespace {
 static void player_respawn_drop_lights(datum_index object_index)
 {
-    uint8_t *header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc;
+    uint8_t *header = (uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc;
     uint8_t *obj = *(uint8_t **)(header + 8);
     uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & 0xffff].data;
 
@@ -85,13 +84,13 @@ static void player_respawn_drop_lights(datum_index object_index)
     }
     if (*(int32_t *)&((Object *)tag)->model.tag_id != -1) {
         ((object *)obj)->flags &= ~1u;
-        header = (uint8_t *)object_data->data + (object_index & 0xffff) * 0xc;
+        header = (uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc;
         header[2] |= 2;
     }
 }
 static object *object_from_index(datum_index object_index)
 {
-    return ((object_header *)object_data->data)[object_index & 0xffff].data;
+    return ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 }
 static int32_t player_update_queue_count(const circular_queue *queue)
 {
@@ -122,7 +121,7 @@ void PlayerView::respawn()
 
         *slot = k_datum_index_none;
         if (existing_unit != k_datum_index_none) {
-            uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (existing_unit & 0xffff) * 0xc + 8);
+            uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (existing_unit & 0xffff) * 0xc + 8);
 
             if ((unit[0x106] & 4) == 0) {
                 datum_index held_weapon = k_datum_index_none;
@@ -265,7 +264,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
         return;
     }
 
-    unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
     if (unit_obj->parent_object == (datum_index)-1) {
         return;
     }
@@ -365,7 +364,7 @@ int16_t PlayerView::pick_random_starting_location()
 void KillStreak::begin(int16_t slot)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
+    unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
 
     if (slot == 0) {
         unit->flags = unit->flags | _unit_flag_unknown_10;
@@ -383,7 +382,7 @@ void KillStreak::continue_streak(int16_t slot)
 {
     if (slot == 0) {
         player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
+        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
         unit->flags = unit->flags | 0x20;
     }
 }
@@ -614,7 +613,7 @@ void StructureBsp::switch_structure_bsp()
             } else if (*fade_ticks < 0x5a) {
                 halo::effects::player_effect_apply_generic_damage_feedback(player_handle, (real)*fade_ticks * 0.011111111f);
             } else if (plr->unit != (datum_index)-1) {
-                object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
+                object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
                 if ((*((uint8_t *)unit_obj + 0x106) & 0x20) == 0) {
                     if (network_game_mode == 2) {
 
@@ -634,9 +633,9 @@ void StructureBsp::switch_structure_bsp()
             walk = plr->unit;
             do {
                 root = walk;
-                walk = ((object_header *)object_data->data)[root & 0xffff].data->parent_object;
+                walk = ((object_header *)halo::objects::globals().object_data->data)[root & 0xffff].data->parent_object;
             } while (walk != (datum_index)-1);
-            root_obj = ((object_header *)object_data->data)[root & 0xffff].data;
+            root_obj = ((object_header *)halo::objects::globals().object_data->data)[root & 0xffff].data;
 
             if ((root_obj->flags & 0x200000) == 0 && halo::scenario::globals().scenario->bsp_switch_trigger_volumes.count > 0) {
                 ScenarioBSPSwitchTriggerVolume *volumes =
@@ -648,7 +647,7 @@ void StructureBsp::switch_structure_bsp()
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
                     if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != (datum_index)-1 &&
                         halo::scenario::scenario_trigger_volume_contains_point((int16_t)entry->trigger_volume,
-                            (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
+                            (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
 
                         int16_t destination = (int16_t)entry->destination;
 

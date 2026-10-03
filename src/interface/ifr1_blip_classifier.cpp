@@ -6,7 +6,6 @@
 extern "C" {
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern data_array *object_data;
 extern datum_index player_index_from_unit_index(datum_index object_index);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
@@ -44,7 +43,7 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
     if (halo::objects::object_try_and_get(object_index, 3) == 0) {
         return _blip_type_enemy_special;
     }
-    object_data_ptr = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    object_data_ptr = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     if (halo::objects::object_try_and_get(object_index, 2) != 0) {
         datum_index occupant = *(datum_index *)(object_data_ptr + 0x328);
 
@@ -52,7 +51,7 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
             occupant = *(datum_index *)(object_data_ptr + 0x324);
         }
         if (occupant != (datum_index)-1) {
-            uint8_t *occupant_data = (uint8_t *)((object_header *)object_data->data)[occupant & 0xffff].data;
+            uint8_t *occupant_data = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[occupant & 0xffff].data;
             return (uint8_t)((teams_are_enemies((int16_t)viewer_team, ((object *)occupant_data)->owner_team) != 0) + 3);
         }
         {

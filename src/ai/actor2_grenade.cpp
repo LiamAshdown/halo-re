@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -23,7 +24,6 @@ int32_t ActorOps::order_code_is_grenade_throw(int16_t order_code)
 namespace actor_recompute_grenade_eligibility_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern float k_random_scale_65536;
 extern float ticks_per_second;
 }
@@ -48,7 +48,7 @@ void ActorView::recompute_grenade_eligibility()
     float fraction;
 
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        uint8_t *unit_obj = (uint8_t *)((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+        uint8_t *unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[self->unit_index & 0xffff].data;
 
         if (*(int16_t *)(unit_obj + 0x388) > 0) {
             base_ticks = *(int16_t *)(unit_obj + 0x3fa);

@@ -27,9 +27,6 @@ void ActorView::obey_member_advance(datum_index unit_index, uint16_t command_lis
 }
 
 namespace actor_obey_member_enter_local {
-extern "C" {
-extern data_array *object_data;
-}
 }
 
 /**
@@ -47,7 +44,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     (void)secondary_record;
     (void)callback_extra;
     if (list[0x20] & 0x10) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
 
         ((unit_object *)unit)->unit.flags |= 0x1000;
     }
@@ -55,7 +52,6 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
 
 namespace actor_obey_member_exit_local {
 extern "C" {
-extern data_array *object_data;
 extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state,
     int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out);
 }
@@ -69,7 +65,7 @@ extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_
 void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
     using namespace actor_obey_member_exit_local;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
     uint8_t *record = (uint8_t *)component_record;
 
     (void)callback_extra;
@@ -119,7 +115,6 @@ extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *player_data;
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
@@ -137,7 +132,7 @@ extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterato
 extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator);
 extern char hs_call_script_by_name(char *name);
 extern const char k_empty_string[];
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
@@ -690,13 +685,12 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
 namespace actor_squad_action_is_complete_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle,
                                           uint32_t exclude_object_index);
 extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_action_in_progress(datum_index actor_index);
 extern float actor_compute_accuracy_scale(datum_index actor_index);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }
@@ -1189,12 +1183,11 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
 
 namespace actor_squad_react_to_grenade_for_vehicle_occupants_local {
 extern "C" {
-extern data_array *object_data;
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
     char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
     int16_t grenade_type);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 }
 }
 

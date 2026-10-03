@@ -8,7 +8,6 @@ namespace halo::ai {
 namespace actor_target_evaluate_squad_link_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 extern int32_t object_cluster_stamp;
 extern game_time_globals *game_time;
@@ -25,7 +24,7 @@ extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object_index, char kind);
 extern void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force,
     char allow_reassign);
-#define OBJ(i) ((uint8_t *)((object_header *)object_data->data)[(i) & 0xffff].data)
+#define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & 0xffff].data)
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
     int16_t count = *(int16_t *)(list + 2);

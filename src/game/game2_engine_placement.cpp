@@ -29,7 +29,6 @@ extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle);
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern uint8_t game_engine_map_table_value;
-extern data_array *object_data;
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
 extern void message_delta_decode_compound_field_staged(void *event);
 extern uint8_t network_object_index_cache[];
@@ -519,7 +518,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
 
     new_object = halo::objects::object_new_with_datum_role_control(&placement, 1);
     if (new_object != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
 
         network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
         halo::objects::object_list_membership_set(new_object, 0);
@@ -608,7 +607,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                         new_object = halo::objects::object_new_with_datum_role_control(&placement, 3);
                         if (new_object != (datum_index)0xffffffff) {
-                            object *obj = ((object_header *)object_data->data)[new_object & 0xffff].data;
+                            object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
                             item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
                             halo::objects::object_list_membership_set(new_object, 0);
@@ -651,7 +650,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
     if (unit == (datum_index)0xffffffff) {
         return;
     }
-    unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
 
     if (p->teleporter_flag_index != (datum_index)0xffffffff) {
         ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer
@@ -687,7 +686,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             physics_model_contact contact;
             uint8_t blocked;
 
-            unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
+            unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
             forward = unit_object->forward;
             p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
             halo::units::unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
@@ -707,7 +706,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                 datum_index obstruction = contact.object_index;
 
                 if (obstruction != (datum_index)0xffffffff) {
-                    object *blocker = ((object_header *)object_data->data)[obstruction & 0xffff].data;
+                    object *blocker = ((object_header *)halo::objects::globals().object_data->data)[obstruction & 0xffff].data;
                     if (((1 << blocker->type) & _object_mask_unit) != 0) {
                         datum_index controller =
                             ((unit_data *)((uint8_t *)blocker +
@@ -943,7 +942,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
         }
 
         if (current_game_engine != 0 && current_game_engine->object_in_play_update != 0) {
-            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, object_data);
+            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
                 ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {

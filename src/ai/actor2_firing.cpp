@@ -644,7 +644,6 @@ void ActorView::score_firing_positions_by_standoff(actor_firing_position_query *
 namespace actor_score_firing_positions_by_threat_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern double sqrt(double x);
 }
 }
@@ -783,7 +782,7 @@ next_candidate:
         return;
     }
 
-    vehicle = (object *)((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
+    vehicle = (object *)((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & 0xffff].data;
     halo::objects::object_get_position(&vehicle_position, self->active_unit_index);
 
     for (i = 0; i < (int16_t)count; i++) {

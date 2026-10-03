@@ -10,7 +10,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern uint8_t *object_network_id_table;
 extern data_array *player_data;
 extern uint8_t network_object_index_cache[];
@@ -93,7 +92,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
     if (unit != 0) {
         ((unit_object *)unit)->base.network_role = 3;
     }
-    if ((((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
+    if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
         network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
     }
 }
@@ -130,7 +129,7 @@ void UnitView::apply_network_health_update(void *message)
         message_delta_decode_compound_field_staged(message);
         return;
     }
-    guard = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    guard = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
     if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && reliable) {

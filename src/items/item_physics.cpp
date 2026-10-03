@@ -7,7 +7,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern void item_detonation_timer_start(uint32_t object_index);
@@ -34,7 +33,7 @@ namespace halo::items {
 void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
 {
     uint32_t item_index = datum;
-    object *obj = ((object_header *)object_data->data)[item_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if ((item->flags & _item_does_not_accelerate_bit) != 0) {
@@ -137,7 +136,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
 void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector3d *normal, real_point3d *point)
 {
     uint32_t item_index = datum;
-    object *obj = ((object_header *)object_data->data)[item_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
     object_marker marker;
     real_vector3d rotated_forward;
     real_matrix4x3 basis;
@@ -199,7 +198,7 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
 void item_ref::compute_rotation()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
     real magnitude = (real)sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
@@ -258,7 +257,7 @@ uint8_t item_ref::get_effective_position(real_point3d *out_position)
                 if (controlled_object_index == (uint32_t)k_datum_index_none) {
                     return 0;
                 }
-                obj = ((object_header *)object_data->data)[controlled_object_index & 0xffff].data;
+                obj = ((object_header *)halo::objects::globals().object_data->data)[controlled_object_index & 0xffff].data;
             }
         }
     }

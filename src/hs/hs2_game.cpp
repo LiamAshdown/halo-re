@@ -5,6 +5,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "halo/objects/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +40,6 @@ extern int16_t main_globals_word_0071976e;
 extern uint8_t main_globals_byte_0071976c;
 extern void game_engine_set_variant_by_name(const char *name);
 extern uint8_t main_globals_byte_0071974e;
-extern object_globals *object_globals_pointer;
 extern void main_queue_map_change(char *map_name);
 extern uint8_t main_queue_map_change_by_name_or_clear(char *name);
 extern void saved_game_delete_by_display_name(const char *name);
@@ -445,7 +445,7 @@ void GameCommands::evaluate_garbage_collect_now(int16_t function_index, uint32_t
 {
     (void)function_index;
     (void)first;
-    object_globals_pointer->garbage_collect_requested = 1;
+    halo::objects::globals().object_globals->garbage_collect_requested = 1;
     hs_thread_return(0, thread_index);
 }
 

@@ -4,17 +4,17 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern ai_globals *ai_globals_ptr;
 
 extern void encounter_recompute_morale(datum_index encounter_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 
 static uint32_t actor_death_random_16(void)
 {
@@ -202,7 +202,6 @@ extern "C" uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
 namespace c_actor_check_grenade_facing_and_commit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 extern game_time_globals *game_time;
 
@@ -235,7 +234,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
         return 0;
     }
 
-    unit_header = (object_header *)object_data->data + (unit_index & 0xffff);
+    unit_header = (object_header *)halo::objects::globals().object_data->data + (unit_index & 0xffff);
     unit_obj = unit_header->data;
     body_damage = unit_obj->current_body_damage;
     if (body_damage > 0.0f) {
@@ -478,7 +477,6 @@ extern "C" uint8_t actor_consider_grenade_throw(datum_index actor_index)
 namespace c_actor_evaluate_grenade_target_position {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
     uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param);
@@ -514,7 +512,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
     if (a[0x504] || ((actor *)a)->target_unit_index == k_datum_index_none) {
         return 0;
     }
-    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((uint8_t *)((object_header *)object_data->data)
+    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
         [((actor *)a)->unit_index & 0xffff].data) & 0xffff].data;
     p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & 0xffff) * 0x138;
     if (!(*(float *)(unit_tag + 0x234) > 0.0f)) {
@@ -732,7 +730,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern ai_globals *ai_globals_ptr;
 
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
@@ -792,7 +789,7 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
 
         if (p->enemy == 0 && p->dead == 0 && p->state == 3 &&
             p->relationship_object_index == -1) {
-            tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
+            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & 0xffff].data;
             if (tracked_object->type == _object_type_biped) {
                 int excluded = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none &&

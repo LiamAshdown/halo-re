@@ -87,7 +87,6 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 
 namespace actor_react_to_threat_event_local {
 extern "C" {
-extern data_array *object_data;
 extern void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor_index, float delta,
     const real_vector3d *direction);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -115,7 +114,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     int32_t reason;
     int32_t event_code;
 
-    self_obj = ((object_header *)object_data->data)[self_object_index & 0xffff].data;
+    self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & 0xffff].data;
     relationship_object_index = (datum_index)k_datum_index_none;
     relationship_obj = 0;
 
@@ -136,7 +135,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
                     goto no_relationship_object;
                 }
             }
-            relationship_obj = ((object_header *)object_data->data)[relationship_object_index & 0xffff].data;
+            relationship_obj = ((object_header *)halo::objects::globals().object_data->data)[relationship_object_index & 0xffff].data;
         }
     }
 no_relationship_object:

@@ -18,6 +18,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -65,7 +66,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
-extern data_array *object_data;
 extern real *default_color_a;
 extern real *default_color_b;
 extern real *player_color_get_rgb(real *out_rgb, int32_t color_index);
@@ -645,7 +645,7 @@ datum_index Scoreboard::find_player_holding_object(datum_index target_object)
     p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
-            object *unit_obj = ((object_header *)object_data->data)[(uint32_t)p->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint32_t)p->unit & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             int32_t i;
             for (i = 0; i < k_maximum_weapons_per_unit; i++) {

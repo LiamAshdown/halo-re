@@ -1,10 +1,9 @@
 #include "halo/hs/hs3_objects.hpp"
 #include "crt.h"
 #include "halo/memory/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_list_header_data;
-extern data_array *object_list_reference_data;
 extern void object_list_reference_chain_delete(data_array *reference_array, datum_index chain_head);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 }
@@ -24,12 +23,12 @@ int32_t ObjectLists::get_first(datum_index header_index, object_list_iterator *i
     object_list_reference *node;
 
     if (header_index != k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (header_index & 0xffff) * 0x0c);
         first = header->first_reference;
         *iterator_out = first;
         if (first != k_datum_index_none) {
-            node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (first & 0xffff) * 0x0c);
             *iterator_out = node->next;
             return node->object_index;
@@ -56,14 +55,14 @@ int32_t ObjectLists::nth_reference(datum_index header_index, int16_t n) const
     object_index = -1;
     next = 0xffffffff;
     if (header_index != k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (header_index & 0xffff) * 0x0c);
         next = header->first_reference;
         if (next == k_datum_index_none) {
             object_index = -1;
             next = 0xffffffff;
         } else {
-            reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            reference = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (next & 0xffff) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
@@ -76,7 +75,7 @@ int32_t ObjectLists::nth_reference(datum_index header_index, int16_t n) const
             object_index = -1;
             next = 0xffffffff;
         } else {
-            reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            reference = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (next & 0xffff) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
@@ -98,11 +97,11 @@ void ObjectLists::reference_add(datum_index header_index, datum_index object_ind
     datum_index node_index;
     object_list_reference *node;
 
-    header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+    header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
         (header_index & 0xffff) * 0x0c);
-    node_index = halo::memory::datum_new(object_list_reference_data);
+    node_index = halo::memory::datum_new(halo::objects::globals().object_list_reference_data);
     if (node_index != k_datum_index_none) {
-        node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+        node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
             (node_index & 0xffff) * 0x0c);
         node->object_index = object_index;
         node->next = header->first_reference;
@@ -141,15 +140,15 @@ void ObjectLists::dispose_empty() const
     datum_index header_index;
     object_list_header *header;
 
-    header_index = halo::memory::datum_next(-1, object_list_header_data);
+    header_index = halo::memory::datum_next(-1, halo::objects::globals().object_list_header_data);
     while (header_index != k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (header_index & 0xffff) * 0x0c);
         if (header->reference_count == 0) {
-            object_list_reference_chain_delete(object_list_reference_data, header->first_reference);
-            halo::memory::datum_delete(object_list_header_data, header_index);
+            object_list_reference_chain_delete(halo::objects::globals().object_list_reference_data, header->first_reference);
+            halo::memory::datum_delete(halo::objects::globals().object_list_header_data, header_index);
         }
-        header_index = halo::memory::datum_next((int16_t)header_index, object_list_header_data);
+        header_index = halo::memory::datum_next((int16_t)header_index, halo::objects::globals().object_list_header_data);
     }
 }
 
@@ -163,9 +162,9 @@ void ObjectLists::initialize() const
 {
     char name[256];
 
-    object_list_header_data = game_state_new((char *)"object list header", k_hs_object_list_header_count, 0xc );
+    halo::objects::globals().object_list_header_data = game_state_new((char *)"object list header", k_hs_object_list_header_count, 0xc );
     sprintf(name, "%s reference", "list object");
-    object_list_reference_data = game_state_new(name, k_hs_object_list_reference_count, 0xc );
+    halo::objects::globals().object_list_reference_data = game_state_new(name, k_hs_object_list_reference_count, 0xc );
 }
 
 }

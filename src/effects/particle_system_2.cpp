@@ -8,7 +8,6 @@
 extern "C" {
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
-extern data_array *object_data;
 extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
 extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle);
 extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt);
@@ -35,7 +34,7 @@ void particle_system_ref::update(float delta_time)
     int32_t types_alive = 0;
 
     if (self->object_index != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & 0xffff].data;
         float function_value;
 
         if ((obj->flags & _object_needs_cluster_update_bit) != 0 &&

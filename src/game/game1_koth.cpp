@@ -35,7 +35,6 @@ extern int32_t king_alt_team_score[16];
 extern int32_t king_alt_score_target;
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern void game_engine_begin_end_game_sequence(void);
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern game_variant game_engine_variant;
 extern uint32_t king_hill_occupant_table[16];
@@ -229,7 +228,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         return;
     }
 
-    hdr = (object_header *)object_data->data + (object_handle & 0xffff);
+    hdr = (object_header *)halo::objects::globals().object_data->data + (object_handle & 0xffff);
     if ((hdr->flags & 0x08) != 0) {
         return;
     }
@@ -248,7 +247,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
             data_iterator iter;
             void *element;
-            iter.data = object_data;
+            iter.data = halo::objects::globals().object_data;
             iter.next_index = 0;
             iter.index = (datum_index)0xffffffff;
             iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -625,12 +624,12 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
 
     if (p->unit != (datum_index)0xffffffff) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)object_data->data)[(uint32_t)p->unit & 0xffff].data +
+            ((object_header *)halo::objects::globals().object_data->data)[(uint32_t)p->unit & 0xffff].data +
             k_unit_data_offset);
         if (unit->current_weapon_index != -1) {
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)0xffffffff) {
-                object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
+                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data;
                 uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int32_t score = king_alt_player_score[idx];
@@ -715,7 +714,7 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
  */
 uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_handle & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_handle & 0xffff].data;
 
     if (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type < 3) {
         game_engine_broadcast_kill_feed_by_relationship(player_index, 0x20, 0x21, 0x22, player_index, 0);
@@ -758,7 +757,7 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
     if (unit == (datum_index)0xffffffff) {
         return 0;
     }
-    unit_obj = ((object_header *)object_data->data)[unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
     z = unit_obj->bounding_center.z;
     if (z >= king_hill_boundary_min_z && z < king_hill_boundary_max_z) {
         Point2D point;
@@ -851,7 +850,7 @@ void Koth::relocate_hill_marker(int32_t ball_index)
 
             new_object = halo::objects::object_new(&placement);
 
-            hdr = (object_header *)object_data->data + ((uint32_t)new_object & 0xffff);
+            hdr = (object_header *)halo::objects::globals().object_data->data + ((uint32_t)new_object & 0xffff);
             header_flags = hdr->flags;
             hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
             if ((header_flags & _object_header_active_bit) == 0) {
@@ -872,7 +871,7 @@ void Koth::relocate_hill_marker(int32_t ball_index)
 void Koth::relocate_object_hill(uint32_t object_index)
 {
     if (network_game_mode == 2) {
-        object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
         real_point3d discarded_position;
 
         game_engine_koth_find_marker_position(&discarded_position, ((object *)obj)->owner_team);
@@ -1214,12 +1213,12 @@ void Koth::update_occupant_table(uint32_t index)
     unit = p->unit;
     if (unit != (datum_index)0xffffffff) {
         unit_data *unit_obj = (unit_data *)((uint8_t *)
-            ((object_header *)object_data->data)[unit & 0xffff].data + k_unit_data_offset);
+            ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data + k_unit_data_offset);
         int16_t slot = unit_obj->current_weapon_index;
         if (slot != -1) {
             datum_index weapon = unit_obj->weapons[slot];
             if (weapon != (datum_index)0xffffffff) {
-                object *weapon_obj = ((object_header *)object_data->data)[weapon & 0xffff].data;
+                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data;
                 uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;

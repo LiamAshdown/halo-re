@@ -13,7 +13,6 @@ extern const ColorRGB *global_white_color;
 extern int32_t local_player_index_for_object(datum_index object_index);
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 extern uint8_t first_person_effects_enabled;
-extern data_array *object_data;
 extern void *effect_marker_callback_context;
 extern const real_point3d *global_origin3d_pointer;
 }
@@ -196,7 +195,7 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
         context.marker_positions = marker_positions;
         context.node_index = (node_index == 0xffff) ? 0 : node_index;
 
-        attach_object = ((object_header *)object_data->data)[(uint16_t)object_index].data;
+        attach_object = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
         context.node_table_entry = (int16_t)context.node_index * 0x34 +
             ((struct object *)attach_object)->nodes.offset + (int32_t)(long)attach_object;
 

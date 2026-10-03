@@ -31,7 +31,6 @@ extern uint16_t *empty_wide_string_pointer;
 extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text);
 extern uint16_t *hud_get_message_string(int32_t message_index);
 extern data_array *player_data;
-extern data_array *object_data;
 extern void *global_zero_vector3d_pointer;
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
@@ -346,7 +345,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         return;
     }
 
-    header = &((object_header *)object_data->data)[object_or_slot_index & 0xffff];
+    header = &((object_header *)halo::objects::globals().object_data->data)[object_or_slot_index & 0xffff];
     object_base = (uint8_t *)header->data;
 
     tag_index = *(uint32_t *)object_base & 0xffff;

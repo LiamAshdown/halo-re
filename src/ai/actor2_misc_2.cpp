@@ -9,7 +9,6 @@ namespace halo::ai {
 
 namespace actor_reassign_vehicle_seat_local {
 extern "C" {
-extern data_array *object_data;
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
@@ -55,8 +54,8 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else if (occupant == (datum_index)k_datum_index_none) {
         reason = 0;
     } else {
-        object *occupant_obj = ((object_header *)object_data->data)[occupant & 0xffff].data;
-        object *self_obj = ((object_header *)object_data->data)[self_object_index & 0xffff].data;
+        object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[occupant & 0xffff].data;
+        object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & 0xffff].data;
         reason = teams_are_enemies(((struct object *)occupant_obj)->owner_team,
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
@@ -75,7 +74,6 @@ extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *encounter_data;
 extern encounter_squad_state *encounter_squad_states;
-extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
@@ -91,7 +89,7 @@ extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datu
 #define A_I32(offset) (*(int32_t *)(self + (offset)))
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8);
 }
 }
 }

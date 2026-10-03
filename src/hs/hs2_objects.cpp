@@ -19,19 +19,16 @@ extern void hs_effect_spawn_at_location(int16_t location_index, uint32_t effect)
 extern void hs_effect_spawn_on_marker(datum_index object_index, datum_index effect, char *marker_name);
 extern data_array *player_data;
 extern int16_t magic_seat_animation_state_0069fde0;
-extern data_array *object_data;
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern int16_t hs_object_type_masks[];
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
-extern datum_index *object_name_list;
 extern void hs_object_name_cache_validate(int16_t object_name_index);
 extern void hs_object_names_for_each(void (*callback)(int32_t index), uint32_t predicate_arg);
 extern void hs_object_create_name_index_if_absent(int32_t name_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void hs_object_runtime_cleanup(void);
 extern void hs_object_name_destroy(int32_t object_name_index);
-extern object_globals *object_globals_pointer;
 extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
     char detach_from_parent, char reorient);
 extern void hs_object_set_permutation_by_name(datum_index object_index, void *permutation_name, char *name);
@@ -132,7 +129,7 @@ void ObjectCommands::evaluate_object_beautify(int16_t function_index, uint32_t t
     datum_index object_index = (datum_index)arguments[0];
 
     if (object_index != k_datum_index_none) {
-        uint32_t *flags = (uint32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8) + 0x10);
+        uint32_t *flags = (uint32_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8) + 0x10);
 
         if (*(uint8_t *)&arguments[1]) {
             *flags |= 0x400000;
@@ -204,7 +201,7 @@ void ObjectCommands::evaluate_object_cast(int16_t function_index, uint32_t threa
     }
     object_index = *slot;
     if (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8);
 
         if ((int32_t)hs_object_type_masks[(int16_t)(function_index - 0x16)] & (1 << (object[0xb4] & 0x1f))) {
             hs_thread_return((int32_t)object_index, thread_index);
@@ -229,7 +226,7 @@ void ObjectCommands::evaluate_object_create(int16_t function_index, uint32_t thr
     if (arguments != 0) {
     int16_t name = *(int16_t *)&arguments[0];
 
-    if (name != -1 && (name < 0 || name >= 0x200 || object_name_list[name] == k_datum_index_none)) {
+    if (name != -1 && (name < 0 || name >= 0x200 || halo::objects::globals().object_name_list[name] == k_datum_index_none)) {
         halo::objects::object_new_from_scenario_name(name);
     }
     hs_thread_return(0, thread_index);
@@ -350,7 +347,7 @@ void ObjectCommands::evaluate_object_destroy_containing(int16_t function_index, 
  */
 void ObjectCommands::evaluate_object_pvs_clear(int16_t function_index, uint32_t thread_index, char first)
 {
-    object_globals_pointer->ambient_cluster_mode = 0;
+    halo::objects::globals().object_globals->ambient_cluster_mode = 0;
     hs_thread_return(0, thread_index);
 }
 
@@ -388,10 +385,10 @@ void ObjectCommands::evaluate_object_pvs_set_object(int16_t function_index, uint
     datum_index object_index = (datum_index)arguments[0];
 
     if (object_index == k_datum_index_none) {
-        object_globals_pointer->ambient_cluster_mode = 0;
+        halo::objects::globals().object_globals->ambient_cluster_mode = 0;
     } else {
-        *(datum_index *)&object_globals_pointer->ambient_cluster_index = object_index;
-        object_globals_pointer->ambient_cluster_mode = 1;
+        *(datum_index *)&halo::objects::globals().object_globals->ambient_cluster_index = object_index;
+        halo::objects::globals().object_globals->ambient_cluster_mode = 1;
     }
     hs_thread_return(0, thread_index);
     }
@@ -411,7 +408,7 @@ void ObjectCommands::evaluate_object_set_collideable(int16_t function_index, uin
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & 0xffff].data;
 
 
             if (*(uint8_t *)&arguments[1] == 0) {
@@ -456,7 +453,7 @@ void ObjectCommands::evaluate_object_set_melee_attack_inhibited(int16_t function
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & 0xffff].data;
 
             if (*(uint8_t *)&arguments[1] != 0) {
                 object[0x106] |= 0x80;
@@ -500,7 +497,7 @@ void ObjectCommands::evaluate_object_set_ranged_attack_inhibited(int16_t functio
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & 0xffff].data;
 
             if (*(uint8_t *)&arguments[1] != 0) {
                 object[0x107] |= 1;
@@ -606,7 +603,7 @@ void ObjectCommands::evaluate_objects_attach(int16_t function_index, uint32_t th
     datum_index child = (datum_index)arguments[2];
 
     if (parent != k_datum_index_none && child != k_datum_index_none &&
-        *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) ==
+        *(datum_index *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) ==
             k_datum_index_none) {
         halo::objects::object_reorient_relative_to_marker(parent, (char *)arguments[1], child, (char *)arguments[3]);
     }
@@ -685,7 +682,7 @@ void ObjectCommands::evaluate_objects_detach(int16_t function_index, uint32_t th
     datum_index child = (datum_index)arguments[1];
 
     if (parent != k_datum_index_none && child != k_datum_index_none &&
-        *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) == parent) {
+        *(datum_index *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) == parent) {
         halo::objects::object_snap_to_parent_marker_and_detach(child);
     }
     hs_thread_return(0, thread_index);

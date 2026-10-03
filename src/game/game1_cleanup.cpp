@@ -18,7 +18,6 @@
 
 extern "C" {
 extern game_time_globals *game_time;
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern game_engine_definition *current_game_engine;
@@ -51,7 +50,7 @@ void ObjectCleanup::cleanup_dropped_objects(void)
 
         if ((int32_t)item->held_game_time < now - 900 &&
             (item->flags & _item_in_inventory_bit) == 0) {
-            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, object_data);
+            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
             uint8_t wake_flag = 0;
 
             if (hdr != 0) {
@@ -110,9 +109,9 @@ void ObjectCleanup::cleanup_stray_items(void)
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
 
             if (iter.handle != (datum_index)0xffffffff && index16 >= 0 &&
-                index16 < object_data->maximum_count) {
+                index16 < halo::objects::globals().object_data->maximum_count) {
                 object_header *hdr = (object_header *)
-                    ((uint8_t *)object_data->data + (int32_t)object_data->size * index16);
+                    ((uint8_t *)halo::objects::globals().object_data->data + (int32_t)halo::objects::globals().object_data->size * index16);
                 int16_t salt = (int16_t)((uint32_t)iter.handle >> 16);
 
                 if (hdr->identifier != 0 &&
@@ -197,7 +196,7 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
         return;
     }
 
-    unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
     unit_obj->shield_vitality = 0.0f;
     unit_obj->maximum_shield_vitality = 0.0f;
 }
@@ -233,7 +232,7 @@ void ObjectCleanup::flag_local_player_units(void)
                     iterator.index = k_datum_index_none;
                     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 } else {
-                    unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
+                    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
                     *((uint8_t *)unit_obj + 0x107) |= 0x20;
                 }
             }

@@ -8,7 +8,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern real_vector3d *global_down3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern char *projectile_effect_coordinate_system_names[5];
@@ -40,7 +39,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
 {
     datum_index projectile_index = (datum_index)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].data;
     Projectile *tag = (Projectile *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
@@ -387,11 +386,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             return;
         }
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {
-            object *parent = ((object_header *)object_data->data)[halo::datum_slot(hit->object_index)].data;
+            object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(hit->object_index)].data;
             datum_index sibling_index = parent->first_child_object;
             int16_t sibling_count = 0;
             while (sibling_index != (datum_index)k_datum_index_none) {
-                object *sibling = ((object_header *)object_data->data)[halo::datum_slot(sibling_index)].data;
+                object *sibling = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(sibling_index)].data;
                 projectile_data *sibling_pd = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
                 if (sibling->definition_tag == obj->definition_tag &&
                     (sibling_pd->flags & _projectile_super_detonation_counted_bit) == 0) {
@@ -443,7 +442,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     if (obj->network_role != 0) {
         return;
     }
-    if (((object_header *)object_data->data)[halo::datum_slot(hit->object_index)].data->network_role != 0) {
+    if (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(hit->object_index)].data->network_role != 0) {
         return;
     }
     projectile_send_attach(projectile_index, hit->object_index, hit->node_index);

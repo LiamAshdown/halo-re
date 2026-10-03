@@ -9,7 +9,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
@@ -100,7 +99,7 @@ void halo::units::unit_network_create_update_apply(void *incoming_record)
         return;
     }
     network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
-    biped = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(biped_index)].data;
+    biped = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(biped_index)].data;
     *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality = message.body_vitality;
     ((biped_object *)biped)->biped.network_shield_vitality = message.shield_vitality;
     biped[0x538] = message.shield_stunned;

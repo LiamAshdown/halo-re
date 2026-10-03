@@ -11,7 +11,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern data_array *device_groups;
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations);
@@ -26,7 +25,7 @@ namespace {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
 }
 
 }
@@ -46,7 +45,7 @@ void DeviceHandle::construct(device_placement_data *placement)
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     int16_t power_group = placement->power_group;
     uint16_t position_group;
@@ -137,7 +136,7 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
 {
     datum_index object_index = (datum_index)handle;
 
-    device_object *obj = (device_object *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    device_object *obj = (device_object *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Device *device_tag = (Device *)halo::cache::globals().tag_instances[halo::datum_slot(obj->base.definition_tag)].data;
     ModelAnimations *graph =
         (ModelAnimations *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)&device_tag->base.animation_graph.tag_id)].data;
@@ -195,7 +194,7 @@ int DeviceHandle::can_change_position()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     int can_change = 0;
 
@@ -233,7 +232,7 @@ void DeviceHandle::change_power_state(float fallback_value)
 {
     uint32_t object_id = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_id)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_id)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     DeviceControl *tag = (DeviceControl *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t group_index = dev->position_group; 
@@ -292,7 +291,7 @@ void DeviceHandle::compute_function_values()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     Device *tag = (Device *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     DeviceIn_t *selector = &tag->device_a_in;
@@ -410,7 +409,7 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
 
     
     if (tag_id.index != halo::k_word_none || tag_id.id != halo::k_word_none) {
-        object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
         
         uint32_t group_tag = halo::cache::globals().tag_instances[(int16_t)tag_id.index].group_tag;
 
@@ -441,7 +440,7 @@ uint8_t DeviceHandle::update_change_values()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
     Device *tag = (Device *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t still_settling = 0;

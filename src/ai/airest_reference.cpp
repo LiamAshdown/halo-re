@@ -18,8 +18,6 @@ extern void encounter_spawn_squads(uint32_t encounter_index, int32_t platoon_fil
 extern ai_globals *ai_globals_ptr;
 extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor);
 extern data_array *actor_data;
-extern data_array *object_data;
-extern data_array *object_list_header_data;
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
@@ -349,10 +347,10 @@ datum_index ReferenceView::build_object_list()
     datum_index header_index = (datum_index)k_datum_index_none;
 
     if (packed_reference != (uint32_t)k_datum_index_none) {
-        header_index = halo::memory::datum_new(object_list_header_data);
+        header_index = halo::memory::datum_new(halo::objects::globals().object_list_header_data);
         if (header_index != (datum_index)k_datum_index_none) {
             object_list_header *header =
-                (object_list_header *)((uint8_t *)object_list_header_data->data + (header_index & 0xffff) * 0x0c);
+                (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (header_index & 0xffff) * 0x0c);
             ai_reference_actor_iterator iterator;
             actor *a;
 
@@ -370,7 +368,7 @@ datum_index ReferenceView::build_object_list()
 
                 passenger = a->cluster_unit_index;
                 while (passenger != (datum_index)k_datum_index_none) {
-                    object_header *passenger_header = &((object_header *)object_data->data)[passenger & 0xffff];
+                    object_header *passenger_header = &((object_header *)halo::objects::globals().object_data->data)[passenger & 0xffff];
                     object_list_reference_add(header_index, passenger);
                     passenger = *(datum_index *)((uint8_t *)passenger_header->data + 0x1fc);
                 }
@@ -856,7 +854,7 @@ void ReferenceView::refill_grenades()
     while (a != 0) {
         if (a->unit_index != (datum_index)k_datum_index_none) {
             variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
-            unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & 0xffff].data;
+            unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[a->unit_index & 0xffff].data;
 
             ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
@@ -868,7 +866,7 @@ void ReferenceView::refill_grenades()
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
                          (int32_t)*(uint16_t *)(variant_data + 0x1d0);
 
-                unit = (uint8_t *)((object_header *)object_data->data)
+                unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                     [a->unit_index & 0xffff].data;
                 current = (int16_t)((unit_object *)unit)->unit.current_grenade_index;
                 if (current == -1) {
@@ -879,7 +877,7 @@ void ReferenceView::refill_grenades()
 
                 if (current < (int16_t)rolled) {
                     grenade_type = *(int16_t *)(variant_data + 0x180);
-                    unit = (uint8_t *)((object_header *)object_data->data)
+                    unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                         [a->unit_index & 0xffff].data;
                     *(int8_t *)(unit + 0x31e + grenade_type) =
                         (int8_t)(*(int8_t *)(unit + 0x31e + grenade_type) +
@@ -1330,8 +1328,8 @@ void ReferenceView::squad_set_automatic_migration(uint8_t value)
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 namespace {
 
@@ -1474,10 +1472,10 @@ void ReferenceView::units_exit_vehicles()
         datum_index vehicle_index;
 
         if (((struct actor *)actor_record)->active_unit_index == k_datum_index_none ||
-            unit_index == k_datum_index_none || index < 0 || index >= object_data->maximum_count) {
+            unit_index == k_datum_index_none || index < 0 || index >= halo::objects::globals().object_data->maximum_count) {
             continue;
         }
-        header = (uint8_t *)object_data->data + object_data->size * index;
+        header = (uint8_t *)halo::objects::globals().object_data->data + halo::objects::globals().object_data->size * index;
         if (*(int16_t *)header == 0 || (salt != 0 && *(int16_t *)header != salt) ||
             ((1u << (header[3] & 0x1f)) & 3) == 0) {
             continue;

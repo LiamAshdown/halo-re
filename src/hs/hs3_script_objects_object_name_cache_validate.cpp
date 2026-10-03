@@ -3,7 +3,6 @@
 
 extern "C" {
 extern char hs_object_hierarchy_test(datum_index object_index);
-extern datum_index *object_name_list;
 }
 
 namespace halo::hs::part3 {
@@ -24,13 +23,13 @@ void ScriptObjects::object_name_cache_validate(int16_t object_name_index) const
     }
     if (-1 < object_name_index) {
         if (object_name_index < 0x200) {
-            cached = object_name_list[object_name_index];
+            cached = halo::objects::globals().object_name_list[object_name_index];
             if (cached != k_datum_index_none && hs_object_hierarchy_test(cached) == 0) {
                 halo::objects::object_delete(cached);
             }
         }
         if (-1 < object_name_index && object_name_index < 0x200 &&
-            object_name_list[object_name_index] != k_datum_index_none) {
+            halo::objects::globals().object_name_list[object_name_index] != k_datum_index_none) {
             return;
         }
     }

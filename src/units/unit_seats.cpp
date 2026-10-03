@@ -19,8 +19,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
-extern data_array *object_list_header_data;
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern data_array *player_data;
 extern int16_t network_game_mode;
@@ -41,7 +39,6 @@ extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern double sqrt(double x);
 extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern char *unit_base_animation_state_names[6];
-extern data_array *object_list_reference_data;
 extern data_array *actor_data;
 extern void actor_attempt_grenade_throw(uint32_t actor_index);
 extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
@@ -61,7 +58,7 @@ namespace halo::units {
 uint8_t UnitView::all_seats_unoccupied()
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int32_t count = (int32_t)unit_tag->seats.count;
 
@@ -105,7 +102,7 @@ uint8_t halo::units::unit_any_dying_or_seat_transition(void)
 uint8_t UnitView::any_flagged_seat_occupied()
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     int32_t count = (int32_t)unit_tag->seats.count;
@@ -134,7 +131,7 @@ uint8_t UnitView::any_flagged_seat_occupied()
 void UnitView::apply_impulse_to_seat(real_vector3d *impulse)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (*(int32_t *)&((Unit *)tag)->base.physics.tag_id == -1) {
@@ -181,16 +178,16 @@ datum_index UnitView::build_seat_occupant_zone_list()
         return result;
     }
 
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    result = halo::memory::datum_new(object_list_header_data);
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+    result = halo::memory::datum_new(halo::objects::globals().object_list_header_data);
     if (result != k_datum_index_none) {
-        uint8_t *node = (uint8_t *)object_list_header_data->data + halo::datum_slot(result) * 0xc;
+        uint8_t *node = (uint8_t *)halo::objects::globals().object_list_header_data->data + halo::datum_slot(result) * 0xc;
         *(int16_t *)(node + 6) = 0;
         *(uint32_t *)(node + 8) = k_datum_index_none;
 
         datum_index child = unit_obj->first_child_object;
         while (child != k_datum_index_none) {
-            object *child_obj = ((object_header *)object_data->data)[halo::datum_slot(child)].data;
+            object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
             if (((_object_mask_unit & (1 << (child_obj->type & 0x1f))) != 0) &&
                 (((unit_data *)((uint8_t *)child_obj + k_unit_data_offset))->vehicle_seat_index != -1)) {
                 object_list_reference_add(result, child);
@@ -201,8 +198,8 @@ datum_index UnitView::build_seat_occupant_zone_list()
     return result;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace unit_detach_and_enter_named_seat_local {
 
@@ -395,8 +392,8 @@ void halo::units::unit_detach_from_parent(object *obj, uint32_t unit_index, real
     UnitView(unit_index).try_ready_weapon(1, 0);
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace unit_detach_from_seat_local {
 
@@ -557,7 +554,7 @@ void halo::units::unit_detach_if_flag_clear(uint8_t skip_flag, uint32_t unit_ind
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 /**
  * REWRITTEN from objdump 0x56ca40..0x56cc0a. EDI: unit. A unit with a parent is pushed away from it: the
  * direction from the parent's position to the unit's (else the unit's forward) times 0.02 is added to its
@@ -613,7 +610,7 @@ void UnitView::detach_reposition_and_nudge()
     }
     if (*(int32_t *)&((struct Unit *)tag)->base.model.tag_id != -1) {
         clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
-        ((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags |= 0x02;
+        ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags |= 0x02;
     }
     halo::objects::object_recalculate_bounding_radius(unit_index);
 }
@@ -696,7 +693,7 @@ void UnitView::dispatch_seat_overlay_command(int16_t command)
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_enter_vehicle_seat.
@@ -822,9 +819,9 @@ void halo::units::unit_exit_vehicle_seat(uint32_t player_index)
 
             ::halo::units::unit_broadcast_state_change_event(*(unit_state_change_record *)record);
 
-            object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+            object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
             obj->network_role = 3;
-            if ((((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
+            if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
                 network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
             }
         }
@@ -842,8 +839,8 @@ void halo::units::unit_exit_vehicle_seat(uint32_t player_index)
 uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_seat)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
-    object *vehicle_obj = ((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+    object *vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
     Unit *vehicle_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(vehicle_obj->definition_tag)].data;
 
     unit_data *vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
@@ -894,7 +891,7 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
                     if (occupant == (uint32_t)-1) {
                         continue;
                     }
-                    object *occupant_obj = ((object_header *)object_data->data)[halo::datum_slot(occupant)].data;
+                    object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(occupant)].data;
                     unit_data *occupant_unit = (unit_data *)((uint8_t *)occupant_obj + k_unit_data_offset);
                     if (occupant_unit->actor_index == k_datum_index_none || actor_check_vehicle_target_available(unit_index, occupant_unit->actor_index, 0) == 0) {
                         continue;
@@ -932,7 +929,7 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
 int16_t UnitView::find_next_zone_permitted_weapon_slot(int32_t start_slot, int16_t direction)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     int16_t best_slot = -1;
@@ -950,7 +947,7 @@ int16_t UnitView::find_next_zone_permitted_weapon_slot(int32_t start_slot, int16
                 (unit->weapon_ready_ticks[best_slot] < unit->weapon_ready_ticks[slot])) {
                 best_slot = slot;
             }
-            object *weapon_obj = ((object_header *)object_data->data)[unit->weapons[slot] & 0xffff].data;
+            object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[unit->weapons[slot] & 0xffff].data;
             uint8_t *weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
             if ((*(uint32_t *)(weapon_tag + 0x308) >> 3 & 1) != 0) {
                 return best_slot;
@@ -1004,11 +1001,11 @@ TagID halo::units::unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t se
 char * UnitView::get_seat_or_state_name()
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     if ((unit_obj->parent_object != k_datum_index_none) && (unit->vehicle_seat_index != -1)) {
-        object *parent = ((object_header *)object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
+        object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
         Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
         UnitSeat *seat = (UnitSeat *)parent_tag->seats.pointer + unit->vehicle_seat_index;
         return seat->label.string;
@@ -1027,14 +1024,14 @@ uint8_t UnitView::is_child_seated_at_named_marker(char *seat_label, uint32_t chi
     if ((unit_index == k_datum_index_none) || (child_object_index == k_datum_index_none)) {
         return 0;
     }
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     if ((int32_t)unit_tag->seats.count < 1) {
         return 0;
     }
     UnitSeat *seats = (UnitSeat *)unit_tag->seats.pointer;
-    object *child = ((object_header *)object_data->data)[halo::datum_slot(child_object_index)].data;
+    object *child = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child_object_index)].data;
 
     for (int16_t seat_index = 0; seat_index < (int32_t)unit_tag->seats.count; seat_index++) {
         if ((_stricmp(seat_label, seats[seat_index].label.string) == 0) &&
@@ -1057,7 +1054,7 @@ uint8_t UnitView::is_child_seated_at_named_marker(char *seat_label, uint32_t chi
 uint8_t UnitView::is_seat_control_available(int16_t command)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
 
     switch (unit->animation_state) {
@@ -1069,7 +1066,7 @@ uint8_t UnitView::is_seat_control_available(int16_t command)
             int16_t seat_index = unit->vehicle_seat_index;
             if ((seat_index != -1) && (halo::objects::object_try_and_get(unit_obj->parent_object, _object_mask_unit) != (object *)0) &&
                 (11 < command) && (command < 14)) {
-                object *parent = ((object_header *)object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
+                object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
                 Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
                 UnitSeat *seat = (UnitSeat *)parent_tag->seats.pointer + seat_index;
                 return (seat->flags >> 8) & 1;
@@ -1118,12 +1115,12 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
     uint32_t next_link = k_datum_index_none;
 
     if (zone_list_index != k_datum_index_none) {
-        uint32_t link = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
+        uint32_t link = *(uint32_t *)((uint8_t *)halo::objects::globals().object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
         if (link == k_datum_index_none) {
             object_index = k_datum_index_none;
             next_link = k_datum_index_none;
         } else {
-            uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(link) * 0xc;
+            uint8_t *node = (uint8_t *)halo::objects::globals().object_list_reference_data->data + halo::datum_slot(link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
             object_index = *(uint32_t *)(node + 4);
         }
@@ -1131,8 +1128,8 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
 
     while (object_index != k_datum_index_none) {
         object_header *found = (object_header *)0;
-        if ((-1 < (int16_t)object_index) && ((int16_t)object_index < object_data->maximum_count)) {
-            object_header *hdr = (object_header *)object_data->data + (int16_t)object_index;
+        if ((-1 < (int16_t)object_index) && ((int16_t)object_index < halo::objects::globals().object_data->maximum_count)) {
+            object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (int16_t)object_index;
             if ((hdr->identifier != 0) &&
                 (((int16_t)(object_index >> 16) == 0) || (hdr->identifier == (int16_t)(object_index >> 16)))) {
                 found = hdr;
@@ -1152,7 +1149,7 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
             object_index = k_datum_index_none;
             next_link = k_datum_index_none;
         } else {
-            uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
+            uint8_t *node = (uint8_t *)halo::objects::globals().object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
             object_index = *(uint32_t *)(node + 4);
         }
@@ -1174,12 +1171,12 @@ void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
     uint32_t next_link = k_datum_index_none;
 
     if (zone_list_index != k_datum_index_none) {
-        uint32_t link = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
+        uint32_t link = *(uint32_t *)((uint8_t *)halo::objects::globals().object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
         if (link == k_datum_index_none) {
             object_index = k_datum_index_none;
             next_link = k_datum_index_none;
         } else {
-            uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(link) * 0xc;
+            uint8_t *node = (uint8_t *)halo::objects::globals().object_list_reference_data->data + halo::datum_slot(link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
             object_index = *(uint32_t *)(node + 4);
         }
@@ -1187,8 +1184,8 @@ void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
 
     while (object_index != k_datum_index_none) {
         object_header *found = (object_header *)0;
-        if ((-1 < (int16_t)object_index) && ((int16_t)object_index < object_data->maximum_count)) {
-            object_header *hdr = (object_header *)object_data->data + (int16_t)object_index;
+        if ((-1 < (int16_t)object_index) && ((int16_t)object_index < halo::objects::globals().object_data->maximum_count)) {
+            object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (int16_t)object_index;
             if ((hdr->identifier != 0) &&
                 (((int16_t)(object_index >> 16) == 0) || (hdr->identifier == (int16_t)(object_index >> 16)))) {
                 found = hdr;
@@ -1204,7 +1201,7 @@ void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
             object_index = k_datum_index_none;
             next_link = k_datum_index_none;
         } else {
-            uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
+            uint8_t *node = (uint8_t *)halo::objects::globals().object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
             object_index = *(uint32_t *)(node + 4);
         }
@@ -1224,7 +1221,7 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
     if (unit_index == k_datum_index_none) {
         return 0;
     }
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     if ((int32_t)unit_tag->seats.count < 1) {
@@ -1258,13 +1255,13 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
             zone_object = k_datum_index_none;
             next_link = k_datum_index_none;
         } else {
-            uint32_t first_link = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
+            uint32_t first_link = *(uint32_t *)((uint8_t *)halo::objects::globals().object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
             if (first_link == k_datum_index_none) {
                 zone_object = k_datum_index_none;
                 next_link = k_datum_index_none;
             } else {
                 uint32_t link_slot = first_link & 0xffff;
-                uint8_t *node = (uint8_t *)object_list_reference_data->data + link_slot * 0xc;
+                uint8_t *node = (uint8_t *)halo::objects::globals().object_list_reference_data->data + link_slot * 0xc;
                 next_link = *(uint32_t *)(node + 8);
                 zone_object = *(uint32_t *)(node + 4);
             }
@@ -1278,7 +1275,7 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
                 zone_object = k_datum_index_none;
                 next_link = k_datum_index_none;
             } else {
-                uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
+                uint8_t *node = (uint8_t *)halo::objects::globals().object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
                 next_link = *(uint32_t *)(node + 8);
                 zone_object = *(uint32_t *)(node + 4);
             }
@@ -1299,14 +1296,14 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
 void UnitView::recompute_seat_occupants()
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
     UnitSeat *seats = (UnitSeat *)unit_tag->seats.pointer;
 
     datum_index child_index = unit_obj->first_child_object;
     while (child_index != k_datum_index_none) {
-        object *child = ((object_header *)object_data->data)[halo::datum_slot(child_index)].data;
+        object *child = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child_index)].data;
 
         if (((_object_mask_unit & (1 << (child->type & 0x1f))) != 0) &&
             (((unit_data *)((uint8_t *)child + k_unit_data_offset))->vehicle_seat_index != -1)) {
@@ -1348,7 +1345,7 @@ void UnitView::recompute_seat_occupants()
 void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
 {
     uint32_t unit_index = datum_handle;
-    object *self_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)self_obj + k_unit_data_offset);
 
     if (!is_light_reset) {
@@ -1390,7 +1387,7 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
         if (slot != -1) {
             weapon_object_index = unit->weapons[slot];
         }
-        object *weapon_obj = ((object_header *)object_data->data)[halo::datum_slot(weapon_object_index)].data;
+        object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(weapon_object_index)].data;
         *(int16_t *)((uint8_t *)weapon_obj + 0x230) = 0;
         ((struct unit_object *)weapon_obj)->unit.desired_aiming_vector.j = halo::math::transition_function_evaluate((transition_function_t)4, 0.0f);
     }
@@ -1422,8 +1419,8 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace unit_seat_candidates_from_zone_and_enter_local {
 
@@ -1549,7 +1546,7 @@ static datum_index object_list_next(datum_index *reference)
     if (*reference == k_datum_index_none) {
         return k_datum_index_none;
     }
-    link = (uint8_t *)object_list_reference_data->data + halo::datum_slot(*reference) * 0xc;
+    link = (uint8_t *)halo::objects::globals().object_list_reference_data->data + halo::datum_slot(*reference) * 0xc;
     *reference = *(datum_index *)(link + 0x8);
     return *(datum_index *)(link + 0x4);
 }
@@ -1579,7 +1576,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
     vehicle_tag = TAG_DATA(*(datum_index *)vehicle);
     seat_count = UnitView(vehicle_index).find_seats_matching_name_and_flags(seat_name, 0xffff, seats, 0x10);
     if (object_list != k_datum_index_none) {
-        reference = *(datum_index *)((uint8_t *)object_list_header_data->data + halo::datum_slot(object_list) * 0xc + 0x8);
+        reference = *(datum_index *)((uint8_t *)halo::objects::globals().object_list_header_data->data + halo::datum_slot(object_list) * 0xc + 0x8);
     }
     for (candidate_index = object_list_next(&reference); candidate_index != k_datum_index_none;
          candidate_index = object_list_next(&reference)) {
@@ -1638,7 +1635,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
 uint8_t UnitView::seat_flag_bit10(int16_t seat_index)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     if ((-1 < seat_index) && (seat_index < (int32_t)unit_tag->seats.count)) {
@@ -1658,7 +1655,7 @@ uint8_t UnitView::seat_flag_bit10(int16_t seat_index)
 uint8_t UnitView::seat_flag_bit2(int16_t seat_index)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     if ((-1 < seat_index) && (seat_index < (int32_t)unit_tag->seats.count)) {
@@ -1678,7 +1675,7 @@ uint8_t UnitView::seat_flag_bit2(int16_t seat_index)
 uint8_t UnitView::seat_flag_bit3(int16_t seat_index)
 {
     uint32_t unit_index = datum_handle;
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     if ((-1 < seat_index) && (seat_index < (int32_t)unit_tag->seats.count)) {
@@ -1697,11 +1694,11 @@ uint8_t UnitView::seat_flag_bit3(int16_t seat_index)
  */
 uint8_t halo::units::unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index)
 {
-    object *unit_obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     if (-1 < seat_index && seat_index < (int32_t)unit_tag->seats.count) {
-        object *other_obj = ((object_header *)object_data->data)[halo::datum_slot(other_object_index)].data;
+        object *other_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(other_object_index)].data;
         if (other_obj->type == 1) {
             return 1;
         }
@@ -1720,17 +1717,17 @@ uint8_t halo::units::unit_seat_index_is_valid(uint32_t other_object_index, uint3
  */
 uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t seat_index, uint32_t vehicle_index, uint32_t *out_occupant_index)
 {
-    object *self_obj = ((object_header *)object_data->data)[halo::datum_slot(self_index)].data;
+    object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(self_index)].data;
     unit_data *self_unit = (unit_data *)((uint8_t *)self_obj + k_unit_data_offset);
 
     uint32_t found = (uint32_t)-1;
     uint8_t not_found = (self_index != vehicle_index);
 
-    object *vehicle_obj = ((object_header *)object_data->data)[halo::datum_slot(vehicle_index)].data;
+    object *vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
     datum_index child = vehicle_obj->first_child_object;
 
     while (child != k_datum_index_none) {
-        object *child_obj = ((object_header *)object_data->data)[halo::datum_slot(child)].data;
+        object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
 
         if (((1 << (child_obj->type & 0x1f)) & 3) != 0) {
             unit_data *child_unit = (unit_data *)((uint8_t *)child_obj + k_unit_data_offset);
@@ -1762,7 +1759,7 @@ uint8_t halo::units::unit_seat_is_occupied_by_other(uint32_t self_index, int16_t
 uint8_t UnitView::set_or_test_seat_and_weapon_label(const char *seat_label, const char *weapon_label, uint8_t apply)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     Object *obj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
@@ -1834,8 +1831,8 @@ uint8_t UnitView::set_or_test_seat_and_weapon_label(const char *seat_label, cons
     return found;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[halo::datum_slot((h))])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 namespace unit_try_exit_controlled_seat_local {
 

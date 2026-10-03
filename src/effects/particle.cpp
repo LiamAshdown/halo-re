@@ -17,7 +17,6 @@ extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t cre
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const real_vector3d *global_down3d_pointer;
 extern char *particle_impact_vector_names[2];
-extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
@@ -238,7 +237,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     if (creation_data->object_index == (datum_index)0xffffffff) {
         position = creation_data->position;
     } else if (creation_data->first_person == 0) {
-        object *obj = ((object_header *)object_data->data)[creation_data->object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[creation_data->object_index & 0xffff].data;
         real_matrix4x3 *marker = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset +
             creation_data->marker_index * 0x34);
         halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);

@@ -31,7 +31,24 @@
 #include "bitmaps.h"
 #include "halo/objects/api.hpp"
 
+extern "C" {
+extern data_array *object_data;
+extern object_globals *object_globals_pointer;
+extern data_array *object_list_header_data;
+extern data_array *object_list_reference_data;
+extern datum_index *object_name_list;
+extern memory_pool *object_memory_pool;
+extern datum_index *noncollideable_cluster_first;
+extern data_array *noncollideable_object_references;
+}
+
 namespace halo::objects {
+
+Globals &globals()
+{
+    static Globals instance{::object_data, ::object_globals_pointer, ::object_list_header_data, ::object_list_reference_data, ::object_name_list, ::object_memory_pool, ::noncollideable_cluster_first, ::noncollideable_object_references};
+    return instance;
+}
 
 /**
  * C entry point kept for the link tables and unconverted modules; forwards to halo::objects::ObjectRef::get_center_of_mass_and_scale.

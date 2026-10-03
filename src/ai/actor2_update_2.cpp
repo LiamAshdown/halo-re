@@ -3,13 +3,13 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_update_firing_state_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern player_globals *local_player_globals;
 extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind);
@@ -37,7 +37,7 @@ extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t subs
 #define W(p, o) (*(int16_t *)((p) + (o)))
 #define D(p, o) (*(datum_index *)((p) + (o)))
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 }
 }

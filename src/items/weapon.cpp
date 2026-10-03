@@ -9,7 +9,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern real k_weapon_zoom_fov_maximum;
 extern real k_weapon_zoom_fov_minimum;
 extern char k_empty_string[1];
@@ -70,7 +69,7 @@ void weapon_ref::build_hud_ammo_state(weapon_hud_ammo_state *out)
     Weapon *weapon_tag;
     int16_t i;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -131,7 +130,7 @@ void weapon_ref::force_settled_state()
     weapon_data *wd;
     int8_t state;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     state = wd->state;
 
@@ -155,7 +154,7 @@ int16_t weapon_ref::get_first_person_animation_time(int16_t animation_index, int
     datum_index graph_tag_id;
     int16_t result = 0;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     graph_tag_id = *(datum_index *)&weapon_tag->first_person_animations.tag_id;
 
@@ -214,7 +213,7 @@ char * weapon_ref::get_label()
         return k_empty_string;
     }
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     return weapon_tag->label.string;
 }
@@ -233,7 +232,7 @@ int32_t weapon_ref::get_next_zoom_level(int32_t current_level)
     Weapon *weapon_tag;
     int16_t level;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -258,7 +257,7 @@ real weapon_ref::get_zoom_magnification(int16_t zoom_level)
     object *item_obj;
     Weapon *weapon_tag;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (zoom_level >= 0 && zoom_level < weapon_tag->zoom_levels) {
@@ -291,7 +290,7 @@ int32_t weapon_ref::has_active_state()
     object *item_obj;
     weapon_data *wd;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     if (wd->triggers[0].effect_state == 0 && wd->triggers[1].effect_state == 0 &&
@@ -311,7 +310,7 @@ int32_t weapon_ref::has_active_state()
 uint8_t weapon_ref::is_old_enough()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     int32_t stamp = obj->network_update_tick;
 
     if (stamp == -1) {
@@ -333,7 +332,7 @@ uint8_t weapon_ref::is_out_of_ammo()
     weapon_data *wd;
     Weapon *weapon_tag;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -361,7 +360,7 @@ int32_t weapon_ref::is_reloading()
     weapon_data *wd;
     Weapon *weapon_tag;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -383,7 +382,7 @@ void weapon_ref::magazine_begin_chamber(int16_t magazine_index)
     WeaponMagazine *magazine_tag;
     weapon_magazine_state *magazine;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer + magazine_index;
@@ -416,7 +415,7 @@ void weapon_ref::magazine_reload_tick(int16_t magazine_index)
     int16_t old_unloaded;
     int16_t new_loaded;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     id = (item_data *)((uint8_t *)item_obj + k_item_data_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
@@ -479,7 +478,7 @@ void weapon_ref::magazine_reload_tick_predicted(int16_t magazine_index)
     int16_t old_unloaded;
     int16_t new_loaded;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer + magazine_index;
@@ -520,7 +519,7 @@ uint32_t weapon_ref::must_be_readied()
     object *item_obj;
     Weapon *weapon_tag;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     return (weapon_tag->weapon_flags >> 3) & 1;
 }
@@ -537,7 +536,7 @@ uint32_t weapon_ref::must_be_readied()
 uint8_t weapon_ref::create()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     Weapon *tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
     weapon_data *wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
     int16_t i;
@@ -592,7 +591,7 @@ datum_index weapon_ref::new_from_placement(ScenarioWeapon *placement)
     item_data *id;
     int16_t rounds;
 
-    weapon_obj = ((object_header *)object_data->data)[(uint16_t)weapon_object_index].data;
+    weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)weapon_object_index].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)weapon_obj->definition_tag].data;
     wd = (weapon_data *)((uint8_t *)weapon_obj + k_item_extension_offset);
     id = (item_data *)((uint8_t *)weapon_obj + k_item_data_offset);
@@ -659,7 +658,7 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
     if (tag_id == (datum_index)0xffffffff) {
         return 0xffffffff;
     }
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != (datum_index)0xffffffff) {
         attach_to = item_obj->parent_object;
     }
@@ -697,7 +696,7 @@ uint32_t weapon_ref::prevents_grenade_throwing()
         return 1;
     }
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -726,7 +725,7 @@ uint32_t weapon_ref::prevents_melee_attack()
         return 1;
     }
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -751,7 +750,7 @@ void weapon_ref::ready()
     Weapon *weapon_tag;
     uint32_t action_handle;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -783,7 +782,7 @@ void weapon_ref::reload_recovery_finish()
     datum_index item_index = datum;
     object *item_obj;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     halo::items::weapon_play_trigger_tag_effect(item_index,
         *(datum_index *)&((Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data)->overheat_detonation.tag_id, 0, 0);
 
@@ -809,7 +808,7 @@ void weapon_ref::reset_triggers()
     weapon_data *wd;
     int16_t i;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -851,7 +850,7 @@ void weapon_ref::set_ammo_counts(int16_t *reserve_counts)
     Weapon *weapon_tag;
     int16_t i;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -883,7 +882,7 @@ void weapon_ref::set_control_flags(uint16_t control_flags, real primary_trigger)
     object *item_obj;
     weapon_data *wd;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     wd->control_flags = control_flags;
@@ -907,7 +906,7 @@ void weapon_ref::set_loaded_ammo_fraction(real fraction)
     Weapon *weapon_tag;
     int32_t is_battery;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
@@ -959,7 +958,7 @@ void weapon_ref::set_ready_timer(real value)
     object *item_obj;
     weapon_data *wd;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     wd->ready_timer = value;
 }
@@ -979,7 +978,7 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
     weapon_data *wd;
     int16_t current_state;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     current_state = (int8_t)wd->state;
@@ -1028,7 +1027,7 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
     }
 skip_animation:
     {
-        datum_index parent = ((object_header *)object_data->data)[(uint16_t)item_index].data->parent_object;
+        datum_index parent = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data->parent_object;
         datum_index unit_index = (datum_index)0xffffffff;
 
         if (parent != (datum_index)0xffffffff && halo::objects::object_try_and_get(parent, _object_mask_unit) != 0) {
@@ -1056,7 +1055,7 @@ void weapon_ref::set_state_indicator_flags()
     Weapon *weapon_tag;
     WeaponTrigger *triggers;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     triggers = (WeaponTrigger *)weapon_tag->triggers.pointer;
@@ -1086,7 +1085,7 @@ uint32_t weapon_ref::stop_object_effect(datum_index tag_id)
         return 0xffffffff;
     }
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != (datum_index)0xffffffff) {
         item_index = item_obj->parent_object;
     }
@@ -1117,9 +1116,9 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
     int16_t magazine_index;
     uint32_t result;
 
-    target_obj = ((object_header *)object_data->data)[(uint16_t)target_item_index].data;
+    target_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)target_item_index].data;
     target_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)target_obj->definition_tag].data;
-    source_obj = ((object_header *)object_data->data)[(uint16_t)source_item_index].data;
+    source_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)source_item_index].data;
     source_definition_tag = source_obj->definition_tag;
     any_transferred = 0;
     result = 0;
@@ -1176,7 +1175,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                                     halo::items::equipment_definition_play_pickup_sound(
                                         *(uint32_t *)&magazine_object->equipment.tag_id);
                                 }
-                                source_role = ((object_header *)object_data->data)[(uint16_t)source_item_index].data->network_role;
+                                source_role = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)source_item_index].data->network_role;
                                 if (source_role == 0) {
                                     halo::objects::object_delete_unparented(source_item_index);
                                 } else if (source_role != 3) {
@@ -1212,7 +1211,7 @@ int32_t weapon_ref::triggers_idle()
     object *item_obj;
     weapon_data *wd;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     if (wd->triggers[0].effect_state == 0 && wd->triggers[1].effect_state == 0 && wd->state == 0) {

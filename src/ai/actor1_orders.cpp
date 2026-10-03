@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
@@ -396,7 +397,6 @@ extern "C" int32_t actor_build_order_guard(uint32_t actor_index, actor_order *or
 namespace c_actor_build_order_investigate_encounter_point {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
@@ -429,7 +429,7 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     if (((actor *)act)->active_unit_index != k_datum_index_none || act[0x6] != 0) {
         return 0;
     }
-    vehicle = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
+    vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle_index & 0xffff].data;
     if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (vehicle[0x106] & 4) != 0) {
         return 0;
     }
@@ -863,7 +863,6 @@ extern "C" int32_t actor_build_order_wait_byte(uint32_t actor_index, uint8_t byt
 namespace c_actor_build_path_find_request {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern void actor_update_target_lead_position(datum_index actor_index);
 }
@@ -898,7 +897,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
 
     if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
-        unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         if (vehicle_definition->ai_pathfinding_radius > 0.0f) {
             radius = vehicle_definition->ai_pathfinding_radius;

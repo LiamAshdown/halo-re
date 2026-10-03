@@ -12,15 +12,12 @@ extern "C" {
 extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
 extern void actor_movement_action_cancel(datum_index actor_index);
-extern data_array *object_data;
 extern data_array *prop_data;
 extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
-extern data_array *object_list_header_data;
-extern data_array *object_list_reference_data;
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
 extern void encounters_recompute_dirty(void);
 extern game_time_globals *game_time;
@@ -166,7 +163,7 @@ void AiObjects::clear_object_references(datum_index object_index)
     if (!ai_globals_ptr->actors_valid) {
         return;
     }
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     if (((1 << (obj->type & 0x1f)) & 3) == 0) {
         return;
     }
@@ -312,11 +309,11 @@ void ObjectListView::clear_orders_with_weapon()
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         } else {
@@ -325,7 +322,7 @@ void ObjectListView::clear_orders_with_weapon()
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object_header *header = &((object_header *)object_data->data)[object_index & 0xffff];
+        object_header *header = &((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff];
         unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
         if (unit->actor_index != (datum_index)k_datum_index_none) {
@@ -336,7 +333,7 @@ void ObjectListView::clear_orders_with_weapon()
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -367,13 +364,13 @@ void ObjectListView::detach_actors_from_encounters()
     node_index = (datum_index)k_datum_index_none;
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
         } else {
-            node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -388,8 +385,8 @@ void ObjectListView::detach_actors_from_encounters()
     do {
         entry = 0;
         if (object_index != (datum_index)k_datum_index_none &&
-            0 <= (int16_t)object_index && (int16_t)object_index < object_data->maximum_count) {
-            object_header *candidate = &((object_header *)object_data->data)
+            0 <= (int16_t)object_index && (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
+            object_header *candidate = &((object_header *)halo::objects::globals().object_data->data)
                 [(int16_t)object_index];
             if (candidate->identifier != 0 &&
                 ((int16_t)(object_index >> 0x10) == 0 ||
@@ -425,7 +422,7 @@ void ObjectListView::detach_actors_from_encounters()
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
         } else {
-            node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -451,12 +448,12 @@ void ObjectListView::initialize_shield_stun_thresholds(float override_max_body_v
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -464,7 +461,7 @@ void ObjectListView::initialize_shield_stun_thresholds(float override_max_body_v
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object_header *entry = &((object_header *)object_data->data)[(int16_t)object_index & 0xffff];
+        object_header *entry = &((object_header *)halo::objects::globals().object_data->data)[(int16_t)object_index & 0xffff];
         if ((entry->data->vitality_flags & _object_health_frozen_bit) == 0) {
             halo::objects::object_initialize_shield_stun_thresholds((uint32_t)object_index,
                 &override_max_body_vitality, &override_max_shield_vitality);
@@ -474,7 +471,7 @@ void ObjectListView::initialize_shield_stun_thresholds(float override_max_body_v
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -513,13 +510,13 @@ int16_t ObjectListView::max_flee_grade()
     best = 0;
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
-        header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+        header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
         } else {
-            node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -532,8 +529,8 @@ int16_t ObjectListView::max_flee_grade()
     do {
         entry = 0;
         if (object_index != (datum_index)k_datum_index_none &&
-            0 <= (int16_t)object_index && (int16_t)object_index < object_data->maximum_count) {
-            object_header *candidate = &((object_header *)object_data->data)
+            0 <= (int16_t)object_index && (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
+            object_header *candidate = &((object_header *)halo::objects::globals().object_data->data)
                 [(int16_t)object_index];
             if (candidate->identifier != 0 &&
                 ((int16_t)(object_index >> 0x10) == 0 ||
@@ -605,7 +602,7 @@ keep_best:
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
         } else {
-            node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+            node = (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                 (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -636,7 +633,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
 
                 child = obj->first_child_object;
                 while (child != (datum_index)k_datum_index_none) {
-                    object_header *child_header = &((object_header *)object_data->data)[child & 0xffff];
+                    object_header *child_header = &((object_header *)halo::objects::globals().object_data->data)[child & 0xffff];
                     if ((1 << (child_header->type & 0x1f) & 3) != 0) {
                         ai_unit_remap_actor_to_squad(child, packed_reference, 0);
                     }
@@ -648,7 +645,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
                 object_index = (datum_index)k_datum_index_none;
             } else {
                 object_list_reference *node =
-                    (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                    (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                                (iterator & 0xffff) * 0x0c);
                 iterator = node->next;
                 object_index = node->object_index;
@@ -664,7 +661,7 @@ namespace {
 
 static void reset_or_wake(datum_index unit_index, char flag)
 {
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
     datum_index actor_index = unit->actor_index;
 
@@ -702,12 +699,12 @@ void ObjectListView::reset_or_wake_awareness(char flag)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -720,7 +717,7 @@ void ObjectListView::reset_or_wake_awareness(char flag)
             datum_index child = obj->first_child_object;
             reset_or_wake(object_index, flag);
             while (child != (datum_index)k_datum_index_none) {
-                object_header *child_header = &((object_header *)object_data->data)[child & 0xffff];
+                object_header *child_header = &((object_header *)halo::objects::globals().object_data->data)[child & 0xffff];
                 if ((1 << (child_header->type & 0x1f) & 3) != 0) {
                     reset_or_wake(child, flag);
                 }
@@ -732,7 +729,7 @@ void ObjectListView::reset_or_wake_awareness(char flag)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -753,11 +750,11 @@ void ObjectListView::respawn_members(uint32_t packed_reference)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         } else {
@@ -772,7 +769,7 @@ void ObjectListView::respawn_members(uint32_t packed_reference)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -792,12 +789,12 @@ void ObjectListView::set_unit_flag_400(char flag)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -819,7 +816,7 @@ void ObjectListView::set_unit_flag_400(char flag)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -840,12 +837,12 @@ void ObjectListView::set_unit_flag_800(char flag)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -867,7 +864,7 @@ void ObjectListView::set_unit_flag_800(char flag)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -888,12 +885,12 @@ void ObjectListView::set_unit_flag_800000(char flag)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -902,8 +899,8 @@ void ObjectListView::set_unit_flag_800000(char flag)
 
     while (object_index != (datum_index)k_datum_index_none) {
         object_header *entry = 0;
-        if (0 <= (int16_t)object_index && (int16_t)object_index < object_data->maximum_count) {
-            object_header *candidate = &((object_header *)object_data->data)[(int16_t)object_index];
+        if (0 <= (int16_t)object_index && (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
+            object_header *candidate = &((object_header *)halo::objects::globals().object_data->data)[(int16_t)object_index];
             if (candidate->identifier != 0 &&
                 ((int16_t)(object_index >> 0x10) == 0 || candidate->identifier == (int16_t)(object_index >> 0x10))) {
                 entry = candidate;
@@ -923,7 +920,7 @@ void ObjectListView::set_unit_flag_800000(char flag)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -944,11 +941,11 @@ void ObjectListView::spawn_members(uint32_t packed_reference)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         } else {
@@ -963,7 +960,7 @@ void ObjectListView::spawn_members(uint32_t packed_reference)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -986,12 +983,12 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -1000,8 +997,8 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
 
     while (object_index != (datum_index)k_datum_index_none) {
         object_header *entry = 0;
-        if (0 <= (int16_t)object_index && (int16_t)object_index < object_data->maximum_count) {
-            object_header *candidate = &((object_header *)object_data->data)[(int16_t)object_index];
+        if (0 <= (int16_t)object_index && (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
+            object_header *candidate = &((object_header *)halo::objects::globals().object_data->data)[(int16_t)object_index];
             if (candidate->identifier != 0 &&
                 ((int16_t)(object_index >> 0x10) == 0 || candidate->identifier == (int16_t)(object_index >> 0x10))) {
                 entry = candidate;
@@ -1021,7 +1018,7 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -1043,12 +1040,12 @@ void ObjectListView::update_vitality_fractions(float body_delta, float shield_de
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data +
+            (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                                     (object_list_header_handle & 0xffff) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
@@ -1062,7 +1059,7 @@ void ObjectListView::update_vitality_fractions(float body_delta, float shield_de
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data +
+                (object_list_reference *)((uint8_t *)halo::objects::globals().object_list_reference_data->data +
                                            (node_index & 0xffff) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
@@ -1200,7 +1197,7 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
     return added;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 /**
  * Behaviour of ai refresh unit stimulus and alert, moved unchanged from the original free function.
  *
@@ -1247,7 +1244,7 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
 void AiUnitView::clear_actor_vocalization()
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
     if (unit->actor_index != (datum_index)k_datum_index_none) {
@@ -1323,7 +1320,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
 void AiUnitView::dispatch_actor_event_d(int32_t unused)
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
     if (unused != -1 && unit->actor_index != (datum_index)k_datum_index_none) {
@@ -1364,7 +1361,7 @@ void AiUnitView::flee_if_ready(uint32_t readiness_param)
 void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
     datum_index actor_index = unit->actor_index;
 
@@ -1398,7 +1395,7 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
 void AiUnitView::set_actor_force_active(uint8_t value)
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
     datum_index actor_index = unit->actor_index;
 
@@ -1431,7 +1428,7 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
     if (object_index == (datum_index)k_datum_index_none) {
         return;
     }
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
     out_encounter = -1;
     out_squad = 0xffff;

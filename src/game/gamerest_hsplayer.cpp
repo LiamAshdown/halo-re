@@ -7,7 +7,6 @@ extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern data_array *object_data;
 }
 
 namespace halo::game {
@@ -90,7 +89,7 @@ void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_in
         return;
     }
     if (args[0] != (int32_t)0xffffffff) {
-        object *target = (object *)((object_header *)object_data->data)[args[0] & 0xffff].data;
+        object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & 0xffff].data;
         if ((char)args[1] != 0) {
             *((uint8_t *)&target->vitality_flags + 1) |= 0x01;
             hs_thread_return(0, thread_index);
@@ -114,7 +113,7 @@ void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (args != 0) {
-        object *target = (object *)((object_header *)object_data->data)[args[0] & 0xffff].data;
+        object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & 0xffff].data;
         *((uint8_t *)&target->vitality_flags) |= 0x20;
         hs_thread_return(0, thread_index);
     }

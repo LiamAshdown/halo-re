@@ -6,6 +6,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -14,7 +15,6 @@ extern int32_t material_table_bad_index;
 extern uint8_t material_table_fallback[0x374];
 extern const real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
-extern data_array *object_data;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 }
 
@@ -69,7 +69,7 @@ void halo::units::unit_trigger_material_hit_effect(int16_t material_index, datum
 uint32_t UnitView::update_marker_traction_effects()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph;
     uint8_t *node_array;

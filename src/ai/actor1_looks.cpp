@@ -9,7 +9,6 @@
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern const uint8_t actor_control_animation_state_table[];
 
@@ -30,7 +29,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     datum_index actor_index = datum;
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
     uint32_t unit_index = *(uint32_t *)&((struct actor *)actor)->unit_index;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[((struct actor *)actor)->control_animation_mode * 2];
@@ -59,7 +58,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
             (const real_vector2d *)(actor + 0x6f0));
     }
     if (((struct actor *)actor)->persistent_control_ticks > 0) {
-        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & 0xffff].data;
+        uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & 0xffff].data;
 
         *(int32_t *)(object + 0x210) = ((struct actor *)actor)->persistent_control_ticks;
         *(uint32_t *)(object + 0x214) = ((struct actor *)actor)->persistent_control_flags;
@@ -452,7 +451,6 @@ extern "C" void actor_issue_order_or_vocalize(datum_index prop_index, datum_inde
 namespace c_actor_look_get_wait_ticks {
 extern "C" {
 
-extern data_array *object_data;
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 extern int32_t fistp_round(float x);
 }
@@ -508,7 +506,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
         datum_index weapon = actor_get_threat_weapon_object_index(actor_index);
 
         weapon_definition = weapon == k_datum_index_none ? 0 :
-            halo::cache::globals().tag_instances[*(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data & 0xffff].data;
+            halo::cache::globals().tag_instances[*(datum_index *)((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data & 0xffff].data;
     }
     if (weapon_definition != 0 && 0.0f < *(float *)((uint8_t *)weapon_definition + 0x410)) {
         fraction = fraction * *(float *)((uint8_t *)weapon_definition + 0x410);

@@ -47,7 +47,6 @@ extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wch
 extern uint16_t missing_string_text[];
 extern Globals *global_globals;
 extern int16_t network_game_mode;
-extern data_array *object_data;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern int32_t game_engine_ctf_reset_ticks;
 extern game_variant game_engine_variant;
@@ -336,7 +335,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
 
     new_object = halo::objects::object_new_with_datum_role_control(&placement, role);
 
-    hdr = (object_header *)object_data->data + ((uint32_t)new_object & 0xffff);
+    hdr = (object_header *)halo::objects::globals().object_data->data + ((uint32_t)new_object & 0xffff);
     header_flags = hdr->flags;
     hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
     if ((header_flags & _object_header_active_bit) == 0) {
@@ -635,7 +634,7 @@ void Ctf::notify_flag_carried_throttled(int32_t target_player)
  */
 void Ctf::object_expired(datum_index object_index)
 {
-    uint8_t *object = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
     *(int32_t *)&((struct object *)object)->owner_linkage = -1;
 }
@@ -704,7 +703,7 @@ void Ctf::player_drop_flag(uint32_t player_index, datum_index flag_object_index)
 {
     player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
     uint32_t unit_index = (uint32_t)p->unit;
-    object *unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
 
     if (unit_obj->network_role == 0) {
         halo::units::unit_dispatch_scripted_event_1b(1, unit_index);
@@ -723,7 +722,7 @@ void Ctf::player_drop_flag(uint32_t player_index, datum_index flag_object_index)
  */
 uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
 {
-    object *flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
+    object *flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & 0xffff].data;
     int16_t team = ((struct object *)flag_obj)->owner_team;
 
     if (player_index != 0xffffffff && network_game_mode == 2) {
@@ -880,7 +879,7 @@ void Ctf::reset_round(void)
  */
 void Ctf::reset_team_return_credit(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     int16_t team = ((object *)obj)->owner_team;
 
     ctf_team_return_credit_active[team] = 0;
@@ -969,7 +968,7 @@ uint8_t Ctf::unit_weapon_must_be_readied(datum_index unit_handle)
         return 0;
     }
 
-    unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
     return (uint8_t)((weapon_tag->weapon_flags >> 3) & 1);
 }

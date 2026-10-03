@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_mode_charge_enter {
 extern "C" {
@@ -45,7 +46,6 @@ namespace c_actor_mode_charge_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
@@ -221,7 +221,7 @@ uint8_t halo::ai::charge_mode::process()
             float factor = 0.0f;
             real_point3d lead;
 
-            unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & 0xffff].data;
+            unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((actor *)act)->unit_index & 0xffff].data;
             if (speed > 0.0f) {
                 factor = ((velocity->k * facing->k + velocity->j * facing->j + velocity->i * facing->i) / speed + 1.0f) * 0.5f;
             }
@@ -624,7 +624,6 @@ extern data_array *actor_data;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
-extern data_array *object_data;
 }
 }
 
@@ -643,7 +642,7 @@ void halo::ai::flee_mode::exit()
     datum_index unit_index = *(datum_index *)(ACTOR(actor_index) + 0x18);
 
     if (unit_index != k_datum_index_none) {
-        uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+        uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
 
         *(uint32_t *)(obj + 0x204) &= ~0x2000000u;
     }
@@ -732,7 +731,6 @@ namespace c_actor_mode_flee_process {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
@@ -840,7 +838,7 @@ uint8_t halo::ai::flee_mode::process()
 
     kind = ((actor_mode_flee_data *)mode_data)->panic;
     if (kind >= 9 && kind <= 12 && ((actor *)act)->unit_index != k_datum_index_none) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[((actor *)act)->unit_index & 0xffff].data;
+        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((actor *)act)->unit_index & 0xffff].data;
 
         if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
             mode_data[0x10] = 0;

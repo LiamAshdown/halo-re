@@ -31,7 +31,6 @@ extern Globals *global_globals;
 extern real look_pitch_rate_setting[k_maximum_local_players];
 extern real look_yaw_rate_setting[k_maximum_local_players];
 extern player_profile player_profile_cache[16];
-extern data_array *object_data;
 extern player_globals *local_player_globals;
 extern network_client_globals *network_client;
 extern void player_update_history_free_all(void *queue);
@@ -780,7 +779,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
         (unit_handle != (datum_index)-1 &&
          halo::scenario::scenario_trigger_volume_contains_point(
              *(int16_t *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8),
-             (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (unit_handle & 0xffff) * 0xc + 8) + 0xa0))
+             (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_handle & 0xffff) * 0xc + 8) + 0xa0))
              != 0)) {
         skip_trigger_check = 0;
     } else {
@@ -789,16 +788,16 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
     unknown_result = (int32_t)halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)0, (real_point3d *)0);
     if (unknown_result == -1 || skip_trigger_check != 0) {
-        object *current_parent_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
+        object *current_parent_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
         if (target_obj->parent_object != (datum_index)-1 &&
             target_obj->parent_object != current_parent_obj->parent_object &&
             network_game_mode != 1) {
-            object *unit_obj = ((object_header *)object_data->data)[unit_handle & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             datum_index driver = unit->driver_unit_index;
 
             if (driver != (datum_index)-1 && *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) != -1) {
-                object *driver_obj = ((object_header *)object_data->data)[driver & 0xffff].data;
+                object *driver_obj = ((object_header *)halo::objects::globals().object_data->data)[driver & 0xffff].data;
                 unit_data *driver_unit = (unit_data *)((uint8_t *)driver_obj + k_unit_data_offset);
                 Unit *driver_tag = (Unit *)halo::cache::globals().tag_instances[driver_obj->definition_tag & 0xffff].data;
                 real_matrix4x3 local_transform;
@@ -845,7 +844,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                                 halo::objects::object_for_each_light_attachment(0, 1, 0);
                             }
                             if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
-                                object_header *unit_header = &((object_header *)object_data->data)[unit_handle & 0xffff];
+                                object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff];
                                 unit_obj->flags = unit_obj->flags & ~1u;
                                 unit_header->flags = unit_header->flags | 2;
                             }
@@ -884,7 +883,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 }
 
                 if (network_game_mode == 1) {
-                    void *datum = halo::memory::datum_get(unit_handle, object_data);
+                    void *datum = halo::memory::datum_get(unit_handle, halo::objects::globals().object_data);
                     if (datum != (void *)0 && *(int16_t *)((uint8_t *)datum + 2) == -1) {
                         circular_queue *cq1 = (circular_queue *)((uint8_t *)datum + 0x170);
                         circular_queue *cq2 = (circular_queue *)((uint8_t *)datum + 0x1d0);
@@ -972,7 +971,7 @@ void EnginePlayers::reset_all_unit_grenade_counts(void)
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
-            object *unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;

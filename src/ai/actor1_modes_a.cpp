@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -40,7 +41,6 @@ extern "C" void actor_mode_alert_movement_cancelled(datum_index actor_index)
 namespace c_actor_mode_alert_process {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -85,7 +85,7 @@ uint8_t halo::ai::alert_mode::process()
             }
         }
         if (ready && !(W(0x9e) > 0) && B(0xa6) == 0) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[D(0x18) & 0xffff].data;
 
             if (unit[0x2a3] != 0x1c) {
                 W(0xa4) = (int16_t)actor_select_move_position(actor_index, count, current, actor + 0xa0);
@@ -168,7 +168,6 @@ extern "C" void actor_mode_alert_target_cleared(datum_index actor_index)
 namespace c_actor_mode_alert_tick {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -215,7 +214,7 @@ void halo::ai::alert_mode::tick()
         datum_index graph = *(datum_index *)(animation + 0x2c);
 
         if (graph == k_datum_index_none) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[D(0x18) & 0xffff].data;
 
             graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data + 0x44);
         }
@@ -237,7 +236,6 @@ extern "C" void actor_mode_alert_tick(uint32_t actor_index)
 namespace c_actor_mode_alert_update {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))

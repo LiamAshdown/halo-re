@@ -20,7 +20,6 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 extern player_control_globals *player_control_globals_ptr;
-extern data_array *object_data;
 extern void game_engine_compute_local_player_look_vector(real_vector3d *out_forward, int16_t local_player_index);
 extern uint32_t camera_observer_target_direction(real_point3d *candidate_point, real_vector3d *facing, real_point3d *reference_position, datum_index object, datum_index exclude_object, real_vector3d *out_direction, real *out_distance, real *out_angle);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
@@ -201,7 +200,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
     }
 
     for (i = 0; i < candidate_count; i++) {
-        uint8_t *candidate = (uint8_t *)((object_header *)object_data->data)[candidates[i] & 0xffff].data;
+        uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
         real dx = ((struct object *)candidate)->position.x - camera.x;
         real dy = ((struct object *)candidate)->position.y - camera.y;
         real dz = ((struct object *)candidate)->position.z - camera.z;
@@ -234,7 +233,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
 uint8_t HudNameplates::nameplate_candidate_filter(uint32_t object_index, void *context)
 {
     datum_index player_handle = *(datum_index *)context;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
     if ((obj[0x10] & 1) != 0) {
         return 0;

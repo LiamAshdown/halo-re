@@ -7,7 +7,6 @@
 
 extern "C" {
 extern data_array *player_data;
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern Globals *global_globals;
@@ -127,7 +126,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     float facing;
 
     if (unit_index != 0xffffffff) {
-        unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
+        unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
     }
     if (count >= 8) {
         return;
@@ -151,7 +150,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     placement.forward.j = (float)sin(facing);
     placement.forward.k = 0.0f;
     vehicle = halo::objects::object_new(&placement);
-    *(int16_t *)(*(uint8_t **)((uint8_t *)object_data->data + (vehicle & 0xffff) * 12 + 8) + 0x5b0) = (int16_t)location_index;
+    *(int16_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (vehicle & 0xffff) * 12 + 8) + 0x5b0) = (int16_t)location_index;
 }
 
 /**
@@ -590,10 +589,10 @@ void RaceEngine::update(datum_index player_index)
     if (network_game_mode != 2) {
         return;
     }
-    unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
+    unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
     parent_index = ((unit_object *)unit)->base.parent_object;
     if (parent_index != 0xffffffff) {
-        uint8_t *parent = *(uint8_t **)((uint8_t *)object_data->data + (parent_index & 0xffff) * 12 + 8);
+        uint8_t *parent = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (parent_index & 0xffff) * 12 + 8);
 
         result = -1;
         game_engine_find_valid_starting_locations((real_point3d *)(parent + 0xa0), 2.5f, 0.0f, 3, -1, 1, &result);

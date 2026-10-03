@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -721,7 +722,6 @@ namespace actor_type_infection_swarm_update_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern game_time_globals *game_time;
@@ -734,7 +734,7 @@ extern double cos(double x);
 extern double fabs(double x);
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define SWARM(h) ((uint8_t *)swarm_data->data + ((h) & 0xffff) * 0x98)
 #define COMPONENT(h) ((uint8_t *)swarm_component_data->data + ((h) & 0xffff) * 0x40)
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))

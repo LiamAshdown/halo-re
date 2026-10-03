@@ -7,6 +7,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern datum_index ai_conversation_new(int16_t conversation_definition_index, uint8_t allow_eviction);
@@ -16,12 +17,10 @@ extern data_array *ai_conversation_data;
 extern data_array *actor_data;
 extern float ticks_per_second;
 extern int32_t __ftol(double x);
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern int32_t ai_communication_quiet_until_tick;
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data;
-extern datum_index *object_name_list;
 extern double sqrt(double x);
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
 extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_actor_iterator *iterator);
@@ -337,7 +336,7 @@ uint8_t ConversationView::current_line_is_ready()
             done = !(*(datum_index *)(inst + 0x5c) != k_datum_index_none &&
                      halo::sound::sound_impulse_time(*(datum_index *)(inst + 0x5c)) != 0);
         } else {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[*(datum_index *)(inst + 0x54) & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[*(datum_index *)(inst + 0x54) & 0xffff].data;
 
             done = ((unit_object *)unit)->unit.current_speech.priority != 6;
         }
@@ -673,7 +672,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
         named_object = (datum_index)k_datum_index_none;
         use_named_object = 1;
     } else {
-        named_object = object_name_list[(int16_t)participant->use_this_object];
+        named_object = halo::objects::globals().object_name_list[(int16_t)participant->use_this_object];
         use_named_object = 1;
     }
 
@@ -686,12 +685,12 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             void *element = 0;
             if (named_object != (datum_index)k_datum_index_none) {
                 int16_t index = (int16_t)named_object;
-                if (index >= 0 && index < object_data->maximum_count) {
-                    int32_t byte_offset = (int32_t)object_data->size * (int32_t)index;
-                    int16_t identifier = *(int16_t *)((uint8_t *)object_data->data + byte_offset);
+                if (index >= 0 && index < halo::objects::globals().object_data->maximum_count) {
+                    int32_t byte_offset = (int32_t)halo::objects::globals().object_data->size * (int32_t)index;
+                    int16_t identifier = *(int16_t *)((uint8_t *)halo::objects::globals().object_data->data + byte_offset);
                     int16_t salt = (int16_t)((uint32_t)named_object >> 16);
                     if (identifier != 0 && (salt == 0 || identifier == salt)) {
-                        element = (uint8_t *)object_data->data + byte_offset;
+                        element = (uint8_t *)halo::objects::globals().object_data->data + byte_offset;
                     }
                 }
             }
@@ -747,7 +746,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 player_object = 0;
                 score = 0.0f;
             } else {
-                player_object = ((object_header *)object_data->data)
+                player_object = ((object_header *)halo::objects::globals().object_data->data)
                                     [player_object_index & 0xffff].data;
                 score = player_score;
             }
@@ -808,7 +807,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 }
             }
 
-            candidate_variant = *(int16_t *)((uint8_t *)((object_header *)object_data->data)
+            candidate_variant = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                                                  [candidate->unit_index & 0xffff].data + 0xbe);
             variant_candidate_count = 0;
             zero_variant_slot = (uint32_t)k_datum_index_none;
@@ -1137,12 +1136,12 @@ apply:
         }
         unit_index = ((actor *)((uint8_t *)actor_data->data +
                                 (actor_handle & 0xffff) * k_actor_size))->unit_index;
-        unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
 
         object_name = (int16_t)participants[i].set_new_name;
         if (object_name != -1 && object_name >= 0 &&
             (int32_t)object_name < (int32_t)halo::scenario::globals().scenario->object_names.count) {
-            object_name_list[object_name] = unit_index;
+            halo::objects::globals().object_name_list[object_name] = unit_index;
         }
         if ((definition->flags & 0x20) != 0) {
             ai_conversation_range_lookup mode_data;

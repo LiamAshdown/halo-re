@@ -24,7 +24,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-extern data_array *object_data;
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 }
 }
@@ -48,7 +47,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
         return 0;
     }
     if (D(0x18) != 0xffffffff) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
+        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[D(0x18) & 0xffff].data;
         datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.flaming_responsible_object;
 
         if (attacker != k_datum_index_none) {
@@ -454,7 +453,6 @@ namespace c_actor_consider_combat_mode {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 
 extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration);
@@ -505,7 +503,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         if (actor[6] != 0) {
             goto done;
         }
-        unit = (uint8_t *)((object_header *)object_data->data)[((struct actor *)actor)->unit_index & 0xffff].data;
+        unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[((struct actor *)actor)->unit_index & 0xffff].data;
         if ((unit[0x106] & 0x80) != 0 || ((struct actor *)actor)->target_unit_index == k_datum_index_none) {
             goto done;
         }
@@ -870,7 +868,6 @@ extern "C" uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index)
 namespace c_actor_evaluate_combat_state_transition {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 extern game_main_globals *main_game_globals;
@@ -885,7 +882,7 @@ extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consider
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
 
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 }
 }
 
@@ -1098,7 +1095,6 @@ extern "C" char actor_evaluate_combat_state_transition(uint32_t actor_index)
 namespace c_actor_is_within_alert_range {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 }
 }
@@ -1115,7 +1111,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
 {
     using namespace c_actor_is_within_alert_range;
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     uint8_t result = 0;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0) {

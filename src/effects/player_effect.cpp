@@ -33,7 +33,6 @@ extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
-extern data_array *object_data;
 }
 
 namespace halo::effects {
@@ -592,8 +591,8 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
         if (unit_index != (datum_index)0xffffffff) {
             int16_t index = (int16_t)unit_index;
 
-            if (index >= 0 && index < object_data->maximum_count) {
-                object_header *header = &((object_header *)object_data->data)[index];
+            if (index >= 0 && index < halo::objects::globals().object_data->maximum_count) {
+                object_header *header = &((object_header *)halo::objects::globals().object_data->data)[index];
 
                 if (header->identifier != 0) {
                     int16_t salt = (int16_t)(unit_index >> 16);
@@ -602,7 +601,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
                         ((1 << (header->type & 0x1f)) & 3) != 0 &&
                         header->data != 0) {
                         unit_data *held_unit =
-                            (unit_data *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data +
+                            (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data +
                                           k_unit_data_offset);
                         int16_t current_weapon = held_unit->current_weapon_index;
                         datum_index current_weapon_object = (datum_index)0xffffffff;

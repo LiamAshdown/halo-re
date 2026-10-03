@@ -11,7 +11,6 @@ extern Globals *global_globals;
 extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count);
 extern data_array *player_data;
 extern player_globals *local_player_globals;
-extern data_array *object_data;
 extern uint32_t cheat_get_target_object_index(void);
 extern int16_t network_game_mode;
 extern void *object_type_definitions[12];
@@ -96,7 +95,7 @@ void Cheats::make_player_invincible(int16_t local_player_slot)
         player_index = local_player_globals->local_players[local_player_slot];
         if (player_index != k_datum_index_none) {
             unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
-            unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+            unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
             unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             unit->active_camouflage_power = 1.0f;
             if ((unit->flags & 0x10) != 0) {
@@ -123,7 +122,7 @@ void Cheats::make_selected_object_invincible()
     player_index = Cheats::get_target_object_index();
     if (player_index != 0xffffffff) {
         unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
-        unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
         unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
         unit->active_camouflage_power = 1.0f;
         if ((unit->flags & 0x10) != 0) {
@@ -249,7 +248,7 @@ void Cheats::teleport_to_camera()
             camera_row = (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
             if (*(int16_t *)(camera_row + 0x10) != -1) {
                 unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player)))->unit;
-                unit_obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+                unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
                 root = unit_obj->parent_object;
                 if (root == k_datum_index_none) {
                     root = unit_index;

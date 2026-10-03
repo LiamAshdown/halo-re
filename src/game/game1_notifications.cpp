@@ -32,7 +32,6 @@ extern data_array *player_data;
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern game_variant game_engine_variant;
-extern data_array *object_data;
 extern void game_engine_spawn_player_starting_loadout(uint32_t starting_equipment_index,
     int32_t *frag_count, int32_t *plasma_count);
 extern uint32_t game_engine_pack_object_flags_or_passthrough(uint32_t input);
@@ -140,7 +139,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     }
 
     if ((game_engine_variant.flags & 0x20) == 0) {
-        object *obj = ((object_header *)object_data->data)[unit & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
         if (obj->network_role == 0 || obj->network_role == 3) {
             game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
         }
@@ -159,7 +158,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             return;
         }
         {
-            object *obj = ((object_header *)object_data->data)[unit & 0xffff].data;
+            object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
 
             if (obj->network_role != 0 && obj->network_role != 3) {
                 return;
@@ -556,7 +555,7 @@ void Notifications::multiplayer_sound_queue_tick(void)
  */
 void Notifications::notify_item_expired(datum_index object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
     uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
 
@@ -590,7 +589,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
         return 1;
     }
     weapon_definition = (Object *)halo::cache::globals().tag_instances[
-        (((object_header *)object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
+        (((object_header *)halo::objects::globals().object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
     ].data;
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;

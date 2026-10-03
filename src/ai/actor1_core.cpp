@@ -89,7 +89,6 @@ extern "C" uint8_t actor_apply_perception_scale(datum_index actor_index, const u
 namespace c_actor_attach_to_unit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 
 extern void actor_unlink_unit(datum_index actor_index);
@@ -113,7 +112,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     using namespace c_actor_attach_to_unit;
     datum_index actor_index = datum;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
@@ -373,7 +372,6 @@ extern "C" void actor_delete(datum_index actor_index, uint32_t flag)
 namespace c_actor_delete_or_release_unit {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
@@ -415,7 +413,7 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
         }
         actor_remove_from_unit_cluster(actor_index, unit_index);
         if (is_dead == 0) {
-            object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
             int32_t network_role = unit_object->network_role;
             if (network_role == 0) {
                 halo::objects::object_delete_unparented(unit_index);
@@ -626,7 +624,6 @@ extern "C" void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_
 namespace c_actor_get_actor_definition {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 }
 }
@@ -652,7 +649,7 @@ void * halo::ai::actor_ref::get_actor_definition()
 
     weapon_object = actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
-        object_header *hdr = (object_header *)object_data->data + (weapon_object & 0xffff);
+        object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (weapon_object & 0xffff);
         object *obj = hdr->data;
         void *weapon_definition = halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         if (weapon_definition != 0) {
@@ -673,7 +670,6 @@ extern "C" void * actor_get_actor_definition(datum_index actor_index)
 namespace c_actor_get_body_axis_vector {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 
 }
@@ -719,7 +715,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 
             halo::math::vector3d_cross_product(perp, reference, *halo::math::globals().global_up3d_pointer);
             if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
-                object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+                object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
 
                 halo::math::vector3d_cross_product(perp, reference, obj->up);
                 if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
@@ -775,7 +771,6 @@ namespace c_actor_get_ranged_attack_vector {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 
 extern uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position);
 }
@@ -816,7 +811,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
         return 0;
     }
 
-    unit_obj = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & 0xffff].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     *out_vector = unit->aiming_vector;
 
@@ -1045,7 +1040,6 @@ extern "C" actor * actor_iterator_next(actor_iterator_state *iterator)
 namespace c_actor_link_to_unit_cluster {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *encounter_data;
@@ -1071,7 +1065,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     using namespace c_actor_link_to_unit_cluster;
     datum_index actor_index = datum;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     datum_index new_component = (datum_index)k_datum_index_none;
@@ -1101,7 +1095,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     unit->swarm_next_unit_index = self->cluster_unit_index;
     *(uint32_t *)((uint8_t *)unit_object + 0x200) = 0xffffffff;
     if (self->cluster_unit_index != (datum_index)k_datum_index_none) {
-        object *head_object = ((object_header *)object_data->data)[self->cluster_unit_index & 0xffff].data;
+        object *head_object = ((object_header *)halo::objects::globals().object_data->data)[self->cluster_unit_index & 0xffff].data;
         *(uint32_t *)((uint8_t *)head_object + 0x200) = unit_index;
     }
     self->cluster_unit_index = unit_index;
@@ -1145,7 +1139,6 @@ extern "C" uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_ind
 namespace c_actor_mark_units_and_release {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 
 extern void actor_unlink_unit(datum_index actor_index);
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
@@ -1169,7 +1162,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
     datum_index encounter_index = self->encounter_index;
 
     if (self->swarm == 0) {
-        object *unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & 0xffff].data;
         uint8_t *flags = (uint8_t *)unit_object + 0x106;
         *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 
@@ -1180,7 +1173,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
     } else {
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
-            object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
             uint8_t *flags = (uint8_t *)unit_object + 0x106;
             *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 

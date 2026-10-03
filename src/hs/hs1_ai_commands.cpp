@@ -33,7 +33,6 @@ extern int16_t ai_conversation_get_line_index(int16_t conversation_definition_in
 extern int32_t ai_conversation_get_status(int16_t conversation_definition_index);
 extern void ai_conversation_stop_all(int16_t conversation_definition_index);
 extern void ai_platoon_range_set_defending(uint32_t packed_reference);
-extern data_array *object_data;
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle);
 extern void ai_object_list_set_unit_flag_400(datum_index object_list_header_handle, char flag);
@@ -1197,7 +1196,7 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x1f4);
+        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & 0xffff) * 0xc + 8) + 0x1f4);
 
         if (actor != k_datum_index_none) {
             actor_delete(actor, 0);

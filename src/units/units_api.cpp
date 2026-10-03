@@ -1,7 +1,17 @@
 #include "halo/units/unit.hpp"
 #include "halo/units/api.hpp"
 
+extern "C" {
+extern uint8_t unit_updates_suppressed;
+}
+
 namespace halo::units {
+
+Globals &globals()
+{
+    static Globals instance{::unit_updates_suppressed};
+    return instance;
+}
 
 /**
  * C entry point for halo::units::BipedView::advance_frame_counter_trigger; forwards to the C++ implementation

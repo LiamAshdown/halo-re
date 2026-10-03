@@ -23,7 +23,6 @@ extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern void network_player_update_history_log_write(const char *format, ...);
-extern data_array * object_data;
 extern network_id_table * object_network_id_table;
 extern int32_t network_vehicle_ack_resend_interval_ms;
 extern data_array * player_data;
@@ -130,9 +129,9 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
     }
     ack.update_id = *(uint8_t *)(plr_bytes + 0xe8);
     ack.baseline_id = *(uint8_t *)(plr_bytes + 0xf4);
-    unit_obj = ((object_header *)object_data->data)[*(uint32_t *)(plr_bytes + 0x34) & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[*(uint32_t *)(plr_bytes + 0x34) & 0xffff].data;
     parent_object = unit_obj->parent_object;
-    vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
+    vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & 0xffff].data;
     network_hash = 0;
     if (parent_object != (datum_index)-1) {
         network_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index,
@@ -495,9 +494,9 @@ void PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache
     *(real *)&staged[10] = direction_y;
     *(real *)&staged[11] = direction_z;
 
-    unit_obj = ((object_header *)object_data->data)[*(uint32_t *)(cache + 0x34) & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[*(uint32_t *)(cache + 0x34) & 0xffff].data;
     parent_object = unit_obj->parent_object;
-    vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
+    vehicle_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_object & 0xffff].data;
     vehicle_hash = 0;
     if (parent_object != (datum_index)-1) {
         vehicle_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), parent_object);

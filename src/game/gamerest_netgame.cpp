@@ -19,7 +19,6 @@ extern game_variant game_engine_variant;
 extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t ctf_single_flag_mode;
 extern data_array *player_data;
-extern data_array *object_data;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern player_globals *local_player_globals;
 extern uint8_t ctf_active_team;
@@ -102,7 +101,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                 {
                     data_iterator iter;
                     void *element;
-                    iter.data = object_data;
+                    iter.data = halo::objects::globals().object_data;
                     iter.next_index = 0;
                     iter.index = (datum_index)0xffffffff;
                     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -130,7 +129,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     game_engine_ctf_respawn_team_flag((int32_t)toggled, (real_point3d *)0, 0);
                     ctf_active_team = (uint8_t)toggled;
                     flag_handle = *(uint32_t *)((uint8_t *)&ctf_team_flag_object[0] + (int16_t)toggled * 4);
-                    flag_obj = ((object_header *)object_data->data)[flag_handle & 0xffff].data;
+                    flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_handle & 0xffff].data;
                     item = (item_data *)((uint8_t *)flag_obj + k_item_data_offset);
                     game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), 0xffffffff, 1);
                     game_engine_ctf_reset_team_return_credit(flag_handle);
@@ -246,7 +245,7 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
         return;
     }
 
-    flag_obj = ((object_header *)object_data->data)[flag_object_index & 0xffff].data;
+    flag_obj = ((object_header *)halo::objects::globals().object_data->data)[flag_object_index & 0xffff].data;
 
     halo::objects::object_set_position_and_orientation(flag_object_index, halo::math::globals().global_forward3d_pointer,
                                          halo::math::globals().global_up3d_pointer, position);

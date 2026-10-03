@@ -29,7 +29,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern render_frustum render_frustum_global;
 extern data_array *object_render_state_cache;
 extern render_lighting render_uncached_object_lighting;
@@ -58,7 +57,6 @@ extern datum_index rendered_objects[halo::render::k_maximum_rendered_objects];
 extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t console_debug_toggle_6893ee;
 extern void first_person_weapon_update_lighting(void);
-extern object_globals *object_globals_pointer;
 extern uint8_t rendered_objects_full_warning;
 }
 
@@ -74,7 +72,7 @@ typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t stat
 void halo::render::ObjectRenderData::draw()
 {
     object_render_data *data = self;
-    object_header *header = &((object_header *)object_data->data)[(uint16_t)data->object_index];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[(uint16_t)data->object_index];
     object *obj = header->data;
 
     if (data->shadow_pass != 0) {
@@ -188,7 +186,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
 {
     object_render_data *data = self;
     while (object_index != k_datum_index_none) {
-        object *obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
         render_model_effect effect;
 
         if (render_object_is_camera_unit(object_index) && !render_camera_global.mirrored) {
@@ -225,7 +223,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
 
                 if (objects::object_mask_has_type(objects::object_mask::unit, obj->type)) {
                     object *unit_object =
-                        ((object_header *)object_data->data)[(uint16_t)object_index].data;
+                        ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
                     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
                     if (unit->active_camouflage_power > 0.0f) {
@@ -294,7 +292,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
 uint8_t halo::render::ObjectRenderData::shadow_begin(float fade)
 {
     object_render_data *data = self;
-    object *o = ((object_header *)object_data->data)[(uint16_t)data->object_index].data;
+    object *o = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)data->object_index].data;
     render_lighting *lighting = (render_lighting *)data->lighting;
     real_point3d center = o->bounding_center;
     float radius = o->bounding_radius;
@@ -309,7 +307,7 @@ uint8_t halo::render::ObjectRenderData::shadow_begin(float fade)
 
     color = lighting->shadow_color;
 
-    o = ((object_header *)object_data->data)[(uint16_t)data->object_index].data;
+    o = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)data->object_index].data;
     if (((1 << (uint8_t)o->type) & 3) != 0) {
         unit_data *unit = (unit_data *)((uint8_t *)o + k_unit_data_offset);
         if (unit->active_camouflage_power > 0.0f) {
@@ -437,7 +435,7 @@ real compute_level_of_detail_pixels(datum_index object_index)
     real radius;
     real depth;
 
-    obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
 
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && test_flag(obj->flags, objects::object_flag::unknown_400000)) {
         return k_maximum_level_of_detail_pixels;
@@ -498,7 +496,7 @@ render_lighting *get_cached_render_lighting(datum_index object_index, real level
  */
 datum_index get_cached_render_state(datum_index object_index, real level_of_detail_pixels)
 {
-    object_header *header = &((object_header *)object_data->data)[(uint16_t)object_index];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index];
     object *obj = header->data;
     datum_index cache_index = obj->cached_render_state_index;
 
@@ -555,7 +553,7 @@ void render_state_refresh(datum_index cache_index, datum_index object_index, rea
 {
     cached_object_render_state *entry =
         &((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index];
-    object *obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
     int32_t windows_elapsed = render_window_count - entry->last_update_window;
     int32_t frames_since_update = render_frame_index - entry->last_update_frame;
     int32_t frames_since_sample = render_frame_index - entry->last_sample_frame;
@@ -790,7 +788,7 @@ int16_t local_player_gunner_seat_visible(int16_t local_player_index)
         return 0;
     }
 
-    unit_header = &((object_header *)object_data->data)[(uint16_t)player_index];
+    unit_header = &((object_header *)halo::objects::globals().object_data->data)[(uint16_t)player_index];
     unit = unit_header->data;
     parent_index = unit->parent_object;
     if (parent_index == k_datum_index_none) {
@@ -802,7 +800,7 @@ int16_t local_player_gunner_seat_visible(int16_t local_player_index)
         return 0;
     }
 
-    parent_header = &((object_header *)object_data->data)[(uint16_t)parent_index];
+    parent_header = &((object_header *)halo::objects::globals().object_data->data)[(uint16_t)parent_index];
     parent = parent_header->data;
     vehicle_tag = &halo::cache::globals().tag_instances[(uint16_t)parent->definition_tag];
     vehicle = (Unit *)vehicle_tag->data;
@@ -823,7 +821,7 @@ namespace halo::render::object_pass {
  */
 void _get_cull_sphere(datum_index object_index, real_point3d *center, float *radius)
 {
-    object_header *header = &((object_header *)object_data->data)[(uint16_t)object_index];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index];
     object *o = header->data;
     Object *definition;
 
@@ -924,7 +922,7 @@ void s_collect(void)
     int16_t count;
 
     halo::physics::globals().object_cluster_stamp++;
-    object_globals_pointer->collecting_in_clusters = 1;
+    halo::objects::globals().object_globals->collecting_in_clusters = 1;
 
     count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)rendered_objects, k_maximum_rendered_objects,
         (structure_bsp_object_iterate_begin_fn)halo::objects::object_resolve_collideable_reference,
@@ -942,7 +940,7 @@ void s_collect(void)
         (structure_bsp_object_predicate_fn)halo::objects::object_disconnect_from_map,
         (structure_bsp_object_accept_fn)halo::objects::object_cluster_stamp_mark_visited);
 
-    object_globals_pointer->collecting_in_clusters = 0;
+    halo::objects::globals().object_globals->collecting_in_clusters = 0;
 
     if (rendered_object_count == k_maximum_rendered_objects && !rendered_objects_full_warning) {
         rendered_objects_full_warning = 1;

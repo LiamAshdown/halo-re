@@ -9,7 +9,6 @@ namespace halo::ai {
 namespace actor_movement_choose_avoidance_direction_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern uint32_t global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern const real_vector3d *global_origin3d_pointer;
@@ -73,7 +72,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             return;
         }
     }
-    obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
     context.structure_bsp = global_structure_bsp;
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
@@ -392,7 +391,6 @@ done:
 namespace actor_movement_update_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *prop_data;
 extern const real_vector3d *global_origin3d_pointer;
 extern const real_vector2d *global_forward2d_pointer;
@@ -613,7 +611,7 @@ void ActorView::movement_update()
             }
         }
     } else {
-        object *unit_object = ((object_header *)object_data->data)[a->active_unit_index & 0xffff].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[a->active_unit_index & 0xffff].data;
         Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         uint8_t take_sideslip = 0;
 

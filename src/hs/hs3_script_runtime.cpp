@@ -4,12 +4,12 @@
 #include "win32.h"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
     char detach_from_parent, char reorient);
 extern data_array *player_data;
-extern data_array *object_data;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern data_array *hs_thread_data;
 extern data_array *hs_globals_data;
@@ -22,7 +22,6 @@ extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result
 extern int32_t hs_global_get_value(hs_global_reference reference);
 extern void hs_global_write_value(hs_global_reference reference);
 extern datum_index hs_thread_new(int32_t script_index, uint8_t type);
-extern data_array *object_list_header_data;
 extern int16_t hs_current_thread_index;
 extern void hs_allocate_script_node_table(void);
 extern char hs_compile_source(void);
@@ -30,7 +29,6 @@ extern char hs_compile_postprocess(char **error_message, int32_t *error_offset);
 extern data_array *hs_syntax_data;
 extern void hs_dispose_dynamic_globals(void);
 extern uint8_t hs_syntax_data_is_local;
-extern data_array *object_list_reference_data;
 extern char hs_scripts_compile_and_link(char restore_previous);
 extern void hs_scenario_scripts_initialize(void);
 extern byte_swap_definition hs_syntax_data_header_byte_swap_definition;
@@ -55,7 +53,7 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
         datum_index unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
 
         if (unit != k_datum_index_none) {
-            uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8);
+            uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & 0xffff) * 0xc + 8);
 
             if (!halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
                 hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
@@ -205,7 +203,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
                 if (globals[i].type == 0x17) {
                     list_handle = hs_global_get_value(reference);
                     if (list_handle != -1) {
-                        list_header = (object_list_header *)((uint8_t *)object_list_header_data->data +
+                        list_header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                             (list_handle & 0xffff) * 0x0c);
                         list_header->reference_count = list_header->reference_count + 1;
                     }
@@ -287,8 +285,8 @@ void ScriptRuntime::scripts_free() const
         hs_syntax_data = 0;
     }
     hs_dispose_dynamic_globals();
-    object_list_header_data->valid = 0;
-    object_list_reference_data->valid = 0;
+    halo::objects::globals().object_list_header_data->valid = 0;
+    halo::objects::globals().object_list_reference_data->valid = 0;
 }
 
 /**
@@ -306,10 +304,10 @@ void ScriptRuntime::scripts_reload() const
     if ((scenario != 0) && (scenario->script_syntax_data.size != 0)) {
         hs_scripts_compile_and_link(0);
     }
-    object_list_header_data->valid = 1;
-    halo::memory::data_delete_all(object_list_header_data);
-    object_list_reference_data->valid = 1;
-    halo::memory::data_delete_all(object_list_reference_data);
+    halo::objects::globals().object_list_header_data->valid = 1;
+    halo::memory::data_delete_all(halo::objects::globals().object_list_header_data);
+    halo::objects::globals().object_list_reference_data->valid = 1;
+    halo::memory::data_delete_all(halo::objects::globals().object_list_reference_data);
     hs_scenario_scripts_initialize();
 }
 

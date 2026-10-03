@@ -5,9 +5,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern real_point3d *global_origin3d_pointer;
 extern real_vector3d *g_006966e4;
 extern void vector3d_clamp_length(float max_length);
@@ -50,7 +50,7 @@ namespace halo::units {
 void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output, uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);

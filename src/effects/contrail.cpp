@@ -11,7 +11,6 @@ extern "C" {
 extern data_array *contrail_data;
 extern data_array *contrail_point_data;
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
-extern data_array *object_data;
 extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void contrail_next_sequence(contrail *self);
@@ -229,7 +228,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
     }
 
     {
-        object *owner = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+        object *owner = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
         Object *owner_tag = (Object *)halo::cache::globals().tag_instances[(uint16_t)owner->definition_tag].data;
         ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
             self->attachment_index;
@@ -302,9 +301,9 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
                             }
 
                             {
-                                object *root = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+                                object *root = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
                                 while (root->parent_object != k_datum_index_none) {
-                                    root = ((object_header *)object_data->data)[(uint16_t)root->parent_object].data;
+                                    root = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)root->parent_object].data;
                                 }
                                 point->velocity.i = direction.i * velocity_magnitude + inherited_fraction * root->velocity.i;
                                 point->velocity.j = direction.j * velocity_magnitude + inherited_fraction * root->velocity.j;
@@ -359,7 +358,7 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
         handle = halo::memory::datum_new(contrail_data);
         if (handle != k_datum_index_none) {
             contrail *self = &((contrail *)contrail_data->data)[(uint16_t)handle];
-            object *owner = ((object_header *)object_data->data)[(uint16_t)object_index].data;
+            object *owner = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)object_index].data;
             Object *owner_tag = (Object *)halo::cache::globals().tag_instances[(uint16_t)owner->definition_tag].data;
             ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
                 attachment_index;
@@ -385,7 +384,7 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
 
             {
                 int16_t scale_function_index = self->scale_function_index;
-                object *root = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+                object *root = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
 
                 if (scale_function_index == -1) {
                     self->scale = 1.0f;
@@ -497,7 +496,7 @@ void contrail_ref::update(real delta_time)
                 self->scale = 1.0f;
                 want_emitting = 1;
             } else {
-                object *owner = ((object_header *)object_data->data)[(uint16_t)self->object_index].data;
+                object *owner = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
                 self->scale = owner->function_out_values[scale_function_index];
                 want_emitting = (owner->function_valid_flags & (1u << (scale_function_index & 0x1f))) != 0;
             }

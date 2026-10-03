@@ -4,8 +4,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
-extern object_globals *object_globals_pointer;
 uint8_t halo::items::garbage_new(uint32_t object_index);
 int32_t halo::items::garbage_update(uint32_t object_index);
 }
@@ -23,12 +21,12 @@ namespace halo::items {
 uint8_t garbage_ref::create()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     int16_t *despawn_countdown = (int16_t *)((uint8_t *)obj + k_item_extension_offset);
 
     if ((obj->flags & (_object_in_tracked_list_bit | _object_unknown_20000_bit)) == 0) {
-        obj->next_tracked_object = object_globals_pointer->first_tracked_object;
-        object_globals_pointer->first_tracked_object = object_index;
+        obj->next_tracked_object = halo::objects::globals().object_globals->first_tracked_object;
+        halo::objects::globals().object_globals->first_tracked_object = object_index;
         obj->flags |= _object_in_tracked_list_bit;
     }
     obj->flags |= _object_definition_flag0_bit | _object_connected_to_map_bit;
@@ -52,7 +50,7 @@ uint8_t garbage_ref::create()
 int32_t garbage_ref::update()
 {
     uint32_t object_index = datum;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
     int16_t *despawn_countdown = (int16_t *)((uint8_t *)obj + k_item_extension_offset);
     int32_t still_alive;
 

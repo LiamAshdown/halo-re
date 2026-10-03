@@ -2,6 +2,7 @@
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -28,7 +29,6 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server,
 extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern data_array *object_data;
 extern int32_t game_engine_state_value;
 extern uint8_t custom_waypoints[];
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, const char *icon_name, float height_offset, datum_index player_filter, int16_t team_filter);
@@ -447,7 +447,7 @@ void SlayerEngine::update(datum_index player_index)
             datum_index unit_index = *(datum_index *)(((uint8_t *)player_data->data + ((target) & 0xffff) * 0x200) + 0x34);
 
             if (unit_index != 0xffffffff) {
-                uint8_t *unit = *(uint8_t **)((uint8_t *)object_data->data + (unit_index & 0xffff) * 12 + 8);
+                uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
 
                 custom_waypoint_register(0xffffffff, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
                     player_index, -1);

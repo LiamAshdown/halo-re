@@ -859,7 +859,6 @@ void ActorOps::movement_choose_strafe_axis(const real_vector3d *direction, uint8
 
 namespace actor_movement_collect_obstacle_candidates_local {
 extern "C" {
-extern data_array *object_data;
 extern double sqrt(double x);
 }
 }
@@ -893,7 +892,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     int32_t remaining;
     datum_index *cursor;
 
-    unit_object = ((object_header *)object_data->data)[context->unit_index & 0xffff].data;
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[context->unit_index & 0xffff].data;
     found = halo::objects::object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
                                   context->search_radius, candidates, 0x800);
     context->obstacle_count = 0;
@@ -905,12 +904,12 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     remaining = (int32_t)(uint16_t)found;
     do {
         if (*cursor != (datum_index)k_datum_index_none && *cursor != context->unit_index) {
-            candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
+            candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & 0xffff].data;
             candidate_definition = (Object *)halo::cache::globals().tag_instances[candidate_object->definition_tag & 0xffff].data;
             collision_model = (ModelCollisionGeometry *)
                 halo::cache::globals().tag_instances[candidate_definition->collision_model.tag_id.index].data;
             if ((int32_t)collision_model->pathfinding_spheres.count > 0) {
-                candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
+                candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & 0xffff].data;
                 origin_x = ((struct object *)candidate_object)->bounding_center.x;
                 origin_y = ((struct object *)candidate_object)->bounding_center.y;
                 origin_z = ((struct object *)candidate_object)->bounding_center.z;
@@ -927,7 +926,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                                                   world_matrix);
                         reach = world_matrix.scale * sphere->radius;
                     } else {
-                        candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
+                        candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & 0xffff].data;
                         node_matrix = (const real_matrix4x3 *)
                             ((uint8_t *)candidate_object +
                              (int32_t)((struct object *)candidate_object)->nodes.offset +
@@ -969,7 +968,6 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
 namespace actor_movement_flying_needs_steering_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 }
 }
 
@@ -995,7 +993,7 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
     needs_steering = 1;
 
     if (self->vehicle_driving_type == 4) {
-        unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         avoidance_distance = vehicle_definition->ai_avoidance_distance;
         if (avoidance_distance > 0.0f && self->avoidance_emergency > 0.9f) {
@@ -1022,7 +1020,6 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
 namespace actor_movement_get_stopping_distances_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 }
 }
 
@@ -1070,7 +1067,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
             }
         }
     } else if (self->vehicle_driving_type > 1 && self->vehicle_driving_type < 4) {
-        unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
+        unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & 0xffff].data;
         vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
         speed = unit_object->velocity.i * unit_object->forward.i +
                 unit_object->velocity.j * unit_object->forward.j +

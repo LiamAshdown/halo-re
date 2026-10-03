@@ -5,7 +5,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern data_array *device_groups;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
@@ -16,7 +15,7 @@ namespace {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
 }
 
 static uint8_t *object_definition(uint8_t *object)
@@ -80,7 +79,7 @@ void MachineHandle::melee_attacked()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     device_machine_data *dev = (device_machine_data *)((uint8_t *)obj + sizeof(object));
 
     if ((dev->device.type_flags & (1u << _device_machine_opened_by_melee_attack_bit)) != 0 &&
@@ -104,7 +103,7 @@ uint32_t MachineHandle::update()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     device_machine_data *dev = (device_machine_data *)((uint8_t *)obj + sizeof(object));
     DeviceMachine *tag = (DeviceMachine *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
@@ -143,7 +142,7 @@ uint32_t MachineHandle::update()
         if (0 < candidate_count) {
             int16_t i;
             for (i = 0; i < candidate_count; i++) {
-                object *candidate = ((object_header *)object_data->data)[halo::datum_slot(candidates[i])].data;
+                object *candidate = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(candidates[i])].data;
                 int counts = 1;
                 int passes_side_test = 1;
 
@@ -223,7 +222,7 @@ uint32_t MachineHandle::update()
                 if (0 < rider_count) {
                     int16_t i;
                     for (i = 0; i < rider_count; i++) {
-                        object *rider = ((object_header *)object_data->data)[halo::datum_slot(riders[i])].data;
+                        object *rider = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(riders[i])].data;
                         biped_data *rider_biped = (biped_data *)((uint8_t *)rider + k_unit_object_size);
                         if (rider_biped->last_ground_object_index == object_index) { 
                             real_point3d p = rider->position;
@@ -289,7 +288,7 @@ void ControlHandle::activate()
 {
     uint32_t object_id = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_id)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_id)].data;
     DeviceControl *tag = (DeviceControl *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (tag->triggers_when == devicetriggerswhen_touched_by_player) {
@@ -308,7 +307,7 @@ void ControlHandle::touched()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
 
     if (obj->type == _object_type_device_control) {
         halo::devices::device_control_activate(object_index);

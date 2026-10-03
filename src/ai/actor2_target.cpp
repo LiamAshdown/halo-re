@@ -108,7 +108,6 @@ namespace actor_target_data_refresh_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern game_time_globals *game_time;
 extern char ai_marker_name_a[];
 extern char ai_marker_name_b[];
@@ -150,7 +149,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
 
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & 0xffff) * sizeof(prop));
     object_index = target->object_index;
-    unit_obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
     if (force == 0 && 3 < target->state && target->state < 6) {
         if (target->dead_confirmed != 0) {
@@ -180,7 +179,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
         reassigned = object_find_nearest_squad_member(target->owner_actor_index, (void *)&self->aim_origin, object_index, 0);
         if (reassigned != object_index) {
             target->object_index = reassigned;
-            unit_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
+            unit_obj = ((object_header *)halo::objects::globals().object_data->data)[reassigned & 0xffff].data;
             if (target->state < 4 || 5 < target->state) {
                 if (target->pair_index != k_datum_index_none) {
                     ((prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop)))->object_index = reassigned;
@@ -209,7 +208,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     target->pathfinding_surface_index = -1;
 
     reassigned = halo::objects::object_get_root_object_index(target->object_index);
-    parent_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
+    parent_obj = ((object_header *)halo::objects::globals().object_data->data)[reassigned & 0xffff].data;
     target->location_leaf_index = *(float *)&parent_obj->location_leaf_index;
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
 
@@ -221,7 +220,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
 
     parent_index = unit_obj->parent_object;
     if (parent_index != k_datum_index_none) {
-        parent_obj = ((object_header *)object_data->data)[parent_index & 0xffff].data;
+        parent_obj = ((object_header *)halo::objects::globals().object_data->data)[parent_index & 0xffff].data;
         if (parent_obj->type == 1) {
             target->relationship_object_index = parent_index;
             if (*(int32_t *)((uint8_t *)parent_obj + 0x328) == (int32_t)target->object_index ||
@@ -244,7 +243,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     target->child_unit_count = 0;
     child_index = unit_obj->first_child_object;
     while (child_index != k_datum_index_none) {
-        child_obj = ((object_header *)object_data->data)[child_index & 0xffff].data;
+        child_obj = ((object_header *)halo::objects::globals().object_data->data)[child_index & 0xffff].data;
         if ((1 << (child_obj->type & 0x1f) & 3) != 0) {
             target->child_unit_count = target->child_unit_count + 1;
         }
@@ -757,11 +756,7 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *swarm_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
-extern datum_index *noncollideable_cluster_first;
-extern data_array *noncollideable_object_references;
-extern object_globals *object_globals_pointer;
 extern int ai_target_distance_qsort_compare(void *record_a, void *record_b);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_cursor,
@@ -815,7 +810,7 @@ void ActorView::target_scan_potential_targets()
             swarm_pvs[i] = 0;
         }
         for (i = 0; i < sw->component_count; i++) {
-            object_header *hdr = (object_header *)object_data->data + (sw->unit_index[i] & 0xffff);
+            object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (sw->unit_index[i] & 0xffff);
             object *unit_obj = hdr->data;
             int16_t cluster = unit_obj->location_cluster_index;
             if (cluster != -1) {
@@ -833,7 +828,7 @@ void ActorView::target_scan_potential_targets()
     }
 
     halo::physics::globals().object_cluster_stamp++;
-    object_globals_pointer->collecting_in_clusters = 1;
+    halo::objects::globals().object_globals->collecting_in_clusters = 1;
     stamp = halo::physics::globals().object_cluster_stamp;
 
     next = self->first_prop;
@@ -891,7 +886,7 @@ shared_threshold:
                     int32_t gate = (enc->last_idle_time <= self->found_body_time) ? self->found_body_time
                                                                            : enc->last_idle_time;
                     if (gate != -1) {
-                        object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
+                        object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & 0xffff);
                         unit_data *u = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
                         int32_t last_seen = u->death_time;
                         if (last_seen == -1 || last_seen < gate) {
@@ -962,7 +957,7 @@ merged:
                 if (cluster_head == k_datum_index_none) {
                     datum_index u = self->cluster_unit_index;
                     while (u != k_datum_index_none) {
-                        object_header *ohdr = (object_header *)object_data->data + (u & 0xffff);
+                        object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (u & 0xffff);
                         object *uobj = ohdr->data;
                         if (uobj->cluster_stamp != stamp) {
                             uobj->cluster_stamp = stamp;
@@ -973,7 +968,7 @@ merged:
                     swarm *sw2 = &((swarm *)swarm_data->data)[cluster_head & 0xffff];
                     int16_t i;
                     for (i = 0; i < sw2->component_count; i++) {
-                        object_header *ohdr = (object_header *)object_data->data + (sw2->unit_index[i] & 0xffff);
+                        object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (sw2->unit_index[i] & 0xffff);
                         object *uobj = ohdr->data;
                         if (uobj->cluster_stamp != stamp) {
                             uobj->cluster_stamp = stamp;
@@ -982,7 +977,7 @@ merged:
                 }
             }
             {
-                object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
+                object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & 0xffff);
                 object *tobj = ohdr->data;
                 if (tobj->cluster_stamp != stamp) {
                     tobj->cluster_stamp = stamp;
@@ -1044,12 +1039,12 @@ merged:
                     }
                 }
 
-                head = noncollideable_cluster_first[cluster];
+                head = halo::objects::globals().noncollideable_cluster_first[cluster];
                 if (head == k_datum_index_none) {
                     owner_cluster_ref = -1; chain_object = -1;
                 } else {
                     object_cluster_reference *node =
-                        (object_cluster_reference *)noncollideable_object_references->data + (head & 0xffff);
+                        (object_cluster_reference *)halo::objects::globals().noncollideable_object_references->data + (head & 0xffff);
                     owner_cluster_ref = node->next_reference;
                     chain_object = node->object_index;
                 }
@@ -1060,7 +1055,7 @@ merged:
                         chain_object = -1;
                     } else {
                         object_cluster_reference *node =
-                            (object_cluster_reference *)noncollideable_object_references->data +
+                            (object_cluster_reference *)halo::objects::globals().noncollideable_object_references->data +
                             (owner_cluster_ref & 0xffff);
                         owner_cluster_ref = node->next_reference;
                         chain_object = node->object_index;
@@ -1142,13 +1137,13 @@ list_b_counted:
                     }
                     i++;
                 } while (i < list_b.entry_count);
-                object_globals_pointer->collecting_in_clusters = 0;
+                halo::objects::globals().object_globals->collecting_in_clusters = 0;
                 return;
             }
         } else {
 list_b_evict:
             if (list_b.entry_count <= i) {
-                object_globals_pointer->collecting_in_clusters = 0;
+                halo::objects::globals().object_globals->collecting_in_clusters = 0;
                 return;
             }
             do {
@@ -1169,7 +1164,7 @@ list_b_evict:
         }
     }
 
-    object_globals_pointer->collecting_in_clusters = 0;
+    halo::objects::globals().object_globals->collecting_in_clusters = 0;
 }
 
 namespace actor_target_update_active_flag_local {
@@ -1230,7 +1225,6 @@ extern double sqrt(double x);
 static float sqrtf_(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 extern game_time_globals *game_time;
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
@@ -1296,7 +1290,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
               ? (encounter *)0
               : &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
     p = &((prop *)prop_data->data)[target_prop_index & 0xffff];
-    unit_obj = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & 0xffff].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     tick = game_time->game_time;
 
@@ -1660,7 +1654,7 @@ after_engage:
             if (enc_idx != (uint32_t)k_datum_index_none) {
                 encounter *e = &((encounter *)encounter_data->data)[enc_idx & 0xffff];
                 int32_t gate = (e->last_idle_time <= self->found_body_time) ? self->found_body_time : e->last_idle_time;
-                object_header *ohdr = (object_header *)object_data->data + (p->object_index & 0xffff);
+                object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & 0xffff);
                 unit_data *u2 = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
                 int32_t last_seen = u2->death_time;
                 ok = (gate == -1 || (last_seen != -1 && gate <= last_seen));

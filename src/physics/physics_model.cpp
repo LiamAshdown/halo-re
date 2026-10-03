@@ -13,6 +13,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" { uint8_t halo::physics::physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { int16_t halo::physics::physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta, physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts, physics_model_contact *contacts); }
@@ -36,10 +37,7 @@ extern "C" { void halo::physics::physics_shape_vertex_to_sphere(physics_model *m
 
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
-extern "C" { extern data_array *object_data; }
-extern "C" { extern object_globals *object_globals_pointer; }
 extern "C" { extern int32_t object_cluster_stamp; }
-extern "C" { extern datum_index *collideable_cluster_first; }
 extern "C" { extern data_array *collideable_object_references; }
 extern "C" { extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); }
 extern "C" { extern void collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
@@ -83,7 +81,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
                 flags |= 0xfff00;
             }
             halo::structures::globals().cluster_flood_stamp++;
-            object_globals_pointer->collecting_in_clusters = 1;
+            halo::objects::globals().object_globals->collecting_in_clusters = 1;
             stamp = object_cluster_stamp + 1;
             halo::structures::globals().cluster_flood_in_progress = 1;
             object_cluster_stamp = stamp;
@@ -96,7 +94,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
                     datum_index ref;
 
                     halo::structures::globals().cluster_visit_stamp[cluster_index] = halo::structures::globals().cluster_flood_stamp;
-                    ref = collideable_cluster_first[cluster_index];
+                    ref = halo::physics::globals().collideable_cluster_first[cluster_index];
                     while (ref != k_datum_index_none) {
                         object_cluster_reference *node = (object_cluster_reference *)
                             collideable_object_references->data + (ref & 0xffff);
@@ -106,7 +104,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
                         if (object_index == k_datum_index_none) {
                             break;
                         }
-                        obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
                         if (obj->cluster_stamp != stamp) {
                             obj->cluster_stamp = stamp;
@@ -118,7 +116,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
                 }
             }
 
-            object_globals_pointer->collecting_in_clusters = 0;
+            halo::objects::globals().object_globals->collecting_in_clusters = 0;
             halo::structures::globals().cluster_flood_in_progress = 0;
         }
     }

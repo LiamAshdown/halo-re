@@ -7,7 +7,6 @@ extern "C" {
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern data_array *object_data;
 extern real weapon_network_update_position_tolerance;
 extern double sqrt(double x);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
@@ -249,7 +248,7 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
     (void)unused_param_2;
     (void)unused_param_3;
 
-    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     if (item_index != (datum_index)0xffffffff) {
@@ -436,7 +435,7 @@ void weapon_ref::create_from_creation_message(void *incoming_record)
 
     network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
 
-    obj = ((object_header *)object_data->data)[new_object_index & 0xffff].data;
+    obj = ((object_header *)halo::objects::globals().object_data->data)[new_object_index & 0xffff].data;
     wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
 
     obj->flags |= decoded.object_flags;
@@ -533,7 +532,7 @@ void weapon_ref::predict_ammo(void **message_record)
 void weapon_ref::send_creation(uint32_t arg2, uint32_t arg3)
 {
     uint32_t item_index = datum;
-    object *obj = ((object_header *)object_data->data)[item_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & 0xffff].data;
     item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {

@@ -23,7 +23,6 @@ extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern data_array *object_data;
 extern data_array *player_data;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t *ai_update_stagger;
@@ -75,7 +74,7 @@ void halo::units::unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t has
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define LOOK_BLEND_NEW 0.3f
 #define LOOK_BLEND_OLD 0.7f

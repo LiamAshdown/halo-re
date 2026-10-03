@@ -3,7 +3,6 @@
 #include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern uint8_t *machine_table;
 extern uint8_t network_object_index_cache[];
@@ -51,7 +50,7 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
 {
     using namespace unit_build_network_update_local;
     uint32_t object_index = datum_handle;
-    uint8_t *biped = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *biped = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     hash_table *keys = &object_network_id_table->id_to_index;
     biped_network_create_record record;
     void *item = &record;

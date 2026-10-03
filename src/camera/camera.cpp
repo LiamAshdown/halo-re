@@ -6,6 +6,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -19,7 +20,6 @@ extern observer observers[1];
 extern uint8_t *hs_camera_control_pointer;
 extern camera_script_globals camera_script;
 extern player_control_globals *player_control_globals_ptr;
-extern data_array *object_data;
 extern data_array *player_data;
 extern float observer_dt;
 extern game_engine_definition *current_game_engine;
@@ -253,7 +253,7 @@ uint8_t CameraSystem::is_local_player_default_first_person()
  */
 int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state)
 {
-    object_header *headers = (object_header *)object_data->data;
+    object_header *headers = (object_header *)halo::objects::globals().object_data->data;
     object *unit_object;
     datum_index parent;
     int16_t result = 0;

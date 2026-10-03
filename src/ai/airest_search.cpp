@@ -18,7 +18,6 @@ extern uint8_t path_find_trace_cluster_boundary_from_vertex(void *context, uint8
 extern void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t point_index, real_point2d *position, real_vector2d *edge_neg, float radius, real_vector2d *out_a, real *out_b);
 extern uint8_t ai_search_evaluate_edge_cost(void *context, uint8_t ignore_permission, ai_search_obstacle_list *obstacle_list, int16_t exclude_index, real_point2d *point, int32_t start_surface_index, float distance, float base_cost, uint8_t skip_direct, uint8_t apply_offset, uint8_t require_unflagged, ai_search_edge_result *out_result, real_vector2d *direction);
 extern real_point2d *ai_default_2d_direction;
-extern data_array *object_data;
 extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t flags, uint32_t object_index, real_point2d *position, float radius);
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask, int16_t start_index);
 extern void ai_search_context_init(ai_search_context *context, uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
@@ -568,7 +567,7 @@ void ObstacleList::flood_fill_group(float radius, uint32_t *out_bitmask, int16_t
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 /**
  * Behaviour of ai search gather obstacles, moved unchanged from the original free function.

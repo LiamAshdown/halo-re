@@ -7,7 +7,6 @@ extern game_time_globals *game_time;
 extern motion_sensor_globals *motion_sensor;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern data_array *object_data;
 extern HUDGlobals *hud_globals_tag_data;
 extern game_engine_definition *current_game_engine;
 extern float motion_sensor_sweep;
@@ -113,8 +112,8 @@ void HudMotionSensor::update(void)
             int16_t full_players;
 
             if (object_index != (datum_index)-1 && (int16_t)object_index >= 0 &&
-                (int16_t)object_index < object_data->maximum_count) {
-                uint8_t *candidate = (uint8_t *)object_data->data + (int16_t)object_index * object_data->size;
+                (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
+                uint8_t *candidate = (uint8_t *)halo::objects::globals().object_data->data + (int16_t)object_index * halo::objects::globals().object_data->size;
                 int16_t salt = (int16_t)((uint32_t)object_index >> 16);
                 if (*(int16_t *)candidate != 0 && (salt == 0 || *(int16_t *)candidate == salt)) {
                     header = candidate;
@@ -125,7 +124,7 @@ void HudMotionSensor::update(void)
                 continue;
             }
             {
-                real_point3d position = *(real_point3d *)((uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data + 0xa0);
+                real_point3d position = *(real_point3d *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data + 0xa0);
 
                 full_players = 0;
                 for (k = 0; k < count; k++) {

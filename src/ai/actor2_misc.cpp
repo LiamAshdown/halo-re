@@ -284,7 +284,6 @@ attach:
 
 namespace actor_place_new_unit_local {
 extern "C" {
-extern data_array *object_data;
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern double cos(double x);
@@ -367,7 +366,7 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
         k_datum_index_none, start_active, initial_state, (int16_t)return_state, *(const uint16_t *)(request + 0x1a),
         (uint8_t)*(int8_t *)&((struct actor_placement_request *)request)->unknown_12);
     if (result == k_datum_index_none) {
-        int32_t kind = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + 0x4);
+        int32_t kind = *(int32_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data + 0x4);
 
         if (kind == 0) {
             halo::objects::object_delete_unparented(unit_index);
@@ -702,15 +701,14 @@ namespace actor_process_vehicle_seat_exit_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern data_array *object_data;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void player_update_history_free_all(void *history);
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & 0xffff])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
@@ -983,7 +981,6 @@ namespace actor_propagate_unit_field_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
-extern data_array *object_data;
 }
 }
 
@@ -1000,14 +997,14 @@ void ActorView::propagate_unit_field(int16_t value)
 
     if (self->swarm == 0) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
-            object *unit_object = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & 0xffff].data;
             ((struct object *)unit_object)->owner_team = value;
         }
     } else if (self->swarm_index == (datum_index)k_datum_index_none) {
         datum_index unit_index = self->cluster_unit_index;
         if (unit_index != (datum_index)k_datum_index_none) {
             do {
-                object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+                object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
                 ((struct object *)unit_object)->owner_team = value;
                 unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
             } while (unit_index != (datum_index)k_datum_index_none);
@@ -1016,7 +1013,7 @@ void ActorView::propagate_unit_field(int16_t value)
         swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
-            object *unit_object = ((object_header *)object_data->data)[s->unit_index[i] & 0xffff].data;
+            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[s->unit_index[i] & 0xffff].data;
             ((struct object *)unit_object)->owner_team = value;
         }
     }
@@ -1222,7 +1219,6 @@ void ActorView::release_from_cluster_or_delete(datum_index unit_index)
 namespace actor_remove_from_unit_cluster_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 }
@@ -1239,7 +1235,7 @@ void ActorView::remove_from_unit_cluster(datum_index unit_index)
 {
     using namespace actor_remove_from_unit_cluster_local;
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
@@ -1284,11 +1280,11 @@ void ActorView::remove_from_unit_cluster(datum_index unit_index)
         if (prev == 0xffffffff) {
             self->cluster_unit_index = next;
         } else {
-            object *prev_object = ((object_header *)object_data->data)[prev & 0xffff].data;
+            object *prev_object = ((object_header *)halo::objects::globals().object_data->data)[prev & 0xffff].data;
             *(uint32_t *)((uint8_t *)prev_object + 0x1fc) = next;
         }
         if (next != (datum_index)k_datum_index_none) {
-            object *next_object = ((object_header *)object_data->data)[next & 0xffff].data;
+            object *next_object = ((object_header *)halo::objects::globals().object_data->data)[next & 0xffff].data;
             *(uint32_t *)((uint8_t *)next_object + 0x200) = prev;
         }
     }
@@ -1583,7 +1579,6 @@ void ActorView::reseed_movement_pause_timer()
 namespace actor_reset_perception_scratch_local {
 extern "C" {
 extern const real_vector3d *global_origin3d_pointer;
-extern data_array *object_data;
 }
 }
 
@@ -1598,7 +1593,7 @@ void ActorOps::reset_perception_scratch(datum_index unit_index)
 {
     using namespace actor_reset_perception_scratch_local;
     uint8_t block[0x40];
-    uint8_t *unit_object = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
 
     memset(block, 0, sizeof(block));
     block[0] = 1;
@@ -2179,7 +2174,6 @@ void ActorView::select_stance_offset_pair(uint8_t *base, uint8_t **out_a, uint8_
 namespace actor_set_combat_alert_flag_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 }
 }
 
@@ -2206,7 +2200,7 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
     self->berserk_announced = 0;
 
     if (self->swarm == 0) {
-        unit_obj = ((object_header *)object_data->data)[self->unit_index & 0xffff].data;
+        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & 0xffff].data;
         if (new_flag == 0) {
             ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->flags &= 0xffffff7f;
         } else {
@@ -2215,7 +2209,7 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
     } else {
         cluster_unit = self->cluster_unit_index;
         while (cluster_unit != k_datum_index_none) {
-            cluster_obj = ((object_header *)object_data->data)[cluster_unit & 0xffff].data;
+            cluster_obj = ((object_header *)halo::objects::globals().object_data->data)[cluster_unit & 0xffff].data;
             cluster_obj->vitality_flags |= 0x80;
             cluster_unit = ((unit_data *)((uint8_t *)cluster_obj + k_unit_data_offset))->swarm_next_unit_index;
         }
@@ -2384,7 +2378,6 @@ namespace actor_set_units_active_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
-extern data_array *object_data;
 }
 }
 
@@ -2412,7 +2405,7 @@ void ActorView::set_units_active(uint8_t dormant)
         } else if (self->swarm_index == (datum_index)k_datum_index_none) {
             datum_index unit_index = self->cluster_unit_index;
             while (unit_index != (datum_index)k_datum_index_none) {
-                object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+                object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
                 object *unit_object = header->data;
 
                 if (dormant == 0) {
@@ -2430,7 +2423,7 @@ void ActorView::set_units_active(uint8_t dormant)
                 if (dormant == 0) {
                     halo::objects::object_mark_pending_delete(s->unit_index[i]);
                 } else {
-                    object_header *header = &((object_header *)object_data->data)[s->unit_index[i] & 0xffff];
+                    object_header *header = &((object_header *)halo::objects::globals().object_data->data)[s->unit_index[i] & 0xffff];
                     if ((header->flags & _object_header_active_bit) != 0) {
                         header->flags &= ~_object_header_active_bit;
                     }
@@ -2521,7 +2514,6 @@ void ActorView::snapshot_orientation()
 namespace actor_spawn_additional_units_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern double cos(double x);
 extern double sin(double x);
 extern void actor_apply_unit_definition_properties(datum_index actor_variant_tag, datum_index unit_index);
@@ -2549,7 +2541,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
     }
 
     {
-        object *source_object = ((object_header *)object_data->data)[source_actor_index & 0xffff].data;
+        object *source_object = ((object_header *)halo::objects::globals().object_data->data)[source_actor_index & 0xffff].data;
         unit_data *source_unit = (unit_data *)((uint8_t *)source_object + k_unit_data_offset);
         int16_t encounter_index, squad_index;
 
@@ -2596,7 +2588,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                     continue;
                 }
                 {
-                    uint8_t *new_obj = (uint8_t *)((object_header *)object_data->data)[new_object & 0xffff].data;
+                    uint8_t *new_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
                     char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
                     datum_index new_actor;
 
@@ -2918,7 +2910,6 @@ void ActorView::unlink_prop(datum_index prop_to_remove)
 namespace actor_unlink_unit_local {
 extern "C" {
 extern data_array *actor_data;
-extern data_array *object_data;
 extern data_array *encounter_data;
 }
 }
@@ -2937,7 +2928,7 @@ void ActorView::unlink_unit()
     datum_index unit_index = self->unit_index;
 
     if (unit_index != (datum_index)k_datum_index_none) {
-        object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+        object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff];
         object *unit_object = header->data;
 
         header->flags |= _object_header_in_pvs_pass_bit;

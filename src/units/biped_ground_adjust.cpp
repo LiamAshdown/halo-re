@@ -9,9 +9,9 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern data_array *object_data;
 extern double acos(double x);
 extern double sin(double x);
 extern double fabs(double x);
@@ -42,7 +42,7 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
 {
     using namespace biped_ground_adjust_apply_node_rotations_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     int32_t i;
@@ -118,7 +118,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
 {
     using namespace biped_ground_adjust_solve_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
@@ -313,7 +313,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
 {
     using namespace biped_ground_adjust_solve_node_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
@@ -432,7 +432,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
 uint32_t BipedView::ground_adjust_step()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[object_tag->animation_graph.tag_id.index].data;
@@ -462,7 +462,7 @@ uint32_t BipedView::ground_adjust_step()
 void UnitView::clear_ground_adjust_dirty()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
@@ -483,7 +483,7 @@ void UnitView::clear_ground_adjust_dirty()
 void UnitView::reset_ground_adjust_state()
 {
     uint32_t object_index = datum_handle;
-    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
