@@ -993,7 +993,7 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
         rasterizer_screen_effect_quad[3].u = 0.0f;
         rasterizer_screen_effect_quad[3].v = 0.0f;
 
-        if ((pass & 1) && raw[0x23]) {
+        if ((pass & 1) && p->has_extra_maps) {
 
             rasterizer_render_target_bind_effect_texture(source, &rasterizer_effects[114], 0);
             set_sampler_states(0, 3, 1, 1);
