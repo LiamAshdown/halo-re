@@ -9,6 +9,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -556,7 +557,7 @@ void ObstacleList::flood_fill_group(float radius, uint32_t *out_bitmask, int16_t
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 /**
  * Behaviour of ai search gather obstacles, moved unchanged from the original free function.

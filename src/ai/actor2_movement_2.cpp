@@ -71,7 +71,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             return;
         }
     }
-    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+    obj = (uint8_t *)halo::ai::object_at(unit_index);
     context.structure_bsp = global_structure_bsp;
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
@@ -588,7 +588,7 @@ void ActorView::movement_update()
             }
         }
     } else {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[a->active_unit_index & halo::k_slot_mask].data;
+        object *unit_object = halo::ai::object_at(a->active_unit_index);
         Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         uint8_t take_sideslip = 0;
 

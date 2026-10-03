@@ -21,7 +21,7 @@ extern const real_vector3d *global_down3d_pointer;
 extern double sqrt(double x);
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -359,7 +359,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
     uint8_t used_point_check = 0;
     real_point3d step_point;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if (self->flying == 0) {
@@ -501,7 +501,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
 
         for (i = 0; i < s->component_count; i++) {
             if (s->unit_index[i] == unit_index) {
-                object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+                object *unit_object = halo::ai::object_at(unit_index);
                 swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[s->component_index[i] & halo::k_slot_mask];
                 uint16_t flags = *(uint16_t *)&((struct swarm_component *)component)->flags;
                 datum_index target = component->leap_target_index;
@@ -833,7 +833,7 @@ extern char ai_marker_name_a[];
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+    return reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
 }
 }
 }
@@ -1058,7 +1058,7 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
     float length;
     float scale;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->swarm != 0) {

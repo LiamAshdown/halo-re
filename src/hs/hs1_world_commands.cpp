@@ -5,6 +5,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
@@ -463,7 +464,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
     int32_t result = 0;
 
     if (device != k_datum_index_none) {
-        result = *(int32_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x208);
+        result = *(int32_t *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(device)) + 0x208);
     }
     halo::hs::hs_thread_return(result, thread_index);
     }
@@ -484,7 +485,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
         int32_t power = 0;
 
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            power = *(int32_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & halo::k_slot_mask].data + 0x1fc);
+            power = *(int32_t *)((uint8_t *)halo::ai::object_at(arguments[0]) + 0x1fc);
         }
         halo::hs::hs_thread_return(power, thread_index);
     }

@@ -1,3 +1,4 @@
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs3_objects.hpp"
 #include "halo/scenario/api.hpp"
 #include "game.h"
@@ -31,7 +32,7 @@ extern data_array *object_headers;
 }
 
 #undef OBJ
-#define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
+#define OBJ(i) ((uint8_t *)halo::ai::object_at((i)))
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
 static void hs_unit_leave_seat(uint32_t object_index)
@@ -170,7 +171,7 @@ uint8_t ScriptObjects::object_angle_predicate_helper(datum_index object_index, d
         halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
         point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     } else {
-        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
 
         point = *(real_point3d *)(object + 0xa0);
     }
@@ -570,7 +571,7 @@ char ScriptObjects::object_list_test_trigger_volume(int32_t trigger_volume_index
         }
     }
     while (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
 
         if (halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
             if (!all_mode) {

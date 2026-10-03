@@ -53,7 +53,7 @@ void ActorView::recompute_grenade_eligibility()
     float fraction;
 
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        uint8_t *unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
+        uint8_t *unit_obj = (uint8_t *)halo::ai::object_at(self->unit_index);
 
         if (*(int16_t *)(unit_obj + 0x388) > 0) {
             base_ticks = *(int16_t *)(unit_obj + 0x3fa);
@@ -271,7 +271,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     float length;
     uint8_t flat;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)variant->grenade_type * 0x44;
@@ -633,7 +633,7 @@ uint8_t ActorView::validate_grenade_impact_point(real_point3d *candidate_point)
     ActorVariant *variant;
     int16_t hostile_count;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     if (halo::ai::actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,

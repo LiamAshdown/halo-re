@@ -56,8 +56,8 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else if (occupant == (datum_index)k_datum_index_none) {
         reason = 0;
     } else {
-        object *occupant_obj = ((object_header *)halo::objects::globals().object_data->data)[occupant & halo::k_slot_mask].data;
-        object *self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
+        object *occupant_obj = halo::ai::object_at(occupant);
+        object *self_obj = halo::ai::object_at(self_object_index);
         reason = halo::game::teams_are_enemies(((struct object *)occupant_obj)->owner_team,
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
@@ -80,7 +80,7 @@ extern char ai_marker_name_b[];
 #define A_I32(offset) (*(int32_t *)((uint8_t *)self + (offset)))
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+    return reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
 }
 }
 }
@@ -319,7 +319,7 @@ uint8_t ActorView::reset_queued_look_vector()
     using namespace actor_reset_queued_look_vector_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->secondary_action != (int16_t)-1) {
         return 0;

@@ -401,7 +401,7 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     if (act->active_unit_index != k_datum_index_none || act->swarm != 0) {
         return 0;
     }
-    vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle_index & halo::k_slot_mask].data;
+    vehicle = (uint8_t *)halo::ai::object_at(vehicle_index);
     if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (vehicle[0x106] & 4) != 0) {
         return 0;
     }
@@ -834,14 +834,14 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     uint32_t *clear;
     int32_t i;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     unit_index = self->unit_index;
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     radius = actor_definition->pathfinding_radius;
 
     if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
-        unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+        unit_object = halo::ai::object_at(unit_index);
         vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         if (vehicle_definition->ai_pathfinding_radius > 0.0f) {
             radius = vehicle_definition->ai_pathfinding_radius;

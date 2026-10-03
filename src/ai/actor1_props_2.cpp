@@ -141,7 +141,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         }
         cluster = ((struct object *)object)->location_cluster_index;
         if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
-            uint8_t *root = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(actor->danger_object_index) & halo::k_slot_mask].data;
+            uint8_t *root = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index));
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
@@ -182,7 +182,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         asleep = actor_danger_asleep(actor);
         location = object + 0x98;
         if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
-            location = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(actor->danger_object_index) & halo::k_slot_mask].data + 0x98;
+            location = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index)) + 0x98;
         }
         status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
             *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);

@@ -109,7 +109,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     int32_t reason;
     int32_t event_code;
 
-    self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
+    self_obj = halo::ai::object_at(self_object_index);
     relationship_object_index = (datum_index)k_datum_index_none;
     relationship_obj = 0;
 
@@ -130,7 +130,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
                     goto no_relationship_object;
                 }
             }
-            relationship_obj = ((object_header *)halo::objects::globals().object_data->data)[relationship_object_index & halo::k_slot_mask].data;
+            relationship_obj = halo::ai::object_at(relationship_object_index);
         }
     }
 no_relationship_object:

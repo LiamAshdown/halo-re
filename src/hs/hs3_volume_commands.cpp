@@ -1,3 +1,4 @@
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
@@ -43,7 +44,7 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
         uint8_t inside = 0;
 
         if ((uint32_t)arguments[1] != halo::k_dword_none) {
-            uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[1] & halo::k_slot_mask].data;
+            uint8_t *object = (uint8_t *)halo::ai::object_at(arguments[1]);
 
             inside = halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
         }

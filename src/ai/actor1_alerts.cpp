@@ -48,7 +48,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
         return 0;
     }
     if (actor->unit_index != halo::k_dword_none) {
-        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[actor->unit_index & halo::k_slot_mask].data;
+        uint8_t *unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
         datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.flaming_responsible_object;
 
         if (attacker != k_datum_index_none) {
@@ -362,7 +362,7 @@ uint8_t halo::ai::alert_ops::combat_status_should_hold(int16_t threshold_a, int1
     datum_index actor_index = datum;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->mode_data.raw[8] != 0) {
         return (uint8_t)(threshold_b <= self->combat_status);
@@ -399,7 +399,7 @@ uint8_t halo::ai::alert_ops::conditional_state_transition_check()
     int16_t sub_state;
     uint8_t flag;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->mode != _actor_mode_vehicle) {
         return 0;
@@ -475,7 +475,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         if (actor->swarm != 0) {
             goto done;
         }
-        unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[actor->unit_index & halo::k_slot_mask].data;
+        unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
         if ((unit[0x106] & 0x80) != 0 || actor->target_unit_index == k_datum_index_none) {
             goto done;
         }
@@ -832,7 +832,7 @@ extern game_time_globals *game_time;
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 }
 
@@ -1057,7 +1057,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
 {
     using namespace c_actor_is_within_alert_range;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    object *obj = halo::ai::object_at(object_index);
     uint8_t result = 0;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0) {

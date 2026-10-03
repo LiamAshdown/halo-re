@@ -6,6 +6,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace halo::ai {
 
@@ -28,7 +29,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
     object *target_object;
     float length;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     switch (reason->code) {
     case 0:

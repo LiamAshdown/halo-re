@@ -201,7 +201,7 @@ uint8_t halo::ai::charge_mode::process()
             float factor = 0.0f;
             real_point3d lead;
 
-            unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[act->unit_index & halo::k_slot_mask].data;
+            unit = (uint8_t *)halo::ai::object_at(act->unit_index);
             if (speed > 0.0f) {
                 factor = ((velocity->k * facing->k + velocity->j * facing->j + velocity->i * facing->i) / speed + 1.0f) * 0.5f;
             }
@@ -606,7 +606,7 @@ void halo::ai::flee_mode::exit()
     datum_index unit_index = ((struct actor *)ACTOR(actor_index))->unit_index;
 
     if (unit_index != k_datum_index_none) {
-        uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+        uint8_t *obj = (uint8_t *)halo::ai::object_at(unit_index);
 
         *(uint32_t *)(obj + 0x204) &= ~0x2000000u;
     }
@@ -790,7 +790,7 @@ uint8_t halo::ai::flee_mode::process()
 
     kind = ((actor_mode_flee_data *)mode_data)->panic;
     if (kind >= 9 && kind <= 12 && act->unit_index != k_datum_index_none) {
-        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[act->unit_index & halo::k_slot_mask].data;
+        uint8_t *unit = (uint8_t *)halo::ai::object_at(act->unit_index);
 
         if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
             mode_data[0x10] = 0;

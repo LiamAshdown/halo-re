@@ -9,6 +9,7 @@
 #include "halo/tags/flags.hpp"
 #include "halo/units/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/cseries/cseries.hpp"
 
 namespace c_actor_claim_firing_position {
@@ -28,7 +29,7 @@ int16_t halo::ai::firing_position_ops::claim_firing_position(datum_index previou
     actor *self;
     actor *other;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (firing_position_index == -1) {
         halo::ai::actor_movement_action_stop(actor_index);
@@ -39,7 +40,7 @@ int16_t halo::ai::firing_position_ops::claim_firing_position(datum_index previou
         }
 
         if (previous_owner != (datum_index)halo::k_dword_none) {
-            other = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (previous_owner & halo::k_slot_mask) * sizeof(actor));
+            other = halo::ai::actor_at(previous_owner);
             halo::ai::actor_movement_action_stop(previous_owner);
             other->firing_position_index = -1;
         }
@@ -125,7 +126,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     int32_t n;
     int16_t k;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     best_index = halo::k_dword_none;
     best_score = 0.0f;
 
@@ -757,7 +758,7 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
     uint32_t *clear;
     int32_t n;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if ((self->flying == 0 && start_surface_index == -1) ||
@@ -985,7 +986,7 @@ uint32_t halo::ai::firing_position_ops::get_firing_position_group_mask(int16_t k
     uint32_t *groups;
     uint8_t searching;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     if (self->encounter_index == (datum_index)halo::k_dword_none) {
         return 0;
     }
@@ -1048,7 +1049,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
     float distance_squared;
     float min_distance_squared;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->swarm == 0) {
         src = (uint32_t *)&self->aim_origin;
@@ -1060,7 +1061,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
         return;
     }
 
-    group = (swarm *)((uint8_t *)halo::ai::globals().swarm_data->data + (self->swarm_index & halo::k_slot_mask) * sizeof(swarm));
+    group = halo::ai::swarm_at(self->swarm_index);
     component_count = group->component_count;
     min_distance_squared = 3.4028235e+38f;
     {

@@ -98,7 +98,7 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define ACTOR_DATA(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
@@ -217,7 +217,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 unit_capability[0] = 1;
             }
             if (unit_encounter_index != k_datum_index_none) {
-                unit_encounter = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data + (unit_encounter_index & halo::k_slot_mask) * k_encounter_size);
+                unit_encounter = halo::ai::encounter_at(unit_encounter_index);
             }
         } else if (unit->unit.controlling_player != k_datum_index_none) {
             unit_class = 1;
@@ -989,7 +989,7 @@ int16_t AiCommunication::line_fade_multiplier(uint32_t unit_index, int16_t prior
     return status;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define ai_communication_event_definitions (reinterpret_cast<uint8_t *>(ai_communication_event_definitions))
 namespace {
 
@@ -1290,7 +1290,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
     int16_t reach;
     int32_t reach_mode;
 
-    a = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size);
+    a = halo::ai::actor_at(actor_index);
 
     have_subject = (object_a != (datum_index)k_datum_index_none ||
                     object_b != (datum_index)k_datum_index_none) ? 1 : 0;
@@ -1329,7 +1329,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
     }
 
     if ((flags & 4) != 0 && object_a != (datum_index)k_datum_index_none &&
-        ((object_header *)halo::objects::globals().object_data->data)[object_a & halo::k_slot_mask].data->parent_object !=
+        halo::ai::object_at(object_a)->parent_object !=
             a->active_unit_index) {
         return 0.0f;
     }
@@ -1361,7 +1361,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
             } else {
                 prop_index = halo::ai::actor_find_or_create_shared_prop(object_a, actor_index, 1, 0);
                 if (prop_index != (datum_index)k_datum_index_none) {
-                    p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size);
+                    p = halo::ai::prop_at(prop_index);
                     if (p->distance <= radius) {
                         reach_mode = 2;
                         if (p->state < 2 || 3 < p->state) {
@@ -1401,7 +1401,7 @@ check_b:
             } else {
                 prop_index = halo::ai::actor_find_prop_for_object(object_b, actor_index);
                 if (prop_index != (datum_index)k_datum_index_none) {
-                    p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size);
+                    p = halo::ai::prop_at(prop_index);
                     if (p->distance <= radius) {
                         if ((1 < p->state && p->state < 4) || p->enemy == 0) {
                             scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
@@ -1442,7 +1442,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     int32_t *entry;
     int32_t *slot;
 
-    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = (uint8_t *)halo::ai::object_at(object_index);
     actor_index = *(datum_index *)(obj + 0x1f4);
 
     current_tick = halo::game::globals().game_time->game_time;
@@ -1713,7 +1713,7 @@ void AiCommunication::target_result_reset(ai_communication_target_result *record
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f4f0 final : public DialogueCondition {
@@ -1753,7 +1753,7 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f560 final : public DialogueCondition {
@@ -1788,7 +1788,7 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f5b0 final : public DialogueCondition {
@@ -1829,7 +1829,7 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f650 final : public DialogueCondition {
@@ -1861,7 +1861,7 @@ uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f690 final : public DialogueCondition {
@@ -1899,7 +1899,7 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f6f0 final : public DialogueCondition {
@@ -1944,7 +1944,7 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f7b0 final : public DialogueCondition {
@@ -1976,7 +1976,7 @@ uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f7f0 final : public DialogueCondition {
@@ -2036,7 +2036,7 @@ void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index 
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai propagate communication reaction, moved unchanged from the original free function.
  *
@@ -2189,7 +2189,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                                    (uint32_t)(uint16_t)comm_kind,
                                                    (uint32_t)(uint16_t)ai_communication_class_priority[comm_kind],
                                                    (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
-                                                   *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[param_a & halo::k_slot_mask].data + 0xb8));
+                                                   *(int16_t *)((uint8_t *)halo::ai::object_at(param_a) + 0xb8));
                         } else if (target_kind == 3) {
                             vehicle_obj = object_try_and_get(param_b, 3);
                             result = -1;

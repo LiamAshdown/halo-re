@@ -1,3 +1,4 @@
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
 #include "halo/core/datum.hpp"
@@ -45,7 +46,7 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
         uint8_t hover = *(uint8_t *)&arguments[1];
 
         if (vehicle != k_datum_index_none) {
-            uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle & halo::k_slot_mask].data;
+            uint8_t *obj = (uint8_t *)halo::ai::object_at(vehicle);
 
             if (hover != 0) {
                 halo::objects::object_get_position((real_point3d *)(obj + 0x4fc), vehicle);

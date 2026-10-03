@@ -4,6 +4,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 
@@ -1130,7 +1131,7 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x1f4);
+        datum_index actor = *(datum_index *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(unit)) + 0x1f4);
 
         if (actor != k_datum_index_none) {
             halo::ai::actor_delete(actor, 0);

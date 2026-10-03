@@ -51,7 +51,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     (void)secondary_record;
     (void)callback_extra;
     if (list[0x20] & 0x10) {
-        uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+        uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
 
         ((unit_object *)unit)->unit.flags |= 0x1000;
     }
@@ -68,7 +68,7 @@ namespace actor_obey_member_exit_local {
 void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
     using namespace actor_obey_member_exit_local;
-    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+    uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
     uint8_t *record = (uint8_t *)component_record;
 
     (void)callback_extra;
@@ -116,7 +116,7 @@ extern double fcos(double x);
 extern double fsin(double x);
 extern data_array *player_data;
 extern const char k_empty_string[];
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -667,7 +667,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
 #undef TAG_DATA
 
 namespace actor_squad_action_is_complete_local {
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
@@ -1132,7 +1132,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
 }
 
 namespace actor_squad_react_to_grenade_for_vehicle_occupants_local {
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 
 /**

@@ -31,8 +31,8 @@ datum_index halo::ai::prop_ops::allocate_paired_prop(datum_index existing_prop)
 
     halo::ai::actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
     if (new_prop != k_datum_index_none) {
-        prop *existing = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (existing_prop & halo::k_slot_mask) * sizeof(prop));
-        prop *created = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (new_prop & halo::k_slot_mask) * sizeof(prop));
+        prop *existing = halo::ai::prop_at(existing_prop);
+        prop *created = halo::ai::prop_at(new_prop);
 
         halo::ai::actor_copy_prop_and_reset(new_prop, existing_prop);
         existing->pair_index = new_prop;
@@ -69,9 +69,9 @@ datum_index halo::ai::prop_ops::allocate_paired_prop_with_kind(datum_index exist
         return k_datum_index_none;
     }
     {
-        prop *existing = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (existing_prop & halo::k_slot_mask) * sizeof(prop));
-        prop *created = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (new_prop & halo::k_slot_mask) * sizeof(prop));
-        prop *reference = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (reference_prop & halo::k_slot_mask) * sizeof(prop));
+        prop *existing = halo::ai::prop_at(existing_prop);
+        prop *created = halo::ai::prop_at(new_prop);
+        prop *reference = halo::ai::prop_at(reference_prop);
         int16_t kind;
 
         halo::ai::actor_copy_prop_and_reset(new_prop, reference_prop);
@@ -99,7 +99,7 @@ extern object_type_definition *object_type_definitions[12];
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+    return reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
 }
 
 static datum_index actor_create_unit_item(datum_index definition_tag, datum_index unit_index)
@@ -259,7 +259,7 @@ void halo::ai::prop_ops::clear_recognition_history(uint8_t keep_when_typed)
     actor *self;
     int i;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     self->recognition_cursor = 0;
     for (i = 0; i < 4; i++) {
@@ -294,8 +294,8 @@ extern real_point3d *global_origin3d_pointer;
 void halo::ai::prop_ops::copy_prop_and_reset(datum_index dest_prop, datum_index src_prop)
 {
     using namespace c_actor_copy_prop_and_reset;
-    prop *dest = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (dest_prop & halo::k_slot_mask) * sizeof(prop));
-    prop *src = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (src_prop & halo::k_slot_mask) * sizeof(prop));
+    prop *dest = halo::ai::prop_at(dest_prop);
+    prop *src = halo::ai::prop_at(src_prop);
 
     int16_t identifier = dest->identifier;
     datum_index actor_index = dest->actor_index;
@@ -356,7 +356,7 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
     uint32_t *clear;
     int32_t i;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     threshold = radius + 10.0f;
 
     if (threshold < distance || threshold == distance) {
@@ -376,7 +376,7 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
         return 0;
     }
 
-    source_obj = ((object_header *)halo::objects::globals().object_data->data)[source_object_index & halo::k_slot_mask].data;
+    source_obj = halo::ai::object_at(source_object_index);
 
     clear = (uint32_t *)&self->danger_type;
     for (i = 0x1b; i != 0; i--) {
@@ -441,12 +441,12 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     int32_t i;
     int32_t driver_field;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     if (self->active_unit_index != k_datum_index_none) {
         return 0;
     }
 
-    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = halo::ai::object_at(object_index);
     tag_data = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
 
     if ((int8_t)tag_data[0x2f0] < 0) {
@@ -504,7 +504,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 
                 if (driver_field != -1) {
 
-                    if (halo::game::teams_are_enemies(*(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[driver_field & halo::k_slot_mask].data + 0xb8),
+                    if (halo::game::teams_are_enemies(*(int16_t *)((uint8_t *)halo::ai::object_at(driver_field) + 0xb8),
                                           ((struct actor *)self)->team) == 0) {
                         self->danger_owner_relation = 1;
                     }
@@ -531,7 +531,7 @@ extern double sqrt(double x);
 extern double fabs(double x);
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -704,7 +704,7 @@ static int actor_prop_still_admitted(datum_index actor_index, actor *self, prop 
 
         if (encounter_index != k_datum_index_none) {
             struct encounter *encounter = halo::ai::encounter_at(encounter_index);
-            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
+            uint8_t *unit = (uint8_t *)halo::ai::object_at(p->object_index);
             int32_t reference = encounter->last_idle_time;
             uint8_t counts = 1;
             uint8_t calm;
@@ -865,8 +865,8 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
         return result;
     }
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (object_index & halo::k_slot_mask) * 0xc);
+    self = halo::ai::actor_at(actor_index);
+    object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
     cluster_ref = *(int32_t *)(object + 0x1f8);
     if (cluster_ref == -1) {
         cluster_ref = *(int32_t *)(object + 500);
@@ -880,7 +880,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
             if (cur == (datum_index)halo::k_dword_none) {
                 goto not_found;
             }
-            p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cur & halo::k_slot_mask) * sizeof(prop));
+            p = halo::ai::prop_at(cur);
             if ((p->object_index == object_index) ||
                 ((p->swarm_owned != 0) && (p->owner_actor_index != (datum_index)halo::k_dword_none) &&
                  ((int32_t)p->owner_actor_index == cluster_ref))) {
@@ -890,7 +890,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
         }
 
         {
-            prop *p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cur & halo::k_slot_mask) * sizeof(prop));
+            prop *p = halo::ai::prop_at(cur);
             result = cur;
             if (p->pair_index != (datum_index)halo::k_dword_none) {
                 result = p->pair_index;
@@ -905,7 +905,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
                 result = halo::ai::actor_find_or_allocate_prop(actor_index, object_index,
                     (char)halo::game::teams_are_enemies(((struct object *)object)->owner_team, ((struct actor *)self)->team));
                 if (result != (datum_index)halo::k_dword_none) {
-                    prop *p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (result & halo::k_slot_mask) * sizeof(prop));
+                    prop *p = halo::ai::prop_at(result);
 
                     halo::ai::actor_target_data_refresh(actor_index, result, scratch, 0, flag);
                     p->retain_timer = 0x1e;
@@ -944,7 +944,7 @@ namespace c_actor_find_prop_for_object {
 datum_index halo::ai::prop_ops::find_prop_for_object(datum_index object_index, datum_index actor_index)
 {
     using namespace c_actor_find_prop_for_object;
-    uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (object_index & halo::k_slot_mask) * 0xc);
+    uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
     int32_t cluster_ref = *(int32_t *)(object + 0x1f8);
     actor *self;
     datum_index cur;
@@ -953,7 +953,7 @@ datum_index halo::ai::prop_ops::find_prop_for_object(datum_index object_index, d
         cluster_ref = *(int32_t *)(object + 500);
     }
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     cur = self->first_prop;
 
     for (;;) {
@@ -961,7 +961,7 @@ datum_index halo::ai::prop_ops::find_prop_for_object(datum_index object_index, d
         if (cur == (datum_index)halo::k_dword_none) {
             return (datum_index)halo::k_dword_none;
         }
-        p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cur & halo::k_slot_mask) * sizeof(prop));
+        p = halo::ai::prop_at(cur);
 
         if (!(((-1 < p->state) && (p->state < 2)) ||
               ((p->object_index != object_index) &&
@@ -1034,8 +1034,8 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
         return;
     }
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * sizeof(prop));
+    self = halo::ai::actor_at(actor_index);
+    p = halo::ai::prop_at(prop_index);
 
     p->actor_index = actor_index;
     p->stimulus_type = -1;
@@ -1055,7 +1055,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
     p->last_engaged_time = -1;
 
     if (object_index != (datum_index)halo::k_dword_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (object_index & halo::k_slot_mask) * 0xc);
+        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
         uint8_t *object_type = (uint8_t *)halo::cache::globals().tag_instances[*(uint16_t *)object & halo::k_slot_mask].data;
         uint8_t is_vault;
 
@@ -1087,7 +1087,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
             return;
         }
         if (p->owner_actor_index != (datum_index)halo::k_dword_none) {
-            p->actor_type = ((actor *)((uint8_t *)halo::ai::globals().actor_data->data + (p->owner_actor_index & halo::k_slot_mask) * sizeof(actor)))->type;
+            p->actor_type = (halo::ai::actor_at(p->owner_actor_index))->type;
             p->next_in_actor = self->first_prop;
             self->first_prop = prop_index;
             return;

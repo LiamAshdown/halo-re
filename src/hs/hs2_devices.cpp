@@ -1,3 +1,4 @@
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/core/datum.hpp"
@@ -30,7 +31,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
     uint8_t result = 0;
 
     if (device != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
+        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(device));
         uint16_t group = *(uint16_t *)(object + 0x204);
 
         if (group != halo::k_word_none) {
@@ -57,7 +58,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
     datum_index device = (datum_index)arguments[0];
 
     if (device != k_datum_index_none) {
-        uint16_t group = *(uint16_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x204);
+        uint16_t group = *(uint16_t *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(device)) + 0x204);
 
         if (group != halo::k_word_none) {
             halo::devices::device_group_set_value_immediate(group, *(float *)&arguments[1]);
@@ -84,7 +85,7 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
     float power = *(float *)&arguments[1];
 
     if (device != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
+        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(device));
 
         *(uint32_t *)(object + 0x1f4) |= 4;
         *(float *)(object + 0x1fc) = power;

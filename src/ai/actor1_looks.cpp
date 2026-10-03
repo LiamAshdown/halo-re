@@ -33,7 +33,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint32_t unit_index = *(uint32_t *)&actor->unit_index;
-    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+    uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[actor->control_animation_mode * 2];
@@ -62,7 +62,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
             (const real_vector2d *)((uint8_t *)actor + 0x6f0));
     }
     if (actor->persistent_control_ticks > 0) {
-        uint8_t *object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[*(uint32_t *)&actor->unit_index & halo::k_slot_mask].data;
+        uint8_t *object = (uint8_t *)halo::ai::object_at(*(uint32_t *)&actor->unit_index);
 
         *(int32_t *)(object + 0x210) = actor->persistent_control_ticks;
         *(uint32_t *)(object + 0x214) = actor->persistent_control_flags;
@@ -107,7 +107,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     float high;
     int32_t ticks;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     awareness = self->awareness_level;
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
@@ -194,7 +194,7 @@ void halo::ai::look_ops::clear_vocalization()
     datum_index actor_index = datum;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     self->vocalization_variant = 0;
     self->vocalization_line = 0;
     self->vocalization_state = 0;
@@ -319,7 +319,7 @@ uint32_t halo::ai::look_ops::flee_look_away()
     actor *self;
     uint32_t result;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     result = 0;
     if (self->mode == _actor_mode_death && self->mode_data.raw[0xab - 0x9c] != 0) {
 
@@ -358,7 +358,7 @@ float * halo::ai::look_ops::get_idle_facing_range()
     Actor *definition;
     int16_t state;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     state = self->look_posture;
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
@@ -492,7 +492,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
         datum_index weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
 
         weapon_definition = weapon == k_datum_index_none ? 0 :
-            halo::cache::globals().tag_instances[*(datum_index *)((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_slot_mask].data & halo::k_slot_mask].data;
+            halo::cache::globals().tag_instances[*(datum_index *)halo::ai::object_at(weapon) & halo::k_slot_mask].data;
     }
     if (weapon_definition != 0 && 0.0f < *(float *)((uint8_t *)weapon_definition + 0x410)) {
         fraction = fraction * *(float *)((uint8_t *)weapon_definition + 0x410);
@@ -640,7 +640,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     int32_t wait_ticks;
     real_point3d look_point;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     out_in_front = 0;
     self->idle_look_state[1] = 0;

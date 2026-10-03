@@ -13,7 +13,7 @@
 #include "halo/ai/records.hpp"
 
 namespace c_actor_attempt_grenade_throw {
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 
 static uint32_t actor_death_random_16(void)
 {
@@ -150,7 +150,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
     float random_wait;
     int16_t random_wait_ticks;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
     now = halo::game::globals().game_time->game_time;
 
@@ -217,7 +217,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
     object *unit_obj;
     real body_damage;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     unit_index = self->unit_index;
 
     if (halo::units::unit_is_in_busy_animation_state(self->unit_index) != 0) {
@@ -333,14 +333,14 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
     actor *self;
     uint32_t result;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     result = (uint32_t)-1;
 
     if (self->firing_state == 2) {
         real_vector3d aim_from;
 
         if (self->firing_target_type == 1 && self->firing_target_prop_index != (uint32_t)-1) {
-            prop *p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->firing_target_prop_index & halo::k_slot_mask) * sizeof(prop));
+            prop *p = halo::ai::prop_at(self->firing_target_prop_index);
             if (1 < p->state && p->state < 4) {
                 result = p->object_index;
             }
@@ -408,7 +408,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
     ActorVariant *variant;
     int32_t now;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     if (self->grenade_throw_pending != 0) {
@@ -547,11 +547,11 @@ uint8_t halo::ai::grenade_ops::find_grenade_landing_spot(real_point3d *out_point
     ActorVariant *variant;
     uint8_t result = 0;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     if (self->target_unit_index != (datum_index)k_datum_index_none) {
-        prop *target_prop = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
+        prop *target_prop = halo::ai::prop_at(self->target_unit_index);
         if (target_prop->enemy != 0 && target_prop->dead == 0) {
             int16_t kind = target_prop->state;
             if ((1 < kind && kind < 4) || kind == 4) {
@@ -735,7 +735,7 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
 
         if (p->enemy == 0 && p->dead == 0 && p->state == 3 &&
             p->relationship_object_index == -1) {
-            tracked_object = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
+            tracked_object = halo::ai::object_at(p->object_index);
             if (tracked_object->type == _object_type_biped) {
                 int excluded = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none &&
@@ -878,7 +878,7 @@ uint8_t halo::ai::grenade_ops::behavior_kind_allowed(int16_t kind)
 {
     using namespace c_actor_grenade_behavior_kind_allowed;
     datum_index actor_index = datum;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
 
     if (kind == 1) {
         return self->firing_target_type == 1 && 7 < self->target_combat_status;

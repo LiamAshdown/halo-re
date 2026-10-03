@@ -1,3 +1,4 @@
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs3_machine.hpp"
 #include "halo/scenario/api.hpp"
 #include "game.h"
@@ -38,7 +39,7 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
         datum_index unit = *(datum_index *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200 + 0x34);
 
         if (unit != k_datum_index_none) {
-            uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8);
+            uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(unit));
 
             if (!halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
                 halo::hs::hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);

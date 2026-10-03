@@ -91,7 +91,7 @@ uint8_t ActorView::reject_firing_position_by_pursuit(actor_firing_position_query
     float bonus;
 
     tick = halo::game::globals().game_time->game_time;
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     last_tick = -1;
     count_out = 0;
@@ -281,7 +281,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
     uint32_t mode;
     uint32_t kind;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (query->goal_kind == 5) {
         if (candidate->distance_from_actor < 6.0f) {
@@ -454,7 +454,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
     int32_t i;
     int32_t j;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     for (i = 0; i < (int16_t)count; i++) {
@@ -651,7 +651,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
     int32_t i;
     int32_t j;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     for (i = 0; i < (int16_t)count; i++) {
         c = &candidates[i];
@@ -758,7 +758,7 @@ next_candidate:
         return;
     }
 
-    vehicle = (object *)((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+    vehicle = (object *)halo::ai::object_at(self->active_unit_index);
     halo::objects::object_get_position(&vehicle_position, self->active_unit_index);
 
     for (i = 0; i < (int16_t)count; i++) {
@@ -911,7 +911,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
     int16_t result;
     int16_t held;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     if (self->encounter_index == (datum_index)halo::k_dword_none) {
         return -1;
     }

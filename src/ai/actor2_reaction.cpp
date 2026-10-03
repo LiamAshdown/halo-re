@@ -132,7 +132,7 @@ void ActorOps::notify_weapon_pickup_once(datum_index object_index)
     datum_index actor_index;
     actor *a;
 
-    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = halo::ai::object_at(object_index);
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     actor_index = unit->actor_index;
     if (actor_index != (datum_index)k_datum_index_none) {
@@ -294,7 +294,7 @@ void ActorView::push_recognition_entry(int16_t firing_position_index, uint8_t ty
         return;
     }
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     cursor = self->recognition_cursor;
     self->recognition[cursor].type = type;
@@ -566,7 +566,7 @@ void ActorView::queue_search_position(real_point3d *position, int16_t priority, 
     using namespace actor_queue_search_position_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->awareness_level < 3 && self->search_priority <= priority) {
         self->search_priority = priority;
@@ -607,7 +607,7 @@ uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
     using namespace actor_queue_secondary_action_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     halo::ai::actor_set_units_active(actor_index, 0);
 
     if (self->secondary_action != (int16_t)-1) {
@@ -813,7 +813,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     halo::ai::actor_queue_search_position(actor_index, 0, 3, &direction, halo::k_dword_none, 0, 90, halo::k_dword_none, 0, 0);
 
     if (flee_source_object != -1) {
-        object *source = ((object_header *)halo::objects::globals().object_data->data)[flee_source_object & halo::k_slot_mask].data;
+        object *source = halo::ai::object_at(flee_source_object);
         if (halo::game::teams_are_enemies(source->owner_team , self->team) != 0) {
             halo::ai::actor_record_perception_event(actor_index, 2, 0x384);
         }
@@ -934,7 +934,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
     prop *target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
 
     if (target->enemy == 0) {
-        object *tracked = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & halo::k_slot_mask].data;
+        object *tracked = halo::ai::object_at(target->object_index);
         unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
 
         halo::ai::actor_queue_search_and_relay_perception(target_prop_index, actor_index);
@@ -945,7 +945,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
             int32_t unknown_44 = ((struct player *)player)->observer_state;
 
             if (unknown_40 != -1 && (int32_t)halo::game::globals().game_time->game_time <= unknown_44 + 0x5a) {
-                object *player_unit = ((object_header *)halo::objects::globals().object_data->data)[unknown_40 & halo::k_slot_mask].data;
+                object *player_unit = halo::ai::object_at(unknown_40);
                 if (halo::game::teams_are_enemies(player_unit->owner_team , self->team) != 0) {
                     halo::ai::actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
                 }

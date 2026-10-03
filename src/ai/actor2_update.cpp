@@ -125,7 +125,7 @@ void ActorView::update_aim_wander()
     if (a->active_unit_index == k_datum_index_none) {
         moving = (a->airborne != 0 || a->moving != 0) ? 1 : 0;
     } else {
-        uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[a->active_unit_index & halo::k_slot_mask].data;
+        uint8_t *vehicle = (uint8_t *)halo::ai::object_at(a->active_unit_index);
         real_vector3d *velocity = (real_vector3d *)(vehicle + 0x68);
 
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
@@ -168,7 +168,7 @@ void ActorView::update_aim_wander()
         if (weapon != k_datum_index_none) {
             float rate;
             float damage = halo::items::weapon_trigger_get_average_damage(
-                *(datum_index *)((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_slot_mask].data, &rate);
+                *(datum_index *)halo::ai::object_at(weapon), &rate);
 
             if (((ActorVariant *)variant)->rate_of_fire > 0.0f && rate > ((ActorVariant *)variant)->rate_of_fire) {
                 rate = ((ActorVariant *)variant)->rate_of_fire;
@@ -318,7 +318,7 @@ void ActorView::update_awareness_level()
     int16_t old_grade;
     int16_t new_grade;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     event = self->perception_event;
     if (0 < event) {
@@ -394,7 +394,7 @@ uint8_t ActorView::update_combat_behavior(uint8_t param_1, uint8_t param_2)
     uint8_t use_param_1;
     prop *target_prop;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     result = 0;
     use_param_1 = 1;
     if (param_2 == 0) {
@@ -420,7 +420,7 @@ uint8_t ActorView::update_combat_behavior(uint8_t param_1, uint8_t param_2)
                 if (self->target_unit_index == (datum_index)k_datum_index_none) {
                     goto use_default;
                 }
-                target_prop = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
+                target_prop = halo::ai::prop_at(self->target_unit_index);
                 if (self->target_unit_index == self->pursuit_target_prop_index &&
                     (target_prop->noticed_a != 0 || (self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0)) &&
                     (target_prop->noticed_b != 0 ||
@@ -498,7 +498,7 @@ void ActorView::update_crouch_state()
     uint8_t platoon_flag;
     uint8_t want_crouch;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     threat_level           = &self->threat_level;
@@ -983,7 +983,7 @@ uint8_t ActorView::update_flee_response()
     actor *self;
     uint8_t result;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     result = 0;
 
@@ -1791,7 +1791,7 @@ uint8_t ActorView::update_movement_destination()
                 float wait = halo::math::random_real_range(*(float *)(actor_tag + 0x3c0), *(float *)(actor_tag + 0x3c4));
 
                 if (actor->vehicle_driving_type > 0) {
-                    uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[actor->active_unit_index & halo::k_slot_mask].data;
+                    uint8_t *vehicle = (uint8_t *)halo::ai::object_at(actor->active_unit_index);
                     uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
                     float cap = *(float *)(vehicle_tag + 0x3a8);
 
@@ -1971,7 +1971,7 @@ namespace actor_update_swarm_component_position_local {
 void ActorOps::update_swarm_component_position(datum_index component_index, datum_index unit_index)
 {
     using namespace actor_update_swarm_component_position_local;
-    object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+    object *unit_object = halo::ai::object_at(unit_index);
     swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[component_index & halo::k_slot_mask];
     datum_index marker;
 
@@ -1998,7 +1998,7 @@ void ActorView::update_target_combat_status()
     object *target_obj;
     int16_t status;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->target_unit_index == k_datum_index_none) {
         self->target_combat_status = 0;
@@ -2007,8 +2007,8 @@ void ActorView::update_target_combat_status()
         return;
     }
 
-    target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
-    target_obj = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & halo::k_slot_mask].data;
+    target = halo::ai::prop_at(self->target_unit_index);
+    target_obj = halo::ai::object_at(target->object_index);
 
     switch (target->state) {
     case 0:

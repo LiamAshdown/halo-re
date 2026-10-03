@@ -324,7 +324,7 @@ uint8_t ConversationView::current_line_is_ready()
             done = !(*(datum_index *)(inst + 0x5c) != k_datum_index_none &&
                      halo::sound::sound_impulse_time(*(datum_index *)(inst + 0x5c)) != 0);
         } else {
-            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[*(datum_index *)(inst + 0x54) & halo::k_slot_mask].data;
+            uint8_t *unit = (uint8_t *)halo::ai::object_at(*(datum_index *)(inst + 0x54));
 
             done = ((unit_object *)unit)->unit.current_speech.priority != 6;
         }
@@ -630,7 +630,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
     for (i = 0; i < definition->participants.count; i++) {
         datum_index other = instance->participant_actor[i];
         if (other != (datum_index)k_datum_index_none) {
-            actor *o = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (other & halo::k_slot_mask) * k_actor_size);
+            actor *o = halo::ai::actor_at(other);
             positions[resolved_count * 3 + 0] = o->body_position.x;
             positions[resolved_count * 3 + 1] = o->body_position.y;
             positions[resolved_count * 3 + 2] = o->body_position.z;
@@ -690,7 +690,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             if (obj != 0) {
                 datum_index a = *(datum_index *)((uint8_t *)obj + 0x1f4);
                 if (a != (datum_index)k_datum_index_none) {
-                    candidate = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (a & halo::k_slot_mask) * k_actor_size);
+                    candidate = halo::ai::actor_at(a);
                     candidate_index = a;
                 }
             }
@@ -1124,7 +1124,7 @@ apply:
         }
         unit_index = ((actor *)((uint8_t *)halo::ai::globals().actor_data->data +
                                 (actor_handle & halo::k_slot_mask) * k_actor_size))->unit_index;
-        unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+        unit_object = halo::ai::object_at(unit_index);
 
         object_name = (int16_t)participants[i].set_new_name;
         if (object_name != -1 && object_name >= 0 &&

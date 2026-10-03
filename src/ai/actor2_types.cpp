@@ -570,7 +570,7 @@ extern double cos(double x);
 extern double fabs(double x);
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 #define SWARM(h) ((uint8_t *)halo::ai::globals().swarm_data->data + ((h) & halo::k_slot_mask) * k_swarm_size)
 #define COMPONENT(h) ((uint8_t *)halo::ai::globals().swarm_component_data->data + ((h) & halo::k_slot_mask) * k_swarm_component_size)
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))

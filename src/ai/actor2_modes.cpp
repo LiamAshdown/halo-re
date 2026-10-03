@@ -413,7 +413,7 @@ void ActorView::set_mode(int32_t mode, void *mode_data)
     uint32_t data_size;
     int i;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     const TableActorMode incoming = ActorModeRegistry::get(mode);
     ActorModeRegistry::get(self->mode).exit(*this);
@@ -471,7 +471,7 @@ uint8_t ActorView::update_special_mode()
     actor *self;
     int16_t mode;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     mode = self->mode;
 
     if (mode == 5) {

@@ -130,7 +130,7 @@ void AiObjects::clear_object_references(datum_index object_index)
     if (!halo::ai::globals().state->actors_valid) {
         return;
     }
-    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = halo::ai::object_at(object_index);
     if (((1 << (obj->type & 0x1f)) & 3) == 0) {
         return;
     }
@@ -1164,7 +1164,7 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
     return added;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai refresh unit stimulus and alert, moved unchanged from the original free function.
  *
@@ -1395,7 +1395,7 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
     if (object_index == (datum_index)k_datum_index_none) {
         return;
     }
-    obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    obj = halo::ai::object_at(object_index);
 
     out_encounter = -1;
     out_squad = halo::k_word_none;
@@ -1497,7 +1497,7 @@ void AiActorView::get_move_speed_for_range(float param_a, float param_b, float p
     float low_break;
     float low_break_08;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if (definition->peripheral_vision_angle < param_dist) {
