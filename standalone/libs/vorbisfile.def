@@ -1,7 +1,0 @@
-; vorbisfile.dll (the Halo folder) -- the Ogg Vorbis functions the game calls (cdecl, plain export names).
-LIBRARY vorbisfile.dll
-EXPORTS
-    ov_clear
-    ov_crosslap
-    ov_open_callbacks
-    ov_read

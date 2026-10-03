@@ -6,7 +6,7 @@
 #   cmake -S . -B build/cmake-ninja -G Ninja && cmake --build build/cmake-ninja
 #
 # Needs Visual Studio 2022 (C and MASM, x86) and the DirectX SDK (June 2010) for d3dx9. The exe runs against an
-# installed Halo PC (maps, binkw32.dll, vorbisfile.dll): HALO_FOLDER. Graphics need the converted shaders\fx.bin
+# installed Halo PC (maps, binkw32.dll): HALO_FOLDER. Graphics need the converted shaders\fx.bin
 # (python tools/convert_fx.py) in override\shaders\ next to the exe: HALO_FX_OVERRIDE, copied after the build.
 #
 # A new engine global is bound through halo::<module>::vars() (standalone/data/link/<module>_vars.hpp names the link
@@ -50,12 +50,17 @@ add_library(halo_game OBJECT ${GAME_SOURCES})
 set(CXX_GAME_SOURCES ${GAME_SOURCES})
 list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
 set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
-target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
 target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/include/halo/msvc_compat.h")
 
+# ---- Ogg Vorbis decoding (public-domain stb_vorbis, third_party/stb), replaces vorbisfile.dll / vorbis.dll / ogg.dll
+add_library(stb_vorbis STATIC third_party/stb/stb_vorbis.c)
+target_compile_definitions(stb_vorbis PRIVATE STB_VORBIS_NO_STDIO STB_VORBIS_NO_PUSHDATA_API _CRT_SECURE_NO_WARNINGS)
+target_compile_options(stb_vorbis PRIVATE /W0 /GS-)
+
 # ---- import libraries for the third-party DLLs in the Halo folder (no .lib ships with them), delay-loaded
-set(THIRD_PARTY_DLLS binkw32 vorbisfile)
+set(THIRD_PARTY_DLLS binkw32)
 set(THIRD_PARTY_LIBS)
 foreach(dll ${THIRD_PARTY_DLLS})
     set(lib "${CMAKE_CURRENT_BINARY_DIR}/${dll}.lib")
@@ -95,10 +100,10 @@ target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
 target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
     dsound dinput8 dxguid d3d9 d3dx9 legacy_stdio_definitions wininet
-    ${THIRD_PARTY_LIBS} delayimp)
+    ${THIRD_PARTY_LIBS} stb_vorbis delayimp)
 # the data image sits at the original addresses (0x400000..0x891000), so the exe must load elsewhere, unrelocated
 target_link_options(halo_rebuilt PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000000 /SAFESEH:NO /OPT:NOREF /OPT:NOICF
-    /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /DELAYLOAD:binkw32.dll /DELAYLOAD:vorbisfile.dll /MAP)
+    /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /DELAYLOAD:binkw32.dll /MAP)
 
 if(EXISTS "${HALO_FX_OVERRIDE}")
     add_custom_command(TARGET halo_rebuilt POST_BUILD
@@ -110,8 +115,9 @@ else()
 endif()
 
 # ---- offline map reader / validator (tools/map_inspect): header and tag index of the retail .map files, no engine code
-add_executable(map_inspect tools/map_inspect/main.cpp tools/map_inspect/map_reader.cpp)
-target_include_directories(map_inspect PRIVATE "${CMAKE_SOURCE_DIR}/include")
+add_executable(map_inspect tools/map_inspect/main.cpp tools/map_inspect/map_reader.cpp src/sound/vorbis_stream.cpp)
+target_include_directories(map_inspect PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party")
+target_link_libraries(map_inspect PRIVATE stb_vorbis)
 target_compile_options(map_inspect PRIVATE /std:c++20 /EHsc /W3)
 target_compile_definitions(map_inspect PRIVATE _CRT_SECURE_NO_WARNINGS)
 

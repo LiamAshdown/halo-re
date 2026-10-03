@@ -5,18 +5,19 @@
 
 #include "internal/state.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/sound/vorbis_stream.hpp"
 
 namespace halo::sound {
 
 namespace {
 
-/** Clears an OggVorbis_File and zeroes its storage. */
+/** Closes a slot's decoder and zeroes its storage. */
 void sound_stream_decoder_clear_ogg_vorbis_file(void *vorbis_file)
 {
     uint32_t *words = (uint32_t *)vorbis_file;
     int32_t i;
 
-    ov_clear(vorbis_file);
+    vorbis_stream_close(static_cast<VorbisStream *>(vorbis_file));
     for (i = 0; i < (int32_t)(k_ogg_vorbis_file_size / 4); i++) {
         words[i] = 0;
     }
@@ -25,106 +26,6 @@ void sound_stream_decoder_clear_ogg_vorbis_file(void *vorbis_file)
 }  // namespace
 
 namespace stream {
-
-uint32_t read_memory_file(void *destination, uint32_t size, uint32_t count, sound_ogg_memory_file *file)
-{
-    uint32_t bytes = size * count;
-    uint32_t remaining;
-
-    if (destination == 0 || file->end_of_file) {
-        return 0;
-    }
-    remaining = (uint32_t)(file->size - file->position);
-    if (bytes > remaining) {
-        bytes = remaining;
-        file->end_of_file = 1;
-    }
-    memcpy(destination, (uint8_t *)file->data + file->position, bytes);
-    file->position = file->position + bytes;
-    return bytes;
-}
-
-int32_t seek_memory_file(sound_ogg_memory_file *file, uint32_t offset_low, int32_t offset_high, int32_t whence)
-{
-    return view(file)->seek_to(offset_low, offset_high, whence);
-}
-
-int32_t close_memory_file(sound_ogg_memory_file *file)
-{
-    if (file == 0) {
-        return -1;
-    }
-    file->data = 0;
-    return 0;
-}
-
-int32_t tell_memory_file(sound_ogg_memory_file *file)
-{
-    if (file == 0) {
-        return -1;
-    }
-    if (file->end_of_file) {
-        return file->size;
-    }
-    return file->position;
-}
-
-void error_to_string(int32_t vorbis_error_code)
-{
-    char buffer[4092];
-
-    switch (vorbis_error_code) {
-    case -0x8a:
-        sprintf(buffer, "The given stream is not seekable.");
-        return;
-    case -0x89:
-        sprintf(buffer,
-            "The given link exists in the Vorbis data stream, but is not decipherable due to garbacge or corruption.");
-        return;
-    case -0x88:
-        sprintf(buffer, "Bad packet.");
-        return;
-    case -0x87:
-        sprintf(buffer, "Not audio.");
-        return;
-    case -0x86:
-        sprintf(buffer, "The bitstream format revision of the given stream is not supported.");
-        return;
-    case -0x85:
-        sprintf(buffer,
-            "The file/data is apparently an Ogg Vorbis stream, but contains a corrupted or undecipherable header.");
-        return;
-    case -0x84:
-        sprintf(buffer, "The given file/data was not recognized as Ogg Vorbis data.");
-        return;
-    case -0x83:
-        sprintf(buffer,
-            "Either an invalid argument, or incompletely initialized argument passed to libvorbisfile call.");
-        return;
-    case -0x82:
-        sprintf(buffer, "Feature not implemented.");
-        return;
-    case -0x81:
-        sprintf(buffer, "Internal inconsistency in decode state. Continuing is likely not possible.");
-        return;
-    case -0x80:
-        sprintf(buffer, "Read error while fetching compressed data for decode.");
-        return;
-    case -3:
-        sprintf(buffer,
-            "Vorbisfile encoutered missing or corrupt data in the bitstream. Recovery is normally automatic and this return code is for informational purposes only.");
-        return;
-    case -2:
-        sprintf(buffer, "EOF");
-        return;
-    case -1:
-        sprintf(buffer, "Not true, or no data available.");
-        return;
-    default:
-        sprintf(buffer, "Unknown error");
-        return;
-    }
-}
 
 int32_t pcm_buffer_read(uint32_t *position, SoundPermutation *permutation, uint32_t *bytes_read_out, uint32_t requested_size, void *destination)
 {
@@ -159,35 +60,6 @@ int32_t pcm_buffer_read(uint32_t *position, SoundPermutation *permutation, uint3
 
 }  // namespace stream
 
-int32_t OggMemoryFile::seek_to(uint32_t offset_low, int32_t offset_high, int32_t whence)
-{
-    int64_t offset = ((int64_t)offset_high << 32) | offset_low;
-    int64_t new_position;
-
-    this->end_of_file = 0;
-
-    switch (whence) {
-    case 0:
-        new_position = offset;
-        break;
-    case 1:
-        new_position = (int64_t)this->position + offset;
-        break;
-    case 2:
-        new_position = (int64_t)this->size + offset;
-        break;
-    default:
-        return 0;
-    }
-
-    if (new_position >= 0 && new_position <= (int64_t)this->size) {
-        this->position = (int32_t)new_position;
-        return 0;
-    }
-
-    return -1;
-}
-
 uint8_t StreamDecoder::open_stream(void *data, int32_t size)
 {
     sound_ogg_memory_file *memory_file;
@@ -209,8 +81,7 @@ uint8_t StreamDecoder::open_stream(void *data, int32_t size)
 
     this->decoded_bytes = 0;
 
-    result = ov_open_callbacks(memory_file, ogg_vorbis_file, nullptr, 0,
-        (void *)stream::read_memory_file, (void *)stream::seek_memory_file, (void *)stream::close_memory_file, (void *)stream::tell_memory_file);
+    result = vorbis_stream_open(static_cast<VorbisStream *>(ogg_vorbis_file), data, size);
 
     if (result < 0) {
         return 0;
@@ -224,26 +95,20 @@ int32_t StreamDecoder::read_stream(char *buffer, int32_t size, char *want_crossl
 {
     int32_t total = 0;
     uint8_t crosslapped = 0;
-    int32_t bitstream_index;
     void *vorbis_file;
     int32_t read_result;
 
     for (;;) {
         if (*want_crosslap != 0 && crosslapped == 0) {
-            void *current = (this->active_file == 0) ? this->ogg_vorbis_file[1] : this->ogg_vorbis_file[0];
             void *other = (this->active_file == 0) ? this->ogg_vorbis_file[0] : this->ogg_vorbis_file[1];
-            int32_t crosslap_result = ov_crosslap(other, current);
 
-            ov_clear(other);
-            if (crosslap_result < 0) {
-                stream::error_to_string(crosslap_result);
-            }
+            vorbis_stream_close(static_cast<VorbisStream *>(other));
             crosslapped = 1;
         }
 
         vorbis_file = (this->active_file == 0) ? this->ogg_vorbis_file[1] : this->ogg_vorbis_file[0];
 
-        read_result = ov_read(vorbis_file, buffer + total, size, 0, 2, 1, &bitstream_index);
+        read_result = vorbis_stream_read(static_cast<VorbisStream *>(vorbis_file), buffer + total, size);
         if (read_result < 1) {
             break;
         }
@@ -254,12 +119,6 @@ int32_t StreamDecoder::read_stream(char *buffer, int32_t size, char *want_crossl
             this->decoded_bytes += total;
             return total;
         }
-    }
-
-    if (read_result < 0 && read_result != -3) {
-        char message[1024];
-        sprintf(message, "ov_read failed trying to read %d bytes", size);
-        stream::error_to_string(read_result);
     }
 
     this->decoded_bytes += total;

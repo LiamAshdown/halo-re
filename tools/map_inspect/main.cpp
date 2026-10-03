@@ -13,6 +13,7 @@
 #include <windows.h>
 
 #include "halo/cache/map_reader.hpp"
+#include "halo/sound/vorbis_stream.hpp"
 
 using halo::cache::DataFileError;
 using halo::cache::DataMapFile;
@@ -121,12 +122,54 @@ int check_data_files(const std::string &folder)
     return bad;
 }
 
+/** Opens and fully decodes every Ogg Vorbis resource of sounds.map with the engine's decoder; reports failures. */
+int check_vorbis(const std::string &path)
+{
+    DataMapFile data;
+    if (data.open(path, halo::cache::k_data_file_id_sounds) != DataFileError::none) {
+        std::printf("cannot read %s\n", path.c_str());
+        return 2;
+    }
+    size_t ogg = 0;
+    size_t other = 0;
+    size_t failed = 0;
+    uint64_t frames = 0;
+    std::vector<char> pcm(65536);
+    for (size_t i = 0; i < data.resources().size(); i++) {
+        const std::vector<uint8_t> bytes = data.payload(i);
+        if (bytes.size() < 4 || std::memcmp(bytes.data(), "OggS", 4) != 0) {
+            other++;
+            continue;
+        }
+        ogg++;
+        halo::sound::VorbisStream stream{};
+        if (halo::sound::vorbis_stream_open(&stream, bytes.data(), static_cast<int32_t>(bytes.size())) != 0) {
+            std::printf("FAIL open %s\n", data.resources()[i].name.c_str());
+            failed++;
+            continue;
+        }
+        for (;;) {
+            const int32_t got = halo::sound::vorbis_stream_read(&stream, pcm.data(), static_cast<int32_t>(pcm.size()));
+            if (got <= 0) {
+                break;
+            }
+            frames += static_cast<uint64_t>(got) / (static_cast<uint64_t>(stream.channels) * 2);
+        }
+        halo::sound::vorbis_stream_close(&stream);
+    }
+    std::printf("%zu ogg resources decoded (%llu sample frames), %zu failed, %zu not ogg\n", ogg, static_cast<unsigned long long>(frames), failed, other);
+    return failed == 0 ? 0 : 1;
+}
+
 }  // namespace
 
 int main(int argc, char **argv)
 {
     if (argc >= 3 && std::strcmp(argv[1], "--check") == 0) {
         return check_folder(argv[2]);
+    }
+    if (argc >= 3 && std::strcmp(argv[1], "--vorbis") == 0) {
+        return check_vorbis(argv[2]);
     }
     if (argc >= 3 && std::strcmp(argv[1], "--data") == 0) {
         DataMapFile data;
@@ -150,6 +193,6 @@ int main(int argc, char **argv)
         print_summary(argv[1], map, argc >= 3 && std::strcmp(argv[2], "--tags") == 0);
         return 0;
     }
-    std::printf("usage: map_inspect <file.map> [--tags] | --data <bitmaps.map|sounds.map> [--list] | --check <maps folder>\n");
+    std::printf("usage: map_inspect <file.map> [--tags] | --data <bitmaps.map|sounds.map> [--list] | --vorbis <sounds.map> | --check <maps folder>\n");
     return 2;
 }
