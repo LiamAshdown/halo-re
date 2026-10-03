@@ -1,4 +1,7 @@
 #include "halo/game/game2_engine_placement.hpp"
+#include "halo/game/variant_flags.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -260,12 +263,12 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
             return handle;
         }
         if (*(int16_t *)(tag_data + 0x308) == 2) {
-            return ((game_engine_variant.flags & 8) == 0) ? handle : halo::k_dword_none;
+            return (!halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::shields_disabled)) ? handle : halo::k_dword_none;
         }
         if (*(int16_t *)(tag_data + 0x308) != 3) {
             return handle;
         }
-        return ((game_engine_variant.flags & 0x10) == 0) ? handle : halo::k_dword_none;
+        return (!halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::invisible_players)) ? handle : halo::k_dword_none;
     }
 
     switch (game_engine_variant.weapon_set) {
@@ -283,7 +286,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
         break;
     }
 
-    if ((game_engine_unknown_aa00 & 4) == 0 && ((game_engine_variant.flags >> 2) & 1) != 0) {
+    if ((game_engine_unknown_aa00 & 4) == 0 && halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::maximum_grenades)) {
         index = -1;
     }
 
@@ -334,7 +337,7 @@ int32_t EnginePlacement::resolve_netgame_flag_role(uint32_t handle)
         }
     }
 
-    if (game_engine_map_table_value != 0 && (game_engine_variant.flags & 0x80) != 0 &&
+    if (game_engine_map_table_value != 0 && halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::object_placement_filter) &&
         (index == 1 || index == 0x0e)) {
         return -1;
     }
@@ -709,7 +712,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                 if (teleport_message_cooldown < 1) {
                     wchar_t *text;
-                    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
                     teleport_message_cooldown = 0x78;
                     text = (tag_id == k_datum_index_none) ? &empty_string

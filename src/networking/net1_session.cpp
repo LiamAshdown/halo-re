@@ -1,4 +1,7 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/text/api.hpp"
@@ -25,7 +28,7 @@ extern "C" { extern data_packet_group network_game_messages_group; }
 
 extern "C" {
 extern void *object_type_definitions[12];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern datum_index machine_to_player[16];
 extern data_array *player_data;
 extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source, uint32_t extra);
@@ -129,7 +132,7 @@ void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t 
     while (obj != 0) {
         if (obj->network_role == 0 &&
             *(int32_t *)((uint8_t *)object_type_definitions[obj->type] + 0x10) != -1) {
-            encoded_bits = halo::objects::object_type_override_get_0x64(iterator.handle, network_message_scratch, 0x7ff8);
+            encoded_bits = halo::objects::object_type_override_get_0x64(iterator.handle, network_message_scratch, halo::k_network_message_scratch_size);
             if (encoded_bits > 0) {
                 *bytes_sent = *bytes_sent + encoded_bits;
                 *object_count = *object_count + 1;
@@ -528,7 +531,7 @@ void GameRuntime::map_cycle_list_broadcast()
             item = halo::memory::data_iterator_next(&iterator);
         } while (item != 0 && count < 16);
         if (count > 0) {
-            halo::networking::message_delta_encode_message((int32_t)encoded, 0x2000, 0, 0x35, 0, entries, 0, count, 0);
+            halo::networking::message_delta_encode_message((int32_t)encoded, 0x2000, 0, halo::networking::message_id(halo::networking::delta_message::map_cycle_list), 0, entries, 0, count, 0);
             halo::networking::network_session_broadcast_to_all(network_server, 1, encoded, 0, 0, 0, 3);
         }
     }

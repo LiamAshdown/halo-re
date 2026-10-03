@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -201,7 +203,7 @@ void PlayerView::respawn()
             halo::game::game_engine_apply_player_grenade_counts(player_index);
             *(uint32_t *)&((unit_object *)unit)->base.network_role = 0;
             halo::objects::object_type_override_call_0x68(new_unit);
-            encoded_bits = halo::units::unit_build_network_update(new_unit, (int32_t)&network_message_scratch, 0x7ff8);
+            encoded_bits = halo::units::unit_build_network_update(new_unit, (int32_t)&network_message_scratch, halo::k_network_message_scratch_size);
             if (encoded_bits > 0) {
                 halo::networking::network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)halo::networking::globals().server,
                     1, &network_message_scratch, 1, 0, 0, 3);

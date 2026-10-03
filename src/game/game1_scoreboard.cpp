@@ -3,6 +3,10 @@
  */
 
 #include "tags.h"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -47,7 +51,7 @@ extern void *ui_root_widget;
 extern void *ui_widget_history;
 extern uint8_t ui_pause_depth;
 extern uint8_t controls_input_capture_buffer[0xa0 * 4];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
 extern real *default_color_a;
@@ -64,7 +68,7 @@ namespace halo::game::engine1 {
  */
 wchar_t *Scoreboard::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -114,7 +118,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         }
 
         if (result == -1) {
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
             wchar_t *text = &empty_string;
 
             if (tag_id != k_datum_index_none) {
@@ -431,7 +435,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
             {
                 uint8_t payload = 1;
                 uint8_t *payload_ptr = &payload;
-                int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, (void **)&payload_ptr, 0, 1, 0);
+                int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::end_game), 0, (void **)&payload_ptr, 0, 1, 0);
                 if (encoded_bits > 0) {
                     halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
                 }
@@ -649,7 +653,7 @@ wchar_t *Scoreboard::get_default_multiplayer_string(const scoreboard_entry *entr
     int32_t place = entry->place & 0x7f;
     int32_t index = (place > 0xf) ? 0xf : place;
 
-    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
@@ -684,7 +688,7 @@ wchar_t *Scoreboard::get_multiplayer_text_list(uint32_t rank)
             index += 0x10;
         }
     }
-    tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }

@@ -3,6 +3,7 @@
  */
 
 #include "win32.h"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -343,7 +344,7 @@ void Lifecycle::end_game_sequence_stage2(void)
     iterator.next_index = 0;
     iterator.index = (datum_index)halo::k_dword_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    unused_checksum = (uint32_t)player_data ^ 0x69746572;
+    unused_checksum = (uint32_t)player_data ^ halo::game::k_iterator_signature_key;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {

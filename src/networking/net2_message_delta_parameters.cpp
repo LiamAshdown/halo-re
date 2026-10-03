@@ -3,6 +3,8 @@
  * Parameters-protocol registration, config file and update packets.
  */
 #include "crt.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -28,7 +30,7 @@ extern int32_t message_delta_parameters_protocol_sequence;
 extern char message_delta_config_mode_string[];
 extern uint8_t message_delta_parameters_sending;
 extern uint8_t message_delta_parameters_protocol_broadcast_target[];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 }
 
 
@@ -247,7 +249,7 @@ void ParametersProtocol::send_update(void)
             halo::networking::message_delta_parameters_protocol_pack_values((int32_t *)(local_104 + 4));
             local_10c = local_104;
             local_108 = 0;
-            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x22, 0, (void **)&local_10c, 0, 1, '\0');
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::parameters_update), 0, (void **)&local_10c, 0, 1, '\0');
             if (0 < encoded_bits) {
                 if (halo::networking::network_session_broadcast_to_all(network_server, 1, message_delta_parameters_protocol_broadcast_target, 1, 0, 1, 3) != '\0') {
                     message_delta_parameters_protocol_sequence = next_sequence;

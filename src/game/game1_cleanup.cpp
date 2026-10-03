@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/variant_flags.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
@@ -189,7 +190,7 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
     object *unit_obj;
 
     if (current_game_engine == 0 || player_handle == (datum_index)halo::k_dword_none ||
-        (game_engine_variant.flags & 0x08) == 0) {
+        !halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::shields_disabled)) {
         return;
     }
 
@@ -254,7 +255,7 @@ uint8_t ObjectCleanup::object_flag_bit3_clear(int32_t handle)
     uint8_t result = 1;
 
     if (current_game_engine != 0 && handle != -1) {
-        result = (~(uint8_t)(game_engine_variant.flags >> 3)) & 1;
+        result = (halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::shields_disabled) ? 0 : 1);
     }
     return result;
 }

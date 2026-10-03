@@ -1,4 +1,6 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/game/variant_flags.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -682,7 +684,7 @@ void EnginePlayers::reset_respawns_and_cleanup_bipeds(void)
         player_iter.next_index = 0;
         player_iter.index = (datum_index)halo::k_dword_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-        unused_checksum = (uint32_t)player_data ^ 0x69746572;
+        unused_checksum = (uint32_t)player_data ^ halo::game::k_iterator_signature_key;
 
         p = (player *)halo::memory::data_iterator_next(&player_iter);
         while (p != (player *)0) {
@@ -958,7 +960,7 @@ void EnginePlayers::reset_all_unit_grenade_counts(void)
     iterator.next_index = 0;
     iterator.index = (datum_index)halo::k_dword_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    unused_checksum = (uint32_t)player_data ^ 0x69746572;
+    unused_checksum = (uint32_t)player_data ^ halo::game::k_iterator_signature_key;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
@@ -1027,7 +1029,7 @@ uint8_t EnginePlayers::scores_tracked_individually(void)
             game_engine_variant.engine.slayer.kill_in_order == 0) {
             no_team_mode = 0;
         }
-        result = ((uint8_t)game_engine_variant.flags & 1) | no_team_mode;
+        result = ((halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::individual_scoring) ? 1 : 0)) | no_team_mode;
     }
     return result;
 }

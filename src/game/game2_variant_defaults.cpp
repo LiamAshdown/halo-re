@@ -1,4 +1,6 @@
 #include "halo/game/game2_variants.hpp"
+#include "halo/game/variant_flags.hpp"
+#include "halo/game/constants.hpp"
 
 extern "C" {
 }
@@ -24,7 +26,7 @@ game_variant * VariantDefaults::assault(game_variant *variant_options)
 
     defaults.game_engine_index = 1;
     defaults.teams = 1;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -34,8 +36,8 @@ game_variant * VariantDefaults::assault(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 5;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
     defaults.vehicle_respawn_time = 900;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 300;
@@ -70,7 +72,7 @@ game_variant * VariantDefaults::classic_accumulation(game_variant *variant_optio
 
     defaults.game_engine_index = 3;
     defaults.teams = 0;
-    defaults.flags = 0x82;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 2;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -118,7 +120,7 @@ game_variant * VariantDefaults::classic_crazy_king(game_variant *variant_options
 
     defaults.game_engine_index = 4;
     defaults.teams = 0;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -161,7 +163,7 @@ game_variant * VariantDefaults::classic_ctf(game_variant *variant_options)
 
     defaults.game_engine_index = 1;
     defaults.teams = 1;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -208,12 +210,12 @@ game_variant * VariantDefaults::classic_ctf_pro(game_variant *variant_options)
 
     defaults.game_engine_index = 1;
     defaults.teams = 1;
-    defaults.flags = 0xa3;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x1c2;
+    defaults.suicide_penalty = halo::game::k_ticks_per_fifteen_seconds;
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 3;
@@ -246,7 +248,7 @@ game_variant * VariantDefaults::classic_elimination(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0x83;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     out->lives_per_round = 1;
     out->suicide_penalty = 300;
     out->health = 1.0f;
@@ -269,7 +271,7 @@ game_variant * VariantDefaults::classic_endurance(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0x83;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     out->odd_man_out = 1;
     out->respawn_time_growth = 300;
     out->suicide_penalty = 300;
@@ -303,7 +305,7 @@ game_variant * VariantDefaults::classic_invasion(game_variant *variant_options)
 
     defaults.game_engine_index = 1;
     defaults.teams = 1;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -350,11 +352,11 @@ game_variant * VariantDefaults::classic_iron_ctf(game_variant *variant_options)
 
     defaults.game_engine_index = 1;
     defaults.teams = 1;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
-    defaults.respawn_time = 0x1c2;
+    defaults.respawn_time = halo::game::k_ticks_per_fifteen_seconds;
     defaults.suicide_penalty = 0x96;
     defaults.lives_per_round = 0;
     defaults.health = 2.0f;
@@ -397,7 +399,7 @@ game_variant * VariantDefaults::classic_juggernaut(game_variant *variant_options
 
     defaults.game_engine_index = 3;
     defaults.teams = 0;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -445,7 +447,7 @@ game_variant * VariantDefaults::classic_king(game_variant *variant_options)
 
     defaults.game_engine_index = 4;
     defaults.teams = 0;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -488,12 +490,12 @@ game_variant * VariantDefaults::classic_king_pro(game_variant *variant_options)
 
     defaults.game_engine_index = 4;
     defaults.teams = 0;
-    defaults.flags = 0xa3;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
     defaults.respawn_time = 300;
-    defaults.suicide_penalty = 0x1c2;
+    defaults.suicide_penalty = halo::game::k_ticks_per_fifteen_seconds;
     defaults.lives_per_round = 0;
     defaults.health = 1.0f;
     defaults.score_limit = 2;
@@ -522,7 +524,7 @@ game_variant * VariantDefaults::classic_oddball(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_oddball;
-    out->flags = 0x83;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
     out->respawn_time = 0x96;
     out->suicide_penalty = 0x96;
@@ -548,7 +550,7 @@ game_variant * VariantDefaults::classic_phantoms(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0x92;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::invisible_players | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
     out->respawn_time = 0x96;
     out->suicide_penalty = 0x96;
@@ -584,7 +586,7 @@ game_variant * VariantDefaults::classic_race(game_variant *variant_options)
 
     defaults.game_engine_index = 5;
     defaults.teams = 0;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -628,7 +630,7 @@ game_variant * VariantDefaults::classic_rally(game_variant *variant_options)
 
     defaults.game_engine_index = 5;
     defaults.teams = 0;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -672,7 +674,7 @@ game_variant * VariantDefaults::classic_reverse_tag(game_variant *variant_option
 
     defaults.game_engine_index = 3;
     defaults.teams = 0;
-    defaults.flags = 0x82;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -712,7 +714,7 @@ game_variant * VariantDefaults::classic_rockets(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0xa2;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
     out->suicide_penalty = 300;
     out->health = 1.0f;
@@ -735,7 +737,7 @@ game_variant * VariantDefaults::classic_slayer(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0x83;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     out->suicide_penalty = 300;
     out->health = 1.0f;
     out->score_limit = 0x0f;
@@ -757,8 +759,8 @@ game_variant * VariantDefaults::classic_slayer_pro(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0xa3;
-    out->suicide_penalty = 0x1c2;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
+    out->suicide_penalty = halo::game::k_ticks_per_fifteen_seconds;
     out->health = 1.0f;
     out->score_limit = 0x19;
     out->weapon_set = 0x0b;
@@ -781,7 +783,7 @@ game_variant * VariantDefaults::classic_snipers(game_variant *out)
 {
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
-    out->flags = 0xa2;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
     out->respawn_time_growth = 0x96;
     out->suicide_penalty = 300;
@@ -814,7 +816,7 @@ game_variant * VariantDefaults::classic_stalker(game_variant *variant_options)
 
     defaults.game_engine_index = 3;
     defaults.teams = 0;
-    defaults.flags = 0x82;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 0;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -863,7 +865,7 @@ game_variant * VariantDefaults::classic_team_king(game_variant *variant_options)
 
     defaults.game_engine_index = 4;
     defaults.teams = 1;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -898,7 +900,7 @@ game_variant * VariantDefaults::classic_team_oddball(game_variant *out)
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_oddball;
     out->teams = 1;
-    out->flags = 0xa3;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     out->objective_indicator = 1;
     out->respawn_time = 300;
     out->health = 1.0f;
@@ -932,7 +934,7 @@ game_variant * VariantDefaults::classic_team_race(game_variant *variant_options)
 
     defaults.game_engine_index = 5;
     defaults.teams = 1;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -976,7 +978,7 @@ game_variant * VariantDefaults::classic_team_rally(game_variant *variant_options
 
     defaults.game_engine_index = 5;
     defaults.teams = 1;
-    defaults.flags = 0x83;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1012,7 +1014,7 @@ game_variant * VariantDefaults::classic_team_slayer(game_variant *out)
     memset(out, 0, sizeof(game_variant));
     out->game_engine_index = _game_engine_slayer;
     out->teams = 1;
-    out->flags = 0x83;
+    out->flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     out->respawn_time = 300;
     out->suicide_penalty = 300;
     out->health = 1.0f;
@@ -1044,7 +1046,7 @@ game_variant * VariantDefaults::crazy_king(game_variant *variant_options)
 
     defaults.game_engine_index = 4;
     defaults.teams = 0;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1054,9 +1056,9 @@ game_variant * VariantDefaults::crazy_king(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 2;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 0;
     defaults.team_autobalance = 0;
@@ -1087,7 +1089,7 @@ game_variant * VariantDefaults::juggernaut(game_variant *variant_options)
 
     defaults.game_engine_index = 3;
     defaults.teams = 0;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1097,9 +1099,9 @@ game_variant * VariantDefaults::juggernaut(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 0xf;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 0;
     defaults.team_autobalance = 0;
@@ -1135,7 +1137,7 @@ game_variant * VariantDefaults::king(game_variant *variant_options)
 
     defaults.game_engine_index = 4;
     defaults.teams = 0;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1145,9 +1147,9 @@ game_variant * VariantDefaults::king(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 2;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 0;
     defaults.team_autobalance = 0;
@@ -1178,7 +1180,7 @@ game_variant * VariantDefaults::oddball(game_variant *variant_options)
 
     defaults.game_engine_index = 3;
     defaults.teams = 0;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1188,9 +1190,9 @@ game_variant * VariantDefaults::oddball(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 2;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 0;
     defaults.team_autobalance = 0;
@@ -1226,7 +1228,7 @@ game_variant * VariantDefaults::race(game_variant *variant_options)
 
     defaults.game_engine_index = 5;
     defaults.teams = 0;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1236,8 +1238,8 @@ game_variant * VariantDefaults::race(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 3;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
     defaults.vehicle_respawn_time = 900;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 0;
@@ -1270,7 +1272,7 @@ game_variant * VariantDefaults::slayer(game_variant *variant_options)
 
     defaults.game_engine_index = 2;
     defaults.teams = 0;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 0;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1280,9 +1282,9 @@ game_variant * VariantDefaults::slayer(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 0x19;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 0;
     defaults.team_autobalance = 0;
@@ -1315,7 +1317,7 @@ game_variant * VariantDefaults::stalker(game_variant *variant_options)
 
     defaults.game_engine_index = 1;
     defaults.teams = 1;
-    defaults.flags = 0x143;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::hide_radar_blips | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1325,9 +1327,9 @@ game_variant * VariantDefaults::stalker(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 3;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 300;
     defaults.team_autobalance = 1;
@@ -1361,7 +1363,7 @@ game_variant * VariantDefaults::team_king(game_variant *variant_options)
 
     defaults.game_engine_index = 4;
     defaults.teams = 1;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1371,9 +1373,9 @@ game_variant * VariantDefaults::team_king(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 2;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 300;
     defaults.team_autobalance = 1;
@@ -1404,7 +1406,7 @@ game_variant * VariantDefaults::team_oddball(game_variant *variant_options)
 
     defaults.game_engine_index = 3;
     defaults.teams = 1;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1414,9 +1416,9 @@ game_variant * VariantDefaults::team_oddball(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 2;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 300;
     defaults.team_autobalance = 1;
@@ -1452,7 +1454,7 @@ game_variant * VariantDefaults::team_race(game_variant *variant_options)
 
     defaults.game_engine_index = 5;
     defaults.teams = 1;
-    defaults.flags = 0x103;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1462,8 +1464,8 @@ game_variant * VariantDefaults::team_race(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 3;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
     defaults.vehicle_respawn_time = 900;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 300;
@@ -1496,7 +1498,7 @@ game_variant * VariantDefaults::team_slayer(game_variant *variant_options)
 
     defaults.game_engine_index = 2;
     defaults.teams = 1;
-    defaults.flags = 0x143;
+    defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::hide_radar_blips | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 0;
     defaults.odd_man_out = 0;
     defaults.respawn_time_growth = 0;
@@ -1506,9 +1508,9 @@ game_variant * VariantDefaults::team_slayer(game_variant *variant_options)
     defaults.health = 1.0f;
     defaults.score_limit = 0x32;
     defaults.weapon_set = 0;
-    defaults.red_vehicle_set = 0x249240;
-    defaults.blue_vehicle_set = 0x249240;
-    defaults.vehicle_respawn_time = 0x708;
+    defaults.red_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.blue_vehicle_set = halo::game::k_default_vehicle_set;
+    defaults.vehicle_respawn_time = halo::game::k_ticks_per_minute;
     defaults.friendly_fire = 1;
     defaults.betrayal_penalty = 300;
     defaults.team_autobalance = 1;

@@ -3,6 +3,9 @@
  */
 
 #include "tags.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -34,7 +37,7 @@ extern int32_t ctf_touch_counts_network[3];
 extern uint8_t ctf_active_team;
 extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t custom_waypoints[];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern datum_index ctf_team_flag_object[2];
 extern uint8_t ctf_team_return_credit_active[2];
 extern int32_t ctf_team_return_credit_ticks[2];
@@ -182,7 +185,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
     extra[0] = &ticks;
     if (mode == 0) {
         items[0] = ctf_touch_counts_network;
-        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x11, (int32_t)extra, items, 0, 1, 0);
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::ctf_profiles_updated), (int32_t)extra, items, 0, 1, 0);
     } else {
         int32_t live[3];
         void *baseline[1];
@@ -193,7 +196,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
         items[0] = live;
         items[1] = (void *)ticks;
         baseline[0] = ctf_touch_counts_network;
-        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x11, (int32_t)extra, items,
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::ctf_profiles_updated), (int32_t)extra, items,
             (int32_t)baseline, 1, 0);
         ctf_touch_counts_network[0] = live[0];
         ctf_touch_counts_network[1] = live[1];

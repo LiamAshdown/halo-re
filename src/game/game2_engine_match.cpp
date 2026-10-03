@@ -1,4 +1,8 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/game/variant_flags.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
@@ -31,7 +35,7 @@ extern int32_t sv_tk_cooldown_ticks;
 extern char k_empty_string[];
 extern uint8_t player_profile_cache_initialized;
 extern player_profile player_profile_cache[16];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t network_client[];
@@ -249,7 +253,7 @@ void EngineMatch::tick(void)
             halo::game::game_engine_clear_unit_shields_when_disabled(player_iter.index);
 
             if (current_game_engine != 0 &&
-                ((game_engine_variant.flags & 0x10) != 0 ||
+                (halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::invisible_players) ||
                  (current_game_engine->time_scale_override != 0 &&
                   ((char (*)(datum_index, int32_t))current_game_engine->time_scale_override)(
                       player_iter.index, 1) != 0)) &&
@@ -366,7 +370,7 @@ void EngineMatch::send_end_game_notification(uint32_t reason)
     payload = reason;
     payload_ptr = &payload;
 
-    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, &payload_ptr, 0, 1, 0);
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::end_game), 0, &payload_ptr, 0, 1, 0);
     if (encoded_size > 0) {
         halo::networking::network_session_broadcast_to_flagged(encoded_size, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     }
@@ -384,7 +388,7 @@ void EngineMatch::send_round_reset_message(void)
     uint8_t *payload = &payload_value;
     int32_t encoded_bits;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x17, 0, (void **)&payload, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::round_reset), 0, (void **)&payload, 0, 1, 0);
     if (encoded_bits > 0) {
         halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }
@@ -432,7 +436,7 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
     fields_ptr[0] = &record;
     fields_ptr[1] = 0;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::team_allegiance), 0, fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
         uint8_t *session = *(uint8_t **)(network_client + 0xadc);
 

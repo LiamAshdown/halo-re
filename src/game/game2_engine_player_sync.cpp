@@ -1,4 +1,7 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
@@ -35,7 +38,7 @@ extern uint32_t update_client_queue_apply_tick(player_action *out_actions, clien
 extern uint8_t player_execute_pending_interaction(datum_index player_handle);
 extern uint8_t player_execute_weapon_drop_interaction(datum_index player_handle);
 extern game_time_globals *game_time;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_id_table *object_network_id_table;
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t *machine_table;
@@ -432,7 +435,7 @@ void EnginePlayerSync::send_player_profile_update(void *has_payload, void *profi
 
     payload_ptr = (has_payload != (void *)0) ? profile_tail : (void *)0;
 
-    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x15, (uint32_t)payload_ptr, &payload_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::player_profile_update), (uint32_t)payload_ptr, &payload_ptr,
                                                  (uint32_t)profile_tail, 1, 0);
     if (encoded_size > 0) {
         if (target == -1) {
@@ -545,7 +548,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
     }
 
     fields_ptr = &fields;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 8, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::unit_weapon_loadout), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
             halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);

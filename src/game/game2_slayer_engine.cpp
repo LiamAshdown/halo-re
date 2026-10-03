@@ -1,4 +1,8 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -22,7 +26,7 @@ extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_engine_animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player);
 extern void game_engine_player_select_random_target(datum_index player_or_all);
 extern game_engine_definition *current_game_engine;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern int32_t game_engine_state_value;
@@ -36,7 +40,7 @@ namespace halo::game {
  */
 const uint16_t * SlayerEngine::game_text(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
@@ -240,7 +244,7 @@ void SlayerEngine::player_round_reset(datum_index player_index)
     iterator.data = player_data;
     iterator.next_index = 0;
     iterator.index = halo::k_dword_none;
-    iterator.signature = (uint32_t)player_data ^ 0x69746572;
+    iterator.signature = (uint32_t)player_data ^ halo::game::k_iterator_signature_key;
     for (other = (uint8_t *)halo::memory::data_iterator_next(&iterator); other != 0; other = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
         if (*(datum_index *)(other + 0x88) == player_index) {
             *(int32_t *)(other + 0x88) = -1;
@@ -323,12 +327,12 @@ void SlayerEngine::profiles_updated(int32_t mode, int32_t machine_index)
 
     if (mode == 0) {
         network_fields[0] = slayer_unknown_0087a4a0;
-        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x10, 0, network_fields, 0, 1, 0);
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::slayer_profiles_updated), 0, network_fields, 0, 1, 0);
     } else {
         items[0] = slayer_team_score;
         items[1] = 0;
         network_fields[0] = slayer_unknown_0087a4a0;
-        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x10, 0, items, (int32_t)network_fields, 1, 0);
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::slayer_profiles_updated), 0, items, (int32_t)network_fields, 1, 0);
         memcpy(slayer_unknown_0087a4a0, slayer_team_score, 0x20 * 4);
     }
     if (bits <= 0) {

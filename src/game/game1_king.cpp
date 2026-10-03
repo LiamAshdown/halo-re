@@ -3,6 +3,8 @@
  */
 
 #include "tags.h"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -57,7 +59,7 @@ namespace halo::game::engine1 {
  */
 const uint16_t *King::game_text(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
@@ -121,7 +123,7 @@ wchar_t *King::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *King::multiplayer_text(int16_t index)
 {
-    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     if (list == halo::k_dword_none) {
         return (uint16_t *)L"";
@@ -225,7 +227,7 @@ uint8_t King::initialize_for_new_game(void)
         game_engine_recent_location_count = count;
     }
     king_starting_location_type = 0;
-    king_hill_move_ticks_006b1068 = 0x708;
+    king_hill_move_ticks_006b1068 = halo::game::k_ticks_per_minute;
     king_hill_index_006b1058 = -1;
     king_hill_state_globals = 0;
     halo::game::game_engine_koth_build_hill_boundary();
@@ -385,7 +387,7 @@ void King::reset_objects(void)
         king_hill_player_in_hill[i] = 0;
     }
     king_starting_location_type = 0;
-    king_hill_move_ticks_006b1068 = 0x708;
+    king_hill_move_ticks_006b1068 = halo::game::k_ticks_per_minute;
     king_hill_index_006b1058 = -1;
     king_hill_state_globals = 0;
     king_hill_state_006b1054 = 0;
@@ -414,7 +416,7 @@ void King::unknown_48(void)
 {
     if ((current_game_engine == 0 || game_engine_state_value == 0) && halo::networking::globals().game_mode == 2 &&
         game_engine_variant.engine.king.moving_hill != 0 && --king_hill_move_ticks_006b1068 == 0) {
-        king_hill_move_ticks_006b1068 = 0x708;
+        king_hill_move_ticks_006b1068 = halo::game::k_ticks_per_minute;
         king_starting_location_type = halo::game::game_engine_pick_random_recent_location(king_starting_location_type, king_starting_location_type);
         halo::game::game_engine_koth_build_hill_boundary();
         halo::game::game_engine_queue_multiplayer_sound(0x1e, halo::k_dword_none, 1);

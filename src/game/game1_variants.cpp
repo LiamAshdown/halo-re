@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "tags.h"
@@ -101,7 +102,7 @@ void Variants::apply_current_custom_variant(void)
 
     if (sv_timelimit_minutes != -1) {
         if (sv_timelimit_minutes != 0) {
-            game_engine_pending_variant.time_limit = sv_timelimit_minutes * 0x708;
+            game_engine_pending_variant.time_limit = sv_timelimit_minutes * halo::game::k_ticks_per_minute;
             return;
         }
         game_engine_pending_variant.time_limit = 0;

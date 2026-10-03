@@ -1,4 +1,7 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -65,7 +68,7 @@ extern int32_t sv_tk_grace_ticks;
 extern int32_t sv_tk_cooldown_ticks;
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t *machine_table;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern uint16_t global_006889e4;
 extern uint16_t global_007102f0;
 extern uint32_t global_006889f4;
@@ -1751,7 +1754,7 @@ void KillStreak::notify_kill_streak_update(int32_t slot, int16_t amount)
     fields.amount = amount;
     fields_ptr = &fields;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xe, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::kill_streak_update), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }

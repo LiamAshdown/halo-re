@@ -1,4 +1,8 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -37,7 +41,7 @@ extern datum_index sound_start_unspatialized(datum_index definition_index, float
 extern uint8_t multiplayer_sound_enabled[];
 extern int32_t multiplayer_sound_queue_count;
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 }
 
@@ -48,7 +52,7 @@ namespace halo::game {
  */
 wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -399,7 +403,7 @@ uint8_t EngineHud::pick_hud_hint(datum_index player_index, int32_t maximum_lengt
         }
         return halo::game::game_engine_build_kill_feed_message_text(player_index, out, message_type, (datum_index)extra, buffer_size);
     } else {
-        if (game_time->game_time < 0x1c2) {
+        if (game_time->game_time < halo::game::k_ticks_per_fifteen_seconds) {
             if (p->hud_message_index == (datum_index)halo::k_dword_none ||
                 game_engine_variant.game_engine_index != _game_engine_ctf ||
                 game_engine_variant.engine.ctf.single_flag_time < 1) {
@@ -497,7 +501,7 @@ void EngineHud::queue_status_sound_message(int32_t sound_index, datum_index reci
 
     items[0] = &payload;
     items[1] = 0;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x19, 0, items, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::status_sound), 0, items, 0, 1, 0);
     if (encoded_bits > 0) {
         if (recipient_player == (datum_index)halo::k_dword_none) {
             halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);

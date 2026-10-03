@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
 #include <stdint.h>
@@ -142,7 +143,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
         fields_pad = 0;
         fields_byte0 = (uint8_t)team_index;
         (void)fields_pad;
-        encoded_bits = halo::networking::message_delta_encode_message((int32_t)message_buffer, 0x200, 0, 0x34, 0, (void **)&fields_ptr, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)message_buffer, 0x200, 0, halo::networking::message_id(halo::networking::delta_message::ping_field_update), 0, (void **)&fields_ptr, 0, 1, 0);
         if (encoded_bits > 0) {
             fields_byte1 = 1;
             if ((network_client->channel->flags & 1) == 0) {

@@ -1,4 +1,6 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "interface.h"
 #include "main.h"
@@ -17,7 +19,7 @@
 #include "halo/interface/api.hpp"
 
 extern "C" {
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_client_globals *network_client;
 extern uint8_t network_host_handoff_requested;
 extern int16_t network_game_mode;

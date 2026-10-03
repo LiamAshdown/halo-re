@@ -1,4 +1,7 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include <string.h>
@@ -22,7 +25,7 @@ typedef struct network_item_stream {
     uint32_t bit_count;
 } network_item_stream;
 
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_server_globals *network_server;
 extern uint16_t network_challenge_packet_block[];
 extern network_client_globals *network_client;
@@ -282,7 +285,7 @@ uint32_t ServerView::broadcast_player_set_changed(uint8_t *param_1)
 
     halo::networking::message_delta_parameters_protocol_send_update();
     record = param_1 + 8;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, &record, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_broadcast_to_all(network_server, 1, network_message_scratch, 1, 0, 1, 3);
     }
@@ -1642,7 +1645,7 @@ int32_t HostServerView::send_scenario_announcement()
     if (host->scenario_announced == 0) {
         halo::networking::message_delta_parameters_protocol_send_update();
         payload = (uint8_t *)host + 8;
-        encode_result = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &payload, 0, 1, 0);
+        encode_result = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, &payload, 0, 1, 0);
         if (encode_result > 0) {
             halo::networking::network_session_broadcast_to_all(network_server, 1, &message_delta_definition_table, 1, 0, 1, 3);
         }

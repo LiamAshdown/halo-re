@@ -4,6 +4,9 @@
  */
 
 #include "tags.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -51,7 +54,7 @@ extern uint8_t shared_hud_text_draw_state;
 extern int32_t king_team_hill_seconds_network[16];
 extern int32_t king_bucket_credit_ticks[16];
 extern int32_t king_hill_broadcast_overrun_value;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t king_alt_team_scores_network[16];
 extern int32_t king_alt_player_scores_network[16];
 extern int32_t king_alt_team_scores_network2[16];
@@ -154,7 +157,7 @@ void Koth::alt_scorer_tick(uint32_t player_index)
             halo::game::game_engine_queue_multiplayer_sound(current_game_engine != 0 && game_engine_teams_enabled_flag != 0
                 ? 5 + 2 * (p->team != 0) : 3, halo::k_dword_none, 1);
         }
-        if (king_alt_score_target - king_alt_team_score[p->team] == 0x708) {
+        if (king_alt_score_target - king_alt_team_score[p->team] == halo::game::k_ticks_per_minute) {
             halo::game::game_engine_queue_multiplayer_sound(current_game_engine != 0 && game_engine_teams_enabled_flag != 0
                 ? 4 + 2 * (p->team != 0) : 2, halo::k_dword_none, 1);
         }
@@ -245,7 +248,7 @@ void Koth::broadcast_hill_times(int32_t mode, int32_t machine_index)
         void *field = &king_team_hill_seconds_network[0];
         void *no_extra = (void *)0;
         (void)no_extra;
-        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x13, 0, &field, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::koth_hill_times), 0, &field, 0, 1, 0);
     } else {
         int32_t seconds[107];
         int32_t i;
@@ -264,7 +267,7 @@ void Koth::broadcast_hill_times(int32_t mode, int32_t machine_index)
             int32_t zero_extra = 0;
             (void)count_field;
             (void)zero_extra;
-            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x13, 0, (void **)&seconds_field, (uint32_t)&king_team_hill_seconds_network[0], 1, 0);
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::koth_hill_times), 0, (void **)&seconds_field, (uint32_t)&king_team_hill_seconds_network[0], 1, 0);
         }
 
         for (i = 0; i < 16; i++) {
@@ -294,7 +297,7 @@ void Koth::broadcast_team_scores(int32_t mode, int32_t machine_index)
 
     if (mode == 0) {
         void *field = &king_alt_team_scores_network[0];
-        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x12, 0, &field, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::koth_team_scores), 0, &field, 0, 1, 0);
     } else {
         int32_t target_and_team[17];
         int32_t player_scores[16];
@@ -316,7 +319,7 @@ void Koth::broadcast_team_scores(int32_t mode, int32_t machine_index)
         {
             void *fields0 = target_and_team;
             void *fields1 = &king_alt_team_scores_network[0];
-            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x12, 0, (void **)&fields0,
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::koth_team_scores), 0, (void **)&fields0,
                 (uint32_t)&fields1, 1, 0);
         }
 
@@ -749,7 +752,7 @@ void Koth::player_tick(uint32_t player_index)
         }
 
         if (king_bucket_last_credit_tick[p->team] < game_time->game_time && halo::networking::globals().game_mode == 2) {
-            int32_t limit_ticks = game_engine_variant.score_limit * 0x708;
+            int32_t limit_ticks = game_engine_variant.score_limit * halo::game::k_ticks_per_minute;
             int32_t bucket;
 
             king_bucket_credit_ticks[p->team]++;
@@ -760,7 +763,7 @@ void Koth::player_tick(uint32_t player_index)
                 halo::game::game_engine_queue_multiplayer_sound(halo::game::game_engine_get_teams_enabled() != 0
                     ? 5 + 2 * (p->team != 0) : 3, halo::k_dword_none, 1);
             }
-            if (limit_ticks - bucket == 0x708) {
+            if (limit_ticks - bucket == halo::game::k_ticks_per_minute) {
                 halo::game::game_engine_queue_multiplayer_sound(halo::game::game_engine_get_teams_enabled() != 0
                     ? 4 + 2 * (p->team != 0) : 2, halo::k_dword_none, 1);
             }

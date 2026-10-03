@@ -3,6 +3,9 @@
  */
 
 #include "tags.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
@@ -19,7 +22,7 @@
 extern "C" {
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t *machine_table;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_id_table *object_network_id_table;
 }
 
@@ -49,7 +52,7 @@ void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_k
     fields.subject = subject;
     fields_ptr = &fields;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 7, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::object_value_event), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
             halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
@@ -106,7 +109,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
     }
     fields_ptr = &fields;
 
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 10, 0, &fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_interaction), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }

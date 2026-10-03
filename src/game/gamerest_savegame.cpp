@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_savegame.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include <wchar.h>
@@ -729,7 +731,7 @@ wchar_t * UnicodeStringLists::get_string(char *path, int16_t index)
     UnicodeStringListString *entry;
     int32_t char_count;
 
-    tag_id = halo::cache::tag_lookup(0x75737472, path);
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, path);
     source = missing_string_text;
 
     if (tag_id != k_datum_index_none && index >= 0) {

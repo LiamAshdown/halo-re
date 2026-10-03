@@ -3,6 +3,9 @@
  */
 
 #include "tags.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
@@ -18,7 +21,7 @@
 extern "C" {
 extern data_array *player_data;
 extern uint8_t *network_server;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern uint8_t *machine_table;
 }
 
@@ -49,7 +52,7 @@ void KillFeed::notify_kill_event(uint32_t player_index, int32_t hash_key, int32_
     fields[2] = (int32_t)subject;
     fields_ptr = fields;
 
-    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x18, 0, &fields_ptr, 0, 1, '\0');
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::kill_event), 0, &fields_ptr, 0, 1, '\0');
     if (0 < encoded_size) {
         player *p = halo::game::player_at(player_index);
         uint8_t player_machine_field = *(uint8_t *)&p->machine_index;

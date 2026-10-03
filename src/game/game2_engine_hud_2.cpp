@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -62,11 +63,11 @@ void EngineHud::post_game_set_tab_stops(uint32_t stops_a, uint32_t stops_b, uint
  */
 void EngineHud::post_rasterize_post_game(void)
 {
-    uint32_t color_normal[4] = { 0x3f800000, 0x3eeaeaeb, 0x3f3ababb, 0x3f800000 };
-    uint32_t color_best[4] = { 0x3f800000, 0x3f7ae148, 0x3f75c28f, 0x3f75c28f };
-    uint32_t color_local[4] = { 0x3f800000, 0x3f800000, 0x3f800000, 0 };
-    uint32_t color_team[2][4] = { { 0x3f800000, 0x3f4ccccd, 0x3ecccccd, 0x3ecccccd },
-                                  { 0x3f800000, 0x3ecccccd, 0x3ecccccd, 0x3f4ccccd } };
+    uint32_t color_normal[4] = { halo::game::k_float_one_bits, 0x3eeaeaeb, 0x3f3ababb, halo::game::k_float_one_bits };
+    uint32_t color_best[4] = { halo::game::k_float_one_bits, 0x3f7ae148, 0x3f75c28f, 0x3f75c28f };
+    uint32_t color_local[4] = { halo::game::k_float_one_bits, halo::game::k_float_one_bits, halo::game::k_float_one_bits, 0 };
+    uint32_t color_team[2][4] = { { halo::game::k_float_one_bits, 0x3f4ccccd, 0x3ecccccd, 0x3ecccccd },
+                                  { halo::game::k_float_one_bits, 0x3ecccccd, 0x3ecccccd, 0x3f4ccccd } };
     const uint32_t tab_a = 0x007d0032u, tab_b = 0x015e00fau, tab_c = 0x01f4019au;
     const uint32_t team_tab_a = 0x00c80032u, team_tab_b = 0x015e012cu, team_tab_c = 0x01f4019au;
     wchar_t line[0x100];

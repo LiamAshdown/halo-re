@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_hud.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include <string.h>
@@ -706,7 +708,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
 
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
@@ -761,7 +763,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         {
             int32_t packed_low_high = *(int32_t *)&engine_extra.ctf.low;
-            if (packed_low_high == 0x1518 || packed_low_high == 0x708 || packed_low_high == 0xe10 ||
+            if (packed_low_high == 0x1518 || packed_low_high == halo::game::k_ticks_per_minute || packed_low_high == 0xe10 ||
                 packed_low_high == 9000 || packed_low_high == 18000) {
                 label_text = halo::game::unicode_string_list_get_string(
                     (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 30);
@@ -786,7 +788,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
@@ -843,7 +845,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
@@ -934,7 +936,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
@@ -977,7 +979,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         if (options.teams != 0) {
             is_custom_variant = 1;
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472,
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
@@ -1060,9 +1062,9 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
 
         int show_pair = 0;
         if (options.respawn_time == 0 || options.respawn_time == 0x96 ||
-            options.respawn_time == 0x12c || options.respawn_time == 0x1c2) {
+            options.respawn_time == 0x12c || options.respawn_time == halo::game::k_ticks_per_fifteen_seconds) {
             show_pair = (options.respawn_time_growth == 0 || options.respawn_time_growth == 0x96 ||
-                         options.respawn_time_growth == 0x12c || options.respawn_time_growth == 0x1c2);
+                         options.respawn_time_growth == 0x12c || options.respawn_time_growth == halo::game::k_ticks_per_fifteen_seconds);
         } else {
             line[0] = 0;
         }
@@ -1076,7 +1078,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         }
     }
 
-    if (options.suicide_penalty == 0x96 || options.suicide_penalty == 300 || options.suicide_penalty == 0x1c2) {
+    if (options.suicide_penalty == 0x96 || options.suicide_penalty == 300 || options.suicide_penalty == halo::game::k_ticks_per_fifteen_seconds) {
         label_text = halo::game::unicode_string_list_get_string(
             (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 5);
         swprintf(line, 0xff, L"%s%s %d", ticker_field_separator, label_text, options.suicide_penalty / 30);
@@ -1119,7 +1121,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (int16_t)options.friendly_fire);
             wcscat(line, suffix_text);
             if ((options.friendly_fire == 1 || options.friendly_fire == 3) &&
-                (options.betrayal_penalty == 0x96 || options.betrayal_penalty == 300 || options.betrayal_penalty == 0x1c2)) {
+                (options.betrayal_penalty == 0x96 || options.betrayal_penalty == 300 || options.betrayal_penalty == halo::game::k_ticks_per_fifteen_seconds)) {
 
                 int16_t penalty_display_index =
                     (options.betrayal_penalty == 0x96) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
@@ -1173,7 +1175,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
         switch (options.vehicle_respawn_time) {
         case 0:      vehicle_respawn_index = 0; break;
         case 0x384:  vehicle_respawn_index = 1; break;
-        case 0x708:  vehicle_respawn_index = 2; break;
+        case halo::game::k_ticks_per_minute:  vehicle_respawn_index = 2; break;
         case 0xa8c:  vehicle_respawn_index = 3; break;
         case 0xe10:  vehicle_respawn_index = 4; break;
         case 0x1518: vehicle_respawn_index = 5; break;

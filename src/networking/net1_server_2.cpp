@@ -1,4 +1,7 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/core/datum.hpp"
 #include <string.h>
 #include <wchar.h>
@@ -32,7 +35,7 @@ typedef struct network_game_info_record {
 
 extern network_client_globals *network_client;
 extern int32_t network_console_connection_id;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void gcd_disconnect_user(int32_t id, int32_t value);
 extern void gcd_disconnect_all(int32_t id);
 extern player_globals *local_player_globals;
@@ -432,7 +435,7 @@ not_timed_out:
                         int32_t encoded;
 
                         session_ptr = &server->session;
-                        encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, (void **)&session_ptr, 0, 1, 0);
+                        encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, (void **)&session_ptr, 0, 1, 0);
                         if (encoded > 0) {
                             halo::networking::network_session_broadcast_to_all(network_server, 1, network_message_scratch,
                                 1, 0, 1, 3);

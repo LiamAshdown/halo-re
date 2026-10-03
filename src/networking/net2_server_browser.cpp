@@ -3,6 +3,9 @@
  * Server browser filters, sorting, list rows and join latch.
  */
 #include "tags.h"
+#include "halo/game/variant_flags.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -591,7 +594,7 @@ void ServerBrowser::ticker_string_copy(uint16_t *buffer, int32_t capacity, int32
     uint16_t *source;
 
     *buffer = 0;
-    tag_index = halo::cache::tag_lookup(0x75737472,
+    tag_index = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
     if (tag_index != -1) {
         source = halo::text::text_string_list_get_string(tag_index, (int16_t)string_index);
@@ -683,7 +686,7 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
         }
     }
     if (options->health_bits != 0x3f000000) {
-        if (options->health_bits == 0x3f800000) {
+        if (options->health_bits == halo::game::k_float_one_bits) {
             low = low | 4;
         } else if (options->health_bits == 0x3fc00000) {
             low = low | 8;
@@ -701,7 +704,7 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
             low = low | 0x40;
         } else if (options->respawn_time == 300) {
             low = low | 0x80;
-        } else if (options->respawn_time == 0x1c2) {
+        } else if (options->respawn_time == halo::game::k_ticks_per_fifteen_seconds) {
             low = low | 0xc0;
         }
     }
@@ -710,7 +713,7 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
             low = low | 0x100;
         } else if (options->respawn_time_growth == 300) {
             low = low | 0x200;
-        } else if (options->respawn_time_growth == 0x1c2) {
+        } else if (options->respawn_time_growth == halo::game::k_ticks_per_fifteen_seconds) {
             low = low | 0x300;
         }
     }
@@ -724,7 +727,7 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
             high = ((bit3 | bit4) << 7 | low) | 0x1000;
         } else if (options->suicide_penalty == 300) {
             high = ((bit3 | bit4) << 7 | low) | 0x2000;
-        } else if (options->suicide_penalty == 0x1c2) {
+        } else if (options->suicide_penalty == halo::game::k_ticks_per_fifteen_seconds) {
             high = high | 0x3000;
         }
     }
@@ -745,7 +748,7 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
             high = high | 0x8000000;
         } else if (options->betrayal_penalty == 300) {
             high = high | 0x10000000;
-        } else if (options->betrayal_penalty == 0x1c2) {
+        } else if (options->betrayal_penalty == halo::game::k_ticks_per_fifteen_seconds) {
             high = high | 0x18000000;
         }
     }
@@ -755,7 +758,7 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
         extra = 0;
     } else if (options->vehicle_respawn_time == 900) {
         extra = 1;
-    } else if (options->vehicle_respawn_time == 0x708) {
+    } else if (options->vehicle_respawn_time == halo::game::k_ticks_per_minute) {
         extra = 2;
     } else if (options->vehicle_respawn_time == 0xa8c) {
         extra = 3;
@@ -804,48 +807,48 @@ void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_opti
     case 3: out->health_bits = 0x40000000; break;
     case 4: out->health_bits = 0x40400000; break;
     case 5: out->health_bits = 0x40800000; break;
-    default: out->health_bits = 0x3f800000; break;
+    default: out->health_bits = halo::game::k_float_one_bits; break;
     }
 
     if ((low & 0x20) == 0) {
-        out->flags = out->flags & 0xfffffff7;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::shields_disabled);
     } else {
-        out->flags = out->flags | 8;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::shields_disabled);
     }
 
     switch ((low >> 6) & 3) {
     case 1: out->respawn_time = 0x96; break;
     case 2: out->respawn_time = 300; break;
-    case 3: out->respawn_time = 0x1c2; break;
+    case 3: out->respawn_time = halo::game::k_ticks_per_fifteen_seconds; break;
     default: out->respawn_time = 0; break;
     }
 
     switch ((low >> 8) & 3) {
     case 1: out->respawn_time_growth = 0x96; break;
     case 2: out->respawn_time_growth = 300; break;
-    case 3: out->respawn_time_growth = 0x1c2; break;
+    case 3: out->respawn_time_growth = halo::game::k_ticks_per_fifteen_seconds; break;
     default: out->respawn_time_growth = 0; break;
     }
 
     out->odd_man_out = (uint8_t)((low >> 10) & 1);
 
     if ((low & 0x800) == 0) {
-        out->flags = out->flags & 0xffffffef;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::invisible_players);
     } else {
-        out->flags = out->flags | 0x10;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::invisible_players);
     }
 
     switch ((low >> 0xc) & 3) {
     case 1: out->suicide_penalty = 0x96; break;
     case 2: out->suicide_penalty = 300; break;
-    case 3: out->suicide_penalty = 0x1c2; break;
+    case 3: out->suicide_penalty = halo::game::k_ticks_per_fifteen_seconds; break;
     default: out->suicide_penalty = 0; break;
     }
 
     if ((low & 0x4000) == 0) {
-        out->flags = out->flags & 0xfffffffb;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::maximum_grenades);
     } else {
-        out->flags = out->flags | 4;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::maximum_grenades);
     }
 
     {
@@ -854,9 +857,9 @@ void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_opti
     }
 
     if ((low & 0x80000) == 0) {
-        out->flags = out->flags & 0xffffffdf;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::loadout_override);
     } else {
-        out->flags = out->flags | 0x20;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::loadout_override);
     }
 
     {
@@ -865,19 +868,19 @@ void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_opti
     }
 
     if ((low & 0x400000) == 0) {
-        out->flags = out->flags & 0xfffffffe;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::individual_scoring);
     } else {
-        out->flags = out->flags | 1;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::individual_scoring);
     }
     if ((low & 0x800000) == 0) {
-        out->flags = out->flags & 0xffffffbf;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::hide_radar_blips);
     } else {
-        out->flags = out->flags | 0x40;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::hide_radar_blips);
     }
     if ((low & 0x1000000) == 0) {
-        out->flags = out->flags & 0xfffffffd;
+        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::reserved_1);
     } else {
-        out->flags = out->flags | 2;
+        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::reserved_1);
     }
 
     {
@@ -888,7 +891,7 @@ void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_opti
     switch ((low >> 0x1b) & 3) {
     case 1: out->betrayal_penalty = 0x96; break;
     case 2: out->betrayal_penalty = 300; break;
-    case 3: out->betrayal_penalty = 0x1c2; break;
+    case 3: out->betrayal_penalty = halo::game::k_ticks_per_fifteen_seconds; break;
     default: out->betrayal_penalty = 0; break;
     }
 
@@ -896,7 +899,7 @@ void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_opti
 
     switch (high & 7) {
     case 1: out->vehicle_respawn_time = 900; break;
-    case 2: out->vehicle_respawn_time = 0x708; break;
+    case 2: out->vehicle_respawn_time = halo::game::k_ticks_per_minute; break;
     case 3: out->vehicle_respawn_time = 0xa8c; break;
     case 4: out->vehicle_respawn_time = 0xe10; break;
     case 5: out->vehicle_respawn_time = 0x1518; break;
@@ -1150,7 +1153,7 @@ uint32_t ServerBrowser::gametype1_flags_pack(server_browser_gametype1_options *o
     if (time_limit == 0) {
         return bits << 3 | 1;
     }
-    if (time_limit == 0x708) {
+    if (time_limit == halo::game::k_ticks_per_minute) {
         return bits << 3 | 0x81;
     }
     if (time_limit == 0xe10) {
@@ -1431,7 +1434,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     }
     if (browser_state::ticker_message[0] == 0) {
         browser_state::ticker_message[0] = 0;
-        tag_index = halo::cache::tag_lookup(0x75737472,
+        tag_index = halo::cache::tag_lookup(halo::groups::unicode_string_list,
             (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
             source = halo::text::text_string_list_get_string(tag_index, 0);

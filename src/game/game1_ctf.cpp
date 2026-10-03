@@ -3,6 +3,10 @@
  */
 
 #include "tags.h"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
@@ -35,7 +39,7 @@ extern ctf_globals ctf_globals_live;
 extern ctf_globals ctf_globals_network;
 extern int32_t ctf_neutral_flag_id;
 extern uint8_t shared_hud_text_draw_state;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern data_array *player_data;
 extern int32_t ctf_team_flag_touch_count[2];
 extern wchar_t empty_string;
@@ -118,13 +122,13 @@ void Ctf::broadcast_state(void *request_fields, int32_t machine_index)
 
     if (request_fields == (void *)0) {
         void *field = &ctf_globals_network;
-        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x14, 0, &field, 0, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::ctf_state), 0, &field, 0, 1, 0);
     } else {
         void *fields0 = &ctf_globals_live;
         void *fields1 = &ctf_globals_network;
         int32_t i;
 
-        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x14, 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
+        encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::ctf_state), 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
 
         *(int32_t *)((uint8_t *)&ctf_globals_network + 0x84) = ctf_neutral_flag_id;
         for (i = 0; i < 16; i++) {
@@ -155,7 +159,7 @@ void Ctf::broadcast_state(void *request_fields, int32_t machine_index)
  */
 const uint16_t *Ctf::game_text(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
@@ -232,7 +236,7 @@ wchar_t *Ctf::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *Ctf::multiplayer_text(int16_t index)
 {
-    datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
 
     if (list == halo::k_dword_none) {
         return (uint16_t *)L"";

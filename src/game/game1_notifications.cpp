@@ -3,6 +3,10 @@
  */
 
 #include "tags.h"
+#include "halo/game/variant_flags.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
@@ -39,7 +43,7 @@ extern network_id_table *object_network_id_table;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t *network_client;
 extern uint8_t network_object_index_cache[];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern int32_t multiplayer_sound_queue_count;
 extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
@@ -115,7 +119,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
         plasma_max = 1;
     }
 
-    if ((game_engine_variant.flags & 0x20) == 0) {
+    if (!halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::loadout_override)) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
         if (obj->network_role == 0 || obj->network_role == 3) {
             halo::game::game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
@@ -126,7 +130,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
         int32_t plasma_result = plasma_count;
         int32_t frag_result = frag_count;
 
-        if ((game_engine_unknown_aa00 & 4) == 0 && ((game_engine_variant.flags >> 2) & 1) != 0) {
+        if ((game_engine_unknown_aa00 & 4) == 0 && halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::maximum_grenades)) {
             plasma_result = plasma_max;
             frag_result = frag_max;
         }
@@ -439,7 +443,7 @@ void Notifications::dispatch_item_pickup_event(int32_t machine_id, int32_t picke
     fields.param_2_low = (int16_t)param_2;
     fields_ptr = &fields;
 
-    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2f, 0, &fields_ptr, 0, 1, '\0'), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
+    halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::item_pickup_event), 0, &fields_ptr, 0, 1, '\0'), halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
 }
 
 /**

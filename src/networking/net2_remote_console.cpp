@@ -3,6 +3,9 @@
  * RCON requests, console glue, update server and registry lookups.
  */
 #include "win32.h"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,7 +25,7 @@ extern int16_t network_join_error_code;
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
 extern void * rcon_out_channel_key;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int16_t network_game_mode;
 extern void * global_white_argb;
@@ -137,7 +140,7 @@ void RemoteConsole::rcon_out(char *text, int32_t unused_machine_id)
     buf[0x50] = 0;
     fields[0] = buf;
     fields[1] = 0;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x37, 0, fields, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::rcon_output), 0, fields, 0, 1, 0);
     if (0 < encoded_bits) {
         halo::networking::network_session_send_to_machine(unused_machine_id, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 9);
     }
@@ -240,7 +243,7 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
     strcpy(record.command, command);
     items[0] = &record;
     items[1] = 0;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, items, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::rcon_request), 0, items, 0, 1, 0);
     if (encoded_bits > 0) {
         network_channel *channel = network_client->channel;
 
@@ -394,7 +397,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
 
             if (network_game_mode == 1) {
                 int32_t encoded_bits = halo::networking::message_delta_encode_single_value(0xd, &history_byte, &record,
-                    &network_client->last_update_sent, (int32_t)network_message_scratch, 0x7ff8, 1);
+                    &network_client->last_update_sent, (int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1);
                 network_channel *channel = network_client->channel;
 
                 sent_update = 1;

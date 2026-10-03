@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/shaders/api.hpp"
 #include "memory.h"
@@ -208,7 +209,7 @@ int32_t SimulationClock::announce_time_remaining(void)
     } else if (time_remaining == 900) {
         goto announce;
     } else {
-        interval = (8999 < time_remaining) ? 9000 : 0x708;
+        interval = (8999 < time_remaining) ? 9000 : halo::game::k_ticks_per_minute;
     }
 
     if (time_remaining % interval != 0) {
@@ -221,7 +222,7 @@ announce:
     iterator.next_index = 0;
     iterator.index = (datum_index)halo::k_dword_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    unused_checksum = (uint32_t)player_data ^ 0x69746572;
+    unused_checksum = (uint32_t)player_data ^ halo::game::k_iterator_signature_key;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {

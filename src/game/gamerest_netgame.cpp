@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_netgame.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/math/api.hpp"
@@ -32,7 +34,7 @@ extern int32_t ctf_team_return_credit_ticks[2];
 extern datum_index ctf_team_flag_object[2];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 extern game_engine_definition *current_game_engine;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 }
 
 namespace halo::game {
@@ -325,7 +327,7 @@ void NetgameRules::broadcast_object_type_changes()
                 halo::objects::object_type_override_call_0x68(iterator.handle);
             }
 
-            encode_result = halo::objects::object_type_override_call_0x6c(iterator.handle, network_message_scratch, 0x7ff8, changed == 0);
+            encode_result = halo::objects::object_type_override_call_0x6c(iterator.handle, network_message_scratch, halo::k_network_message_scratch_size, changed == 0);
             if (0 < encode_result) {
                 halo::networking::network_session_broadcast_to_flagged(encode_result, halo::networking::globals().server, 1, network_message_scratch, changed != 0, 0, 0, 3);
             }

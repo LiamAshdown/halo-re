@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -89,7 +90,7 @@ uint8_t OddballEngine::initialize_for_new_game(void)
     memset(king_alt_team_scores_network, 0, 0x51 * 4);
     target = game_engine_variant.score_limit;
     if (mode != 2) {
-        target *= 0x708;
+        target *= halo::game::k_ticks_per_minute;
     }
     king_alt_score_target = target;
     for (i = 0; i < 0x10; i++) {
@@ -106,7 +107,7 @@ uint8_t OddballEngine::initialize_for_new_game(void)
             int32_t delay = 0;
 
             for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
-                delay += 0x1c2;
+                delay += halo::game::k_ticks_per_fifteen_seconds;
                 oddball_ball_timers_006b11cc[i] = delay;
             }
         }
@@ -376,7 +377,7 @@ void OddballEngine::reset_objects(void)
             int32_t delay = 0;
 
             for (i = 0; i < count; i++) {
-                delay += 0x1c2;
+                delay += halo::game::k_ticks_per_fifteen_seconds;
                 oddball_ball_timers_006b11cc[i] = delay;
             }
         }
