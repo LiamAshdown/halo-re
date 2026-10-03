@@ -239,7 +239,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
             halo::ai::actor_set_units_active(actor_index, 0);
         }
     }
-    *(uint16_t *)((uint8_t *)self + 0x60) = unknown_60;
+    self->pending_order_request = unknown_60;
     self->standing_order_request = unknown_62;
     if (unknown_62 == -1 || unknown_62 == 0) {
         self->standing_order_request = (int16_t)halo::ai::actor_lookup_small_table_entry((int16_t)unknown_60);
@@ -247,7 +247,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
     self->sequence_id = unknown_68;
     self->command_list_run_immediately = 0;
     self->command_list_delay = 2;
-    *(uint16_t *)((uint8_t *)self + 0x90) = unknown_90;
+    self->pending_command_list = unknown_90;
     if (self->swarm != ((uint8_t *)actor_type_procs[*(int16_t *)((uint8_t *)self + 4)])[0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return k_datum_index_none;
@@ -1295,11 +1295,11 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     if (self->vocalization_source.code == 1 && self->vocalization_source.payload.handle == old_reference) {
         self->vocalization_source.payload.handle = new_reference;
     }
-    if (self->idle_major_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) {
-        *(uint32_t *)((uint8_t *)self + 0x570) = new_reference;
+    if (self->idle_major_direction_type == 1 && self->idle_major_prop_index == old_reference) {
+        self->idle_major_prop_index = new_reference;
     }
-    if (((struct actor *)self)->idle_look_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x580) == old_reference) {
-        *(uint32_t *)((uint8_t *)self + 0x580) = new_reference;
+    if (((struct actor *)self)->idle_look_direction_type == 1 && self->idle_look_prop_index == old_reference) {
+        self->idle_look_prop_index = new_reference;
     }
 
     if (self->swarm != 0 && self->swarm_index != (datum_index)k_datum_index_none) {
@@ -1399,22 +1399,22 @@ uint8_t ActorView::request_move_and_face()
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
 
     if (actor->swarm != 0) {
-        *(int16_t *)((uint8_t *)actor + 0xc0) = 1;
+        actor->mode_data.guard.stage = 1;
         return 0;
     }
     if (actor->order_committed != 0) {
-        *(int16_t *)((uint8_t *)actor + 0xc0) = 1;
-        ((uint8_t *)actor)[0xaa] = 1;
+        actor->mode_data.guard.stage = 1;
+        actor->mode_data.guard.reselect = 1;
         return 0;
     }
-    if (*(int16_t *)((uint8_t *)actor + 0xc0) == 3 && actor->firing_position_index == -1) {
-        *(int16_t *)((uint8_t *)actor + 0xc0) = 0;
-        ((uint8_t *)actor)[0xaa] = 1;
+    if (actor->mode_data.guard.stage == 3 && actor->firing_position_index == -1) {
+        actor->mode_data.guard.stage = 0;
+        actor->mode_data.guard.reselect = 1;
     }
-    if (actor->needs_new_path == 0 || ((uint8_t *)actor)[0xaa] == 0) {
+    if (actor->needs_new_path == 0 || actor->mode_data.guard.reselect == 0) {
         return 0;
     }
-    if (*(int16_t *)((uint8_t *)actor + 0xc0) == 3 && actor->firing_position_index != -1) {
+    if (actor->mode_data.guard.stage == 3 && actor->firing_position_index != -1) {
         halo::ai::actor_push_recognition_entry(actor_index, actor->firing_position_index, 0);
     }
     {
@@ -1435,13 +1435,13 @@ uint8_t ActorView::request_move_and_face()
             &path_context, &path_ok);
         claimed = halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, found, path_ok);
         actor = halo::ai::actor_at(actor_index);
-        ((uint8_t *)actor)[0xaa] = 0;
-        ((uint8_t *)actor)[0xb0] = 0;
+        actor->mode_data.guard.reselect = 0;
+        actor->mode_data.guard.look_point_valid = 0;
         if (claimed == -1) {
-            *(int16_t *)((uint8_t *)actor + 0xc0) = 1;
+            actor->mode_data.guard.stage = 1;
         } else {
-            *(int16_t *)((uint8_t *)actor + 0xc0) = 3;
-            *(int16_t *)((uint8_t *)actor + 0xc4) = claimed;
+            actor->mode_data.guard.stage = 3;
+            actor->mode_data.guard.firing_position = claimed;
         }
     }
     *(int16_t *)&actor->mode_data = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
