@@ -13,6 +13,8 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern int32_t game_state_cursor;
@@ -31,21 +33,16 @@ extern void *particle_system_data;
 extern void *sound_class_gains;
 extern void *recorded_animations;
 extern uint32_t *cinematic_globals_ptr;
-extern void ai_initialize_for_new_map(void);
 extern void team_pair_table_allocate(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_allocate_tick_record(void);
 extern void players_initialize(void);
-extern void hs_scripts_reload(void);
-extern void hs_runtime_initialize(void);
-extern void object_lists_initialize(void);
 extern void interface_globals_allocate(void);
 extern void player_profile_subsystem_initialize(void);
 extern void widget_memory_pool_initialize(void);
 extern void objects_initialize(void);
 extern void game_sound_initialize(void);
 extern uint8_t players_any_without_unit(void);
-extern uint8_t ai_scan_for_recent_combat_activity(uint32_t hard_difficulty);
 extern uint8_t debug_print_safety_checks;
 extern uint8_t players_any_pending_seat_or_respawn(void);
 extern player_globals *local_player_globals;
@@ -149,12 +146,12 @@ void GameLifecycle::initialize(void)
     halo::effects::globals().player_effect_state = (player_effect_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
     halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x128;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-    ai_initialize_for_new_map();
+    halo::ai::ai_initialize_for_new_map();
 
     widget_memory_pool_initialize();
-    object_lists_initialize();
-    hs_runtime_initialize();
-    hs_scripts_reload();
+    halo::hs::object_lists_initialize();
+    halo::hs::hs_runtime_initialize();
+    halo::hs::hs_scripts_reload();
 
     recorded_animations = halo::saved_games::game_state_new((char *)"recorded animations", 0x40, 0x64);
 
@@ -208,7 +205,7 @@ uint32_t GameLifecycle::safe_to_pause(void)
     iterator.handle = k_datum_index_none;
 
     if (halo::objects::object_iterator_next(&iterator) == (object *)0) {
-        if (halo::items::item_any_detonating() == 0 && halo::effects::effect_check_object_collisions() == 0 && halo::units::unit_any_dying_or_seat_transition() == 0 && ai_scan_for_recent_combat_activity(0) == 0) {
+        if (halo::items::item_any_detonating() == 0 && halo::effects::effect_check_object_collisions() == 0 && halo::units::unit_any_dying_or_seat_transition() == 0 && halo::ai::ai_scan_for_recent_combat_activity(0) == 0) {
             return 1;
         }
     }
@@ -226,7 +223,7 @@ uint8_t GameLifecycle::safe_to_save(void)
 {
     object_iterator iterator;
 
-    if (ai_scan_for_recent_combat_activity(0) != 0) {
+    if (halo::ai::ai_scan_for_recent_combat_activity(0) != 0) {
         if (debug_print_safety_checks != 0) {
             halo::main::console_print_va("not safe to save: ai_enemies_can_see_player");
         }

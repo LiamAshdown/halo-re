@@ -8,17 +8,16 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
-extern data_array *actor_data;
 extern player_globals *local_player_globals;
 extern const uint8_t actor_control_animation_state_table[];
 
 }
 }
 
-extern "C" void actor_apply_queued_look_to_unit(datum_index actor_index);
 
 /**
  * actor_apply_queued_look_to_unit: behaviour unchanged from the original routine. The original author notes and decompile
@@ -30,7 +29,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
 {
     using namespace c_actor_apply_queued_look_to_unit;
     datum_index actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint32_t unit_index = *(uint32_t *)&((struct actor *)actor)->unit_index;
     uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
     unit_control_data control;
@@ -68,15 +67,15 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     }
 }
 
-extern "C" void actor_apply_queued_look_to_unit(datum_index actor_index)
+namespace halo::ai {
+void actor_apply_queued_look_to_unit(datum_index actor_index)
 {
     halo::ai::look_ops(actor_index).apply_queued_look_to_unit();
+}
 }
 
 namespace c_actor_begin_vocalization {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 extern game_time_globals *game_time;
 
 extern float actor_vocalization_duration[14];
@@ -85,7 +84,6 @@ extern int16_t actor_vocalization_variant[14][2];
 }
 }
 
-extern "C" uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, actor_vocalization_context *context);
 
 /**
  * actor_begin_vocalization: behaviour unchanged from the original routine. The original author notes and decompile
@@ -107,7 +105,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     float high;
     int32_t ticks;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     awareness = self->awareness_level;
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
@@ -124,7 +122,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     if (context->code == 1) {
 
-        target = (prop *)halo::memory::datum_get(context->payload.handle, prop_data);
+        target = (prop *)halo::memory::datum_get(context->payload.handle, halo::ai::globals().prop_data);
         if (target == (prop *)0) {
             return 0;
         }
@@ -171,18 +169,16 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     return 1;
 }
 
-extern "C" uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, actor_vocalization_context *context)
+namespace halo::ai {
+uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, actor_vocalization_context *context)
 {
     return halo::ai::look_ops(actor_index).begin_vocalization(line, variant, context);
 }
+}
 
 namespace c_actor_clear_vocalization {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" void actor_clear_vocalization(datum_index actor_index);
 
 /**
  * actor_clear_vocalization: behaviour unchanged from the original routine. The original author notes and decompile
@@ -196,34 +192,31 @@ void halo::ai::look_ops::clear_vocalization()
     datum_index actor_index = datum;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     self->vocalization_variant = 0;
     self->vocalization_line = 0;
     self->vocalization_state = 0;
 }
 
-extern "C" void actor_clear_vocalization(datum_index actor_index)
+namespace halo::ai {
+void actor_clear_vocalization(datum_index actor_index)
 {
     halo::ai::look_ops(actor_index).clear_vocalization();
+}
 }
 
 namespace c_actor_dispatch_look_handler_by_posture {
 extern "C" {
-extern data_array *actor_data;
 
 extern double sqrt(double x);
 extern double atan2(double y, double x);
 extern double fabs(double x);
 
-extern void *actor_get_actor_definition(datum_index actor_index);
-extern void unit_get_move_speed_for_range(datum_index actor_index, float param_a, float param_b, float param_dist,
-    float *out_a, float *out_b);
 
 static const float k_perception_range_class_scale[4] = {0.4f, 0.6f, 0.8f, 1.0f};
 }
 }
 
-extern "C" int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
 
 /**
  * actor_dispatch_look_handler_by_posture: behaviour unchanged from the original routine. The original author notes and decompile
@@ -234,7 +227,7 @@ extern "C" int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint3
 int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
 {
     using namespace c_actor_dispatch_look_handler_by_posture;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *definition;
     float *from = (float *)origin;
@@ -249,7 +242,7 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
     if (posture != 0 && posture != 1) {
         return 0;
     }
-    definition = (uint8_t *)actor_get_actor_definition(actor_index);
+    definition = (uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
     base = ((Actor *)actor_tag)->max_vision_distance;
     if (*(float *)(definition + 0x150) > 0.0f) {
         base = *(float *)(definition + 0x150);
@@ -287,7 +280,7 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
         } else {
             float azimuth = (float)fabs(atan2((double)left, (double)forward));
 
-            unit_get_move_speed_for_range(actor_index, range, scale, azimuth, &range, &scale);
+            halo::ai::unit_get_move_speed_for_range(actor_index, range, scale, azimuth, &range, &scale);
             current = scale;
         }
     } else {
@@ -300,20 +293,16 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
     return distance_squared < current * current ? 1 : 0;
 }
 
-extern "C" int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
+namespace halo::ai {
+int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
 {
     return halo::ai::look_ops::dispatch_look_handler_by_posture(posture, actor_index, origin, target, stance_a, check_facing, range_class);
 }
+}
 
 namespace c_actor_flee_look_away {
-extern "C" {
-extern data_array *actor_data;
-extern int32_t actor_build_order_look(uint32_t actor_index, actor_order *order, actor_look_request *request);
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
-}
 }
 
-extern "C" uint32_t actor_flee_look_away(datum_index actor_index);
 
 /**
  * actor_flee_look_away: behaviour unchanged from the original routine. The original author notes and decompile
@@ -328,32 +317,30 @@ uint32_t halo::ai::look_ops::flee_look_away()
     actor *self;
     uint32_t result;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     result = 0;
     if (self->mode == _actor_mode_death && self->mode_data.raw[0xab - 0x9c] != 0) {
 
         uint8_t order[0x84];
 
         memset(order, 0, sizeof(order));
-        actor_build_order_look(actor_index, (actor_order *)order, (actor_look_request *)((uint8_t *)self + 0x9c));
-        actor_set_mode(actor_index, 6, order);
+        halo::ai::actor_build_order_look(actor_index, (actor_order *)order, (actor_look_request *)((uint8_t *)self + 0x9c));
+        halo::ai::actor_set_mode(actor_index, 6, order);
         result = 1;
     }
     return result;
 }
 
-extern "C" uint32_t actor_flee_look_away(datum_index actor_index)
+namespace halo::ai {
+uint32_t actor_flee_look_away(datum_index actor_index)
 {
     return halo::ai::look_ops(actor_index).flee_look_away();
 }
+}
 
 namespace c_actor_get_idle_facing_range {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" float * actor_get_idle_facing_range(datum_index actor_index);
 
 /**
  * actor_get_idle_facing_range: behaviour unchanged from the original routine. The original author notes and decompile
@@ -369,7 +356,7 @@ float * halo::ai::look_ops::get_idle_facing_range()
     Actor *definition;
     int16_t state;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     state = self->look_posture;
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
@@ -382,22 +369,16 @@ float * halo::ai::look_ops::get_idle_facing_range()
     return definition->noncombat_idle_facing;
 }
 
-extern "C" float * actor_get_idle_facing_range(datum_index actor_index)
+namespace halo::ai {
+float * actor_get_idle_facing_range(datum_index actor_index)
 {
     return halo::ai::look_ops(actor_index).get_idle_facing_range();
 }
+}
 
 namespace c_actor_issue_order_or_vocalize {
-extern "C" {
-extern data_array *prop_data;
-
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
-                                        actor_vocalization_context *context);
-}
 }
 
-extern "C" void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index, datum_index vehicle_object_index, int16_t line, int16_t variant);
 
 /**
  * actor_issue_order_or_vocalize: behaviour unchanged from the original routine. The original author notes and decompile
@@ -428,11 +409,11 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
     }
 
     if (prop_index == (datum_index)k_datum_index_none) {
-        prop_index = actor_find_prop_for_object(vehicle_object_index, actor_index);
+        prop_index = halo::ai::actor_find_prop_for_object(vehicle_object_index, actor_index);
     }
     kind = -1;
     if (prop_index != (datum_index)k_datum_index_none) {
-        p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
+        p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
         kind = p->state;
     }
 
@@ -443,23 +424,23 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
         context.code = 1;
         context.payload.handle = prop_index;
     }
-    actor_begin_vocalization(actor_index, line, variant, &context);
+    halo::ai::actor_begin_vocalization(actor_index, line, variant, &context);
 }
 
-extern "C" void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index, datum_index vehicle_object_index, int16_t line, int16_t variant)
+namespace halo::ai {
+void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index, datum_index vehicle_object_index, int16_t line, int16_t variant)
 {
     halo::ai::look_ops::issue_order_or_vocalize(prop_index, actor_index, vehicle_object_index, line, variant);
+}
 }
 
 namespace c_actor_look_get_wait_ticks {
 extern "C" {
 
-extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 extern int32_t fistp_round(float x);
 }
 }
 
-extern "C" int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table);
 
 /**
  * actor_look_get_wait_ticks: behaviour unchanged from the original routine. The original author notes and decompile
@@ -506,7 +487,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     }
 
     {
-        datum_index weapon = actor_get_threat_weapon_object_index(actor_index);
+        datum_index weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
 
         weapon_definition = weapon == k_datum_index_none ? 0 :
             halo::cache::globals().tag_instances[*(datum_index *)((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_slot_mask].data & halo::k_slot_mask].data;
@@ -527,9 +508,11 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     return result;
 }
 
-extern "C" int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table)
+namespace halo::ai {
+int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table)
 {
     return halo::ai::look_ops(actor_index).look_get_wait_ticks(mode, flags, deviation_table);
+}
 }
 
 namespace c_actor_look_pick_random_point_in_cone {
@@ -539,11 +522,9 @@ extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 }
 }
 
-extern "C" uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min, float pitch_max, real_vector3d *base_direction, uint8_t check_obstruction, real_point3d *out);
 
 /**
  * actor_look_pick_random_point_in_cone: behaviour unchanged from the original routine. The original author notes and decompile
@@ -622,27 +603,21 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
     return 1;
 }
 
-extern "C" uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min, float pitch_max, real_vector3d *base_direction, uint8_t check_obstruction, real_point3d *out)
+namespace halo::ai {
+uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min, float pitch_max, real_vector3d *base_direction, uint8_t check_obstruction, real_point3d *out)
 {
     return halo::ai::look_ops::look_pick_random_point_in_cone(origin, yaw_min, yaw_max, pitch_min, pitch_max, base_direction, check_obstruction, out);
+}
 }
 
 namespace c_actor_look_randomize_direction {
 extern "C" {
-extern data_array *actor_data;
 
 extern double cos(double x);
 
-extern uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require_trust, uint8_t skip_lane_test,
-                                                actor_recognition_scan_result *out_result, uint8_t *out_in_front);
-extern uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min,
-                                                     float pitch_max, real_vector3d *base_direction,
-                                                     uint8_t check_obstruction, real_point3d *out);
-extern int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_t flags, float *deviation_table);
 }
 }
 
-extern "C" void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction);
 
 /**
  * actor_look_randomize_direction: behaviour unchanged from the original routine. The original author notes and decompile
@@ -663,12 +638,12 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     int32_t wait_ticks;
     real_point3d look_point;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     out_in_front = 0;
     self->idle_look_state[1] = 0;
 
-    if (!actor_select_facing_target_prop(actor_index, 0, 0, (actor_recognition_scan_result *)((uint8_t *)self + 0x57c),
+    if (!halo::ai::actor_select_facing_target_prop(actor_index, 0, 0, (actor_recognition_scan_result *)((uint8_t *)self + 0x57c),
             (uint8_t *)&out_in_front)) {
         yaw_max = (definition->maximum_looking_deviation.yaw <= definition->idle_looking_range.yaw)
                       ? definition->maximum_looking_deviation.yaw
@@ -693,7 +668,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
             yaw_max = delta_r;
         }
 
-        if (!actor_look_pick_random_point_in_cone(&self->aim_origin, yaw_min, yaw_max, -pitch_max, pitch_max,
+        if (!halo::ai::actor_look_pick_random_point_in_cone(&self->aim_origin, yaw_min, yaw_max, -pitch_max, pitch_max,
                                                     base_direction, 0, &look_point)) {
             return;
         }
@@ -702,16 +677,18 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
         self->idle_look_direction_type = 4;
     }
 
-    wait_ticks = actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);
+    wait_ticks = halo::ai::actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);
     *(int32_t *)self->idle_minor_timer = wait_ticks;
     if (wait_ticks != 0) {
         self->idle_look_state[1] = 1;
     }
 }
 
-extern "C" void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction)
+namespace halo::ai {
+void actor_look_randomize_direction(datum_index actor_index, float *deviation_table, real_vector3d *base_direction)
 {
     halo::ai::look_ops(actor_index).look_randomize_direction(deviation_table, base_direction);
+}
 }
 
 namespace c_actor_lookup_small_table_entry {
@@ -720,7 +697,6 @@ extern int16_t actor_lookup_table_006555a8[12];
 }
 }
 
-extern "C" int32_t actor_lookup_small_table_entry(int16_t index);
 
 /**
  * actor_lookup_small_table_entry: behaviour unchanged from the original routine. The original author notes and decompile
@@ -737,8 +713,10 @@ int32_t halo::ai::look_ops::lookup_small_table_entry(int16_t index)
     return 0;
 }
 
-extern "C" int32_t actor_lookup_small_table_entry(int16_t index)
+namespace halo::ai {
+int32_t actor_lookup_small_table_entry(int16_t index)
 {
     return halo::ai::look_ops::lookup_small_table_entry(index);
+}
 }
 

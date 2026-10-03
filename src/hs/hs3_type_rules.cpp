@@ -1,10 +1,7 @@
 #include "halo/hs/hs3_machine.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern uint16_t hs_autocomplete_gametype_mask;
-extern char hs_gametype_flag_satisfied(uint8_t bit_index, uint8_t flags);
-extern uint16_t hs_object_type_masks[6];
-extern char hs_type_mask_is_subset(int16_t subtype_index, int16_t supertype_index);
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 }
 
@@ -25,9 +22,9 @@ char TypeRules::gametype_flag_satisfied(uint8_t bit_index, uint8_t flags) const
     bit_mask = 1u << (bit_index & 0x1f);
     bit_mask_byte = (uint8_t)bit_mask;
     satisfied = 1;
-    if ((((bit_mask & (uint16_t)hs_autocomplete_gametype_mask) == 0) ||
+    if ((((bit_mask & (uint16_t)halo::hs::globals().autocomplete_gametype_mask) == 0) ||
          (satisfied = (char)((flags & bit_mask_byte) != 0), satisfied != 0)) &&
-        (((uint16_t)hs_autocomplete_gametype_mask & (1u << ((bit_index + 8) & 0x1f))) != 0)) {
+        (((uint16_t)halo::hs::globals().autocomplete_gametype_mask & (1u << ((bit_index + 8) & 0x1f))) != 0)) {
         satisfied = (char)(1 - ((flags & bit_mask_byte) != 0));
     }
     return satisfied;
@@ -44,19 +41,19 @@ uint8_t TypeRules::gametype_flags_applicable(uint8_t flags) const
     uint8_t result;
 
     result = 1;
-    if ((int16_t)hs_autocomplete_gametype_mask != 0) {
-        if (((hs_autocomplete_gametype_mask & 1) == 0) ||
+    if ((int16_t)halo::hs::globals().autocomplete_gametype_mask != 0) {
+        if (((halo::hs::globals().autocomplete_gametype_mask & 1) == 0) ||
             (result = (uint8_t)(flags & 1), result != 0)) {
-            if ((hs_autocomplete_gametype_mask & 0x100) != 0) {
+            if ((halo::hs::globals().autocomplete_gametype_mask & 0x100) != 0) {
                 result = (uint8_t)(~flags & 1);
             }
             if (result != 0) {
-                if ((hs_gametype_flag_satisfied(1, flags) != 0) &&
-                    (hs_gametype_flag_satisfied(2, flags) != 0) &&
-                    (hs_gametype_flag_satisfied(3, flags) != 0) &&
-                    (hs_gametype_flag_satisfied(4, flags) != 0) &&
-                    (hs_gametype_flag_satisfied(6, flags) != 0) &&
-                    (hs_gametype_flag_satisfied(5, flags) != 0)) {
+                if ((halo::hs::hs_gametype_flag_satisfied(1, flags) != 0) &&
+                    (halo::hs::hs_gametype_flag_satisfied(2, flags) != 0) &&
+                    (halo::hs::hs_gametype_flag_satisfied(3, flags) != 0) &&
+                    (halo::hs::hs_gametype_flag_satisfied(4, flags) != 0) &&
+                    (halo::hs::hs_gametype_flag_satisfied(6, flags) != 0) &&
+                    (halo::hs::hs_gametype_flag_satisfied(5, flags) != 0)) {
                     return 1;
                 }
             }
@@ -87,8 +84,8 @@ char TypeRules::type_mask_is_subset(int16_t subtype_index, int16_t supertype_ind
 {
     uint16_t subtype_mask;
 
-    subtype_mask = hs_object_type_masks[subtype_index];
-    return (hs_object_type_masks[supertype_index] & subtype_mask) == subtype_mask;
+    subtype_mask = halo::hs::globals().object_type_masks[subtype_index];
+    return (halo::hs::globals().object_type_masks[supertype_index] & subtype_mask) == subtype_mask;
 }
 
 /**
@@ -106,10 +103,10 @@ char TypeRules::types_are_compatible(hs_type_t dest_type, hs_type_t source_type)
     }
     if (0x24 < dest_type && dest_type < 0x2b) {
         if (0x24 < source_type && source_type < 0x2b) {
-            return hs_type_mask_is_subset(source_type - 0x25, dest_type - 0x25);
+            return halo::hs::hs_type_mask_is_subset(source_type - 0x25, dest_type - 0x25);
         }
         if (0x2a < source_type && source_type < 0x31) {
-            return hs_type_mask_is_subset(source_type - 0x2b, dest_type - 0x25);
+            return halo::hs::hs_type_mask_is_subset(source_type - 0x2b, dest_type - 0x25);
         }
         return 0;
     }
@@ -117,7 +114,7 @@ char TypeRules::types_are_compatible(hs_type_t dest_type, hs_type_t source_type)
         if (source_type < 0x2b || 0x30 < source_type) {
             return 0;
         }
-        return hs_type_mask_is_subset(source_type - 0x2b, dest_type - 0x2b);
+        return halo::hs::hs_type_mask_is_subset(source_type - 0x2b, dest_type - 0x2b);
     }
     return hs_type_conversion_procedures[dest_type][source_type] != 0;
 }

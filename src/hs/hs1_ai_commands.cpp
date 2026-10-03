@@ -3,83 +3,14 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern ai_globals *ai_globals_ptr;
-extern datum_index ai_reference_build_object_list(uint32_t packed_reference);
-extern void ai_category_matches_wildcard(int16_t category, int16_t other_category);
 extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b);
-extern void ai_reference_set_charge_allowed(uint32_t packed_reference, char flag);
-extern void ai_reference_set_squads_dormancy_allowed(uint32_t packed_reference, char flag);
-extern void ai_reference_spawn_starting_location_object(datum_index unit_index, uint32_t packed_reference);
-extern void ai_unit_create_actor(datum_index actor_variant_tag, datum_index unit_index);
-extern void ai_object_list_spawn_members(datum_index object_list_header_handle, uint32_t packed_reference);
-extern void ai_platoon_range_clear_defending(uint32_t packed_reference);
-extern void ai_reference_squad_set_automatic_migration(uint32_t packed_reference, uint8_t value);
-extern void ai_reference_set_combat_alert_flag(uint32_t packed_reference, uint8_t new_flag);
-extern void ai_reference_reset_or_wake_awareness(uint32_t packed_reference, char flag);
-extern void ai_object_list_reset_or_wake_awareness(datum_index object_list_header_handle, char flag);
-extern void ai_reference_flee_if_ready(uint32_t packed_reference, uint32_t readiness_param);
-extern void ai_reference_invoke_squad_callback_406f80(uint32_t packed_reference);
-extern void actor_swarm_for_each_component_thunk(uint32_t actor_index);
-extern void ai_unit_flee_if_ready(datum_index unit_index, uint32_t readiness_param);
-extern int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle);
-extern uint8_t ai_conversation_activate(int16_t conversation_definition_index, uint8_t allow_eviction);
-extern void ai_conversation_mark_all(int16_t conversation_definition_index);
-extern int16_t ai_conversation_get_line_index(int16_t conversation_definition_index);
-extern int32_t ai_conversation_get_status(int16_t conversation_definition_index);
-extern void ai_conversation_stop_all(int16_t conversation_definition_index);
-extern void ai_platoon_range_set_defending(uint32_t packed_reference);
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern void ai_object_list_clear_orders_with_weapon(datum_index object_list_header_handle);
-extern void ai_object_list_set_unit_flag_400(datum_index object_list_header_handle, char flag);
-extern void ai_reference_notify_squad_index(uint32_t packed_reference);
-extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index, uint8_t is_dead);
-extern void ai_reference_units_exit_vehicles(uint32_t packed_reference);
-extern data_array *encounter_data;
 extern Scenario *global_scenario;
-extern void ai_unit_set_actor_force_active(datum_index unit_index, uint8_t value);
-extern void ai_reference_detach_actors_from_encounters(uint32_t packed_reference);
-extern void ai_object_list_detach_actors_from_encounters(datum_index object_list_header_handle);
-extern void ai_object_process_nearby_actors(uint32_t ai_reference, datum_index vehicle_index, char *seat_name, char allow_boarding_actors);
-extern int16_t ai_count_actors_in_mode9_group(int32_t group_id);
-extern uint8_t ai_platoon_range_has_available(uint32_t packed_reference);
-extern void ai_reference_notify_actors(uint32_t packed_reference, uint8_t flag);
-extern int32_t ai_encounter_record_recent_zone(datum_index encounter_index, int16_t zone_id);
-extern uint32_t ai_reference_get_stat_pair(uint32_t packed_reference, int16_t stat_kind, int32_t *out_member_count, uint32_t *out_extra);
-extern void ai_unit_dispatch_actor_event_d(datum_index unit_index, int32_t unused);
-extern void ai_reference_respawn_placed_members(uint32_t packed_reference, uint32_t respawn_reference);
-extern void ai_reference_respawn_all_players(uint32_t packed_reference);
-extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
-extern void ai_object_list_respawn_members(datum_index object_list_header_handle, uint32_t packed_reference);
-extern void ai_platoon_range_set_maneuver_enabled(uint32_t packed_reference, char flag);
-extern void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge);
-extern void ai_object_list_remap_units_and_children(datum_index object_list_header, uint32_t packed_reference, char notify);
-extern void ai_reference_activate_squads(uint32_t packed_reference);
-extern void ai_object_list_set_unit_flag_800(datum_index object_list_header_handle, char flag);
-extern void ai_reference_refill_grenades(uint32_t packed_reference);
-extern void ai_platoon_range_set_maneuvering(uint32_t packed_reference);
-extern void squad_members_request_order(uint32_t packed_reference, int16_t order_code);
-extern uint8_t encounter_activate(datum_index encounter_index);
-extern void squad_members_assign_team_and_request_order(uint32_t packed_reference, int16_t value);
-extern void encounter_set_team(datum_index encounter_index, int16_t team);
-extern int32_t ai_reference_resolve_squad_datum(uint32_t packed_reference);
-extern int16_t ai_reference_max_activity_stage(uint32_t packed_reference);
-extern void ai_unit_clear_actor_vocalization(datum_index unit_index);
-extern void ai_reference_face_starting_location(uint32_t packed_reference, uint8_t idle_only);
-extern void ai_reference_for_each_squad(uint32_t packed_reference);
-extern void ai_reference_start_squad_timers(uint32_t packed_reference);
-extern void ai_reference_set_search_target_point(uint32_t packed_reference, uint32_t reference_value);
-extern void ai_reference_clear_search_target(uint32_t packed_reference);
-extern void ai_reference_set_search_target_area(uint32_t packed_reference);
-extern void ai_unit_set_squad_reference(datum_index object_index, uint32_t packed_reference);
-extern uint8_t *ai_object_attention_find_or_create(datum_index object_index);
-extern void ai_object_attention_remove(datum_index object_index);
 }
 
 namespace halo::hs {
@@ -91,13 +22,13 @@ namespace halo::hs {
  */
 void AiQueryCommands::ai(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_globals_ptr->ai_active = (uint8_t)arguments[0];
-        hs_thread_return(0, thread_index);
+        halo::ai::globals().state->ai_active = (uint8_t)arguments[0];
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -108,12 +39,12 @@ void AiQueryCommands::ai(int16_t function_index, uint32_t thread_index, char fir
  */
 void AiQueryCommands::actors(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)ai_reference_build_object_list((uint32_t)arguments[0]), thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::ai::ai_reference_build_object_list((uint32_t)arguments[0]), thread_index);
     }
 }
 
@@ -124,12 +55,12 @@ void AiQueryCommands::actors(int16_t function_index, uint32_t thread_index, char
  */
 void AiQueryCommands::is_attacking(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_thread_return((int32_t)(uint8_t)(ai_platoon_range_has_available((uint32_t)arguments[0])), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint8_t)(halo::ai::ai_platoon_range_has_available((uint32_t)arguments[0])), thread_index);
     }
 }
 
@@ -140,12 +71,12 @@ void AiQueryCommands::is_attacking(int16_t function_index, uint32_t thread_index
  */
 void AiQueryCommands::living_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)(uint16_t)ai_reference_get_stat_pair((uint32_t)arguments[0], 0, 0, 0), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::ai::ai_reference_get_stat_pair((uint32_t)arguments[0], 0, 0, 0), thread_index);
     }
 }
 
@@ -156,19 +87,19 @@ void AiQueryCommands::living_count(int16_t function_index, uint32_t thread_index
  */
 void AiQueryCommands::living_fraction(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         int32_t total = 0;
-        int32_t living = (int32_t)ai_reference_get_stat_pair((uint32_t)arguments[0], 0, &total, 0);
+        int32_t living = (int32_t)halo::ai::ai_reference_get_stat_pair((uint32_t)arguments[0], 0, &total, 0);
         float fraction = 0.0f;
 
         if (total > 0) {
             fraction = (float)living / (float)total;
         }
-        hs_thread_return(*(int32_t *)&fraction, thread_index);
+        halo::hs::hs_thread_return(*(int32_t *)&fraction, thread_index);
     }
 }
 
@@ -179,13 +110,13 @@ void AiQueryCommands::living_fraction(int16_t function_index, uint32_t thread_in
  */
 void AiQueryCommands::nonswarm_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint32_t count = ai_reference_get_stat_pair((uint32_t)arguments[0], 2, 0, 0);
-        hs_thread_return((int32_t)(uint16_t)count, thread_index);
+        uint32_t count = halo::ai::ai_reference_get_stat_pair((uint32_t)arguments[0], 2, 0, 0);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)count, thread_index);
     }
 }
 
@@ -196,13 +127,13 @@ void AiQueryCommands::nonswarm_count(int16_t function_index, uint32_t thread_ind
  */
 void AiQueryCommands::status(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t result = ai_reference_max_activity_stage((uint32_t)arguments[0]);
-        hs_thread_return((int32_t)(uint16_t)result, thread_index);
+        int16_t result = halo::ai::ai_reference_max_activity_stage((uint32_t)arguments[0]);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)result, thread_index);
     }
 }
 
@@ -213,15 +144,15 @@ void AiQueryCommands::status(int16_t function_index, uint32_t thread_index, char
  */
 void AiQueryCommands::run_strength(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint32_t strength = 0;
 
-    ai_reference_get_stat_pair((uint32_t)arguments[0], 0, 0, &strength);
-    hs_thread_return((int32_t)strength, thread_index);
+    halo::ai::ai_reference_get_stat_pair((uint32_t)arguments[0], 0, 0, &strength);
+    halo::hs::hs_thread_return((int32_t)strength, thread_index);
     }
 }
 
@@ -232,12 +163,12 @@ void AiQueryCommands::run_strength(int16_t function_index, uint32_t thread_index
  */
 void AiQueryCommands::swarm_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_thread_return((int32_t)(uint16_t)(ai_reference_get_stat_pair((uint32_t)arguments[0], 1, 0, 0)), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)(halo::ai::ai_reference_get_stat_pair((uint32_t)arguments[0], 1, 0, 0)), thread_index);
     }
 }
 
@@ -271,13 +202,13 @@ const ScriptCommandGroup &AiQueryCommands::commands()
  */
 void AiBehaviourCommands::allegiance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_category_matches_wildcard(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_category_matches_wildcard(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -288,8 +219,8 @@ void AiBehaviourCommands::allegiance(int16_t function_index, uint32_t thread_ind
  */
 void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -301,7 +232,7 @@ void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thr
             teams_are_enemies(team_b, team_a)) {
             broken = 1;
         }
-        hs_thread_return((int32_t)broken, thread_index);
+        halo::hs::hs_thread_return((int32_t)broken, thread_index);
     }
 }
 
@@ -312,8 +243,8 @@ void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -323,7 +254,7 @@ void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thr
     if (first_team != -1 && second_team != -1) {
         team_pair_override_remove(second_team, first_team);
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -334,13 +265,13 @@ void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::automatic_migration_target(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_squad_set_automatic_migration((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_squad_set_automatic_migration((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -351,13 +282,13 @@ void AiBehaviourCommands::automatic_migration_target(int16_t function_index, uin
  */
 void AiBehaviourCommands::braindead(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_reset_or_wake_awareness((uint32_t)arguments[0], *(char *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_reset_or_wake_awareness((uint32_t)arguments[0], *(char *)&arguments[1]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -368,13 +299,13 @@ void AiBehaviourCommands::braindead(int16_t function_index, uint32_t thread_inde
  */
 void AiBehaviourCommands::braindead_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_reset_or_wake_awareness((datum_index)arguments[0], *(char *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_reset_or_wake_awareness((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -385,13 +316,13 @@ void AiBehaviourCommands::braindead_by_unit(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::dialogue_triggers(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_globals_ptr->dialogue_triggers_enabled = *(uint8_t *)&arguments[0];
-    hs_thread_return(0, thread_index);
+    halo::ai::globals().state->dialogue_triggers_enabled = *(uint8_t *)&arguments[0];
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -402,17 +333,17 @@ void AiBehaviourCommands::dialogue_triggers(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (ai_globals_ptr->actors_valid && reference != halo::k_dword_none && (int32_t)(reference & halo::k_slot_mask) < *(int32_t *)&global_scenario->encounters.count) {
-        ((uint8_t *)encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
+    if (halo::ai::globals().state->actors_valid && reference != halo::k_dword_none && (int32_t)(reference & halo::k_slot_mask) < *(int32_t *)&global_scenario->encounters.count) {
+        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -423,13 +354,13 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
  */
 void AiBehaviourCommands::force_active_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_unit_set_actor_force_active((datum_index)arguments[0], (uint8_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_unit_set_actor_force_active((datum_index)arguments[0], (uint8_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -440,8 +371,8 @@ void AiBehaviourCommands::force_active_by_unit(int16_t function_index, uint32_t 
  */
 void AiBehaviourCommands::link_activation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -449,9 +380,9 @@ void AiBehaviourCommands::link_activation(int16_t function_index, uint32_t threa
     uint32_t second_reference = (uint32_t)arguments[1];
 
     if (first_reference != halo::k_dword_none && second_reference != halo::k_dword_none) {
-        ai_encounter_record_recent_zone(first_reference & halo::k_slot_mask, (int16_t)second_reference);
+        halo::ai::ai_encounter_record_recent_zone(first_reference & halo::k_slot_mask, (int16_t)second_reference);
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -462,13 +393,13 @@ void AiBehaviourCommands::link_activation(int16_t function_index, uint32_t threa
  */
 void AiBehaviourCommands::set_current_state(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        squad_members_request_order((uint32_t)arguments[0], (int16_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::squad_members_request_order((uint32_t)arguments[0], (int16_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -479,20 +410,20 @@ void AiBehaviourCommands::set_current_state(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::set_respawn(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if (arguments[0] != -1 && ai_globals_ptr->actors_valid != 0) {
+        if (arguments[0] != -1 && halo::ai::globals().state->actors_valid != 0) {
             uint32_t index = (uint32_t)arguments[0] & halo::k_slot_mask;
-            uint8_t *encounter = (uint8_t *)encounter_data->data + index * 0x6c;
+            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + index * 0x6c;
 
             encounter[0x3c] = (uint8_t)arguments[1];
-            *(int16_t *)((uint8_t *)encounter_data->data + index * 0x6c + 0xe) = 0x96;
-            encounter_activate((datum_index)index);
+            *(int16_t *)((uint8_t *)halo::ai::globals().encounter_data->data + index * 0x6c + 0xe) = 0x96;
+            halo::ai::encounter_activate((datum_index)index);
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -503,13 +434,13 @@ void AiBehaviourCommands::set_respawn(int16_t function_index, uint32_t thread_in
  */
 void AiBehaviourCommands::set_return_state(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        squad_members_assign_team_and_request_order((uint32_t)arguments[0], (int16_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::squad_members_assign_team_and_request_order((uint32_t)arguments[0], (int16_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -520,13 +451,13 @@ void AiBehaviourCommands::set_return_state(int16_t function_index, uint32_t thre
  */
 void AiBehaviourCommands::set_team(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        encounter_set_team((datum_index)arguments[0], (int16_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::encounter_set_team((datum_index)arguments[0], (int16_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -537,13 +468,13 @@ void AiBehaviourCommands::set_team(int16_t function_index, uint32_t thread_index
  */
 void AiBehaviourCommands::timer_expire(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_for_each_squad((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_for_each_squad((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -554,13 +485,13 @@ void AiBehaviourCommands::timer_expire(int16_t function_index, uint32_t thread_i
  */
 void AiBehaviourCommands::timer_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_start_squad_timers((uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_start_squad_timers((uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -601,13 +532,13 @@ const ScriptCommandGroup &AiBehaviourCommands::commands()
  */
 void AiTargetingCommands::allow_charge(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_set_charge_allowed((uint32_t)arguments[0], (char)(uint8_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_set_charge_allowed((uint32_t)arguments[0], (char)(uint8_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -618,13 +549,13 @@ void AiTargetingCommands::allow_charge(int16_t function_index, uint32_t thread_i
  */
 void AiTargetingCommands::allow_dormant(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_set_squads_dormancy_allowed((uint32_t)arguments[0], *(char *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_set_squads_dormancy_allowed((uint32_t)arguments[0], *(char *)&arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -635,13 +566,13 @@ void AiTargetingCommands::allow_dormant(int16_t function_index, uint32_t thread_
  */
 void AiTargetingCommands::attack(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_platoon_range_clear_defending((uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_platoon_range_clear_defending((uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -652,13 +583,13 @@ void AiTargetingCommands::attack(int16_t function_index, uint32_t thread_index, 
  */
 void AiTargetingCommands::berserk(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_set_combat_alert_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_set_combat_alert_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -669,13 +600,13 @@ void AiTargetingCommands::berserk(int16_t function_index, uint32_t thread_index,
  */
 void AiTargetingCommands::defend(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_platoon_range_set_defending((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_platoon_range_set_defending((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -686,13 +617,13 @@ void AiTargetingCommands::defend(int16_t function_index, uint32_t thread_index, 
  */
 void AiTargetingCommands::disregard(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_set_unit_flag_400((datum_index)arguments[0], *(char *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_set_unit_flag_400((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -703,15 +634,15 @@ void AiTargetingCommands::disregard(int16_t function_index, uint32_t thread_inde
  */
 void AiTargetingCommands::follow_distance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            *(uint32_t *)((uint8_t *)encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c + 0x68) = (uint32_t)arguments[1];
+            *(uint32_t *)((uint8_t *)halo::ai::globals().encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c + 0x68) = (uint32_t)arguments[1];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -722,13 +653,13 @@ void AiTargetingCommands::follow_distance(int16_t function_index, uint32_t threa
  */
 void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *encounter = (uint8_t *)encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c;
+            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c;
 
             if ((uint32_t)arguments[1] == halo::k_dword_none) {
                 ((struct encounter *)encounter)->follow_target_type = 0;
@@ -737,7 +668,7 @@ void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thre
                 *(uint32_t *)&((struct encounter *)encounter)->follow_target = (uint32_t)arguments[1];
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -748,17 +679,17 @@ void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thre
  */
 void AiTargetingCommands::follow_target_disable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        *(int16_t *)((uint8_t *)encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 0;
+        *(int16_t *)((uint8_t *)halo::ai::globals().encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 0;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -769,17 +700,17 @@ void AiTargetingCommands::follow_target_disable(int16_t function_index, uint32_t
  */
 void AiTargetingCommands::follow_target_players(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        *(int16_t *)((uint8_t *)encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 1;
+        *(int16_t *)((uint8_t *)halo::ai::globals().encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 1;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -790,13 +721,13 @@ void AiTargetingCommands::follow_target_players(int16_t function_index, uint32_t
  */
 void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *encounter = (uint8_t *)encounter_data->data + ((uint32_t)arguments[0] & halo::k_slot_mask) * 0x6c;
+            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + ((uint32_t)arguments[0] & halo::k_slot_mask) * 0x6c;
 
             if (arguments[1] == -1) {
                 ((struct encounter *)encounter)->follow_target_type = 0;
@@ -805,7 +736,7 @@ void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t th
                 ((struct encounter *)encounter)->follow_target = arguments[1];
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -816,13 +747,13 @@ void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t th
  */
 void AiTargetingCommands::grenades(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_globals_ptr->grenades_enabled = *(uint8_t *)&arguments[0];
-    hs_thread_return(0, thread_index);
+    halo::ai::globals().state->grenades_enabled = *(uint8_t *)&arguments[0];
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -833,13 +764,13 @@ void AiTargetingCommands::grenades(int16_t function_index, uint32_t thread_index
  */
 void AiTargetingCommands::look_at_object(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_unit_dispatch_actor_event_d((datum_index)arguments[0], arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_unit_dispatch_actor_event_d((datum_index)arguments[0], arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -850,13 +781,13 @@ void AiTargetingCommands::look_at_object(int16_t function_index, uint32_t thread
  */
 void AiTargetingCommands::magically_see_encounter(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_respawn_placed_members((uint32_t)arguments[1], (uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_respawn_placed_members((uint32_t)arguments[1], (uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -867,13 +798,13 @@ void AiTargetingCommands::magically_see_encounter(int16_t function_index, uint32
  */
 void AiTargetingCommands::magically_see_players(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_respawn_all_players((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_respawn_all_players((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -884,13 +815,13 @@ void AiTargetingCommands::magically_see_players(int16_t function_index, uint32_t
  */
 void AiTargetingCommands::magically_see_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_respawn_member((uint32_t)arguments[0], (datum_index)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_respawn_member((uint32_t)arguments[0], (datum_index)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -902,13 +833,13 @@ void AiTargetingCommands::magically_see_unit(int16_t function_index, uint32_t th
  */
 void AiTargetingCommands::magically_see_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_respawn_members((datum_index)arguments[1], (uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_respawn_members((datum_index)arguments[1], (uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -919,13 +850,13 @@ void AiTargetingCommands::magically_see_units(int16_t function_index, uint32_t t
  */
 void AiTargetingCommands::maneuver_enable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_platoon_range_set_maneuver_enabled((uint32_t)arguments[0], *(char *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_platoon_range_set_maneuver_enabled((uint32_t)arguments[0], *(char *)&arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -936,17 +867,17 @@ void AiTargetingCommands::maneuver_enable(int16_t function_index, uint32_t threa
  */
 void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        ((uint8_t *)encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0x60] = *(uint8_t *)&arguments[1];
+        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0x60] = *(uint8_t *)&arguments[1];
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -957,13 +888,13 @@ void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_inde
  */
 void AiTargetingCommands::prefer_target(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_set_unit_flag_800((datum_index)arguments[0], *(char *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_set_unit_flag_800((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -974,13 +905,13 @@ void AiTargetingCommands::prefer_target(int16_t function_index, uint32_t thread_
  */
 void AiTargetingCommands::run_retreat(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_platoon_range_set_maneuvering((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_platoon_range_set_maneuvering((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -991,15 +922,15 @@ void AiTargetingCommands::run_retreat(int16_t function_index, uint32_t thread_in
  */
 void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != halo::k_dword_none && ai_globals_ptr->actors_valid != 0) {
-            ((uint8_t *)encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x40] = *(uint8_t *)&arguments[1];
+        if ((uint32_t)arguments[0] != halo::k_dword_none && halo::ai::globals().state->actors_valid != 0) {
+            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x40] = *(uint8_t *)&arguments[1];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1010,15 +941,15 @@ void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_inde
  */
 void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != halo::k_dword_none && ai_globals_ptr->actors_valid != 0) {
-            ((uint8_t *)encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x41] = *(uint8_t *)&arguments[1];
+        if ((uint32_t)arguments[0] != halo::k_dword_none && halo::ai::globals().state->actors_valid != 0) {
+            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x41] = *(uint8_t *)&arguments[1];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1029,13 +960,13 @@ void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index
  */
 void AiTargetingCommands::stop_looking(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_unit_clear_actor_vocalization((datum_index)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_unit_clear_actor_vocalization((datum_index)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1046,13 +977,13 @@ void AiTargetingCommands::stop_looking(int16_t function_index, uint32_t thread_i
  */
 void AiTargetingCommands::try_to_fight(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_set_search_target_point((uint32_t)arguments[0], (uint32_t)arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_set_search_target_point((uint32_t)arguments[0], (uint32_t)arguments[1]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1063,13 +994,13 @@ void AiTargetingCommands::try_to_fight(int16_t function_index, uint32_t thread_i
  */
 void AiTargetingCommands::try_to_fight_nothing(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_clear_search_target((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_clear_search_target((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1080,13 +1011,13 @@ void AiTargetingCommands::try_to_fight_nothing(int16_t function_index, uint32_t 
  */
 void AiTargetingCommands::try_to_fight_player(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_set_search_target_area((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_set_search_target_area((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1138,13 +1069,13 @@ const ScriptCommandGroup &AiTargetingCommands::commands()
  */
 void AiPlacementCommands::attach(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_spawn_starting_location_object((datum_index)arguments[0], (uint32_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_spawn_starting_location_object((datum_index)arguments[0], (uint32_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1155,13 +1086,13 @@ void AiPlacementCommands::attach(int16_t function_index, uint32_t thread_index, 
  */
 void AiPlacementCommands::attach_free(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_unit_create_actor((datum_index)arguments[1], (datum_index)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_unit_create_actor((datum_index)arguments[1], (datum_index)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1173,13 +1104,13 @@ void AiPlacementCommands::attach_free(int16_t function_index, uint32_t thread_in
  */
 void AiPlacementCommands::attach_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_spawn_members((datum_index)arguments[0], (uint32_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_spawn_members((datum_index)arguments[0], (uint32_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1190,8 +1121,8 @@ void AiPlacementCommands::attach_units(int16_t function_index, uint32_t thread_i
  */
 void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -1201,10 +1132,10 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
         datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x1f4);
 
         if (actor != k_datum_index_none) {
-            actor_delete(actor, 0);
+            halo::ai::actor_delete(actor, 0);
         }
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1216,13 +1147,13 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
  */
 void AiPlacementCommands::detach_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_clear_orders_with_weapon((datum_index)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_clear_orders_with_weapon((datum_index)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1233,13 +1164,13 @@ void AiPlacementCommands::detach_units(int16_t function_index, uint32_t thread_i
  */
 void AiPlacementCommands::erase(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_notify_squad_index((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_notify_squad_index((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1252,8 +1183,8 @@ void AiPlacementCommands::erase_all(int16_t function_index, uint32_t thread_inde
 {
     (void)function_index;
     (void)first;
-    ai_release_actors_filtered(halo::k_dword_none, -1, -1, 0);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_release_actors_filtered(halo::k_dword_none, -1, -1, 0);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -1263,13 +1194,13 @@ void AiPlacementCommands::erase_all(int16_t function_index, uint32_t thread_inde
  */
 void AiPlacementCommands::run_free(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_detach_actors_from_encounters((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_detach_actors_from_encounters((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1280,13 +1211,13 @@ void AiPlacementCommands::run_free(int16_t function_index, uint32_t thread_index
  */
 void AiPlacementCommands::free_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_detach_actors_from_encounters((datum_index)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_detach_actors_from_encounters((datum_index)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1297,13 +1228,13 @@ void AiPlacementCommands::free_units(int16_t function_index, uint32_t thread_ind
  */
 void AiPlacementCommands::kill(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_notify_actors((uint32_t)arguments[0], 0);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_notify_actors((uint32_t)arguments[0], 0);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1314,13 +1245,13 @@ void AiPlacementCommands::kill(int16_t function_index, uint32_t thread_index, ch
  */
 void AiPlacementCommands::kill_silent(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_notify_actors((uint32_t)arguments[0], 1);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_notify_actors((uint32_t)arguments[0], 1);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1331,13 +1262,13 @@ void AiPlacementCommands::kill_silent(int16_t function_index, uint32_t thread_in
  */
 void AiPlacementCommands::migrate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_squads_merge((uint32_t)arguments[0], (uint32_t)arguments[1], 0, 0);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_squads_merge((uint32_t)arguments[0], (uint32_t)arguments[1], 0, 0);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1348,8 +1279,8 @@ void AiPlacementCommands::migrate(int16_t function_index, uint32_t thread_index,
  */
 void AiPlacementCommands::migrate_and_speak(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -1361,8 +1292,8 @@ void AiPlacementCommands::migrate_and_speak(int16_t function_index, uint32_t thr
         } else {
             _stricmp(verb, "retreat");
         }
-        ai_squads_merge((uint32_t)arguments[0], (uint32_t)arguments[1], 1, advance);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_squads_merge((uint32_t)arguments[0], (uint32_t)arguments[1], 1, advance);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1373,13 +1304,13 @@ void AiPlacementCommands::migrate_and_speak(int16_t function_index, uint32_t thr
  */
 void AiPlacementCommands::migrate_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_list_remap_units_and_children((datum_index)arguments[0], (uint32_t)arguments[1], 0);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_list_remap_units_and_children((datum_index)arguments[0], (uint32_t)arguments[1], 0);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1390,13 +1321,13 @@ void AiPlacementCommands::migrate_by_unit(int16_t function_index, uint32_t threa
  */
 void AiPlacementCommands::place(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_activate_squads((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_activate_squads((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1407,13 +1338,13 @@ void AiPlacementCommands::place(int16_t function_index, uint32_t thread_index, c
  */
 void AiPlacementCommands::renew(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_refill_grenades((uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_refill_grenades((uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1424,13 +1355,13 @@ void AiPlacementCommands::renew(int16_t function_index, uint32_t thread_index, c
  */
 void AiPlacementCommands::spawn_actor(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_resolve_squad_datum((uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_resolve_squad_datum((uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1441,13 +1372,13 @@ void AiPlacementCommands::spawn_actor(int16_t function_index, uint32_t thread_in
  */
 void AiPlacementCommands::teleport_to_starting_location(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_face_starting_location((uint32_t)arguments[0], 0);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_face_starting_location((uint32_t)arguments[0], 0);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1458,13 +1389,13 @@ void AiPlacementCommands::teleport_to_starting_location(int16_t function_index, 
  */
 void AiPlacementCommands::teleport_to_starting_location_if_unsupported(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_face_starting_location((uint32_t)arguments[0], 1);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_face_starting_location((uint32_t)arguments[0], 1);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1508,13 +1439,13 @@ const ScriptCommandGroup &AiPlacementCommands::commands()
  */
 void AiCommandListCommands::command_list(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_flee_if_ready((uint32_t)arguments[0], *(uint16_t *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_flee_if_ready((uint32_t)arguments[0], *(uint16_t *)&arguments[1]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1525,13 +1456,13 @@ void AiCommandListCommands::command_list(int16_t function_index, uint32_t thread
  */
 void AiCommandListCommands::command_list_advance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_reference_invoke_squad_callback_406f80((uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_reference_invoke_squad_callback_406f80((uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1542,8 +1473,8 @@ void AiCommandListCommands::command_list_advance(int16_t function_index, uint32_
  */
 void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -1552,13 +1483,13 @@ void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index,
 
             if (unit != 0) {
                 if (*(int32_t *)&((unit_object *)unit)->unit.actor_index != -1) {
-                    actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.actor_index);
+                    halo::ai::actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.actor_index);
                 } else if (*(int32_t *)&((unit_object *)unit)->unit.swarm_actor_index != -1) {
-                    actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.swarm_actor_index);
+                    halo::ai::actor_swarm_for_each_component_thunk(*(uint32_t *)&((unit_object *)unit)->unit.swarm_actor_index);
                 }
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1569,13 +1500,13 @@ void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index,
  */
 void AiCommandListCommands::command_list_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_unit_flee_if_ready((datum_index)arguments[0], *(uint16_t *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_unit_flee_if_ready((datum_index)arguments[0], *(uint16_t *)&arguments[1]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1586,12 +1517,12 @@ void AiCommandListCommands::command_list_by_unit(int16_t function_index, uint32_
  */
 void AiCommandListCommands::command_list_status(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)(uint16_t)ai_object_list_max_flee_grade((datum_index)arguments[0]), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::ai::ai_object_list_max_flee_grade((datum_index)arguments[0]), thread_index);
     }
 }
 
@@ -1621,12 +1552,12 @@ const ScriptCommandGroup &AiCommandListCommands::commands()
  */
 void AiConversationCommands::conversation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)ai_conversation_activate(*(int16_t *)&arguments[0], 1), thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::ai::ai_conversation_activate(*(int16_t *)&arguments[0], 1), thread_index);
     }
 }
 
@@ -1637,13 +1568,13 @@ void AiConversationCommands::conversation(int16_t function_index, uint32_t threa
  */
 void AiConversationCommands::conversation_advance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_conversation_mark_all(*(int16_t *)&arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_conversation_mark_all(*(int16_t *)&arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1654,13 +1585,13 @@ void AiConversationCommands::conversation_advance(int16_t function_index, uint32
  */
 void AiConversationCommands::conversation_line(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t line = ai_conversation_get_line_index(*(int16_t *)&arguments[0]);
-        hs_thread_return((int32_t)(uint16_t)line, thread_index);
+        int16_t line = halo::ai::ai_conversation_get_line_index(*(int16_t *)&arguments[0]);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)line, thread_index);
     }
 }
 
@@ -1671,12 +1602,12 @@ void AiConversationCommands::conversation_line(int16_t function_index, uint32_t 
  */
 void AiConversationCommands::conversation_status(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)(uint16_t)ai_conversation_get_status(*(int16_t *)&arguments[0]), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::ai::ai_conversation_get_status(*(int16_t *)&arguments[0]), thread_index);
     }
 }
 
@@ -1687,13 +1618,13 @@ void AiConversationCommands::conversation_status(int16_t function_index, uint32_
  */
 void AiConversationCommands::conversation_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    ai_conversation_stop_all(*(int16_t *)&arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::ai::ai_conversation_stop_all(*(int16_t *)&arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1723,13 +1654,13 @@ const ScriptCommandGroup &AiConversationCommands::commands()
  */
 void AiVehicleCommands::exit_vehicle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_reference_units_exit_vehicles((uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_reference_units_exit_vehicles((uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1740,13 +1671,13 @@ void AiVehicleCommands::exit_vehicle(int16_t function_index, uint32_t thread_ind
  */
 void AiVehicleCommands::go_to_vehicle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 0);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 0);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1757,13 +1688,13 @@ void AiVehicleCommands::go_to_vehicle(int16_t function_index, uint32_t thread_in
  */
 void AiVehicleCommands::go_to_vehicle_override(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 1);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 1);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1774,13 +1705,13 @@ void AiVehicleCommands::go_to_vehicle_override(int16_t function_index, uint32_t 
  */
 void AiVehicleCommands::going_to_vehicle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t count = ai_count_actors_in_mode9_group((int32_t)arguments[0]);
-        hs_thread_return((int32_t)(uint16_t)count, thread_index);
+        int16_t count = halo::ai::ai_count_actors_in_mode9_group((int32_t)arguments[0]);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)count, thread_index);
     }
 }
 
@@ -1791,13 +1722,13 @@ void AiVehicleCommands::going_to_vehicle(int16_t function_index, uint32_t thread
  */
 void AiVehicleCommands::vehicle_encounter(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_unit_set_squad_reference((datum_index)arguments[0], (uint32_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_unit_set_squad_reference((datum_index)arguments[0], (uint32_t)arguments[1]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1808,19 +1739,19 @@ void AiVehicleCommands::vehicle_encounter(int16_t function_index, uint32_t threa
  */
 void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *record = (uint8_t *)ai_object_attention_find_or_create((datum_index)arguments[0]);
+            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {
                 *(uint16_t *)(record + 0xa) |= (uint16_t)(1u << (*(uint8_t *)&arguments[1] & 0x1f));
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1831,20 +1762,20 @@ void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uin
  */
 void AiVehicleCommands::vehicle_enterable_actors(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if (arguments[0] != -1 && arguments[1] != -1) {
-            uint8_t *record = ai_object_attention_find_or_create((datum_index)arguments[0]);
+            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0 && *(int16_t *)(record + 0xc) < 6) {
                 ((int32_t *)(record + 0x10))[*(int16_t *)(record + 0xc)] = arguments[1];
                 *(int16_t *)(record + 0xc) += 1;
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1855,13 +1786,13 @@ void AiVehicleCommands::vehicle_enterable_actors(int16_t function_index, uint32_
  */
 void AiVehicleCommands::vehicle_enterable_disable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        ai_object_attention_remove((datum_index)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::ai::ai_object_attention_remove((datum_index)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1872,19 +1803,19 @@ void AiVehicleCommands::vehicle_enterable_disable(int16_t function_index, uint32
  */
 void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *record = (uint8_t *)ai_object_attention_find_or_create((datum_index)arguments[0]);
+            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {
                 *(float *)(record + 0x4) = *(float *)&arguments[1];
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1895,19 +1826,19 @@ void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint3
  */
 void AiVehicleCommands::vehicle_enterable_team(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *record = ai_object_attention_find_or_create((datum_index)arguments[0]);
+            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {
                 *(uint16_t *)(record + 8) |= (uint16_t)(1u << ((int16_t)arguments[1] & 0x1f));
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -1937,7 +1868,7 @@ const ScriptCommandGroup &AiVehicleCommands::commands()
 
 }
 
-extern "C" {
+namespace halo::hs {
 
 void hs_evaluate_ai(int16_t function_index, uint32_t thread_index, char first)
 {

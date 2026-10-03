@@ -4,26 +4,14 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_danger_update_reaction {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern data_array *encounter_data;
 
 extern double sqrt(double x);
 extern int32_t fistp_round(float x);
 
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
-    real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask,
-    datum_index exclude_object_index, uint8_t flying);
-extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target,
-    uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index,
-    void *target_ref, int16_t gate, real_point3d *listener_position);
-extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant, void *context);
 
 #define A_W(o) (*(int16_t *)(actor + (o)))
 #define A_D(o) (*(uint32_t *)(actor + (o)))
@@ -31,12 +19,12 @@ extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, i
 
 static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index object_index)
 {
-    datum_index prop_index = actor_find_prop_for_object(object_index, actor_index);
+    datum_index prop_index = halo::ai::actor_find_prop_for_object(object_index, actor_index);
 
     if (prop_index == k_datum_index_none) {
         return 0xff;
     }
-    return *(int16_t *)((uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size + 0x30) >= 2;
+    return *(int16_t *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size + 0x30) >= 2;
 }
 
 static uint8_t actor_danger_asleep(uint8_t *actor)
@@ -44,21 +32,20 @@ static uint8_t actor_danger_asleep(uint8_t *actor)
     uint8_t *encounter = 0;
 
     if (A_D(0x34) != halo::k_dword_none) {
-        encounter = (uint8_t *)encounter_data->data + (A_D(0x34) & halo::k_slot_mask) * k_encounter_size;
+        encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (A_D(0x34) & halo::k_slot_mask) * k_encounter_size;
     }
     return A_W(0x6a) == 1 || (encounter != 0 && encounter[0x40] != 0);
 }
 
 static uint8_t actor_danger_stance(datum_index actor_index)
 {
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     return A_W(0x6e) >= 2 ? 2 : (A_W(0x6a) >= 3);
 }
 }
 }
 
-extern "C" void actor_danger_update_reaction(datum_index actor_index);
 
 /**
  * actor_danger_update_reaction: behaviour unchanged from the original routine. The original author notes and decompile
@@ -70,7 +57,7 @@ void halo::ai::prop_ops::danger_update_reaction()
 {
     using namespace c_actor_danger_update_reaction;
     datum_index actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *object;
     uint32_t block[14];
     real_point3d *position = &((struct actor *)actor)->flee_from_point;
@@ -87,7 +74,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         return;
     }
     halo::objects::object_get_position(position, A_D(0x28c));
-    actor_get_firing_positions(actor_index, block, position);
+    halo::ai::actor_get_firing_positions(actor_index, block, position);
     *(real_vector3d *)(actor + 0x2bc) = *(real_vector3d *)&((struct object *)object)->velocity.i;
     {
         float dx = position->x - block_point->x;
@@ -157,10 +144,10 @@ void halo::ai::prop_ops::danger_update_reaction()
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
-        status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28), cluster,
+        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28), cluster,
             position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != halo::k_dword_none);
-        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-        if (actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
+        actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+        if (halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
         }
@@ -196,15 +183,15 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
             location = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data + 0x98;
         }
-        status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
+        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
             *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != halo::k_dword_none);
         if (!asleep &&
-            actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
+            halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
             break;
         }
-        if ((int16_t)actor_target_hearing_check(location, status, actor_index, block, *(int16_t *)(tag + 0x182),
+        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, block, *(int16_t *)(tag + 0x182),
                 position) >= 2) {
             noticed = 1;
         }
@@ -214,21 +201,23 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
 
-    actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     if (noticed && actor[0x286] == 0) {
         uint8_t payload[0x10];
 
         memset(payload, 0, sizeof(payload));
         *(int16_t *)payload = 5;
-        actor_begin_vocalization(actor_index, 0xc, 1, payload);
+        halo::ai::actor_begin_vocalization(actor_index, 0xc, 1, (actor_vocalization_context *)payload);
     }
     actor[0x286] = noticed;
     actor[0x28a] = own;
 }
 
-extern "C" void actor_danger_update_reaction(datum_index actor_index)
+namespace halo::ai {
+void actor_danger_update_reaction(datum_index actor_index)
 {
     halo::ai::prop_ops(actor_index).danger_update_reaction();
+}
 }
 
 #undef A_D

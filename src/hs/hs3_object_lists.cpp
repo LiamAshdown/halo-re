@@ -5,10 +5,8 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
-extern "C" {
-extern void object_list_reference_chain_delete(data_array *reference_array, datum_index chain_head);
-}
 
 namespace halo::hs::part3 {
 
@@ -147,7 +145,7 @@ void ObjectLists::dispose_empty() const
         header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
             (header_index & halo::k_slot_mask) * 0x0c);
         if (header->reference_count == 0) {
-            object_list_reference_chain_delete(halo::objects::globals().object_list_reference_data, header->first_reference);
+            halo::hs::object_list_reference_chain_delete(halo::objects::globals().object_list_reference_data, header->first_reference);
             halo::memory::datum_delete(halo::objects::globals().object_list_header_data, header_index);
         }
         header_index = halo::memory::datum_next((int16_t)header_index, halo::objects::globals().object_list_header_data);

@@ -10,6 +10,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/hs/api.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -23,27 +24,8 @@ typedef struct rebuild_file_reference {
 rebuild_file_reference;
 
 extern "C" {
-extern uint8_t file_reference_exists(rebuild_file_reference *ref);
-extern void file_enumerate_start(uint32_t flags, rebuild_file_reference *ref);
-extern uint8_t file_enumerate_find_next(rebuild_file_reference *out_entry, uint32_t *out_write_time);
-extern void path_append_component(char *destination, const char *component);
-extern void path_remove_last_component(char *path);
-extern void path_build_full(char *source, char *destination, int16_t location);
-extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
-    char **name_end_out, char **ext_start_out, uint8_t split_extension);
-extern int32_t file_reference_compare_full_path(const void *a, const void *b);
-extern char *hs_compiled_source;
-extern int32_t hs_compiled_source_length;
-extern void hs_tokenize_primitive(char **cursor, datum_index node_index);
-extern void hs_tokenize_nonprimitive(datum_index node_index, char **cursor);
-extern data_array *hs_syntax_data;
-extern char *hs_compile_error;
-extern datum_index hs_tokenize(char **cursor);
-extern void skip_whitespace(char **cursor);
-extern int32_t hs_compile_error_offset;
 extern char hs_space_characters[2];
 extern char hs_newline_characters[2];
-extern uint8_t hs_preserve_token_case;
 }
 
 namespace halo::hs::part3 {
@@ -137,22 +119,22 @@ char *SourceTokenizer::source_buffer_append(char *text, uint32_t length) const
     uint32_t tail_bytes;
     uint32_t new_size;
 
-    new_size = (uint32_t)hs_compiled_source_length + 1 + length;
-    if (hs_compiled_source == 0) {
+    new_size = (uint32_t)halo::hs::globals().compiled_source_length + 1 + length;
+    if (halo::hs::globals().compiled_source == 0) {
         new_buffer = GlobalAlloc(0, new_size);
     } else {
         if (new_size == 0) {
-            GlobalFree(hs_compiled_source);
+            GlobalFree(halo::hs::globals().compiled_source);
             return 0;
         }
-        new_buffer = GlobalReAlloc(hs_compiled_source, new_size, 2);
+        new_buffer = GlobalReAlloc(halo::hs::globals().compiled_source, new_size, 2);
     }
     if (new_buffer == 0) {
         return 0;
     }
-    result = (char *)new_buffer + hs_compiled_source_length;
+    result = (char *)new_buffer + halo::hs::globals().compiled_source_length;
     dest = result;
-    hs_compiled_source = (char *)new_buffer;
+    halo::hs::globals().compiled_source = (char *)new_buffer;
     for (words = length >> 2; words != 0; words = words - 1) {
         *(uint32_t *)dest = *(uint32_t *)text;
         text = text + 4;
@@ -163,8 +145,8 @@ char *SourceTokenizer::source_buffer_append(char *text, uint32_t length) const
         text = text + 1;
         dest = dest + 1;
     }
-    hs_compiled_source_length = hs_compiled_source_length + length;
-    hs_compiled_source[hs_compiled_source_length] = 0;
+    halo::hs::globals().compiled_source_length = halo::hs::globals().compiled_source_length + length;
+    halo::hs::globals().compiled_source[halo::hs::globals().compiled_source_length] = 0;
     return result;
 }
 
@@ -180,10 +162,10 @@ datum_index SourceTokenizer::tokenize(char **cursor) const
     datum_index index;
     hs_syntax_node *node;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     index = halo::memory::datum_new(nodes);
     if (index == k_datum_index_none) {
-        hs_compile_error = (char *)"i couldn't allocate a syntax node.";
+        halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
         return k_datum_index_none;
     }
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (index & halo::k_slot_mask) * nodes->size);
@@ -193,10 +175,10 @@ datum_index SourceTokenizer::tokenize(char **cursor) const
     node->type = 0;
     node->flags = (uint16_t)(**cursor != '(');
     if ((node->flags & _hs_syntax_node_primitive_bit) != 0) {
-        hs_tokenize_primitive(cursor, index);
+        halo::hs::hs_tokenize_primitive(cursor, index);
         return index;
     }
-    hs_tokenize_nonprimitive(index, cursor);
+    halo::hs::hs_tokenize_nonprimitive(index, cursor);
     return index;
 }
 
@@ -215,24 +197,24 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
     char *prev_cursor;
     datum_index child_index;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
-    node->source_offset = (int32_t)(*cursor - hs_compiled_source);
+    node->source_offset = (int32_t)(*cursor - halo::hs::globals().compiled_source);
     *cursor = *cursor + 1;
     first_child_slot = &node->data;
     child_slot = first_child_slot;
     for (;;) {
-        if (hs_compile_error != 0) {
+        if (halo::hs::globals().compile_error != 0) {
             goto empty_check;
         }
         prev_cursor = *cursor;
-        skip_whitespace(cursor);
+        halo::hs::skip_whitespace(cursor);
         if (*cursor != prev_cursor) {
             *prev_cursor = '\0';
         }
         if (**cursor == '\0') {
-            hs_compile_error = (char *)"this left parenthesis is unmatched.";
-            hs_compile_error_offset = node->source_offset;
+            halo::hs::globals().compile_error = (char *)"this left parenthesis is unmatched.";
+            halo::hs::globals().compile_error_offset = node->source_offset;
             goto empty_check;
         }
         if (**cursor == ')') {
@@ -240,16 +222,16 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
             *cursor = *cursor + 1;
             goto empty_check;
         }
-        child_index = hs_tokenize(cursor);
+        child_index = halo::hs::hs_tokenize(cursor);
         *(datum_index *)child_slot = child_index;
         if (child_index != k_datum_index_none) {
-            child_slot = (uint8_t *)hs_syntax_data->data + 8 + (child_index & halo::k_slot_mask) * hs_syntax_data->size;
+            child_slot = (uint8_t *)halo::hs::globals().syntax_data->data + 8 + (child_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size;
         }
         continue;
     empty_check:
-        if ((child_slot == first_child_slot) && (hs_compile_error == 0)) {
-            hs_compile_error = (char *)"this expression is empty.";
-            hs_compile_error_offset = node->source_offset;
+        if ((child_slot == first_child_slot) && (halo::hs::globals().compile_error == 0)) {
+            halo::hs::globals().compile_error = (char *)"this expression is empty.";
+            halo::hs::globals().compile_error_offset = node->source_offset;
         }
         return;
     }
@@ -269,11 +251,11 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
     char c;
     int16_t i;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
     start = *cursor;
     if (*start == '"') {
         *cursor = start + 1;
-        node->source_offset = (int32_t)(start + 1 - hs_compiled_source);
+        node->source_offset = (int32_t)(start + 1 - halo::hs::globals().compiled_source);
         c = **cursor;
         while ((c != '\0') && (**cursor != '"')) {
             p = *cursor + 1;
@@ -281,13 +263,13 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
             c = *p;
         }
         if (**cursor == '\0') {
-            hs_compile_error = (char *)"this quoted constant is unterminated.";
-            hs_compile_error_offset = node->source_offset - 1;
+            halo::hs::globals().compile_error = (char *)"this quoted constant is unterminated.";
+            halo::hs::globals().compile_error_offset = node->source_offset - 1;
         }
         **cursor = '\0';
         *cursor = *cursor + 1;
     } else {
-        node->source_offset = (int32_t)(start - hs_compiled_source);
+        node->source_offset = (int32_t)(start - halo::hs::globals().compiled_source);
         if (**cursor != '\0') {
             for (;;) {
                 c = **cursor;
@@ -317,8 +299,8 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
         }
     }
 done:
-    if (hs_preserve_token_case == 0) {
-        halo::cseries::string_to_lowercase(hs_compiled_source + node->source_offset);
+    if (halo::hs::globals().preserve_token_case == 0) {
+        halo::cseries::string_to_lowercase(halo::hs::globals().compiled_source + node->source_offset);
     }
 }
 
@@ -333,8 +315,8 @@ char SourceTokenizer::verify_source_offset(int32_t offset) const
     char valid;
 
     valid = 1;
-    if ((offset < 0) || (hs_compiled_source_length <= offset)) {
-        hs_compile_error = (char *)"bad source offset (you need to recompile.)";
+    if ((offset < 0) || (halo::hs::globals().compiled_source_length <= offset)) {
+        halo::hs::globals().compile_error = (char *)"bad source offset (you need to recompile.)";
         valid = 0;
     }
     return valid;
@@ -402,7 +384,7 @@ top:
     } else {
         p = *cursor;
         if (*p == '\0') {
-            hs_compile_error = (char *)"unterminated comment.";
+            halo::hs::globals().compile_error = (char *)"unterminated comment.";
             return;
         }
         if ((*p == '*') && (p[1] == ';')) {

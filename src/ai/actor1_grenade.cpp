@@ -8,15 +8,9 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
-extern "C" {
-extern data_array *actor_data;
-extern ai_globals *ai_globals_ptr;
-
-extern void encounter_recompute_morale(datum_index encounter_index);
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 
 static uint32_t actor_death_random_16(void)
@@ -25,9 +19,7 @@ static uint32_t actor_death_random_16(void)
     return halo::math::globals().random_seed_global >> 16;
 }
 }
-}
 
-extern "C" void actor_attempt_grenade_throw(datum_index actor_index);
 
 /**
  * actor_attempt_grenade_throw: behaviour unchanged from the original routine. The original author notes and decompile
@@ -39,7 +31,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
 {
     using namespace c_actor_attempt_grenade_throw;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_variant_tag & halo::k_slot_mask].data;
     datum_index encounter = ((actor *)a)->encounter_index;
     uint8_t *unit;
@@ -90,7 +82,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
     unit = OBJECT_DATA(((actor *)a)->unit_index);
     weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? *(datum_index *)(unit + 0x2f8 + ((unit_object *)unit)->unit.current_weapon_index * 4)
                                               : k_datum_index_none;
-    if (!ai_globals_ptr->grenades_enabled || roll < ((ActorVariant *)variant)->don_t_drop_grenades_chance) {
+    if (!halo::ai::globals().state->grenades_enabled || roll < ((ActorVariant *)variant)->don_t_drop_grenades_chance) {
         *(int16_t *)(unit + 0x31e) = 0;
     }
     if (weapon != k_datum_index_none) {
@@ -112,34 +104,30 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
             halo::items::weapon_set_ammo_counts(weapon, counts);
         }
     }
-    actor_delete(actor_index, 1);
+    halo::ai::actor_delete(actor_index, 1);
     if (encounter != k_datum_index_none) {
-        encounter_recompute_morale(encounter);
+        halo::ai::encounter_recompute_morale(encounter);
     }
 }
 
-extern "C" void actor_attempt_grenade_throw(datum_index actor_index)
+namespace halo::ai {
+void actor_attempt_grenade_throw(datum_index actor_index)
 {
     halo::ai::grenade_ops(actor_index).attempt_grenade_throw();
+}
 }
 
 #undef OBJECT_DATA
 
 namespace c_actor_can_throw_grenade_at_target {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *encounter_data;
 extern game_time_globals *game_time;
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 
-extern uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship);
-extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count);
-extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index);
 }
 }
 
-extern "C" uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 
 /**
  * actor_can_throw_grenade_at_target: behaviour unchanged from the original routine. The original author notes and decompile
@@ -161,7 +149,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
     float random_wait;
     int16_t random_wait_ticks;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
     now = game_time->game_time;
 
@@ -170,7 +158,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        encounter *enc = (encounter *)((uint8_t *)encounter_data->data +
+        encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
                                         (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
         int32_t squad_deadline = enc->last_grenade_time;
 
@@ -187,32 +175,30 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
         }
     }
 
-    if (actor_find_grenade_landing_spot(actor_index, &point, &target_handle, &relationship) != 0 &&
-        actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,
+    if (halo::ai::actor_find_grenade_landing_spot(actor_index, &point, &target_handle, &relationship) != 0 &&
+        halo::ai::actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,
                      ((ActorVariant *)variant)->collateral_damage_radius, &point, &hostile_count) != 0 &&
         ((ActorVariant *)variant)->minimum_enemy_count <= (int16_t)hostile_count &&
-        actor_commit_grenade_toss(actor_index, &point, target_handle, (uint32_t)relationship) != 0) {
+        halo::ai::actor_commit_grenade_toss(actor_index, &point, target_handle, (uint32_t)relationship) != 0) {
         return 1;
     }
     return 0;
 }
 
-extern "C" uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
 {
     return halo::ai::grenade_ops(actor_index).can_throw_grenade_at_target();
+}
 }
 
 namespace c_actor_check_grenade_facing_and_commit {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *encounter_data;
 extern game_time_globals *game_time;
 
-extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 }
 }
 
-extern "C" uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
 
 /**
  * actor_check_grenade_facing_and_commit: behaviour unchanged from the original routine. The original author notes and decompile
@@ -230,7 +216,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
     object *unit_obj;
     real body_damage;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     unit_index = self->unit_index;
 
     if (halo::units::unit_is_in_busy_animation_state(self->unit_index) != 0) {
@@ -245,7 +231,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
     }
 
     if (force_commit == 0) {
-        if (actor_can_throw_grenade_at_target(actor_index) == 0) {
+        if (halo::ai::actor_can_throw_grenade_at_target(actor_index) == 0) {
             self->grenade_throw_pending = 0;
         }
     }
@@ -263,7 +249,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
                 self->throw_grenade = 1;
                 self->grenade_throw_pending = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
-                    encounter *enc = (encounter *)((uint8_t *)encounter_data->data +
+                    encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
                                                     (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
                     enc->last_grenade_time = game_time->game_time;
                 }
@@ -274,25 +260,16 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
     return 0;
 }
 
-extern "C" uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit)
+namespace halo::ai {
+uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit)
 {
     return halo::ai::grenade_ops(actor_index).check_grenade_facing_and_commit(force_commit);
 }
+}
 
 namespace c_actor_commit_grenade_toss {
-extern "C" {
-extern data_array *actor_data;
-
-extern uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin,
-    float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity,
-    float *out_gravity);
-extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
-    real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
-    uint8_t wide_mask);
-}
 }
 
-extern "C" uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index);
 
 /**
  * actor_commit_grenade_toss: behaviour unchanged from the original routine. The original author notes and decompile
@@ -304,7 +281,7 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
 {
     using namespace c_actor_commit_grenade_toss;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *variant = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_variant_tag & halo::k_slot_mask].data;
     real_point3d origin = *(real_point3d *)&((actor *)a)->aim_origin.x;
     real_vector3d direction;
@@ -313,12 +290,12 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     float flight_time;
     float gravity;
 
-    if (!actor_get_grenade_launch_velocity(*(int16_t *)&((ActorVariant *)variant)->grenade_type, &direction, &origin,
+    if (!halo::ai::actor_get_grenade_launch_velocity(*(int16_t *)&((ActorVariant *)variant)->grenade_type, &direction, &origin,
                                            ((ActorVariant *)variant)->grenade_velocity, point, 0, &speed, &flight_time,
                                            &velocity, &gravity)) {
         return 0;
     }
-    if (!actor_grenade_parabolic_path_clear(&velocity, actor_index, &origin, flight_time, gravity, exclude_object_index,
+    if (!halo::ai::actor_grenade_parabolic_path_clear(&velocity, actor_index, &origin, flight_time, gravity, exclude_object_index,
                                             (uint8_t)(((actor *)a)->active_unit_index != k_datum_index_none))) {
         return 0;
     }
@@ -331,21 +308,16 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     return 1;
 }
 
-extern "C" uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index)
+namespace halo::ai {
+uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index)
 {
     return halo::ai::grenade_ops(actor_index).commit_grenade_toss(point, object_handle, exclude_object_index);
 }
+}
 
 namespace c_actor_compute_grenade_aim_direction {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-
-extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]);
-}
 }
 
-extern "C" uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
 
 /**
  * actor_compute_grenade_aim_direction: behaviour unchanged from the original routine. The original author notes and decompile
@@ -360,14 +332,14 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
     actor *self;
     uint32_t result;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     result = (uint32_t)-1;
 
     if (self->firing_state == 2) {
         real_vector3d aim_from;
 
         if (self->firing_target_type == 1 && self->firing_target_prop_index != (uint32_t)-1) {
-            prop *p = (prop *)((uint8_t *)prop_data->data + (self->firing_target_prop_index & halo::k_slot_mask) * sizeof(prop));
+            prop *p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->firing_target_prop_index & halo::k_slot_mask) * sizeof(prop));
             if (1 < p->state && p->state < 4) {
                 result = p->object_index;
             }
@@ -382,7 +354,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
             *out_direction = self->firing_vector;
         }
 
-        actor_get_aim_from_position(actor_index, (uint32_t *)&aim_from);
+        halo::ai::actor_get_aim_from_position(actor_index, (uint32_t *)&aim_from);
 
         if (!(aim_from.i * out_direction->i + aim_from.j * out_direction->j + aim_from.k * out_direction->k >= 0.8660254f)) {
             uint8_t should_rotate = 1;
@@ -405,24 +377,21 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
     return result;
 }
 
-extern "C" uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698)
+namespace halo::ai {
+uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698)
 {
     return halo::ai::grenade_ops(actor_index).compute_grenade_aim_direction(target_point, out_direction, out_698);
+}
 }
 
 namespace c_actor_consider_grenade_throw {
 extern "C" {
-extern data_array *actor_data;
-extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time;
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
-extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
 }
 }
 
-extern "C" uint8_t actor_consider_grenade_throw(datum_index actor_index);
 
 /**
  * actor_consider_grenade_throw: behaviour unchanged from the original routine. The original author notes and decompile
@@ -438,13 +407,13 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
     ActorVariant *variant;
     int32_t now;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     if (self->grenade_throw_pending != 0) {
         return 1;
     }
-    if (ai_globals_ptr->grenades_enabled == 0 || variant->grenade_stimulus == -1 ||
+    if (halo::ai::globals().state->grenades_enabled == 0 || variant->grenade_stimulus == -1 ||
         variant->minimum_enemy_count == -1) {
         return 0;
     }
@@ -463,31 +432,25 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
 
         self->last_grenade_check_time = now;
         roll = halo::math::random_real();
-        if (roll < scaled && actor_can_throw_grenade_at_target(actor_index) != 0) {
+        if (roll < scaled && halo::ai::actor_can_throw_grenade_at_target(actor_index) != 0) {
             self->grenade_throw_pending = 1;
-            actor_check_grenade_facing_and_commit(actor_index, 1);
+            halo::ai::actor_check_grenade_facing_and_commit(actor_index, 1);
             return 1;
         }
     }
     return 0;
 }
 
-extern "C" uint8_t actor_consider_grenade_throw(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_consider_grenade_throw(datum_index actor_index)
 {
     return halo::ai::grenade_ops(actor_index).consider_grenade_throw();
 }
+}
 
 namespace c_actor_evaluate_grenade_target_position {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
-    uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param);
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
-}
 }
 
-extern "C" uint8_t actor_evaluate_grenade_target_position(datum_index actor_index);
 
 /**
  * actor_evaluate_grenade_target_position: behaviour unchanged from the original routine. The original author notes and decompile
@@ -499,7 +462,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
 {
     using namespace c_actor_evaluate_grenade_target_position;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t queued = 0;
     uint8_t *unit_tag;
     uint8_t *actor_tag;
@@ -517,7 +480,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
     }
     unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
         [((actor *)a)->unit_index & halo::k_slot_mask].data) & halo::k_slot_mask].data;
-    p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & halo::k_slot_mask) * k_prop_size;
+    p = (uint8_t *)halo::ai::globals().prop_data->data + (((actor *)a)->target_unit_index & halo::k_slot_mask) * k_prop_size;
     if (!(*(float *)(unit_tag + 0x234) > 0.0f)) {
         return 0;
     }
@@ -547,31 +510,27 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
         direction.i = *(float *)(p + 0xe0);
         direction.j = *(float *)(p + 0xe4);
         halo::math::vector2d_normalize_with_length(direction);
-        if (!actor_probe_step_direction(actor_index, *(float *)(unit_tag + 0x234), &direction, &side, 0.0f, &flag, extra)) {
+        if (!halo::ai::actor_probe_step_direction(actor_index, *(float *)(unit_tag + 0x234), &direction, &side, 0.0f, &flag, extra)) {
             return 0;
         }
         action = (int16_t)side == 1 ? 7 : 6;
         if (halo::units::unit_scripted_action_animation_exists(((actor *)a)->unit_index, action)) {
-            queued = actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
+            queued = halo::ai::actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
         }
     }
     return queued;
 }
 
-extern "C" uint8_t actor_evaluate_grenade_target_position(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_evaluate_grenade_target_position(datum_index actor_index)
 {
     return halo::ai::grenade_ops(actor_index).evaluate_grenade_target_position();
 }
+}
 
 namespace c_actor_find_grenade_landing_spot {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern void actor_choose_random_point_near(real_point3d *inout_point, float radius);
-}
 }
 
-extern "C" uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship);
 
 /**
  * actor_find_grenade_landing_spot: behaviour unchanged from the original routine. The original author notes and decompile
@@ -587,11 +546,11 @@ uint8_t halo::ai::grenade_ops::find_grenade_landing_spot(real_point3d *out_point
     ActorVariant *variant;
     uint8_t result = 0;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     if (self->target_unit_index != (datum_index)k_datum_index_none) {
-        prop *target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
+        prop *target_prop = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
         if (target_prop->enemy != 0 && target_prop->dead == 0) {
             int16_t kind = target_prop->state;
             if ((1 < kind && kind < 4) || kind == 4) {
@@ -604,7 +563,7 @@ uint8_t halo::ai::grenade_ops::find_grenade_landing_spot(real_point3d *out_point
                     *out_target_handle = self->target_unit_index;
                     *out_relationship = target_prop->relationship_object_index;
                     if (self->playfight != 0) {
-                        actor_choose_random_point_near(out_point, 1.5f);
+                        halo::ai::actor_choose_random_point_near(out_point, 1.5f);
                     }
                 }
             }
@@ -613,31 +572,24 @@ uint8_t halo::ai::grenade_ops::find_grenade_landing_spot(real_point3d *out_point
     return result;
 }
 
-extern "C" uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship)
+namespace halo::ai {
+uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship)
 {
     return halo::ai::grenade_ops(actor_index).find_grenade_landing_spot(out_point, out_target_handle, out_relationship);
+}
 }
 
 namespace c_actor_find_nearest_grenade_ally {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern ai_globals *ai_globals_ptr;
 
-extern uint8_t actor_validate_grenade_ally_candidate(datum_index candidate_actor, uint8_t caller_type_flag);
-extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor);
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index,
-    char create_if_missing, uint32_t flag);
 
 extern double sqrt(double x);
 
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
 
-extern "C" int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search);
 
 /**
  * actor_find_nearest_grenade_ally: behaviour unchanged from the original routine. The original author notes and decompile
@@ -667,7 +619,7 @@ int32_t halo::ai::grenade_ops::find_nearest_grenade_ally(uint8_t widen_search)
         if (widen_search && !(((struct prop *)p)->state >= 2 && ((struct prop *)p)->state <= 3)) {
             continue;
         }
-        if (!actor_validate_grenade_ally_candidate(((struct prop *)p)->owner_actor_index, widen_search)) {
+        if (!halo::ai::actor_validate_grenade_ally_candidate(((struct prop *)p)->owner_actor_index, widen_search)) {
             continue;
         }
         seen++;
@@ -680,21 +632,21 @@ int32_t halo::ai::grenade_ops::find_nearest_grenade_ally(uint8_t widen_search)
         datum_index cursor[3];
         datum_index candidate;
 
-        ai_reference_actor_iterator_init_cursor(*(int32_t *)&((struct actor *)self)->encounter_index, cursor);
+        halo::ai::ai_reference_actor_iterator_init_cursor(*(int32_t *)&((struct actor *)self)->encounter_index, cursor);
         candidate = cursor[2];
-        while (ai_globals_ptr->actors_valid && candidate != k_datum_index_none) {
+        while (halo::ai::globals().state->actors_valid && candidate != k_datum_index_none) {
             uint8_t *other = ACTOR(candidate);
             datum_index unit = ((struct actor *)other)->unit_index;
             datum_index current = candidate;
             datum_index prop;
 
             candidate = ((struct actor *)other)->next_in_encounter;
-            if (unit == k_datum_index_none || !actor_validate_grenade_ally_candidate(current, widen_search)) {
+            if (unit == k_datum_index_none || !halo::ai::actor_validate_grenade_ally_candidate(current, widen_search)) {
                 continue;
             }
-            prop = actor_find_prop_for_object(unit, actor_index);
+            prop = halo::ai::actor_find_prop_for_object(unit, actor_index);
             if (prop == k_datum_index_none) {
-                prop = actor_find_or_create_shared_prop(unit, actor_index, 1, 0);
+                prop = halo::ai::actor_find_or_create_shared_prop(unit, actor_index, 1, 0);
                 if (prop == k_datum_index_none) {
                     continue;
                 }
@@ -720,29 +672,19 @@ int32_t halo::ai::grenade_ops::find_nearest_grenade_ally(uint8_t widen_search)
     return seen;
 }
 
-extern "C" int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search)
+namespace halo::ai {
+int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search)
 {
     return halo::ai::grenade_ops(actor_index).find_nearest_grenade_ally(widen_search);
+}
 }
 
 #undef ACTOR
 #undef PROP
 
 namespace c_actor_gather_nearby_grenade_targets {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *encounter_data;
-extern data_array *prop_data;
-extern ai_globals *ai_globals_ptr;
-
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry,
-                                                datum_index object_index,
-                                                datum_index prop_index);
-}
 }
 
-extern "C" int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count, ai_grenade_avoidance_entry *out_entries);
 
 /**
  * actor_gather_nearby_grenade_targets: behaviour unchanged from the original routine. The original author notes and decompile
@@ -764,21 +706,21 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
     datum_index prop_index_out;
     int16_t count;
 
-    self = &((actor *)actor_data->data)[source_actor_index & halo::k_slot_mask];
+    self = &((actor *)halo::ai::globals().actor_data->data)[source_actor_index & halo::k_slot_mask];
     count = 0;
     cursor = self->encounter_index;
 
     if (cursor != (datum_index)k_datum_index_none) {
-        if (ai_globals_ptr->actors_valid) {
-            cursor = ((encounter *)encounter_data->data)[cursor & halo::k_slot_mask].first_actor;
+        if (halo::ai::globals().state->actors_valid) {
+            cursor = ((encounter *)halo::ai::globals().encounter_data->data)[cursor & halo::k_slot_mask].first_actor;
         }
-        while (ai_globals_ptr->actors_valid && cursor != (datum_index)k_datum_index_none) {
-            other = &((actor *)actor_data->data)[cursor & halo::k_slot_mask];
+        while (halo::ai::globals().state->actors_valid && cursor != (datum_index)k_datum_index_none) {
+            other = &((actor *)halo::ai::globals().actor_data->data)[cursor & halo::k_slot_mask];
             if (cursor != source_actor_index && count < maximum_count &&
                 other->unit_index != (datum_index)k_datum_index_none &&
                 other->active_unit_index == (datum_index)k_datum_index_none) {
-                prop_index_out = actor_find_prop_for_object(other->unit_index, source_actor_index);
-                actor_grenade_avoidance_entry_init(&out_entries[count], other->unit_index, prop_index_out);
+                prop_index_out = halo::ai::actor_find_prop_for_object(other->unit_index, source_actor_index);
+                halo::ai::actor_grenade_avoidance_entry_init(&out_entries[count], other->unit_index, prop_index_out);
                 count = count + 1;
             }
             cursor = other->next_in_encounter;
@@ -787,7 +729,7 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
 
     prop_cursor = self->first_prop;
     while (prop_cursor != (datum_index)k_datum_index_none) {
-        p = &((prop *)prop_data->data)[prop_cursor & halo::k_slot_mask];
+        p = &((prop *)halo::ai::globals().prop_data->data)[prop_cursor & halo::k_slot_mask];
         next_prop = p->next_in_actor;
 
         if (p->enemy == 0 && p->dead == 0 && p->state == 3 &&
@@ -797,11 +739,11 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
                 int excluded = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none &&
                     p->owner_actor_index != (datum_index)k_datum_index_none) {
-                    prop_owner_actor = &((actor *)actor_data->data)[p->owner_actor_index & halo::k_slot_mask];
+                    prop_owner_actor = &((actor *)halo::ai::globals().actor_data->data)[p->owner_actor_index & halo::k_slot_mask];
                     excluded = (prop_owner_actor->encounter_index == self->encounter_index);
                 }
                 if (!excluded && count < maximum_count) {
-                    actor_grenade_avoidance_entry_init(&out_entries[count], p->object_index, prop_cursor);
+                    halo::ai::actor_grenade_avoidance_entry_init(&out_entries[count], p->object_index, prop_cursor);
                     count = count + 1;
                 }
             }
@@ -812,23 +754,20 @@ int16_t halo::ai::grenade_ops::gather_nearby_grenade_targets(datum_index source_
     return count;
 }
 
-extern "C" int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count, ai_grenade_avoidance_entry *out_entries)
+namespace halo::ai {
+int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count, ai_grenade_avoidance_entry *out_entries)
 {
     return halo::ai::grenade_ops::gather_nearby_grenade_targets(source_actor_index, maximum_count, out_entries);
+}
 }
 
 namespace c_actor_get_grenade_launch_velocity {
 extern "C" {
-extern Globals *global_globals;
+extern ::Globals *global_globals;
 
-extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
-    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
-    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
-    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
 }
 }
 
-extern "C" uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin, float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity, float *out_gravity);
 
 /**
  * actor_get_grenade_launch_velocity: behaviour unchanged from the original routine. The original author notes and decompile
@@ -860,7 +799,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
     }
 
     used_straight_line = 0;
-    if (projectile_get_aiming_vector(point, &range, (Projectile *)projectile_definition,
+    if (halo::ai::projectile_get_aiming_vector(point, &range, (Projectile *)projectile_definition,
             (real_point3d *)origin, 0, (real *)(uintptr_t)max_time, 0, 0, direction, speed,
             (real *)out_time_or_fraction, 0, &used_straight_line) == 0) {
         return 0;
@@ -884,17 +823,16 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
     return 1;
 }
 
-extern "C" uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin, float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity, float *out_gravity)
+namespace halo::ai {
+uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin, float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity, float *out_gravity)
 {
     return halo::ai::grenade_ops::get_grenade_launch_velocity(grenade_type, direction, origin, range, point, max_time, speed, out_time_or_fraction, out_velocity, out_gravity);
 }
+}
 
 namespace c_actor_grenade_avoidance_entry_init {
-extern "C" {
-}
 }
 
-extern "C" void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry, datum_index object_index, datum_index prop_index);
 
 /**
  * actor_grenade_avoidance_entry_init: behaviour unchanged from the original routine. The original author notes and decompile
@@ -918,18 +856,16 @@ void halo::ai::grenade_ops::avoidance_entry_init(ai_grenade_avoidance_entry *ent
     entry->object_index = object_index;
 }
 
-extern "C" void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry, datum_index object_index, datum_index prop_index)
+namespace halo::ai {
+void actor_grenade_avoidance_entry_init(ai_grenade_avoidance_entry *entry, datum_index object_index, datum_index prop_index)
 {
     halo::ai::grenade_ops::avoidance_entry_init(entry, object_index, prop_index);
 }
+}
 
 namespace c_actor_grenade_behavior_kind_allowed {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind);
 
 /**
  * actor_grenade_behavior_kind_allowed: behaviour unchanged from the original routine. The original author notes and decompile
@@ -941,7 +877,7 @@ uint8_t halo::ai::grenade_ops::behavior_kind_allowed(int16_t kind)
 {
     using namespace c_actor_grenade_behavior_kind_allowed;
     datum_index actor_index = datum;
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (kind == 1) {
         return self->firing_target_type == 1 && 7 < self->target_combat_status;
@@ -956,21 +892,16 @@ uint8_t halo::ai::grenade_ops::behavior_kind_allowed(int16_t kind)
     return 0;
 }
 
-extern "C" uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind)
+namespace halo::ai {
+uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind)
 {
     return halo::ai::grenade_ops(actor_index).behavior_kind_allowed(kind);
 }
+}
 
 namespace c_actor_grenade_parabolic_path_clear {
-extern "C" {
-extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
-                                                     ai_grenade_avoidance_entry *out_entries);
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch);
-}
 }
 
-extern "C" uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index, real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index, uint8_t wide_mask);
 
 /**
  * actor_grenade_parabolic_path_clear: behaviour unchanged from the original routine. The original author notes and decompile
@@ -993,7 +924,7 @@ uint8_t halo::ai::grenade_ops::parabolic_path_clear(real_vector3d *initial_veloc
     uint8_t scratch[0x50];
     int16_t i;
 
-    nearby_count = actor_gather_nearby_grenade_targets(source_actor_index, 32, entries);
+    nearby_count = halo::ai::actor_gather_nearby_grenade_targets(source_actor_index, 32, entries);
     collision_mask = wide_mask ? 0xc0b3u : 0xc2b3u;
 
     position = *start_position;
@@ -1040,20 +971,16 @@ uint8_t halo::ai::grenade_ops::parabolic_path_clear(real_vector3d *initial_veloc
     return clear;
 }
 
-extern "C" uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index, real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index, uint8_t wide_mask)
+namespace halo::ai {
+uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index, real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index, uint8_t wide_mask)
 {
     return halo::ai::grenade_ops::parabolic_path_clear(initial_velocity, source_actor_index, start_position, total_time, vertical_acceleration, exclude_object_index, wide_mask);
 }
+}
 
 namespace c_actor_grenade_trace_from_source {
-extern "C" {
-extern data_array *actor_data;
-
-
-}
 }
 
-extern "C" int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point);
 
 /**
  * actor_grenade_trace_from_source: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1065,7 +992,7 @@ int32_t halo::ai::grenade_ops::trace_from_source(real_point3d *target_point)
 {
     using namespace c_actor_grenade_trace_from_source;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     real_point3d source;
     real_vector3d delta;
     uint8_t trace_result[80];
@@ -1088,19 +1015,16 @@ int32_t halo::ai::grenade_ops::trace_from_source(real_point3d *target_point)
     return 1;
 }
 
-extern "C" int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point)
+namespace halo::ai {
+int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point)
 {
     return halo::ai::grenade_ops(actor_index).trace_from_source(target_point);
 }
+}
 
 namespace c_actor_grenade_trajectory_blocked {
-extern "C" {
-extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
-                                                     ai_grenade_avoidance_entry *out_entries);
-}
 }
 
-extern "C" uint8_t actor_grenade_trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index, datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop);
 
 /**
  * actor_grenade_trajectory_blocked: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1120,7 +1044,7 @@ uint8_t halo::ai::grenade_ops::trajectory_blocked(real_vector3d *trajectory_dire
 
     clear = 1;
     blocking_prop = -1;
-    count = actor_gather_nearby_grenade_targets(source_actor_index, 32, entries);
+    count = halo::ai::actor_gather_nearby_grenade_targets(source_actor_index, 32, entries);
 
     for (i = 0; i < count; i++) {
         if (entries[i].object_index == exclude_object_index) {
@@ -1151,8 +1075,10 @@ uint8_t halo::ai::grenade_ops::trajectory_blocked(real_vector3d *trajectory_dire
     return clear;
 }
 
-extern "C" uint8_t actor_grenade_trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index, datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop)
+namespace halo::ai {
+uint8_t actor_grenade_trajectory_blocked(real_vector3d *trajectory_direction, datum_index source_actor_index, datum_index exclude_object_index, real_point3d *landing_position, int32_t *out_blocking_prop)
 {
     return halo::ai::grenade_ops::trajectory_blocked(trajectory_direction, source_actor_index, exclude_object_index, landing_position, out_blocking_prop);
+}
 }
 

@@ -1,14 +1,11 @@
 #include "halo/hs/hs2_commands.hpp"
 
 #include "interface.h"
+#include "halo/hs/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern hud_messaging_globals *hud_messaging;
 #ifdef __cplusplus
 }
@@ -24,15 +21,15 @@ namespace halo::hs {
  */
 void HudCommands::evaluate_hud_set_timer_warning_time(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint16_t seconds = (uint16_t)(*(uint16_t *)&arguments[0] * 0x3c + *(uint16_t *)&arguments[1]);
 
     *(uint16_t *)&hud_messaging->timer_warning_ticks = (uint16_t)((uint32_t)seconds * 0x1e);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 

@@ -5,14 +5,11 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_resolve_flee_source_point_local {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-}
 }
 
 /**
@@ -31,7 +28,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
     object *target_object;
     float length;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     switch (reason->code) {
     case 0:
@@ -42,7 +39,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
         break;
 
     case 1: {
-        target_prop = (prop *)halo::memory::datum_get(reason->payload.handle, prop_data);
+        target_prop = (prop *)halo::memory::datum_get(reason->payload.handle, halo::ai::globals().prop_data);
         if (target_prop == 0) {
             return 0;
         }
@@ -65,7 +62,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
         if (self->target_unit_index == (datum_index)k_datum_index_none) {
             return 0;
         }
-        target_prop = &((prop *)prop_data->data)[self->target_unit_index & halo::k_slot_mask];
+        target_prop = &((prop *)halo::ai::globals().prop_data->data)[self->target_unit_index & halo::k_slot_mask];
         out->i = target_prop->center_of_mass.x - self->aim_origin.x;
         out->j = target_prop->center_of_mass.y - self->aim_origin.y;
         out->k = target_prop->center_of_mass.z - self->aim_origin.z;

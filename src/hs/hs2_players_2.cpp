@@ -3,15 +3,12 @@
 #include "objects.h"
 #include "effects.h"
 #include "halo/effects/api.hpp"
+#include "halo/hs/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern uint8_t *player_control_globals_ptr;
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
 extern long lrint(double x);
 #ifdef __cplusplus
 }
@@ -29,7 +26,7 @@ void PlayerCommands::evaluate_player_action_test_action(int16_t function_index, 
 {
     *(uint32_t *)(player_control_globals_ptr + 4) |= 1;
     *(uint32_t *)(player_control_globals_ptr + 8) |= 1;
-    hs_thread_return((int32_t)(player_control_globals_ptr[0] & 1), thread_index);
+    halo::hs::hs_thread_return((int32_t)(player_control_globals_ptr[0] & 1), thread_index);
 }
 
 /**
@@ -40,8 +37,8 @@ void PlayerCommands::evaluate_player_action_test_action(int16_t function_index, 
  */
 void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -52,7 +49,7 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
     halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
     halo::effects::globals().player_effect_state->scripted_shake_duration = ticks;
     halo::effects::globals().player_effect_state->scripted_shake_flags = (halo::effects::globals().player_effect_state->scripted_shake_flags & 0xfffffffd) | 1;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -64,8 +61,8 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
  */
 void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -75,7 +72,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
     halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
     halo::effects::globals().player_effect_state->scripted_shake_duration = ticks;
     halo::effects::globals().player_effect_state->scripted_shake_flags |= 2;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -88,7 +85,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
 void PlayerCommands::evaluate_players_unzoom_all(int16_t function_index, uint32_t thread_index, char first)
 {
     *(int16_t *)(player_control_globals_ptr + 0x34) = -1;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 }

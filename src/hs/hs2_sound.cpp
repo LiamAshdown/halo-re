@@ -6,21 +6,15 @@
 #include "halo/sound/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/hs/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
 extern uint8_t *global_sound_effect_object;
 extern float sound_effects_gain;
-extern float *hs_sound_get_gain_reference(char *name);
 extern float sound_master_gain;
 extern int16_t sound_supplementary_buffers_00746122;
-extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale);
-extern void sound_impulse_fade_out(datum_index sound_index);
 extern game_time_globals *game_time;
 #ifdef __cplusplus
 }
@@ -37,7 +31,7 @@ namespace halo::hs {
 void SoundCommands::evaluate_sound_cache_dump_to_file(int16_t function_index, uint32_t thread_index, char first)
 {
     halo::cache::sound_cache_dump_to_file();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -48,13 +42,13 @@ void SoundCommands::evaluate_sound_cache_dump_to_file(int16_t function_index, ui
  */
 void SoundCommands::evaluate_sound_class_set_gain(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::sound_class_set_gain_by_name((char *)arguments[0], *(float *)&arguments[1], *(int16_t *)&arguments[2]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -73,7 +67,7 @@ void SoundCommands::evaluate_sound_eax_enabled(int16_t function_index, uint32_t 
 
         enabled = (uint8_t)(mode == 0 || mode == 1 || mode == 2);
     }
-    hs_thread_return((int32_t)enabled, thread_index);
+    halo::hs::hs_thread_return((int32_t)enabled, thread_index);
 }
 
 /**
@@ -84,13 +78,13 @@ void SoundCommands::evaluate_sound_eax_enabled(int16_t function_index, uint32_t 
  */
 void SoundCommands::evaluate_sound_enable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::globals().enabled = *(uint8_t *)&arguments[0];
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -102,13 +96,13 @@ void SoundCommands::evaluate_sound_enable(int16_t function_index, uint32_t threa
  */
 void SoundCommands::evaluate_sound_enable_eax(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::sound::sound_effects_object_reinitialize((int)*(uint8_t *)&arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -120,13 +114,13 @@ void SoundCommands::evaluate_sound_enable_eax(int16_t function_index, uint32_t t
  */
 void SoundCommands::evaluate_sound_enable_hardware(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::sound::sound_driver_set_eax_enabled((uint8_t)arguments[0], (uint8_t)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -138,7 +132,7 @@ void SoundCommands::evaluate_sound_enable_hardware(int16_t function_index, uint3
  */
 void SoundCommands::evaluate_sound_get_effects_gain(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return(*(int32_t *)&sound_effects_gain, thread_index);
+    halo::hs::hs_thread_return(*(int32_t *)&sound_effects_gain, thread_index);
 }
 
 /**
@@ -149,14 +143,14 @@ void SoundCommands::evaluate_sound_get_effects_gain(int16_t function_index, uint
  */
 void SoundCommands::evaluate_sound_get_gain(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        float *gain = hs_sound_get_gain_reference((char *)arguments[0]);
+        float *gain = halo::hs::hs_sound_get_gain_reference((char *)arguments[0]);
 
-        hs_thread_return(gain != 0 ? *(int32_t *)gain : 0, thread_index);
+        halo::hs::hs_thread_return(gain != 0 ? *(int32_t *)gain : 0, thread_index);
     }
 }
 
@@ -168,7 +162,7 @@ void SoundCommands::evaluate_sound_get_gain(int16_t function_index, uint32_t thr
  */
 void SoundCommands::evaluate_sound_get_master_gain(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return(*(int32_t *)&sound_master_gain, thread_index);
+    halo::hs::hs_thread_return(*(int32_t *)&sound_master_gain, thread_index);
 }
 
 /**
@@ -179,7 +173,7 @@ void SoundCommands::evaluate_sound_get_master_gain(int16_t function_index, uint3
  */
 void SoundCommands::evaluate_sound_get_music_gain(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return(*(int32_t *)&halo::sound::globals().music_gain, thread_index);
+    halo::hs::hs_thread_return(*(int32_t *)&halo::sound::globals().music_gain, thread_index);
 }
 
 /**
@@ -190,7 +184,7 @@ void SoundCommands::evaluate_sound_get_music_gain(int16_t function_index, uint32
  */
 void SoundCommands::evaluate_sound_get_supplementary_buffers(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(uint16_t)(sound_supplementary_buffers_00746122), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)(sound_supplementary_buffers_00746122), thread_index);
 }
 
 /**
@@ -201,13 +195,13 @@ void SoundCommands::evaluate_sound_get_supplementary_buffers(int16_t function_in
  */
 void SoundCommands::evaluate_sound_impulse_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::sound_impulse_start((datum_index)arguments[1], (datum_index)arguments[0], *(float *)&arguments[2]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -219,8 +213,8 @@ void SoundCommands::evaluate_sound_impulse_start(int16_t function_index, uint32_
  */
 void SoundCommands::evaluate_sound_impulse_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -235,7 +229,7 @@ void SoundCommands::evaluate_sound_impulse_stop(int16_t function_index, uint32_t
             *(datum_index *)(definition + 0x90) = k_datum_index_none;
         }
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -247,8 +241,8 @@ void SoundCommands::evaluate_sound_impulse_stop(int16_t function_index, uint32_t
  */
 void SoundCommands::evaluate_sound_impulse_time(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -265,7 +259,7 @@ void SoundCommands::evaluate_sound_impulse_time(int16_t function_index, uint32_t
             }
         }
     }
-    hs_thread_return(ticks, thread_index);
+    halo::hs::hs_thread_return(ticks, thread_index);
     }
 }
 
@@ -277,13 +271,13 @@ void SoundCommands::evaluate_sound_impulse_time(int16_t function_index, uint32_t
  */
 void SoundCommands::evaluate_sound_looping_predict(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::sound::sound_looping_predict((datum_index)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -295,13 +289,13 @@ void SoundCommands::evaluate_sound_looping_predict(int16_t function_index, uint3
  */
 void SoundCommands::evaluate_sound_looping_set_alternate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::sound::sound_looping_set_alternate((datum_index)arguments[0], *(uint8_t *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 

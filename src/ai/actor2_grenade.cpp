@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
@@ -26,7 +27,6 @@ int32_t ActorOps::order_code_is_grenade_throw(int16_t order_code)
 
 namespace actor_recompute_grenade_eligibility_local {
 extern "C" {
-extern data_array *actor_data;
 extern float k_random_scale_65536;
 extern float ticks_per_second;
 }
@@ -42,7 +42,7 @@ extern float ticks_per_second;
 void ActorView::recompute_grenade_eligibility()
 {
     using namespace actor_recompute_grenade_eligibility_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&self->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t eligible = (uint8_t)(self->awareness_level == 3 && self->combat_status > self->minimum_combat_status);
     int16_t base_ticks = 0;
@@ -74,15 +74,6 @@ void ActorView::recompute_grenade_eligibility()
 }
 
 namespace actor_request_path_with_grenade_arc_local {
-extern "C" {
-extern data_array *actor_data;
-extern int16_t actor_select_firing_position(datum_index actor_index, actor_firing_position_query *query,
-    actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
-    uint8_t *out_path_ok);
-extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner,
-    path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok);
-extern float actor_compute_accuracy_scale(datum_index actor_index);
-}
 }
 
 /**
@@ -93,7 +84,7 @@ extern float actor_compute_accuracy_scale(datum_index actor_index);
 uint8_t ActorView::request_path_with_grenade_arc()
 {
     using namespace actor_request_path_with_grenade_arc_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     static actor_firing_position_query query;
     static path_find_context path_context;
     actor_firing_position_candidate candidate;
@@ -115,19 +106,19 @@ uint8_t ActorView::request_path_with_grenade_arc()
     } else {
         query.use_last_seen_position = actor[0xa0];
     }
-    selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context, &path_ok);
-    actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    selected = halo::ai::actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context, &path_ok);
+    actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     if (selected != -1) {
         if (*(int16_t *)(actor + 0xa4) == 0) {
             if (candidate.request_result != 0 && candidate.request_result != 1) {
                 actor[0xa0] = 1;
             }
-        } else if (candidate.request_result == 0 && actor_compute_accuracy_scale(actor_index) > candidate.distance_from_actor) {
+        } else if (candidate.request_result == 0 && halo::ai::actor_compute_accuracy_scale(actor_index) > candidate.distance_from_actor) {
             actor[0xbc] = 1;
         }
     }
-    if (actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok) == -1) {
-        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    if (halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok) == -1) {
+        actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
         actor[0x9e] = 1;
     }
     return 0;
@@ -135,9 +126,6 @@ uint8_t ActorView::request_path_with_grenade_arc()
 
 namespace actor_schedule_grenade_throw_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 extern int32_t fistp_round(float x);
 }
 }
@@ -152,7 +140,7 @@ extern int32_t fistp_round(float x);
 void ActorView::schedule_grenade_throw()
 {
     using namespace actor_schedule_grenade_throw_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag;
     datum_index source;
     uint8_t request[0x10];
@@ -168,7 +156,7 @@ void ActorView::schedule_grenade_throw()
         return;
     }
     memset(request, 0, sizeof(request));
-    prop = actor_find_prop_for_object(source, actor_index);
+    prop = halo::ai::actor_find_prop_for_object(source, actor_index);
     if (prop != k_datum_index_none) {
         *(int16_t *)request = 1;
         *(datum_index *)(request + 0x4) = prop;
@@ -183,7 +171,7 @@ void ActorView::schedule_grenade_throw()
     if (((actor *)a)->mode == 0xb && !a[0x9f]) {
         return;
     }
-    if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), prop_data) == 0) {
+    if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {
         return;
     }
     delay = (((actor *)a)->awareness_level < 3 || ((struct actor *)a)->combat_status == 0) ? 2.4f : 1.2f;
@@ -205,7 +193,6 @@ void ActorView::schedule_grenade_throw()
 
 namespace actor_should_throw_grenade_local {
 extern "C" {
-extern data_array *actor_data;
 extern game_time_globals *game_time;
 }
 }
@@ -219,7 +206,7 @@ extern game_time_globals *game_time;
 uint8_t ActorView::should_throw_grenade(char force)
 {
     using namespace actor_should_throw_grenade_local;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t eligible = 1;
 
@@ -254,16 +241,8 @@ uint8_t ActorView::should_throw_grenade(char force)
 
 namespace actor_solve_grenade_lob_local {
 extern "C" {
-extern data_array *actor_data;
-extern Globals *global_globals;
+extern ::Globals *global_globals;
 extern double sqrt(double x);
-extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag,
-    real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override,
-    uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed,
-    real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
-extern uint8_t actor_grenade_parabolic_path_clear(real_vector3d *initial_velocity, datum_index source_actor_index,
-    real_point3d *start_position, real total_time, real vertical_acceleration, datum_index exclude_object_index,
-    uint8_t wide_mask);
 }
 }
 
@@ -290,7 +269,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     float length;
     uint8_t flat;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)variant->grenade_type * 0x44;
@@ -302,7 +281,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
         }
     }
 
-    if (projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
+    if (halo::ai::projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
                      point, 0, 0, &self->grenade_throw_speed, self->grenade_high_arc[0], &direction,
                      &speed, &arc, 0, &flat) == 0) {
         return 0;
@@ -328,7 +307,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
                           : -(halo::physics::globals().gravity *
                               *(float *)((uint8_t *)projectile_definition + 0x1cc));
 
-    if (actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
+    if (halo::ai::actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
                                            *(datum_index *)self->grenade_exclude_object_index,
                                            (uint8_t)(self->active_unit_index != (datum_index)halo::k_dword_none)) == 0) {
         return 0;
@@ -343,17 +322,11 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
 
 namespace actor_try_grenade_evasion_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 extern actor_mode_definition actor_mode_definitions[16];
-extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force);
-extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
-extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base, uint16_t order_code,
-                                         datum_index actor_index);
 }
 }
 
@@ -382,14 +355,14 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
         return 0;
     }
     *(int32_t *)&((struct actor *)act)->last_cover_attempt_time = now;
-    if (!actor_should_throw_grenade(actor_index, 0)) {
+    if (!halo::ai::actor_should_throw_grenade(actor_index, 0)) {
         return 0;
     }
-    if (actor_handle_death(actor_index, 1, 0)) {
+    if (halo::ai::actor_handle_death(actor_index, 1, 0)) {
         return 1;
     }
     if (allow_pain_reaction &&
-        actor_check_pain_reaction(((actor *)act)->target_unit_index, use_alt_base, 4, actor_index)) {
+        halo::ai::actor_check_pain_reaction(((actor *)act)->target_unit_index, use_alt_base, 4, actor_index)) {
         return 1;
     }
     return 0;
@@ -401,18 +374,7 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
 
 namespace actor_update_grenade_and_morale_reactions_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 extern game_time_globals *game_time;
-extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force);
-extern uint8_t actor_consider_grenade_throw(datum_index actor_index);
-extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
-extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
-    uint16_t order_code, datum_index actor_index);
-extern uint8_t actor_evaluate_grenade_target_position(datum_index actor_index);
-extern datum_index actor_get_target_prop_object_index(datum_index actor_index);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
-    datum_index object_b, datum_index object_c, uint32_t *extra_data);
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -425,7 +387,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 char ActorView::update_grenade_and_morale_reactions()
 {
     using namespace actor_update_grenade_and_morale_reactions_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *variant = TAG_DATA(((actor *)act)->actor_variant_tag);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     int32_t now = game_time->game_time;
@@ -435,17 +397,17 @@ char ActorView::update_grenade_and_morale_reactions()
     uint8_t may_target;
 
     if (((struct actor *)act)->retreat_timer > 0 && ((actor *)act)->active_unit_index == k_datum_index_none) {
-        uint8_t *threat = (uint8_t *)prop_data->data + (((struct actor *)act)->retreat_prop_index & halo::k_slot_mask) * k_prop_size;
+        uint8_t *threat = (uint8_t *)halo::ai::globals().prop_data->data + (((struct actor *)act)->retreat_prop_index & halo::k_slot_mask) * k_prop_size;
 
         if (threat[0xa4] != 0 && (((struct prop *)threat)->obstruction == 0 || ((struct prop *)threat)->obstruction == 1) &&
             (*(int32_t *)&((struct actor *)act)->last_evasion_time == -1 || *(int32_t *)&((struct actor *)act)->last_evasion_time + 0x1e <= now)) {
             *(int32_t *)&((struct actor *)act)->last_evasion_time = now;
-            if (actor_should_throw_grenade(actor_index, 1)) {
-                if (actor_handle_death(actor_index, 0, 1)) {
+            if (halo::ai::actor_should_throw_grenade(actor_index, 1)) {
+                if (halo::ai::actor_handle_death(actor_index, 0, 1)) {
                     return 1;
                 }
                 if ((*(uint32_t *)actor_tag & 0x400000) != 0 &&
-                    actor_check_pain_reaction(((struct actor *)act)->retreat_prop_index, 0, 5, actor_index)) {
+                    halo::ai::actor_check_pain_reaction(((struct actor *)act)->retreat_prop_index, 0, 5, actor_index)) {
                     return 1;
                 }
             }
@@ -466,7 +428,7 @@ char ActorView::update_grenade_and_morale_reactions()
     if (act[0x504] == 0) {
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     }
-    if (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus == 2 && actor_consider_grenade_throw(actor_index)) {
+    if (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus == 2 && halo::ai::actor_consider_grenade_throw(actor_index)) {
         *(float *)(act + 0x354) = 0.0f;
         result = 1;
     }
@@ -477,7 +439,7 @@ char ActorView::update_grenade_and_morale_reactions()
 
         may_evade = 0;
         if (target != k_datum_index_none) {
-            uint8_t *target_prop = (uint8_t *)prop_data->data + (target & halo::k_slot_mask) * k_prop_size;
+            uint8_t *target_prop = (uint8_t *)halo::ai::globals().prop_data->data + (target & halo::k_slot_mask) * k_prop_size;
 
             if ((int8_t)target_prop[0x122] <= 2 && (int8_t)target_prop[0x121] <= 1) {
                 may_evade = 1;
@@ -492,15 +454,15 @@ char ActorView::update_grenade_and_morale_reactions()
     }
     if (may_evade && (*(int32_t *)&((struct actor *)act)->last_evasion_time == -1 || *(int32_t *)&((struct actor *)act)->last_evasion_time + 0x1e <= now)) {
         *(int32_t *)&((struct actor *)act)->last_evasion_time = now;
-        if (actor_should_throw_grenade(actor_index, 0) && halo::math::random_real() <= ((Actor *)actor_tag)->evasion_seek_cover_chance &&
-            actor_handle_death(actor_index, 0, 1)) {
-            ai_communication_broadcast(0x18, ((actor *)act)->unit_index, actor_get_target_prop_object_index(actor_index),
+        if (halo::ai::actor_should_throw_grenade(actor_index, 0) && halo::math::random_real() <= ((Actor *)actor_tag)->evasion_seek_cover_chance &&
+            halo::ai::actor_handle_death(actor_index, 0, 1)) {
+            halo::ai::ai_communication_broadcast(0x18, ((actor *)act)->unit_index, halo::ai::actor_get_target_prop_object_index(actor_index),
                                        -1, -1, -1, 0);
             *(float *)(act + 0x354) = 0.0f;
             return 1;
         }
     }
-    if (may_target && ((struct actor *)act)->evasion_delay_ticks == 0 && actor_evaluate_grenade_target_position(actor_index)) {
+    if (may_target && ((struct actor *)act)->evasion_delay_ticks == 0 && halo::ai::actor_evaluate_grenade_target_position(actor_index)) {
         *(float *)(act + 0x354) = 0.0f;
         *(int16_t *)(act + 0x368) = (int16_t)(int32_t)(((Actor *)actor_tag)->evasion_delay_time * 30.0f);
         act[0x3bb] = 1;
@@ -512,12 +474,6 @@ char ActorView::update_grenade_and_morale_reactions()
 #undef TAG_DATA
 
 namespace actor_update_grenade_eligibility_state_local {
-extern "C" {
-extern data_array *actor_data;
-extern ai_globals *ai_globals_ptr;
-extern void actor_recompute_grenade_eligibility(datum_index actor_index);
-extern void ai_communication_target_result_reset(void *record);
-}
 }
 
 /**
@@ -537,15 +493,15 @@ void ActorView::update_grenade_eligibility_state()
     int32_t out_b;
     int16_t result;
 
-    self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    if (self->awareness_level <= 1 || !ai_globals_ptr->dialogue_triggers_enabled) {
+    self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
+    if (self->awareness_level <= 1 || !halo::ai::globals().state->dialogue_triggers_enabled) {
         return;
     }
 
     eligible = (self->awareness_level == 3 && self->minimum_combat_status < self->combat_status);
 
     if (self->grenade_recheck_ticks == 0 || self->grenade_eligible != eligible) {
-        actor_recompute_grenade_eligibility(actor_index);
+        halo::ai::actor_recompute_grenade_eligibility(actor_index);
     }
 
     if (0 < self->grenade_recheck_ticks) {
@@ -562,7 +518,7 @@ void ActorView::update_grenade_eligibility_state()
                 *(int16_t *)((uint8_t *)buffer + 2) = (int16_t)out_a;
                 *((uint32_t *)((uint8_t *)buffer + 4)) = out_b;
                 *(int16_t *)buffer = 1;
-                ai_communication_target_result_reset((uint8_t *)buffer + 0x10);
+                halo::ai::ai_communication_target_result_reset((ai_communication_target_result *)((uint8_t *)buffer + 0x10));
                 halo::units::unit_commit_speech(self->unit_index, (const unit_speech *)buffer, result);
             }
         }
@@ -571,14 +527,10 @@ void ActorView::update_grenade_eligibility_state()
 
 namespace actor_update_grenade_throw_decision_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-extern uint8_t actor_consider_grenade_throw(datum_index actor_index);
-extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -602,19 +554,19 @@ uint8_t ActorView::update_grenade_throw_decision()
     switch (*(int16_t *)&((ActorVariant *)variant)->grenade_stimulus) {
     case 1:
         if (((struct actor *)act)->combat_status >= 5) {
-            result = actor_consider_grenade_throw(actor_index);
+            result = halo::ai::actor_consider_grenade_throw(actor_index);
         }
         break;
     case 2:
         if (PROP(((actor *)act)->target_unit_index)[0x14] || (mode == 4 && ((struct actor *)act)->mode_data.flee.panic == 0)) {
-            result = actor_consider_grenade_throw(actor_index);
+            result = halo::ai::actor_consider_grenade_throw(actor_index);
         }
         break;
     default:
         break;
     }
     if (act[0x6a0]) {
-        actor_check_grenade_facing_and_commit(actor_index, 0);
+        halo::ai::actor_check_grenade_facing_and_commit(actor_index, 0);
     }
     return result;
 }
@@ -625,7 +577,6 @@ uint8_t ActorView::update_grenade_throw_decision()
 
 namespace actor_validate_grenade_ally_candidate_local {
 extern "C" {
-extern data_array *actor_data;
 extern void *actor_type_procs[16];
 }
 }
@@ -645,8 +596,8 @@ uint8_t ActorOps::validate_grenade_ally_candidate(datum_index candidate_actor, u
 
     candidate = (actor *)0;
     index = (int16_t)candidate_actor;
-    if (candidate_actor != (datum_index)k_datum_index_none && -1 < index && index < actor_data->maximum_count) {
-        actor *slot = (actor *)((uint8_t *)actor_data->data + (uint32_t)index * actor_data->size);
+    if (candidate_actor != (datum_index)k_datum_index_none && -1 < index && index < halo::ai::globals().actor_data->maximum_count) {
+        actor *slot = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (uint32_t)index * halo::ai::globals().actor_data->size);
         salt = (int16_t)(candidate_actor >> 16);
         if (slot->identifier != 0 && (salt == 0 || slot->identifier == salt)) {
             candidate = slot;
@@ -666,10 +617,6 @@ uint8_t ActorOps::validate_grenade_ally_candidate(datum_index candidate_actor, u
 }
 
 namespace actor_validate_grenade_impact_point_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_score_blast_area_clear(datum_index actor_index, float blast_radius, float safety_radius, real_point3d *point, int16_t *out_count);
-}
 }
 
 /**
@@ -684,10 +631,10 @@ uint8_t ActorView::validate_grenade_impact_point(real_point3d *candidate_point)
     ActorVariant *variant;
     int16_t hostile_count;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
-    if (actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,
+    if (halo::ai::actor_score_blast_area_clear(actor_index, ((ActorVariant *)variant)->enemy_radius,
                       ((ActorVariant *)variant)->collateral_damage_radius, candidate_point, &hostile_count) != 0) {
         self->grenade_impact_point = *candidate_point;
         return 1;

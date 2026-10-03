@@ -1,14 +1,11 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
+#include "halo/hs/api.hpp"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern int32_t input_device_count;
 extern uint8_t input_device_to_slot[];
 #ifdef __cplusplus
@@ -25,8 +22,8 @@ namespace halo::hs {
  */
 void InputDeviceCommands::evaluate_input_activate_joy(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -40,7 +37,7 @@ void InputDeviceCommands::evaluate_input_activate_joy(int16_t function_index, ui
         halo::input::globals().joystick_slot_devices[player] = joystick;
         bound = 1;
     }
-    hs_thread_return((int32_t)bound, thread_index);
+    halo::hs::hs_thread_return((int32_t)bound, thread_index);
     }
 }
 
@@ -52,13 +49,13 @@ void InputDeviceCommands::evaluate_input_activate_joy(int16_t function_index, ui
  */
 void InputDeviceCommands::evaluate_input_find_default(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::input::test_input_device_defaults_find((char *)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -70,12 +67,12 @@ void InputDeviceCommands::evaluate_input_find_default(int16_t function_index, ui
  */
 void InputDeviceCommands::evaluate_input_find_joystick(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_thread_return((int32_t)(uint16_t)(-1), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)(-1), thread_index);
     }
 }
 
@@ -87,7 +84,7 @@ void InputDeviceCommands::evaluate_input_find_joystick(int16_t function_index, u
  */
 void InputDeviceCommands::evaluate_input_get_joy_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(uint16_t)input_device_count, thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)input_device_count, thread_index);
 }
 
 /**
@@ -98,8 +95,8 @@ void InputDeviceCommands::evaluate_input_get_joy_count(int16_t function_index, u
  */
 void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -109,7 +106,7 @@ void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, u
         if (device < input_device_count) {
             active = (uint8_t)(*(int32_t *)(input_device_to_slot + device * 0x240) != -1);
         }
-        hs_thread_return((int32_t)(uint8_t)(active), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint8_t)(active), thread_index);
     }
 }
 
@@ -122,7 +119,7 @@ void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, u
 void InputDeviceCommands::evaluate_input_show_joystick_info(int16_t function_index, uint32_t thread_index, char first)
 {
     halo::input::input_device_list_print();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**

@@ -4,20 +4,16 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 
 extern double sqrt(double x);
 extern double fabs(double x);
-extern uint8_t actor_validate_grenade_impact_point(datum_index actor_index, real_point3d *candidate_point);
-extern uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point);
 }
 }
 
-extern "C" uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position, real_vector3d *out_vector);
 
 /**
  * actor_compute_grenade_throw_vector: behaviour unchanged from the original routine. The original author notes and decompile
@@ -29,13 +25,13 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
 {
     using namespace c_actor_compute_grenade_throw_vector;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint32_t target_object = halo::k_dword_none;
     real_vector3d direction;
     float speed;
 
     if (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index != k_datum_index_none) {
-        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & halo::k_slot_mask) * k_prop_size;
+        uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & halo::k_slot_mask) * k_prop_size;
         int16_t kind = ((prop *)p)->state;
 
         if (kind >= 2 && kind <= 3) {
@@ -45,10 +41,10 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
             real_point3d point = *(real_point3d *)&((prop *)p)->last_known_position.x;
 
             point.z += 0.2f;
-            actor_validate_grenade_impact_point(actor_index, &point);
+            halo::ai::actor_validate_grenade_impact_point(actor_index, &point);
         }
     }
-    actor_solve_grenade_lob(actor_index, grenade_position);
+    halo::ai::actor_solve_grenade_lob(actor_index, grenade_position);
 
     direction = ((actor *)a)->grenade_throw_direction;
     if (((actor *)a)->active_unit_index == k_datum_index_none) {
@@ -81,20 +77,16 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
     return target_object;
 }
 
-extern "C" uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position, real_vector3d *out_vector)
+namespace halo::ai {
+uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position, real_vector3d *out_vector)
 {
     return halo::ai::grenade_ops(actor_index).compute_grenade_throw_vector(grenade_position, out_vector);
 }
+}
 
 namespace c_actor_died_unit_grenade_count_mod {
-extern "C" {
-
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern void encounter_recompute_morale(datum_index encounter_index);
-}
 }
 
-extern "C" void actor_died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index);
 
 /**
  * actor_died_unit_grenade_count_mod: behaviour unchanged from the original routine. The original author notes and decompile
@@ -131,14 +123,10 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
         }
     }
 
-    actor_delete(actor_index, 1);
+    halo::ai::actor_delete(actor_index, 1);
     if (encounter_index != (datum_index)k_datum_index_none) {
-        encounter_recompute_morale(encounter_index);
+        halo::ai::encounter_recompute_morale(encounter_index);
     }
 }
 
-extern "C" void actor_died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index)
-{
-    halo::ai::grenade_ops::died_unit_grenade_count_mod(unit_object, actor_tag_data, weapon_object_index, actor_index, encounter_index);
-}
 

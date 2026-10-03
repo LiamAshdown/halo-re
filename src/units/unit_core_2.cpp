@@ -14,6 +14,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -32,7 +33,6 @@ extern Globals *global_globals;
 extern char *s_stand;
 extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
@@ -469,7 +469,7 @@ controls:
         }
     }
     if (((struct unit_object *)obj)->unit.delayed_damage_ticks > 0 && --((struct unit_object *)obj)->unit.delayed_damage_ticks == 0) {
-        actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.delayed_damage_responsible_object, *(uint16_t *)&((struct unit_object *)obj)->unit.delayed_damage_category,
+        halo::ai::actor_react_to_threat_event(unit_index, ((struct unit_object *)obj)->unit.delayed_damage_responsible_object, *(uint16_t *)&((struct unit_object *)obj)->unit.delayed_damage_category,
             ((struct unit_object *)obj)->unit.delayed_damage_amount, 0, 1);
         ((struct unit_object *)obj)->unit.delayed_damage_category = 0;
         ((struct unit_object *)obj)->unit.delayed_damage_responsible_object = k_datum_index_none;

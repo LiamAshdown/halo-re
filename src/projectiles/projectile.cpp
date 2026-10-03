@@ -7,6 +7,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -19,7 +20,6 @@ extern char k_empty_string[1];
 extern game_engine_definition *current_game_engine;
 extern ProjectileMaterialResponse projectile_default_material_response;
 extern real_vector3d *global_down3d_pointer;
-extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, ObjectNoise_t noise, int32_t param_5);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern game_time_globals *game_time;
 extern int32_t k_projectile_minimum_age_ticks;
@@ -501,7 +501,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         }
     }
 
-    ai_accumulate_repeated_event(object_index, &position_block[0], 2, tag->detonation_noise, 1);
+    halo::ai::ai_accumulate_repeated_event(object_index, &position_block[0], 2, (int16_t)tag->detonation_noise);
 }
 
 /**

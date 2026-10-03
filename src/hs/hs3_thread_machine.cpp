@@ -6,20 +6,10 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern data_array *hs_thread_data;
-extern data_array *hs_syntax_data;
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int16_t hs_current_thread_index;
-extern uint8_t hs_runtime_active;
 extern game_time_globals *game_time;
-extern int32_t hs_global_get_value(hs_global_reference reference);
-extern int32_t hs_coerce_value(int32_t value, hs_type_t dest_type, hs_type_t source_type);
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
-extern void hs_thread_pop_frame(uint32_t thread_index);
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 }
 
@@ -47,9 +37,9 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
     char first;
     hs_function_definition *definition;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     script = 0;
-    hs_current_thread_index = (int16_t)thread_index;
+    halo::hs::globals().current_thread_index = (int16_t)thread_index;
 
     if (thread->type == _hs_thread_script) {
         script = &((ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer)[thread->script_index];
@@ -62,7 +52,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
         frame->size = 0;
         scratch = (uint8_t *)frame + 0x0e + frame->size;
         frame->size = frame->size + 4;
-        hs_thread_push(script->root_expression_index, thread_index, scratch);
+        halo::hs::hs_thread_push(script->root_expression_index, thread_index, scratch);
     }
 
     while ((void *)thread->stack != (void *)&thread->stack_data) {
@@ -70,19 +60,19 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
             (game_time->initialized != 0 &&
              (game_time->active != 0 || game_time->paused != 0) &&
              game_time->game_time < thread->wake_tick) ||
-            hs_runtime_active == 0) {
+            halo::hs::globals().runtime_active == 0) {
             break;
         }
 
         frame = thread->stack;
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
+        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
         saved_flags = thread->flags;
         frame->size = 0;
         thread->flags = thread->flags & 0xfe;
         first = saved_flags & 1;
 
         if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
-            definition = hs_function_definitions[node->index_union];
+            definition = halo::hs::globals().function_definitions[node->index_union];
             ((void (*)(int16_t, uint32_t, char))definition->evaluate)(node->index_union,
                 thread_index, first);
         } else {
@@ -92,9 +82,9 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
             scratch = (uint8_t *)frame + 0x0e + frame->size;
             frame->size = frame->size + 4;
             if (first != 0) {
-                hs_thread_push(called_script->root_expression_index, thread_index, scratch);
+                halo::hs::hs_thread_push(called_script->root_expression_index, thread_index, scratch);
             } else {
-                hs_thread_return(*(int32_t *)scratch, thread_index);
+                halo::hs::hs_thread_return(*(int32_t *)scratch, thread_index);
             }
         }
     }
@@ -105,11 +95,11 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
                 script->script_type == _hs_script_dormant) {
 
                 thread->wake_tick = -1;
-                hs_current_thread_index = -1;
+                halo::hs::globals().current_thread_index = -1;
                 return;
             }
         } else if (thread->type == _hs_thread_command) {
-            halo::memory::datum_delete(hs_thread_data, thread_index);
+            halo::memory::datum_delete(halo::hs::globals().thread_data, thread_index);
         }
     }
 }
@@ -124,13 +114,13 @@ datum_index ThreadMachine::find_by_script_index(int16_t script_index) const
     datum_index thread_handle;
     hs_thread *thread;
 
-    thread_handle = halo::memory::datum_next(-1, hs_thread_data);
+    thread_handle = halo::memory::datum_next(-1, halo::hs::globals().thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         if (thread->script_index == script_index) {
             return thread_handle;
         }
-        thread_handle = halo::memory::datum_next((int16_t)thread_handle, hs_thread_data);
+        thread_handle = halo::memory::datum_next((int16_t)thread_handle, halo::hs::globals().thread_data);
     }
     return k_datum_index_none;
 }
@@ -148,14 +138,14 @@ datum_index ThreadMachine::find_by_script_name(char *name) const
     ScenarioScript *scripts;
 
     scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
-    thread_handle = halo::memory::datum_next(-1, hs_thread_data);
+    thread_handle = halo::memory::datum_next(-1, halo::hs::globals().thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         if (thread->script_index != -1 &&
             _stricmp(scripts[thread->script_index].name.string, name) == 0) {
             return thread_handle;
         }
-        thread_handle = halo::memory::datum_next((int16_t)thread_handle, hs_thread_data);
+        thread_handle = halo::memory::datum_next((int16_t)thread_handle, halo::hs::globals().thread_data);
     }
     return k_datum_index_none;
 }
@@ -173,9 +163,9 @@ datum_index ThreadMachine::create(int32_t script_index, uint8_t type) const
     hs_thread *thread;
     ScenarioScript *scripts;
 
-    handle = halo::memory::datum_new(hs_thread_data);
+    handle = halo::memory::datum_new(halo::hs::globals().thread_data);
     if (handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (handle & halo::k_slot_mask) * sizeof(hs_thread));
+        thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (handle & halo::k_slot_mask) * sizeof(hs_thread));
         thread->stack = (hs_stack_frame *)&thread->stack_data;
         thread->stack->previous = 0;
         thread->stack->size = 0;
@@ -203,7 +193,7 @@ void ThreadMachine::pop_frame(uint32_t thread_index) const
 {
     hs_thread *thread;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     thread->stack = thread->stack->previous;
 }
 
@@ -226,8 +216,8 @@ void ThreadMachine::push(datum_index node, uint32_t thread_index, void *result_a
     uint16_t index;
     hs_type_t source_type;
 
-    syntax_node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & halo::k_slot_mask) * 0x14);
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    syntax_node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node & halo::k_slot_mask) * 0x14);
+    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
 
     if ((syntax_node->flags & _hs_syntax_node_primitive_bit) == 0) {
         thread->stack->result_address = result_address;
@@ -245,16 +235,16 @@ void ThreadMachine::push(datum_index node, uint32_t thread_index, void *result_a
         reference = (hs_global_reference)syntax_node->data.global_reference;
         index = reference & k_hs_global_index_mask;
         if ((reference & k_hs_global_builtin_bit) != 0) {
-            source_type = hs_global_definitions[index]->type;
+            source_type = halo::hs::globals().global_definitions[index]->type;
         } else {
             source_type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[index].type;
         }
-        value = hs_global_get_value(reference);
-        value = hs_coerce_value(value, syntax_node->type, source_type);
+        value = halo::hs::hs_global_get_value(reference);
+        value = halo::hs::hs_coerce_value(value, syntax_node->type, source_type);
         *(int32_t *)result_address = value;
         return;
     }
-    value = hs_coerce_value(syntax_node->data.long_value, syntax_node->type,
+    value = halo::hs::hs_coerce_value(syntax_node->data.long_value, syntax_node->type,
                             (hs_type_t)syntax_node->index_union);
     *(int32_t *)result_address = value;
 }
@@ -274,7 +264,7 @@ void ThreadMachine::restart(uint32_t thread_index) const
     hs_stack_frame *parent_frame;
     datum_index syntax_node;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     if (thread->wake_tick == -1) {
         return;
     }
@@ -288,7 +278,7 @@ void ThreadMachine::restart(uint32_t thread_index) const
 
     syntax_node = thread->stack->syntax_node;
     if (syntax_node != k_datum_index_none) {
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (syntax_node & halo::k_slot_mask) * 0x14);
+        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (syntax_node & halo::k_slot_mask) * 0x14);
         if (node->index_union == _hs_function_sleep_until) {
             thread->stack = thread->stack->previous;
             return;
@@ -299,11 +289,11 @@ void ThreadMachine::restart(uint32_t thread_index) const
     if (parent_frame != 0) {
         syntax_node = parent_frame->syntax_node;
         if (syntax_node != k_datum_index_none) {
-            node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
+            node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
                 (syntax_node & halo::k_slot_mask) * 0x14);
             if (node->index_union == _hs_function_sleep_until) {
-                hs_thread_pop_frame(thread_index);
-                hs_thread_pop_frame(thread_index);
+                halo::hs::hs_thread_pop_frame(thread_index);
+                halo::hs::hs_thread_pop_frame(thread_index);
                 thread->flags = thread->flags & 0xfe;
             }
         }
@@ -328,12 +318,12 @@ void ThreadMachine::return_value(int32_t value, uint32_t thread_index) const
     hs_type_t expected_type;
     ScenarioScript *scripts;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread->stack;
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
 
     if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
-        actual_type = hs_function_definitions[node->index_union]->return_type;
+        actual_type = halo::hs::globals().function_definitions[node->index_union]->return_type;
     } else {
         scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
         actual_type = scripts[node->index_union].return_type;

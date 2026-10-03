@@ -38,6 +38,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -934,8 +935,6 @@ extern "C" { extern void hud_chat_listbox_clear(void); }
 extern "C" { extern void update_queues_dispose(void); }
 extern "C" { extern void update_server_new(void); }
 extern "C" { extern void update_server_dispose(void); }
-extern "C" { extern void hs_dispose_dynamic_globals(void); }
-extern "C" { extern void hs_scenario_scripts_initialize(void); }
 namespace halo::main {
 
 /**
@@ -984,8 +983,8 @@ void MainLoop::menu_return_and_reset(void)
     game_time->initialized = 1;
 
     game_engine_init_tick_record_for_mode();
-    hs_dispose_dynamic_globals();
-    hs_scenario_scripts_initialize();
+    halo::hs::hs_dispose_dynamic_globals();
+    halo::hs::hs_scenario_scripts_initialize();
 
     main_globals_data.return_to_main_menu = 0;
     input_globals.mode_flags = input_globals.mode_flags | 2;

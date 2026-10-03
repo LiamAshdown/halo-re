@@ -1,14 +1,11 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
+#include "halo/hs/api.hpp"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern int32_t input_device_count;
 extern uint8_t input_device_to_slot[];
 #ifdef __cplusplus
@@ -25,8 +22,8 @@ namespace halo::hs {
  */
 void InputDeviceCommands::evaluate_input_deactivate_joy(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -42,7 +39,7 @@ void InputDeviceCommands::evaluate_input_deactivate_joy(int16_t function_index, 
                 halo::input::globals().joystick_slot_devices[old_slot] = -1;
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 

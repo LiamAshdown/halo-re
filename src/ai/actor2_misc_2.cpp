@@ -6,15 +6,13 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_reassign_vehicle_seat_local {
 extern "C" {
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
-extern void encounters_note_hostile_object(datum_index object_index);
 }
 }
 
@@ -62,30 +60,19 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
 
-    ai_communication_broadcast(0, self_object_index, occupant, reason, seat_selector,
+    halo::ai::ai_communication_broadcast(0, self_object_index, occupant, reason, seat_selector,
                                 (datum_index)k_datum_index_none, 0);
-    ai_conversation_clear_object_references(self_object_index, 0);
-    encounters_note_hostile_object(self_object_index);
+    halo::ai::ai_conversation_clear_object_references(self_object_index, 0);
+    halo::ai::encounters_note_hostile_object(self_object_index);
     return 0;
 }
 
 namespace actor_refresh_combat_context_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-extern data_array *encounter_data;
-extern encounter_squad_state *encounter_squad_states;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
-extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
-extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
-    int16_t *weather_index_out);
-extern void *actor_get_actor_definition(datum_index actor_index);
-extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
-    int16_t squad_index);
 #define A_U8(offset) (*(uint8_t *)(self + (offset)))
 #define A_I16(offset) (*(int16_t *)(self + (offset)))
 #define A_I32(offset) (*(int32_t *)(self + (offset)))
@@ -104,7 +91,7 @@ static uint8_t *object_get(datum_index object_index)
 void ActorView::refresh_combat_context()
 {
     using namespace actor_refresh_combat_context_local;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *self = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)self)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *unit;
     uint8_t *parent = 0;
@@ -112,14 +99,14 @@ void ActorView::refresh_combat_context()
     datum_index child;
 
     if (A_U8(0x06)) {
-        uint8_t *swarm = (uint8_t *)swarm_data->data + (((struct actor *)self)->swarm_index & halo::k_slot_mask) * k_swarm_size;
+        uint8_t *swarm = (uint8_t *)halo::ai::globals().swarm_data->data + (((struct actor *)self)->swarm_index & halo::k_slot_mask) * k_swarm_size;
         real_point3d *center = (real_point3d *)(swarm + 0xc);
         int16_t count = ((struct swarm *)swarm)->component_count;
         int16_t i;
 
         *center = *global_zero_vector3d_pointer;
         for (i = 0; i < count; i++) {
-            uint8_t *creature = (uint8_t *)swarm_component_data->data +
+            uint8_t *creature = (uint8_t *)halo::ai::globals().swarm_component_data->data +
                 (*(datum_index *)(swarm + 0x58 + i * 4) & halo::k_slot_mask) * 0x40;
             datum_index creature_unit = *(datum_index *)(swarm + 0x18 + i * 4);
             uint8_t *creature_object = object_get(creature_unit);
@@ -143,7 +130,7 @@ void ActorView::refresh_combat_context()
         A_I32(0x158) = -1;
         A_I32(0x164) = -1;
         if (A_I32(0x24) != -1) {
-            actor_fill_unit_position_context(A_I32(0x24), (actor_unit_position_context *)(self + 0x120));
+            halo::ai::actor_fill_unit_position_context(A_I32(0x24), (actor_unit_position_context *)(self + 0x120));
         }
         return;
     }
@@ -153,7 +140,7 @@ void ActorView::refresh_combat_context()
     if (parent_index != k_datum_index_none) {
         parent = object_get(parent_index);
     }
-    actor_fill_unit_position_context(A_I32(0x18), (actor_unit_position_context *)(self + 0x120));
+    halo::ai::actor_fill_unit_position_context(A_I32(0x18), (actor_unit_position_context *)(self + 0x120));
     {
         object_marker marker;
         real_point3d head;
@@ -186,7 +173,7 @@ void ActorView::refresh_combat_context()
         }
         if (*(int32_t *)(parent + 0x328) == A_I32(0x18)) {
             A_U8(0x161) = 1;
-            A_U8(0x162) = *(float *)((uint8_t *)actor_get_actor_definition(actor_index) + 0x14c) > 0.0f;
+            A_U8(0x162) = *(float *)((uint8_t *)halo::ai::actor_get_actor_definition(actor_index) + 0x14c) > 0.0f;
         }
         A_U8(0x160) = A_I16(0x15e) <= 1;
         if (*(int16_t *)(parent + 0x334) != -1) {
@@ -199,11 +186,11 @@ void ActorView::refresh_combat_context()
                 if (wanted_squad == -1 || A_I16(0x3a) == wanted_squad) {
                     move = 0;
                 } else {
-                    uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & halo::k_slot_mask) * k_encounter_size;
+                    uint8_t *encounter_record = (uint8_t *)halo::ai::globals().encounter_data->data + (encounter & halo::k_slot_mask) * k_encounter_size;
 
                     if (((struct encounter *)encounter_record)->follow_target_type > 0) {
                         int16_t first = ((struct encounter *)encounter_record)->first_squad;
-                        uint8_t *states = (uint8_t *)encounter_squad_states;
+                        uint8_t *states = (uint8_t *)halo::ai::globals().squad_states;
 
                         if (states[(int16_t)(first + A_I16(0x3a)) * 0x20 + 0x10] != 0 &&
                             states[(int16_t)(first + wanted_squad) * 0x20 + 0x10] != 0) {
@@ -218,10 +205,10 @@ void ActorView::refresh_combat_context()
                     A_I16(0x48) = A_I16(0x3a);
                     A_U8(0x40) = 1;
                     if (encounter != k_datum_index_none) {
-                        *((uint8_t *)encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
+                        *((uint8_t *)halo::ai::globals().encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
                     }
                 }
-                actor_reset_squad_link_for_type_change(actor_index, wanted_encounter, wanted_squad);
+                halo::ai::actor_reset_squad_link_for_type_change(actor_index, wanted_encounter, wanted_squad);
             }
         }
     } else {
@@ -230,7 +217,7 @@ void ActorView::refresh_combat_context()
         A_U8(0x160) = 0;
         A_U8(0x161) = 0;
         if (A_U8(0x40)) {
-            actor_reset_squad_link_for_type_change(actor_index, A_I32(0x44), A_I16(0x48));
+            halo::ai::actor_reset_squad_link_for_type_change(actor_index, A_I32(0x44), A_I16(0x48));
             A_U8(0x40) = 0;
         }
     }
@@ -316,9 +303,7 @@ void ActorView::refresh_combat_context()
 
 namespace actor_reset_queued_look_vector_local {
 extern "C" {
-extern data_array *actor_data;
 extern const real_vector3d *global_origin3d_pointer;
-extern uint8_t actor_wants_reload_or_swap(datum_index actor_index);
 }
 }
 
@@ -332,7 +317,7 @@ uint8_t ActorView::reset_queued_look_vector()
     using namespace actor_reset_queued_look_vector_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->secondary_action != (int16_t)-1) {
         return 0;
@@ -342,7 +327,7 @@ uint8_t ActorView::reset_queued_look_vector()
             return 0;
         }
     }
-    if (actor_wants_reload_or_swap(actor_index)) {
+    if (halo::ai::actor_wants_reload_or_swap(actor_index)) {
         return 0;
     }
 

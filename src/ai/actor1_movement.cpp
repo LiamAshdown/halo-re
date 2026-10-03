@@ -8,28 +8,22 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
-extern data_array *actor_data;
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
 
-extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result,
-                                                ModelCollisionGeometryBSP *bsp,
-                                                int16_t breakable_surface_count,
-                                                uint32_t *breakable_surfaces, real_point3d *origin,
-                                                real_vector3d *delta, float max_fraction);
 
 extern double sqrt(double x);
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
-extern "C" uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry, real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index);
 
 /**
  * actor_avoid_obstacle_and_project: behaviour unchanged from the original routine. The original author notes and decompile
@@ -178,9 +172,11 @@ project:
     return 1;
 }
 
-extern "C" uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry, real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index)
+namespace halo::ai {
+uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index vehicle_index, real_point3d *entry, real_point3d *hint, uint8_t *in_out_near_line, real_point3d *out_point, int32_t *out_surface_index)
 {
     return halo::ai::movement_ops(actor_index).avoid_obstacle_and_project(vehicle_index, entry, hint, in_out_near_line, out_point, out_surface_index);
+}
 }
 
 #undef ACTOR
@@ -205,7 +201,6 @@ extern const float actor_avoidance_a_elevation[2];
 }
 }
 
-extern "C" void actor_avoidance_build_direction_tables(void);
 
 /**
  * actor_avoidance_build_direction_tables: behaviour unchanged from the original routine. The original author notes and decompile
@@ -269,15 +264,16 @@ void halo::ai::movement_ops::avoidance_build_direction_tables()
     }
 }
 
-extern "C" void actor_avoidance_build_direction_tables(void)
+namespace halo::ai {
+void actor_avoidance_build_direction_tables(void)
 {
     halo::ai::movement_ops::avoidance_build_direction_tables();
+}
 }
 
 namespace c_actor_avoidance_interpolate_sample {
 }
 
-extern "C" uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples, int16_t count, const float *values, float *out_index, float *out_value);
 
 /**
  * actor_avoidance_interpolate_sample: behaviour unchanged from the original routine. The original author notes and decompile
@@ -328,26 +324,22 @@ uint8_t halo::ai::movement_ops::avoidance_interpolate_sample(const real_vector3d
     return 0;
 }
 
-extern "C" uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples, int16_t count, const float *values, float *out_index, float *out_value)
+namespace halo::ai {
+uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples, int16_t count, const float *values, float *out_index, float *out_value)
 {
     return halo::ai::movement_ops::avoidance_interpolate_sample(direction, samples, count, values, out_index, out_value);
+}
 }
 
 namespace c_actor_check_step_obstruction {
 extern "C" {
-extern data_array *actor_data;
 extern const real_vector3d *global_down3d_pointer;
 
-extern void actor_update_target_lead_position(datum_index actor_index);
-extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
-    int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
-    path_find_boundary_crossing *out_result);
 
 extern int32_t global_structure_collision_bsp;
 }
 }
 
-extern "C" uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up, uint8_t *out_flag, void *extra_param);
 
 /**
  * actor_check_step_obstruction: behaviour unchanged from the original routine. The original author notes and decompile
@@ -365,7 +357,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
     uint8_t used_point_check = 0;
     real_point3d step_point;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if (self->flying == 0) {
@@ -373,9 +365,9 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
 
         step_point.x = step_distance * direction->i + self->body_position.x;
         step_point.y = step_distance * direction->j + self->body_position.y;
-        actor_update_target_lead_position(actor_index);
+        halo::ai::actor_update_target_lead_position(actor_index);
 
-        trace_ok = path_find_test_segment_unobstructed(halo::scenario::globals().structure_bsp, &((struct actor *)self)->pathfinding_point,
+        trace_ok = halo::ai::path_find_test_segment_unobstructed(halo::scenario::globals().structure_bsp, &((struct actor *)self)->pathfinding_point,
             self->ignores_glass, (int32_t)self->pathfinding_surface_index, &step_point, -1, definition->pathfinding_radius, 0,
             (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {
@@ -434,19 +426,19 @@ done:
     return obstructed;
 }
 
-extern "C" uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up, uint8_t *out_flag, void *extra_param)
+namespace halo::ai {
+uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up, uint8_t *out_flag, void *extra_param)
 {
     return halo::ai::movement_ops(actor_index).check_step_obstruction(direction, step_distance, step_up, out_flag, extra_param);
+}
 }
 
 namespace c_actor_check_vehicle_mode_timeout {
 extern "C" {
-extern data_array *actor_data;
 extern game_time_globals *game_time;
 }
 }
 
-extern "C" uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 
 /**
  * actor_check_vehicle_mode_timeout: behaviour unchanged from the original routine. The original author notes and decompile
@@ -458,7 +450,7 @@ uint8_t halo::ai::movement_ops::check_vehicle_mode_timeout()
 {
     using namespace c_actor_check_vehicle_mode_timeout;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->mode == _actor_mode_vehicle &&
         *(int16_t *)&self->mode_data.raw[4] == 3 &&
@@ -469,29 +461,21 @@ uint8_t halo::ai::movement_ops::check_vehicle_mode_timeout()
     return 0;
 }
 
-extern "C" uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index)
 {
     return halo::ai::movement_ops(actor_index).check_vehicle_mode_timeout();
+}
 }
 
 namespace c_actor_compute_swarm_avoidance_offset {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-extern data_array *prop_data;
 extern const real_vector2d *global_forward2d_pointer;
 
 extern double sqrt(double x);
-extern uint8_t projectile_solve_ballistic_arc(real_point3d *target, real_point3d *origin,
-    real speed_limit, real gravity_scale, real *max_time, uint8_t use_high_arc,
-    real_vector3d *out_direction, real *max_speed_override, real *out_speed,
-    real *out_time_of_flight, real *out_range, real *out_half_gravity_term,
-    real *out_horizontal_speed);
 }
 }
 
-extern "C" void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index unit_index, float radius, float *out_offset);
 
 /**
  * actor_compute_swarm_avoidance_offset: behaviour unchanged from the original routine. The original author notes and decompile
@@ -503,20 +487,20 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
 {
     using namespace c_actor_compute_swarm_avoidance_offset;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->swarm_index == (datum_index)k_datum_index_none) {
         return;
     }
 
     {
-        swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & halo::k_slot_mask];
+        swarm *s = &((swarm *)halo::ai::globals().swarm_data->data)[self->swarm_index & halo::k_slot_mask];
         int16_t i;
 
         for (i = 0; i < s->component_count; i++) {
             if (s->unit_index[i] == unit_index) {
                 object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
-                swarm_component *component = &((swarm_component *)swarm_component_data->data)[s->component_index[i] & halo::k_slot_mask];
+                swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[s->component_index[i] & halo::k_slot_mask];
                 uint16_t flags = *(uint16_t *)&((struct swarm_component *)component)->flags;
                 datum_index target = component->leap_target_index;
 
@@ -547,7 +531,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                     }
                 } else {
 
-                    const uint8_t *target_prop = (const uint8_t *)prop_data->data + (target & halo::k_slot_mask) * k_prop_size;
+                    const uint8_t *target_prop = (const uint8_t *)halo::ai::globals().prop_data->data + (target & halo::k_slot_mask) * k_prop_size;
                     real max_time = 0.7f;
                     real half_gravity;
                     real horizontal_speed;
@@ -556,7 +540,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                     if (!(radius > 0.12f)) {
                         radius = 0.12f;
                     }
-                    if (projectile_solve_ballistic_arc(&((struct prop *)target_prop)->center_of_mass,
+                    if (halo::ai::projectile_solve_ballistic_arc(&((struct prop *)target_prop)->center_of_mass,
                             (real_point3d *)((uint8_t *)component + 0x4), radius, 1.0f, &max_time, 0,
                             &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
                         float x, y, sum_sq;
@@ -590,21 +574,16 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
     }
 }
 
-extern "C" void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index unit_index, float radius, float *out_offset)
+namespace halo::ai {
+void actor_compute_swarm_avoidance_offset(datum_index actor_index, datum_index unit_index, float radius, float *out_offset)
 {
     halo::ai::movement_ops(actor_index).compute_swarm_avoidance_offset(unit_index, radius, out_offset);
 }
+}
 
 namespace c_actor_create_swarm {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-
-}
 }
 
-extern "C" datum_index actor_create_swarm(datum_index actor_index);
 
 /**
  * actor_create_swarm: behaviour unchanged from the original routine. The original author notes and decompile
@@ -616,13 +595,13 @@ datum_index halo::ai::movement_ops::create_swarm()
 {
     using namespace c_actor_create_swarm;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->swarm_index == (datum_index)k_datum_index_none) {
-        self->swarm_index = halo::memory::datum_new(swarm_data);
+        self->swarm_index = halo::memory::datum_new(halo::ai::globals().swarm_data);
         if (self->swarm_index != (datum_index)k_datum_index_none) {
             datum_index unit_index = self->cluster_unit_index;
-            swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & halo::k_slot_mask];
+            swarm *s = &((swarm *)halo::ai::globals().swarm_data->data)[self->swarm_index & halo::k_slot_mask];
 
             s->actor_index = actor_index;
             s->component_count = 0;
@@ -630,15 +609,15 @@ datum_index halo::ai::movement_ops::create_swarm()
             while (unit_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
                 object *unit_object = header->data;
-                datum_index component_index = halo::memory::datum_new(swarm_component_data);
+                datum_index component_index = halo::memory::datum_new(halo::ai::globals().swarm_component_data);
 
                 if (component_index == (datum_index)k_datum_index_none) {
                     return self->swarm_index;
                 }
 
                 {
-                    swarm *s2 = &((swarm *)swarm_data->data)[self->swarm_index & halo::k_slot_mask];
-                    swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & halo::k_slot_mask];
+                    swarm *s2 = &((swarm *)halo::ai::globals().swarm_data->data)[self->swarm_index & halo::k_slot_mask];
+                    swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[component_index & halo::k_slot_mask];
                     datum_index marker;
 
                     component->leap_target_index = halo::k_dword_none;
@@ -659,21 +638,16 @@ datum_index halo::ai::movement_ops::create_swarm()
     return self->swarm_index;
 }
 
-extern "C" datum_index actor_create_swarm(datum_index actor_index)
+namespace halo::ai {
+datum_index actor_create_swarm(datum_index actor_index)
 {
     return halo::ai::movement_ops(actor_index).create_swarm();
 }
+}
 
 namespace c_actor_delete_swarm {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-
-}
 }
 
-extern "C" void actor_delete_swarm(datum_index actor_index);
 
 /**
  * actor_delete_swarm: behaviour unchanged from the original routine. The original author notes and decompile
@@ -685,34 +659,34 @@ void halo::ai::movement_ops::delete_swarm()
 {
     using namespace c_actor_delete_swarm;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     datum_index swarm_index = self->swarm_index;
 
     if (swarm_index != (datum_index)k_datum_index_none) {
-        swarm *s = &((swarm *)swarm_data->data)[swarm_index & halo::k_slot_mask];
+        swarm *s = &((swarm *)halo::ai::globals().swarm_data->data)[swarm_index & halo::k_slot_mask];
         int16_t i;
 
         for (i = 0; i < s->component_count; i++) {
-            halo::memory::datum_delete(swarm_component_data, s->component_index[i]);
+            halo::memory::datum_delete(halo::ai::globals().swarm_component_data, s->component_index[i]);
         }
-        halo::memory::datum_delete(swarm_data, swarm_index);
+        halo::memory::datum_delete(halo::ai::globals().swarm_data, swarm_index);
         self->swarm_index = (datum_index)k_datum_index_none;
     }
 }
 
-extern "C" void actor_delete_swarm(datum_index actor_index)
+namespace halo::ai {
+void actor_delete_swarm(datum_index actor_index)
 {
     halo::ai::movement_ops(actor_index).delete_swarm();
+}
 }
 
 namespace c_actor_evaluate_search_node {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 
 extern double sqrt(double x);
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 static uint8_t *actor_try_get(datum_index handle)
@@ -721,10 +695,10 @@ static uint8_t *actor_try_get(datum_index handle)
     int16_t salt = (int16_t)(handle >> 16);
     uint8_t *record;
 
-    if (index < 0 || index >= actor_data->maximum_count) {
+    if (index < 0 || index >= halo::ai::globals().actor_data->maximum_count) {
         return 0;
     }
-    record = (uint8_t *)actor_data->data + actor_data->size * index;
+    record = (uint8_t *)halo::ai::globals().actor_data->data + halo::ai::globals().actor_data->size * index;
     if (*(int16_t *)record == 0 || (salt != 0 && *(int16_t *)record != salt)) {
         return 0;
     }
@@ -733,7 +707,6 @@ static uint8_t *actor_try_get(datum_index handle)
 }
 }
 
-extern "C" uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
 
 /**
  * actor_evaluate_search_node: behaviour unchanged from the original routine. The original author notes and decompile
@@ -788,7 +761,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
         distance = (float)sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax));
     }
     for (prop_index = ((actor *)act)->first_prop; prop_index != k_datum_index_none;) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
+        uint8_t *prop = (uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
         datum_index other_index = ((struct prop *)prop)->owner_actor_index;
 
         prop_index = ((struct prop *)prop)->next_in_actor;
@@ -841,9 +814,11 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     return 1;
 }
 
-extern "C" uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front)
+namespace halo::ai {
+uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score, uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front)
 {
     return halo::ai::movement_ops(actor_index).evaluate_search_node(vehicle_index, seat_index, out_entry, out_direction, out_hint, out_score, out_close, out_facing, out_in_front);
+}
 }
 
 #undef ACTOR
@@ -861,7 +836,6 @@ static uint8_t *object_get(datum_index object_index)
 }
 }
 
-extern "C" void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
 
 /**
  * actor_fill_unit_position_context: behaviour unchanged from the original routine. The original author notes and decompile
@@ -896,21 +870,16 @@ void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, 
     *(uint32_t *)&((struct actor_unit_position_context *)context)->root_position_y = *(uint32_t *)(root_object + 0x9c);
 }
 
-extern "C" void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
+namespace halo::ai {
+void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
 {
     halo::ai::movement_ops::fill_unit_position_context(unit_index, out_context);
 }
+}
 
 namespace c_actor_find_best_search_node {
-extern "C" {
-
-extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
-    real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
-    uint8_t *out_close, uint8_t *out_facing, uint8_t *out_in_front);
-}
 }
 
-extern "C" int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint);
 
 /**
  * actor_find_best_search_node: behaviour unchanged from the original routine. The original author notes and decompile
@@ -937,7 +906,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
         real_point3d hint;
         float score;
 
-        if (actor_evaluate_search_node(actor_index, vehicle_index, i, &entry, &direction, &hint, &score, 0, 0, 0) &&
+        if (halo::ai::actor_evaluate_search_node(actor_index, vehicle_index, i, &entry, &direction, &hint, &score, 0, 0, 0) &&
             score > best_score) {
             best_score = score;
             best_entry = entry;
@@ -958,24 +927,21 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
     return best_seat;
 }
 
-extern "C" int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint)
+namespace halo::ai {
+int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle_index, real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint)
 {
     return halo::ai::movement_ops(actor_index).find_best_search_node(vehicle_index, out_entry, out_direction, out_hint);
+}
 }
 
 namespace c_actor_gate_jump_traversal {
 extern "C" {
-extern data_array *actor_data;
 extern game_time_globals *game_time;
 
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 
-extern uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base,
-    uint16_t order_code, datum_index actor_index);
 }
 }
 
-extern "C" uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast, int16_t broadcast_threshold);
 
 /**
  * actor_gate_jump_traversal: behaviour unchanged from the original routine. The original author notes and decompile
@@ -987,7 +953,7 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
 {
     using namespace c_actor_gate_jump_traversal;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint8_t result = 0;
 
     if (threshold > a->pending_panic_type || a->order_committed != 0) {
@@ -1009,12 +975,12 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
 
     if (a->last_flee_abort_time == -1 || game_time->game_time > a->last_flee_abort_time + 7) {
         if (allow_broadcast != 0 && a->pending_panic_type < broadcast_threshold) {
-            ai_communication_broadcast(0x22, a->unit_index, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, 0);
+            halo::ai::ai_communication_broadcast(0x22, a->unit_index, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, 0);
             a->pending_panic_type = 0;
             return 0;
         }
 
-        result = actor_check_pain_reaction(a->pending_panic_prop_index, (uint8_t)(a->pending_panic_type >= broadcast_threshold),
+        result = halo::ai::actor_check_pain_reaction(a->pending_panic_prop_index, (uint8_t)(a->pending_panic_type >= broadcast_threshold),
                                            (uint16_t)a->pending_panic_type, actor_index);
     }
 
@@ -1022,19 +988,19 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
     return result;
 }
 
-extern "C" uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast, int16_t broadcast_threshold)
+namespace halo::ai {
+uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast, int16_t broadcast_threshold)
 {
     return halo::ai::movement_ops(actor_index).gate_jump_traversal(threshold, allow_broadcast, broadcast_threshold);
+}
 }
 
 namespace c_actor_get_cached_wander_position {
 extern "C" {
-extern data_array *actor_data;
 extern actor_mode_definition actor_mode_definitions[16];
 }
 }
 
-extern "C" uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position);
 
 /**
  * actor_get_cached_wander_position: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1046,7 +1012,7 @@ uint8_t halo::ai::movement_ops::get_cached_wander_position(real_vector3d *out_po
 {
     using namespace c_actor_get_cached_wander_position;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->target_combat_status > 8 && actor_mode_definitions[self->mode].combat_grade == 4) {
         if (self->grenade_throw_pending != 0) {
@@ -1061,22 +1027,21 @@ uint8_t halo::ai::movement_ops::get_cached_wander_position(real_vector3d *out_po
     return 0;
 }
 
-extern "C" uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position)
+namespace halo::ai {
+uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position)
 {
     return halo::ai::movement_ops(actor_index).get_cached_wander_position(out_position);
+}
 }
 
 namespace c_actor_get_requested_velocity {
 extern "C" {
-extern data_array *actor_data;
 
 extern double sqrt(double x);
 
-extern void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a, uint32_t b, uint32_t c);
 }
 }
 
-extern "C" uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit);
 
 /**
  * actor_get_requested_velocity: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1091,12 +1056,12 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
     float length;
     float scale;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->swarm != 0) {
 
-            actor_dispatch_type_vtable_0x1c(actor_index, object_index, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
+            halo::ai::actor_dispatch_type_vtable_0x1c(actor_index, object_index, *(uint32_t *)&speed_limit, (uint32_t)out_velocity);
             self->jump_velocity_request[0] = 0;
             return 1;
         }
@@ -1125,8 +1090,10 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
     return 1;
 }
 
-extern "C" uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit)
+namespace halo::ai {
+uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit)
 {
     return halo::ai::movement_ops::get_requested_velocity(skip_clamp, actor_index, out_velocity, object_index, speed_limit);
+}
 }
 

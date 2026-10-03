@@ -12,19 +12,11 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
-extern ai_globals *ai_globals_ptr;
-extern data_array *encounter_data;
 extern uint8_t *global_structure_bsp;
-extern actor *actor_iterator_next(actor_iterator_state *iterator);
-extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
-extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position);
-extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index);
-extern void actor_react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index);
-extern void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_object, const real_point3d *point);
 extern game_time_globals *game_time;
-extern data_array *actor_data;
 extern uint8_t *actor_type_procs[];
 extern uint8_t *team_pair_data;
 extern int16_t conversation_index_lookup[];
@@ -37,48 +29,21 @@ extern int16_t ai_communication_class_look_marker[];
 extern int16_t ai_communication_class_no_actor_class[];
 extern float ai_communication_selector_delay_seconds[];
 extern uint8_t *communication_line_base;
-extern int32_t ai_communication_quiet_until_tick;
 extern actor_mode_definition actor_mode_definitions[16];
 extern char ai_marker_name_a[];
 extern double sqrt(double x);
 extern double fabs(double x);
-extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a, datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team);
-extern datum_index ai_communication_select_speaker_in_reference(float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, uint32_t reference, datum_index object_a, datum_index object_b);
 extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector, uint8_t *out_flag);
-extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight);
-extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index, float *out_distance, datum_index object_index);
-extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
-extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);
-extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
-extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index, datum_index vehicle_object_index, int16_t line, int16_t variant);
 extern int16_t communication_line_count;
 extern int16_t conversation_line_count;
 extern int32_t conversation_line_base;
-extern data_array *ai_conversation_data;
 extern ai_communication_event_definition ai_communication_event_definitions[];
 extern float ai_communication_class_repeat_delay[];
 extern data_array *player_data;
-extern int8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
-extern data_array *prop_data;
-extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
-extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
-extern int16_t ai_communication_line_fade_multiplier(uint32_t unit_index, int16_t priority, int16_t extra_delay, uint8_t follow_fallback, uint8_t apply_fade, float *volume, int32_t *chain_value, int16_t *dialogue_index, int16_t line_class);
-extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
 extern real DAT_00655ab4[];
 extern real DAT_00656b24[];
-extern void actor_recompute_grenade_eligibility(datum_index actor_index);
-extern int32_t actor_classify_communication_object_type(datum_index actor_index);
 extern game_engine_definition *current_game_engine;
-extern float ai_communication_rate_speaker(datum_index actor_index, datum_index object_b, real_point3d *position_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, real_point3d *position_a, datum_index object_a);
-extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_actor_iterator *iterator);
-extern void *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
-extern uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index);
-extern void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant, datum_index vehicle_object_index);
-extern void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order, datum_index actor_index);
-extern void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index);
 }
 
 namespace halo::ai {
@@ -100,40 +65,40 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     location.leaf_index = leaf;
     location.cluster_index = leaf == -1 ? -1 :
         *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
-    if (ai_globals_ptr->actors_valid) {
-        iterator.filter_array = encounter_data;
+    if (halo::ai::globals().state->actors_valid) {
+        iterator.filter_array = halo::ai::globals().encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
+        iterator.signature = (uint32_t)halo::ai::globals().encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
         iterator.next_actor_index = -1;
     }
-    for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
+    for (a = halo::ai::actor_iterator_next(&iterator); a != 0; a = halo::ai::actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;
         uint32_t block[14];
 
         if (((struct actor *)a)->combat_status >= 7) {
             continue;
         }
-        actor_get_firing_positions(actor_index, block, point);
-        if ((int16_t)actor_target_hearing_check(&location, 0, actor_index, block, gate, point) < 2) {
+        halo::ai::actor_get_firing_positions(actor_index, block, point);
+        if ((int16_t)halo::ai::actor_target_hearing_check(&location, 0, actor_index, block, gate, point) < 2) {
             continue;
         }
         if (event_type == 0) {
-            actor_queue_point_reaction_dialogue(point, actor_index);
+            halo::ai::actor_queue_point_reaction_dialogue(point, actor_index);
         } else if (event_type == 1) {
-            actor_react_to_registered_danger(point, actor_index, source_object);
+            halo::ai::actor_react_to_registered_danger(point, actor_index, source_object);
         } else if (event_type == 2) {
-            actor_react_to_flee_point(actor_index, source_object, point);
+            halo::ai::actor_react_to_flee_point(actor_index, source_object, point);
         }
     }
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
-#define ACTOR_DATA(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
+#define ACTOR_DATA(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
 
 typedef struct broadcast_candidate {
@@ -250,7 +215,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 unit_capability[0] = 1;
             }
             if (unit_encounter_index != k_datum_index_none) {
-                unit_encounter = (uint8_t *)encounter_data->data + (unit_encounter_index & halo::k_slot_mask) * k_encounter_size;
+                unit_encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (unit_encounter_index & halo::k_slot_mask) * k_encounter_size;
             }
         } else if (((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
             unit_class = 1;
@@ -299,7 +264,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
 
                             hostile = (uint8_t)!(unit_encounter[0x46] == 0 && since != -1 && since < 0x10e);
                         }
-                        cached_speaker = ai_communication_select_speaker_by_team(0, unit_index, object_a, 18.0f, 0, 6,
+                        cached_speaker = halo::ai::ai_communication_select_speaker_by_team(0, unit_index, object_a, 18.0f, 0, 6,
                                                                                  halo::k_dword_none, halo::k_dword_none, -1, 0,
                                                                                  (int16_t)unit_team);
                         if (cached_speaker != k_datum_index_none) {
@@ -325,7 +290,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                                                                                     &mark);
 
                         if (mark) {
-                            ai_mark_recognized_objects_for_reaction(team_o, team_u, status);
+                            halo::ai::ai_mark_recognized_objects_for_reaction(team_o, team_u, status);
                         }
                     }
                 }
@@ -373,7 +338,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     memset(recent, 0, sizeof(recent));
     memset(recent_ticks, 0, sizeof(recent_ticks));
     for (side = 0; side < 2; side++) {
-        int32_t *ticks = (int32_t *)(ai_globals_ptr + 0x1c) + side;
+        int32_t *ticks = (int32_t *)(AI_STATE_BYTES + 0x1c) + side;
         int32_t gap_far = now - ticks[2];
         int32_t gap_mid = now - ticks[0];
         int32_t gap_near = now - ticks[-2];
@@ -431,7 +396,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         }
     }
 
-    if (ai_globals_ptr[0x10] == 0) {
+    if (AI_STATE_BYTES[0x10] == 0) {
         return;
     }
     row_index = conversation_index_lookup[event];
@@ -477,7 +442,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (*(int16_t *)(row + 0x1c) != -1 && !buckets[*(int16_t *)(row + 0x1c)]) {
             continue;
         }
-        if (game_time->game_time < ai_communication_quiet_until_tick && line_class < 6 && !(row[0x18] & 0x40)) {
+        if (game_time->game_time < halo::ai::globals().communication_quiet_until_tick && line_class < 6 && !(row[0x18] & 0x40)) {
             continue;
         }
         if (*(int16_t *)(row + 0x1e) != -1 && !gates[*(int16_t *)(row + 0x1e)]) {
@@ -521,11 +486,11 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                     uint8_t flags = (uint8_t)(broadcast_line_flags(row[0x18]) | 0x10);
 
                     if (unit_encounter_index != k_datum_index_none) {
-                        cached_speaker = ai_communication_select_speaker_in_reference(10.0f, event, class_word,
+                        cached_speaker = halo::ai::ai_communication_select_speaker_in_reference(10.0f, event, class_word,
                             class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6), flags,
                             unit_encounter_index & halo::k_slot_mask, unit_index, object_a);
                     } else {
-                        cached_speaker = ai_communication_select_speaker_by_team(1, unit_index, object_a, 10.0f, event,
+                        cached_speaker = halo::ai::ai_communication_select_speaker_by_team(1, unit_index, object_a, 10.0f, event,
                             class_word, class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6), flags,
                             (int16_t)unit_team);
                     }
@@ -534,7 +499,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 found = cached_speaker;
             } else {
                 if (may_search_team) {
-                    cached_team_speaker = ai_communication_select_speaker_by_team(2, unit_index, object_a, 12.0f, event,
+                    cached_team_speaker = halo::ai::ai_communication_select_speaker_by_team(2, unit_index, object_a, 12.0f, event,
                         class_word, class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6),
                         broadcast_line_flags(row[0x18]), (int16_t)unit_team);
                     may_search_team = 0;
@@ -581,7 +546,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             continue;
         }
         if (no_actor_speaker) {
-            target = ai_select_communication_target(speaker_unit, addressed, *(int16_t *)(row + 0x4),
+            target = halo::ai::ai_select_communication_target(speaker_unit, addressed, *(int16_t *)(row + 0x4),
                                                     (int16_t)object_b, &weight);
             if (speaker_unit == unit_index) {
                 may_search = 0;
@@ -602,7 +567,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         } else {
             uint8_t near;
 
-            proximity = ai_communication_rate_player_proximity(1, 0, 0, speaker_unit);
+            proximity = halo::ai::ai_communication_rate_player_proximity(1, 0, 0, speaker_unit);
             if (proximity == 0.0f) {
                 continue;
             }
@@ -814,8 +779,8 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         }
 
         if (chosen->no_actor_speaker) {
-            ai_propagate_communication_reaction(chosen->speaker_unit, (ai_communication_order *)header);
-            ai_communication_play_event_line(chosen->speaker_unit, chosen->dialogue_index, 1, chosen->target,
+            halo::ai::ai_propagate_communication_reaction(chosen->speaker_unit, (ai_communication_order *)header);
+            halo::ai::ai_communication_play_event_line(chosen->speaker_unit, chosen->dialogue_index, 1, chosen->target,
                                              (uint32_t *)header);
             return;
         }
@@ -867,17 +832,17 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                                                          &direction);
             }
             if (chosen->speaker_actor != k_datum_index_none) {
-                actor_issue_order_or_vocalize(k_datum_index_none, chosen->speaker_actor, other_object, 9,
+                halo::ai::actor_issue_order_or_vocalize(k_datum_index_none, chosen->speaker_actor, other_object, 9,
                                               (int16_t)(uint16_t)chosen->follow_up);
             }
-            ai_communication_record_line_played(speaker_unit, chosen->priority, chosen->row, -1);
+            halo::ai::ai_communication_record_line_played(speaker_unit, chosen->priority, chosen->row, -1);
         }
     }
 }
 
 #undef OBJECT_DATA
 #undef ACTOR_DATA
-#undef ai_globals_ptr
+#undef AI_STATE_BYTES
 
 /**
  * Behaviour of ai communication gate line played, moved unchanged from the original free function.
@@ -891,7 +856,7 @@ void AiCommunication::gate_line_played(int16_t event_id, ai_communication_record
             break;
         default:
             if (record->silenced == 0) {
-                ai_communication_record_line_played(object_index, event_id,
+                halo::ai::ai_communication_record_line_played(object_index, event_id,
                     *(int16_t *)((uint8_t *)record + 0x6), -1);
             }
             break;
@@ -978,12 +943,12 @@ void AiCommunication::initialize()
         header[i] = 0;
     }
     strncpy((char *)dest, "ai conversation", 0x1f);
-    ai_conversation_data = (data_array *)dest;
-    ai_conversation_data->maximum_count = 8;
-    ai_conversation_data->size = 0x64;
-    ai_conversation_data->valid = 0;
-    ai_conversation_data->signature = k_data_array_signature;
-    ai_conversation_data->data = dest + 0x38;
+    halo::ai::globals().conversation_data = (data_array *)dest;
+    halo::ai::globals().conversation_data->maximum_count = 8;
+    halo::ai::globals().conversation_data->size = 0x64;
+    halo::ai::globals().conversation_data->valid = 0;
+    halo::ai::globals().conversation_data->signature = k_data_array_signature;
+    halo::ai::globals().conversation_data->data = dest + 0x38;
 }
 
 #undef communication_line_base
@@ -1041,7 +1006,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
     uint8_t *row = ai_communication_event_definitions;
     int32_t row_index = 0;
 
-    if (!ai_globals_ptr->dialogue_triggers_enabled || event_id == -1) {
+    if (!halo::ai::globals().state->dialogue_triggers_enabled || event_id == -1) {
         return;
     }
     for (; *(int16_t *)row != -1; row += 0x24, row_index++) {
@@ -1067,11 +1032,11 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         if (*(int16_t *)(row + 0x2) != -1 && *(int16_t *)(row + 0x2) != *(int16_t *)((uint8_t *)event_record + 0x8)) {
             continue;
         }
-        if (game_time->game_time < ai_communication_quiet_until_tick && !(row[0xc] & 1)) {
+        if (game_time->game_time < halo::ai::globals().communication_quiet_until_tick && !(row[0xc] & 1)) {
             continue;
         }
         if (explicit_speaker_actor_index != k_datum_index_none) {
-            speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (explicit_speaker_actor_index & halo::k_slot_mask) * k_actor_size + 0x18);
+            speaker_unit = *(datum_index *)((uint8_t *)halo::ai::globals().actor_data->data + (explicit_speaker_actor_index & halo::k_slot_mask) * k_actor_size + 0x18);
         } else {
             int16_t mode = *(int16_t *)(row + 0x4);
             datum_index found;
@@ -1083,21 +1048,21 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
                 }
             } else if (mode == 2 || mode == 4) {
                 uint8_t *actor = object_actor != k_datum_index_none
-                    ? (uint8_t *)actor_data->data + (object_actor & halo::k_slot_mask) * k_actor_size : 0;
+                    ? (uint8_t *)halo::ai::globals().actor_data->data + (object_actor & halo::k_slot_mask) * k_actor_size : 0;
 
                 if (mode == 2 && actor != 0 && ((struct actor *)actor)->encounter_index != k_datum_index_none) {
-                    found = ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
+                    found = halo::ai::ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
                         (uint16_t)priority, *(uint16_t *)(row + 0x6), *(int16_t *)(row + 0x8), 0,
                         ((struct actor *)actor)->encounter_index & halo::k_slot_mask, object_index, k_datum_index_none);
                 } else {
-                    found = ai_communication_select_speaker_by_team(mode == 2 ? 1 : 2, object_index, k_datum_index_none,
+                    found = halo::ai::ai_communication_select_speaker_by_team(mode == 2 ? 1 : 2, object_index, k_datum_index_none,
                         9.0f, -1, (uint16_t)class_index, (uint16_t)priority, *(uint16_t *)(row + 0x6),
                         *(int16_t *)(row + 0x8), 0, ((struct object *)object)->owner_team);
                 }
                 if (found == k_datum_index_none) {
                     continue;
                 }
-                speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (found & halo::k_slot_mask) * k_actor_size + 0x18);
+                speaker_unit = *(datum_index *)((uint8_t *)halo::ai::globals().actor_data->data + (found & halo::k_slot_mask) * k_actor_size + 0x18);
             } else {
                 continue;
             }
@@ -1144,8 +1109,8 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
             *(int16_t *)(speech + 0x18) = -1;
             speech[0x1a] = 1;
             halo::units::unit_commit_speech(speaker_unit, (unit_speech *)speech, (int16_t)status);
-            ai_communication_record_line_played(speaker_unit, priority, -1, (int16_t)row_index);
-            actor_issue_order_or_vocalize(k_datum_index_none, *(datum_index *)(speaker + 0x1f4), object_index, 8,
+            halo::ai::ai_communication_record_line_played(speaker_unit, priority, -1, (int16_t)row_index);
+            halo::ai::actor_issue_order_or_vocalize(k_datum_index_none, *(datum_index *)(speaker + 0x1f4), object_index, 8,
                                           (int16_t)(uint16_t)ai_communication_class_follow_up[class_index]);
         }
         return;
@@ -1323,7 +1288,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
     int16_t reach;
     int32_t reach_mode;
 
-    a = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size);
+    a = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size);
 
     have_subject = (object_a != (datum_index)k_datum_index_none ||
                     object_b != (datum_index)k_datum_index_none) ? 1 : 0;
@@ -1354,7 +1319,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
     }
 
     if ((flags & 2) != 0) {
-        proximity = ai_communication_rate_player_proximity(0, 0, 0, a->unit_index);
+        proximity = halo::ai::ai_communication_rate_player_proximity(0, 0, 0, a->unit_index);
         if (proximity == 0.0f) {
             return 0.0f;
         }
@@ -1375,7 +1340,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
         int32_t chain_value = -1;
         int16_t dialogue_index = (int16_t)line_id;
 
-        if (ai_communication_line_fade_multiplier(a->unit_index, (int16_t)line_class, 0, (uint8_t)(flags & 1u), 1,
+        if (halo::ai::ai_communication_line_fade_multiplier(a->unit_index, (int16_t)line_class, 0, (uint8_t)(flags & 1u), 1,
                 &scratch.score, &chain_value, &dialogue_index, (int16_t)fade_limit) == 0) {
             return 0.0f;
         }
@@ -1392,9 +1357,9 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                     matched_a = 1;
                 }
             } else {
-                prop_index = actor_find_or_create_shared_prop(object_a, actor_index, 1, 0);
+                prop_index = halo::ai::actor_find_or_create_shared_prop(object_a, actor_index, 1, 0);
                 if (prop_index != (datum_index)k_datum_index_none) {
-                    p = (prop *)((uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size);
+                    p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size);
                     if (p->distance <= radius) {
                         reach_mode = 2;
                         if (p->state < 2 || 3 < p->state) {
@@ -1407,10 +1372,10 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                                 if (((struct prop *)p)->flashlight_on == 0) {
                                     reach_mode = (int32_t)*(int8_t *)&p->perception_range_class;
                                 }
-                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->obstruction,
+                                reach = halo::ai::actor_dispatch_look_handler_by_posture(((struct prop *)p)->obstruction,
                                                      actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
                                                      (uint8_t)reach_mode, 1,
-                                                     actor_target_get_priority_class(actor_index, prop_index));
+                                                     halo::ai::actor_target_get_priority_class(actor_index, prop_index));
                                 if (reach < 2) {
                                     goto check_b;
                                 }
@@ -1432,9 +1397,9 @@ check_b:
                 }
                 matched_b = 1;
             } else {
-                prop_index = actor_find_prop_for_object(object_b, actor_index);
+                prop_index = halo::ai::actor_find_prop_for_object(object_b, actor_index);
                 if (prop_index != (datum_index)k_datum_index_none) {
-                    p = (prop *)((uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size);
+                    p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size);
                     if (p->distance <= radius) {
                         if ((1 < p->state && p->state < 4) || p->enemy == 0) {
                             scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
@@ -1490,25 +1455,25 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
         return;
     }
 
-    actor_recompute_grenade_eligibility(actor_index);
-    category = actor_classify_communication_object_type(actor_index);
+    halo::ai::actor_recompute_grenade_eligibility(actor_index);
+    category = halo::ai::actor_classify_communication_object_type(actor_index);
     if (category == -1) {
         return;
     }
 
     if (tier <= 5) {
-        slot = &ai_globals_ptr->loudest_line_tick[0][category];
+        slot = &halo::ai::globals().state->loudest_line_tick[0][category];
         if (*slot <= stamp) {
             *slot = stamp;
         }
         if (tier >= 3) {
-            slot = &ai_globals_ptr->loudest_line_tick[1][category];
+            slot = &halo::ai::globals().state->loudest_line_tick[1][category];
             if (*slot <= stamp) {
                 *slot = stamp;
             }
         }
         if (tier >= 5) {
-            slot = &ai_globals_ptr->loudest_line_tick[2][category];
+            slot = &halo::ai::globals().state->loudest_line_tick[2][category];
             if (*slot <= stamp) {
                 *slot = stamp;
             }
@@ -1550,10 +1515,10 @@ void AiCommunication::reset()
     int32_t *entries;
     uint8_t *element;
 
-    ai_globals_ptr->dialogue_triggers_enabled = 1;
+    halo::ai::globals().state->dialogue_triggers_enabled = 1;
     for (i = 0; i < 3; i++) {
-        ai_globals_ptr->loudest_line_tick[i][0] = 0;
-        ai_globals_ptr->loudest_line_tick[i][1] = 0;
+        halo::ai::globals().state->loudest_line_tick[i][0] = 0;
+        halo::ai::globals().state->loudest_line_tick[i][1] = 0;
     }
 
     entries = (int32_t *)communication_line_base;
@@ -1570,24 +1535,24 @@ void AiCommunication::reset()
         entries[i * 2 + 1] = -1;
     }
 
-    ai_globals_ptr->conversation_event_count = 0;
-    ai_globals_ptr->conversation_event_cursor = 0;
+    halo::ai::globals().state->conversation_event_count = 0;
+    halo::ai::globals().state->conversation_event_cursor = 0;
     {
-        uint8_t *ring = (uint8_t *)ai_globals_ptr->conversation_events;
+        uint8_t *ring = (uint8_t *)halo::ai::globals().state->conversation_events;
         for (i = 0; i < 0x100; i++) {
             ring[i] = 0;
         }
     }
 
-    ai_conversation_data->next_index = 0;
-    ai_conversation_data->last_index = 0;
-    ai_conversation_data->actual_count = 0;
-    strncpy((char *)&ai_conversation_data->next_identifier, ai_conversation_data->name, 2);
-    ai_conversation_data->next_identifier |= 0x8000;
-    ai_conversation_data->valid = 1;
+    halo::ai::globals().conversation_data->next_index = 0;
+    halo::ai::globals().conversation_data->last_index = 0;
+    halo::ai::globals().conversation_data->actual_count = 0;
+    strncpy((char *)&halo::ai::globals().conversation_data->next_identifier, halo::ai::globals().conversation_data->name, 2);
+    halo::ai::globals().conversation_data->next_identifier |= 0x8000;
+    halo::ai::globals().conversation_data->valid = 1;
 
-    for (i = 0; i < ai_conversation_data->maximum_count; i++) {
-        element = (uint8_t *)ai_conversation_data->data + (int32_t)ai_conversation_data->size * i;
+    for (i = 0; i < halo::ai::globals().conversation_data->maximum_count; i++) {
+        element = (uint8_t *)halo::ai::globals().conversation_data->data + (int32_t)halo::ai::globals().conversation_data->size * i;
         *(int16_t *)element = 0;
     }
 }
@@ -1626,18 +1591,18 @@ datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_in
         position = marker_b.node_transform.position;
     }
 
-    if (ai_globals_ptr->actors_valid) {
-        iterator.filter_array = encounter_data;
+    if (halo::ai::globals().state->actors_valid) {
+        iterator.filter_array = halo::ai::globals().encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
+        iterator.signature = (uint32_t)(uintptr_t)halo::ai::globals().encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
         iterator.next_actor_index = -1;
     }
 
-    a = actor_iterator_next(&iterator);
+    a = halo::ai::actor_iterator_next(&iterator);
     if (a == 0) {
         return (datum_index)k_datum_index_none;
     }
@@ -1660,7 +1625,7 @@ datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_in
             }
         }
         if (accept) {
-            score = ai_communication_rate_speaker(actor_index, object_b, &position, radius,
+            score = halo::ai::ai_communication_rate_speaker(actor_index, object_b, &position, radius,
                                                   allow_unreachable, fade_limit, line_class,
                                                   line_id, seat_filter, flags, &position,
                                                   object_a);
@@ -1669,7 +1634,7 @@ datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_in
                 best = actor_index;
             }
         }
-        a = actor_iterator_next(&iterator);
+        a = halo::ai::actor_iterator_next(&iterator);
     } while (a != 0);
 
     return best;
@@ -1708,20 +1673,20 @@ datum_index AiCommunication::select_speaker_in_reference(float radius, int16_t a
         position_b = marker.node_transform.position;
     }
 
-    ai_reference_actor_iterator_new(reference, &iterator);
-    if (ai_reference_actor_iterator_next(&iterator) == 0) {
+    halo::ai::ai_reference_actor_iterator_new(reference, &iterator);
+    if (halo::ai::ai_reference_actor_iterator_next(&iterator) == 0) {
         return (datum_index)k_datum_index_none;
     }
     do {
         actor_index = iterator.actor_index;
-        score = ai_communication_rate_speaker(actor_index, object_b, &position_b, radius,
+        score = halo::ai::ai_communication_rate_speaker(actor_index, object_b, &position_b, radius,
                                               allow_unreachable, fade_limit, line_class, line_id,
                                               seat_filter, flags, &position_a, object_a);
         if (best_score < score) {
             best_score = score;
             best = actor_index;
         }
-    } while (ai_reference_actor_iterator_next(&iterator) != 0);
+    } while (halo::ai::ai_reference_actor_iterator_next(&iterator) != 0);
 
     return best;
 }
@@ -1744,8 +1709,8 @@ void AiCommunication::target_result_reset(ai_communication_target_result *record
     record->unknown_08 = -1;
 }
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1767,7 +1732,7 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
     if (actor_index == k_datum_index_none) {
         return 0;
     }
-    prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
+    prop_index = halo::ai::actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
     if (prop_index == k_datum_index_none) {
         return 0;
     }
@@ -1784,8 +1749,8 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1819,8 +1784,8 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1840,7 +1805,7 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
     uint8_t *a;
     uint8_t *b;
 
-    if (!actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+    if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
     own_actor = *(datum_index *)(OBJECT(object_index) + 0x1f4);
@@ -1860,8 +1825,8 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1892,8 +1857,8 @@ uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1911,7 +1876,7 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 {
     uint8_t *actor;
 
-    if (!actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+    if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
     actor = ACTOR(actor_index);
@@ -1930,8 +1895,8 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -1951,7 +1916,7 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
     datum_index a_target;
     datum_index b_target;
 
-    if (!actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+    if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
     own_actor = *(datum_index *)(OBJECT(object_index) + 0x1f4);
@@ -1975,8 +1940,8 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -2007,8 +1972,8 @@ uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_
 #undef PROP
 #undef OBJECT
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 namespace {
 
@@ -2058,14 +2023,14 @@ void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index 
         return;
     }
     if (count == 1) {
-        prop *p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
+        prop *p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
 
         if (target == p->object_index) {
             line = 8;
         }
-        actor_issue_order_or_vocalize(k_datum_index_none, actor_index, target, line, variant);
+        halo::ai::actor_issue_order_or_vocalize(k_datum_index_none, actor_index, target, line, variant);
     } else if (count == 2) {
-        actor_issue_multi_target_vocalization(line, actor_index, variant, target);
+        halo::ai::actor_issue_multi_target_vocalization(line, actor_index, variant, target);
     }
 }
 
@@ -2089,7 +2054,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
     actor *a;
 
     if (((struct actor_squad_order_header *)o)->type == 1) {
-        ai_mark_recognized_objects_for_reaction((int16_t)*(uint16_t *)(o + 0x18), (int16_t)*(uint16_t *)(o + 0x1a),
+        halo::ai::ai_mark_recognized_objects_for_reaction((int16_t)*(uint16_t *)(o + 0x18), (int16_t)*(uint16_t *)(o + 0x1a),
                                                 o[0x1c]);
     }
     if (((struct actor_squad_order_header *)o)->type == 0 && *(int16_t *)(o + 0xc) <= 0) {
@@ -2106,20 +2071,20 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
     if (((object *)obj)->parent_object != k_datum_index_none) {
         location = OBJECT_DATA(halo::objects::object_get_root_object_index(object_index)) + 0x98;
     }
-    if (!ai_globals_ptr->actors_valid) {
+    if (!halo::ai::globals().state->actors_valid) {
         return;
     }
     memset(&iterator, 0, sizeof(iterator));
-    iterator.filter_array = encounter_data;
+    iterator.filter_array = halo::ai::globals().encounter_data;
     iterator.next_index = 0;
     iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
+    iterator.signature = (uint32_t)(uintptr_t)halo::ai::globals().encounter_data ^ halo::ai::k_iterator_signature_key;
     iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = k_datum_index_none;
     iterator.next_actor_index = -1;
 
-    for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
+    for (a = halo::ai::actor_iterator_next(&iterator); a != 0; a = halo::ai::actor_iterator_next(&iterator)) {
         uint8_t *ap = (uint8_t *)a;
         int16_t team = ((struct actor *)ap)->team;
         datum_index actor_index;
@@ -2153,16 +2118,16 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
             }
         }
         actor_index = iterator.actor_index;
-        prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
+        prop_index = halo::ai::actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
         if (prop_index != k_datum_index_none) {
-            prop *p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
+            prop *p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
             uint32_t firing[0x18];
 
-            actor_get_firing_positions(actor_index, firing, &position);
-            if ((int16_t)actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->obstruction, actor_index,
+            halo::ai::actor_get_firing_positions(actor_index, firing, &position);
+            if ((int16_t)halo::ai::actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->obstruction, actor_index,
                                            firing, gate, &position) >= 2) {
-                actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
-                ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);
+                halo::ai::actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
+                halo::ai::ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);
             }
         }
     }
@@ -2199,14 +2164,14 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
     result = -1;
     weight = 1.0f;
 
-    if (ai_globals_ptr->dialogue_triggers_enabled && line_id != -1) {
+    if (halo::ai::globals().state->dialogue_triggers_enabled && line_id != -1) {
         index = 0;
         entry = (uint16_t *)&ai_communication_event_definitions[0].required_kind;
         do {
             if (*(int16_t *)(entry - 1) == line_id &&
                 (*(int16_t *)entry == -1 || *(int16_t *)entry == sub_id)) {
                 comm_kind = *(int16_t *)(entry + 4);
-                if ((ai_communication_quiet_until_tick <= game_time->game_time ||
+                if ((halo::ai::globals().communication_quiet_until_tick <= game_time->game_time ||
                      (*(uint8_t *)(entry + 5) & 1) != 0) &&
                     0.0f < *(float *)(entry + 9)) {
                     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -2217,7 +2182,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                             candidate_a = *(int16_t *)(entry + 2);
                             candidate_b = *(int16_t *)(entry + 3);
                             search_kind = (target_kind == 2) ? 1u : 2u;
-                            result = ai_communication_select_speaker_by_team((int16_t)search_kind, param_a,
+                            result = halo::ai::ai_communication_select_speaker_by_team((int16_t)search_kind, param_a,
                                                    halo::k_dword_none, 9.0f, -1,
                                                    (uint32_t)(uint16_t)comm_kind,
                                                    (uint32_t)(uint16_t)ai_communication_class_priority[comm_kind],
@@ -2232,7 +2197,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                         }
 
                         if (result != -1) {
-                            int16_t comm_index = (int16_t)actor_classify_communication_object_type((datum_index)result);
+                            int16_t comm_index = (int16_t)halo::ai::actor_classify_communication_object_type((datum_index)result);
                             if (comm_index != -1) {
                                 now = game_time->game_time;
                                 timestamp_pair = (int32_t *)(conversation_line_base +

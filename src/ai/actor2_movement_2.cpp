@@ -7,23 +7,17 @@
 #include "halo/units/flags.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_movement_choose_avoidance_direction_local {
 extern "C" {
-extern data_array *actor_data;
 extern uint32_t global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern const real_vector3d *global_origin3d_pointer;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern void actor_movement_collect_obstacle_candidates(actor_movement_context *context);
-extern int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
-    real_point3d *out_end_point, actor_movement_context *context, float *out_distance,
-    uint8_t *out_clear_counter);
-extern uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples,
-    int16_t count, const float *values, float *out_index, float *out_value);
 extern float actor_avoidance_samples_a[16][7];
 extern float actor_avoidance_circle[8][3];
 extern float actor_avoidance_samples_b[9][7];
@@ -41,7 +35,7 @@ extern const float actor_avoidance_ray_weights[2];
 void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real_vector3d *out_direction, float *out_scale)
 {
     using namespace actor_movement_choose_avoidance_direction_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     const real_vector3d *zero = global_origin3d_pointer;
     real_vector3d result = *zero;
     float out = 0.0f;
@@ -88,7 +82,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     context.left.k = context.up.i * context.forward.j - context.forward.i * context.up.j;
     context.search_radius = 12.0f;
     context.ray_scale = 1.0f;
-    actor_movement_collect_obstacle_candidates(&context);
+    halo::ai::actor_movement_collect_obstacle_candidates(&context);
 
     for (i = 0; i < 8; i++) {
         weights[i] = 0.0f;
@@ -104,7 +98,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     }
 
     for (k = 0; k < 9; k++) {
-        if (actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_b[k], &end_point, &context, &distance,
+        if (halo::ai::actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_b[k], &end_point, &context, &distance,
                                              0) > 0) {
             float v = 1.0f - distance;
             float c = v + v;
@@ -129,7 +123,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
         int16_t j;
 
         for (j = 0; j < 2; j++) {
-            hit[j] = actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_a[k * 2 + j], &end_point,
+            hit[j] = halo::ai::actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_a[k * 2 + j], &end_point,
                                                       &context, &ray_distance[j], act + 0x5c8 + k * 2 + j);
         }
         for (j = 1; j >= 0; j--) {
@@ -196,7 +190,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
                 motion.j *= inverse;
                 motion.k *= inverse;
                 if (length > 0.0f &&
-                    actor_avoidance_interpolate_sample(&motion, (real_vector3d *)actor_avoidance_circle, 8, weights,
+                    halo::ai::actor_avoidance_interpolate_sample(&motion, (real_vector3d *)actor_avoidance_circle, 8, weights,
                                                        &index_out, &value) &&
                     value > 0.5f) {
                     for (i = 0; i < 8; i++) {
@@ -249,7 +243,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
                     e.j *= inverse_2;
                     e.k *= inverse_2;
                     if (length_2 > 0.0f) {
-                        actor_avoidance_interpolate_sample(&e, (real_vector3d *)actor_avoidance_circle, 8, weights,
+                        halo::ai::actor_avoidance_interpolate_sample(&e, (real_vector3d *)actor_avoidance_circle, 8, weights,
                                                            &index_out, &along);
                     }
                 }
@@ -394,33 +388,11 @@ done:
 
 namespace actor_movement_update_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
 extern const real_vector3d *global_origin3d_pointer;
 extern const real_vector2d *global_forward2d_pointer;
 extern double sin(double x);
 extern double cos(double x);
 extern double sqrt(double x);
-extern void actor_movement_choose_avoidance_direction(datum_index actor_index,
-                                                      const real_vector3d *desired_direction,
-                                                      real_vector3d *out_direction,
-                                                      float *out_scale);
-extern void actor_movement_apply_steering(
-    int16_t cached_axis, uint8_t keep_z,
-    datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed,
-    float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale,
-    float throttle_maximum,
-    real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis,
-    real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506);
-extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed);
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action,
-                                            uint32_t payload[2]);
-extern uint8_t actor_action_has_queued_secondary(datum_index actor_index);
-extern void actor_set_flag_bit1(datum_index actor_index);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
-                                       datum_index object_a, int32_t param_d,
-                                       datum_index object_b, datum_index object_c,
-                                       uint32_t *param_g);
 }
 }
 
@@ -432,7 +404,7 @@ extern void ai_communication_broadcast(int32_t event_code, datum_index unit_inde
 void ActorView::movement_update()
 {
     using namespace actor_movement_update_local;
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffffu];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffffu];
     uint8_t *actor_base = (uint8_t *)a;
     Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
 
@@ -483,7 +455,7 @@ void ActorView::movement_update()
         } else {
             desired = (const real_vector3d *)&a->desired_movement_vector;
         }
-        actor_movement_choose_avoidance_direction(actor_index, desired, &sampled, &sampled_scale);
+        halo::ai::actor_movement_choose_avoidance_direction(actor_index, (real_vector3d *)desired, &sampled, &sampled_scale);
 
         if (sampled.j * sampled.j + sampled.k * sampled.k + sampled.i * sampled.i <=
             a->avoidance_direction.k * a->avoidance_direction.k +
@@ -689,7 +661,7 @@ void ActorView::movement_update()
     }
 
     if (a->moving != 0 && a->waypoint_reached == 0) {
-        actor_movement_apply_steering(
+        halo::ai::actor_movement_apply_steering(
             cached_axis, sidestep_mode,
             actor_index, want_avoid_check, avoid_threshold, order_failed,
             steering_maximum, oversteer_min, oversteer_max, avoidance_scale, throttle_maximum,
@@ -718,7 +690,7 @@ void ActorView::movement_update()
     }
 
     if (clear_recognition && a->moving == 0) {
-        actor_clear_recognition_history(actor_index, 1);
+        halo::ai::actor_clear_recognition_history(actor_index, 1);
     }
 
     if (a->moving != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::cannot_move_while_crouching)) {
@@ -745,7 +717,7 @@ void ActorView::movement_update()
         facing.i = a->facing.i;
         facing.j = a->facing.j;
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
-            prop *target_prop = &((prop *)prop_data->data)[a->target_unit_index & halo::k_slot_mask];
+            prop *target_prop = &((prop *)halo::ai::globals().prop_data->data)[a->target_unit_index & halo::k_slot_mask];
             target_object = target_prop->object_index;
             facing.i = target_prop->direction.x;
             facing.j = target_prop->direction.y;
@@ -754,8 +726,8 @@ void ActorView::movement_update()
                 facing.j = a->facing.j;
             }
         }
-        actor_queue_secondary_action(actor_index, 0, (uint32_t *)&facing);
-        ai_communication_broadcast(0x2a, a->unit_index, target_object, 3,
+        halo::ai::actor_queue_secondary_action(actor_index, 0, (uint32_t *)&facing);
+        halo::ai::ai_communication_broadcast(0x2a, a->unit_index, target_object, 3,
                                    (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, 0);
         a->berserk_announced = 1;
@@ -765,7 +737,7 @@ void ActorView::movement_update()
         a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::jump);
     } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
         a->jump_velocity_request[0] = 0;
-    } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {
+    } else if (halo::ai::actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {
         uint8_t handled = 0;
         if (a->jump_is_leap != 0) {
             real_vector2d facing;
@@ -779,7 +751,7 @@ void ActorView::movement_update()
                 }
             }
             if (halo::units::unit_try_ready_weapon_variant(a->unit_index, &facing) != 0) {
-                ai_communication_broadcast(0x2f, a->unit_index,
+                halo::ai::ai_communication_broadcast(0x2f, a->unit_index,
                                            (datum_index)k_datum_index_none, -1,
                                            (datum_index)k_datum_index_none,
                                            (datum_index)k_datum_index_none, 0);
@@ -787,7 +759,7 @@ void ActorView::movement_update()
             }
         }
         if (!handled) {
-            actor_set_flag_bit1(actor_index);
+            halo::ai::actor_set_flag_bit1(actor_index);
         }
         if (a->jump_parameters_valid != 0) {
             *(float *)&a->jump_velocity_request[4]  = a->jump_facing.i;

@@ -4,23 +4,17 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
 extern "C" {
-extern data_array *actor_data;
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
+#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
-extern data_array *prop_data;
-extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
-    datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern void actor_raise_timer_5f6(datum_index actor_index, int32_t ticks);
-extern uint16_t actor_consider_target_candidate(datum_index actor_index, datum_index candidate_prop_index);
 extern int32_t __ftol(void);
 }
 }
@@ -58,24 +52,24 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         direction.j = F(0x178);
         halo::math::vector2d_normalize_with_length(direction);
     }
-    actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
+    halo::ai::actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
     if (D(0x2f4) != halo::k_dword_none) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (D(0x2f4) & halo::k_slot_mask) * k_prop_size;
+        uint8_t *prop = (uint8_t *)halo::ai::globals().prop_data->data + (D(0x2f4) & halo::k_slot_mask) * k_prop_size;
 
         object = ((struct prop *)prop)->object_index;
         reason = (prop[0x60] != 0) + 2;
     }
-    ai_communication_broadcast(0x29, D(0x18), object, reason, halo::k_dword_none, halo::k_dword_none, 0);
+    halo::ai::ai_communication_broadcast(0x29, D(0x18), object, reason, halo::k_dword_none, halo::k_dword_none, 0);
     if (*(float *)(definition + 0x90) > 0.0f) {
         W(0x5f2) = 4;
         W(0x5f4) = (int16_t)(int32_t)(*(float *)(definition + 0x90) * 30.0f);
     }
     if (*(float *)(definition + 0x8c) > 0.0f) {
-        actor_raise_timer_5f6(actor_index, (int32_t)(*(float *)(definition + 0x8c) * 30.0f));
+        halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(*(float *)(definition + 0x8c) * 30.0f));
     }
     B(0x2f0) = 1;
     if (D(0x2f4) != halo::k_dword_none) {
-        actor_consider_target_candidate(actor_index, D(0x2f4));
+        halo::ai::actor_consider_target_candidate(actor_index, D(0x2f4));
     }
     W(0x2ee) = 0;
     return 1;
@@ -89,10 +83,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 
 namespace actor_react_to_threat_event_local {
 extern "C" {
-extern void actor_mark_prop_seen_with_delta(datum_index object_index, datum_index actor_index, float delta,
-    const real_vector3d *direction);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern void team_pair_override_refresh(int16_t index_b, int16_t index_a);
 }
 }
@@ -145,7 +136,7 @@ no_relationship_object:
     if (suppress_vehicle_relay == 0 && (int16_t)event_kind != 1) {
         actor_object_index = ((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->actor_index;
         if (actor_object_index != (datum_index)k_datum_index_none) {
-            actor_mark_prop_seen_with_delta(relationship_object_index, actor_object_index, magnitude,
+            halo::ai::actor_mark_prop_seen_with_delta(relationship_object_index, actor_object_index, magnitude,
                 (const real_vector3d *)extra_param);
         }
     }
@@ -166,7 +157,7 @@ no_relationship_object:
         }
         event_code = 2;
     }
-    ai_communication_broadcast(event_code, self_object_index, relationship_object_index, reason,
+    halo::ai::ai_communication_broadcast(event_code, self_object_index, relationship_object_index, reason,
                                 event_kind, (datum_index)k_datum_index_none, 0);
 skip_broadcast:
     if (relationship_obj != 0) {

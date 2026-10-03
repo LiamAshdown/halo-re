@@ -8,18 +8,14 @@
 #include "halo/core/datum.hpp"
 #include "halo/render/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern int16_t director_camera_mode;
 extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
-extern void cinematic_screen_effect_set_convolution(int16_t convolution_type, int16_t extra_passes, float radius_lower_bound, float radius_upper_bound, float duration);
-extern void cinematic_screen_effect_set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower, float desaturation_upper, uint8_t is_additive, float duration);
 extern uint8_t *cinematic_screen_effect_state;
 extern game_time_globals *game_time;
 }
@@ -33,13 +29,13 @@ namespace halo::hs {
  */
 void CameraCommands::run_camera_control(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::camera::camera_control(*(uint8_t *)&arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -50,13 +46,13 @@ void CameraCommands::run_camera_control(int16_t function_index, uint32_t thread_
  */
 void CameraCommands::camera_set(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::camera::camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], k_datum_index_none);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -67,13 +63,13 @@ void CameraCommands::camera_set(int16_t function_index, uint32_t thread_index, c
  */
 void CameraCommands::camera_set_animation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::camera::camera_script_set_animation((datum_index)arguments[0], (char *)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -84,8 +80,8 @@ void CameraCommands::camera_set_animation(int16_t function_index, uint32_t threa
  */
 void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -94,7 +90,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
             halo::hs::fields::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -105,8 +101,8 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
  */
 void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -115,7 +111,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
             halo::hs::fields::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -126,13 +122,13 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
  */
 void CameraCommands::camera_set_relative(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::camera::camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], (datum_index)arguments[2]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -143,7 +139,7 @@ void CameraCommands::camera_set_relative(int16_t function_index, uint32_t thread
  */
 void CameraCommands::camera_time(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)(uint16_t)(int16_t)(int32_t)(camera_script_time_remaining * 30.0f), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)(int16_t)(int32_t)(camera_script_time_remaining * 30.0f), thread_index);
 }
 
 namespace {
@@ -177,7 +173,7 @@ void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_
     split_screen_quit_prompt_string = halo::k_word_none;
     network_join_error_reason = 0;
     halo::main::fields::revert_map_if_allowed = 1;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -188,14 +184,14 @@ void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_
  */
 void CinematicCommands::run_cinematic_screen_effect_set_convolution(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::render::cinematic_screen_effect_set_convolution(*(int16_t *)&arguments[1], *(int16_t *)&arguments[0], *(float *)&arguments[2],
         *(float *)&arguments[3], *(float *)&arguments[4]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -207,14 +203,14 @@ void CinematicCommands::run_cinematic_screen_effect_set_convolution(int16_t func
  */
 void CinematicCommands::run_cinematic_screen_effect_set_filter(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::render::cinematic_screen_effect_set_filter(*(float *)&arguments[0], *(float *)&arguments[1], *(float *)&arguments[2],
         *(float *)&arguments[3], *(uint8_t *)&arguments[4], *(float *)&arguments[5]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -226,8 +222,8 @@ void CinematicCommands::run_cinematic_screen_effect_set_filter(int16_t function_
  */
 void CinematicCommands::cinematic_screen_effect_set_filter_desaturation_tint(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -236,7 +232,7 @@ void CinematicCommands::cinematic_screen_effect_set_filter_desaturation_tint(int
         *(int32_t *)(cinematic_screen_effect_state + 0x14) = arguments[0];
         *(int32_t *)(cinematic_screen_effect_state + 0x1c) = arguments[2];
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -247,13 +243,13 @@ void CinematicCommands::cinematic_screen_effect_set_filter_desaturation_tint(int
  */
 void CinematicCommands::run_cinematic_screen_effect_set_video(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::render::cinematic_screen_effect_set_video((int16_t)arguments[0], *(float *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -264,8 +260,8 @@ void CinematicCommands::run_cinematic_screen_effect_set_video(int16_t function_i
  */
 void CinematicCommands::cinematic_screen_effect_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -280,7 +276,7 @@ void CinematicCommands::cinematic_screen_effect_start(int16_t function_index, ui
         }
         cinematic_screen_effect_state[0x38] = 1;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -294,7 +290,7 @@ void CinematicCommands::cinematic_screen_effect_stop(int16_t function_index, uin
     if (cinematic_screen_effect_state != 0) {
         cinematic_screen_effect_state[0x38] = 0;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -304,15 +300,15 @@ void CinematicCommands::cinematic_screen_effect_stop(int16_t function_index, uin
  */
 void CinematicCommands::cinematic_set_near_clip_distance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     if (cinematic_screen_effect_state != 0) {
         *(int32_t *)(cinematic_screen_effect_state + 0x74) = arguments[0];
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -323,13 +319,13 @@ void CinematicCommands::cinematic_set_near_clip_distance(int16_t function_index,
  */
 void CinematicCommands::cinematic_set_title(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::cutscene::cutscene_title_queue(*(int16_t *)&arguments[0], 0.0f);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -340,13 +336,13 @@ void CinematicCommands::cinematic_set_title(int16_t function_index, uint32_t thr
  */
 void CinematicCommands::cinematic_set_title_delayed(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::cutscene::cutscene_title_queue(*(int16_t *)&arguments[0], *(float *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -357,8 +353,8 @@ void CinematicCommands::cinematic_set_title_delayed(int16_t function_index, uint
  */
 void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -368,7 +364,7 @@ void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_
     if (show) {
         halo::cutscene::globals().cinematic_globals->letterbox_last_tick = game_time->game_time;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -380,7 +376,7 @@ void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_
 void CinematicCommands::cinematic_skip_start_internal(int16_t function_index, uint32_t thread_index, char first)
 {
     halo::cutscene::globals().cinematic_globals->skip_in_progress = 1;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -395,7 +391,7 @@ void CinematicCommands::cinematic_skip_stop_internal(int16_t function_index, uin
         halo::cutscene::globals().cinematic_saved_music_gain = -1.0f;
     }
     halo::cutscene::globals().cinematic_globals->skip_in_progress = 0;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -406,7 +402,7 @@ void CinematicCommands::cinematic_skip_stop_internal(int16_t function_index, uin
 void CinematicCommands::cinematic_start(int16_t function_index, uint32_t thread_index, char first)
 {
     halo::cutscene::cutscene_start();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -417,7 +413,7 @@ void CinematicCommands::cinematic_start(int16_t function_index, uint32_t thread_
 void CinematicCommands::cinematic_stop(int16_t function_index, uint32_t thread_index, char first)
 {
     halo::cutscene::cutscene_stop();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -427,13 +423,13 @@ void CinematicCommands::cinematic_stop(int16_t function_index, uint32_t thread_i
  */
 void CinematicCommands::cinematic_suppress_bsp_object_creation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::cutscene::globals().cinematic_globals->suppress_bsp_object_creation = *(uint8_t *)&arguments[0];
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -469,7 +465,7 @@ const ScriptCommandGroup &CinematicCommands::commands()
 
 }
 
-extern "C" {
+namespace halo::hs {
 
 void hs_evaluate_camera_control(int16_t function_index, uint32_t thread_index, char first)
 {

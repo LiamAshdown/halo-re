@@ -9,51 +9,21 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern char hs_parse_primitive(datum_index node_index);
-extern char hs_parse_nonprimitive(datum_index node_index);
-extern data_array *hs_syntax_data;
-extern char *hs_compiled_source;
-extern char *hs_compile_error;
-extern int32_t hs_compile_error_offset;
-extern uint8_t ai_reference_parse(char *reference_string, Scenario *scenario, uint32_t *out_packed_reference);
-extern char hs_parse_scenario_datum(datum_index node_index, int16_t name_offset, TagReflexive *array, int32_t stride);
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern char hs_parse(datum_index node_index, hs_type_t expected_type);
-extern char hs_compile_error_buffer[0x100];
-extern datum_index hs_parse_cond_recursive(datum_index cond_node_index, datum_index pair_index);
-extern char hs_compile_error_buffer[k_hs_error_buffer_size];
-extern char hs_get_parameter_indices(char *function_name, int16_t required_count, datum_index node_index,
-    datum_index *out_indices);
 extern Globals *global_globals;
-extern void hs_resolve_identifier_as_function_or_script(datum_index node_index);
-extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source_type);
-extern char hs_add_global(datum_index node_index);
-extern char hs_add_script(datum_index node_index);
-extern char *hs_type_names[k_hs_type_count];
-extern uint8_t hs_blocking_forbidden;
-extern uint8_t hs_set_forbidden;
-extern char hs_parse_object_name(datum_index node_index);
-extern uint16_t hs_object_type_masks[6];
-extern char hs_parse_variable(datum_index node_index);
-extern uint8_t hs_postprocessing;
 extern void *hs_parse_primitive_procedures[k_hs_type_count];
-extern int16_t hs_script_find_by_name(char *name);
-extern hs_global_reference hs_find_global_by_name(char *name);
-extern hs_type_t hs_global_get_type(hs_global_reference global);
 extern uint32_t hs_tag_group_for_type[8];
-extern char *hs_global_get_name(hs_global_reference global);
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern hs_enum_definition hs_enum_definitions[5];
-extern int16_t hs_find_function_by_name(char *name);
 }
 
 #undef HS_NODE
-#define HS_NODE(index) ((uint8_t *)hs_syntax_data->data + ((index) & halo::k_slot_mask) * 0x14)
+#define HS_NODE(index) ((uint8_t *)halo::hs::globals().syntax_data->data + ((index) & halo::k_slot_mask) * 0x14)
 static hs_syntax_node *syntax_node(datum_index node_index)
 {
-    return (hs_syntax_node *)hs_syntax_data->data + (node_index & halo::k_slot_mask);
+    return (hs_syntax_node *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask);
 }
 
 static char parse_typed_argument(datum_index argument, hs_type_t type)
@@ -65,9 +35,9 @@ static char parse_typed_argument(datum_index argument, hs_type_t type)
     node->type = type;
     if ((node->flags & 1) != 0) {
         node->index_union = type;
-        return hs_parse_primitive(argument);
+        return halo::hs::hs_parse_primitive(argument);
     }
-    return hs_parse_nonprimitive(argument);
+    return halo::hs::hs_parse_nonprimitive(argument);
 }
 
 static char hs_inspect_not_a_reference[] = "this is not a global variable reference, function call, or script call.";
@@ -87,17 +57,17 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
     hs_syntax_node *node;
     char result;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     result = 1;
     if (node->type == 0) {
         node->type = expected_type;
         if ((node->flags & _hs_syntax_node_primitive_bit) != 0) {
             node->index_union = expected_type;
-            result = hs_parse_primitive(node_index);
+            result = halo::hs::hs_parse_primitive(node_index);
             return result;
         }
-        result = hs_parse_nonprimitive(node_index);
+        result = halo::hs::hs_parse_nonprimitive(node_index);
     }
     return result;
 }
@@ -109,13 +79,13 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
  */
 char Parser::parse_ai(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    uint8_t found = ai_reference_parse(hs_compiled_source + node->source_offset, halo::scenario::globals().scenario,
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    uint8_t found = halo::ai::ai_reference_parse(halo::hs::globals().compiled_source + node->source_offset, halo::scenario::globals().scenario,
         (uint32_t *)&node->data);
 
     if (!found) {
-        hs_compile_error = (char *)"this is not a valid ai encounter or squad.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"this is not a valid ai encounter or squad.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
     }
     return found;
 }
@@ -127,7 +97,7 @@ char Parser::parse_ai(datum_index node_index) const
  */
 char Parser::parse_ai_command_list(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->command_lists, 0x60);
+    return halo::hs::hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->command_lists, 0x60);
 }
 
 /**
@@ -150,10 +120,10 @@ char Parser::parse_arithmetic(int16_t function_index, datum_index node_index) co
         }
     }
     if ((ok && count < 2) || (function_index == 0xa && count > 2)) {
-        sprintf(hs_compile_error_buffer, "the %s call requires %s2 arguments.", hs_function_definitions[function_index]->name,
+        sprintf(halo::hs::globals().compile_error_buffer, "the %s call requires %s2 arguments.", halo::hs::globals().function_definitions[function_index]->name,
             function_index == 0xa ? "" : "at least ");
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = syntax_node(node_index)->source_offset;
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = syntax_node(node_index)->source_offset;
         return 0;
     }
     return ok;
@@ -176,12 +146,12 @@ char Parser::parse_begin(int16_t function_index, datum_index node_index) const
         datum_index next = node->next_node;
 
         if (function_index == 0) {
-            ok = hs_parse(argument, next == halo::k_dword_none ? call->type : 4);
+            ok = halo::hs::hs_parse(argument, next == halo::k_dword_none ? call->type : 4);
             if (next == halo::k_dword_none && call->type == 0 && ok) {
                 call->type = syntax_node(argument)->type;
             }
         } else {
-            ok = hs_parse(argument, call->type);
+            ok = halo::hs::hs_parse(argument, call->type);
             if (call->type == 0 && ok) {
                 call->type = syntax_node(argument)->type;
             }
@@ -193,15 +163,15 @@ char Parser::parse_begin(int16_t function_index, datum_index node_index) const
         }
     }
     if (count < 1) {
-        sprintf(hs_compile_error_buffer, "a statement block must contain at least one argument.",
-            hs_function_definitions[function_index]->name);
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = call->source_offset;
+        sprintf(halo::hs::globals().compile_error_buffer, "a statement block must contain at least one argument.",
+            halo::hs::globals().function_definitions[function_index]->name);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
     if (count > 0x20 && function_index == 1) {
-        hs_compile_error = (char *)"begin_random can take a maximum of 32 arguments (matt can increase this.)";
-        hs_compile_error_offset = call->source_offset;
+        halo::hs::globals().compile_error = (char *)"begin_random can take a maximum of 32 arguments (matt can increase this.)";
+        halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
     return 1;
@@ -214,8 +184,8 @@ char Parser::parse_begin(int16_t function_index, datum_index node_index) const
  */
 char Parser::parse_boolean(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    char *token = hs_compiled_source + node->source_offset;
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    char *token = halo::hs::globals().compiled_source + node->source_offset;
 
     if (strcmp(token, "false") == 0 || strcmp(token, "off") == 0 || strcmp(token, "0") == 0) {
         node->data.boolean_value = 0;
@@ -225,8 +195,8 @@ char Parser::parse_boolean(datum_index node_index) const
         node->data.boolean_value = 1;
         return 1;
     }
-    hs_compile_error = (char *)"i expected \"true\" or \"false\".";
-    hs_compile_error_offset = node->source_offset;
+    halo::hs::globals().compile_error = (char *)"i expected \"true\" or \"false\".";
+    halo::hs::globals().compile_error_offset = node->source_offset;
     node->data.boolean_value = (uint8_t)node_index;
     return 0;
 }
@@ -239,7 +209,7 @@ char Parser::parse_boolean(datum_index node_index) const
 char Parser::parse_cond(int16_t function_index, datum_index node_index) const
 {
     hs_syntax_node *call = syntax_node(node_index);
-    datum_index rewritten = hs_parse_cond_recursive(node_index, syntax_node(*(datum_index *)&call->data)->next_node);
+    datum_index rewritten = halo::hs::hs_parse_cond_recursive(node_index, syntax_node(*(datum_index *)&call->data)->next_node);
     hs_syntax_node *replacement;
     datum_index next;
     hs_type_t type;
@@ -256,7 +226,7 @@ char Parser::parse_cond(int16_t function_index, datum_index node_index) const
     replacement->next_node = next;
     *call = *replacement;
     call->identifier = identifier;
-    return hs_parse(node_index, type);
+    return halo::hs::hs_parse(node_index, type);
 }
 
 /**
@@ -281,12 +251,12 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
     datum_index inner_result;
     datum_index result_index;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     new_index = halo::memory::datum_new(nodes);
     cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & halo::k_slot_mask) * nodes->size);
     if (new_index == k_datum_index_none) {
-        hs_compile_error = (char *)"i couldn't allocate a syntax node.";
-        hs_compile_error_offset = cond_node->source_offset;
+        halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
+        halo::hs::globals().compile_error_offset = cond_node->source_offset;
         return k_datum_index_none;
     }
     new_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_index & halo::k_slot_mask) * nodes->size);
@@ -305,8 +275,8 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
 
     pair_node = (hs_syntax_node *)((uint8_t *)nodes->data + (pair_index & halo::k_slot_mask) * nodes->size);
     if ((pair_node->flags & _hs_syntax_node_primitive_bit) != 0) {
-        hs_compile_error = (char *)"this argument to cond should be a condition/result pair";
-        hs_compile_error_offset = pair_node->source_offset;
+        halo::hs::globals().compile_error = (char *)"this argument to cond should be a condition/result pair";
+        halo::hs::globals().compile_error_offset = pair_node->source_offset;
         return k_datum_index_none;
     }
     condition_index = pair_node->data.first_child;
@@ -316,17 +286,17 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
         new_if_index = halo::memory::datum_new(nodes);
         replacement_index = halo::memory::datum_new(nodes);
         if ((new_if_index == k_datum_index_none) || (replacement_index == k_datum_index_none)) {
-            nodes = hs_syntax_data;
+            nodes = halo::hs::globals().syntax_data;
             cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & halo::k_slot_mask) * nodes->size);
-            hs_compile_error = (char *)"i couldn't allocate a syntax node.";
-            hs_compile_error_offset = cond_node->source_offset;
+            halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
+            halo::hs::globals().compile_error_offset = cond_node->source_offset;
             return k_datum_index_none;
         }
-        nodes = hs_syntax_data;
+        nodes = halo::hs::globals().syntax_data;
         new_if_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_if_index & halo::k_slot_mask) * nodes->size);
         replacement_node = (hs_syntax_node *)((uint8_t *)nodes->data + (replacement_index & halo::k_slot_mask) * nodes->size);
 
-        inner_result = hs_parse_cond_recursive(cond_node_index, pair_node->next_node);
+        inner_result = halo::hs::hs_parse_cond_recursive(cond_node_index, pair_node->next_node);
         new_if_node->next_node = inner_result;
         if (inner_result == k_datum_index_none) {
             return k_datum_index_none;
@@ -346,7 +316,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
         new_if_node->flags = 0;
         new_if_node->source_offset = new_node->source_offset;
 
-        nodes = hs_syntax_data;
+        nodes = halo::hs::globals().syntax_data;
         replacement_node->data.long_value = 0;
         replacement_node->index_union = 0;
         replacement_node->flags = _hs_syntax_node_primitive_bit;
@@ -358,8 +328,8 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
         return new_index;
     }
 
-    hs_compile_error = (char *)"this argument to cond needs a result.";
-    hs_compile_error_offset = condition_node->source_offset;
+    halo::hs::globals().compile_error = (char *)"this argument to cond needs a result.";
+    halo::hs::globals().compile_error_offset = condition_node->source_offset;
     return k_datum_index_none;
 }
 
@@ -370,7 +340,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
  */
 char Parser::parse_conversation(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->ai_conversations, 0x74);
+    return halo::hs::hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->ai_conversations, 0x74);
 }
 
 /**
@@ -380,7 +350,7 @@ char Parser::parse_conversation(datum_index node_index) const
  */
 char Parser::parse_cutscene_camera_point(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_camera_points, 0x68);
+    return halo::hs::hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_camera_points, 0x68);
 }
 
 /**
@@ -390,7 +360,7 @@ char Parser::parse_cutscene_camera_point(datum_index node_index) const
  */
 char Parser::parse_cutscene_flag(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_flags, 0x5c);
+    return halo::hs::hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_flags, 0x5c);
 }
 
 /**
@@ -400,7 +370,7 @@ char Parser::parse_cutscene_flag(datum_index node_index) const
  */
 char Parser::parse_cutscene_recording(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->recorded_animations, 0x40);
+    return halo::hs::hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->recorded_animations, 0x40);
 }
 
 /**
@@ -410,7 +380,7 @@ char Parser::parse_cutscene_recording(datum_index node_index) const
  */
 char Parser::parse_cutscene_title(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_titles, 0x60);
+    return halo::hs::hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->cutscene_titles, 0x60);
 }
 
 /**
@@ -420,7 +390,7 @@ char Parser::parse_cutscene_title(datum_index node_index) const
  */
 char Parser::parse_device_group(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->device_groups, 0x34);
+    return halo::hs::hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->device_groups, 0x34);
 }
 
 /**
@@ -430,14 +400,14 @@ char Parser::parse_device_group(datum_index node_index) const
  */
 char Parser::parse_function_arguments(int16_t function_index, datum_index node_index) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     uint8_t *node = HS_NODE(node_index);
     datum_index argument = *(datum_index *)(HS_NODE(*(datum_index *)(node + 0x10)) + 0x8);
     char ok = 1;
     int16_t i = 0;
 
     while (i < definition->parameter_count && argument != k_datum_index_none) {
-        if (hs_parse(argument, (hs_type_t)(uint16_t)definition->parameters[i])) {
+        if (halo::hs::hs_parse(argument, (hs_type_t)(uint16_t)definition->parameters[i])) {
             argument = *(datum_index *)(HS_NODE(argument) + 0x8);
         } else {
             ok = 0;
@@ -451,10 +421,10 @@ char Parser::parse_function_arguments(int16_t function_index, datum_index node_i
         return ok;
     }
     if (i != definition->parameter_count || argument != k_datum_index_none) {
-        sprintf(hs_compile_error_buffer, "the \"%s\" call requires exactly %d arguments.", definition->name,
+        sprintf(halo::hs::globals().compile_error_buffer, "the \"%s\" call requires exactly %d arguments.", definition->name,
             (int32_t)definition->parameter_count);
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = *(int32_t *)(HS_NODE(node_index) + 0xc);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = *(int32_t *)(HS_NODE(node_index) + 0xc);
         return 0;
     }
     return 1;
@@ -472,7 +442,7 @@ char Parser::parse_hud_message(datum_index node_index) const
     if (hud_messages == k_datum_index_none) {
         return 0;
     }
-    return hs_parse_scenario_datum(node_index, 0,
+    return halo::hs::hs_parse_scenario_datum(node_index, 0,
         (TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & halo::k_slot_mask].data + 0x20), 0x40);
 }
 
@@ -494,7 +464,7 @@ char Parser::parse_if(int16_t function_index, datum_index node_index) const
     hs_type_t resolved_type;
 
     (void)function_index;
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
 
     condition_node = 0;
@@ -509,24 +479,24 @@ char Parser::parse_if(int16_t function_index, datum_index node_index) const
         else_index = then_node->next_node;
         if ((else_index == k_datum_index_none) ||
             (((hs_syntax_node *)((uint8_t *)nodes->data + (else_index & halo::k_slot_mask) * nodes->size))->next_node == k_datum_index_none)) {
-            ok = hs_parse(node->data.first_child, _hs_type_boolean);
+            ok = halo::hs::hs_parse(node->data.first_child, _hs_type_boolean);
             if (ok == 0) {
                 return 0;
             }
-            ok = hs_parse(then_index, node->type);
+            ok = halo::hs::hs_parse(then_index, node->type);
             if (ok != 0) {
                 if (node->type == 0) {
                     node->type = then_node->type;
                 }
                 if (else_index != k_datum_index_none) {
-                    ok = hs_parse(else_index, node->type);
+                    ok = halo::hs::hs_parse(else_index, node->type);
                     if (ok == 0) {
                         return 0;
                     }
                 }
                 return 1;
             }
-            if (hs_compile_error != 0) {
+            if (halo::hs::globals().compile_error != 0) {
                 return 0;
             }
             if (node->type != 0) {
@@ -535,18 +505,18 @@ char Parser::parse_if(int16_t function_index, datum_index node_index) const
             if (else_index == k_datum_index_none) {
                 return 0;
             }
-            ok = hs_parse(else_index, 0);
+            ok = halo::hs::hs_parse(else_index, 0);
             if (ok == 0) {
                 return 0;
             }
             else_node = (hs_syntax_node *)((uint8_t *)nodes->data + (else_index & halo::k_slot_mask) * nodes->size);
             resolved_type = else_node->type;
             node->type = resolved_type;
-            return hs_parse(then_index, resolved_type);
+            return halo::hs::hs_parse(then_index, resolved_type);
         }
     }
-    hs_compile_error = (char *)"i expected (if <condition> <then> [<else>]).";
-    hs_compile_error_offset = node->source_offset;
+    halo::hs::globals().compile_error = (char *)"i expected (if <condition> <then> [<else>]).";
+    halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
 
@@ -559,15 +529,15 @@ char Parser::parse_inspect(int16_t function_index, datum_index node_index) const
 {
     datum_index argument;
 
-    if (!hs_get_parameter_indices(hs_function_definitions[function_index]->name, 1, node_index, &argument)) {
+    if (!halo::hs::hs_get_parameter_indices(halo::hs::globals().function_definitions[function_index]->name, 1, node_index, &argument)) {
         return 0;
     }
-    if (hs_parse(argument, 0)) {
+    if (halo::hs::hs_parse(argument, 0)) {
         return 1;
     }
-    if (hs_compile_error == 0) {
-        hs_compile_error = hs_inspect_not_a_reference;
-        hs_compile_error_offset = *(int32_t *)((uint8_t *)hs_syntax_data->data + (argument & halo::k_slot_mask) * 0x14 + 0xc);
+    if (halo::hs::globals().compile_error == 0) {
+        halo::hs::globals().compile_error = hs_inspect_not_a_reference;
+        halo::hs::globals().compile_error_offset = *(int32_t *)((uint8_t *)halo::hs::globals().syntax_data->data + (argument & halo::k_slot_mask) * 0x14 + 0xc);
     }
     return 0;
 }
@@ -579,8 +549,8 @@ char Parser::parse_inspect(int16_t function_index, datum_index node_index) const
  */
 char Parser::parse_integer(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    char *p = hs_compiled_source + node->source_offset;
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    char *p = halo::hs::globals().compiled_source + node->source_offset;
     char valid = 1;
     int32_t value;
 
@@ -589,16 +559,16 @@ char Parser::parse_integer(datum_index node_index) const
     }
     for (; *p != 0; p++) {
         if (!isdigit((unsigned char)*p)) {
-            hs_compile_error = (char *)"this is not a valid integer.";
-            hs_compile_error_offset = node->source_offset;
+            halo::hs::globals().compile_error = (char *)"this is not a valid integer.";
+            halo::hs::globals().compile_error_offset = node->source_offset;
             valid = 0;
             break;
         }
     }
-    value = atoi(hs_compiled_source + node->source_offset);
+    value = atoi(halo::hs::globals().compiled_source + node->source_offset);
     if (valid && node->type != 8 && (value > 0x7fff || value < -0x8000)) {
-        hs_compile_error = (char *)"shorts must be in the range [-32767, 32768].";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"shorts must be in the range [-32767, 32768].";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         valid = 0;
     }
     if (node->type == 8) {
@@ -629,9 +599,9 @@ char Parser::parse_logical(int16_t function_index, datum_index node_index) const
         }
     }
     if (count < 2) {
-        sprintf(hs_compile_error_buffer, "the %s call requires at least 2 arguments.", hs_function_definitions[function_index]->name);
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = syntax_node(node_index)->source_offset;
+        sprintf(halo::hs::globals().compile_error_buffer, "the %s call requires at least 2 arguments.", halo::hs::globals().function_definitions[function_index]->name);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = syntax_node(node_index)->source_offset;
         return 0;
     }
     return 1;
@@ -651,7 +621,7 @@ char Parser::parse_navpoint(datum_index node_index) const
     if (hud_globals == k_datum_index_none) {
         return 0;
     }
-    return hs_parse_scenario_datum(node_index, 0,
+    return halo::hs::hs_parse_scenario_datum(node_index, 0,
         (TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & halo::k_slot_mask].data + 0x160), 0x68);
 }
 
@@ -677,7 +647,7 @@ char Parser::parse_nonprimitive(datum_index node_index) const
     ScenarioScript *script;
     char *identifier_text;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
 
@@ -686,44 +656,44 @@ char Parser::parse_nonprimitive(datum_index node_index) const
         if (node->type != _hs_type_special_form) {
             message = (char *)"a function name";
         }
-        sprintf(hs_compile_error_buffer, "i expected %s, but i got an expression.", message);
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = identifier_node->source_offset;
+        sprintf(halo::hs::globals().compile_error_buffer, "i expected %s, but i got an expression.", message);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = identifier_node->source_offset;
         return 0;
     }
 
     if (node->type != _hs_type_special_form) {
-        hs_resolve_identifier_as_function_or_script(node_index);
+        halo::hs::hs_resolve_identifier_as_function_or_script(node_index);
         resolved_index = node->index_union;
         if (resolved_index == -1) {
-            hs_compile_error = (char *)"this is not a valid function or script name.";
-            hs_compile_error_offset = identifier_node->source_offset;
+            halo::hs::globals().compile_error = (char *)"this is not a valid function or script name.";
+            halo::hs::globals().compile_error_offset = identifier_node->source_offset;
             return 0;
         }
 
         if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
 
-            function_def = hs_function_definitions[resolved_index];
+            function_def = halo::hs::globals().function_definitions[resolved_index];
             expected_type = node->type;
             if (expected_type != 0) {
                 actual_type = function_def->return_type;
-                compatible = hs_types_are_compatible(expected_type, actual_type);
+                compatible = halo::hs::hs_types_are_compatible(expected_type, actual_type);
                 if (compatible == 0) {
-                    sprintf(hs_compile_error_buffer, "i expected a %s, but this function returns a %s.",
-                            hs_type_names[expected_type], hs_type_names[actual_type]);
-                    hs_compile_error = hs_compile_error_buffer;
-                    hs_compile_error_offset = node->source_offset;
+                    sprintf(halo::hs::globals().compile_error_buffer, "i expected a %s, but this function returns a %s.",
+                            halo::hs::globals().type_names[expected_type], halo::hs::globals().type_names[actual_type]);
+                    halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+                    halo::hs::globals().compile_error_offset = node->source_offset;
                     return 0;
                 }
             }
-            if ((hs_blocking_forbidden != 0) && ((resolved_index == _hs_function_sleep) || (resolved_index == _hs_function_sleep_until))) {
-                hs_compile_error = (char *)"it is illegal to block in this context.";
-                hs_compile_error_offset = node->source_offset;
+            if ((halo::hs::globals().blocking_forbidden != 0) && ((resolved_index == _hs_function_sleep) || (resolved_index == _hs_function_sleep_until))) {
+                halo::hs::globals().compile_error = (char *)"it is illegal to block in this context.";
+                halo::hs::globals().compile_error_offset = node->source_offset;
                 return 0;
             }
-            if ((hs_set_forbidden != 0) && (resolved_index == _hs_function_set)) {
-                hs_compile_error = (char *)"it is illegal to set the value of variables in this context.";
-                hs_compile_error_offset = node->source_offset;
+            if ((halo::hs::globals().set_forbidden != 0) && (resolved_index == _hs_function_set)) {
+                halo::hs::globals().compile_error = (char *)"it is illegal to set the value of variables in this context.";
+                halo::hs::globals().compile_error_offset = node->source_offset;
                 return 0;
             }
             if ((expected_type == 0) && (function_def->return_type != 3)) {
@@ -735,19 +705,19 @@ char Parser::parse_nonprimitive(datum_index node_index) const
 
         script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + resolved_index;
         if ((script->script_type != _hs_script_static) && (script->script_type != _hs_script_stub)) {
-            hs_compile_error = (char *)"this is not a static script.";
-            hs_compile_error_offset = node->source_offset;
+            halo::hs::globals().compile_error = (char *)"this is not a static script.";
+            halo::hs::globals().compile_error_offset = node->source_offset;
             return 0;
         }
         expected_type = node->type;
         if (expected_type != 0) {
             actual_type = script->return_type;
-            compatible = hs_types_are_compatible(expected_type, actual_type);
+            compatible = halo::hs::hs_types_are_compatible(expected_type, actual_type);
             if (compatible == 0) {
-                sprintf(hs_compile_error_buffer, "i expected a %s, but this script returns a %s.",
-                        hs_type_names[expected_type], hs_type_names[actual_type]);
-                hs_compile_error = hs_compile_error_buffer;
-                hs_compile_error_offset = node->source_offset;
+                sprintf(halo::hs::globals().compile_error_buffer, "i expected a %s, but this script returns a %s.",
+                        halo::hs::globals().type_names[expected_type], halo::hs::globals().type_names[actual_type]);
+                halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+                halo::hs::globals().compile_error_offset = node->source_offset;
                 return 0;
             }
 
@@ -757,15 +727,15 @@ char Parser::parse_nonprimitive(datum_index node_index) const
         return 1;
     }
 
-    identifier_text = hs_compiled_source + identifier_node->source_offset;
+    identifier_text = halo::hs::globals().compiled_source + identifier_node->source_offset;
     if (strncmp(identifier_text, "global", 7) == 0) {
-        return hs_add_global(node_index);
+        return halo::hs::hs_add_global(node_index);
     }
     if (strncmp(identifier_text, "script", 7) == 0) {
-        return hs_add_script(node_index);
+        return halo::hs::hs_add_script(node_index);
     }
-    hs_compile_error = (char *)"i expected \"script\" or \"global\".";
-    hs_compile_error_offset = identifier_node->source_offset;
+    halo::hs::globals().compile_error = (char *)"i expected \"script\" or \"global\".";
+    halo::hs::globals().compile_error_offset = identifier_node->source_offset;
     return 0;
 }
 
@@ -776,16 +746,16 @@ char Parser::parse_nonprimitive(datum_index node_index) const
  */
 char Parser::parse_object(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
     char result;
 
-    if (strcmp(hs_compiled_source + node->source_offset, "none") == 0) {
+    if (strcmp(halo::hs::globals().compiled_source + node->source_offset, "none") == 0) {
         node->data.long_value = -1;
         return 1;
     }
     node->type = node->type + 6;
     node->index_union = node->type;
-    result = hs_parse_object_name(node_index);
+    result = halo::hs::hs_parse_object_name(node_index);
     node->type = node->type - 6;
     return result;
 }
@@ -797,12 +767,12 @@ char Parser::parse_object(datum_index node_index) const
  */
 char Parser::parse_object_list(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
     char result;
 
     node->index_union = 0x2b;
     node->type = 0x2b;
-    result = hs_parse_object_name(node_index);
+    result = halo::hs::hs_parse_object_name(node_index);
     node->type = 0x17;
     return result;
 }
@@ -822,25 +792,25 @@ char Parser::parse_object_name(datum_index node_index) const
     int16_t match_index;
 
     scenario = halo::scenario::globals().scenario;
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
 
-    match_index = halo::scenario::scenario_object_name_find_index(scenario, hs_compiled_source + node->source_offset);
+    match_index = halo::scenario::scenario_object_name_find_index(scenario, halo::hs::globals().compiled_source + node->source_offset);
     if (match_index == -1) {
-        hs_compile_error = (char *)"this is not a valid object name.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"this is not a valid object name.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
 
     object_names = (ScenarioObjectName *)scenario->object_names.pointer;
-    if (hs_object_type_masks[node->type - _hs_type_object_name] &
+    if (halo::hs::globals().object_type_masks[node->type - _hs_type_object_name] &
         (1 << (object_names[match_index].object_type & 0x1f))) {
         node->data.short_value = match_index;
         return 1;
     }
 
-    sprintf(hs_compile_error_buffer, "this is not an object of type %s.", hs_type_names[node->type]);
-    hs_compile_error = hs_compile_error_buffer;
-    hs_compile_error_offset = node->source_offset;
+    sprintf(halo::hs::globals().compile_error_buffer, "this is not an object of type %s.", halo::hs::globals().type_names[node->type]);
+    halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+    halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
 
@@ -857,38 +827,38 @@ char Parser::parse_primitive(datum_index node_index) const
     char result;
     char (*procedure)(datum_index);
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
     node_type = node->type;
     result = 0;
 
     if (node_type == _hs_type_special_form) {
-        hs_compile_error = (char *)"i expected a script or variable definition.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"i expected a script or variable definition.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return result;
     }
     if (node_type == _hs_type_void) {
-        hs_compile_error = (char *)"the value of this expression (in a <void> slot) can never be used.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"the value of this expression (in a <void> slot) can never be used.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return result;
     }
 
-    if ((hs_postprocessing == 0) || ((node->flags & _hs_syntax_node_global_bit) != 0)) {
-        result = hs_parse_variable(node_index);
+    if ((halo::hs::globals().postprocessing == 0) || ((node->flags & _hs_syntax_node_global_bit) != 0)) {
+        result = halo::hs::hs_parse_variable(node_index);
         if (result != 0) {
             return result;
         }
     }
     node_type = node->type;
-    if ((node_type != 0) && (hs_compile_error == 0) &&
-        ((hs_postprocessing == 0) || ((node->flags & _hs_syntax_node_global_bit) == 0))) {
+    if ((node_type != 0) && (halo::hs::globals().compile_error == 0) &&
+        ((halo::hs::globals().postprocessing == 0) || ((node->flags & _hs_syntax_node_global_bit) == 0))) {
         procedure = (char (*)(datum_index))hs_parse_primitive_procedures[node_type];
         if (procedure != 0) {
             result = procedure(node_index);
             return result;
         }
-        sprintf(hs_compile_error_buffer, "expressions of type %s are currently unsupported.", hs_type_names[node_type]);
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = node->source_offset;
+        sprintf(halo::hs::globals().compile_error_buffer, "expressions of type %s are currently unsupported.", halo::hs::globals().type_names[node_type]);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = node->source_offset;
         result = 0;
     }
     return result;
@@ -909,8 +879,8 @@ char Parser::parse_real(datum_index node_index) const
     char valid;
     char has_dot;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
-    p = hs_compiled_source + node->source_offset;
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    p = halo::hs::globals().compiled_source + node->source_offset;
     has_dot = 0;
     valid = 1;
     if (*p == '-') {
@@ -923,8 +893,8 @@ char Parser::parse_real(datum_index node_index) const
         }
         if (!isdigit((unsigned char)c)) {
             if ((has_dot != 0) || (*p != '.')) {
-                hs_compile_error = (char *)"this is not a valid real number.";
-                hs_compile_error_offset = node->source_offset;
+                halo::hs::globals().compile_error = (char *)"this is not a valid real number.";
+                halo::hs::globals().compile_error_offset = node->source_offset;
                 valid = 0;
                 goto convert;
             }
@@ -934,7 +904,7 @@ char Parser::parse_real(datum_index node_index) const
         p = p + 1;
     }
 convert:
-    node->data.real_value = (float)atof(hs_compiled_source + node->source_offset);
+    node->data.real_value = (float)atof(halo::hs::globals().compiled_source + node->source_offset);
     return valid;
 }
 
@@ -953,19 +923,19 @@ char Parser::parse_scenario_datum(datum_index node_index, int16_t name_offset, T
     int16_t i;
     char *element;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
 
     for (i = 0; i < (int16_t)array->count; i++) {
         element = (char *)array->pointer + i * stride;
-        if (_stricmp(element + name_offset, hs_compiled_source + node->source_offset) == 0) {
+        if (_stricmp(element + name_offset, halo::hs::globals().compiled_source + node->source_offset) == 0) {
             node->data.long_value = i;
             return 1;
         }
     }
 
-    sprintf(hs_compile_error_buffer, "this is not a valid %s name", hs_type_names[node->type]);
-    hs_compile_error = hs_compile_error_buffer;
-    hs_compile_error_offset = node->source_offset;
+    sprintf(halo::hs::globals().compile_error_buffer, "this is not a valid %s name", halo::hs::globals().type_names[node->type]);
+    halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+    halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
 
@@ -976,15 +946,15 @@ char Parser::parse_scenario_datum(datum_index node_index, int16_t name_offset, T
  */
 char Parser::parse_script(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    int16_t script_index = hs_script_find_by_name(hs_compiled_source + node->source_offset);
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    int16_t script_index = halo::hs::hs_script_find_by_name(halo::hs::globals().compiled_source + node->source_offset);
 
     if (script_index != -1) {
         node->data.short_value = script_index;
         return 1;
     }
-    hs_compile_error = (char *)"this is not a valid script name.";
-    hs_compile_error_offset = node->source_offset;
+    halo::hs::globals().compile_error = (char *)"this is not a valid script name.";
+    halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
 
@@ -1008,51 +978,51 @@ char Parser::parse_set(int16_t function_index, datum_index node_index) const
     char ok;
 
     (void)function_index;
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     variable_index = node->data.first_child;
     if (variable_index == k_datum_index_none) {
-        hs_compile_error = (char *)"i expected a variable to set and a value.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"i expected a variable to set and a value.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
     variable_node = (hs_syntax_node *)((uint8_t *)nodes->data + (variable_index & halo::k_slot_mask) * nodes->size);
     value_index = variable_node->next_node;
     if (value_index == k_datum_index_none) {
-        hs_compile_error = (char *)"i expected an assignment value.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"i expected an assignment value.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
     value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & halo::k_slot_mask) * nodes->size);
     if (value_node->next_node != k_datum_index_none) {
         extra_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_node->next_node & halo::k_slot_mask) * nodes->size);
-        hs_compile_error = (char *)"i didn't expect this argument.";
-        hs_compile_error_offset = extra_node->source_offset;
+        halo::hs::globals().compile_error = (char *)"i didn't expect this argument.";
+        halo::hs::globals().compile_error_offset = extra_node->source_offset;
         return 0;
     }
 
-    global = hs_find_global_by_name(hs_compiled_source + variable_node->source_offset);
+    global = halo::hs::hs_find_global_by_name(halo::hs::globals().compiled_source + variable_node->source_offset);
     if (global == k_hs_global_reference_none) {
-        hs_compile_error = (char *)"this is not a valid global variable.";
-        hs_compile_error_offset = variable_node->source_offset;
+        halo::hs::globals().compile_error = (char *)"this is not a valid global variable.";
+        halo::hs::globals().compile_error_offset = variable_node->source_offset;
         return 0;
     }
-    global_type = hs_global_get_type(global);
+    global_type = halo::hs::hs_global_get_type(global);
     variable_node->type = global_type;
     if ((node->type != 0) &&
-        ((compatible = hs_types_are_compatible(node->type, global_type)), compatible == 0)) {
-        sprintf(hs_compile_error_buffer,
+        ((compatible = halo::hs::hs_types_are_compatible(node->type, global_type)), compatible == 0)) {
+        sprintf(halo::hs::globals().compile_error_buffer,
                 "you cannot pass the result of this set (type %s) to a function that expects type %s.",
-                hs_type_names[global_type], hs_type_names[node->type]);
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = node->source_offset;
+                halo::hs::globals().type_names[global_type], halo::hs::globals().type_names[node->type]);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
-    hs_parse_variable(variable_index);
+    halo::hs::hs_parse_variable(variable_index);
     if (node->type == 0) {
         node->type = variable_node->type;
     }
-    ok = hs_parse(value_index, variable_node->type);
+    ok = halo::hs::hs_parse(value_index, variable_node->type);
     return ok != 0;
 }
 
@@ -1068,15 +1038,15 @@ char Parser::parse_sleep(int16_t function_index, datum_index node_index) const
     datum_index script;
 
     if (time == halo::k_dword_none) {
-        hs_compile_error = (char *)"the sleep call requires a time and, optionally, a script name.";
-        hs_compile_error_offset = call->source_offset;
+        halo::hs::globals().compile_error = (char *)"the sleep call requires a time and, optionally, a script name.";
+        halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
-    if (!hs_parse(time, 7)) {
+    if (!halo::hs::hs_parse(time, 7)) {
         return 0;
     }
     script = syntax_node(time)->next_node;
-    if (script != halo::k_dword_none && !hs_parse(script, 0xa)) {
+    if (script != halo::k_dword_none && !halo::hs::hs_parse(script, 0xa)) {
         return 0;
     }
     return 1;
@@ -1096,21 +1066,21 @@ char Parser::parse_sleep_until(int16_t function_index, datum_index node_index) c
     char ok;
 
     if (condition == halo::k_dword_none) {
-        hs_compile_error = (char *)"the sleep_until call requires a condition and, optionally, a period.";
-        hs_compile_error_offset = call->source_offset;
+        halo::hs::globals().compile_error = (char *)"the sleep_until call requires a condition and, optionally, a period.";
+        halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
     period = syntax_node(condition)->next_node;
-    ok = hs_parse(condition, 5);
+    ok = halo::hs::hs_parse(condition, 5);
     if (!ok || period == halo::k_dword_none) {
         return ok;
     }
     timeout = syntax_node(period)->next_node;
-    ok = hs_parse(period, 7);
+    ok = halo::hs::hs_parse(period, 7);
     if (!ok || timeout == halo::k_dword_none) {
         return ok;
     }
-    return hs_parse(timeout, 8);
+    return halo::hs::hs_parse(timeout, 8);
 }
 
 /**
@@ -1120,7 +1090,7 @@ char Parser::parse_sleep_until(int16_t function_index, datum_index node_index) c
  */
 char Parser::parse_starting_profile(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->player_starting_profile, 0x68);
+    return halo::hs::hs_parse_scenario_datum(node_index, 0, &halo::scenario::globals().scenario->player_starting_profile, 0x68);
 }
 
 /**
@@ -1130,8 +1100,8 @@ char Parser::parse_starting_profile(datum_index node_index) const
  */
 char Parser::parse_string(datum_index node_index) const
 {
-    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
-    node->data.string_value = (int32_t)(hs_compiled_source + node->source_offset);
+    hs_syntax_node *node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node->data.string_value = (int32_t)(halo::hs::globals().compiled_source + node->source_offset);
     return 1;
 }
 
@@ -1167,9 +1137,9 @@ char Parser::parse_tag_reference(datum_index node_index) const
     ScenarioReference *reference;
     char *token_text;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
     count = (int32_t)halo::scenario::globals().scenario->references.count;
-    token_text = hs_compiled_source + node->source_offset;
+    token_text = halo::hs::globals().compiled_source + node->source_offset;
     for (i = 0; i < count; i = i + 1) {
         reference = (ScenarioReference *)halo::scenario::globals().scenario->references.pointer + i;
         if ((strcmp((char *)reference->reference.path_pointer, token_text) == 0) &&
@@ -1188,7 +1158,7 @@ char Parser::parse_tag_reference(datum_index node_index) const
  */
 char Parser::parse_trigger_volume(datum_index node_index) const
 {
-    return hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->trigger_volumes, 0x60);
+    return halo::hs::hs_parse_scenario_datum(node_index, 4, &halo::scenario::globals().scenario->trigger_volumes, 0x60);
 }
 
 /**
@@ -1206,35 +1176,35 @@ char Parser::parse_two_numeric_arguments(int16_t function_index, datum_index nod
     hs_type_t type;
 
     result = 0;
-    ok = hs_get_parameter_indices(hs_function_definitions[function_index]->name, 2, node_index, arguments);
+    ok = halo::hs::hs_get_parameter_indices(halo::hs::globals().function_definitions[function_index]->name, 2, node_index, arguments);
     if (ok != 0) {
-        ok = hs_parse(arguments[0], 0);
+        ok = halo::hs::hs_parse(arguments[0], 0);
         if (ok == 0) {
-            if (hs_compile_error == 0) {
-                ok = hs_parse(arguments[1], 0);
+            if (halo::hs::globals().compile_error == 0) {
+                ok = halo::hs::hs_parse(arguments[1], 0);
                 if (ok == 0) {
-                    if (hs_compile_error != 0) {
+                    if (halo::hs::globals().compile_error != 0) {
                         return 0;
                     }
-                    ok = hs_parse(arguments[0], _hs_type_real);
+                    ok = halo::hs::hs_parse(arguments[0], _hs_type_real);
                     if (ok == 0) {
                         return 0;
                     }
                     type = _hs_type_real;
                     arguments[0] = arguments[1];
                 } else {
-                    type = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                            (arguments[1] & halo::k_slot_mask) * hs_syntax_data->size))->type;
+                    type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
+                            (arguments[1] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
                 }
-                ok = hs_parse(arguments[0], type);
+                ok = halo::hs::hs_parse(arguments[0], type);
                 if (ok != 0) {
                     result = 1;
                 }
             }
         } else {
-            type = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                    (arguments[0] & halo::k_slot_mask) * hs_syntax_data->size))->type;
-            ok = hs_parse(arguments[1], type);
+            type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
+                    (arguments[0] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
+            ok = halo::hs::hs_parse(arguments[1], type);
             if (ok != 0) {
                 return 1;
             }
@@ -1256,41 +1226,41 @@ char Parser::parse_two_object_arguments(int16_t function_index, datum_index node
     char ok;
     hs_type_t type;
 
-    ok = hs_get_parameter_indices(hs_function_definitions[function_index]->name, 2, node_index, arguments);
+    ok = halo::hs::hs_get_parameter_indices(halo::hs::globals().function_definitions[function_index]->name, 2, node_index, arguments);
     if (ok == 0) {
         return 0;
     }
-    ok = hs_parse(arguments[0], 0);
+    ok = halo::hs::hs_parse(arguments[0], 0);
     if (ok != 0) {
-        type = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                (arguments[0] & halo::k_slot_mask) * hs_syntax_data->size))->type;
+        type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
+                (arguments[0] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
         if (((0x1f < type) && (type < 0x25)) || ((5 < type) && (type < 9))) {
-            ok = hs_parse(arguments[1], type);
+            ok = halo::hs::hs_parse(arguments[1], type);
             return ok != 0;
         }
     }
-    if (hs_compile_error != 0) {
+    if (halo::hs::globals().compile_error != 0) {
         return 0;
     }
-    ok = hs_parse(arguments[1], 0);
+    ok = halo::hs::hs_parse(arguments[1], 0);
     if (ok != 0) {
-        type = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                (arguments[1] & halo::k_slot_mask) * hs_syntax_data->size))->type;
+        type = ((hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data +
+                (arguments[1] & halo::k_slot_mask) * halo::hs::globals().syntax_data->size))->type;
         if (((0x1f < type) && (type < 0x25)) || ((5 < type) && (type < 9))) {
             goto second_pass;
         }
     }
-    if (hs_compile_error != 0) {
+    if (halo::hs::globals().compile_error != 0) {
         return 0;
     }
-    ok = hs_parse(arguments[0], _hs_type_real);
+    ok = halo::hs::hs_parse(arguments[0], _hs_type_real);
     if (ok == 0) {
         return 0;
     }
     type = _hs_type_real;
     arguments[0] = arguments[1];
 second_pass:
-    ok = hs_parse(arguments[0], type);
+    ok = halo::hs::hs_parse(arguments[0], type);
     return ok != 0;
 }
 
@@ -1303,10 +1273,10 @@ char Parser::parse_unit(int16_t function_index, datum_index node_index) const
 {
     datum_index argument;
 
-    if (!hs_get_parameter_indices(hs_function_definitions[function_index]->name, 1, node_index, &argument)) {
+    if (!halo::hs::hs_get_parameter_indices(halo::hs::globals().function_definitions[function_index]->name, 1, node_index, &argument)) {
         return 0;
     }
-    return hs_parse(argument, 0x25);
+    return halo::hs::hs_parse(argument, 0x25);
 }
 
 /**
@@ -1325,13 +1295,13 @@ char Parser::parse_variable(datum_index node_index) const
     char compatible;
     char *global_name;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
-    global = hs_find_global_by_name(hs_compiled_source + node->source_offset);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+    global = halo::hs::hs_find_global_by_name(halo::hs::globals().compiled_source + node->source_offset);
     node->data.global_reference = (int16_t)global;
     if ((int16_t)global == -1) {
-        if (hs_postprocessing != 0) {
-            hs_compile_error = (char *)"this is not a valid variable name.";
-            hs_compile_error_offset = node->source_offset;
+        if (halo::hs::globals().postprocessing != 0) {
+            halo::hs::globals().compile_error = (char *)"this is not a valid variable name.";
+            halo::hs::globals().compile_error_offset = node->source_offset;
         }
         return 0;
     }
@@ -1339,18 +1309,18 @@ char Parser::parse_variable(datum_index node_index) const
     if ((global & k_hs_global_builtin_bit) == 0) {
         global_type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[global & k_hs_global_index_mask].type;
     } else {
-        global_type = hs_global_definitions[global & k_hs_global_index_mask]->type;
+        global_type = halo::hs::globals().global_definitions[global & k_hs_global_index_mask]->type;
     }
 
     node_type = node->type;
     if (node_type != 0) {
-        compatible = hs_types_are_compatible(node_type, global_type);
+        compatible = halo::hs::hs_types_are_compatible(node_type, global_type);
         if (compatible == 0) {
-            global_name = hs_global_get_name(global);
-            sprintf(hs_compile_error_buffer, "i expected a value of type %s, but the variable %s has type %s",
-                    hs_type_names[node_type], global_name, hs_type_names[global_type]);
-            hs_compile_error = hs_compile_error_buffer;
-            hs_compile_error_offset = node->source_offset;
+            global_name = halo::hs::hs_global_get_name(global);
+            sprintf(halo::hs::globals().compile_error_buffer, "i expected a value of type %s, but the variable %s has type %s",
+                    halo::hs::globals().type_names[node_type], global_name, halo::hs::globals().type_names[global_type]);
+            halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+            halo::hs::globals().compile_error_offset = node->source_offset;
             return 0;
         }
 
@@ -1372,17 +1342,17 @@ char Parser::parse_wake(int16_t function_index, datum_index node_index) const
     hs_syntax_node *node;
     ScenarioScript *script;
 
-    if (!hs_get_parameter_indices(hs_function_definitions[function_index]->name, 1, node_index, &argument)) {
+    if (!halo::hs::hs_get_parameter_indices(halo::hs::globals().function_definitions[function_index]->name, 1, node_index, &argument)) {
         return 0;
     }
     node = syntax_node(argument);
-    if (!hs_parse(argument, 0xa)) {
+    if (!halo::hs::hs_parse(argument, 0xa)) {
         return 0;
     }
     script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + node->data.short_value;
     if (script->script_type == 3 || script->script_type == 4) {
-        hs_compile_error = (char *)"this static script cannot be awakened.";
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = (char *)"this static script cannot be awakened.";
+        halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
     return 1;
@@ -1405,38 +1375,38 @@ char Parser::report_expected_enum_values(datum_index node_index) const
     int16_t last_index;
     int16_t i;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * 0x14);
     def = &hs_enum_definitions[node->type - 0x20];
 
     match_index = 0;
     if (0 < def->count) {
         do {
-            if (_stricmp(hs_compiled_source + node->source_offset, def->names[match_index]) == 0)
+            if (_stricmp(halo::hs::globals().compiled_source + node->source_offset, def->names[match_index]) == 0)
                 break;
             match_index = match_index + 1;
         } while (match_index < def->count);
     }
 
     if (match_index == def->count) {
-        sprintf(hs_compile_error_buffer, "%s must be ", hs_type_names[node->type]);
+        sprintf(halo::hs::globals().compile_error_buffer, "%s must be ", halo::hs::globals().type_names[node->type]);
         last_index = 0;
         if (0 < def->count - 1) {
             for (i = 0; i < def->count - 1; i++) {
-                strcat(hs_compile_error_buffer, "\"");
-                strcat(hs_compile_error_buffer, def->names[i]);
-                strcat(hs_compile_error_buffer, "\", ");
+                strcat(halo::hs::globals().compile_error_buffer, "\"");
+                strcat(halo::hs::globals().compile_error_buffer, def->names[i]);
+                strcat(halo::hs::globals().compile_error_buffer, "\", ");
                 last_index = i + 1;
             }
         }
         if (1 < def->count) {
-            strcat(hs_compile_error_buffer, "or ");
+            strcat(halo::hs::globals().compile_error_buffer, "or ");
         }
-        strcat(hs_compile_error_buffer, "\"");
-        strcat(hs_compile_error_buffer, def->names[last_index]);
-        strcat(hs_compile_error_buffer, "\".");
+        strcat(halo::hs::globals().compile_error_buffer, "\"");
+        strcat(halo::hs::globals().compile_error_buffer, def->names[last_index]);
+        strcat(halo::hs::globals().compile_error_buffer, "\".");
 
-        hs_compile_error = hs_compile_error_buffer;
-        hs_compile_error_offset = node->source_offset;
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
+        halo::hs::globals().compile_error_offset = node->source_offset;
         node->data.short_value = last_index;
         return 0;
     }
@@ -1460,15 +1430,15 @@ void Parser::resolve_identifier_as_function_or_script(datum_index node_index) co
     int16_t function_index;
     int16_t script_index;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
     if (identifier_node->type != _hs_type_function_name) {
-        function_index = hs_find_function_by_name(hs_compiled_source + identifier_node->source_offset);
+        function_index = halo::hs::hs_find_function_by_name(halo::hs::globals().compiled_source + identifier_node->source_offset);
         node->index_union = function_index;
         identifier_node->type = _hs_type_function_name;
         if (node->index_union == -1) {
-            script_index = hs_script_find_by_name(hs_compiled_source + identifier_node->source_offset);
+            script_index = halo::hs::hs_script_find_by_name(halo::hs::globals().compiled_source + identifier_node->source_offset);
             node->index_union = script_index;
             if (script_index != -1) {
                 node->flags = node->flags | _hs_syntax_node_script_call_bit;

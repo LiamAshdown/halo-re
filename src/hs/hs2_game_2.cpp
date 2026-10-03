@@ -1,10 +1,10 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/hs/api.hpp"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern uint8_t *game_time;
 #ifdef __cplusplus
 }
@@ -23,7 +23,7 @@ void GameCommands::evaluate_game_time(int16_t function_index, uint32_t thread_in
     (void)function_index;
     (void)first;
     
-    hs_thread_return(*(int32_t *)(game_time + 0xc), thread_index);
+    halo::hs::hs_thread_return(*(int32_t *)(game_time + 0xc), thread_index);
 }
 
 }

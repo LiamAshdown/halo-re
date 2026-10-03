@@ -6,23 +6,14 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void hs_help_print_function(char *name);
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
 extern void chimera__console_out(void *color, const char *format, ...);
-extern data_array *hs_thread_data;
-extern data_array *hs_syntax_data;
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
-extern uint8_t hs_preserve_token_case;
-extern int32_t object_list_nth_reference(datum_index header_index, int16_t n);
 extern void message_delta_metrics_dump(char *suffix);
 extern uint8_t network_bandwidth_graph_globals[];
 extern void network_bandwidth_graph_instance_history_reset(void *graph);
@@ -35,8 +26,6 @@ extern uint32_t lens_flare_marker_visibility[0x4002];
 extern int32_t lens_flare_instance_count;
 extern uint32_t *rasterizer_model_ambient_reflection_tint;
 extern uint8_t *lights_enabled;
-extern void hs_doc(void);
-extern uint8_t hs_reload_pending;
 extern uint8_t *cinematic_screen_effect_state;
 #ifdef __cplusplus
 }
@@ -44,7 +33,7 @@ extern uint8_t *cinematic_screen_effect_state;
 
 static hs_syntax_node *syntax_get(datum_index node)
 {
-    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & halo::k_slot_mask) * 0x14);
+    return (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node & halo::k_slot_mask) * 0x14);
 }
 
 namespace halo::hs {
@@ -57,13 +46,13 @@ namespace halo::hs {
  */
 void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_help_print_function((char *)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_help_print_function((char *)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -75,7 +64,7 @@ void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index,
  */
 void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    hs_thread *thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     hs_stack_frame *frame = thread->stack;
     int32_t *result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     datum_index argument = syntax_get(syntax_get(frame->syntax_node)->data.first_child)->next_node;
@@ -83,7 +72,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
 
     frame->size = frame->size + 4;
     if (first != 0) {
-        hs_thread_push(argument, thread_index, result);
+        halo::hs::hs_thread_push(argument, thread_index, result);
         return;
     }
     {
@@ -91,12 +80,12 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
 
         if (hs_type_inspectors[type] != 0) {
             hs_type_inspectors[type](type, *result, buffer);
-            if (hs_preserve_token_case != 0 || halo::cseries::globals().debug_log_level >= 4) {
+            if (halo::hs::globals().preserve_token_case != 0 || halo::cseries::globals().debug_log_level >= 4) {
                 chimera__console_out(0, buffer);
             }
         }
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -107,8 +96,8 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
  */
 void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -118,7 +107,7 @@ void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_
     if (list != k_datum_index_none) {
         count = *(uint16_t *)((uint8_t *)halo::objects::globals().object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 6);
     }
-    hs_thread_return((int32_t)count, thread_index);
+    halo::hs::hs_thread_return((int32_t)count, thread_index);
     }
 }
 
@@ -130,12 +119,12 @@ void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_
  */
 void DebugCommands::evaluate_list_get(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return(object_list_nth_reference((datum_index)arguments[0], *(int16_t *)&arguments[1]), thread_index);
+    halo::hs::hs_thread_return(halo::hs::object_list_nth_reference((datum_index)arguments[0], *(int16_t *)&arguments[1]), thread_index);
     }
 }
 
@@ -147,13 +136,13 @@ void DebugCommands::evaluate_list_get(int16_t function_index, uint32_t thread_in
  */
 void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         message_delta_metrics_dump((char *)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -166,7 +155,7 @@ void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32
 void DebugCommands::evaluate_net_graph_clear(int16_t function_index, uint32_t thread_index, char first)
 {
     network_bandwidth_graph_instance_history_reset(network_bandwidth_graph_globals);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -177,12 +166,12 @@ void DebugCommands::evaluate_net_graph_clear(int16_t function_index, uint32_t th
  */
 void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_thread_return((int32_t)(uint8_t)(network_bandwidth_graph_set_units_command((const char *)arguments[0], (const char *)arguments[1])), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint8_t)(network_bandwidth_graph_set_units_command((const char *)arguments[0], (const char *)arguments[1])), thread_index);
     }
 }
 
@@ -194,13 +183,13 @@ void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thr
  */
 void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, (char *)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -213,7 +202,7 @@ void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index
 void DebugCommands::evaluate_print_binds(int16_t function_index, uint32_t thread_index, char first)
 {
     halo::input::input_print_bound_controls();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -224,15 +213,15 @@ void DebugCommands::evaluate_print_binds(int16_t function_index, uint32_t thread
  */
 void DebugCommands::evaluate_rasterizer_fixed_function_ambient(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         uint32_t level = (uint32_t)arguments[0] & 0xff;
 
         halo::rasterizer::fields::fixed_function_ambient_color = 0xff000000 | (level << 16) | (level << 8) | level;
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -253,7 +242,7 @@ void DebugCommands::evaluate_rasterizer_lights_reset_for_new_map(int16_t functio
         lens_flare_marker_visibility[i] = 0;
     }
     lens_flare_instance_count = 0;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -264,8 +253,8 @@ void DebugCommands::evaluate_rasterizer_lights_reset_for_new_map(int16_t functio
  */
 void DebugCommands::evaluate_rasterizer_model_ambient_reflection_tint(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -275,7 +264,7 @@ void DebugCommands::evaluate_rasterizer_model_ambient_reflection_tint(int16_t fu
             rasterizer_model_ambient_reflection_tint[2] = (uint32_t)arguments[2];
             rasterizer_model_ambient_reflection_tint[3] = (uint32_t)arguments[3];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -287,15 +276,15 @@ void DebugCommands::evaluate_rasterizer_model_ambient_reflection_tint(int16_t fu
  */
 void DebugCommands::evaluate_render_lights(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     uint8_t value = *(uint8_t *)&arguments[0];
 
     *lights_enabled = value;
-    hs_thread_return((int32_t)value, thread_index);
+    halo::hs::hs_thread_return((int32_t)value, thread_index);
     }
 }
 
@@ -307,8 +296,8 @@ void DebugCommands::evaluate_render_lights(int16_t function_index, uint32_t thre
  */
 void DebugCommands::evaluate_script_doc(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_doc();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_doc();
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -319,8 +308,8 @@ void DebugCommands::evaluate_script_doc(int16_t function_index, uint32_t thread_
  */
 void DebugCommands::evaluate_script_recompile(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_reload_pending = 1;
-    hs_thread_return(0, thread_index);
+    halo::hs::globals().reload_pending = 1;
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -331,8 +320,8 @@ void DebugCommands::evaluate_script_recompile(int16_t function_index, uint32_t t
  */
 void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -341,7 +330,7 @@ void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_ind
         if (cinematic_screen_effect_state != 0 && slot >= 0 && slot < 4) {
             *(uint32_t *)(cinematic_screen_effect_state + 0x64 + slot * 4) = (uint32_t)arguments[1];
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -353,14 +342,14 @@ void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_ind
  */
 void DebugCommands::evaluate_set_gamma(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::rasterizer::globals().gamma_exponent = arguments[0];
         halo::rasterizer::chimera__gamma();
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 

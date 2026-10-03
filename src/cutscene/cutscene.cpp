@@ -7,13 +7,13 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern void game_engine_cleanup_stray_projectiles(void);
 extern float cinematic_saved_music_gain;
 extern cinematic_globals *cinematic_globals_ptr;
 extern player_globals *local_player_globals;
-extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time;
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
@@ -57,7 +57,7 @@ void CutsceneDirector::start()
     halo::sound::sound_set_music_gain(1.0f);
 
     local_player_globals->input_disabled = 1;
-    ai_globals_ptr->dialogue_triggers_enabled = 0;
+    halo::ai::globals().state->dialogue_triggers_enabled = 0;
 
     cinematic_globals_ptr->show_letterbox = 1;
     cinematic_globals_ptr->letterbox_last_tick = game_time->game_time;
@@ -88,7 +88,7 @@ void CutsceneDirector::stop()
 
     cinematic_globals_ptr->show_letterbox = 0;
     local_player_globals->input_disabled = 0;
-    ai_globals_ptr->dialogue_triggers_enabled = 1;
+    halo::ai::globals().state->dialogue_triggers_enabled = 1;
 
     effects = cinematic_screen_effect_state;
     cinematic_saved_music_gain = -1.0f;

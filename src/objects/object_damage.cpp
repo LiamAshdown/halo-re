@@ -23,9 +23,9 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
-extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
 extern game_engine_definition *current_game_engine;
 extern ModelCollisionGeometryMaterial default_collision_material;
 extern uint8_t g_006f1cf4;
@@ -731,7 +731,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 actor = ((unit_object *)responsible)->unit.actor_index;
             }
             if (actor != k_datum_index_none) {
-                actor_apply_perception_scale(actor, (const uint8_t *)dd, &amount);
+                halo::ai::actor_apply_perception_scale(actor, (const uint8_t *)dd, &amount);
             }
         }
     }

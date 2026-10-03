@@ -27,6 +27,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/hs/api.hpp"
 
 
 namespace halo::main {
@@ -62,7 +63,6 @@ void Console::chimera__exec_init(void)
 
 extern "C" { extern console_globals console_globals_data; }
 extern "C" { extern int standalone_devmode(void); }
-extern "C" { extern int16_t hs_autocomplete_gather(uint32_t category_mask, char **results, char *prefix, int16_t maximum_count, uint16_t gametype_mask); }
 namespace halo::main {
 
 /**
@@ -110,7 +110,7 @@ void Console::autocomplete_command(void)
         word = after_quote;
     }
 
-    match_count = hs_autocomplete_gather(0x28, names, word, 0x100,
+    match_count = halo::hs::hs_autocomplete_gather(0x28, names, word, 0x100,
         standalone_devmode() ? 0 : _console_context_default_bit);
     if (match_count == 0) {
         return;
@@ -467,8 +467,6 @@ void halo::main::console_print_va(const char *format, ...)
     }
 }
 
-extern "C" { extern uint8_t hs_preserve_token_case; }
-extern "C" { extern char hs_compile_and_evaluate(const char *command); }
 namespace halo::main {
 
 /**
@@ -517,12 +515,12 @@ char Console::process_command(char *command_line, uint32_t context_flags)
     if (standalone_devmode()) {
         context_mask = 0;
     }
-    match_count = hs_autocomplete_gather(0x28, out_names, command_name, 0x100, (uint16_t)context_mask);
+    match_count = halo::hs::hs_autocomplete_gather(0x28, out_names, command_name, 0x100, (uint16_t)context_mask);
     for (i = match_count - 1; i >= 0; i--) {
         if (_stricmp(command_name, out_names[i]) == 0) {
-            hs_preserve_token_case = 1;
-            result = hs_compile_and_evaluate(command_line);
-            hs_preserve_token_case = 0;
+            halo::hs::globals().preserve_token_case = 1;
+            result = halo::hs::hs_compile_and_evaluate(command_line);
+            halo::hs::globals().preserve_token_case = 0;
             return result;
         }
     }

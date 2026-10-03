@@ -13,6 +13,8 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -24,8 +26,6 @@ extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
 extern void team_pair_overrides_tick(void);
 extern void game_engine_tick(void);
-extern void hs_runtime_update(void);
-extern void ai_tick_dispatcher(void);
 extern void game_engine_players_update_server(void);
 extern void game_engine_players_update_client(void);
 extern void main_switch_structure_bsp(void);
@@ -59,33 +59,21 @@ extern void *recorded_animations;
 extern uint32_t cinematic_saved_music_gain;
 extern uint32_t *cinematic_globals_ptr;
 extern uint8_t *object_globals_pointer;
-extern void ai_reset_for_new_map(void);
-extern void encounters_spawn_initial(void);
 extern void team_pair_table_init_defaults(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_initialize_for_new_game(void);
 extern void game_engine_reset_player_look_state(void);
 extern uint8_t update_server_new(void);
 extern void players_dispose(void);
-extern void hs_scripts_reload(void);
 extern void interface_local_player_state_reset(void);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
 extern uint32_t rasterizer_globals_data;
-extern data_array *ai_conversation_data;
-extern data_array *encounter_data;
-extern data_array *ai_pursuit_data;
-extern data_array *prop_data;
-extern data_array *actor_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-extern ai_globals *ai_globals_ptr;
 extern data_array *player_data;
 extern data_array *team_data;
 extern uint32_t text_localization_strings;
 extern void update_queues_dispose(void);
-extern void hs_scripts_free(void);
 extern void objects_flush_dirty_state(void);
 extern void widget_close_all(void);
 extern uint32_t global_scenario_index;
@@ -118,7 +106,7 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
     ai_update_stagger->highest = 0;
     ai_update_stagger->claimed = 0;
 
-    ai_tick_dispatcher();
+    halo::ai::ai_tick_dispatcher();
 
     if (network_game_mode != 0) {
         if (network_game_mode == 1) {
@@ -142,7 +130,7 @@ after_role_update:
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 
     game_engine_tick();
-    hs_runtime_update();
+    halo::hs::hs_runtime_update();
     halo::cutscene::recorded_animations_update();
     halo::objects::objects_update();
     main_switch_structure_bsp();
@@ -323,7 +311,7 @@ void GameLifecycle::start_new_map(void)
     }
     *(uint16_t *)((uint8_t *)player_effect_globals_pointer + 0x3f * 4) = 0xffff;
     player_effect_globals_pointer[0x49] = ((uint32_t *)game_time)[3];
-    ai_reset_for_new_map();
+    halo::ai::ai_reset_for_new_map();
 
     dst = cinematic_globals_ptr;
     dst[0] = 0;
@@ -335,7 +323,7 @@ void GameLifecycle::start_new_map(void)
     dst[6] = 0xffffffff;
 
     cinematic_saved_music_gain = 0xbf800000;
-    hs_scripts_reload();
+    halo::hs::hs_scripts_reload();
     *((uint8_t *)recorded_animations + 0x24) = 1;
     halo::memory::data_delete_all((data_array *)recorded_animations);
 
@@ -343,7 +331,7 @@ void GameLifecycle::start_new_map(void)
     *object_globals_pointer = 1;
     halo::objects::scenario_objects_place((uint8_t *)(halo::scenario::globals().scenario));
     *object_globals_pointer = 0;
-    encounters_spawn_initial();
+    halo::ai::encounters_spawn_initial();
 }
 
 /**
@@ -359,18 +347,18 @@ void GameLifecycle::stop_current_map(void)
     halo::rasterizer::font_glyph_cache_clear_all();
     rasterizer_globals_data = 0;
     ((data_array *)recorded_animations)->valid = 0;
-    hs_scripts_free();
+    halo::hs::hs_scripts_free();
 
     ((uint8_t *)cinematic_globals_ptr)[8] = 0;
     ((uint8_t *)cinematic_globals_ptr)[9] = 0;
-    ai_conversation_data->valid = 0;
-    encounter_data->valid = 0;
-    ai_pursuit_data->valid = 0;
-    prop_data->valid = 0;
-    actor_data->valid = 0;
-    swarm_data->valid = 0;
-    swarm_component_data->valid = 0;
-    ai_globals_ptr->actors_valid = 0;
+    halo::ai::globals().conversation_data->valid = 0;
+    halo::ai::globals().encounter_data->valid = 0;
+    halo::ai::globals().pursuit_data->valid = 0;
+    halo::ai::globals().prop_data->valid = 0;
+    halo::ai::globals().actor_data->valid = 0;
+    halo::ai::globals().swarm_data->valid = 0;
+    halo::ai::globals().swarm_component_data->valid = 0;
+    halo::ai::globals().state->actors_valid = 0;
     halo::effects::particle_systems_delete_all();
 
     if (halo::effects::globals().weather_particle_data->valid != 0) {

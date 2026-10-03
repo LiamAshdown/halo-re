@@ -17,6 +17,7 @@
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -27,7 +28,6 @@ extern double fsin(double x);
 extern double sqrt(double x);
 extern game_time_globals *game_time;
 extern real_point3d *global_origin3d_pointer;
-extern uint8_t actor_resolve_wander_or_look_direction(datum_index actor_index, real_vector3d *out_direction);
 extern char ai_marker_name_a[];
 extern void *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
@@ -329,7 +329,7 @@ void UnitView::initialize_random_turn_angle()
     unit->flags |= _unit_flag_idle_turn_seeded;
 
     real_vector3d direction;
-    if (unit->actor_index == k_datum_index_none || actor_resolve_wander_or_look_direction(unit->actor_index, &direction) == 0) {
+    if (unit->actor_index == k_datum_index_none || halo::ai::actor_resolve_wander_or_look_direction(unit->actor_index, &direction) == 0) {
         float angle = (float)atan2((double)obj->forward.j, (double)obj->forward.i);
         if (angle > 3.1415927f) {
             angle -= 6.2831855f;
@@ -905,7 +905,7 @@ void UnitView::update_random_turn_angle(real_vector3d *out_axis)
     float pitch_low, pitch_high;
     float delta;
 
-    if (unit->actor_index == k_datum_index_none || actor_resolve_wander_or_look_direction(unit->actor_index, out_axis) == 0) {
+    if (unit->actor_index == k_datum_index_none || halo::ai::actor_resolve_wander_or_look_direction(unit->actor_index, out_axis) == 0) {
         *out_axis = *halo::math::globals().global_forward3d_pointer;
     } else {
         is_actor_controlled = 1;

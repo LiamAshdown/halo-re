@@ -18,6 +18,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -28,9 +29,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t is_dedicated_server_flag;
 extern Globals *global_globals;
 extern uint8_t network_object_index_cache[];
-extern void actor_notify_weapon_pickup_once(datum_index object_index);
-extern int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_index self_object_index, int32_t seat_selector);
-extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
 extern uint8_t unit_updates_suppressed;
@@ -39,7 +37,6 @@ extern uint8_t object_collision_context_build(uint32_t object_index, object_coll
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern real_vector3d *global_origin3d_pointer;
 extern uint8_t *team_pair_data;
-extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern double sin(double x);
 extern double cos(double x);
 }
@@ -283,7 +280,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 OBJECT_HEADER(unit_index).flags |= 2;
             }
             ((struct unit_object *)self)->unit.animation_state = 0x1b;
-            actor_notify_weapon_pickup_once(unit_index);
+            halo::ai::actor_notify_weapon_pickup_once(unit_index);
             if (((unit_object *)self)->base.network_role == 0) {
                 ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
             }
@@ -372,9 +369,9 @@ local_reactions:
     }
     if (is_local == 1 && ((unit_object *)obj)->base.type == 0) {
         if (killed) {
-            actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
+            halo::ai::actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
         } else if (!test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
-            actor_react_to_threat_event(unit_index, dd->responsible_object, *(uint16_t *)(effect_block + 0x2), total,
+            halo::ai::actor_react_to_threat_event(unit_index, dd->responsible_object, *(uint16_t *)(effect_block + 0x2), total,
                 (uint32_t)(uintptr_t)&dd->direction, 0);
         }
     }
@@ -883,7 +880,7 @@ broadcast_check:
             *(int32_t *)(attacker + 0x42c) = tick;
             threshold = (*(uint32_t *)(attacker + 0x218) != k_datum_index_none) ? 5 : 3;
             if (*(int16_t *)(attacker + 0x42a) >= threshold) {
-                ai_communication_broadcast(1, (datum_index)attacker_handle, k_datum_index_none, -1, k_datum_index_none,
+                halo::ai::ai_communication_broadcast(1, (datum_index)attacker_handle, k_datum_index_none, -1, k_datum_index_none,
                                            k_datum_index_none, 0);
                 *(int16_t *)(attacker + 0x42a) = 0;
             }

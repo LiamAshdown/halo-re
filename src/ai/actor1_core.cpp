@@ -8,14 +8,11 @@
 #include "halo/ai/ai_constants.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" uint8_t actor_action_has_queued_secondary(datum_index actor_index);
 
 /**
  * actor_action_has_queued_secondary: behaviour unchanged from the original routine. The original author notes and decompile
@@ -27,7 +24,7 @@ uint8_t halo::ai::actor_ref::action_has_queued_secondary()
 {
     using namespace c_actor_action_has_queued_secondary;
     datum_index actor_index = datum;
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->secondary_action != (int16_t)-1) {
         return 1;
@@ -38,18 +35,16 @@ uint8_t halo::ai::actor_ref::action_has_queued_secondary()
     return 0;
 }
 
-extern "C" uint8_t actor_action_has_queued_secondary(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_action_has_queued_secondary(datum_index actor_index)
 {
     return halo::ai::actor_ref(actor_index).action_has_queued_secondary();
 }
+}
 
 namespace c_actor_apply_perception_scale {
-extern "C" {
-extern data_array *actor_data;
-}
 }
 
-extern "C" uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
 
 /**
  * actor_apply_perception_scale: behaviour unchanged from the original routine. The original author notes and decompile
@@ -68,7 +63,7 @@ uint8_t halo::ai::actor_ref::apply_perception_scale(const uint8_t *zone, float *
     }
 
     {
-        actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+        actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
         if ((zone[4] & 8) != 0) {
             if (self->perception_scale > 0.0f) {
@@ -84,25 +79,16 @@ uint8_t halo::ai::actor_ref::apply_perception_scale(const uint8_t *zone, float *
     return scaled;
 }
 
-extern "C" uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value)
+namespace halo::ai {
+uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value)
 {
     return halo::ai::actor_ref(actor_index).apply_perception_scale(zone, in_out_value);
 }
+}
 
 namespace c_actor_attach_to_unit {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *encounter_data;
-
-extern void actor_unlink_unit(datum_index actor_index);
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern void actor_refresh_combat_context(datum_index actor_index);
-extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
-}
 }
 
-extern "C" void actor_attach_to_unit(datum_index actor_index, datum_index unit_index);
 
 /**
  * actor_attach_to_unit: behaviour unchanged from the original routine. The original author notes and decompile
@@ -114,7 +100,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
 {
     using namespace c_actor_attach_to_unit;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
@@ -124,21 +110,21 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     }
 
     if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
-        actor_remove_from_unit_cluster(unit->swarm_actor_index, unit_index);
+        halo::ai::actor_remove_from_unit_cluster(unit->swarm_actor_index, unit_index);
     }
     if (unit->actor_index != (datum_index)k_datum_index_none) {
-        actor_delete(unit->actor_index, 0);
+        halo::ai::actor_delete(unit->actor_index, 0);
     }
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        actor_unlink_unit(actor_index);
+        halo::ai::actor_unlink_unit(actor_index);
     }
 
     self->unit_index = unit_index;
     unit->actor_index = actor_index;
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & halo::k_slot_mask];
-        ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
+        encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
+        halo::ai::ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
         ((struct object *)unit_object)->owner_team = enc->team;
     }
     self->team = ((struct object *)unit_object)->owner_team;
@@ -146,12 +132,12 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     if (*(int16_t *)((uint8_t *)unit_object + 0xbe) > 99) {
         self->counts_toward_encounter = 1;
         if (self->encounter_index != (datum_index)k_datum_index_none) {
-            encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & halo::k_slot_mask];
+            encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
             enc->live_count = enc->live_count + 1;
         }
     }
 
-    actor_refresh_combat_context(actor_index);
+    halo::ai::actor_refresh_combat_context(actor_index);
 
     {
         uint8_t flags_before = header->flags;
@@ -169,19 +155,19 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 1);
 }
 
-extern "C" void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
+namespace halo::ai {
+void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
 {
     halo::ai::actor_ref(actor_index).attach_to_unit(unit_index);
+}
 }
 
 namespace c_actor_classify_communication_object_type {
 extern "C" {
-extern data_array *actor_data;
 extern void *actor_type_procs[16];
 }
 }
 
-extern "C" int32_t actor_classify_communication_object_type(datum_index actor_index);
 
 /**
  * actor_classify_communication_object_type: behaviour unchanged from the original routine. The original author notes and decompile
@@ -197,7 +183,7 @@ int32_t halo::ai::actor_ref::classify_communication_object_type()
     uint16_t flags;
     int32_t result;
 
-    a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     flags = *(uint16_t *)((uint8_t *)actor_type_procs[a->type] + 4);
 
     result = -1;
@@ -210,19 +196,16 @@ int32_t halo::ai::actor_ref::classify_communication_object_type()
     return result;
 }
 
-extern "C" int32_t actor_classify_communication_object_type(datum_index actor_index)
+namespace halo::ai {
+int32_t actor_classify_communication_object_type(datum_index actor_index)
 {
     return halo::ai::actor_ref(actor_index).classify_communication_object_type();
 }
+}
 
 namespace c_actor_command_list_permits_escalation {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *ai_conversation_data;
-}
 }
 
-extern "C" uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 
 /**
  * actor_command_list_permits_escalation: behaviour unchanged from the original routine. The original author notes and decompile
@@ -239,13 +222,13 @@ uint8_t halo::ai::actor_ref::command_list_permits_escalation()
     ScenarioAIConversation *definition;
     ScenarioAIConversationFlags flags;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->conversation_index == (datum_index)k_datum_index_none) {
         return 1;
     }
 
-    conv = (ai_conversation *)((uint8_t *)ai_conversation_data->data +
+    conv = (ai_conversation *)((uint8_t *)halo::ai::globals().conversation_data->data +
                                 (self->conversation_index & halo::k_slot_mask) * sizeof(ai_conversation));
     definition = (ScenarioAIConversation *)((TagReflexive *)((uint8_t *)halo::scenario::globals().scenario + 0x468))->pointer;
     definition = definition + conv->definition_index;
@@ -259,15 +242,16 @@ uint8_t halo::ai::actor_ref::command_list_permits_escalation()
     return 1;
 }
 
-extern "C" uint8_t actor_command_list_permits_escalation(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_command_list_permits_escalation(datum_index actor_index)
 {
     return halo::ai::actor_ref(actor_index).command_list_permits_escalation();
+}
 }
 
 namespace c_actor_command_list_reset_record {
 }
 
-extern "C" void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra);
 
 /**
  * actor_command_list_reset_record: behaviour unchanged from the original routine. The original author notes and decompile
@@ -298,27 +282,16 @@ void halo::ai::actor_ref::command_list_reset_record(datum_index unit_index, uint
     }
 }
 
-extern "C" void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+namespace halo::ai {
+void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
     halo::ai::actor_ref(actor_index).command_list_reset_record(unit_index, extra, component_record, secondary_record, callback_extra);
 }
+}
 
 namespace c_actor_delete {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-
-extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
-extern void ai_actor_unlink_from_unassigned_list(datum_index actor_index);
-extern void actor_unlink_unit(datum_index actor_index);
-extern void actor_delete_swarm(datum_index actor_index);
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
-extern void actor_clear_perceived_props(datum_index actor_index);
-extern void ai_conversation_clear_participant(datum_index actor_index);
-}
 }
 
-extern "C" void actor_delete(datum_index actor_index, uint32_t flag);
 
 /**
  * actor_delete: behaviour unchanged from the original routine. The original author notes and decompile
@@ -330,28 +303,28 @@ void halo::ai::actor_ref::delete_(uint32_t flag)
 {
     using namespace c_actor_delete;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     data_iterator iterator;
     prop *p;
 
     if (self->encounterless == 0) {
-        encounter_remove_actor(actor_index, (uint8_t)flag);
+        halo::ai::encounter_remove_actor(actor_index, (uint8_t)flag);
     } else {
-        ai_actor_unlink_from_unassigned_list(actor_index);
+        halo::ai::ai_actor_unlink_from_unassigned_list(actor_index);
     }
 
     if (self->swarm == 0) {
-        actor_unlink_unit(actor_index);
+        halo::ai::actor_unlink_unit(actor_index);
     } else {
-        actor_delete_swarm(actor_index);
+        halo::ai::actor_delete_swarm(actor_index);
         while (self->cluster_unit_index != (datum_index)k_datum_index_none) {
-            actor_remove_from_unit_cluster(actor_index, self->cluster_unit_index);
+            halo::ai::actor_remove_from_unit_cluster(actor_index, self->cluster_unit_index);
         }
     }
 
-    actor_clear_perceived_props(actor_index);
+    halo::ai::actor_clear_perceived_props(actor_index);
 
-    iterator.data = prop_data;
+    iterator.data = halo::ai::globals().prop_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -363,26 +336,20 @@ void halo::ai::actor_ref::delete_(uint32_t flag)
         p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
 
-    ai_conversation_clear_participant(actor_index);
-    halo::memory::datum_delete(actor_data, actor_index);
+    halo::ai::ai_conversation_clear_participant(actor_index);
+    halo::memory::datum_delete(halo::ai::globals().actor_data, actor_index);
 }
 
-extern "C" void actor_delete(datum_index actor_index, uint32_t flag)
+namespace halo::ai {
+void actor_delete(datum_index actor_index, uint32_t flag)
 {
     halo::ai::actor_ref(actor_index).delete_(flag);
 }
+}
 
 namespace c_actor_delete_or_release_unit {
-extern "C" {
-extern data_array *actor_data;
-
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern uint8_t actor_attempt_grenade_throw(datum_index actor_index);
-}
 }
 
-extern "C" void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead);
 
 /**
  * actor_delete_or_release_unit: behaviour unchanged from the original routine. The original author notes and decompile
@@ -394,11 +361,11 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
 {
     using namespace c_actor_delete_or_release_unit;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->swarm == 0) {
         datum_index unit_index = self->unit_index;
-        actor_attempt_grenade_throw(actor_index);
+        halo::ai::actor_attempt_grenade_throw(actor_index);
         if (is_dead != 0) {
             halo::objects::object_delete_recursive(unit_index, 0);
             halo::objects::object_delete_4f9030(unit_index, 0);
@@ -411,10 +378,10 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
     for (;;) {
         datum_index unit_index = self->cluster_unit_index;
         if (unit_index == (datum_index)k_datum_index_none) {
-            actor_delete(actor_index, 1);
+            halo::ai::actor_delete(actor_index, 1);
             return;
         }
-        actor_remove_from_unit_cluster(actor_index, unit_index);
+        halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
         if (is_dead == 0) {
             object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
             int32_t network_role = unit_object->network_role;
@@ -431,21 +398,16 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
     }
 }
 
-extern "C" void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead)
+namespace halo::ai {
+void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dead)
 {
     halo::ai::actor_ref(actor_index).delete_or_release_unit(is_dead);
 }
+}
 
 namespace c_actor_dispatch_perception_reset {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *swarm_data;
-
-extern void actor_reset_perception_scratch(datum_index unit_index);
-}
 }
 
-extern "C" void actor_dispatch_perception_reset(datum_index actor_index);
 
 /**
  * actor_dispatch_perception_reset: behaviour unchanged from the original routine. The original author notes and decompile
@@ -457,42 +419,34 @@ void halo::ai::actor_ref::dispatch_perception_reset()
 {
     using namespace c_actor_dispatch_perception_reset;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (self->swarm == 0) {
-        actor_reset_perception_scratch(self->unit_index);
+        halo::ai::actor_reset_perception_scratch(self->unit_index);
         self->unit_control_pending = 1;
         return;
     }
 
     if (self->swarm_index != (datum_index)k_datum_index_none) {
-        swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & halo::k_slot_mask];
+        swarm *s = &((swarm *)halo::ai::globals().swarm_data->data)[self->swarm_index & halo::k_slot_mask];
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
-            actor_reset_perception_scratch(s->unit_index[i]);
+            halo::ai::actor_reset_perception_scratch(s->unit_index[i]);
         }
     }
     self->unit_control_pending = 1;
 }
 
-extern "C" void actor_dispatch_perception_reset(datum_index actor_index)
+namespace halo::ai {
+void actor_dispatch_perception_reset(datum_index actor_index)
 {
     halo::ai::actor_ref(actor_index).dispatch_perception_reset();
 }
+}
 
 namespace c_actor_dispatch_squad_order {
-extern "C" {
-extern data_array *prop_data;
-extern data_array *actor_data;
-
-extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
-extern void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_index actor_index);
-extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
-    datum_index owner_reference, datum_index pair_reference);
-}
 }
 
-extern "C" void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order, datum_index actor_index);
 
 /**
  * actor_dispatch_squad_order: behaviour unchanged from the original routine. The original author notes and decompile
@@ -508,36 +462,36 @@ void halo::ai::actor_ref::dispatch_squad_order(datum_index prop_index, const act
     }
 
     if (order->type == 2) {
-        actor_queue_search_and_relay_perception(prop_index, actor_index);
+        halo::ai::actor_queue_search_and_relay_perception(prop_index, actor_index);
     } else if (order->type == 3) {
 
-        prop *p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
+        prop *p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
         if (p->owner_actor_index != (datum_index)k_datum_index_none) {
             datum_index ordered = *(datum_index *)((uint8_t *)order + 0x18);
-            prop *other = (prop *)halo::memory::datum_get(ordered, prop_data);
+            prop *other = (prop *)halo::memory::datum_get(ordered, halo::ai::globals().prop_data);
 
             if (other != 0) {
-                actor_target_data_acquire(actor_index, other->object_index, p->owner_actor_index, ordered);
+                halo::ai::actor_target_data_acquire(actor_index, other->object_index, p->owner_actor_index, ordered);
             }
         }
     } else if (order->type == 4) {
-        actor_scan_ally_death_panic_reaction(prop_index, actor_index);
+        halo::ai::actor_scan_ally_death_panic_reaction(prop_index, actor_index);
     }
 }
 
-extern "C" void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order, datum_index actor_index)
+namespace halo::ai {
+void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order, datum_index actor_index)
 {
     halo::ai::actor_ref::dispatch_squad_order(prop_index, order, actor_index);
+}
 }
 
 namespace c_actor_dispatch_type_vtable_0x10 {
 extern "C" {
-extern data_array *actor_data;
 extern void *actor_type_procs[16];
 }
 }
 
-extern "C" void actor_dispatch_type_vtable_0x10(datum_index actor_index);
 
 /**
  * actor_dispatch_type_vtable_0x10: behaviour unchanged from the original routine. The original author notes and decompile
@@ -549,7 +503,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x10()
 {
     using namespace c_actor_dispatch_type_vtable_0x10;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
 
     if (entry->proc_10 != 0) {
@@ -557,19 +511,19 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x10()
     }
 }
 
-extern "C" void actor_dispatch_type_vtable_0x10(datum_index actor_index)
+namespace halo::ai {
+void actor_dispatch_type_vtable_0x10(datum_index actor_index)
 {
     halo::ai::actor_ref(actor_index).dispatch_type_vtable_0x10();
+}
 }
 
 namespace c_actor_dispatch_type_vtable_0x18 {
 extern "C" {
-extern data_array *actor_data;
 extern void *actor_type_procs[16];
 }
 }
 
-extern "C" void actor_dispatch_type_vtable_0x18(datum_index actor_index);
 
 /**
  * actor_dispatch_type_vtable_0x18: behaviour unchanged from the original routine. The original author notes and decompile
@@ -581,25 +535,25 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x18()
 {
     using namespace c_actor_dispatch_type_vtable_0x18;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
 
     ((void (*)(datum_index))entry->proc_18)(actor_index);
 }
 
-extern "C" void actor_dispatch_type_vtable_0x18(datum_index actor_index)
+namespace halo::ai {
+void actor_dispatch_type_vtable_0x18(datum_index actor_index)
 {
     halo::ai::actor_ref(actor_index).dispatch_type_vtable_0x18();
+}
 }
 
 namespace c_actor_dispatch_type_vtable_0x1c {
 extern "C" {
-extern data_array *actor_data;
 extern void *actor_type_procs[16];
 }
 }
 
-extern "C" void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a, uint32_t b, uint32_t c);
 
 /**
  * actor_dispatch_type_vtable_0x1c: behaviour unchanged from the original routine. The original author notes and decompile
@@ -611,7 +565,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x1c(uint32_t a, uint32_t b, uint
 {
     using namespace c_actor_dispatch_type_vtable_0x1c;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
 
     if (entry->proc_1c != 0) {
@@ -619,19 +573,16 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x1c(uint32_t a, uint32_t b, uint
     }
 }
 
-extern "C" void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a, uint32_t b, uint32_t c)
+namespace halo::ai {
+void actor_dispatch_type_vtable_0x1c(datum_index actor_index, uint32_t a, uint32_t b, uint32_t c)
 {
     halo::ai::actor_ref(actor_index).dispatch_type_vtable_0x1c(a, b, c);
 }
+}
 
 namespace c_actor_get_actor_definition {
-extern "C" {
-extern data_array *actor_data;
-extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
-}
 }
 
-extern "C" void * actor_get_actor_definition(datum_index actor_index);
 
 /**
  * actor_get_actor_definition: behaviour unchanged from the original routine. The original author notes and decompile
@@ -647,10 +598,10 @@ void * halo::ai::actor_ref::get_actor_definition()
     void *default_definition;
     datum_index weapon_object;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     default_definition = halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
-    weapon_object = actor_get_threat_weapon_object_index(actor_index);
+    weapon_object = halo::ai::actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (weapon_object & halo::k_slot_mask);
         object *obj = hdr->data;
@@ -665,20 +616,16 @@ void * halo::ai::actor_ref::get_actor_definition()
     return default_definition;
 }
 
-extern "C" void * actor_get_actor_definition(datum_index actor_index)
+namespace halo::ai {
+void * actor_get_actor_definition(datum_index actor_index)
 {
     return halo::ai::actor_ref(actor_index).get_actor_definition();
 }
+}
 
 namespace c_actor_get_body_axis_vector {
-extern "C" {
-extern data_array *actor_data;
-
-
-}
 }
 
-extern "C" void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 
 /**
  * actor_get_body_axis_vector: behaviour unchanged from the original routine. The original author notes and decompile
@@ -690,7 +637,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 {
     using namespace c_actor_get_body_axis_vector;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     real_vector3d reference;
 
     if (unit_index == a->unit_index) {
@@ -737,19 +684,19 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
     }
 }
 
-extern "C" void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request)
+namespace halo::ai {
+void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request)
 {
     halo::ai::actor_ref(actor_index).get_body_axis_vector(unit_index, request);
+}
 }
 
 namespace c_actor_get_current_mode_combat_grade {
 extern "C" {
-extern data_array *actor_data;
 extern actor_mode_definition actor_mode_definitions[16];
 }
 }
 
-extern "C" int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 
 /**
  * actor_get_current_mode_combat_grade: behaviour unchanged from the original routine. The original author notes and decompile
@@ -761,25 +708,20 @@ int16_t halo::ai::actor_ref::get_current_mode_combat_grade()
 {
     using namespace c_actor_get_current_mode_combat_grade;
     datum_index actor_index = datum;
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     return actor_mode_definitions[self->mode].combat_grade;
 }
 
-extern "C" int16_t actor_get_current_mode_combat_grade(datum_index actor_index)
+namespace halo::ai {
+int16_t actor_get_current_mode_combat_grade(datum_index actor_index)
 {
     return halo::ai::actor_ref(actor_index).get_current_mode_combat_grade();
 }
+}
 
 namespace c_actor_get_ranged_attack_vector {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-
-extern uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position);
-}
 }
 
-extern "C" uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector);
 
 /**
  * actor_get_ranged_attack_vector: behaviour unchanged from the original routine. The original author notes and decompile
@@ -800,8 +742,8 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
     float length;
     float dot;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
 
     if (target->swarm_owned != 0) {
         return 0;
@@ -809,7 +751,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
 
     if (target->is_parented == 0) {
         if (target->owner_actor_index != k_datum_index_none) {
-            return actor_get_cached_wander_position(target->owner_actor_index, out_vector);
+            return halo::ai::actor_get_cached_wander_position(target->owner_actor_index, out_vector);
         }
         return 0;
     }
@@ -821,7 +763,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
     if (target->shooting == 0 && (int8_t)self->tally.unit_props > 0) {
         prop_index = self->first_prop;
         while (prop_index != k_datum_index_none) {
-            ally = (prop *)((uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * sizeof(prop));
+            ally = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * sizeof(prop));
             prop_index = ally->next_in_actor;
 
             if ((1 < ally->state && ally->state < 4) && ally->enemy != 0) {
@@ -844,24 +786,16 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
     return target->shooting;
 }
 
-extern "C" uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector)
+namespace halo::ai {
+uint8_t actor_get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector)
 {
     return halo::ai::actor_ref::get_ranged_attack_vector(target_prop_index, actor_index, out_vector);
 }
+}
 
 namespace c_actor_handle_death {
-extern "C" {
-extern data_array *actor_data;
-
-extern uint16_t actor_consider_target_candidate(datum_index actor_index,
-                                                datum_index candidate_prop_index);
-
-extern void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order);
-extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
-}
 }
 
-extern "C" uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
 
 /**
  * actor_handle_death: behaviour unchanged from the original routine. The original author notes and decompile
@@ -877,7 +811,7 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     uint8_t local_data[0x30];
     int32_t previous_target;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->order_committed != 0) {
         return 0;
@@ -896,31 +830,31 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     *(int32_t *)(local_data + 0x1c) = previous_target;
 
     if (previous_target != -1) {
-        actor_consider_target_candidate(actor_index, (datum_index)previous_target);
+        halo::ai::actor_consider_target_candidate(actor_index, (datum_index)previous_target);
     }
     if (self->swarm == 0) {
-        actor_check_melee_target_reachable(actor_index, (int16_t *)local_data);
+        halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)local_data);
         if (*(int16_t *)(local_data + 8) != -1) {
-            actor_set_mode(actor_index, 4, local_data);
+            halo::ai::actor_set_mode(actor_index, 4, local_data);
             return 1;
         }
     }
     return 0;
 }
 
-extern "C" uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3)
+namespace halo::ai {
+uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3)
 {
     return halo::ai::actor_ref(actor_index).handle_death(param_2, param_3);
+}
 }
 
 namespace c_actor_invoke_type_handler {
 extern "C" {
-extern data_array *actor_data;
 extern actor_mode_definition actor_mode_definitions[16];
 }
 }
 
-extern "C" void actor_invoke_type_handler(uint32_t actor_index);
 
 /**
  * actor_invoke_type_handler: behaviour unchanged from the original routine. The original author notes and decompile
@@ -932,7 +866,7 @@ void halo::ai::actor_ref::invoke_type_handler()
 {
     using namespace c_actor_invoke_type_handler;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     void (*update_proc)(uint32_t) = (void (*)(uint32_t))actor_mode_definitions[a->mode].update_proc;
 
     if (update_proc != 0) {
@@ -940,19 +874,16 @@ void halo::ai::actor_ref::invoke_type_handler()
     }
 }
 
-extern "C" void actor_invoke_type_handler(uint32_t actor_index)
+namespace halo::ai {
+void actor_invoke_type_handler(uint32_t actor_index)
 {
     halo::ai::actor_ref(actor_index).invoke_type_handler();
 }
+}
 
 namespace c_actor_iterator_new {
-extern "C" {
-extern data_array *encounter_data;
-extern ai_globals *ai_globals_ptr;
-}
 }
 
-extern "C" void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
 
 /**
  * actor_iterator_new: behaviour unchanged from the original routine. The original author notes and decompile
@@ -963,11 +894,11 @@ extern "C" void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t a
 void halo::ai::actor_ref::iterator_new(actor_iterator_state *out_iterator, uint8_t active_only)
 {
     using namespace c_actor_iterator_new;
-    if (ai_globals_ptr->actors_valid != 0) {
-        out_iterator->filter_array = encounter_data;
+    if (halo::ai::globals().state->actors_valid != 0) {
+        out_iterator->filter_array = halo::ai::globals().encounter_data;
         out_iterator->next_index = 0;
         out_iterator->cursor = -1;
-        out_iterator->signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
+        out_iterator->signature = (uint32_t)halo::ai::globals().encounter_data ^ halo::ai::k_iterator_signature_key;
         out_iterator->encounterless_done = 0;
         out_iterator->active = active_only;
         out_iterator->actor_index = (datum_index)k_datum_index_none;
@@ -975,20 +906,16 @@ void halo::ai::actor_ref::iterator_new(actor_iterator_state *out_iterator, uint8
     }
 }
 
-extern "C" void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only)
+namespace halo::ai {
+void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only)
 {
     halo::ai::actor_ref::iterator_new(out_iterator, active_only);
 }
+}
 
 namespace c_actor_iterator_next {
-extern "C" {
-extern ai_globals *ai_globals_ptr;
-extern data_array *actor_data;
-
-}
 }
 
-extern "C" actor * actor_iterator_next(actor_iterator_state *iterator);
 
 /**
  * actor_iterator_next: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1002,7 +929,7 @@ actor * halo::ai::actor_ref::iterator_next(actor_iterator_state *iterator)
     datum_index next;
     actor *a;
 
-    if (ai_globals_ptr->actors_valid == 0) {
+    if (halo::ai::globals().state->actors_valid == 0) {
         return 0;
     }
 
@@ -1011,7 +938,7 @@ actor * halo::ai::actor_ref::iterator_next(actor_iterator_state *iterator)
         encounter *enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)iterator);
         if (enc == 0) {
             if (iterator->encounterless_done == 0) {
-                iterator->next_actor_index = ai_globals_ptr->first_encounterless_actor;
+                iterator->next_actor_index = halo::ai::globals().state->first_encounterless_actor;
                 iterator->encounterless_done = 1;
             }
             break;
@@ -1028,34 +955,23 @@ actor * halo::ai::actor_ref::iterator_next(actor_iterator_state *iterator)
         if (next == (datum_index)k_datum_index_none) {
             return 0;
         }
-        a = &((actor *)actor_data->data)[next & halo::k_slot_mask];
+        a = &((actor *)halo::ai::globals().actor_data->data)[next & halo::k_slot_mask];
         iterator->next_actor_index = a->next_in_encounter;
     } while (iterator->active != 0 && a->active == 0);
 
     return a;
 }
 
-extern "C" actor * actor_iterator_next(actor_iterator_state *iterator)
+namespace halo::ai {
+actor * actor_iterator_next(actor_iterator_state *iterator)
 {
     return halo::ai::actor_ref::iterator_next(iterator);
 }
+}
 
 namespace c_actor_link_to_unit_cluster {
-extern "C" {
-extern data_array *actor_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-extern data_array *encounter_data;
-
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern void actor_unlink_unit(datum_index actor_index);
-extern void swarm_add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index);
-extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
-}
 }
 
-extern "C" uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index);
 
 /**
  * actor_link_to_unit_cluster: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1067,7 +983,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
 {
     using namespace c_actor_link_to_unit_cluster;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
     unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
@@ -1078,20 +994,20 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     }
 
     if (self->swarm_index != (datum_index)k_datum_index_none) {
-        new_component = halo::memory::datum_new(swarm_component_data);
+        new_component = halo::memory::datum_new(halo::ai::globals().swarm_component_data);
         if (new_component == (datum_index)k_datum_index_none) {
             return 0;
         }
     }
 
     if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
-        actor_remove_from_unit_cluster(unit->swarm_actor_index, unit_index);
+        halo::ai::actor_remove_from_unit_cluster(unit->swarm_actor_index, unit_index);
     }
     if (unit->actor_index != (datum_index)k_datum_index_none) {
-        actor_delete(unit->actor_index, 0);
+        halo::ai::actor_delete(unit->actor_index, 0);
     }
     if (self->unit_index != (datum_index)k_datum_index_none) {
-        actor_unlink_unit(actor_index);
+        halo::ai::actor_unlink_unit(actor_index);
     }
 
     unit->swarm_actor_index = actor_index;
@@ -1104,15 +1020,15 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     self->cluster_unit_index = unit_index;
 
     if (self->swarm_index != (datum_index)k_datum_index_none) {
-        swarm_add_component(new_component, unit_index, self->swarm_index);
+        halo::ai::swarm_add_component(new_component, unit_index, self->swarm_index);
     }
 
     self->cluster_count = self->cluster_count + 1;
     self->total_cluster_count = self->total_cluster_count + 1;
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & halo::k_slot_mask];
-        ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
+        encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
+        halo::ai::ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
         ((struct object *)unit_object)->owner_team = enc->team;
     }
     self->team = ((struct object *)unit_object)->owner_team;
@@ -1134,23 +1050,16 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     return 1;
 }
 
-extern "C" uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index)
+namespace halo::ai {
+uint8_t actor_link_to_unit_cluster(datum_index actor_index, datum_index unit_index)
 {
     return halo::ai::actor_ref(actor_index).link_to_unit_cluster(unit_index);
 }
+}
 
 namespace c_actor_mark_units_and_release {
-extern "C" {
-extern data_array *actor_data;
-
-extern void actor_unlink_unit(datum_index actor_index);
-extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
-extern void actor_delete(datum_index actor_index, uint32_t flag);
-extern void encounter_recompute_morale(datum_index encounter_index);
-}
 }
 
-extern "C" void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release);
 
 /**
  * actor_mark_units_and_release: behaviour unchanged from the original routine. The original author notes and decompile
@@ -1161,7 +1070,7 @@ extern "C" void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_i
 void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release)
 {
     using namespace c_actor_mark_units_and_release;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     datum_index encounter_index = self->encounter_index;
 
     if (self->swarm == 0) {
@@ -1172,7 +1081,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
         if (suppress_release != 0) {
             return;
         }
-        actor_unlink_unit(actor_index);
+        halo::ai::actor_unlink_unit(actor_index);
     } else {
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
@@ -1181,7 +1090,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
             *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 
             if (suppress_release == 0) {
-                actor_remove_from_unit_cluster(actor_index, unit_index);
+                halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
             }
             unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
         }
@@ -1190,14 +1099,16 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
         }
     }
 
-    actor_delete(actor_index, 1);
+    halo::ai::actor_delete(actor_index, 1);
     if (encounter_index != (datum_index)k_datum_index_none) {
-        encounter_recompute_morale(encounter_index);
+        halo::ai::encounter_recompute_morale(encounter_index);
     }
 }
 
-extern "C" void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release)
+namespace halo::ai {
+void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release)
 {
     halo::ai::actor_ref::mark_units_and_release(use_alternate_flag, actor_index, suppress_release);
+}
 }
 

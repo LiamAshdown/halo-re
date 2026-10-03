@@ -11,6 +11,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern char ai_marker_name_a[];
@@ -25,9 +26,6 @@ extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t targ
 extern void player_update_history_free_all(void *history);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
-extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees);
-extern void object_list_reference_add(datum_index header_index, datum_index object_index);
-extern char hs_object_hierarchy_test(datum_index object_index);
 extern data_array *object_headers;
 }
 
@@ -284,7 +282,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     child = object->child;
     while (child != k_datum_index_none) {
         node = hs_object_record_get(child);
-        if (hs_object_hierarchy_test(child) != 0) {
+        if (halo::hs::hs_object_hierarchy_test(child) != 0) {
             return 1;
         }
         child = node->sibling;
@@ -352,7 +350,7 @@ uint32_t ScriptObjects::object_list_any_angle_match(datum_index header_index, da
                 salt = (int16_t)((uint32_t)object_index >> 0x10);
                 if ((salt == 0 || entry->identifier == salt) &&
                     (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
-                    hs_object_angle_predicate_helper(target_object, object_index, angle_degrees) != 0) {
+                    halo::hs::hs_object_angle_predicate_helper(target_object, object_index, angle_degrees) != 0) {
 
                     return 1;
                 }
@@ -545,7 +543,7 @@ datum_index ScriptObjects::object_list_new_singleton(datum_index object_index) c
             header->count = 0;
             header->first_reference = k_datum_index_none;
         }
-        object_list_reference_add(header_index, object_index);
+        halo::hs::object_list_reference_add(header_index, object_index);
     }
     return header_index;
 }
@@ -606,7 +604,7 @@ void ScriptObjects::object_name_destroy(int32_t object_name_index) const
         return;
     }
     object_index = halo::objects::globals().object_name_list[name];
-    if (object_index != k_datum_index_none && !hs_object_hierarchy_test(object_index)) {
+    if (object_index != k_datum_index_none && !halo::hs::hs_object_hierarchy_test(object_index)) {
         halo::objects::object_delete(object_index);
     }
 }
@@ -672,7 +670,7 @@ void ScriptObjects::object_runtime_cleanup() const
         }
         object_index = object_iter.index;
         if (((hs_object_record *)object_element)->parent == k_datum_index_none &&
-            hs_object_hierarchy_test(object_index) == 0) {
+            halo::hs::hs_object_hierarchy_test(object_index) == 0) {
             object = hs_object_record_get(object_index);
 
             if (object->network_role == 0) {

@@ -7,6 +7,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -15,14 +16,9 @@ extern double sqrt(double x);
 
 extern const real_vector3d *global_down3d_pointer;
 
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
-    uint32_t exclude_object, void *result);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
-    uint32_t flags, uint32_t exclude_object_index, void *result);
 }
 }
 
-extern "C" int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster, real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask, datum_index exclude_object_index, uint8_t flying);
 
 /**
  * actor_evaluate_engagement_reachability: behaviour unchanged from the original routine. The original author notes and decompile
@@ -133,19 +129,16 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
     }
 }
 
-extern "C" int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster, real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask, datum_index exclude_object_index, uint8_t flying)
+namespace halo::ai {
+int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster, real_point3d *target_position, real_point3d *self_position, int16_t movement_mode, uint8_t allow_wide_mask, datum_index exclude_object_index, uint8_t flying)
 {
     return halo::ai::combat_ops::evaluate_engagement_reachability(self_cluster, target_cluster, target_position, self_position, movement_mode, allow_wide_mask, exclude_object_index, flying);
 }
+}
 
 namespace c_actor_get_threat_weapon_object_index {
-extern "C" {
-extern data_array *actor_data;
-
-}
 }
 
-extern "C" datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
 
 /**
  * actor_get_threat_weapon_object_index: behaviour unchanged from the original routine. The original author notes and decompile
@@ -157,7 +150,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
 {
     using namespace c_actor_get_threat_weapon_object_index;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     datum_index result = (datum_index)k_datum_index_none;
 
     if (self->vehicle_gunner != 0 && self->active_unit_index != (datum_index)k_datum_index_none) {
@@ -184,20 +177,16 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
     return result;
 }
 
-extern "C" datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
+namespace halo::ai {
+datum_index actor_get_threat_weapon_object_index(datum_index actor_index)
 {
     return halo::ai::combat_ops(actor_index).get_threat_weapon_object_index();
 }
+}
 
 namespace c_actor_has_unshielded_threat_weapon {
-extern "C" {
-extern data_array *actor_data;
-
-extern datum_index actor_get_threat_weapon_object_index(datum_index actor_index);
-}
 }
 
-extern "C" uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index);
 
 /**
  * actor_has_unshielded_threat_weapon: behaviour unchanged from the original routine. The original author notes and decompile
@@ -209,8 +198,8 @@ uint8_t halo::ai::combat_ops::has_unshielded_threat_weapon()
 {
     using namespace c_actor_has_unshielded_threat_weapon;
     datum_index actor_index = datum;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    uint8_t has_weapon = actor_get_threat_weapon_object_index(actor_index) != (datum_index)k_datum_index_none;
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
+    uint8_t has_weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index) != (datum_index)k_datum_index_none;
 
     if (has_weapon && self->unit_index != (datum_index)k_datum_index_none) {
         object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
@@ -221,19 +210,16 @@ uint8_t halo::ai::combat_ops::has_unshielded_threat_weapon()
     return has_weapon;
 }
 
-extern "C" uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index)
+namespace halo::ai {
+uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index)
 {
     return halo::ai::combat_ops(actor_index).has_unshielded_threat_weapon();
 }
+}
 
 namespace c_actor_issue_multi_target_vocalization {
-extern "C" {
-extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
-                                        actor_vocalization_context *context);
-}
 }
 
-extern "C" void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant, datum_index vehicle_object_index);
 
 /**
  * actor_issue_multi_target_vocalization: behaviour unchanged from the original routine. The original author notes and decompile
@@ -255,13 +241,15 @@ void halo::ai::combat_ops::issue_multi_target_vocalization(int16_t line, datum_i
             context.payload.handle = (datum_index)k_datum_index_none;
             context.payload.point.y = 0.0f;
             context.payload.point.z = 0.0f;
-            actor_begin_vocalization(actor_index, line, variant, &context);
+            halo::ai::actor_begin_vocalization(actor_index, line, variant, &context);
         }
     }
 }
 
-extern "C" void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant, datum_index vehicle_object_index)
+namespace halo::ai {
+void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant, datum_index vehicle_object_index)
 {
     halo::ai::combat_ops::issue_multi_target_vocalization(line, actor_index, variant, vehicle_object_index);
+}
 }
 

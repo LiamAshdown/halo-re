@@ -5,31 +5,18 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void game_variant_list_matching_substring(uint32_t argument_count, int32_t *arguments);
-extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride);
 extern int16_t hs_autocomplete_maximum_count;
 extern char *hs_autocomplete_prefix;
 extern int16_t hs_autocomplete_count;
 extern char **hs_autocomplete_results;
-extern uint8_t hs_gametype_flags_applicable(uint8_t flags);
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern Globals *global_globals;
-extern void hs_autocomplete_scan_candidates(char **table, int16_t end, int16_t start);
-extern char *hs_script_type_names[k_hs_script_type_count];
-extern char *hs_type_names[k_hs_type_count];
 extern void KeyValCompareKeyA(const void *a, const void *b);
-extern void hs_enumerate_special_form_names(void);
-extern void hs_autocomplete_add_startup(void);
 extern void *hs_autocomplete_procedures[0x12];
 extern char k_empty_string[1];
-extern uint16_t hs_autocomplete_gametype_mask;
-extern hs_global_reference hs_find_global_by_name(char *name);
-extern void hs_autocomplete_test_candidate(char *candidate);
 }
 
 static void autocomplete_offer(char *candidate)
@@ -58,10 +45,10 @@ void ScriptAutocomplete::game_variant_list_matching_substring_evaluate(int16_t f
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         game_variant_list_matching_substring(argument_count, arguments);
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -73,7 +60,7 @@ void ScriptAutocomplete::game_variant_list_matching_substring_evaluate(int16_t f
 void ScriptAutocomplete::autocomplete_add_command_list_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->command_lists, 0, 0x60);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->command_lists, 0, 0x60);
     }
 }
 
@@ -85,7 +72,7 @@ void ScriptAutocomplete::autocomplete_add_command_list_names(void)
 void ScriptAutocomplete::autocomplete_add_conversation_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->ai_conversations, 0, 0x74);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->ai_conversations, 0, 0x74);
     }
 }
 
@@ -97,7 +84,7 @@ void ScriptAutocomplete::autocomplete_add_conversation_names(void)
 void ScriptAutocomplete::autocomplete_add_cutscene_camera_point_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_camera_points, 4, 0x68);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_camera_points, 4, 0x68);
     }
 }
 
@@ -109,7 +96,7 @@ void ScriptAutocomplete::autocomplete_add_cutscene_camera_point_names(void)
 void ScriptAutocomplete::autocomplete_add_cutscene_flag_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_flags, 4, 0x5c);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_flags, 4, 0x5c);
     }
 }
 
@@ -121,7 +108,7 @@ void ScriptAutocomplete::autocomplete_add_cutscene_flag_names(void)
 void ScriptAutocomplete::autocomplete_add_cutscene_title_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_titles, 4, 0x60);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->cutscene_titles, 4, 0x60);
     }
 }
 
@@ -133,7 +120,7 @@ void ScriptAutocomplete::autocomplete_add_cutscene_title_names(void)
 void ScriptAutocomplete::autocomplete_add_encounter_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->encounters, 0, 0xb0);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->encounters, 0, 0xb0);
     }
 }
 
@@ -147,9 +134,9 @@ void ScriptAutocomplete::autocomplete_add_function_names(void)
     int32_t i;
 
     for (i = 0; i < 0x20a; i++) {
-        hs_function_definition *definition = hs_function_definitions[i];
+        hs_function_definition *definition = halo::hs::globals().function_definitions[i];
 
-        if (hs_gametype_flags_applicable((uint8_t)definition->gametype_flags)) {
+        if (halo::hs::hs_gametype_flags_applicable((uint8_t)definition->gametype_flags)) {
             autocomplete_offer(definition->name);
         }
     }
@@ -165,14 +152,14 @@ void ScriptAutocomplete::autocomplete_add_global_names(void)
     int32_t i;
 
     for (i = 0; i < k_hs_builtin_global_count; i++) {
-        hs_global_definition *definition = hs_global_definitions[i];
+        hs_global_definition *definition = halo::hs::globals().global_definitions[i];
 
-        if (hs_gametype_flags_applicable((uint8_t)definition->gametype_flags)) {
+        if (halo::hs::hs_gametype_flags_applicable((uint8_t)definition->gametype_flags)) {
             autocomplete_offer(definition->name);
         }
     }
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->globals, 0, 0x5c);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->globals, 0, 0x5c);
     }
 }
 
@@ -186,7 +173,7 @@ void ScriptAutocomplete::autocomplete_add_hud_message_names(void)
     datum_index hud_messages = *(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id;
 
     if (hud_messages != k_datum_index_none) {
-        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & halo::k_slot_mask].data + 0x20),
+        halo::hs::hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & halo::k_slot_mask].data + 0x20),
             0, 0x40);
     }
 }
@@ -203,7 +190,7 @@ void ScriptAutocomplete::autocomplete_add_navpoint_names(void)
     datum_index hud_globals = *(datum_index *)(interface_bitmaps + 0x6c);
 
     if (hud_globals != k_datum_index_none) {
-        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & halo::k_slot_mask].data + 0x160),
+        halo::hs::hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & halo::k_slot_mask].data + 0x160),
             0, 0x68);
     }
 }
@@ -216,7 +203,7 @@ void ScriptAutocomplete::autocomplete_add_navpoint_names(void)
 void ScriptAutocomplete::autocomplete_add_object_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->object_names, 0, 0x24);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->object_names, 0, 0x24);
     }
 }
 
@@ -228,7 +215,7 @@ void ScriptAutocomplete::autocomplete_add_object_names(void)
 void ScriptAutocomplete::autocomplete_add_recorded_animation_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->recorded_animations, 0, 0x40);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->recorded_animations, 0, 0x40);
     }
 }
 
@@ -240,7 +227,7 @@ void ScriptAutocomplete::autocomplete_add_recorded_animation_names(void)
 void ScriptAutocomplete::autocomplete_add_script_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->scripts, 0, 0x5c);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->scripts, 0, 0x5c);
     }
 }
 
@@ -252,7 +239,7 @@ void ScriptAutocomplete::autocomplete_add_script_names(void)
 void ScriptAutocomplete::autocomplete_add_starting_profile_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->player_starting_profile, 0, 0x68);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->player_starting_profile, 0, 0x68);
     }
 }
 
@@ -264,7 +251,7 @@ void ScriptAutocomplete::autocomplete_add_starting_profile_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_startup(void)
 {
-    hs_autocomplete_scan_candidates(hs_script_type_names, 5, 0);
+    halo::hs::hs_autocomplete_scan_candidates(halo::hs::globals().script_type_names, 5, 0);
 }
 
 /**
@@ -275,7 +262,7 @@ void ScriptAutocomplete::autocomplete_add_startup(void)
 void ScriptAutocomplete::autocomplete_add_trigger_volume_names(void)
 {
     if (halo::scenario::globals().scenario_index != k_datum_index_none) {
-        hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->trigger_volumes, 4, 0x60);
+        halo::hs::hs_autocomplete_scan_globals(&halo::scenario::globals().scenario->trigger_volumes, 4, 0x60);
     }
 }
 
@@ -286,7 +273,7 @@ void ScriptAutocomplete::autocomplete_add_trigger_volume_names(void)
  */
 void ScriptAutocomplete::autocomplete_add_type_names(void)
 {
-    hs_autocomplete_scan_candidates(hs_type_names, 0x31, 4);
+    halo::hs::hs_autocomplete_scan_candidates(halo::hs::globals().type_names, 0x31, 4);
 }
 
 /**
@@ -310,7 +297,7 @@ int16_t ScriptAutocomplete::autocomplete_gather(uint32_t category_mask, char **r
     procedure = hs_autocomplete_procedures;
     remaining = 0x12;
     hs_autocomplete_maximum_count = maximum_count;
-    hs_autocomplete_gametype_mask = gametype_mask;
+    halo::hs::globals().autocomplete_gametype_mask = gametype_mask;
     bit = 0;
     do {
         if ((category_mask & (1u << (bit & 0x1f))) != 0) {
@@ -376,12 +363,12 @@ void ScriptAutocomplete::autocomplete_scan_globals(TagReflexive *table, int16_t 
     if (0 < count) {
         for (i = 0; i < count; i = i + 1) {
             candidate = (char *)((int32_t)name_offset + i * stride + (int32_t)table->pointer);
-            global_index = (int16_t)hs_find_global_by_name(candidate);
+            global_index = (int16_t)halo::hs::hs_find_global_by_name(candidate);
             if (((global_index == -1) ||
                  ((global_index < 0) &&
-                  (hs_global_definitions[global_index] != 0) &&
-                  (applicable = (char)hs_gametype_flags_applicable(
-                      (uint8_t)hs_global_definitions[global_index]->gametype_flags), applicable != 0))) &&
+                  (halo::hs::globals().global_definitions[global_index] != 0) &&
+                  (applicable = (char)halo::hs::hs_gametype_flags_applicable(
+                      (uint8_t)halo::hs::globals().global_definitions[global_index]->gametype_flags), applicable != 0))) &&
                 (hs_autocomplete_count < hs_autocomplete_maximum_count)) {
                 prefix_length = (int32_t)strlen(hs_autocomplete_prefix);
                 if (_strnicmp(candidate, hs_autocomplete_prefix, prefix_length) == 0) {
@@ -420,13 +407,13 @@ void ScriptAutocomplete::autocomplete_test_candidate(char *candidate)
  */
 void ScriptAutocomplete::enumerate_special_form_names(void)
 {
-    hs_autocomplete_test_candidate((char *)"script");
-    hs_autocomplete_test_candidate((char *)"global");
+    halo::hs::hs_autocomplete_test_candidate((char *)"script");
+    halo::hs::hs_autocomplete_test_candidate((char *)"global");
 }
 
 }
 
-extern "C" {
+namespace halo::hs {
 
 void game_variant_list_matching_substring_evaluate(int16_t function_index, datum_index thread, char first)
 {

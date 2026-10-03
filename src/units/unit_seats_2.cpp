@@ -12,6 +12,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -21,7 +22,6 @@ extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern uint8_t unit_updates_suppressed;
 extern real_point3d *global_origin3d_pointer;
-extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
@@ -247,7 +247,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
                     }
                 }
                 ((struct unit_object *)self)->unit.animation_state = 0x1b;
-                actor_notify_weapon_pickup_once(child_index);
+                halo::ai::actor_notify_weapon_pickup_once(child_index);
                 if (((unit_object *)self)->base.network_role == 0) {
                     ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)child_index);
                 }

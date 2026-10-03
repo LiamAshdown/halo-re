@@ -6,33 +6,11 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_type_crew_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_alert_from_disturbance(datum_index actor_index);
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index);
-extern uint8_t actor_alert_from_projectile(datum_index actor_index);
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index);
-extern uint8_t actor_alert_from_damage(datum_index actor_index);
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-}
 }
 
 /**
@@ -43,71 +21,71 @@ extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 void ActorView::type_crew_update()
 {
     using namespace actor_type_crew_update_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     if (((struct actor *)actor)->mode == 0 && ((struct actor *)actor)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 1);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_alert_from_disturbance(actor_index);
-        actor_alert_from_squad_attack(actor_index);
-        actor_alert_from_projectile(actor_index);
-        actor_alert_from_flag_1b4(actor_index);
-        actor_alert_from_damage(actor_index);
-        actor_gate_jump_traversal(actor_index, 1, 0, 9);
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 1);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_alert_from_disturbance(actor_index);
+        halo::ai::actor_alert_from_squad_attack(actor_index);
+        halo::ai::actor_alert_from_projectile(actor_index);
+        halo::ai::actor_alert_from_flag_1b4(actor_index);
+        halo::ai::actor_alert_from_damage(actor_index);
+        halo::ai::actor_gate_jump_traversal(actor_index, 1, 0, 9);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((struct actor *)actor)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
         if (actor[0xaa] != 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
-        actor_flee_look_away(actor_index);
+        halo::ai::actor_flee_look_away(actor_index);
         return;
     case 5:
     case 7:
     case 8:
-        if (actor_update_combat_behavior(actor_index, 1, 0)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
             return;
         }
-        actor_update_special_mode(actor_index);
+        halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
         if (actor[0xa5] != 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
         if (actor[0xa6] != 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        actor_update_combat_behavior(actor_index, actor[0x9e], actor[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, actor[0x9e], actor[0xa1]);
         return;
     case 12: {
         uint8_t forced = (actor[0xa0] != 0 || *(uint32_t *)&((struct actor *)actor)->conversation_index == halo::k_dword_none) ? 1 : 0;
 
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index), forced);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index), forced);
         return;
     }
     case 13:
         if (((struct actor *)actor)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     default:
@@ -116,39 +94,7 @@ void ActorView::type_crew_update()
 }
 
 namespace actor_type_elite_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_alert_from_disturbance(datum_index actor_index);
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index);
-extern uint8_t actor_alert_from_projectile(datum_index actor_index);
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index);
-extern uint8_t actor_alert_from_damage(datum_index actor_index);
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_weapon_range(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_seek_vehicle_to_board(datum_index actor_index);
-extern uint8_t actor_process_vehicle_seat_exit(datum_index actor_index);
-extern uint8_t actor_update_grenade_throw_decision(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_reaction, uint8_t use_alt_base);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -163,36 +109,36 @@ void ActorView::type_elite_update()
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & halo::k_slot_mask].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 4);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_escalate_check_leader_flag(actor_index);
-        actor_escalate_check_shield_damage(actor_index);
-        actor_escalate_check_target_close(actor_index);
-        actor_escalate_check_weapon_range(actor_index);
-        actor_escalate_apply(actor_index, 1);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 4);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_escalate_check_leader_flag(actor_index);
+        halo::ai::actor_escalate_check_shield_damage(actor_index);
+        halo::ai::actor_escalate_check_target_close(actor_index);
+        halo::ai::actor_escalate_check_weapon_range(actor_index);
+        halo::ai::actor_escalate_apply(actor_index, 1);
         if (!act[0x378]) {
-            actor_alert_from_projectile(actor_index);
-            actor_alert_from_flag_1b4(actor_index);
-            actor_gate_jump_traversal(actor_index, 9, 0, 11);
+            halo::ai::actor_alert_from_projectile(actor_index);
+            halo::ai::actor_alert_from_flag_1b4(actor_index);
+            halo::ai::actor_gate_jump_traversal(actor_index, 9, 0, 11);
         }
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_try_grenade_evasion(actor_index, 0, 0);
-        actor_seek_vehicle_to_board(actor_index);
-        actor_process_vehicle_seat_exit(actor_index);
-        actor_update_grenade_throw_decision(actor_index);
-        actor_update_danger_avoidance(actor_index);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_try_grenade_evasion(actor_index, 0, 0);
+        halo::ai::actor_seek_vehicle_to_board(actor_index);
+        halo::ai::actor_process_vehicle_seat_exit(actor_index);
+        halo::ai::actor_update_grenade_throw_decision(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
         if (act[0xa4] && !act[0xa5] && !act[0xa6]) {
@@ -206,40 +152,40 @@ void ActorView::type_elite_update()
                 ((struct actor *)act)->mode_data.flee.panic = 0;
             }
         }
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
         if (act[0xaa]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
-        actor_flee_look_away(actor_index);
+        halo::ai::actor_flee_look_away(actor_index);
         return;
     case 5:
     case 7:
     case 8:
-        if (actor_update_combat_behavior(actor_index, 1, 0)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
             return;
         }
-        actor_update_special_mode(actor_index);
+        halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
         if (act[0xa5]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else if (act[0xa6]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         return;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
                                      (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
         return;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     default:
@@ -250,30 +196,7 @@ void ActorView::type_elite_update()
 #undef ACTOR
 
 namespace actor_type_engineer_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index);
-extern uint8_t actor_alert_from_projectile(datum_index actor_index);
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index);
-extern uint8_t actor_alert_from_damage(datum_index actor_index);
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_grenade_throw_decision(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -287,61 +210,61 @@ void ActorView::type_engineer_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 1);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_alert_from_squad_attack(actor_index);
-        actor_alert_from_projectile(actor_index);
-        actor_alert_from_flag_1b4(actor_index);
-        actor_alert_from_damage(actor_index);
-        actor_gate_jump_traversal(actor_index, 1, 0, 9);
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_update_grenade_throw_decision(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 1);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_alert_from_squad_attack(actor_index);
+        halo::ai::actor_alert_from_projectile(actor_index);
+        halo::ai::actor_alert_from_flag_1b4(actor_index);
+        halo::ai::actor_alert_from_damage(actor_index);
+        halo::ai::actor_gate_jump_traversal(actor_index, 1, 0, 9);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_update_grenade_throw_decision(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
         if (act[0xaa] == 0) {
-            actor_flee_look_away(actor_index);
+            halo::ai::actor_flee_look_away(actor_index);
         } else {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_update_special_mode(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 9:
         if (act[0xa5] != 0 || act[0xa6] != 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
             (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
         break;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     default:
@@ -352,25 +275,7 @@ void ActorView::type_engineer_update()
 #undef ACTOR
 
 namespace actor_type_flood_carrier_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -384,45 +289,45 @@ void ActorView::type_flood_carrier_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 4);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_escalate_check_leader_flag(actor_index);
-        actor_escalate_check_shield_damage(actor_index);
-        actor_escalate_check_target_close(actor_index);
-        actor_escalate_apply(actor_index, 1);
-        actor_escalate_to_guard_or_combat(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 4);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_escalate_check_leader_flag(actor_index);
+        halo::ai::actor_escalate_check_shield_damage(actor_index);
+        halo::ai::actor_escalate_check_target_close(actor_index);
+        halo::ai::actor_escalate_apply(actor_index, 1);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
         if (act[0xaa] != 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else {
-            actor_flee_look_away(actor_index);
+            halo::ai::actor_flee_look_away(actor_index);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_update_special_mode(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     default:
         break;
@@ -432,26 +337,7 @@ void ActorView::type_flood_carrier_update()
 #undef ACTOR
 
 namespace actor_type_flood_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -465,48 +351,48 @@ void ActorView::type_flood_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 4);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_escalate_check_shield_damage(actor_index);
-        actor_escalate_apply(actor_index, 3);
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 4);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_escalate_check_shield_damage(actor_index);
+        halo::ai::actor_escalate_apply(actor_index, 3);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
         if (act[0xaa] == 0) {
-            actor_flee_look_away(actor_index);
+            halo::ai::actor_flee_look_away(actor_index);
         } else {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_update_special_mode(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     default:
@@ -517,41 +403,7 @@ void ActorView::type_flood_update()
 #undef ACTOR
 
 namespace actor_type_grunt_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_alert_from_disturbance(datum_index actor_index);
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index);
-extern uint8_t actor_alert_from_projectile(datum_index actor_index);
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index);
-extern uint8_t actor_alert_from_damage(datum_index actor_index);
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_weapon_range(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_seek_vehicle_to_board(datum_index actor_index);
-extern uint8_t actor_process_vehicle_seat_exit(datum_index actor_index);
-extern uint8_t actor_update_grenade_throw_decision(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_reaction, uint8_t use_alt_base);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-extern int32_t actor_order_code_is_grenade_throw(int16_t order_code);
-extern uint8_t actor_consider_grenade_throw(datum_index actor_index);
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -567,75 +419,75 @@ void ActorView::type_grunt_update()
     uint8_t panics = (uint8_t)((int8_t)act[0x247] > 0);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 1);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_alert_from_disturbance(actor_index);
-        actor_alert_from_squad_attack(actor_index);
-        actor_alert_from_projectile(actor_index);
-        actor_alert_from_flag_1b4(actor_index);
-        actor_alert_from_damage(actor_index);
-        actor_gate_jump_traversal(actor_index, 1, (char)may_broadcast, 7);
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_seek_vehicle_to_board(actor_index);
-        actor_process_vehicle_seat_exit(actor_index);
-        actor_update_grenade_throw_decision(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 1);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_alert_from_disturbance(actor_index);
+        halo::ai::actor_alert_from_squad_attack(actor_index);
+        halo::ai::actor_alert_from_projectile(actor_index);
+        halo::ai::actor_alert_from_flag_1b4(actor_index);
+        halo::ai::actor_alert_from_damage(actor_index);
+        halo::ai::actor_gate_jump_traversal(actor_index, 1, (char)may_broadcast, 7);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_seek_vehicle_to_board(actor_index);
+        halo::ai::actor_process_vehicle_seat_exit(actor_index);
+        halo::ai::actor_update_grenade_throw_decision(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
-        if (panics && ((struct actor *)act)->mode_data.flee.panic > 0 && !actor_order_code_is_grenade_throw(((struct actor *)act)->mode_data.flee.panic)) {
+        if (panics && ((struct actor *)act)->mode_data.flee.panic > 0 && !halo::ai::actor_order_code_is_grenade_throw(((struct actor *)act)->mode_data.flee.panic)) {
             act[0xab] = 1;
         }
         if (act[0xaa]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
-        if (actor_flee_look_away(actor_index)) {
+        if (halo::ai::actor_flee_look_away(actor_index)) {
             return;
         }
         if (((struct actor *)act)->mode_data.flee.panic == 0 && ((struct actor *)act)->combat_status >= 5) {
-            actor_consider_grenade_throw(actor_index);
+            halo::ai::actor_consider_grenade_throw(actor_index);
         }
         return;
     case 5:
     case 7:
     case 8:
-        if (actor_update_combat_behavior(actor_index, 1, 0)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
             return;
         }
-        actor_update_special_mode(actor_index);
+        halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
         if (act[0xa5]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else if (act[0xa6]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         return;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
                                      (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
         return;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     default:
@@ -646,22 +498,7 @@ void ActorView::type_grunt_update()
 #undef ACTOR
 
 namespace actor_type_hunter_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_check_weapon_range(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -675,15 +512,15 @@ void ActorView::type_hunter_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_escalate_check_shield_damage(actor_index);
-        actor_escalate_check_weapon_range(actor_index);
-        actor_escalate_apply(actor_index, 3);
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_escalate_check_shield_damage(actor_index);
+        halo::ai::actor_escalate_check_weapon_range(actor_index);
+        halo::ai::actor_escalate_apply(actor_index, 3);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
@@ -691,27 +528,27 @@ void ActorView::type_hunter_update()
     case 4:
     case 6:
     case 10:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_conditional_state_transition_check(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_conditional_state_transition_check(actor_index);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_update_special_mode(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
             (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
         break;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     default:
@@ -723,23 +560,17 @@ void ActorView::type_hunter_update()
 
 namespace actor_type_infection_swarm_update_local {
 extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
 extern game_time_globals *game_time;
 extern const real_point3d *global_origin3d_pointer;
-extern int32_t actor_pick_dialogue_variant_a(int16_t category);
-extern int32_t actor_pick_dialogue_variant_b(int16_t category);
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
-#define SWARM(h) ((uint8_t *)swarm_data->data + ((h) & halo::k_slot_mask) * k_swarm_size)
-#define COMPONENT(h) ((uint8_t *)swarm_component_data->data + ((h) & halo::k_slot_mask) * k_swarm_component_size)
+#define SWARM(h) ((uint8_t *)halo::ai::globals().swarm_data->data + ((h) & halo::k_slot_mask) * k_swarm_size)
+#define COMPONENT(h) ((uint8_t *)halo::ai::globals().swarm_component_data->data + ((h) & halo::k_slot_mask) * k_swarm_component_size)
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define U16(p, o) (*(uint16_t *)((uint8_t *)(p) + (o)))
 #define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
@@ -969,7 +800,7 @@ void ActorView::type_infection_swarm_update()
             if (component[0x1d] != 0) {
                 component[0x1d]--;
                 if (component[0x1d] == 0) {
-                    component[0x1c] = (uint8_t)actor_pick_dialogue_variant_a(behaviour);
+                    component[0x1c] = (uint8_t)halo::ai::actor_pick_dialogue_variant_a(behaviour);
                 } else {
                     float damping = F(component, 0x2c) * -0.06666667f;
                     float angle = halo::math::random_real_range(-0.020943951f, 0.020943951f) + F(component, 0x2c) + damping;
@@ -987,7 +818,7 @@ void ActorView::type_infection_swarm_update()
                     float distance_squared;
                     float angle;
 
-                    component[0x1d] = (uint8_t)actor_pick_dialogue_variant_b(behaviour);
+                    component[0x1d] = (uint8_t)halo::ai::actor_pick_dialogue_variant_b(behaviour);
                     to_goal.i = F(swarm, 0xc) - F(component, 0x4);
                     to_goal.j = F(swarm, 0x10) - F(component, 0x8);
                     to_goal.k = F(swarm, 0x14) - F(component, 0xc);
@@ -1226,25 +1057,7 @@ void ActorView::type_infection_swarm_update()
 #undef U32
 
 namespace actor_type_infection_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1258,39 +1071,39 @@ void ActorView::type_infection_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_escalate_to_guard_or_combat(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_conditional_state_transition_check(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_conditional_state_transition_check(actor_index);
         }
         break;
     case 4:
         if (act[0xaa] != 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else {
-            actor_flee_look_away(actor_index);
+            halo::ai::actor_flee_look_away(actor_index);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_update_special_mode(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     default:
         break;
@@ -1300,39 +1113,7 @@ void ActorView::type_infection_update()
 #undef ACTOR
 
 namespace actor_type_jackal_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_alert_from_disturbance(datum_index actor_index);
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index);
-extern uint8_t actor_alert_from_projectile(datum_index actor_index);
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index);
-extern uint8_t actor_alert_from_damage(datum_index actor_index);
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_weapon_range(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_seek_vehicle_to_board(datum_index actor_index);
-extern uint8_t actor_process_vehicle_seat_exit(datum_index actor_index);
-extern uint8_t actor_update_grenade_throw_decision(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_reaction, uint8_t use_alt_base);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1347,31 +1128,31 @@ void ActorView::type_jackal_update()
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & halo::k_slot_mask].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 1);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_alert_from_disturbance(actor_index);
-        actor_alert_from_squad_attack(actor_index);
-        actor_alert_from_projectile(actor_index);
-        actor_alert_from_flag_1b4(actor_index);
-        actor_alert_from_damage(actor_index);
-        actor_gate_jump_traversal(actor_index, 1, 0, 4);
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_try_grenade_evasion(actor_index, 1, 1);
-        actor_seek_vehicle_to_board(actor_index);
-        actor_process_vehicle_seat_exit(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 1);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_alert_from_disturbance(actor_index);
+        halo::ai::actor_alert_from_squad_attack(actor_index);
+        halo::ai::actor_alert_from_projectile(actor_index);
+        halo::ai::actor_alert_from_flag_1b4(actor_index);
+        halo::ai::actor_alert_from_damage(actor_index);
+        halo::ai::actor_gate_jump_traversal(actor_index, 1, 0, 4);
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_try_grenade_evasion(actor_index, 1, 1);
+        halo::ai::actor_seek_vehicle_to_board(actor_index);
+        halo::ai::actor_process_vehicle_seat_exit(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
         if (act[0xa4] && !act[0xa5] && !act[0xa6]) {
@@ -1385,35 +1166,35 @@ void ActorView::type_jackal_update()
                 ((struct actor *)act)->mode_data.flee.panic = 0;
             }
         }
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
         if (act[0xaa]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
-        actor_flee_look_away(actor_index);
+        halo::ai::actor_flee_look_away(actor_index);
         return;
     case 5:
     case 7:
     case 8:
-        if (actor_update_combat_behavior(actor_index, 1, 0)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
             return;
         }
-        actor_update_special_mode(actor_index);
+        halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
         return;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         return;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
                                      (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
         return;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     default:
@@ -1424,39 +1205,7 @@ void ActorView::type_jackal_update()
 #undef ACTOR
 
 namespace actor_type_marine_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_alert_from_disturbance(datum_index actor_index);
-extern uint8_t actor_alert_from_squad_attack(datum_index actor_index);
-extern uint8_t actor_alert_from_projectile(datum_index actor_index);
-extern uint8_t actor_alert_from_flag_1b4(datum_index actor_index);
-extern uint8_t actor_alert_from_damage(datum_index actor_index);
-extern uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char allow_broadcast,
-    int16_t broadcast_threshold);
-extern uint8_t actor_escalate_check_leader_flag(datum_index actor_index);
-extern uint8_t actor_escalate_check_weapon_range(datum_index actor_index);
-extern uint8_t actor_escalate_check_target_close(datum_index actor_index);
-extern uint8_t actor_escalate_check_shield_damage(datum_index actor_index);
-extern uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_seek_vehicle_to_board(datum_index actor_index);
-extern uint8_t actor_process_vehicle_seat_exit(datum_index actor_index);
-extern uint8_t actor_update_grenade_throw_decision(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_try_grenade_evasion(datum_index actor_index, uint8_t allow_pain_reaction, uint8_t use_alt_base);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1470,68 +1219,68 @@ void ActorView::type_marine_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 1);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_alert_from_squad_attack(actor_index);
-        actor_alert_from_projectile(actor_index);
-        actor_alert_from_flag_1b4(actor_index);
-        actor_alert_from_damage(actor_index);
-        actor_gate_jump_traversal(actor_index, 1, 0, 14);
-        actor_escalate_check_shield_damage(actor_index);
-        actor_escalate_apply(actor_index, (int16_t)((int8_t)act[0x20a] > 2 ? 5 : 3));
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_seek_vehicle_to_board(actor_index);
-        actor_process_vehicle_seat_exit(actor_index);
-        actor_update_grenade_throw_decision(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 1);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_alert_from_squad_attack(actor_index);
+        halo::ai::actor_alert_from_projectile(actor_index);
+        halo::ai::actor_alert_from_flag_1b4(actor_index);
+        halo::ai::actor_alert_from_damage(actor_index);
+        halo::ai::actor_gate_jump_traversal(actor_index, 1, 0, 14);
+        halo::ai::actor_escalate_check_shield_damage(actor_index);
+        halo::ai::actor_escalate_apply(actor_index, (int16_t)((int8_t)act[0x20a] > 2 ? 5 : 3));
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_seek_vehicle_to_board(actor_index);
+        halo::ai::actor_process_vehicle_seat_exit(actor_index);
+        halo::ai::actor_update_grenade_throw_decision(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         return;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         return;
     case 4:
         if (act[0xaa]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
             return;
         }
-        actor_flee_look_away(actor_index);
+        halo::ai::actor_flee_look_away(actor_index);
         return;
     case 5:
     case 7:
     case 8:
-        if (actor_update_combat_behavior(actor_index, 1, 0)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
             return;
         }
-        actor_update_special_mode(actor_index);
+        halo::ai::actor_update_special_mode(actor_index);
         return;
     case 9:
         if (act[0xa5]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         } else if (act[0xa6]) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         return;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
                                      (uint8_t)(act[0xa0] || ((actor *)act)->conversation_index == k_datum_index_none));
         return;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         return;
     default:
@@ -1542,17 +1291,7 @@ void ActorView::type_marine_update()
 #undef ACTOR
 
 namespace actor_type_mounted_weapon_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1566,11 +1305,11 @@ void ActorView::type_mounted_weapon_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    if (actor_wants_reload_or_swap(actor_index) == 0) {
-        actor_escalate_to_guard_or_combat(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    if (halo::ai::actor_wants_reload_or_swap(actor_index) == 0) {
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
     }
 
     switch (((actor *)act)->mode) {
@@ -1578,19 +1317,19 @@ void ActorView::type_mounted_weapon_update()
     case 4:
     case 6:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) == 0) {
-            actor_conditional_state_transition_check(actor_index);
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) == 0) {
+            halo::ai::actor_conditional_state_transition_check(actor_index);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (actor_update_combat_behavior(actor_index, 1, 0) == 0) {
-            actor_update_special_mode(actor_index);
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) == 0) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     default:
         break;
@@ -1600,23 +1339,7 @@ void ActorView::type_mounted_weapon_update()
 #undef ACTOR
 
 namespace actor_type_sentinel_update_local {
-extern "C" {
-extern data_array *actor_data;
-extern uint8_t actor_process_order_request(uint32_t actor_index, uint16_t order_code);
-extern uint8_t actor_process_pending_command_list(datum_index actor_index);
-extern uint8_t actor_react_to_disturbance(datum_index actor_index, int16_t threshold);
-extern uint8_t actor_wants_reload_or_swap(uint32_t actor_index);
-extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
-extern uint8_t actor_update_danger_avoidance(datum_index actor_index);
-extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
-extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
-extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
-extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
-extern uint32_t actor_flee_look_away(datum_index actor_index);
-extern uint8_t actor_update_special_mode(datum_index actor_index);
-extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -1630,50 +1353,50 @@ void ActorView::type_sentinel_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, halo::k_word_none);
+        halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
-    actor_process_pending_command_list(actor_index);
-    actor_react_to_disturbance(actor_index, 1);
-    if (!actor_wants_reload_or_swap(actor_index)) {
-        actor_escalate_to_guard_or_combat(actor_index);
-        actor_update_danger_avoidance(actor_index);
+    halo::ai::actor_process_pending_command_list(actor_index);
+    halo::ai::actor_react_to_disturbance(actor_index, 1);
+    if (!halo::ai::actor_wants_reload_or_swap(actor_index)) {
+        halo::ai::actor_escalate_to_guard_or_combat(actor_index);
+        halo::ai::actor_update_danger_avoidance(actor_index);
     }
 
     switch (((actor *)act)->mode) {
     case 3:
     case 10:
-        if (actor_update_combat_behavior(actor_index, 1, 0) || actor_conditional_state_transition_check(actor_index)) {
+        if (halo::ai::actor_update_combat_behavior(actor_index, 1, 0) || halo::ai::actor_conditional_state_transition_check(actor_index)) {
             return;
         }
-        actor_update_grenade_and_morale_reactions(actor_index);
+        halo::ai::actor_update_grenade_and_morale_reactions(actor_index);
         break;
     case 4:
         if (act[0xaa] == 0) {
-            actor_flee_look_away(actor_index);
+            halo::ai::actor_flee_look_away(actor_index);
         } else {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     case 5:
     case 7:
     case 8:
-        if (!actor_update_combat_behavior(actor_index, 1, 0)) {
-            actor_update_special_mode(actor_index);
+        if (!halo::ai::actor_update_combat_behavior(actor_index, 1, 0)) {
+            halo::ai::actor_update_special_mode(actor_index);
         }
         break;
     case 6:
-        actor_update_combat_behavior(actor_index, actor_combat_status_should_hold(actor_index, 3, 6), 0);
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
+        halo::ai::actor_update_combat_behavior(actor_index, act[0x9e], act[0xa1]);
         break;
     case 12:
-        actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index),
+        halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
             (uint8_t)(act[0xa0] != 0 || ((actor *)act)->conversation_index == k_datum_index_none));
         break;
     case 13:
         if (((actor *)act)->danger_type == 0) {
-            actor_update_combat_behavior(actor_index, 1, 1);
+            halo::ai::actor_update_combat_behavior(actor_index, 1, 1);
         }
         break;
     default:

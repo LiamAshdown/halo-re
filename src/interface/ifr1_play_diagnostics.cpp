@@ -2,13 +2,12 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern uint8_t rasterizer_window[];
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern data_array *prop_data;
-extern data_array *actor_data;
 extern team_pair_globals *team_pair_data;
 extern real_point3d camera_position;
 
@@ -87,8 +86,8 @@ void PlayDiagnostics::run(void)
             node0[10], node0[11], node0[12], node0[0], node0[1], node0[2], node0[3],
             camera_position.x, camera_position.y, camera_position.z);
     }
-    for (i = 0; i < prop_data->maximum_count; i++) {
-        uint8_t *p = (uint8_t *)prop_data->data + i * prop_data->size;
+    for (i = 0; i < halo::ai::globals().prop_data->maximum_count; i++) {
+        uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + i * halo::ai::globals().prop_data->size;
 
         if (*(int16_t *)p == 0) {
             continue;
@@ -98,7 +97,7 @@ void PlayDiagnostics::run(void)
             int16_t actor_team = -99;
 
             if (owner != (datum_index)0xffffffff) {
-                actor_team = *(int16_t *)((uint8_t *)actor_data->data + (owner & 0xffff) * actor_data->size + 0x3e);
+                actor_team = *(int16_t *)((uint8_t *)halo::ai::globals().actor_data->data + (owner & 0xffff) * halo::ai::globals().actor_data->size + 0x3e);
             }
             standalone_log("DIAG prop %d actor=%08x actor_team=%d prop_team(+12)=%d enemy(+60)=%d kind(+24)=%d "
                            "u61=%d u62=%d", i, owner, actor_team, *(int16_t *)(p + 0x12), p[0x60],

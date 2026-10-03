@@ -14,6 +14,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/ai/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -40,7 +41,6 @@ extern Globals *global_globals;
 extern double cos(double x);
 extern double fabs(double x);
 extern void player_update_history_free_all(void *queue);
-extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern real_vector3d *global_origin3d_pointer;
 extern real_point3d player_placement_ring[9];
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override);
@@ -682,7 +682,7 @@ uint8_t PlayerView::execute_pending_interaction()
             *(datum_index *)(OBJECT_DATA(occupant) + 0x1f4) == k_datum_index_none) {
             return 0;
         }
-        actor_check_vehicle_target_available(((player *)record)->unit,
+        halo::ai::actor_check_vehicle_target_available(((player *)record)->unit,
             *(datum_index *)(OBJECT_DATA(occupant) + 0x1f4), 1);
         break;
     }

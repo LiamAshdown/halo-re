@@ -15,6 +15,7 @@
 #include "tables.h"
 #include "halo/projectiles/api.hpp"
 #include "code_refs.hpp"
+#include "halo/ai/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/cseries/api.hpp"
 #include <stdint.h>
@@ -100,21 +101,21 @@ __declspec(allocate(".geq$00685218v")) __declspec(align(8)) uint32_t console_mes
 #pragma section(".geq$0068521cv", read, write)
 __declspec(allocate(".geq$0068521cv")) __declspec(align(4)) uint32_t actor_mode_guard_look_weights_ambush[103] = {
     (uint32_t)&global_white_argb_00655138[48], (uint32_t)&global_white_argb_00655138[44], (uint32_t)&global_white_argb_00655138[4], (uint32_t)"asleep", (uint32_t)"alert", (uint32_t)"combat", 0x00000000u, (uint32_t)"flood carrier",
-    0x00000010u, 0x00020002u, 0x00000001u, 0x00000000u, (uint32_t)actor_type_flood_carrier_update, 0x00000000u,
-    0x00000000u, (uint32_t)"crew", 0x00000002u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)actor_type_crew_update,
+    0x00000010u, 0x00020002u, 0x00000001u, 0x00000000u, (uint32_t)&halo::ai::actor_type_flood_carrier_update, 0x00000000u,
+    0x00000000u, (uint32_t)"crew", 0x00000002u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)&halo::ai::actor_type_crew_update,
     0x00000000u, 0x00000000u, (uint32_t)"elite", 0x00000004u, 0x00010001u, 0x00000001u, 0x00000000u,
-    (uint32_t)actor_type_elite_update, 0x00000000u, 0x00000000u, (uint32_t)"engineer", 0x00000004u, 0x00000000u, 0x00000000u,
-    0x00000000u, (uint32_t)actor_type_engineer_update, 0x00000000u, 0x00000000u, (uint32_t)"flood", 0x00000008u, 0x00000000u,
-    0x00000001u, 0x00000000u, (uint32_t)actor_type_flood_update, 0x00000000u, 0x00000000u, (uint32_t)"grunt", 0x00000004u,
-    0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)actor_type_grunt_update, 0x00000000u, 0x00000000u, (uint32_t)"hunter",
-    0x00000004u, 0x00010001u, 0x00000001u, 0x00000000u, (uint32_t)actor_type_hunter_update, 0x00000000u, 0x00000000u,
-    (uint32_t)"infection", 0x00020020u, 0x00020002u, 0x00000100u, 0x00000000u, (uint32_t)actor_type_infection_update,
-    (uint32_t)actor_type_infection_swarm_update, (uint32_t)actor_compute_swarm_avoidance_offset, (uint32_t)"jackal",
-    0x00020004u, 0x00020000u, 0x00000000u, 0x00000000u, (uint32_t)actor_type_jackal_update, 0x00000000u, 0x00000000u,
-    (uint32_t)"marine", 0x00000002u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)actor_type_marine_update, 0x00000000u,
+    (uint32_t)&halo::ai::actor_type_elite_update, 0x00000000u, 0x00000000u, (uint32_t)"engineer", 0x00000004u, 0x00000000u, 0x00000000u,
+    0x00000000u, (uint32_t)&halo::ai::actor_type_engineer_update, 0x00000000u, 0x00000000u, (uint32_t)"flood", 0x00000008u, 0x00000000u,
+    0x00000001u, 0x00000000u, (uint32_t)&halo::ai::actor_type_flood_update, 0x00000000u, 0x00000000u, (uint32_t)"grunt", 0x00000004u,
+    0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)&halo::ai::actor_type_grunt_update, 0x00000000u, 0x00000000u, (uint32_t)"hunter",
+    0x00000004u, 0x00010001u, 0x00000001u, 0x00000000u, (uint32_t)&halo::ai::actor_type_hunter_update, 0x00000000u, 0x00000000u,
+    (uint32_t)"infection", 0x00020020u, 0x00020002u, 0x00000100u, 0x00000000u, (uint32_t)&halo::ai::actor_type_infection_update,
+    (uint32_t)&halo::ai::actor_type_infection_swarm_update, (uint32_t)&halo::ai::actor_compute_swarm_avoidance_offset, (uint32_t)"jackal",
+    0x00020004u, 0x00020000u, 0x00000000u, 0x00000000u, (uint32_t)&halo::ai::actor_type_jackal_update, 0x00000000u, 0x00000000u,
+    (uint32_t)"marine", 0x00000002u, 0x00000000u, 0x00000000u, 0x00000000u, (uint32_t)&halo::ai::actor_type_marine_update, 0x00000000u,
     0x00000000u, (uint32_t)"mounted_weapon", 0x00020000u, 0x00020002u, 0x00000000u, 0x00000000u,
-    (uint32_t)actor_type_mounted_weapon_update, 0x00000000u, 0x00000000u, (uint32_t)"sentinel", 0x00000040u, 0x00000000u,
-    0x00000000u, 0x00000000u, (uint32_t)actor_type_sentinel_update, 0x00000000u, 0x00000000u
+    (uint32_t)&halo::ai::actor_type_mounted_weapon_update, 0x00000000u, 0x00000000u, (uint32_t)"sentinel", 0x00000040u, 0x00000000u,
+    0x00000000u, 0x00000000u, (uint32_t)&halo::ai::actor_type_sentinel_update, 0x00000000u, 0x00000000u
 };
 #pragma section(".geq$006853b8v", read, write)
 __declspec(allocate(".geq$006853b8v")) __declspec(align(8)) uint32_t actor_type_procs[16] = {

@@ -1,17 +1,12 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/math/api.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/hs/api.hpp"
 
 
 #ifdef __cplusplus
-extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 #ifdef __cplusplus
-}
 #endif
 
 namespace halo::hs {
@@ -24,8 +19,8 @@ namespace halo::hs {
  */
 void FlowCommands::evaluate_random_range(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int16_t *arguments = (int16_t *)hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int16_t *arguments = (int16_t *)halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -36,7 +31,7 @@ void FlowCommands::evaluate_random_range(int16_t function_index, uint32_t thread
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         result = (uint16_t)(((uint32_t)((int32_t)high - (int32_t)low) * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10);
         result = (uint16_t)(result + (uint16_t)low);
-        hs_thread_return((int32_t)result, thread_index);
+        halo::hs::hs_thread_return((int32_t)result, thread_index);
     }
 }
 
@@ -48,8 +43,8 @@ void FlowCommands::evaluate_random_range(int16_t function_index, uint32_t thread
  */
 void FlowCommands::evaluate_real_random_range(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -59,7 +54,7 @@ void FlowCommands::evaluate_real_random_range(int16_t function_index, uint32_t t
 
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     result = (high - low) * ((float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f) + low;
-    hs_thread_return(*(int32_t *)&result, thread_index);
+    halo::hs::hs_thread_return(*(int32_t *)&result, thread_index);
     }
 }
 

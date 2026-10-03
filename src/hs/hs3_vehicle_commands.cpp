@@ -4,13 +4,8 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
-extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
-}
 
 namespace halo::hs::part3 {
 
@@ -22,14 +17,14 @@ namespace halo::hs::part3 {
  */
 void VehicleCommands::evaluate_vehicle_driver(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
-        hs_thread_return(unit != 0 ? *(int32_t *)&((unit_object *)unit)->unit.driver_unit_index : -1, thread_index);
+        halo::hs::hs_thread_return(unit != 0 ? *(int32_t *)&((unit_object *)unit)->unit.driver_unit_index : -1, thread_index);
     }
 }
 
@@ -41,8 +36,8 @@ void VehicleCommands::evaluate_vehicle_driver(int16_t function_index, uint32_t t
  */
 void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -59,7 +54,7 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
                 obj[0x4cc] &= 0xfd;
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -70,12 +65,12 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
  */
 void VehicleCommands::evaluate_vehicle_load_magic(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)(uint16_t)halo::units::unit_seat_candidates_from_zone_and_enter((uint32_t)arguments[0],
+    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::units::unit_seat_candidates_from_zone_and_enter((uint32_t)arguments[0],
         (char *)arguments[1], (uint32_t)arguments[2]), thread_index);
     }
 }
@@ -88,13 +83,13 @@ void VehicleCommands::evaluate_vehicle_load_magic(int16_t function_index, uint32
  */
 void VehicleCommands::evaluate_vehicle_riders(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         datum_index list = halo::units::unit_build_seat_occupant_zone_list((uint32_t)arguments[0]);
-        hs_thread_return((int32_t)list, thread_index);
+        halo::hs::hs_thread_return((int32_t)list, thread_index);
     }
 }
 
@@ -106,13 +101,13 @@ void VehicleCommands::evaluate_vehicle_riders(int16_t function_index, uint32_t t
  */
 void VehicleCommands::evaluate_vehicle_test_seat_list(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t result = halo::units::unit_named_seat_occupant_in_zone((uint32_t)arguments[0], (char *)arguments[1], (uint32_t)arguments[2]);
-        hs_thread_return((int32_t)result, thread_index);
+        halo::hs::hs_thread_return((int32_t)result, thread_index);
     }
 }
 
@@ -124,14 +119,14 @@ void VehicleCommands::evaluate_vehicle_test_seat_list(int16_t function_index, ui
  */
 void VehicleCommands::evaluate_vehicle_unload(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         int16_t count = halo::units::unit_detach_child_at_named_seat((uint32_t)arguments[0], (char *)arguments[1]);
 
-        hs_thread_return((int32_t)(uint16_t)count, thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)count, thread_index);
     }
 }
 
