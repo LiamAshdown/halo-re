@@ -153,7 +153,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             case 9:
                 frag_result = frag_result + plasma_result;
                 plasma_result = 0;
-                goto clamp;
+                break;
             case 0x0d:
 
                 if ((uint8_t)halo::game::game_engine_pack_object_flags_or_passthrough(0) == 0) {
@@ -164,11 +164,6 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             default:
                 break;
             }
-            goto clamp_after_default;
-
-        clamp:
-            plasma_result = 0;
-        clamp_after_default:
             if (frag_max < frag_result) {
                 frag_result = frag_max;
             }

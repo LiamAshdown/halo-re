@@ -203,19 +203,17 @@ int32_t SimulationClock::announce_time_remaining(void)
         return 1;
     }
 
-    if (time_remaining < 0x97) {
-        interval = 0x1e;
-    } else if (time_remaining == 900) {
-        goto announce;
-    } else {
-        interval = (8999 < time_remaining) ? 9000 : halo::game::k_ticks_per_minute;
-    }
+    if (time_remaining != 900) {
+        if (time_remaining < 0x97) {
+            interval = 0x1e;
+        } else {
+            interval = (8999 < time_remaining) ? 9000 : halo::game::k_ticks_per_minute;
+        }
 
-    if (time_remaining % interval != 0) {
-        return 0;
+        if (time_remaining % interval != 0) {
+            return 0;
+        }
     }
-
-announce:
 
     iterator.data = player_data;
     iterator.next_index = 0;

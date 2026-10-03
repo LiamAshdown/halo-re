@@ -261,12 +261,10 @@ uint8_t EnginePlayers::player_ready_to_respawn(uint32_t player_index)
             if (!ready) {
                 return ready;
             }
-            goto stagger_check;
         }
     }
     ready = 1;
 
-stagger_check:
     if (game_time->game_time < 4) {
         return ready;
     }

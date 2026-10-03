@@ -430,21 +430,24 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
 
                 if (-1 < slot) {
                     scoreboard_entry *victim = &entries[slot];
+                    bool exhausted = false;
 
                     while ((halo::game::player_at(victim->player))->local_player_index != -1) {
                         slot = slot - 1;
                         victim = victim - 1;
                         if (slot < 0) {
-                            goto next_rescue;
+                            exhausted = true;
+                            break;
                         }
                     }
 
-                    memmove(&entries[slot], &entries[slot + 1],
-                        (size_t)((max_count - slot) * sizeof(scoreboard_entry) - sizeof(scoreboard_entry)));
-                    entries[max_count - 1] = *rescue_src;
+                    if (!exhausted) {
+                        memmove(&entries[slot], &entries[slot + 1],
+                            (size_t)((max_count - slot) * sizeof(scoreboard_entry) - sizeof(scoreboard_entry)));
+                        entries[max_count - 1] = *rescue_src;
+                    }
                 }
 
-            next_rescue:
                 rescue_src = rescue_src + 1;
                 remaining_to_scan = remaining_to_scan - 1;
             } while (remaining_to_scan != 0);
@@ -1214,22 +1217,16 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     }
     halo::networking::ticker_text_buffer_append(line, 0, ticker);
 
-    if (options.objective_indicator == 0) {
+    if (options.objective_indicator == 0 || options.objective_indicator == 1) {
         label_text = halo::game::unicode_string_list_get_string(
             halo::tag_paths::join_game_rules_strings, 18);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
-    } else {
-        if (options.objective_indicator != 1) goto shared_tail;
-        label_text = halo::game::unicode_string_list_get_string(
-            halo::tag_paths::join_game_rules_strings, 18);
-        swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
+        suffix_text = halo::game::unicode_string_list_get_string(
+            halo::tag_paths::join_game_rules_strings, 19);
+        wcscat(line, suffix_text);
+        halo::networking::ticker_text_buffer_append(line, 0, ticker);
     }
-    suffix_text = halo::game::unicode_string_list_get_string(
-        halo::tag_paths::join_game_rules_strings, 19);
-    wcscat(line, suffix_text);
-    halo::networking::ticker_text_buffer_append(line, 0, ticker);
 
-shared_tail:
     if ((options.flags & 1) != 0) {
         if ((options.flags & 0x40) == 0) {
             label_text = halo::game::unicode_string_list_get_string(

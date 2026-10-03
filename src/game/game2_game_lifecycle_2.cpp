@@ -92,18 +92,13 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 
     halo::ai::ai_tick_dispatcher();
 
-    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
-        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
-            halo::game::game_engine_players_update_client();
-            goto after_role_update;
-        }
-        if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
-            goto after_role_update;
-        }
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local ||
+        halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
+        halo::game::game_engine_players_update_server();
+    } else if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
+        halo::game::game_engine_players_update_client();
     }
-    halo::game::game_engine_players_update_server();
 
-after_role_update:
     {
         float seconds_per_tick = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
         halo::effects::effects_update_all(seconds_per_tick);

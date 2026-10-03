@@ -121,6 +121,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         if (result == -1) {
             datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
             wchar_t *text = &empty_string;
+            bool copied = false;
 
             if (tag_id != k_datum_index_none) {
                 int32_t *tag_data = (int32_t *)halo::game::tag_data_at(tag_id);
@@ -132,11 +133,13 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
                         wchar_t *string_data = *(wchar_t **)(entry + 0x458);
                         *(uint16_t *)((uint8_t *)string_data + ((len & 0xfffffffe) - 2)) = 0;
                         wcsncpy(out, string_data, 0x50);
-                        goto done;
+                        copied = true;
                     }
                 }
             }
-            wcsncpy(out, text, 0x50);
+            if (!copied) {
+                wcsncpy(out, text, 0x50);
+            }
         } else if (result == 0) {
             wcsncpy(out, multiplayer_game_text_string(teams ? 0x38 : 0x39), 0x50);
         } else if (result == 1) {
@@ -171,7 +174,6 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         }
     }
 
-done:
     out[0x4f] = 0;
 }
 
@@ -485,14 +487,17 @@ uint32_t Scoreboard::compare_score_to_others(uint32_t subject, int32_t team_mode
             }
 
             if (!skip) {
+                bool team_seen = false;
+
                 if (team_mode == 1) {
                     uint32_t team_bit = 1u << (entry->team & 0x1f);
                     if ((team_bit & seen_teams) != 0) {
-                        goto next;
+                        team_seen = true;
+                    } else {
+                        seen_teams = seen_teams | team_bit;
                     }
-                    seen_teams = seen_teams | team_bit;
                 }
-                {
+                if (!team_seen) {
                     int32_t other_score = ((int32_t (*)(uint32_t, int32_t))current_game_engine->get_score)
                         (halo::k_dword_none, team_mode);
                     compared_count = compared_count + 1;
@@ -506,7 +511,6 @@ uint32_t Scoreboard::compare_score_to_others(uint32_t subject, int32_t team_mode
                     }
                 }
             }
-        next:
             element = halo::memory::data_iterator_next(&iter);
         }
     }
