@@ -1,4 +1,5 @@
 #include "halo/cutscene/cutscene.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern void sound_set_music_gain(float gain);
@@ -34,6 +35,11 @@ void chimera__letterbox(void);
 }
 
 namespace halo::cutscene {
+
+namespace {
+constexpr uint32_t k_rgb_mask = 0x00ffffff;
+constexpr uint32_t k_alpha_shift = 24;
+}
 
 /**
  * Begins a cutscene: saves the current music gain (once, if nothing is already saved), forces
@@ -119,7 +125,7 @@ void CutsceneDirector::stop()
         display_error(ui_pending_errors[0].error_string_index, 0,
             ui_pending_errors[0].modal, ui_pending_errors[0].is_error);
     }
-    ui_pending_errors[0].error_string_index = (int16_t)0xffff;
+    ui_pending_errors[0].error_string_index = (int16_t)halo::k_word_none;
 }
 
 /**
@@ -231,7 +237,7 @@ void CutsceneDirector::letterbox()
 
             {
                 UnicodeStringList *help_text_data =
-                    (UnicodeStringList *)tag_instances[help_text_list & 0xffff].data;
+                    (UnicodeStringList *)tag_instances[halo::datum_slot(help_text_list)].data;
                 if ((int32_t)(int16_t)title->string_index >= (int32_t)help_text_data->strings.count) {
                     continue;
                 }
@@ -279,7 +285,7 @@ void CutsceneDirector::letterbox()
                     shadow_alpha = 0xff;
                 }
                 text_shadow_color_argb =
-                    (*(uint32_t *)&title->shadow_color & 0xffffff) | ((uint32_t)shadow_alpha << 24);
+                    (*(uint32_t *)&title->shadow_color & k_rgb_mask) | ((uint32_t)shadow_alpha << k_alpha_shift);
 
                 help_text = text_string_list_get_string(help_text_list, (int16_t)title->string_index);
                 dest_rect = (title->text_bounds.right == title->text_bounds.left ||
