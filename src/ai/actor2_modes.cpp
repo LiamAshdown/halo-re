@@ -136,11 +136,11 @@ void ActorView::mode_uncover_update()
         }
     }
     act->look_posture = 3;
-    ((uint8_t *)act)[0x426] = ((uint8_t *)act)[0x9c];
-    ((uint8_t *)act)[0x427] = ((uint8_t *)act)[0x9c];
-    ((uint8_t *)act)[0x428] = 0;
-    ((uint8_t *)act)[0x424] = 0;
-    ((uint8_t *)act)[0x425] = 1;
+    act->unknown_41a[12] = ((uint8_t *)act)[0x9c];
+    act->unknown_41a[13] = ((uint8_t *)act)[0x9c];
+    act->unknown_41a[14] = 0;
+    act->unknown_41a[10] = 0;
+    act->unknown_41a[11] = 1;
 }
 
 #undef ACTOR
@@ -197,11 +197,11 @@ void ActorView::mode_vehicle_update()
     }
     act->look_posture = 4;
     act->wants_to_fire = 0;
-    ((uint8_t *)act)[0x426] = 0;
-    ((uint8_t *)act)[0x427] = 0;
-    ((uint8_t *)act)[0x428] = 0;
-    ((uint8_t *)act)[0x424] = 0;
-    ((uint8_t *)act)[0x425] = 0;
+    act->unknown_41a[12] = 0;
+    act->unknown_41a[13] = 0;
+    act->unknown_41a[14] = 0;
+    act->unknown_41a[10] = 0;
+    act->unknown_41a[11] = 0;
 }
 
 #undef ACTOR
@@ -347,11 +347,11 @@ void ActorView::mode_wait_update()
     }
     act->look_posture = 3;
     act->wants_to_fire = 0;
-    ((uint8_t *)act)[0x426] = 0;
-    ((uint8_t *)act)[0x427] = 0;
-    ((uint8_t *)act)[0x428] = 0;
-    ((uint8_t *)act)[0x424] = 0;
-    ((uint8_t *)act)[0x425] = 0;
+    act->unknown_41a[12] = 0;
+    act->unknown_41a[13] = 0;
+    act->unknown_41a[14] = 0;
+    act->unknown_41a[10] = 0;
+    act->unknown_41a[11] = 0;
 }
 
 #undef ACTOR
