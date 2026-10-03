@@ -475,7 +475,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
 
             leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
+                static_cast<int16_t>(halo::objects::block_element<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & halo::k_leaf_index_mask).cluster);
             if (leaf == -1 || cluster == -1) {
                 halo::physics::collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
@@ -485,7 +485,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
                     leaf = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
-                    *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
+                    static_cast<int16_t>(halo::objects::block_element<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & halo::k_leaf_index_mask).cluster);
             }
 
             location.leaf_index = leaf;
@@ -549,8 +549,7 @@ void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_pl
 
         if (leaf != -1) {
 
-            int16_t cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
-                                           (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
+            int16_t cluster = static_cast<int16_t>(halo::objects::block_element<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & halo::k_leaf_index_mask).cluster);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;
                 object_globals_pointer->ambient_cluster_index = cluster;
