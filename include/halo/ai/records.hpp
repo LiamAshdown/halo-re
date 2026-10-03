@@ -120,6 +120,17 @@ static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && offsetof(
 static_assert(offsetof(ModelAnimations, units) == 0xc);
 static_assert(offsetof(Object, animation_graph) == 0x38);
 
+/** The structure bsp a path search or obstacle search context traces in (the contexts store its address in a 32 bit field). */
+inline ScenarioStructureBSP *structure_bsp_of(const path_find_context &context)
+{
+    return reinterpret_cast<ScenarioStructureBSP *>(static_cast<uintptr_t>(context.structure_bsp));
+}
+
+inline ScenarioStructureBSP *structure_bsp_of(const ai_search_context &context)
+{
+    return reinterpret_cast<ScenarioStructureBSP *>(static_cast<uintptr_t>(context.structure_bsp));
+}
+
 /** The actor's own aim origin .. velocity run, viewed as the block actor_get_firing_positions hands out. */
 inline actor_firing_positions *own_firing_positions(actor *a)
 {

@@ -15,6 +15,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/units/api.hpp"
+#include "halo/ai/records.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
@@ -405,7 +406,7 @@ uint8_t PathFinder::find_unobstructed_ancestor(uint32_t vertex_id, real_point3d 
         path_find_node *parent = &context->nodes[node->parent];
         path_find_boundary_crossing crossing;
 
-        if (halo::ai::path_find_trace_bsp_boundary((void *)context->structure_bsp, reinterpret_cast<path_find_request *>(context)->ignores_glass, point,
+        if (halo::ai::path_find_trace_bsp_boundary(halo::ai::structure_bsp_of(*context), reinterpret_cast<path_find_request *>(context)->ignores_glass, point,
                 (int32_t)vertex_id, &parent->position, (int32_t)parent->vertex_id, &crossing) != 0) {
             break;
         }
@@ -793,7 +794,7 @@ static uint8_t path_find_search(path_find_context *context)
                 break;
             }
         }
-        edge_count = halo::ai::path_find_gather_adjacent_edges((void *)(uintptr_t)context->structure_bsp, node->vertex_id, edges);
+        edge_count = halo::ai::path_find_gather_adjacent_edges(halo::ai::structure_bsp_of(*context), node->vertex_id, edges);
         for (e = 0; e < edge_count; e++) {
             path_find_adjacent_edge *edge = &edges[e];
             uint8_t passable = (uint8_t)((uint32_t)edge->edge_id != (uint32_t)node->previous_vertex_id);
@@ -814,7 +815,7 @@ static uint8_t path_find_search(path_find_context *context)
                 passable = 0;
             }
             if (request->ignores_glass == 0 && (edge->flag & 0x80) != 0) {
-                ModelCollisionGeometryBSPSurface *record = bsp_surface(map_collision_bsp((const void *)(uintptr_t)context->structure_bsp), edge->edge_id);
+                ModelCollisionGeometryBSPSurface *record = bsp_surface(map_collision_bsp(halo::ai::structure_bsp_of(*context)), edge->edge_id);
 
                 if ((record->flags & 8) != 0) {
                     uint32_t bit = (uint8_t)record->breakable_surface;
@@ -944,7 +945,7 @@ static uint8_t path_find_search(path_find_context *context)
                 float distance = goal_distance;
 
                 if (distance < 4.0f) {
-                    distance = halo::ai::path_find_vertex_distance((ScenarioStructureBSP *)(uintptr_t)context->structure_bsp,
+                    distance = halo::ai::path_find_vertex_distance(halo::ai::structure_bsp_of(*context),
                         edge->edge_id, &context->goal_position, &best_point);
                 }
                 if (distance < context->best_cost) {
@@ -1057,7 +1058,7 @@ void PathFinder::simplify_waypoints(int16_t count, path_find_waypoint *waypoints
 {
     path_find_context * context = ptr;
     path_find_request *request = (path_find_request *)context;
-    void *map = (void *)(uintptr_t)context->structure_bsp;
+    void *map = halo::ai::structure_bsp_of(*context);
     uint8_t ignore_permission = request->ignores_glass;
     real_point3d current;
     int32_t current_surface;

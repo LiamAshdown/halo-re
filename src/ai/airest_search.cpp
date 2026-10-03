@@ -327,7 +327,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
 {
     ai_search_context * context = ptr;
     ai_search_obstacle_list *list = (ai_search_obstacle_list *)(uintptr_t)context->obstacles;
-    void *map = (void *)(uintptr_t)context->structure_bsp;
+    void *map = halo::ai::structure_bsp_of(*context);
     float radius = halo::bit_cast<float>(context->search_radius);
     ai_search_node *node = &context->nodes[node_index];
     uint32_t visited[8];
@@ -794,14 +794,14 @@ uint8_t AiSearch::step()
             ai_search_node *node = &context->nodes[index];
             ai_search_edge_result edge;
 
-            halo::ai::ai_search_evaluate_edge_cost((void *)(uintptr_t)context->structure_bsp, context->ignores_glass,
+            halo::ai::ai_search_evaluate_edge_cost(halo::ai::structure_bsp_of(*context), context->ignores_glass,
                 (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, halo::bit_cast<int32_t>(node->z),
                 halo::bit_cast<float>(context->search_radius), node->length, (uint8_t)(node->parent == -1), 1, context->ignore_flagged_obstacles,
                 &edge, &node->direction);
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {
                     if (edge.surface_index == (int32_t)context->origin_surface_index ||
-                        halo::ai::path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context->structure_bsp,
+                        halo::ai::path_find_heights_are_close(halo::ai::structure_bsp_of(*context),
                             &context->origin, (int32_t)context->origin_surface_index, edge.surface_index)) {
                         real_point2d position;
 
