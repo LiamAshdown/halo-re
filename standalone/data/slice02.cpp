@@ -1,92 +1,17 @@
-/* standalone/data/slice02.c -- engine globals 0x0066e674..0x0068941d as real C definitions (slice 2 of the
+/* standalone/data/slice02.cpp -- engine globals 0x0066e674..0x0068941d as extern "C" definitions (slice 2 of the
    globals->C conversion). The initial values are the retail bytes as decoded from the committed data image
    (standalone/image/*.asm), pointers expressed in C (function names, &other_global, string literals).
    The names are unchanged (_name), so no src/ edit is needed. Objects that could not be converted safely stay
-   EQU in standalone/globals.asm; tools/globals_check_slice02.py lists them with the reason. */
+   EQU in standalone/globals.asm; tools/globals_check_slice02.py lists them with the reason.
+
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
+#include "code_refs.hpp"
 #include <stdint.h>
 
+extern "C" {
+
 /* ---- code addresses stored in the tables below */
-extern void flying_camera_enter_flying(void);
-extern void flying_camera_enter_orbiting(void);
-extern void flying_camera_update(void);
-extern void hs_autocomplete_add_command_list_names(void);
-extern void hs_autocomplete_add_conversation_names(void);
-extern void hs_autocomplete_add_cutscene_camera_point_names(void);
-extern void hs_autocomplete_add_cutscene_flag_names(void);
-extern void hs_autocomplete_add_cutscene_title_names(void);
-extern void hs_autocomplete_add_encounter_names(void);
-extern void hs_autocomplete_add_function_names(void);
-extern void hs_autocomplete_add_global_names(void);
-extern void hs_autocomplete_add_hud_message_names(void);
-extern void hs_autocomplete_add_navpoint_names(void);
-extern void hs_autocomplete_add_object_names(void);
-extern void hs_autocomplete_add_recorded_animation_names(void);
-extern void hs_autocomplete_add_script_names(void);
-extern void hs_autocomplete_add_starting_profile_names(void);
-extern void hs_autocomplete_add_startup(void);
-extern void hs_autocomplete_add_trigger_volume_names(void);
-extern void hs_autocomplete_add_type_names(void);
-extern void hs_enumerate_special_form_names(void);
-extern void hwreq_parser_find_property_set(void);
-extern void hwreq_parser_get_error_message(void);
-extern void hwreq_parser_get_flag_count(void);
-extern void hwreq_parser_get_flag_name(void);
-extern void hwreq_parser_get_flag_value(void);
-extern void hwreq_parser_get_flags(void);
-extern void hwreq_parser_get_graphics_device_name(void);
-extern void hwreq_parser_get_graphics_vendor_name(void);
-extern void hwreq_parser_get_requirement_count(void);
-extern void hwreq_parser_get_requirement_name(void);
-extern void hwreq_parser_get_requirement_value(void);
-extern void hwreq_parser_get_sound_device_name(void);
-extern void hwreq_parser_get_sound_vendor_name(void);
-extern void hwreq_parser_has_error(void);
-extern void hwreq_parser_parse(void);
-extern void hwreq_parser_scalar_deleting_destructor(void);
-extern void message_delta_index_decode(void);
-extern void message_delta_index_encode(void);
-extern void orbiting_camera_update(void);
-extern void recorded_animation_decode_aiming_speed_event(void);
-extern void recorded_animation_decode_aiming_speed_event_v1(void);
-extern void recorded_animation_decode_aiming_vector_event_v1(void);
-extern void recorded_animation_decode_angle_vector_event_v1(void);
-extern void recorded_animation_decode_animation_state_event(void);
-extern void recorded_animation_decode_animation_state_event_v1(void);
-extern void recorded_animation_decode_char_difference_event(void);
-extern void recorded_animation_decode_control_flags_event(void);
-extern void recorded_animation_decode_control_flags_event_v1(void);
-extern void recorded_animation_decode_facing_vector_event_v1(void);
-extern void recorded_animation_decode_looking_vector_event_v1(void);
-extern void recorded_animation_decode_multi_vector_event_v1(void);
-extern void recorded_animation_decode_short_difference_event(void);
-extern void recorded_animation_decode_throttle_event(void);
-extern void recorded_animation_decode_throttle_event_v1(void);
-extern void recorded_animation_decode_weapon_index_event(void);
-extern void recorded_animation_decode_weapon_index_event_v1(void);
-extern void sound_eax1_effect_apply_channel(void);
-extern void sound_eax1_effect_apply_listener(void);
-extern void sound_eax1_effect_channel_supported(void);
-extern void sound_eax1_effect_initialize(void);
-extern void sound_eax1_effect_initialize_channel(void);
-extern void sound_eax1_effect_set_environment_index(void);
-extern void sound_eax1_effect_set_room_gain(void);
-extern void sound_eax1_effect_shutdown(void);
-extern void sound_eax20_effect_apply_channel(void);
-extern void sound_eax20_effect_apply_listener(void);
-extern void sound_eax20_effect_initialize(void);
-extern void sound_eax20_effect_set_environment_index(void);
-extern void sound_eax20_effect_set_room_gain(void);
-extern void sound_eax20_effect_shutdown(void);
-extern void sound_eax30_effect_apply_channel(void);
-extern void sound_eax30_effect_apply_listener(void);
-extern void sound_eax30_effect_initialize(void);
-extern void sound_eax30_effect_set_environment_index(void);
-extern void sound_eax30_effect_set_room_gain(void);
-extern void sound_eax30_effect_shutdown(void);
-extern void sound_eax_effect_initialize_channel(void);
-extern void sound_effect_object_channel_supported(void);
-extern void sound_effect_object_listener_supported(void);
 
 /* ---- other engine globals whose address is stored (defined elsewhere or still absolute) */
 extern unsigned char k_empty_string;
@@ -872,3 +797,5 @@ uint8_t console_debug_toggle_68941d = 0x1;
 #pragma comment(linker, "/alternatename:_unknown_006893f7=_console_debug_toggle_6893f7")
 #pragma comment(linker, "/alternatename:_unknown_006893f8=_console_debug_toggle_6893f8")
 #pragma comment(linker, "/alternatename:_unknown_0068941d=_console_debug_toggle_68941d")
+
+}

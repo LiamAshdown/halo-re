@@ -1,6 +1,5 @@
-// Engine globals at 0x006b1358..0x006e1af0 (slice 5), zero-initialised BSS in the original image.
-// Definitions replace the absolute EQU symbols of standalone/globals.asm; types follow the extern declarations in src/.
-
+/* standalone/data/slice05.cpp -- All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -21,6 +20,12 @@
 #include "models.h"
 #include "structures.h"
 #include "text.h"
+
+extern "C" {
+
+// Engine globals at 0x006b1358..0x006e1af0 (slice 5), zero-initialised BSS in the original image.
+// Definitions replace the absolute EQU symbols of standalone/globals.asm; types follow the extern declarations in src/.
+
 
 uint32_t game_engine_attribute_enabled;                                // 0x006b1458
 player_control_globals * player_control_globals_ptr;                   // 0x006b145c
@@ -195,3 +200,5 @@ int32_t environment_techniques_reflection[24];                         // 0x006e
 int16_t rasterizer_model_scratch_node_count;                           // 0x006e19c8
 int32_t environment_techniques_change_color[24];                       // 0x006e19d0
 rasterizer_dynamic_screen_vertex rasterizer_screen_effect_quad[4];     // 0x006e1a30
+
+}

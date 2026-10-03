@@ -2,14 +2,11 @@
 
 Run tools/msvc_build.py first (it compiles src/ into build/obj/). This script compiles the standalone
 sources and links everything; it generates nothing and reads no retail file:
-  standalone/loader.c, d3dx_compat.c, harness/x87_shims.c   the loader and runtime support
-  standalone/generated/image_bindings.c, code_entries.c      code pointers in the image -> C functions, and the
-                                                             original address -> C function table
-  standalone/data/*.c                                        the engine globals as C definitions
+  standalone/loader.cpp, d3dx_compat.cpp, harness/x87_shims.c   the loader and runtime support
+  standalone/data/*.cpp                                      the engine globals and tables as extern "C" definitions
   standalone/bridges.cpp                                     D3DXCreateEffect and the code_address_ thunks
   standalone/libs/*.def                                      import libraries for binkw32 / vorbisfile (delay-loaded)
 Anything unresolved fails the link. When functions or globals are added, regenerate the committed sources:
-  python tools/gen_link_sources.py      image_bindings.c, code_entries.c
   python tools/update_globals.py        lists the globals the failed link reported (define them in standalone/data)
 CMakeLists.txt builds the same exe without Python.
 Usage: python tools/gen_standalone_link.py [halo folder]"""
@@ -25,7 +22,7 @@ OUT = os.path.join(ROOT, "build", "standalone")
 SA = os.path.join(ROOT, "standalone")
 EXE = os.path.join(OUT, "halo_rebuilt.exe")
 BASE = 0x10000000
-HALO_FOLDER = sys.argv[1] if len(sys.argv) > 1 else None   # default: the one loader.c names
+HALO_FOLDER = sys.argv[1] if len(sys.argv) > 1 else None   # default: the one loader.cpp names
 DXSDK = r"C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)"
 EXTRA_LIBS = ["d3d9.lib", "d3dx9.lib", "legacy_stdio_definitions.lib", "wininet.lib"]
 
@@ -48,14 +45,15 @@ def compile_c(src, obj, includes=(), defines=()):
     return obj
 
 
-def compile_cpp(src, obj):
-    run([gl.tool("cl"), "/nologo", "/c", "/GS-", "/O2", "/EHs-c-", "/Fo" + obj, src], "compile " + src)
+def compile_cpp(src, obj, includes=(), defines=()):
+    run([gl.tool("cl"), "/nologo", "/c", "/std:c++20", "/permissive-", "/GR-", "/GS-", "/O2", "/EHs-c-", "/Fo" + obj] +
+        ["/I" + i for i in includes] + ["/D" + d for d in defines] + [src], "compile " + src)
     return obj
 
 
-def compile_data_c(src, obj):
-    """a standalone/data/*.c file: the game code's headers and flags (tools/msvc_build.py CFLAGS)"""
-    run([gl.tool("cl"), "/nologo", "/c", "/TC", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996",
+def compile_data_cpp(src, obj):
+    """a standalone/data/*.cpp file: the game code's headers and flags (tools/msvc_build.py CFLAGS)"""
+    run([gl.tool("cl"), "/nologo", "/c", "/std:c++20", "/permissive-", "/GR-", "/W3", "/Od", "/GS-", "/Oy-", "/Gy", "/wd4996",
          "/I" + os.path.join(ROOT, "types"), "/I" + os.path.join(DXSDK, "Include"),
          "/FI" + os.path.join(ROOT, "harness", "msvc_compat.h"), "/Fo" + obj, src], "compile " + src)
     return obj
@@ -81,19 +79,17 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     o = lambda name: os.path.join(OUT, name)
     folder = ['HALO_FOLDER="\\"%s\\""' % HALO_FOLDER.replace("\\", "\\\\")] if HALO_FOLDER else []
-    extra = [compile_c(os.path.join(SA, "loader.c"), o("loader.obj"), [SA], folder),
-             compile_c(os.path.join(SA, "d3dx_compat.c"), o("d3dx_compat.obj"), [SA, os.path.join(DXSDK, "Include")]),
-             compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), o("x87_shims.obj")),
-             compile_c(os.path.join(SA, "generated", "image_bindings.c"), o("image_bindings.obj"))]
-    for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):   # the engine globals as C definitions, one file per slice
-        extra.append(compile_data_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj")))
-    extra += [compile_c(os.path.join(SA, "generated", "code_entries.c"), o("code_entries.obj"), [SA]),
-              compile_cpp(os.path.join(SA, "bridges.cpp"), o("bridges.obj"))]
+    extra = [compile_cpp(os.path.join(SA, "loader.cpp"), o("loader.obj"), [SA], folder),
+             compile_cpp(os.path.join(SA, "d3dx_compat.cpp"), o("d3dx_compat.obj"), [SA, os.path.join(DXSDK, "Include")]),
+             compile_c(os.path.join(ROOT, "harness", "x87_shims.c"), o("x87_shims.obj"))]
+    for c in sorted(glob.glob(os.path.join(SA, "data", "*.cpp"))):   # the engine globals and tables, one file per slice
+        extra.append(compile_data_cpp(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj")))
+    extra += [compile_cpp(os.path.join(SA, "bridges.cpp"), o("bridges.obj"))]
 
     # only objects whose source still exists: a renamed or deleted .c leaves its old object behind
     objs = [x for x in glob.glob(os.path.join(ROOT, "build", "obj", "*", "*.obj"))
-            if os.path.exists(os.path.join(ROOT, "src", os.path.basename(os.path.dirname(x)),
-                                           os.path.splitext(os.path.basename(x))[0] + ".c"))] + extra
+            if any(os.path.exists(os.path.join(ROOT, "src", os.path.basename(os.path.dirname(x)),
+                                               os.path.splitext(os.path.basename(x))[0] + ext)) for ext in (".c", ".cpp"))] + extra
     rsp = o("objs.rsp")
     open(rsp, "w").write("\n".join('"%s"' % x for x in objs))
     cmd = [gl.tool("link"), "/nologo", "/MACHINE:X86", "/SUBSYSTEM:WINDOWS", "/FIXED", "/BASE:0x%x" % BASE,

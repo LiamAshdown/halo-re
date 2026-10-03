@@ -1,14 +1,5 @@
-// standalone/data/slice08.c -- engine globals 0x00719772..0x00721eb8 as real C definitions (was EQU symbols in
-// standalone/globals.asm). All zero-initialised: this address range lies past the end of the initialised .data of the
-// retail image (the BSS of the loader's reserve), so no initial bytes and no pointers to other globals.
-//
-// Layout: the engine zero-fills / scans some of these as one block (default_profile_data's 0x1001-dword clear runs on
-// into player_profile_thread; savegame_index_file .. last_multiplayer_map_path is one 0x2c7-dword block;
-// variant_write_request_state's 0x29-dword clear covers the three symbols after it; network_bandwidth_graph_globals is
-// followed by its 0x200-byte label buffer). To keep every such overlap behaving exactly like the original, the whole
-// range is emitted as ONE contiguous run in a dedicated section, in address order, each object followed by an explicit
-// pad variable for the bytes the original had up to the next symbol, so every relative offset equals the original's.
-// tools/globals_check_slice08.py verifies that against the link map.
+/* standalone/data/slice08.cpp -- All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include <stdint.h>
 #include "crt.h"
 #include "win32.h"
@@ -26,6 +17,20 @@
 #include "networking.h"
 #include "saved_games.h"
 #include "hs.h"
+
+extern "C" {
+
+// standalone/data/slice08.cpp -- engine globals 0x00719772..0x00721eb8 as extern "C" definitions (was EQU symbols in
+// standalone/globals.asm). All zero-initialised: this address range lies past the end of the initialised .data of the
+// retail image (the BSS of the loader's reserve), so no initial bytes and no pointers to other globals.
+//
+// Layout: the engine zero-fills / scans some of these as one block (default_profile_data's 0x1001-dword clear runs on
+// into player_profile_thread; savegame_index_file .. last_multiplayer_map_path is one 0x2c7-dword block;
+// variant_write_request_state's 0x29-dword clear covers the three symbols after it; network_bandwidth_graph_globals is
+// followed by its 0x200-byte label buffer). To keep every such overlap behaving exactly like the original, the whole
+// range is emitted as ONE contiguous run in a dedicated section, in address order, each object followed by an explicit
+// pad variable for the bytes the original had up to the next symbol, so every relative offset equals the original's.
+// tools/globals_check_slice08.py verifies that against the link map.
 
 // Each object has an explicit natural alignment (an array would otherwise get 4) and its own section ".g08$NNNN"; the linker sorts the "$" group by name and concatenates it into ".g08",
 // which fixes the order (the compiler alone does not keep definition order inside one section)
@@ -546,3 +551,5 @@ __declspec(allocate(".g08$0254")) __declspec(align(4)) void * unknown_00721eb8 =
 #pragma comment(linker, "/alternatename:_keystone_release=_unknown_00721eac")
 #pragma comment(linker, "/alternatename:_keystone_create_window=_unknown_00721eb4")
 #pragma comment(linker, "/alternatename:_chat_gui_find_object=_unknown_00721eb8")
+
+}

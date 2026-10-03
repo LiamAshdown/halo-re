@@ -1,5 +1,5 @@
 /**
- * standalone/data/eq_bss.c -- the engine globals of the zero-initialised part of the original image (past the
+ * standalone/data/eq_bss.cpp -- the engine globals of the zero-initialised part of the original image (past the
  * initialised .data piece) that the C code reaches through several names, as one larger object or with block clears
  * and copies that run across several of them. They were absolute EQU symbols in standalone/globals.asm.
  *
@@ -8,8 +8,13 @@
  * object spans up to the next one and the last up to the next global of the original image, and a 16-aligned pad
  * ".geq$<cluster start>" in front keeps the run congruent with the original addresses, so every offset, overrun and
  * sweep is the original one. tools/globals_check_eq.py verifies the layout.
+ *
+ * All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names.
  */
+#include "code_refs.hpp"
 #include <stdint.h>
+
+extern "C" {
 
 /** 0x006a8154..0x006a8954: cache_file_current_header, cache_file_current_header_crc32 */
 #pragma section(".geq$006a8154", read, write)
@@ -816,3 +821,5 @@ __declspec(allocate(".geq$0087aaf8v")) __declspec(align(8)) uint8_t unknown_0087
 #pragma comment(linker, "/alternatename:_teleport_flash_green=_teleport_effect_const_00687b00")
 #pragma comment(linker, "/alternatename:_teleport_flash_maximum_intensity=_teleport_effect_const_00687af4")
 #pragma comment(linker, "/alternatename:_teleport_flash_red=_teleport_effect_const_00687afc")
+
+}

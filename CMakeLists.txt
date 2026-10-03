@@ -9,9 +9,8 @@
 # installed Halo PC (maps, binkw32.dll, vorbisfile.dll): HALO_FOLDER. Graphics need the converted shaders\fx.bin
 # (python tools/convert_fx.py) in override\shaders\ next to the exe: HALO_FX_OVERRIDE, copied after the build.
 #
-# Same build as tools/msvc_build.py + tools/gen_standalone_link.py. The generated sources it uses are committed:
-# after adding or renaming functions run tools/gen_link_sources.py; a new engine global is a C definition in
-# standalone/data/*.c (tools/update_globals.py lists what a link left unresolved).
+# Same build as tools/msvc_build.py + tools/gen_standalone_link.py. A new engine global is an extern "C" definition in
+# standalone/data/*.cpp (tools/update_globals.py lists what a link left unresolved).
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)   # CMAKE_MSVC_RUNTIME_LIBRARY
 project(halo C CXX)
@@ -71,55 +70,29 @@ add_custom_target(third_party_import_libs DEPENDS ${THIRD_PARTY_LIBS})
 
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
-# the engine globals as C definitions (standalone/data/*.c), compiled with the game code's flags and headers
-file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")
+# the engine globals as extern "C" definitions (standalone/data/*.cpp), compiled with the game code's flags and headers
+file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.cpp")
 add_library(halo_data OBJECT ${DATA_SOURCES})
 target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
-target_compile_options(halo_data PRIVATE /TC /W3 /Od /GS- /Oy- /Gy /wd4996
+target_compile_options(halo_data PRIVATE /std:c++20 /permissive- /GR- /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
 set(SUPPORT_SOURCES
-    "${SA}/loader.c"
-    "${SA}/d3dx_compat.c"
+    "${SA}/loader.cpp"
+    "${SA}/d3dx_compat.cpp"
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
-    "${SA}/generated/image_bindings.c"
-    "${SA}/generated/code_entries.c"
     "${SA}/bridges.cpp")
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES}
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
+target_compile_options(halo_rebuilt PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 
-# ---- keep the committed link sources in step with src/ (tools/cmake_regen.py): after the game objects compile and
-# before the link, regenerate code_entries.c / image_bindings.c (new or renamed functions). Off, or
-# without Python, the committed files are used as they are.
-find_package(Python3 COMPONENTS Interpreter)
-option(HALO_REGENERATE "Regenerate the link sources from src/ during the build" ${Python3_FOUND})
-if(HALO_REGENERATE)
-    if(CMAKE_CONFIGURATION_TYPES)   # multi-config (Visual Studio): one list per configuration
-        set(_objects_list "${CMAKE_CURRENT_BINARY_DIR}/halo_game_objects_$<CONFIG>.txt")
-    else()                          # Ninja / CLion
-        set(_objects_list "${CMAKE_CURRENT_BINARY_DIR}/halo_game_objects.txt")
-    endif()
-    set(_regen_stamp "${CMAKE_CURRENT_BINARY_DIR}/regen.stamp")
-    file(GENERATE OUTPUT "${_objects_list}" CONTENT "$<JOIN:$<TARGET_OBJECTS:halo_game>,\n>\n")
-    file(GLOB _regen_tools "${CMAKE_SOURCE_DIR}/tools/cmake_regen.py" "${CMAKE_SOURCE_DIR}/tools/gen_link_sources.py"
-        "${CMAKE_SOURCE_DIR}/tools/gen_standalone.py")
-    add_custom_command(OUTPUT "${_regen_stamp}"
-        COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/cmake_regen.py" "${_objects_list}" "${_regen_stamp}"
-        DEPENDS halo_game $<TARGET_OBJECTS:halo_game> "${_objects_list}" ${_regen_tools}
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        COMMENT "Regenerating link sources from src/" VERBATIM)
-    add_custom_target(halo_regenerate DEPENDS "${_regen_stamp}")
-    add_dependencies(halo_rebuilt halo_regenerate)
-    set_source_files_properties("${SA}/generated/image_bindings.c"
-        "${SA}/generated/code_entries.c" PROPERTIES OBJECT_DEPENDS "${_regen_stamp}")
-endif()
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")
-set_source_files_properties("${SA}/d3dx_compat.c" PROPERTIES INCLUDE_DIRECTORIES "${DXSDK_DIR}/Include")
+set_source_files_properties("${SA}/d3dx_compat.cpp" PROPERTIES INCLUDE_DIRECTORIES "${DXSDK_DIR}/Include")
 target_include_directories(halo_rebuilt PRIVATE "${SA}")
 
 file(TO_NATIVE_PATH "${HALO_FOLDER}" _halo_folder)
 string(REPLACE "\\" "\\\\" _halo_folder "${_halo_folder}")
-set_source_files_properties("${SA}/loader.c" PROPERTIES COMPILE_DEFINITIONS "HALO_FOLDER=\"${_halo_folder}\"")
+set_source_files_properties("${SA}/loader.cpp" PROPERTIES COMPILE_DEFINITIONS "HALO_FOLDER=\"${_halo_folder}\"")
 
 target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
 target_link_libraries(halo_rebuilt PRIVATE

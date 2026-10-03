@@ -1,8 +1,13 @@
-// standalone/data/slice06.c -- engine globals 0x006e1af8..0x0071041a, defined here instead of as absolute EQU symbols
+/* standalone/data/slice06.cpp -- All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
+#include <stdint.h>
+
+extern "C" {
+
+// standalone/data/slice06.cpp -- engine globals 0x006e1af8..0x0071041a, defined here instead of as absolute EQU symbols
 // in standalone/globals.asm. All of them lie in the zero-initialised BSS of the original image, so every definition is
 // zero-initialised; the linker places them. Sizes follow the declarations in src/ (opaque records are byte arrays of
 // the declared type's size). The 0x... comment is the original address.
-#include <stdint.h>
 
 __declspec(align(4)) unsigned char rasterizer_object_shadow_blur_quad[96] = {0}; // 0x006e1b80  struct rasterizer_dynamic_screen_vertex
 __declspec(align(4)) unsigned char rasterizer_object_shadow_border_lines[224] = {0}; // 0x006e1be0  struct rasterizer_screen_vertex
@@ -161,3 +166,5 @@ uint32_t player_update_log_categories_filtered = 0;                    // 0x0071
 int32_t network_action_resend_interval_ms_alt = 0;                     // 0x0071031c  int32_t
 uint8_t network_player_update_log_enabled = 0;                         // 0x00710320  uint8_t
 uint8_t render_asymmetric_frustum_disabled = 0;                        // 0x00710321  uint8_t
+
+}
