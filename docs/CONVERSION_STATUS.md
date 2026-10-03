@@ -17,7 +17,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 | a30d258f6c14fe84c | input, main, physics | running | no |
 | a48cce8b581c8e3c3 | items, effects | done | yes (e93f959d; check items 115/115, effects 162/162; classes in anonymous namespaces, no Strategy/State patterns yet) |
 | a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | running | no |
-| a828a5b449c367e7c | units | running | no |
+| a828a5b449c367e7c | units | done | yes (9a6e0ae8; check units 410 base, 0 missing, 263 new halo:: symbols; UnitView/BipedView/VehicleView; no UnitTypeBehavior registry) |
 | a8e2e4a6addbda413 | objects | running | no |
 | a9d9f7699c4305c1b | sound | running | no |
 | a1b3c49331e6b7427 (Opus) | math pilot (+ glm); writes docs/CPP_CONVENTIONS_MATH_PILOT.md | running | no |
@@ -28,7 +28,7 @@ ai_actor_1 (197), ai_actor_2 (197), ai_rest (231), hs_1 (209), hs_2 (209), hs_3 
 game_rest (184), interface_ui (241), interface_rest_1 (148), interface_rest_2 (148), networking_network (283),
 networking_rest (273), rasterizer (239), shell (163).
 Launch at most 10 agents at a time. Mark launched ones here with their agent id.
-Launched: ai_actor_1 = a816627a3d7da40e7
+Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 
 ## Log
 - 2026-10-03: C++ phase 1 done (all src compiles as C++20, extern "C" wrapping, link and smoke test OK on cxx-phase1).
