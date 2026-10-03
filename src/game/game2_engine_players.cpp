@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -33,10 +34,8 @@ extern object *object_iterator_next(object_iterator *iterator);
 extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern player_globals *local_player_globals;
-extern Scenario *global_scenario;
 extern network_client_globals *network_client;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown);
 extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state);
 extern void object_snap_to_parent_marker_and_detach(datum_index object_index);
@@ -793,8 +792,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
     if (local_player_globals->bsp_switch_trigger_volume_index == -1 ||
         (unit_handle != (datum_index)-1 &&
-         scenario_trigger_volume_contains_point(
-             *(int16_t *)(*(uint8_t **)((uint8_t *)global_scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8),
+         halo::scenario::scenario_trigger_volume_contains_point(
+             *(int16_t *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8),
              (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (unit_handle & 0xffff) * 0xc + 8) + 0xa0))
              != 0)) {
         skip_trigger_check = 0;

@@ -1,4 +1,6 @@
 #include "halo/effects/effects.hpp"
+#include "halo/bitmaps/api.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -9,8 +11,6 @@ extern uint8_t particle_spawn_debug_mode;
 extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_point3d *global_origin3d_pointer;
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 }
 
 namespace halo::effects {
@@ -217,10 +217,10 @@ void effect_view::spawn_particles()
                     create_ok = 1;
                     break;
                 case 1:
-                    create_ok = !scenario_location_get_water_and_weather(&position, &self->location, 0);
+                    create_ok = !halo::scenario::scenario_location_get_water_and_weather(&position, &self->location, 0);
                     break;
                 case 2:
-                    create_ok = scenario_location_get_water_and_weather(&position, &self->location, 0);
+                    create_ok = halo::scenario::scenario_location_get_water_and_weather(&position, &self->location, 0);
                     break;
                 default:
                     create_ok = 0;
@@ -272,8 +272,8 @@ void effect_view::spawn_particles()
                     }
                 }
                 flags = *(uint32_t *)(pt + 0x64);
-                color_interpolate((ColorRGB *)(pt + 0xc4), (ColorRGB *)(pt + 0xb4),
-                    (ColorRGB *)&record.color.red, (flags >> 3) & 3, frac);
+                halo::bitmaps::color_interpolate((ColorRGB *)(pt + 0xc4), (ColorRGB *)(pt + 0xb4),
+                    (ColorRGB *)&record.color.red, static_cast<color_interpolation_flags>((flags >> 3) & 3), frac);
                 record.color.alpha = (1.0f - frac) * *(real *)(pt + 0xb0) + frac * *(real *)(pt + 0xc0);
                 if ((flags & 4) != 0) {
                     record.color.red *= self->color.red;

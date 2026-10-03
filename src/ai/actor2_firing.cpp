@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace halo::ai {
 
@@ -221,7 +222,6 @@ uint8_t ActorView::reject_firing_position_by_target_approach(actor_firing_positi
 namespace actor_reject_firing_position_unreachable_local {
 extern "C" {
 extern data_array *actor_data;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t actor_movement_flying_needs_steering(datum_index actor_index, const real_point3d *destination,
     float *out_avoidance_distance);
 extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, const real_point3d *point_b,
@@ -250,7 +250,7 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
 
         if (actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
             path_find_test_direct_reachability(position, (const real_point3d *)((uint8_t *)self + 0x12c), 0,
-                global_structure_bsp, 0) != 0) {
+                halo::scenario::globals().structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
         }
@@ -914,7 +914,6 @@ void ActorView::score_firing_positions_near_target(actor_firing_position_query *
 namespace actor_select_firing_position_local {
 extern "C" {
 extern data_array *actor_data;
-extern Scenario *global_scenario;
 extern const real_vector3d *global_origin3d_pointer;
 extern uint8_t actor_firing_position_evaluate(actor_firing_position_candidate *candidate, actor_firing_position_query *query, datum_index actor_index);
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
@@ -972,7 +971,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
             return result;
         }
 
-        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
                                     [self->encounter_index & 0xffff];
         firing_positions =
             (ScenarioFiringPosition *)encounter_definition->firing_positions.pointer;
@@ -1015,7 +1014,6 @@ namespace actor_select_move_position_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern Scenario *global_scenario;
 extern game_time_globals *game_time;
 extern int32_t ai_weighted_random_index(int16_t weight_offset, void *base, int16_t stride, uint16_t count,
     uint32_t *exclude_mask);
@@ -1048,7 +1046,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
     if (((actor *)a)->encounter_index == k_datum_index_none) {
         return -1;
     }
-    squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)global_scenario + 0x430) +
+    squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) +
         (((actor *)a)->encounter_index & 0xffff) * 0xb0 + 0x84) + ((actor *)a)->squad_index * 0xe8;
     if (select_mode == 1 && current != -1) {
         return position_index;

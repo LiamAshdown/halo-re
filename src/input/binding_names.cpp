@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "cache.h"
 #include "math.h"
@@ -20,7 +21,6 @@
 #include "halo/input/api.hpp"
 
 extern "C" { extern uint16_t missing_string_text[]; }
-extern "C" { extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...); }
 namespace halo::input {
 
 /**
@@ -53,7 +53,7 @@ void BindingNames::chimera__axis_text(int16_t axis_index, uint8_t direction, uin
             }
         }
     }
-    string_format_wide_va_bounded(0x18, out_text, (const uint16_t *)L"%s%d %s", source, axis_index + 1, direction_name);
+    halo::text::string_format_wide_va_bounded(0x18, out_text, (const uint16_t *)L"%s%d %s", source, axis_index + 1, direction_name);
     out_text[0x18] = 0;
 }
 
@@ -90,7 +90,7 @@ void BindingNames::chimera__button_text(int16_t button_index, uint16_t *out_text
             }
         }
     }
-    string_format_wide_va_bounded(0x17, out_text, (const uint16_t *)L"%s%d", source, button_index + 1);
+    halo::text::string_format_wide_va_bounded(0x17, out_text, (const uint16_t *)L"%s%d", source, button_index + 1);
     out_text[0x17] = 0;
 }
 
@@ -142,7 +142,7 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
         }
     }
 
-    string_format_wide_va_bounded(0xe, out_text, (const uint16_t *)L"%s%d %s", pov_name, pov_index + 1, direction_name);
+    halo::text::string_format_wide_va_bounded(0xe, out_text, (const uint16_t *)L"%s%d %s", pov_name, pov_index + 1, direction_name);
     out_text[0xd] = 0;
 }
 

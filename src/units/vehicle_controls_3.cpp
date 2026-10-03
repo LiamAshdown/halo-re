@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -9,7 +10,6 @@ extern "C" {
 extern data_array *object_data;
 extern real_point3d *global_origin3d_pointer;
 extern real_vector3d *g_006966e4;
-extern float scenario_location_water_surface_distance(void);
 extern void vector3d_clamp_length(float max_length);
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
 extern double sqrt(double x);
@@ -56,7 +56,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     int32_t node_count = *(int32_t *)(physics_tag + 0x68);
-    float bank_lookup = scenario_location_water_surface_distance();
+    bsp_leaf_reference bank_leaf = {obj->location_leaf_index, obj->location_cluster_index, 0};
+    float bank_lookup = halo::scenario::scenario_location_water_surface_distance(&bank_leaf, &obj->position);
     real_vector3d push = *(real_vector3d *)global_origin3d_pointer;
     real_vector3d angular = *(real_vector3d *)global_origin3d_pointer;
     int32_t i;

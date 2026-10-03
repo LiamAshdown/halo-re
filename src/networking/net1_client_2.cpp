@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/text/api.hpp"
 #include <stdlib.h>
 #include <string.h>
 #include "halo/memory/api.hpp"
@@ -26,7 +27,6 @@ extern uint8_t local_player_globals[8];
 extern void display_error(int32_t code, int32_t player_index, uint8_t flag_a, uint8_t flag_b);
 extern uint32_t network_game_socket_port;
 extern int32_t progress_screen_text;
-extern wchar_t *string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);
 extern uint32_t network_client_begin_connect(wchar_t *player_name, s_network_address *target_address);
 extern void message_delta_parameters_protocol_dump_to_config_file(void);
 extern void player_update_history_destroy(player_update_history *history);
@@ -297,7 +297,7 @@ uint32_t ClientView::client_connect_to_address(wchar_t *player_name, char *addre
 
         progress_screen_text = 0;
     } else {
-        string_convert_ascii_to_unicode(0, 0, address_string);
+        halo::text::string_convert_ascii_to_unicode(0, 0, address_string);
 
     }
     return network_client_begin_connect(player_name, &target);

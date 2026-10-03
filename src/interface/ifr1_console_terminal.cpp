@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/text/api.hpp"
 
 extern "C" {
 extern uint8_t terminal_initialized;
@@ -29,14 +30,11 @@ extern uint8_t console_caret_visible;
 extern uint8_t console_show_messages;
 extern datum_index console_message_head;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
-extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern int16_t hud_text_draw_background_mode;
 extern uint32_t text_tab_stops;
 extern uint32_t hud_text_draw_box_field_474e;
 extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
@@ -278,8 +276,8 @@ void ConsoleTerminal::draw_overlay(void)
         hud_text_draw_color_g = console_active->color.green;
         hud_text_draw_color_b = console_active->color.blue;
         hud_text_draw_color_or_flags = 0xffff;
-        hud_text_draw_column = 0;
-        hud_text_draw_unknown_4730 = 0;
+        halo::text::globals().hud_text_draw_column = 0;
+        halo::text::globals().hud_text_draw_unknown_4730 = 0;
 
         if (console_caret_visible != 0) {
             cursor = console_active->edit.cursor + (int16_t)strlen(console_active->prompt);
@@ -319,13 +317,13 @@ void ConsoleTerminal::draw_overlay(void)
             hud_text_draw_color_a = fade * message->color.alpha;
             y = y - line_height;
             if (message->is_command_echo != 0) {
-                hud_text_draw_background_mode = 3;
+                halo::text::globals().hud_text_draw_background_mode = 3;
                 text_tab_stops = 0x014000a0;
                 hud_text_draw_box_field_474e = 0x000001d6;
             }
             hud_text_draw_color_or_flags = 0xffff;
-            hud_text_draw_column = 0;
-            hud_text_draw_unknown_4730 = 0;
+            halo::text::globals().hud_text_draw_column = 0;
+            halo::text::globals().hud_text_draw_unknown_4730 = 0;
             hud_text_draw_font_tag_id = font_terminal_id;
             {
                 Rectangle2D rect;
@@ -336,7 +334,7 @@ void ConsoleTerminal::draw_overlay(void)
                 rect.right = (int16_t)(0x280 - render_viewport_top[1]);
                 chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
             }
-            hud_text_draw_background_mode = 0;
+            halo::text::globals().hud_text_draw_background_mode = 0;
             message_handle = message->next;
         }
     }

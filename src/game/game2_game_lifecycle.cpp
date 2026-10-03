@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/sound/api.hpp"
@@ -7,9 +8,9 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern int32_t game_state_cursor;
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
@@ -51,7 +52,6 @@ extern uint8_t players_any_pending_seat_or_respawn(void);
 extern uint8_t unit_is_area_clear_of_fast_objects(void);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 }
 
 namespace halo::game {
@@ -64,8 +64,8 @@ namespace halo::game {
  */
 ScenarioPlayerStartingLocation * GameLifecycle::get_player_starting_location(int16_t index)
 {
-    if (index >= 0 && index < global_scenario->player_starting_locations.count) {
-        return &((ScenarioPlayerStartingLocation *)global_scenario->player_starting_locations.pointer)[index];
+    if (index >= 0 && index < halo::scenario::globals().scenario->player_starting_locations.count) {
+        return &((ScenarioPlayerStartingLocation *)halo::scenario::globals().scenario->player_starting_locations.pointer)[index];
     }
     return (ScenarioPlayerStartingLocation *)0;
 }
@@ -106,7 +106,7 @@ void GameLifecycle::initialize(void)
     interface_globals_allocate();
 
     size = 0x7c;
-    global_scenario_game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
+    halo::scenario::globals().game_globals = (scenario_game_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x7c;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
@@ -326,12 +326,12 @@ void GameLifecycle::time_format_minutes_seconds(uint32_t ticks, uint32_t count, 
     uint16_t seconds_text[0x40];
 
     if (minutes == 0) {
-        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L" ");
+        halo::text::string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L" ");
     } else {
-        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L"%d", minutes);
+        halo::text::string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L"%d", minutes);
     }
-    string_format_wide_va_bounded(0x40, seconds_text, (const uint16_t *)(seconds <= 9 ? L"0%d" : L"%d"), seconds);
-    string_format_wide_va_bounded(count, (uint16_t *)dest, (const uint16_t *)L"%s:%s", minutes_text, seconds_text);
+    halo::text::string_format_wide_va_bounded(0x40, seconds_text, (const uint16_t *)(seconds <= 9 ? L"0%d" : L"%d"), seconds);
+    halo::text::string_format_wide_va_bounded(count, (uint16_t *)dest, (const uint16_t *)L"%s:%s", minutes_text, seconds_text);
 }
 
 /**

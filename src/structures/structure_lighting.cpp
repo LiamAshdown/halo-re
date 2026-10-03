@@ -5,18 +5,17 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern render_lighting object_lighting_default;
 extern real_vector3d object_lightmap_probe_direction[1];
 extern real_vector3d object_lighting_probe_sideways[4];
-extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
 extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedRenderedVertex *vertex,
     real_vector3d *out);
 extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
@@ -71,7 +70,7 @@ void bsp_lighting::lightmap_sample_vertex_color(BitmapData *bitmap, float weight
     uv[1] = (v1 - v0) * weight_1 + (v2 - v0) * weight_2 + v0;
 
     packed = rasterizer_bitmap_sample_texel(bitmap, uv, 1.0f);
-    color_rgb_int_to_real(out, (uint32_t)packed);
+    halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
 }
 
 void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices)
@@ -109,12 +108,12 @@ void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weig
     uv[1] = (v2 - v0) * weight_2 + (v1 - v0) * weight_1 + v0;
 
     packed = rasterizer_bitmap_sample_texel(bitmap, uv, 0.3f);
-    color_rgb_int_to_real(out, (uint32_t)packed);
+    halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
 }
 
 uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting)
 {
-    ScenarioStructureBSP *bsp = global_structure_bsp;
+    ScenarioStructureBSP *bsp = halo::scenario::globals().structure_bsp;
     real_vector3d *directions;
     int16_t direction_count;
     int16_t direction_index;
@@ -164,7 +163,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
         return 0;
     }
 
-    bsp = global_structure_bsp;
+    bsp = halo::scenario::globals().structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
     shader = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(*(uint32_t *)&material->shader.tag_id)].data;
@@ -177,10 +176,10 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     }
 
     triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
-    lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
     base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[datum_slot(*(uint32_t *)(shader + k_shader_environment_base_map_tag_offset))].data;
-    base_map_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)(shader + k_shader_environment_base_map_tag_offset),
+    base_map_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)(shader + k_shader_environment_base_map_tag_offset),
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + k_bitmap_data_count_offset)));
     if (lightmap_bitmap == 0 || base_map_bitmap == 0 ||
         halo::cache::texture_cache_get(lightmap_bitmap, 1, 1) == 0 || halo::cache::texture_cache_get(base_map_bitmap, 1, 1) == 0) {

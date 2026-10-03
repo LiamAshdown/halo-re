@@ -1,13 +1,14 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern data_array *object_data;
 extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
-extern Scenario *global_scenario;
 extern Globals *global_globals;
 extern int32_t race_used_locations[8];
 extern int32_t race_used_location_count;
@@ -18,11 +19,8 @@ extern datum_index object_new(object_placement_data *placement);
 extern double cos(double x);
 extern double sin(double x);
 extern wchar_t empty_string;
-extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern int32_t game_engine_bucket_scores[16];
 extern uint32_t ctf_team_captured_flags_mask[];
 extern game_engine_definition *current_game_engine;
@@ -142,7 +140,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     }
     race_used_locations[count] = location_index;
     race_used_location_count = count + 1;
-    location = (uint8_t *)global_scenario->netgame_flags.pointer + location_index * 0x94;
+    location = (uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + location_index * 0x94;
     tag = race_pick_vehicle_tag(count);
     if (tag == 0xffffffff) {
         return;
@@ -180,7 +178,7 @@ const uint16_t * RaceEngine::game_text(int16_t index)
 {
     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
+    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -217,19 +215,19 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
     switch (message_type) {
     case 0x24:
     case 0x25:
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x24 ? 0xa8 : 0xa9), player + 4);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x24 ? 0xa8 : 0xa9), player + 4);
         return 1;
     case 0x20:
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xaa), (int32_t)*(int16_t *)(player + 0xc6),
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xaa), (int32_t)*(int16_t *)(player + 0xc6),
             (double)((float)*(int16_t *)&((struct player *)player)->objective_time * 0.033333335f));
         return 1;
     case 0x21:
     case 0x22:
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0xab : 0xac), player + 4,
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0xab : 0xac), player + 4,
             (int32_t)*(int16_t *)(player + 0xc6));
         return 1;
     case 0x26:
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xad),
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xad),
             (double)((float)((struct player *)player)->objective_score * 0.033333335f));
         return 1;
     default:
@@ -240,22 +238,22 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
             if (*(int16_t *)(player + 0xc6) == 1) {
                 const uint16_t *format = game_text(0xae);
 
-                string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient));
+                halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient));
             } else {
                 const uint16_t *format = game_text(0xaf);
 
-                string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), (int32_t)*(int16_t *)(player + 0xc6));
+                halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), (int32_t)*(int16_t *)(player + 0xc6));
             }
             return 1;
         }
         if (*(int16_t *)(player + 0xc6) + 1 > game_engine_variant.score_limit) {
             const uint16_t *format = game_text(0xb0);
 
-            string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient));
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient));
         } else {
             const uint16_t *format = game_text(0xb1);
 
-            string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), *(int16_t *)(player + 0xc6) + 1,
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), *(int16_t *)(player + 0xc6) + 1,
                 game_engine_variant.score_limit);
         }
         return 1;
@@ -269,7 +267,7 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
  */
 wchar_t * RaceEngine::build_player_text(datum_index player, wchar_t *buffer)
 {
-    string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0xc6));
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0xc6));
     return buffer;
 }
 
@@ -281,7 +279,7 @@ uint16_t * RaceEngine::multiplayer_text(int16_t index)
 {
     datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return list == 0xffffffff ? (uint16_t *)L"" : text_string_list_get_string(list, index);
+    return list == 0xffffffff ? (uint16_t *)L"" : halo::text::text_string_list_get_string(list, index);
 }
 
 /**
@@ -303,7 +301,7 @@ wchar_t * RaceEngine::build_score_header_text(wchar_t *buffer)
  */
 wchar_t * RaceEngine::build_team_score_text(int32_t team, wchar_t *buffer)
 {
-    string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", game_engine_bucket_scores[team]);
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", game_engine_bucket_scores[team]);
     return buffer;
 }
 

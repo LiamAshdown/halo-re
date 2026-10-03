@@ -1,4 +1,5 @@
 #include "halo/projectiles/network.hpp"
+#include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -22,16 +23,7 @@ extern void *network_object_index_cache;
 extern void network_index_cache_insert_if_free(void *pooled_node_globals, datum_index object_index, int32_t object_hash);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void network_index_cache_remove(void *globals, uint32_t object_index);
-extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
 extern void object_delete(uint32_t object_index);
-void projectile_apply_network_update(datum_index projectile_index, uint32_t *update_record);
-int32_t projectile_build_network_update(uint32_t projectile_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
-void projectile_network_baseline_take(uint32_t object_index);
-int32_t projectile_send_creation(uint32_t projectile_index);
-void projectile_attach_apply(void *incoming_record);
-void projectile_create_from_network(void *incoming_record);
-void projectile_detonation_message_apply(void *incoming_record);
 }
 
 namespace halo::projectiles {
@@ -519,7 +511,7 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
 
 }
 
-extern "C" {
+namespace halo::projectiles {
 
 void projectile_apply_network_update(datum_index projectile_index, uint32_t *update_record)
 {

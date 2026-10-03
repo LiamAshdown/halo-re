@@ -1,4 +1,5 @@
 #include "halo/objects/flag.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -18,7 +19,6 @@ extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_point3d *global_origin3d_pointer;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *object_data;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
@@ -30,7 +30,6 @@ extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg);
 extern void rasterizer_model_draw_restore_states(void);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
 extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, void *h);
-extern int8_t scenario_location_get_water_and_weather(int32_t *a, void *b);
 extern double sqrt(double x);
 }
 
@@ -382,7 +381,9 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
 
     flag_pole_get_marker_positions(entry, &node_ref, marker_positions, row_table,
                                     row_start_scratch, column_marker_index, tag);
-    moving = scenario_location_get_water_and_weather((int32_t *)&physics_a, (void *)&physics_b);
+    real_point3d water_probe_point = {0.0f, 0.0f, 0.0f};
+    int16_t water_probe_weather = -1;
+    moving = halo::scenario::scenario_location_get_water_and_weather(&water_probe_point, &node_ref, &water_probe_weather);
 
     if (entry->invalid == 0) {
 

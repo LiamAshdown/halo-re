@@ -1,4 +1,6 @@
 #include <string.h>
+#include "halo/models/api.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
@@ -38,7 +40,6 @@ extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint8_t scenario_structure_bsp_locate_point_nudge_up(real_point3d *point);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void object_recalculate_bounding_radius(uint32_t object_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
@@ -47,7 +48,6 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name, uint32_t object_index, char *object_marker_name);
 extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void object_offset_node_translation(uint32_t object_index, real_vector3d *delta);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern uint8_t network_object_index_cache[];
@@ -608,7 +608,7 @@ void UnitView::detach_reposition_and_nudge()
     push.k = push.k * 0.02f;
     object_snap_to_parent_marker_and_detach(unit_index);
     position = *(real_point3d *)&((unit_object *)self)->base.position.x;
-    scenario_structure_bsp_locate_point_nudge_up(&position);
+    halo::scenario::scenario_structure_bsp_locate_point_nudge_up(&position);
     object = OBJECT_DATA(unit_index);
     object_unlink_cluster_or_notify_parent(unit_index);
     ((struct object *)object)->position = position;
@@ -762,7 +762,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
         int16_t animation;
 
         object_copy_default_node_transforms(unit_index, 6);
-        animation = animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, enter_animation, 1);
+        animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, enter_animation, 1);
         reloaded = OBJECT_DATA(unit_index);
         ((struct object *)reloaded)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
         ((struct object *)reloaded)->animation_index = animation;
@@ -2017,7 +2017,7 @@ void UnitView::try_exit_controlled_seat()
             if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == unit_index) {
                 UnitView((int32_t)vehicle_index).notify_weapon_removed();
             }
-            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, animation_choose_random_permutation(graph, exit_animation, 1));
+            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, 1));
             object = OBJECT_DATA(unit_index);
             object_tag = TAG_DATA(*(datum_index *)object);
             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {

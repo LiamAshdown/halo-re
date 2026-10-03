@@ -5,6 +5,7 @@
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/scenario/api.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -22,7 +23,6 @@ extern game_time_globals *game_time;
 extern void object_set_shield_depleted_flag(uint32_t object_index);
 extern void object_delete(uint32_t object_index);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern int16_t global_structure_bsp_index;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
@@ -33,7 +33,6 @@ extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *c
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
@@ -126,7 +125,7 @@ void UnitView::find_nearest_valid_surface_plane()
 
     ::halo::units::unit_get_crouch_height_offset(&position, unit_index, &pill_height, &pill_radius);
     if (!(uint8_t)halo::physics::collision_bsp_query_sphere_init(bsp, 0x100, &result,
-            halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index], &position, pill_radius + 0.05f)) {
+            halo::physics::globals().breakable_surface_state->active[halo::scenario::globals().structure_bsp_index], &position, pill_radius + 0.05f)) {
         return;
     }
     if (result.surface_count <= 0) {
@@ -286,7 +285,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
                 continue;
             }
         }
-        scenario_location_from_point(&location, &point);
+        halo::scenario::scenario_location_from_point(&location, &point);
         if (!(*(uint32_t *)(tag + 0x2f4) & 0x8)) {
             point.z = point.z - *(float *)(tag + 0x42c);
         }

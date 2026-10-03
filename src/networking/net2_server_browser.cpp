@@ -3,6 +3,7 @@
  * Server browser filters, sorting, list rows and join latch.
  */
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include <stdio.h>
 #include <string.h>
@@ -28,7 +29,6 @@
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
-extern void string_format_wide_va_bounded(uint16_t *dest, const char *format, ...);
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag);
 extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name);
@@ -73,9 +73,7 @@ extern ticker_text_buffer server_browser_player_ticker;
 extern ticker_text_buffer server_browser_variant_ticker;
 extern void master_server_list_refresh_request(void);
 extern uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
-extern wchar_t * string_convert_ascii_to_unicode(wchar_t *dest, int32_t dest_bytes, const char *source);
 extern wchar_t string_widen_scratch[0x400];
-extern uint16_t * text_string_list_get_string(datum_index list_id, int16_t index);
 extern int32_t map_list_count;
 extern map_list_entry * map_list;
 extern char server_browser_custom_options_text[];
@@ -214,7 +212,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
     filter[0] = 0;
     if (0 < (int32_t)argument_count) {
         uint16_t *p;
-        string_format_wide_va_bounded(filter, "%s", arguments[0]);
+        halo::text::string_format_wide_va_bounded(0x1f, filter, reinterpret_cast<const uint16_t *>(L"%S"), arguments[0]);
         for (p = filter; *p != 0; p = p + 1) {
             *p = towlower(*p);
         }
@@ -268,7 +266,6 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
 int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 {
     void (*const server_browser_player_list_populate)(void *entry) = reinterpret_cast<void (*)(void *entry)>(&::server_browser_player_list_populate);
-    void (*const string_format_wide_va_bounded)(uint32_t count, uint16_t *dest, const uint16_t *format, ...) = reinterpret_cast<void (*)(uint32_t count, uint16_t *dest, const uint16_t *format, ...)>(&::string_format_wide_va_bounded);
     network_ui_widget *password_panel;
     int32_t clicked;
     int32_t *scroll_target;
@@ -479,7 +476,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 6);
-                string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, player_count);
+                halo::text::string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, player_count);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
         }
@@ -489,7 +486,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 7);
-                string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, server_browser_total_players);
+                halo::text::string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d", scratch_80, server_browser_total_players);
                 *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
             }
         }
@@ -509,7 +506,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
                         current_page = page_count;
                     }
                     join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 8);
-                    string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d/%d", scratch_80, current_page, page_count);
+                    halo::text::string_format_wide_va_bounded(0x1f, w_iter->label_text, (const uint16_t *)L"%s %d/%d", scratch_80, current_page, page_count);
                     *(uint16_t *)((uint8_t *)w_iter->label_text + 0x3e) = 0;
                     w_iter->visible = 1;
                 }
@@ -614,7 +611,7 @@ scroll_fade_settled:
                         autopatch_slot = browser_state::motd_download_slot;
                     } else {
 
-                        string_convert_ascii_to_unicode(browser_state::ticker_message, 0x200, (const char *)(uintptr_t)result_a);
+                        halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(browser_state::ticker_message), 0x200, (const char *)(uintptr_t)result_a);
                         browser_state::ticker_message_terminator = 0;
                     }
                     if (server_browser_selected_index == -1) {
@@ -641,7 +638,7 @@ scroll_fade_settled:
                 browser_state::ticker_message[0] = 0;
                 tag_idx = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
                 if (tag_idx != -1) {
-                    src = text_string_list_get_string(tag_idx, 5);
+                    src = halo::text::text_string_list_get_string(tag_idx, 5);
                     wcsncpy(browser_state::ticker_message, (const wchar_t *)src, 0xff);
                     browser_state::ticker_message_terminator = 0;
                 }
@@ -664,7 +661,7 @@ void ServerBrowser::ticker_string_copy(uint16_t *buffer, int32_t capacity, int32
     tag_index = halo::cache::tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
     if (tag_index != -1) {
-        source = text_string_list_get_string(tag_index, (int16_t)string_index);
+        source = halo::text::text_string_list_get_string(tag_index, (int16_t)string_index);
         wcsncpy((wchar_t *)buffer, (const wchar_t *)source, capacity - 1);
         buffer[capacity - 1] = 0;
     }
@@ -1404,7 +1401,6 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
                                         const char *gametype_name,
                                         uint8_t flag3, int32_t count_a, int32_t count_b, int32_t ping)
 {
-    void (*const string_format_wide_va_bounded)(uint32_t count, wchar_t *dest, const wchar_t *format, ...) = reinterpret_cast<void (*)(uint32_t count, wchar_t *dest, const wchar_t *format, ...)>(&::string_format_wide_va_bounded);
     network_ui_widget *w1;
     network_ui_widget *w2;
     wchar_t *text;
@@ -1419,7 +1415,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x80, widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
-        wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, server_name);
+        wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, server_name));
         wcsncpy((wchar_t *)w2->label_text, source, 0x3f);
         *(uint16_t *)((uint8_t *)w2->label_text + 0x7e) = 0;
     }
@@ -1437,7 +1433,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x40, widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
-        wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, gametype_name);
+        wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, gametype_name));
         wcsncpy((wchar_t *)w2->label_text, source, 0x1f);
         *(uint16_t *)((uint8_t *)w2->label_text + 0x3e) = 0;
     }
@@ -1448,7 +1444,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         if (count_a == -1 || count_b == -1) {
             wcscpy(text, L"");
         } else {
-            string_format_wide_va_bounded(0x1f, text, L"%d / %d", count_a, count_b);
+            halo::text::string_format_wide_va_bounded(0x1f, reinterpret_cast<uint16_t *>(text), reinterpret_cast<const uint16_t *>(L"%d / %d"), count_a, count_b);
             *(uint16_t *)((uint8_t *)w1->label_text + 0x3e) = 0;
         }
     }
@@ -1457,7 +1453,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (0 < ping && ping < 9999) {
-            string_format_wide_va_bounded(7, text, PTR_s_parameter_handles_0063fff0_0x35_006607a0, ping);
+            halo::text::string_format_wide_va_bounded(7, reinterpret_cast<uint16_t *>(text), reinterpret_cast<const uint16_t *>(PTR_s_parameter_handles_0063fff0_0x35_006607a0), ping);
             *(uint16_t *)((uint8_t *)w1->label_text + 0xe) = 0;
             return;
         }
@@ -1468,7 +1464,6 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
 int32_t ServerBrowser::open(network_ui_widget *root)
 {
     uint8_t &network_join_target_address = reinterpret_cast<uint8_t &>(::network_join_target_address);
-    uint16_t * (*const text_string_list_get_string)(int32_t tag_index, int32_t string_index) = reinterpret_cast<uint16_t * (*)(int32_t tag_index, int32_t string_index)>(&::text_string_list_get_string);
     void (*const server_list_reset)(void) = reinterpret_cast<void (*)(void)>(&::server_list_reset);
     void (*const join_game_server_browser_tick)(network_ui_widget *root) = reinterpret_cast<void (*)(network_ui_widget *root)>(&::join_game_server_browser_tick);
     char motd_string[1020];
@@ -1509,7 +1504,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
         tag_index = halo::cache::tag_lookup(0x75737472,
             (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
-            source = text_string_list_get_string(tag_index, 0);
+            source = halo::text::text_string_list_get_string(tag_index, 0);
             wcsncpy(browser_state::ticker_message, (const wchar_t *)source, 0xff);
             browser_state::ticker_message_terminator = 0;
         }
@@ -1733,8 +1728,8 @@ int32_t ServerBrowser::selected_variant_description_build(void *entry)
         gamevariant = SBServerGetStringValue(entry, "gamevariant", 0);
         fraglimit = SBServerGetStringValue(entry, "fraglimit", "0");
         if (player_flags != 0 && game_flags != 0) {
-            string_convert_ascii_to_unicode(gamevariant_wide, 0x800, gamevariant);
-            string_convert_ascii_to_unicode(fraglimit_wide, 0x800, fraglimit);
+            halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(gamevariant_wide), 0x800, gamevariant);
+            halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(fraglimit_wide), 0x800, fraglimit);
             multiplayer_game_variant_description_generate(player_flags, &server_browser_variant_ticker,
                 game_flags, gamevariant_wide, fraglimit_wide);
         }

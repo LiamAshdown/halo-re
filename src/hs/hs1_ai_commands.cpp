@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_ai_commands.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -407,7 +408,7 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (ai_globals_ptr->actors_valid && reference != 0xffffffff && (int32_t)(reference & 0xffff) < *(int32_t *)&global_scenario->encounters.count) {
+    if (ai_globals_ptr->actors_valid && reference != 0xffffffff && (int32_t)(reference & 0xffff) < *(int32_t *)&halo::scenario::globals().scenario->encounters.count) {
         ((uint8_t *)encounter_data->data)[(reference & 0xffff) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
     }
     hs_thread_return(0, thread_index);

@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -11,8 +12,6 @@
 
 extern "C" {
 extern data_array *object_data;
-extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
-extern void animation_aiming_screen_blend(ModelAnimationsAnimation *animation, animation_aiming_screen *screen, real yaw, real pitch, real_orientation *orientation_out);
 extern double fabs(double x);
 extern float fabsf(float x);
 extern uint8_t *global_identity_quaternion_pointer;
@@ -44,7 +43,7 @@ static void blend_fraction(ModelAnimationsAnimation *animation, double fraction,
 {
     int32_t last_frame = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count - 1;
 
-    animation_overlay_interpolated_frame_orientations(animation, (float)((double)last_frame * fraction), orientations);
+    halo::models::animation_overlay_interpolated_frame_orientations(animation, (float)((double)last_frame * fraction), orientations);
 }
 
 }
@@ -84,7 +83,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     indices = (int16_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->animations.pointer;
 
     if (count > 0 && indices[0] != -1) {
-        animation_aiming_screen_blend((ModelAnimationsAnimation *)(animations + indices[0] * 0xb4),
+        halo::models::animation_aiming_screen_blend((ModelAnimationsAnimation *)(animations + indices[0] * 0xb4),
             (animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
     }
     if (count > 1 && indices[1] != -1) {
@@ -121,7 +120,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
         if (((struct Vehicle *)vehicle_tag)->wheel_circumference > 0.0f) {
             fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / ((struct Vehicle *)vehicle_tag)->wheel_circumference;
         }
-        animation_overlay_interpolated_frame_orientations(animation, (float)((double)frames * fraction), orientations);
+        halo::models::animation_overlay_interpolated_frame_orientations(animation, (float)((double)frames * fraction), orientations);
     }
     for (i = 0; i < (int32_t)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->suspension_animations.count; i++) {
         int16_t suspension = *(int16_t *)((uint8_t *)((struct ModelAnimationsAnimationGraphVehicleAnimations *)entry)->suspension_animations.pointer + i * 0x14 + 2);

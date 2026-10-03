@@ -1,8 +1,11 @@
 #include "halo/cutscene/cutscene.hpp"
+#include "halo/text/api.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void game_engine_cleanup_stray_projectiles(void);
@@ -17,16 +20,12 @@ extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern ui_pending_error ui_pending_errors[4];
 extern int32_t ROUND(float x);
 extern float fabsf(float x);
-extern Scenario *global_scenario;
 extern HUDGlobals *hud_globals_tag_data;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
 extern Rectangle2D render_viewport_top;
 extern uint32_t text_shadow_color_argb;
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
-extern void text_set_render_context(datum_index font, ColorARGB *color, int16_t style, int16_t justification, uint32_t flags);
-extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
 
@@ -222,8 +221,8 @@ void CutsceneDirector::letterbox()
 
         {
             ScenarioCutsceneTitle *title =
-                &((ScenarioCutsceneTitle *)global_scenario->cutscene_titles.pointer)[slot->title_index];
-            datum_index help_text_list = *(datum_index *)&global_scenario->ingame_help_text.tag_id;
+                &((ScenarioCutsceneTitle *)halo::scenario::globals().scenario->cutscene_titles.pointer)[slot->title_index];
+            datum_index help_text_list = *(datum_index *)&halo::scenario::globals().scenario->ingame_help_text.tag_id;
 
             
             
@@ -260,7 +259,7 @@ void CutsceneDirector::letterbox()
                     fade = 1.0f;
                 }
 
-                color_argb_int_to_real(&tint, *(uint32_t *)&title->text_color);
+                halo::bitmaps::color_argb_int_to_real(&tint, *(uint32_t *)&title->text_color);
                 tint.alpha *= fade;
 
                 if (fabsf(tint.red - 1.0f) < 0.0001f && fabsf(tint.green - 1.0f) < 0.0001f &&
@@ -271,7 +270,7 @@ void CutsceneDirector::letterbox()
                     if (tint.blue > 0.8f) tint.blue = 0.8f;
                 }
 
-                text_set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1),
+                halo::text::text_set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1),
                     title->justification, title->text_flags);
 
                 shadow_alpha = ROUND((float)title->shadow_color.alpha * fade);
@@ -283,7 +282,7 @@ void CutsceneDirector::letterbox()
                 text_shadow_color_argb =
                     (*(uint32_t *)&title->shadow_color & k_rgb_mask) | ((uint32_t)shadow_alpha << k_alpha_shift);
 
-                help_text = text_string_list_get_string(help_text_list, (int16_t)title->string_index);
+                help_text = halo::text::text_string_list_get_string(help_text_list, (int16_t)title->string_index);
                 dest_rect = (title->text_bounds.right == title->text_bounds.left ||
                              title->text_bounds.bottom == title->text_bounds.top)
                     ? &hud_globals_tag_data->default_chapter_title_bounds

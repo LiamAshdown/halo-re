@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -338,7 +339,6 @@ extern void actor_update_target_lead_position(datum_index actor_index);
 extern uint8_t path_find_test_segment_unobstructed(void *map, real_point3d *point_a, uint8_t ignore_permission,
     int32_t surface_a, real_point3d *point_b, int32_t surface_b, float radius, uint8_t flags,
     path_find_boundary_crossing *out_result);
-extern ScenarioStructureBSP *global_structure_bsp;
 
 extern int32_t global_structure_collision_bsp;
 }
@@ -372,7 +372,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
         step_point.y = step_distance * direction->j + self->body_position.y;
         actor_update_target_lead_position(actor_index);
 
-        trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, (real_point3d *)((uint8_t *)self + 0x168),
+        trace_ok = path_find_test_segment_unobstructed(halo::scenario::globals().structure_bsp, (real_point3d *)((uint8_t *)self + 0x168),
             self->ignores_glass, (int32_t)self->pathfinding_surface_index, &step_point, -1, definition->pathfinding_radius, 0,
             (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {

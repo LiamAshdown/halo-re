@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -7,7 +8,6 @@
 
 extern "C" {
 extern const real_vector3d *global_down3d_pointer;
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern data_array *effect_location_data;
 extern player_globals *local_player_globals;
@@ -45,7 +45,7 @@ void effect_view::environment_probe(uint32_t definition_index, int16_t location_
 
         hit = halo::physics::collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
         if (hit) {
-            uint8_t in_sky = scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
+            uint8_t in_sky = halo::scenario::scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
             int16_t material_type = in_sky ? 0x1c : result.material_type;
 
             halo::effects::material_effects_play_at_marker(definition_index, location_index, material_type,

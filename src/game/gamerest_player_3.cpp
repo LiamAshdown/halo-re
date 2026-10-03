@@ -1,7 +1,7 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_delete(datum_index object_index);
 extern void unit_drop_inventory_weapons_except_current(datum_index unit_handle);
@@ -42,7 +42,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         return;
     }
 
-    profile = (ScenarioPlayerStartingProfile *)((uint8_t *)global_scenario->player_starting_profile.pointer
+    profile = (ScenarioPlayerStartingProfile *)((uint8_t *)halo::scenario::globals().scenario->player_starting_profile.pointer
                                                  + (uint32_t)(uint16_t)starting_profile_index * sizeof(ScenarioPlayerStartingProfile));
 
     if (reset_stats != 0) {

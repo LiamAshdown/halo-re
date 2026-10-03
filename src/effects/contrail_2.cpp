@@ -2,11 +2,11 @@
 #include "halo/memory/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
 extern data_array *contrail_point_data;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 void contrail_refresh_lightmap();
 }
@@ -40,7 +40,7 @@ void contrail_ref::refresh_lightmap()
                     if (leaf == -1) {
                         point->location.cluster_index = -1;
                     } else {
-                        point->location.cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+                        point->location.cluster_index = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                             (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
                     }
                 }

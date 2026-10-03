@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -10,11 +11,6 @@ extern "C" {
 extern data_array *object_data;
 extern float *global_zero_vector2d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void animation_replace_frame_orientations(void *animation, int16_t frame, void *out_orientations);
-extern void animation_overlay_frame_orientations(void *animation, int16_t frame, void *out_orientations);
-extern void animation_overlay_frame_orientations_weighted(void *animation, int16_t frame, float weight, void *out_orientations);
-extern void animation_overlay_interpolated_frame_orientations(void *animation, float frame, void *out_orientations);
-extern void animation_aiming_screen_blend(void *animation, void *screen, real yaw, real pitch, void *orientation_out);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
@@ -70,15 +66,15 @@ void UnitView::update_aiming_overlay_angles(void *output)
     int8_t state;
 
     if (((struct unit_object *)unit)->unit.overlays[0].animation_index != -1) {
-        animation_replace_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[0].animation_index * 0xb4,
+        halo::models::animation_replace_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[0].animation_index * 0xb4,
             (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[0].frame, output);
     }
     if (((struct unit_object *)unit)->unit.overlays[1].animation_index != -1) {
-        animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[1].animation_index * 0xb4,
+        halo::models::animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[1].animation_index * 0xb4,
             (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[1].frame, output);
     }
     if (((struct unit_object *)unit)->unit.overlays[2].animation_index != -1) {
-        animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[2].animation_index * 0xb4,
+        halo::models::animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[2].animation_index * 0xb4,
             (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[2].frame, output);
     }
     ((struct unit_object *)unit)->unit.aiming_bounds_valid = 0;
@@ -99,13 +95,13 @@ void UnitView::update_aiming_overlay_angles(void *output)
             int8_t frame = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame;
 
             if (frame >= 0 && frame < *(int16_t *)(record + 0x22)) {
-                animation_overlay_frame_orientations(record, frame, output);
+                halo::models::animation_overlay_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(record), frame, reinterpret_cast<real_orientation *>(output));
             }
         }
     }
     if (((unit_object *)unit)->unit.mouth_aperture > 0.0f && (int32_t)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.count > 0xa &&
         ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] != -1) {
-        animation_overlay_frame_orientations_weighted(animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] * 0xb4, 0,
+        halo::models::animation_overlay_frame_orientations_weighted(animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[0xa] * 0xb4, 0,
             ((unit_object *)unit)->unit.mouth_aperture, output);
     }
     if ((uint8_t)((struct unit_object *)unit)->unit.animation_state_flags & 2) {
@@ -116,8 +112,8 @@ void UnitView::update_aiming_overlay_angles(void *output)
                 uint8_t *record = animations + ((int16_t *)((struct ModelAnimationsAnimationGraphUnitSeat *)block)->animations.pointer)[slot] * 0xb4;
                 int32_t last_frame = *(int16_t *)(record + 0x22) - 1;
 
-                animation_overlay_interpolated_frame_orientations(record,
-                    (float)last_frame * *(float *)(unit + 0x364 + (slot - 2) * 4), output);
+                halo::models::animation_overlay_interpolated_frame_orientations(reinterpret_cast<ModelAnimationsAnimation *>(record),
+                    (float)last_frame * *(float *)(unit + 0x364 + (slot - 2) * 4), reinterpret_cast<real_orientation *>(output));
             }
         }
     }
@@ -138,7 +134,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector, &aim_yaw, &aim_pitch);
         ((struct unit_object *)unit)->unit.aiming_bounds_valid = 1;
         aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.aiming_bounds);
-        animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
+        halo::models::animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
     }
 
     if (((unit_object *)unit)->unit.current_weapon_index == -1 && ((unit_object *)unit)->unit.controlling_player == k_datum_index_none) {
@@ -154,7 +150,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
         aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.looking_bounds);
-        animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4, screen, look_yaw, look_pitch,
+        halo::models::animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4, screen, look_yaw, look_pitch,
             output);
     }
 }

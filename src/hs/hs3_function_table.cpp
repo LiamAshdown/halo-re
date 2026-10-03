@@ -2,6 +2,7 @@
 #include "crt.h"
 #include <string.h>
 #include <stdio.h>
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -13,8 +14,6 @@ extern char hs_compile_error_buffer[k_hs_error_buffer_size];
 extern int16_t hs_find_function_by_name(char *name);
 extern void hs_format_function_signature(int16_t function_index, char *out);
 extern void chimera__console_out(char *text);
-extern Scenario *global_scenario;
-extern datum_index global_scenario_index;
 }
 
 namespace halo::hs::part3 {
@@ -160,12 +159,12 @@ int16_t FunctionTable::script_find_by_name(char *name) const
     int32_t count;
     int32_t i;
 
-    if (global_scenario_index == k_datum_index_none) {
+    if (halo::scenario::globals().scenario_index == k_datum_index_none) {
         return -1;
     }
-    count = (int32_t)global_scenario->scripts.count;
+    count = (int32_t)halo::scenario::globals().scenario->scripts.count;
     if (0 < count) {
-        scripts = (ScenarioScript *)global_scenario->scripts.pointer;
+        scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
         for (i = 0; i < count; i++) {
             if (strcmp((char *)name, scripts[i].name.string) == 0) {
                 return (int16_t)i;

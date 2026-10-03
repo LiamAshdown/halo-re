@@ -1,4 +1,5 @@
 #include "halo/game/game2_variants.hpp"
+#include "halo/text/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_active_variant;
@@ -9,7 +10,6 @@ extern game_variant_history_entry *game_variant_history;
 extern uint32_t game_variant_history_count;
 extern uint32_t game_variant_history_capacity;
 extern uint32_t game_engine_is_map_and_variant_valid(const char *map_path, const char *variant_name);
-extern char *string_convert_unicode_to_ascii(uint32_t size);
 }
 
 namespace halo::game {
@@ -58,7 +58,7 @@ uint32_t GameVariantRules::variant_add_to_history(char *name, game_variant *opti
     if (path == 0) {
         int32_t length = (int32_t)wcslen((const wchar_t *)options);
         name_copy = GlobalAlloc(0, (uint32_t)length + 1);
-        path = string_convert_unicode_to_ascii((uint32_t)length + 1);
+        path = reinterpret_cast<char *>(halo::text::string_convert_unicode_to_ascii(static_cast<uint8_t *>(name_copy), reinterpret_cast<uint16_t *>(options), length + 1));
         ((char *)name_copy)[length] = 0;
     } else {
         size_t length = strlen(path);

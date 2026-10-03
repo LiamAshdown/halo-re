@@ -1,15 +1,46 @@
 /**
- * @file include/halo/text/text_c_api.h
- * The C ABI of the text module: every original function with its original signature and C linkage.
- * Defined in src/text/text_c_api.cpp; documented on the halo::text C++ API.
+ * @file include/halo/text/api.hpp
+ * Functions of the text module that other modules and the data tables call (namespace halo::text). The record types are
+ * forward-declared, so the header is light enough for every caller and for the data tables.
  */
 #pragma once
 
-#include "halo/text/text.hpp"
+#include <stdarg.h>
+#include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+
+struct ColorARGB;
+struct Font;
+struct FontCharacter;
+struct Point2DInt;
+struct Rectangle2D;
+struct text_parse_state;
+typedef uint32_t datum_index;
+typedef void (*text_glyph_draw_proc)(text_parse_state *state, void *font, void *character,
+    uint32_t color, int16_t x, int16_t y, int16_t source_x, int16_t source_y,
+    int16_t width, int16_t height);
+
+namespace halo::text {
+
+/**
+ * The engine globals the text module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    ColorARGB &hud_text_draw_color_a;
+    datum_index &hud_text_draw_font_tag_id;
+    int16_t &hud_text_draw_background_mode;
+    int16_t &hud_text_draw_color_or_flags;
+    int16_t &hud_text_draw_column;
+    uint32_t &hud_text_draw_unknown_4730;
+    datum_index &localization_strings;
+    float &color_scale;
+    int16_t &ui_prompt_clip_x;
+    int16_t &ui_prompt_clip_y;
+};
+
+Globals &globals();
 
 uint8_t text_char_is_double_byte(uint8_t *string);
 uint16_t text_get_next_character(uint8_t *string, int16_t *cursor);
@@ -36,6 +67,4 @@ void text_measure_glyph_callback(text_parse_state *state, void *font, void *char
 void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 
-#ifdef __cplusplus
 }
-#endif

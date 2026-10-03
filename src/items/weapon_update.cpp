@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/models/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
@@ -10,7 +11,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
 extern char *weapon_blur_permutation_names[2];
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
-extern animation_state_advance_result animation_state_advance(uint32_t animation_graph_tag_index, animation_state *state, int32_t *sound_tag_id, animation_random_stream random_stream);
 extern game_time_globals *game_time;
 int32_t halo::items::weapon_update(datum_index item_index);
 void halo::items::weapon_update_function_values(uint32_t object_index);
@@ -59,7 +59,7 @@ int32_t weapon_ref::update()
 
     if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != (datum_index)0xffffffff &&
         item_obj->animation_index != -1) {
-        int16_t kind = (int16_t)animation_state_advance(*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id,
+        int16_t kind = (int16_t)halo::models::animation_state_advance(*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id,
                                                         (animation_state *)((uint8_t *)item_obj + 0xd0), 0,
                                                         (animation_random_stream)1);
         if (kind == 1) {

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
@@ -296,14 +297,12 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
 extern "C" { extern double fabs(double x); }
 extern "C" { extern ModelCollisionGeometryBSP *global_collision_bsp; }
-extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
 extern "C" { extern uint8_t material_table_warning_issued; }
 extern "C" { extern int32_t material_table_bad_index; }
 extern "C" { extern uint8_t material_table_fallback[0x374]; }
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
-extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
 extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 namespace halo::physics {
 
@@ -384,7 +383,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
         mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
 
         offset.i = mp->position_x - obj->position.x;
         offset.j = mp->position_y - obj->position.y;
@@ -404,7 +403,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
         mp->velocity_k = velocity.k;
 
         halo::physics::object_physics_mass_point_resolve_ground_contact(context->object_index, mp, mp_def);
-        mp->water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
+        mp->water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
             (real_point3d *)&mp->position_x);
 
         if (0.0f < mp->ground_depth) {

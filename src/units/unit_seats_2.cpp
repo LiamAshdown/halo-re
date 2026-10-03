@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -31,7 +32,6 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern object *object_iterator_next(void *iterator);
 }
 
@@ -240,7 +240,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
                 if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == child_index) {
                     UnitView((int32_t)vehicle_index).notify_weapon_removed();
                 }
-                UnitView(child_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, animation_choose_random_permutation(graph, exit_animation, 1));
+                UnitView(child_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, 1));
                 object = OBJECT_DATA(child_index);
                 object_tag = TAG_DATA(*(datum_index *)object);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {

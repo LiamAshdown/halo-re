@@ -12,6 +12,7 @@
 #include "halo/math/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" { uint8_t halo::physics::physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { int16_t halo::physics::physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta, physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts, physics_model_contact *contacts); }
@@ -34,9 +35,7 @@ extern "C" { uint32_t halo::physics::physics_shape_test_ray(physics_model *model
 extern "C" { void halo::physics::physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex, int16_t material_type, float height_offset, float radius, uint32_t object_index, int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index); }
 
 extern "C" { extern ModelCollisionGeometryBSP *global_structure_collision_bsp; }
-extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
-extern "C" { extern int16_t global_structure_bsp_index; }
 extern "C" { extern data_array *object_data; }
 extern "C" { extern object_globals *object_globals_pointer; }
 extern "C" { extern int32_t object_cluster_stamp; }
@@ -68,7 +67,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
     if ((flags & 0x20) != 0 || (flags & 0xc0) != 0) {
         found_surface = (uint8_t)halo::physics::collision_bsp_query_sphere_init(global_structure_collision_bsp,
             k_maximum_breakable_surfaces_per_bsp, &sphere_result,
-            breakable_surface_state->active[global_structure_bsp_index], center,
+            breakable_surface_state->active[halo::scenario::globals().structure_bsp_index], center,
             radius + 0.0625f);
 
         if (found_surface && (flags & 0x20) != 0) {
@@ -91,7 +90,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
 
             for (i = 0; i < sphere_result.leaf_count; i++) {
                 int16_t cluster_index = ((ScenarioStructureBSPLeaf *)
-                    global_structure_bsp->leaves.pointer)[sphere_result.leaves[i] & 0x7fffffff].cluster;
+                    halo::scenario::globals().structure_bsp->leaves.pointer)[sphere_result.leaves[i] & 0x7fffffff].cluster;
 
                 if (halo::structures::globals().cluster_visit_stamp[cluster_index] != halo::structures::globals().cluster_flood_stamp) {
                     datum_index ref;
@@ -452,7 +451,7 @@ uint8_t PhysicsModelOps::point_refresh_leaf(real_point3d *point, float radius)
         collision_bsp_sphere_result result;
         uint32_t *breakable_surfaces =
             (uint32_t *)((uint8_t *)breakable_surface_state + 1 +
-                         global_structure_bsp_index * 0x20);
+                         halo::scenario::globals().structure_bsp_index * 0x20);
 
         if (!halo::physics::collision_bsp_query_sphere_init(global_structure_collision_bsp,
                                               k_maximum_breakable_surfaces_per_bsp, &result,

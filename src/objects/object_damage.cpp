@@ -19,6 +19,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -38,7 +39,6 @@ extern game_time_globals *game_time;
 extern real_vector3d *global_down3d_pointer;
 extern Globals *global_globals;
 extern real_vector3d *global_origin3d_pointer;
-extern int16_t global_structure_bsp_index;
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
 extern player_globals *local_player_globals;
@@ -1712,7 +1712,7 @@ void halo::objects::DamageSystem::breakable_surfaces_reset()
 int8_t halo::objects::DamageSystem::breakable_surface_is_intact(int16_t bit_index)
 {
     if (bit_index != -1) {
-        uint32_t word = halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][bit_index >> 5];
+        uint32_t word = halo::physics::globals().breakable_surface_state->active[halo::scenario::globals().structure_bsp_index][bit_index >> 5];
         if ((word & (1 << (bit_index & 0x1f))) == 0) {
             return 0;
         }

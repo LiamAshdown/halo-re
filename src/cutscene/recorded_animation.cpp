@@ -3,9 +3,9 @@
 #include "halo/core/flags.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern data_array *recorded_animations;
 extern data_array *object_data;
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4];
@@ -49,7 +49,7 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
     if (scenario_animation_index == -1) {
         return 0;
     }
-    if ((int32_t)scenario_animation_index >= (int32_t)global_scenario->recorded_animations.count) {
+    if ((int32_t)scenario_animation_index >= (int32_t)halo::scenario::globals().scenario->recorded_animations.count) {
         return 0;
     }
 

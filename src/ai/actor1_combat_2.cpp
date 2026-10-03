@@ -1,4 +1,5 @@
 #include "halo/ai/actor_combat.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -10,7 +11,6 @@ extern double sqrt(double x);
 
 extern const real_vector3d *global_down3d_pointer;
 
-extern uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
     uint32_t exclude_object, void *result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
@@ -38,7 +38,7 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
     uint8_t direct_clear;
     float fraction = 0.0f;
 
-    if (self_cluster != -1 && target_cluster != -1 && !scenario_cluster_visibility_test(self_cluster, target_cluster)) {
+    if (self_cluster != -1 && target_cluster != -1 && !halo::scenario::scenario_cluster_visibility_test(self_cluster, target_cluster)) {
         return 4;
     }
     mask = allow_wide_mask ? 0xc2b3 : 0xc2a7;

@@ -116,7 +116,7 @@ typedef enum bitmap_data_flags {
 // color_interpolate (0x43f6a0) flags argument. Same bits as the tag field
 // ColorInterpolationFlags (blend_in_hsv, more_colors) in types/tags.h.
 // ---------------------------------------------------------------------------
-typedef enum color_interpolation_flags {
+typedef enum color_interpolation_flags : int {
     _color_interpolation_hsv_bit = 0x1,       // blend in HSV space, else a plain RGB lerp
     _color_interpolation_long_hue_path_bit = 0x2 // with hsv: take the hue path longer than 0.5
                                               // (the smaller hue gets +1.0 when |h0 - h1| <= 0.5)

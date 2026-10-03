@@ -17,10 +17,10 @@
 #include "halo/game/game1_ctf.hpp"
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
-extern Scenario *global_scenario;
 extern game_variant game_engine_variant;
 extern int32_t ctf_team_flag_touch_count[2];
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
@@ -99,11 +99,11 @@ int32_t Ctf::pick_random_flag(int32_t exclude_flag_index)
     pick = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                       (uint32_t)(int32_t)(int16_t)active_count) >> 0x10);
 
-    flag_count = (int32_t)global_scenario->netgame_flags.count;
+    flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
     if (flag_count < 1) {
         return -1;
     }
-    flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
 
     for (i = 0; i < flag_count; i++) {
         if (flags[i].type == 3 && flags[i].usage_id != exclude_flag_index) {
@@ -282,8 +282,8 @@ void Ctf::return_all_flags(void)
         for (i = 0; i < (int32_t)(sizeof(ctf_globals_live) / 4); i++) raw[i] = 0;
     }
 
-    flag_count = (int32_t)global_scenario->netgame_flags.count;
-    flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+    flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
 
     for (i = 0; i < flag_count; i++) {
         int32_t usage_id;
@@ -325,7 +325,7 @@ void Ctf::return_all_flags(void)
  */
 void Ctf::score_flag(uint32_t team, int32_t scenario_flag_index)
 {
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
     int16_t usage_id = flags[scenario_flag_index].usage_id;
     uint32_t idx = team & 0xffff;
 

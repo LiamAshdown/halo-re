@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/text/api.hpp"
 
 extern "C" {
 extern int32_t hud_text_message_time_base;
@@ -11,7 +12,6 @@ extern int32_t hud_text_message_cycle_state_00719230;
 extern ColorARGB *hud_text_message_hold_color;
 extern ColorARGB *hud_text_message_normal_color;
 extern int32_t hud_text_draw_font_tag_id;
-extern ColorARGB hud_text_draw_color_a;
 extern uint32_t hud_text_draw_color_or_flags;
 extern int32_t hud_text_draw_unknown_4730;
 extern uint16_t missing_string_text[];
@@ -122,7 +122,7 @@ draw:
             dest.bottom = (int16_t)entry->end_time;
             dest.top = (int16_t)entry->start_time;
             hud_text_draw_font_tag_id = *(int32_t *)&((struct UIWidgetDefinition *)tag)->text_font.tag_id;
-            hud_text_draw_color_a = *color;
+            halo::text::globals().hud_text_draw_color_a = *color;
             hud_text_draw_color_or_flags = 0x0002ffff;
             hud_text_draw_unknown_4730 = 0;
             chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);

@@ -5,6 +5,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -15,7 +16,6 @@ extern real_point2d decal_clip_buffers[2][12];
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
@@ -542,7 +542,7 @@ void decal_ref::rehash_object_decals()
             int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &self->position);
 
             if (leaf != -1) {
-                int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
+                int16_t cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer +
                     (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
                 if (cluster != -1) {

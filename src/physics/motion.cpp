@@ -14,6 +14,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
 extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
@@ -84,7 +85,6 @@ void PhysicsMotion::clamp_value_to_spring_range(float *value, physics_scalar_rat
 }
 
 extern "C" { extern data_array *object_data; }
-extern "C" { extern ScenarioStructureBSP *global_structure_bsp; }
 namespace halo::physics {
 
 /**
@@ -112,7 +112,7 @@ int16_t PhysicsMotion::resolve_material_type(uint32_t object_index, int16_t vert
     }
 
     return ((ScenarioStructureBSPCollisionMaterial *)
-        global_structure_bsp->collision_materials.pointer)[vertex_slot].material;
+        halo::scenario::globals().structure_bsp->collision_materials.pointer)[vertex_slot].material;
 }
 
 }

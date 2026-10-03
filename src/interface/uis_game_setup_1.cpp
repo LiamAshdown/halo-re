@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -63,7 +64,6 @@ extern char last_profile_name[];
 extern void saved_game_delete_files(void);
 extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name);
 extern void saved_game_last_profile_clear(char *name);
-extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 }
 
@@ -402,7 +402,7 @@ uint8_t UiGameSetup::variant_name_is_available(const uint16_t *name)
 {
     char narrow[0x24];
 
-    string_convert_unicode_to_ascii((uint8_t *)narrow, (uint16_t *)name, 0x20);
+    halo::text::string_convert_unicode_to_ascii((uint8_t *)narrow, (uint16_t *)name, 0x20);
     return game_engine_get_variant_by_name(narrow, (game_variant *)0) == 0;
 }
 

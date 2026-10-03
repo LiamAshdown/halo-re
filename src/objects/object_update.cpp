@@ -3,18 +3,17 @@
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/models/api.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "game.h"
 #include "models.h"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
-extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model, int16_t frame, real_orientation *out_orientations);
-extern void animation_overlay_frame_orientations_weighted(ModelAnimationsAnimation *animation, int16_t frame, float weight, real_orientation *out_orientations);
-extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern double atan2(double y, double x);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern double fabs(double x);
 extern float fabsf(float x);
 extern double floor(double x);
@@ -22,9 +21,6 @@ extern double fmod(double x, double y);
 extern double fpatan(double y, double x);
 extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
-extern Scenario *global_scenario;
-extern void model_nodes_blend_transforms(real_orientation *in_out, int16_t node_count, real_orientation *other, int16_t step, int16_t steps);
-extern void model_nodes_get_default_transforms(GBXModel *model, real_orientation *out);
 extern int16_t network_game_mode;
 extern data_array *object_data;
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
@@ -239,7 +235,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
                 value = *output;
             } else {
                 float yaw = (float)fpatan(forward[0], forward[1]);
-                value = angle_delta_wrapped(global_scenario->local_north, yaw) * 0.15915494f + 0.5f;
+                value = angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
             break;
@@ -253,7 +249,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
 }
 
 namespace {
-static uint8_t * &global_scenario__as_object_function_evaluate_input = reinterpret_cast<uint8_t * &>(global_scenario);
+static uint8_t * &global_scenario__as_object_function_evaluate_input = reinterpret_cast<uint8_t * &>(halo::scenario::globals().scenario);
 }
 
 /**
@@ -437,10 +433,10 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             } else {
                 frame = (uint16_t)((struct object *)obj)->animation_frame;
             }
-            animation_get_frame_orientations(animation, (GBXModel *)model, (int16_t)frame, orientations);
+            halo::models::animation_get_frame_orientations(animation, (GBXModel *)model, (int16_t)frame, orientations);
             absolute_root = (uint8_t)(((uint8_t)animation->flags >> 1) & 1);
         } else {
-            model_nodes_get_default_transforms((GBXModel *)model, orientations);
+            halo::models::model_nodes_get_default_transforms((GBXModel *)model, orientations);
         }
 
         if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
@@ -460,11 +456,11 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         if ((OFS(OFS(def, 0x15c, uint8_t *), (int32_t)entry[1] * 0x168, uint8_t) & 2) == 0) {
                             frames -= 1;
                         }
-                        animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
+                        halo::models::animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
                     } else if (entry[2] == 1) {
                         uint32_t frame = ((uint32_t)game_time->game_time + object_index) %
                             (uint32_t)(int32_t)(int16_t)animation->frame_count;
-                        animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
+                        halo::models::animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
                     }
                 }
             }
@@ -482,7 +478,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         }
         if (((struct object *)obj)->node_function_count > 0) {
 
-            model_nodes_blend_transforms(orientations, OFS(model, 0xb8, int16_t),
+            halo::models::model_nodes_blend_transforms(orientations, OFS(model, 0xb8, int16_t),
                 (real_orientation *)(obj + ((struct object *)obj)->node_function_values.offset), (int16_t)(uint16_t)((struct object *)obj)->interpolation_frame_index,
                 (int16_t)(uint16_t)((struct object *)obj)->node_function_count);
         }
@@ -632,7 +628,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
                 if (weight <= *(float *)permutation) {
                     float t = (float)fmod(fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, 1, t);
+                    halo::bitmaps::color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, 1, t);
                     break;
                 }
             }
@@ -787,7 +783,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
             if (tag_color->scale_by != 0) {
                 float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
 
-                color_interpolate((ColorRGB *)&tag_color->color_upper_bound, (ColorRGB *)((uint8_t *)tag_color + 8), out,
+                halo::bitmaps::color_interpolate((ColorRGB *)&tag_color->color_upper_bound, (ColorRGB *)((uint8_t *)tag_color + 8), out,
                     *(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags, t);
             }
             if (tag_color->darken_by != 0) {

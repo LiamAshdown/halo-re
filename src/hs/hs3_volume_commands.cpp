@@ -1,4 +1,5 @@
 #include "halo/hs/hs3_commands.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -7,7 +8,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void hs_reposition_players_outside_trigger_volume(int32_t trigger_volume_index, int32_t location_index);
 extern data_array *object_data;
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern char hs_object_list_test_trigger_volume(int32_t trigger_volume_index, datum_index header_index, char all_mode);
 }
 
@@ -49,7 +49,7 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
         if ((uint32_t)arguments[1] != 0xffffffff) {
             uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[1] & 0xffff].data;
 
-            inside = scenario_trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
+            inside = halo::scenario::scenario_trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
         }
         hs_thread_return((int32_t)inside, thread_index);
     }

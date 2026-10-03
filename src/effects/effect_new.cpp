@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -14,7 +15,6 @@ extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const 
 extern uint8_t first_person_effects_enabled;
 extern data_array *object_data;
 extern void *effect_marker_callback_context;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
 }
 
@@ -247,7 +247,7 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
         leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, position);
         self->location.leaf_index = leaf;
         self->location.cluster_index = (leaf == -1) ? -1 :
-            *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+            *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
 
         if (velocity == 0) {
             velocity = (const real_vector3d *)global_origin3d_pointer;

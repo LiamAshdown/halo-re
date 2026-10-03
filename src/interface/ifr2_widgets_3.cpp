@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include <wchar.h>
 
@@ -13,12 +14,9 @@ extern double cos(double x);
 extern void *ui_replace_function_table[4];
 extern uint16_t ui_invalid_replacement_text[];
 extern uint16_t ui_out_of_memory_text[];
-extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
-extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text);
 extern float widget_instance_get_cumulative_scale(widget_instance *widget);
 extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out);
-extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t unknown_0, int32_t justification, int32_t unknown_1);
 extern uint8_t ui_string_has_button_prompt_token(uint16_t *text);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 extern void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_text_color, const uint16_t *text);
@@ -48,7 +46,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         if (index == -1) {
             index = *(int16_t *)&((struct UIWidgetDefinition *)t)->string_list_index;
         }
-        src = text_string_list_get_string(*(datum_index *)&tag->text_label_unicode_strings_list.tag_id, index);
+        src = halo::text::text_string_list_get_string(*(datum_index *)&tag->text_label_unicode_strings_list.tag_id, index);
         byte_len = wcslen((const wchar_t *)src) * 2;
         buf = (uint16_t *)halo::memory::heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
         widget->text = buf;
@@ -82,7 +80,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             } else {
                 replacement = (const uint16_t *)((ui_search_replace_function)ui_replace_function_table[fn])(widget);
             }
-            ui_string_replace_all(string_convert_ascii_to_unicode(search, 0x40, (const char *)entry), replacement,
+            ui_string_replace_all(halo::text::string_convert_ascii_to_unicode(search, 0x40, (const char *)entry), replacement,
                                   (uint16_t **)&widget->text);
         }
     }
@@ -134,7 +132,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             color.alpha = (float)((cos(time * 0.003) + 1.5) * 0.4 * (double)color.alpha);
         }
 
-        text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
+        halo::text::text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
         if (ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
             chimera__draw_16_bit_text(&rects[1], &rects[0], 0, 0, (uint16_t *)widget->text);
             return;

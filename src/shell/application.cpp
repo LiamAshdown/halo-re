@@ -11,6 +11,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -85,7 +86,6 @@ extern uint32_t global_scenario_index;
 extern uint16_t global_structure_bsp_index;
 extern uint16_t *global_scenario_game_globals;
 extern uint32_t global_scenario;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern uint32_t global_collision_bsp;
 extern uint32_t global_globals;
@@ -184,7 +184,7 @@ void EngineLifecycle::shutdown()
     global_structure_bsp_index = k_word_none;
     *global_scenario_game_globals = k_word_none;
     global_scenario = 0;
-    global_structure_bsp = 0;
+    halo::scenario::globals().structure_bsp = 0;
     global_structure_collision_bsp = 0;
     global_collision_bsp = 0;
     global_globals = 0;

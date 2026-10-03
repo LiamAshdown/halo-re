@@ -1,4 +1,5 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/shaders/api.hpp"
 
 #include "game.h"
 #include "interface.h"
@@ -18,9 +19,6 @@ extern void hud_set_help_text(int16_t message_index);
 extern void hud_set_objective_text(int16_t message_index);
 extern void hud_set_timer_time(int32_t minutes, int32_t seconds);
 extern uint8_t *hud_weapon_state;
-extern int16_t numeric_countdown_timer_get_digit(int16_t digit_index);
-extern uint8_t numeric_countdown_timer_running;
-extern int32_t numeric_countdown_timer_remaining_ms;
 extern void hud_pause_timer(uint8_t paused);
 extern uint8_t *hud_flags;
 #ifdef __cplusplus
@@ -367,7 +365,7 @@ void HudCommands::evaluate_numeric_countdown_timer_get(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_thread_return((int32_t)(uint16_t)(numeric_countdown_timer_get_digit((int16_t)arguments[0])), thread_index);
+        hs_thread_return((int32_t)(uint16_t)(halo::shaders::numeric_countdown_timer_get_digit((int16_t)arguments[0])), thread_index);
     }
 }
 
@@ -379,7 +377,7 @@ void HudCommands::evaluate_numeric_countdown_timer_get(int16_t function_index, u
  */
 void HudCommands::evaluate_numeric_countdown_timer_restart(int16_t function_index, uint32_t thread_index, char first)
 {
-    numeric_countdown_timer_running = 1;
+    halo::shaders::globals().numeric_countdown_timer_running = 1;
     hs_thread_return(0, thread_index);
 }
 
@@ -396,8 +394,8 @@ void HudCommands::evaluate_numeric_countdown_timer_set(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        numeric_countdown_timer_remaining_ms = arguments[0];
-        numeric_countdown_timer_running = *(uint8_t *)&arguments[1];
+        halo::shaders::globals().numeric_countdown_timer_remaining_ms = arguments[0];
+        halo::shaders::globals().numeric_countdown_timer_running = *(uint8_t *)&arguments[1];
         hs_thread_return(0, thread_index);
     }
 }
@@ -412,7 +410,7 @@ void HudCommands::evaluate_numeric_countdown_timer_stop(int16_t function_index, 
 {
     (void)function_index;
     (void)first;
-    numeric_countdown_timer_running = 0;
+    halo::shaders::globals().numeric_countdown_timer_running = 0;
     hs_thread_return(0, thread_index);
 }
 

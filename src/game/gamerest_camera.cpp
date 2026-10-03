@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include "halo/physics/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *player_data;
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t camera_observer_generate_target_candidates(observer_target_cone *cone, int16_t start_cluster, real_point3d *observer_position, real_vector3d *facing, datum_index exclude_object, int16_t team, int16_t capacity, observer_target_candidate *out);
 extern int32_t camera_observer_target_compare(const observer_target_candidate *a, const observer_target_candidate *b);
 extern char camera_observer_target_is_valid(datum_index exclude_object, real_point3d *observer_position, real_point3d *target_position, datum_index target_object);
@@ -112,7 +112,7 @@ char CameraObserver::find_best_target(real_point3d *observer_position, observer_
     if (cluster != -1) {
 
         start_cluster = *(int16_t *)((cluster & 0x7fffffff) * 0x10 + 8 +
-                                     *(int32_t *)&global_structure_bsp->leaves.pointer);
+                                     *(int32_t *)&halo::scenario::globals().structure_bsp->leaves.pointer);
         if (start_cluster != -1) {
             candidate_count = CameraObserver::generate_target_candidates(cone, start_cluster, observer_position, facing, exclude_object, team, 64, candidates);
             if (candidate_count < 1) {

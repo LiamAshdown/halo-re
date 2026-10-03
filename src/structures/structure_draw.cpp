@@ -9,6 +9,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void **rasterizer_dynamic_index_buffer;
@@ -16,7 +17,6 @@ extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern breakable_surface_globals *breakable_surface_state;
-extern int16_t global_structure_bsp_index;
 extern const real_point3d *global_origin3d_pointer;
 extern int16_t render_force_flag;
 extern int32_t rasterizer_device_version;
@@ -64,8 +64,8 @@ int32_t structure_draw::build_visible_surface_geometry(int32_t *visible_surface_
 
 void structure_draw::leaf_faces_gather_masked(int32_t *out_surface_indices, uint32_t *surface_bits, ScenarioStructureBSPSurface *out_faces)
 {
-    int32_t surface_count = global_structure_bsp->surfaces.count;
-    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer;
+    int32_t surface_count = halo::scenario::globals().structure_bsp->surfaces.count;
+    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)halo::scenario::globals().structure_bsp->surfaces.pointer;
     int32_t surface_index = 0;
     int32_t out_count = 0;
 
@@ -88,7 +88,7 @@ void structure_draw::leaf_faces_gather_masked(int32_t *out_surface_indices, uint
 
 void structure_draw::leaf_faces_gather_list(int16_t face_count, ScenarioStructureBSPSurface *out_faces, int32_t *face_indices)
 {
-    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer;
+    ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)halo::scenario::globals().structure_bsp->surfaces.pointer;
     int32_t i;
 
     halo::cseries::qsort_dword_array((uint32_t)(int32_t)face_count, face_indices, structure_leaf_face_index_compare);
@@ -104,9 +104,9 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
     int32_t surface_offset = 0;
     int16_t lightmap_index;
 
-    for (lightmap_index = 0; lightmap_index < global_structure_bsp->lightmaps.count; lightmap_index = lightmap_index + 1) {
+    for (lightmap_index = 0; lightmap_index < halo::scenario::globals().structure_bsp->lightmaps.count; lightmap_index = lightmap_index + 1) {
         ScenarioStructureBSPLightmap *lightmap =
-            (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer + lightmap_index;
+            (ScenarioStructureBSPLightmap *)halo::scenario::globals().structure_bsp->lightmaps.pointer + lightmap_index;
         ScenarioStructureBSPMaterial *materials =
             (ScenarioStructureBSPMaterial *)lightmap->materials.pointer;
         int32_t material_count = lightmap->materials.count;
@@ -120,7 +120,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
 
             if (global_structure_bsp->lightmaps_bitmap.tag_id.index != k_word_none) {
                 uint16_t bitmap_index = lightmap->bitmap;
-                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[global_structure_bsp->lightmaps_bitmap.tag_id.index].data;
+                Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id.index].data;
                 if (bitmap != 0 && bitmap_index < bitmap->bitmap_data.count) {
                     bitmap_data = (uint8_t *)bitmap->bitmap_data.pointer + bitmap_index * sizeof(BitmapData);
                 }
@@ -152,7 +152,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                         consumed = (int16_t)(scan - surface_indices);
 
                         if (material->breakable_surface == (uint16_t)-1 ||
-                            (breakable_surface_state->active[global_structure_bsp_index][bit_array_word(material->breakable_surface)] &
+                            (halo::physics::globals().breakable_surface_state->active[global_structure_bsp_index][bit_array_word(material->breakable_surface)] &
                              bit_array_mask(material->breakable_surface)) != 0) {
                             if (render::shader_type_is_transparent(shader->shader_type)) {
                                 if (transparent_material_cb != 0) {

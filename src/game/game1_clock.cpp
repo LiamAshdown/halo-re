@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/shaders/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -22,7 +23,6 @@ extern game_main_globals *main_game_globals;
 extern game_time_globals *game_time;
 extern real chimera_contrail_scale;
 extern void widgets_update_all(real tick_delta_time);
-extern void numeric_countdown_timer_update(void);
 extern int16_t network_game_mode;
 extern double floor(double x);
 extern int32_t game_time_force_single_tick;
@@ -79,7 +79,7 @@ void SimulationClock::effects_update(real delta_time)
     halo::sound::game_sound_update();
     halo::effects::weather_update();
     chimera_contrail_scale = delta_time;
-    numeric_countdown_timer_update();
+    halo::shaders::numeric_countdown_timer_update();
 }
 
 /**

@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "halo/bitmaps/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -61,7 +62,6 @@ extern data_array *contrail_point_data;
 extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 extern data_array *contrail_data;
 extern uint8_t particle_spawn_debug_mode;
@@ -701,7 +701,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
     ContrailPointState *states;
     real_vector3d fade_normal;
 
-    bitmap = bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
+    bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
                                                    c->frame_index, c->sequence_index);
     rasterizer_vertex_buffer_lock_state = 0xf;
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {

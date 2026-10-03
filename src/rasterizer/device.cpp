@@ -6,6 +6,7 @@
 
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
@@ -15,7 +16,6 @@ extern "C" {
 extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, float z_near, float z_far);
 extern void os_platform_identify(void);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
-extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y);
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
@@ -325,7 +325,7 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
 
                 for (row = 0; row < rows; row++) {
                     const uint8_t *source = (const uint8_t *)(uintptr_t)locked.bits + (int32_t)row * locked.pitch;
-                    void *destination = bitmap_data_get_row_address(bitmap, 0, left, top + row);
+                    void *destination = halo::bitmaps::bitmap_data_get_row_address(bitmap, 0, left, top + row);
 
                     memcpy(destination, source, (size_t)row_bytes);
                 }
@@ -1473,7 +1473,7 @@ void rasterizer_shutdown(void)
 
     if (g_font_glyph_cache.initialized != 0) {
         font_glyph_cache_clear_all();
-        bitmap_data_free((BitmapData *)g_font_glyph_cache.atlas);
+        halo::bitmaps::bitmap_data_free((BitmapData *)g_font_glyph_cache.atlas);
         g_font_glyph_cache.initialized = 0;
     }
 

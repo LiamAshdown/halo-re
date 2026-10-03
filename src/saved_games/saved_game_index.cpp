@@ -1,5 +1,6 @@
 #include "halo/saved_games/globals.hpp"
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -17,11 +18,11 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/layout.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
 extern uint16_t missing_string_text[];
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
     uint32_t out_path_size);
 extern int32_t savegame_find_first(const char *root, void *out_find_data);
@@ -71,7 +72,6 @@ extern uint8_t saved_game_index_file_open;
 extern uint32_t game_state_crc;
 extern int16_t local_player_count;
 extern uint32_t cache_file_current_header_crc32;
-extern datum_index global_scenario_index;
 extern char *rasterizer_shader_file_name;
 extern int32_t strcmp(const char *a, const char *b);
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
@@ -116,7 +116,7 @@ void allocate_new_slot(uint16_t *out_name)
                 }
             }
             next_number = number + 1;
-            string_format_wide_va_bounded(k_saved_game_display_name_length - 1, out_name, format_string, next_number);
+            halo::text::string_format_wide_va_bounded(k_saved_game_display_name_length - 1, out_name, format_string, next_number);
             out_name[0x7f] = 0;
             create_result = XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, k_saved_game_path_length);
             if (create_result != 0) {
@@ -1421,7 +1421,7 @@ void list_rebuild_index(void)
                             goto have_candidate;
                         }
                     }
-                    string_format_wide_va_bounded(0xff, log_scratch,
+                    halo::text::string_format_wide_va_bounded(0xff, log_scratch,
                         (const uint16_t *)L"random crap found by XFindNextSaveGame(): display name= '%s' path= '%hs'",
                         find_data.save_game_name, find_data.find_data.cFileName);
                     entry_type = -1;
@@ -1639,7 +1639,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
         return 0;
     }
 
-    tag_path = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
+    tag_path = halo::cache::globals().tag_instances[(int16_t)halo::scenario::globals().scenario_index].path;
     if (strcmp(header->scenario_name, tag_path) == 0 &&
         header->allocation_checksum == game_state_crc &&
         header->local_player_count == local_player_count &&

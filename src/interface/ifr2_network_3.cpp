@@ -1,4 +1,5 @@
 #include "win32.h"
+#include "halo/text/api.hpp"
 #include "halo/interface/ifr2_network.hpp"
 #include "crt.h"
 #include <wchar.h>
@@ -17,7 +18,6 @@ extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern uint16_t chat_local_prompt_string[];
 extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry);
-extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 }
 
 namespace halo::interface {
@@ -113,7 +113,7 @@ void MenuListView::update()
                         }
                     }
                 }
-                string_format_wide_va_bounded(0xf, (wchar_t *)buf, L"%s %s", source, entry + 0x1c);
+                halo::text::string_format_wide_va_bounded(0xf, reinterpret_cast<uint16_t *>((wchar_t *)buf), reinterpret_cast<const uint16_t *>(L"%s %s"), source, entry + 0x1c);
                 ((uint16_t *)row->text)[0xf] = 0;
             }
         }
@@ -212,7 +212,7 @@ void MenuListView::update()
 
                 r8->text = b;
                 if (b != (uint16_t *)0) {
-                    string_format_wide_va_bounded(3, (wchar_t *)b, (const wchar_t *)chat_local_prompt_string,
+                    halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
                                                    (int32_t)*(uint16_t *)(sel + 0x124));
                     ((uint16_t *)r8->text)[3] = 0;
                 }
@@ -222,7 +222,7 @@ void MenuListView::update()
 
                 r9->text = b;
                 if (b != (uint16_t *)0) {
-                    string_format_wide_va_bounded(3, (wchar_t *)b, (const wchar_t *)chat_local_prompt_string,
+                    halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
                                                    (int32_t)*(int16_t *)(sel + 0x128));
                     ((uint16_t *)r9->text)[3] = 0;
                 }

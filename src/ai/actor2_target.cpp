@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -112,7 +113,7 @@ extern char ai_marker_name_b[];
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern datum_index object_get_root_object_index(uint32_t object_index);
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern char unit_get_tag_flag_bit7(uint32_t unit_index);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
@@ -214,7 +215,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     target->location_leaf_index = *(float *)&parent_obj->location_leaf_index;
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
 
-    target->in_water = scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
+    target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
     target->relationship_object_index = -1;
     target->is_vehicle_gunner = 0;
     target->is_vehicle_driver = 0;
@@ -514,8 +515,6 @@ extern "C" {
 extern double sqrt(double x);
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
-extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location);
 }
 }
 
@@ -570,8 +569,8 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     } else if (gate == 3) {
         range = range * 0.7f;
     }
-    if (scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)(listener + 0x24)) ||
-        scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)record)) {
+    if (halo::scenario::scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)(listener + 0x24)) ||
+        halo::scenario::scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)record)) {
         range = range * 0.25f;
     }
     if (stance != 0 && stance != 1) {
@@ -580,7 +579,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (!(range * range > distance_squared)) {
         return 0;
     }
-    pas = halo::structures::cluster_sound_distance_lookup(listener_cluster, source_cluster, global_structure_bsp);
+    pas = halo::structures::cluster_sound_distance_lookup(listener_cluster, source_cluster, halo::scenario::globals().structure_bsp);
     if (pas & 0x80) {
         return 0;
     }
@@ -767,7 +766,6 @@ extern data_array *object_data;
 extern data_array *encounter_data;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern object_globals *object_globals_pointer;
 extern int ai_target_distance_qsort_compare(void *record_a, void *record_b);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
@@ -807,12 +805,12 @@ void ActorView::target_scan_potential_targets()
     list_b.seen_count = 0;
     list_b.entry_count = 0;
 
-    row_dwords = (global_structure_bsp->clusters.count + 0x1f) >> 5;
+    row_dwords = (halo::scenario::globals().structure_bsp->clusters.count + 0x1f) >> 5;
 
     if (!self->swarm) {
         int16_t cluster_ref = *(int16_t *)&self->unknown_138[0x148 - 0x138];
         if (cluster_ref != -1) {
-            pvs_bitmap = (uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
+            pvs_bitmap = (uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                        row_dwords * cluster_ref * 4);
         }
     } else {
@@ -830,7 +828,7 @@ void ActorView::target_scan_potential_targets()
             if (cluster != -1) {
                 int32_t j;
                 for (j = row_dwords - 1; j >= 0; j--) {
-                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)global_structure_bsp->cluster_data.pointer +
+                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                                    row_dwords * cluster * 4 + j * 4);
                 }
                 any = 1;
@@ -1023,9 +1021,9 @@ merged:
         }
     }
 
-    if (pvs_bitmap != 0 && global_structure_bsp->clusters.count > 0) {
+    if (pvs_bitmap != 0 && halo::scenario::globals().structure_bsp->clusters.count > 0) {
         int32_t cluster;
-        for (cluster = 0; cluster < global_structure_bsp->clusters.count; cluster++) {
+        for (cluster = 0; cluster < halo::scenario::globals().structure_bsp->clusters.count; cluster++) {
             if (pvs_bitmap[cluster >> 5] & (1u << (cluster & 0x1f))) {
                 datum_index head;
                 int32_t owner_cluster_ref, chain_object;

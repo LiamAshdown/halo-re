@@ -1,17 +1,18 @@
 #include "halo/effects/effects.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
 extern int32_t weather_instance_count;
 extern data_array *weather_particle_data;
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern float render_camera_global;
 extern float camera_position_y;
 extern float camera_position_z;
@@ -24,7 +25,6 @@ extern void build_sprites_end(void);
 extern float render_time_since_frame;
 extern double fmod(double x, double y);
 extern void effect_random_direction_from_table(real_point3d *out);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern int32_t weather_frame_counter;
 extern int16_t weather_particle_system_count;
@@ -319,8 +319,8 @@ datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_in
         }
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
-        color_interpolate((ColorRGB *)((uint8_t *)type + 0x148), (ColorRGB *)((uint8_t *)type + 0x138),
-            (ColorRGB *)&p->color, *(uint32_t *)&((struct WeatherParticleSystemParticleType *)type)->flags,
+        halo::bitmaps::color_interpolate((ColorRGB *)((uint8_t *)type + 0x148), (ColorRGB *)((uint8_t *)type + 0x138),
+            (ColorRGB *)&p->color, static_cast<color_interpolation_flags>(*(uint32_t *)&((struct WeatherParticleSystemParticleType *)type)->flags),
             (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f);
 
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
@@ -423,9 +423,9 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
  */
 void weather_system::update()
 {
-    int32_t palette_count = *(int32_t *)&global_structure_bsp->weather_palette.count;
+    int32_t palette_count = *(int32_t *)&halo::scenario::globals().structure_bsp->weather_palette.count;
     ScenarioStructureBSPWeatherPalette *palette =
-        (ScenarioStructureBSPWeatherPalette *)global_structure_bsp->weather_palette.pointer;
+        (ScenarioStructureBSPWeatherPalette *)halo::scenario::globals().structure_bsp->weather_palette.pointer;
     int32_t i;
 
     weather_frame_counter++;

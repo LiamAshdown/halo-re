@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -28,7 +29,6 @@ extern "C" { extern int16_t gamepad_axis_bindings[k_control_gamepad_count][k_con
 extern "C" { extern int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count]; }
 extern "C" { extern char input_action_names[k_input_action_count][0x10]; }
 extern "C" { extern uint16_t missing_string_text[]; }
-extern "C" { extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...); }
 extern "C" { extern void console_printf_verbose(ColorARGB *color, char *format, ...); }
 #define k_gamepad_names_tag_path \
     "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names"
@@ -154,7 +154,7 @@ void BindingNames::print_bound_controls(void)
         for (i = 0; i < button_count; i++) {
             if (gamepad_button_bindings[slot][i] != k_input_unbound) {
                 action_name_copy(action_name, gamepad_button_bindings[slot][i]);
-                string_format_wide_va_bounded((wchar_t *)wide_name, L"%s%d",
+                halo::text::string_format_wide_va_bounded(0x17, wide_name, reinterpret_cast<const uint16_t *>(L"%s%d"),
                                                lookup_named_string(k_gamepad_names_tag_path, 0), i + 1);
                 wide_name[0x17] = 0;
                 narrow_copy(ascii, wide_name, 0x18);
@@ -167,7 +167,7 @@ void BindingNames::print_bound_controls(void)
                 action_name_copy(action_name, gamepad_axis_bindings[slot][i][0]);
                 wcsncpy((wchar_t *)wide_name2, (const wchar_t *)lookup_named_string(k_axis_direction_names_tag_path, 0), 9);
                 wide_name2[8] = 0;
-                string_format_wide_va_bounded(formatted, L"%s%d %s",
+                halo::text::string_format_wide_va_bounded(0x18, reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>(L"%s%d %s"),
                                                lookup_named_string(k_gamepad_names_tag_path, 1), i + 1, wide_name2);
                 formatted[0x18] = 0;
                 narrow_copy(ascii, (const uint16_t *)formatted, 0x19);
@@ -177,7 +177,7 @@ void BindingNames::print_bound_controls(void)
                 action_name_copy(action_name, gamepad_axis_bindings[slot][i][1]);
                 wcsncpy((wchar_t *)wide_name2, (const wchar_t *)lookup_named_string(k_axis_direction_names_tag_path, 1), 9);
                 wide_name2[8] = 0;
-                string_format_wide_va_bounded(formatted, L"%s%d %s",
+                halo::text::string_format_wide_va_bounded(0x18, reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>(L"%s%d %s"),
                                                lookup_named_string(k_gamepad_names_tag_path, 1), i + 1, wide_name2);
                 formatted[0x18] = 0;
                 narrow_copy(ascii, (const uint16_t *)formatted, 0x19);

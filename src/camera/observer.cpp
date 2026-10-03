@@ -1,4 +1,5 @@
 #include "halo/camera/observer.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -142,12 +143,12 @@ void ObserverHandle::commit()
     leaf_index = (int32_t)halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
                 halo::cache::predicted_resource_list_touch(
-                    &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[new_cluster]
+                    &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[new_cluster]
                         .predicted_resources);
             }
             camera->leaf_index = leaf_index;
@@ -155,7 +156,7 @@ void ObserverHandle::commit()
         }
     }
 
-    water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)&camera->leaf_index, (real_point3d *)&camera->position);
+    water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)&camera->leaf_index, (real_point3d *)&camera->position);
     if (fabs((double)water_depth) < 0.05000000074505806) {
         if (water_depth <= 0.0f) {
             camera->position.z = water_depth + camera->position.z + 0.05f;
@@ -684,7 +685,7 @@ void ObserverSystem::update_location()
         observers[0].camera.cluster_index = -1;
     } else {
         observers[0].camera.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)
-            global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
+            halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
     }
 }
 
@@ -716,10 +717,10 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
     if (location.leaf_index == -1) {
         location.cluster_index = -1;
     } else {
-        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)
+        location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)
             [location.leaf_index & halo::k_leaf_index_mask].cluster;
     }
-    use_alternate_mask = scenario_location_get_water_and_weather(position, &location, 0); 
+    use_alternate_mask = halo::scenario::scenario_location_get_water_and_weather(position, &location, 0); 
 
     probe_length = radius_scale + *distance;
     pullback_point.x = position->x - probe_length * forward->i;

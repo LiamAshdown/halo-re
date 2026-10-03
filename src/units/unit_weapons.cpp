@@ -1,4 +1,6 @@
 #include <string.h>
+#include "halo/projectiles/api.hpp"
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/core/lcg.hpp"
@@ -41,9 +43,7 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model, int16_t frame, real_orientation *out_orientations);
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-extern void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total);
 extern uint8_t *local_player_globals;
 extern data_array *player_data;
 extern uint8_t game_engine_notify_weapon_ready_state_change(datum_index unit_index, datum_index weapon_index);
@@ -58,7 +58,6 @@ extern uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity);
 extern uint8_t object_is_delete_pending(uint32_t object_index);
 extern void object_type_override_call_0x68(uint32_t object_index);
-extern int32_t projectile_send_creation(uint32_t projectile_index);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
@@ -753,7 +752,7 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     }
     animation = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + enter_animation * 0xb4);
     object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &seat_marker, 1);
-    animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
+    halo::models::animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
     halo::math::matrix4x3_from_quaternion(orientations[0].rotation, root);
     root.position = orientations[0].translation;
     halo::math::matrix4x3_multiply(&seat_marker.node_transform, &root, &entry);
@@ -883,7 +882,7 @@ uint8_t UnitView::get_weapon_marker_indices(uint8_t use_alternate, uint32_t out_
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + animation_index * 0xb4);
 
-    animation_get_frame_info_distance(anim, (float *)out_dx_to_key_frame, (float *)out_dx_total);
+    halo::models::animation_get_frame_info_distance(anim, (float *)out_dx_to_key_frame, (float *)out_dx_total);
 
     if (out_key_frame_index != 0) {
         *out_key_frame_index = anim->key_frame_index;
@@ -1365,7 +1364,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
     if (((unit_object *)unit)->base.network_role == 0 && network_game_mode == 2 && !object_is_delete_pending(grenade)) {
         ((struct object *)OBJECT_DATA(grenade))->network_role = 0;
         object_type_override_call_0x68(grenade);
-        int32_t bits = projectile_send_creation(grenade);
+        int32_t bits = halo::projectiles::projectile_send_creation(grenade);
 
         if (bits > 0) {
             network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);

@@ -1,5 +1,6 @@
 #include "halo/hs/script_globals.hpp"
 #include <string.h>
+#include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/lcg.hpp"
@@ -37,7 +38,6 @@ extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern uint8_t unit_updates_suppressed;
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
@@ -286,7 +286,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
             if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == unit_index) {
                 UnitView((int32_t)vehicle_index).notify_weapon_removed();
             }
-            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, animation_choose_random_permutation(graph, death_animation, 1));
+            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, death_animation, 1));
             object = OBJECT_DATA(unit_index);
             object_tag = TAG_DATA(*(datum_index *)object);
             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {

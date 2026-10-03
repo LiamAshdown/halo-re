@@ -1,4 +1,5 @@
 #include "halo/devices/device.hpp"
+#include "halo/models/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -6,6 +7,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -169,16 +171,16 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
         }
         frame = (float)((double)frames * position);
         if (tag_flags & 2) {
-            animation_overlay_frame_orientations(animation, (int16_t)(int32_t)frame, orientations); 
+            halo::models::animation_overlay_frame_orientations(animation, (int16_t)(int32_t)frame, orientations); 
         } else {
-            animation_overlay_interpolated_frame_orientations(animation, frame, orientations);
+            halo::models::animation_overlay_interpolated_frame_orientations(animation, frame, orientations);
         }
     }
     if (count > 1 && indices[1] != -1) {
         ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(animations + indices[1] * 0xb4);
         int32_t frames = (int16_t)animation->frame_count;
 
-        animation_overlay_interpolated_frame_orientations(animation,
+        halo::models::animation_overlay_interpolated_frame_orientations(animation,
             (float)((double)frames * obj->device.power), orientations);
     }
 }
@@ -680,7 +682,7 @@ void DeviceGroupPool::dispose()
  */
 void DeviceGroupPool::initialize()
 {
-    Scenario *scenario = global_scenario;
+    Scenario *scenario = halo::scenario::globals().scenario;
     ScenarioDeviceGroup *scenario_groups = (ScenarioDeviceGroup *)scenario->device_groups.pointer;
     int32_t i;
 

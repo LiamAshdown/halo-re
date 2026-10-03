@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/text/api.hpp"
 #include "crt.h"
 #include <string.h>
 #include "halo/memory/api.hpp"
@@ -33,11 +34,9 @@ extern void multiplayer_settings_select_list_update_item(widget_instance *widget
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern uint16_t *text_string_list_get_string(void);
 extern uint8_t default_profile_data[0x1ffc];
 extern char k_empty_string[];
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
-extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
@@ -244,7 +243,7 @@ void MenuListView::update_item(const uint16_t *record)
         default: break;
         }
         if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
-            uint16_t *text = text_string_list_get_string();
+            uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)((record[0x4a] >> 8) + 0xa));
 
             wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
             ((uint16_t *)desc_widget->text)[0xff] = 0;
@@ -263,7 +262,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
 
     if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
-        uint16_t *text = text_string_list_get_string();
+        uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)(2 * (*(const uint32_t *)(record + 0x18) - 1) + (((const uint8_t *)record)[0x34] == 1 ? 1 : 0)));
 
         wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
         ((uint16_t *)desc_widget->text)[0xff] = 0;
@@ -289,7 +288,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     if (command_line_check_flag("-name", &name) && name != 0) {
         int16_t count = 100;
 
-        string_convert_ascii_to_unicode(wide_name, 0x80, name);
+        halo::text::string_convert_ascii_to_unicode(wide_name, 0x80, name);
         saved_game_enumerate_by_type(0, slots, 0, (uint16_t *)&count);
         while (count > 0) {
             int32_t slot = slots[count - 1];

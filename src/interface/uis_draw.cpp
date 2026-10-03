@@ -3,6 +3,8 @@
  */
 
 #include "crt.h"
+#include "halo/text/api.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -29,14 +31,11 @@ extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
 extern datum_index trouble_brewing_bitmap_tag;
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                 int16_t *clip_rect, uint32_t vertex_color);
 extern int16_t ui_button_prompt_index_from_string(uint16_t *text);
 extern uint16_t formatted_prompt_scratch[0x100];
-extern int16_t ui_prompt_clip_y;
-extern int16_t ui_prompt_clip_x;
 extern uint16_t prompt_percent_text[];
 extern uint16_t hud_text_quote[];
 extern uint16_t hud_text_unbound[];
@@ -48,12 +47,9 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern HUDGlobals *hud_globals_tag_data;
 extern int32_t __ftol(double x);
-extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
-                         const uint16_t *text);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, Rectangle2D *origin);
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon);
 }
 
@@ -67,9 +63,9 @@ static void draw_span_inline(Rectangle2D *origin, Rectangle2D *cursor, const uin
     Rectangle2D out;
     int16_t delta = (int16_t)(cursor->left - origin->left);
 
-    ui_prompt_clip_y = 0;
-    ui_prompt_clip_x = (delta < 0) ? 0 : delta;
-    text_measure_string_extents(origin, cursor, &out, text);
+    halo::text::globals().ui_prompt_clip_y = 0;
+    halo::text::globals().ui_prompt_clip_x = (delta < 0) ? 0 : delta;
+    halo::text::text_measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     out.left = origin->left;
     chimera__draw_16_bit_text((Rectangle2D *)0, &out, 0, 0, text);
@@ -392,7 +388,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         trouble_brewing_bitmap_tag = halo::cache::tag_lookup(0x6269746d ,
                                                  (char *)"ui\\shell\\bitmaps\\trouble_brewing");
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
-            BitmapData *bitmap_data = bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
+            BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 
             if (bitmap_data != 0) {
                 ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, 0xffffffff);
@@ -447,8 +443,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
             if (cursor != (uint16_t *)0) {
                 ui_widget_draw_prompt_span(cursor, &cursor_rect, bounds);
             }
-            ui_prompt_clip_x = 0;
-            ui_prompt_clip_y = 0;
+            halo::text::globals().ui_prompt_clip_x = 0;
+            halo::text::globals().ui_prompt_clip_y = 0;
             return;
         }
         *percent = 0;
@@ -494,7 +490,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 ColorARGB text_color;
                 uint32_t packed_color;
 
-                color_argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
+                halo::bitmaps::color_argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
                 icon->flags = (HUDInterfaceMessagingFlags)(saved_flags & 0xfd);
                 if (prompt_icon_override_table[token] != 0) {
                     icon->flags = (HUDInterfaceMessagingFlags)(icon->flags & 0xfb);
@@ -524,8 +520,8 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
         }
     next_span:
         if (cursor == (uint16_t *)0) {
-            ui_prompt_clip_x = 0;
-            ui_prompt_clip_y = 0;
+            halo::text::globals().ui_prompt_clip_x = 0;
+            halo::text::globals().ui_prompt_clip_y = 0;
             return;
         }
     }
@@ -545,9 +541,9 @@ void UiDraw::widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, 
     Rectangle2D bounds;
     int16_t delta = (int16_t)(cursor->left - origin->left);
 
-    ui_prompt_clip_y = 0;
-    ui_prompt_clip_x = (delta < 0) ? 0 : delta;
-    text_measure_string_extents(origin, cursor, &bounds, text);
+    halo::text::globals().ui_prompt_clip_y = 0;
+    halo::text::globals().ui_prompt_clip_x = (delta < 0) ? 0 : delta;
+    halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
     chimera__draw_16_bit_text((Rectangle2D *)0, &bounds, 0, 0, text);

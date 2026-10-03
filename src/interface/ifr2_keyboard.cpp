@@ -1,4 +1,6 @@
 #include "halo/interface/ifr2_keyboard.hpp"
+#include "halo/text/api.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "crt.h"
 #include <string.h>
 #include <wchar.h>
@@ -18,15 +20,11 @@ extern void **keyboard_device;
 extern uint8_t key_frames[0x6d];
 extern uint8_t key_release_pending[0x6d];
 extern int32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_unknown_4730;
 extern uint16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
 extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
-extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out, const uint16_t *text);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
@@ -43,7 +41,6 @@ extern uint8_t saved_game_name_is_available(const uint16_t *name);
 extern uint8_t saved_item_name_matches(const uint16_t *text);
 extern uint16_t fortune_easter_egg_text[];
 extern uint16_t missing_string_text[];
-extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void virtual_keyboard_draw_text(Rectangle2D *bounds);
 }
 
@@ -84,8 +81,8 @@ void VirtualKeyboard::virtual_keyboard_set_text_state(int16_t column)
     hud_text_draw_color_g = 0.9f;
     hud_text_draw_color_b = 0.9f;
     hud_text_draw_color_or_flags = 0xffff;
-    hud_text_draw_column = column;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = column;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 }
 
 /**
@@ -184,17 +181,17 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
     hud_text_draw_color_r = 0.9f;
     hud_text_draw_color_g = 0.9f;
     hud_text_draw_color_or_flags = 0xffff;
-    hud_text_draw_column = 2;
-    hud_text_draw_unknown_4730 = 0;
+    halo::text::globals().hud_text_draw_column = 2;
+    halo::text::globals().hud_text_draw_unknown_4730 = 0;
 
     if (virtual_keyboard.opened == 1) {
-        BitmapData *white = bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
+        BitmapData *white = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
 
         if (white != 0) {
             Rectangle2D cursor;
             Rectangle2D highlight;
 
-            text_measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
+            halo::text::text_measure_string_extents(bounds, &cursor, &highlight, virtual_keyboard.destination);
             highlight.left -= 2;
             highlight.right += 2;
             ui_draw_screen_quad((int16_t *)bounds, (int16_t *)&highlight, (int32_t)white, 0, 0x7f7f7f7f);
@@ -209,14 +206,14 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
         int16_t advance_before_caret = 0;
         int16_t total_advance = 0;
         const uint16_t *cursor = virtual_keyboard.destination;
-        BitmapData *white = bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
+        BitmapData *white = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
 
         if (white != 0) {
             Rectangle2D caret;
             uint16_t character = *cursor;
 
             while (character != 0) {
-                const int16_t *metrics = text_get_character_metrics(character, font_data);
+                const int16_t *metrics = reinterpret_cast<const int16_t *>(halo::text::text_get_character_metrics(character, reinterpret_cast<Font *>(const_cast<uint8_t *>(font_data))));
 
                 if (metrics == 0) {
                     break;
@@ -489,7 +486,7 @@ void VirtualKeyboard::render()
     Rectangle2D rect;
 
     if (background != (datum_index)-1) {
-        BitmapData *bitmap = bitmap_group_sequence_get_bitmap_data(background, 0, 0);
+        BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0);
 
         rect.top = 0;
         rect.left = 0;
@@ -501,7 +498,7 @@ void VirtualKeyboard::render()
     virtual_keyboard_set_text_state(0);
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
     if (string_list != (datum_index)-1) {
-        const uint16_t *title = text_string_list_get_string(string_list, virtual_keyboard.field_kind);
+        const uint16_t *title = halo::text::text_string_list_get_string(string_list, virtual_keyboard.field_kind);
 
         rect.top = 0x4e;
         rect.left = 0x72;

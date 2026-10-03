@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint8_t render_frustum_global[];
@@ -17,9 +18,7 @@ extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
 extern uint32_t render_camera_compute_frustum_bounds(void *camera, float bounds_out[4], float bounds_in[4]);
 extern void chimera__render_camera_build_frustum(float *frustum_bounds, void *camera, void *frustum,
     uint8_t build_projection);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, float radius);
-extern Scenario *global_scenario;
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point);
 }
 
@@ -59,7 +58,7 @@ void structure_visibility::camera_visibility_pass(void)
 
 void structure_visibility::cluster_visibility_update(void)
 {
-    ScenarioStructureBSP *tag = global_structure_bsp;
+    ScenarioStructureBSP *tag = halo::scenario::globals().structure_bsp;
 
     uint32_t fill = (halo::structures::globals().render_cluster_index != -1) ? 0 : k_dword_none;
     int32_t cluster_dwords = bit_array_word_count(tag->clusters.count);
@@ -140,7 +139,7 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
 {
     int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)((void *)(uintptr_t)global_structure_bsp->collision_bsp.pointer), camera_position);
 
-    if (leaf == -1 && globals().render_leaf_index < global_structure_bsp->leaves.count) {
+    if (leaf == -1 && globals().render_leaf_index < halo::scenario::globals().structure_bsp->leaves.count) {
         leaf = globals().render_leaf_index;
     }
     globals().render_leaf_index = leaf;
@@ -149,8 +148,8 @@ void structure_visibility::render_camera_update_leaf_and_cluster(real_point3d *c
     globals().render_cluster_has_sky = 0;
 
     if (globals().render_leaf_index != -1) {
-        ScenarioStructureBSPLeaf *leaves = (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
-        ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer;
+        ScenarioStructureBSPLeaf *leaves = (ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer;
+        ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer;
         TagID sky_tag_id;
         int have_sky_tag_id = 0;
 
@@ -199,7 +198,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
     clip_points[2].x = screen_bounds[1]; clip_points[2].y = screen_bounds[3];
     clip_points[3].x = screen_bounds[0]; clip_points[3].y = screen_bounds[3];
 
-    int32_t cluster_count = global_structure_bsp->clusters.count;
+    int32_t cluster_count = halo::scenario::globals().structure_bsp->clusters.count;
     if (cluster_count <= 0) {
         return found;
     }
@@ -218,7 +217,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
                 continue;
             }
             ScenarioStructureBSPCluster *cluster =
-                &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_index];
+                &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[cluster_index];
             for (int32_t m = 0; m < (int32_t)cluster->mirrors.count; m++) {
                 ScenarioStructureBSPMirror *mirror =
                     &((ScenarioStructureBSPMirror *)cluster->mirrors.pointer)[m];

@@ -1,6 +1,7 @@
 #include "halo/objects/light_system.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "game.h"
 #include "units.h"
 #include "structures.h"
@@ -12,11 +13,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void *color_interpolate(void *color1, void *color0, void *dest, uint32_t flags, float t);
-extern void *color_interpolate_argb_with_tint(uint32_t flags, void *color1, void *dest, void *tint, void *color0, float t);
 extern game_engine_definition *current_game_engine;
 extern int16_t current_local_player_index;
 extern void first_person_weapon_center_flashlight(datum_index unit_index, real_point3d *out_origin, real_vector3d *out_extents, real_vector3d *out_direction);
@@ -28,7 +28,6 @@ extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern float *global_white_color;
 extern void lens_flare_add_instance(lens_flare_instance *candidate);
 extern datum_index light_active_list[0x80];
@@ -331,13 +330,13 @@ void halo::objects::LightSystem::update_all()
 
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
             tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
-            color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
+            halo::bitmaps::color_interpolate_argb_with_tint(static_cast<color_interpolation_flags>(*(uint32_t *)(tag + 0x34)), reinterpret_cast<ColorARGB *>(tag + 0x48), reinterpret_cast<ColorRGB *>(color), reinterpret_cast<ColorRGB *>(tint), reinterpret_cast<ColorARGB *>(tag + 0x38), t);
             blend = t;
         } else {
             int32_t age_ticks = tick - ((struct light *)light)->marker_link;
             float phase = (float)age_ticks / *(float *)(tag + 0xf4);
             t = (1.0f - halo::math::transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->transient_color_scale;
-            color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
+            halo::bitmaps::color_interpolate(reinterpret_cast<ColorRGB *>(tag + 0x4c), reinterpret_cast<ColorRGB *>(tag + 0x3c), reinterpret_cast<ColorRGB *>(color), static_cast<color_interpolation_flags>(*(uint32_t *)(tag + 0x34)), t);
 
             memcpy(&blend, &age_ticks, sizeof(blend));
         }
@@ -750,7 +749,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
             } else {
-                uint8_t *leaves = (uint8_t *)global_structure_bsp->leaves.pointer;
+                uint8_t *leaves = (uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer;
                 leaf_reference.cluster_index =
                     *(int16_t *)(leaves + (leaf_reference.leaf_index & halo::k_leaf_index_mask) * 0x10 + 8);
             }

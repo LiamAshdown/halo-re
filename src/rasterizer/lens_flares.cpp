@@ -6,6 +6,7 @@
 
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
@@ -13,7 +14,6 @@ extern "C" {
 
 extern double atan2(double y, double x);
 extern double fpatan(double y, double x);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index, int16_t bitmap_index);
 extern void rasterizer_lens_flare_set_vertex_specular(float intensity);
@@ -330,8 +330,8 @@ void lens_flare_render_all(void)
                         ((double)*(float *)(reflection + 0x78) + *(double *)&rasterizer_time) /
                             (double)*(float *)(reflection + 0x74));
 
-                    color_interpolate((ColorRGB *)(reflection + 0x64), (ColorRGB *)(reflection + 0x54), &animated,
-                                      reflection[0x70] & 3, t);
+                    halo::bitmaps::color_interpolate((ColorRGB *)(reflection + 0x64), (ColorRGB *)(reflection + 0x54), &animated,
+                                      static_cast<color_interpolation_flags>(reflection[0x70] & 3), t);
                     tint.alpha = ((1.0f - t) * *(float *)(reflection + 0x50) + t * *(float *)(reflection + 0x60)) *
                                  tint.alpha;
                     tint.red = tint.red * animated.red;

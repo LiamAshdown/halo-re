@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/text/api.hpp"
 #include <stdint.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
@@ -10,7 +11,6 @@ extern uint8_t network_message_scratch[0x7ff8];
 extern data_array *player_data;
 extern network_server_globals *network_server;
 extern const uint16_t chat_local_prompt_string[];
-extern void string_format_wide_va(const uint16_t *format, ...);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
@@ -37,7 +37,6 @@ extern chat_gui_set_property_int_fn chat_gui_set_property_int;
 extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
-extern uint16_t *text_string_list_get_string(void);
 extern uint8_t game_engine_get_teams_enabled(void);
 extern int32_t chat_default_team_channel(void);
 }
@@ -79,7 +78,7 @@ void ChatDialog::queue_team_message(int32_t team_index)
     (void)header_size;
     (void)terminator;
 
-    string_format_wide_va(chat_local_prompt_string);
+    halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(formatted), chat_local_prompt_string);
 
     encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &fields, 0, 1, 0);
     if (encoded_bits <= 0) {
@@ -218,7 +217,7 @@ all_scope:
         {
             datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
-                                                       : (const void *)text_string_list_get_string();
+                                                       : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb8);
             chat_scope_active = 0;
         }
     } else if (chat_scope == 1) {
@@ -236,7 +235,7 @@ all_scope:
             if (player_index != -1) {
                 datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
-                                                           : (const void *)text_string_list_get_string();
+                                                           : (const void *)halo::text::text_string_list_get_string(tag_id, 0xba);
                 chat_scope_active = 2;
                 goto gui_setup;
             }
@@ -247,7 +246,7 @@ team_scope:
             chat_scope_active = 1;
             tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
-                                                       : (const void *)text_string_list_get_string();
+                                                       : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb9);
             if (chat_scope_active == -1) {
                 return;
             }

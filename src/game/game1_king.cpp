@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -14,18 +15,16 @@
 #include "halo/game/game1_king.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern int32_t king_bucket_credit_ticks[16];
 extern wchar_t empty_string;
-extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern uint16_t missing_string_text[];
-extern Scenario *global_scenario;
 extern int32_t king_team_hill_seconds_network[16];
 extern int16_t game_engine_recent_location_count;
 extern int16_t game_engine_recent_location_table[];
@@ -70,7 +69,7 @@ const uint16_t *King::game_text(int16_t index)
 {
     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
+    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -100,7 +99,7 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
             const uint16_t *place = place_text(recipient);
 
             seconds = king_bucket_credit_ticks[((struct player *)player)->team] / 30;
-            string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x9b), place, seconds);
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x9b), place, seconds);
         }
         return 1;
     case 0x21:
@@ -109,7 +108,7 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
             return 0;
         }
         seconds = king_bucket_credit_ticks[((struct player *)player)->team] / 30;
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0x9c : 0x9d), player + 4, seconds);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0x9c : 0x9d), player + 4, seconds);
         return 1;
     default:
         return 0;
@@ -215,8 +214,8 @@ uint8_t King::initialize_for_new_game(void)
     memset(king_bucket_credit_ticks, 0, 0x6b * 4);
     memset(king_team_hill_seconds_network, 0, 0x6b * 4);
     game_engine_recent_location_count = 0;
-    for (i = 0; i < *(int32_t *)&global_scenario->netgame_flags.count; i++) {
-        uint8_t *location = (uint8_t *)global_scenario->netgame_flags.pointer + i * 0x94;
+    for (i = 0; i < *(int32_t *)&halo::scenario::globals().scenario->netgame_flags.count; i++) {
+        uint8_t *location = (uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + i * 0x94;
         int16_t k;
 
         if (*(int16_t *)(location + 0x10) != 8) {
@@ -232,7 +231,7 @@ uint8_t King::initialize_for_new_game(void)
             count++;
         }
     }
-    if (*(int32_t *)&global_scenario->netgame_flags.count > 0) {
+    if (*(int32_t *)&halo::scenario::globals().scenario->netgame_flags.count > 0) {
         game_engine_recent_location_count = count;
     }
     king_starting_location_type = 0;

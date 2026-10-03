@@ -6,13 +6,11 @@
 
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 
 extern "C" {
 
-extern uint8_t shader_is_decal(const Shader *shader);
-extern uint8_t shader_draw_before_water(const void *shader);
-extern void shader_texture_animation_evaluate(const void *function_source, const void *animation, float *out_u, float *out_v, float u_scale, float v_scale, float unused_z, float unused_w, float unused_5, float time);
 extern void render_lighting_disable_workaround(void);
 
 }  // extern "C"
@@ -71,7 +69,7 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
     context = rasterizer_active_model_context;
     flags = context->flags;
     if (test_immediate) {
-        if (shader_is_decal((const Shader *)shader)) {
+        if (halo::shaders::shader_is_decal(const_cast<Shader *>((const Shader *)shader))) {
             flags |= 3;
         }
         if (flags & 2) {
@@ -339,7 +337,7 @@ static void draw_particle_effect_shader(transparent_geometry_group *group, const
         view_matrix[2][3] = camera->z;
     }
     if (has_texture_animation) {
-        shader_texture_animation_evaluate((const void *)(uintptr_t)group->lighting_extra, shader + 0x60,
+        halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(const_cast<void *>((const void *)(uintptr_t)group->lighting_extra)), reinterpret_cast<shader_texture_animation *>(const_cast<uint8_t *>(shader + 0x60)),
                                           texture_matrix[2], texture_matrix[3],
                                           group->base_map_u_scale, group->base_map_v_scale, 0.0f, 0.0f, 0.0f,
                                           (float)rasterizer_time.time);
@@ -638,7 +636,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
                 group->sort_key != transparent_geometry_group_last_drawn_key) {
                 rasterizer_render_target_capture_frame();
             }
-        } else if (shader == NULL || (shader_type_of(shader) != 8 && !shader_draw_before_water(shader))) {
+        } else if (shader == NULL || (shader_type_of(shader) != 8 && !halo::shaders::shader_draw_before_water(reinterpret_cast<Shader *>(shader)))) {
             rasterizer_render_target_capture_frame();
         }
     }
@@ -686,7 +684,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         set_render_state(0x07, 1);
         set_render_state(0x0e, 0);
         set_render_state(0x17, 4);
-        if (shader_is_decal((const Shader *)((void *)(uintptr_t)group->shader))) {
+        if (halo::shaders::shader_is_decal(const_cast<Shader *>((const Shader *)((void *)(uintptr_t)group->shader)))) {
             chimera__transparent_decal_zbias();
         } else {
             rasterizer_clear_decal_zbias();
@@ -1066,7 +1064,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     if (tint != 0) {
         flags = flags | 1;
     }
-    if (shader_is_decal(shader) != 0) {
+    if (halo::shaders::shader_is_decal(shader) != 0) {
         flags = flags | 7;
     }
 

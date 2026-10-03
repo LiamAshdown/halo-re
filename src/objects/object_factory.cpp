@@ -3,6 +3,7 @@
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/core/network_constants.hpp"
+#include "halo/models/api.hpp"
 #include "game.h"
 #include "units.h"
 #include "effects.h"
@@ -15,10 +16,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
-extern int32_t animation_state_advance(uint32_t animation_graph_tag_index, void *state, int32_t *sound_tag_id, int32_t random_stream);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern game_engine_definition *current_game_engine;
@@ -28,7 +28,6 @@ extern uint8_t g_control_binding_state;
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_scenario;
-extern int16_t global_structure_bsp_index;
 extern const real_vector3d *global_white_color;
 extern uint8_t network_action_apply_active;
 extern int32_t network_client;
@@ -199,10 +198,10 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
     int16_t type;
     uint16_t bsp_bit;
 
-    if (global_structure_bsp_index == -1) {
+    if (halo::scenario::globals().structure_bsp_index == -1) {
         return;
     }
-    bsp_bit = (uint16_t)(1 << global_structure_bsp_index);
+    bsp_bit = (uint16_t)(1 << halo::scenario::globals().structure_bsp_index);
     for (type = 0; type < k_maximum_object_types; type++) {
         object_type_definition *definition = object_type_definitions[type];
         TagReflexive *placements;
@@ -631,7 +630,7 @@ uint8_t halo::objects::SceneryObject::initialize()
     datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
 
     if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph)].data + 0x74) > 0) {
-        int16_t animation = animation_choose_random_permutation(graph, 0, 1);
+        int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, 1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
             ((struct object *)object)->animation_graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
@@ -662,7 +661,7 @@ uint8_t halo::objects::SceneryObject::update()
     uint8_t *object = object_get(object_index);
 
     if ((object[0x1f4] & 1) != 0 &&
-        animation_state_advance(((struct object *)object)->animation_graph, object + 0xd0, 0, 1) == 2) {
+        halo::models::animation_state_advance(((struct object *)object)->animation_graph, object + 0xd0, 0, 1) == 2) {
         ((struct object *)object)->animation_frame -= 1;
     }
     return 1;

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -25,8 +26,6 @@ extern game_engine_state game_engine_state_value;
 extern game_variant game_engine_variant;
 extern wchar_t empty_string;
 extern wchar_t missing_string_text[];
-extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
-extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 extern uint32_t game_engine_is_object_winning(uint32_t handle);
 extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entry *entry);
 extern void game_engine_get_player_scoreboard_entry(datum_index player_handle, scoreboard_entry *out);
@@ -66,7 +65,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
     int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
-extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source);
 extern data_array *object_data;
 extern real *default_color_a;
 extern real *default_color_b;
@@ -93,7 +91,7 @@ wchar_t *Scoreboard::multiplayer_game_text_string(int16_t index)
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
-    return text_string_list_get_string(tag_id, index);
+    return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, index));
 }
 
 /**
@@ -118,7 +116,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         } else if (lives_left == 1) {
             lives_text = multiplayer_game_text_string(0x35);
         } else {
-            string_format_wide_va_bounded(0x80, lives_buffer, multiplayer_game_text_string(0x36), lives_left);
+            halo::text::string_format_wide_va_bounded(0x80, reinterpret_cast<uint16_t *>(lives_buffer), reinterpret_cast<const uint16_t *>(multiplayer_game_text_string(0x36)), lives_left);
             lives_buffer[0x7f] = 0;
             lives_text = lives_buffer;
         }
@@ -170,7 +168,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(player_handle, header);
 
         fmt = multiplayer_game_text_string((entry.place & 0x80000000) != 0 ? 0x3f : 0x40);
-        string_format_wide_va_bounded(0x50, out, fmt, game_engine_get_default_multiplayer_string(&entry), header, lives_text);
+        halo::text::string_format_wide_va_bounded(0x50, reinterpret_cast<uint16_t *>(out), reinterpret_cast<const uint16_t *>(fmt), game_engine_get_default_multiplayer_string(&entry), header, lives_text);
     } else {
         wchar_t team0_text[14];
         wchar_t team1_text[14];
@@ -182,11 +180,11 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         score1 = ((int32_t (*)(int32_t))current_game_engine->get_team_score)(1);
 
         if (score0 > score1) {
-            string_format_wide_va_bounded(0x50, out, multiplayer_game_text_string(0x3c), team0_text, team1_text, lives_text);
+            halo::text::string_format_wide_va_bounded(0x50, reinterpret_cast<uint16_t *>(out), reinterpret_cast<const uint16_t *>(multiplayer_game_text_string(0x3c)), team0_text, team1_text, lives_text);
         } else if (score0 < score1) {
-            string_format_wide_va_bounded(0x50, out, multiplayer_game_text_string(0x3d), team1_text, team0_text, lives_text);
+            halo::text::string_format_wide_va_bounded(0x50, reinterpret_cast<uint16_t *>(out), reinterpret_cast<const uint16_t *>(multiplayer_game_text_string(0x3d)), team1_text, team0_text, lives_text);
         } else {
-            string_format_wide_va_bounded(0x50, out, multiplayer_game_text_string(0x3e), team1_text, lives_text);
+            halo::text::string_format_wide_va_bounded(0x50, reinterpret_cast<uint16_t *>(out), reinterpret_cast<const uint16_t *>(multiplayer_game_text_string(0x3e)), team1_text, lives_text);
         }
     }
 
@@ -613,7 +611,7 @@ void Scoreboard::find_player_by_name(char *source_name)
         data_iterator iter;
         void *element;
 
-        string_convert_ascii_to_unicode((uint16_t *)name, 0x800, source_name);
+        halo::text::string_convert_ascii_to_unicode((uint16_t *)name, 0x800, source_name);
 
         iter.data = player_data;
         iter.next_index = 0;
@@ -678,7 +676,7 @@ wchar_t *Scoreboard::get_default_multiplayer_string(const scoreboard_entry *entr
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
-    return text_string_list_get_string(tag_id, (int16_t)(index + 0x24));
+    return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, (int16_t)(index + 0x24)));
 }
 
 /**
@@ -713,7 +711,7 @@ wchar_t *Scoreboard::get_multiplayer_text_list(uint32_t rank)
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
-    return text_string_list_get_string(tag_id, (int16_t)(index + 0x66));
+    return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, (int16_t)(index + 0x66)));
 }
 
 /**

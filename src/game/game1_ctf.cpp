@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -19,9 +20,9 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern Scenario *global_scenario;
 extern ctf_globals ctf_globals_live;
 extern ctf_globals ctf_globals_network;
 extern int32_t ctf_neutral_flag_id;
@@ -37,13 +38,10 @@ extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1,
 extern data_array *player_data;
 extern int32_t ctf_team_flag_touch_count[2];
 extern wchar_t empty_string;
-extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern int32_t ctf_flag_auto_return_ticks;
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t count, wchar_t *dest);
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern uint16_t missing_string_text[];
 extern Globals *global_globals;
 extern int16_t network_game_mode;
@@ -107,8 +105,8 @@ namespace halo::game::engine1 {
  */
 void Ctf::assign_flag_ids(void)
 {
-    int32_t flag_count = (int32_t)global_scenario->netgame_flags.count;
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    int32_t flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
     uint32_t used_mask = 0;
     int32_t i;
 
@@ -190,7 +188,7 @@ const uint16_t *Ctf::game_text(int16_t index)
 {
     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
+    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -212,7 +210,7 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
 
     switch (message_type) {
     case 0x20:
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x8c), ctf_team_flag_touch_count[0], ctf_team_flag_touch_count[1]);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x8c), ctf_team_flag_touch_count[0], ctf_team_flag_touch_count[1]);
         return 1;
     case 0x21:
     case 0x22:
@@ -224,19 +222,19 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
             return 0;
         }
         team = ((struct player *)player)->team;
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text((int16_t)(0x8d + message_type - 0x21)),
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text((int16_t)(0x8d + message_type - 0x21)),
             ctf_team_flag_touch_count[team], ctf_team_flag_touch_count[(team + 1) % 2]);
         return 1;
     }
     case 0x24:
-        string_format_wide_va_bounded(count, (uint16_t *)text, (const uint16_t *)&empty_string);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, (const uint16_t *)&empty_string);
         return 1;
     case 0x30:
     case 0x31: {
         wchar_t time[0x20];
 
         game_time_format_minutes_seconds((uint32_t)ctf_flag_auto_return_ticks, 0x20, time);
-        string_format_wide_va_bounded(count, (uint16_t *)text, (const uint16_t *)L"%s (%s)", game_text(message_type == 0x30 ? 0x98 : 0x99),
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, (const uint16_t *)L"%s (%s)", game_text(message_type == 0x30 ? 0x98 : 0x99),
             time);
         return 1;
     }
@@ -256,7 +254,7 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
  */
 wchar_t *Ctf::build_player_text(datum_index player, wchar_t *buffer)
 {
-    string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0xc8));
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0xc8));
     return buffer;
 }
 
@@ -306,7 +304,7 @@ wchar_t *Ctf::build_score_header_text(wchar_t *buffer)
  */
 wchar_t *Ctf::build_team_score_text(int32_t team, wchar_t *buffer)
 {
-    string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", ctf_team_flag_touch_count[team]);
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", ctf_team_flag_touch_count[team]);
     return buffer;
 }
 
@@ -387,8 +385,8 @@ int32_t Ctf::get_team_score(int32_t team)
 int32_t Ctf::initialize_flags(void)
 {
     int32_t lowest_usage_id = 0x20;
-    int32_t flag_count = (int32_t)global_scenario->netgame_flags.count;
-    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)global_scenario->netgame_flags.pointer;
+    int32_t flag_count = (int32_t)halo::scenario::globals().scenario->netgame_flags.count;
+    ScenarioNetgameFlags *flags = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer;
     int32_t i;
 
     game_engine_ctf_assign_flag_ids();
@@ -486,7 +484,7 @@ uint8_t Ctf::initialize_for_new_game(void)
         slot = game_engine_variant.engine.ctf.assault != 0 ? (team + 1) % 2 : team;
         ctf_team_flag_stand_position[slot] = 0;
         if (index != -1) {
-            ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)global_scenario->netgame_flags.pointer + index * 0x94);
+            ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + index * 0x94);
         }
     }
     if (network_game_mode == 2) {
@@ -521,14 +519,14 @@ uint8_t Ctf::initialize_for_new_game(void)
         halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
     }
     ctf_flag_capture_limit_006b0ea0 = game_engine_variant.score_limit;
-    count = *(int16_t *)&global_scenario->player_starting_locations.count;
+    count = *(int16_t *)&halo::scenario::globals().scenario->player_starting_locations.count;
     for (i = 0; i < count; i++) {
         uint8_t *equipment = (uint8_t *)0;
         int16_t type;
         uint8_t belongs;
 
-        if (i >= 0 && i < *(int32_t *)&global_scenario->player_starting_locations.count) {
-            equipment = (uint8_t *)global_scenario->player_starting_locations.pointer + i * 0x34;
+        if (i >= 0 && i < *(int32_t *)&halo::scenario::globals().scenario->player_starting_locations.count) {
+            equipment = (uint8_t *)halo::scenario::globals().scenario->player_starting_locations.pointer + i * 0x34;
         }
         type = *(int16_t *)&((struct equipment_object *)equipment)->base.flags;
         if (type != 0 && type != 1) {

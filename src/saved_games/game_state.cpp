@@ -34,7 +34,6 @@ extern void *game_state_write_event;
 extern game_state_header *game_state_header_ptr;
 extern uint8_t game_state_header_valid;
 extern uint8_t game_state_revert_available;
-extern datum_index global_scenario_index;
 extern int16_t local_player_count;
 extern game_main_globals *main_game_globals;
 extern uint32_t cache_file_current_header_crc32;
@@ -128,7 +127,7 @@ void build_header(void)
         zero = zero + 1;
     }
 
-    src = halo::cache::globals().tag_instances[(int16_t)global_scenario_index].path;
+    src = halo::cache::globals().tag_instances[(int16_t)halo::scenario::globals().scenario_index].path;
     dst = header->scenario_name;
     do {
         *dst = *src;

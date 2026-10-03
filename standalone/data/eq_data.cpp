@@ -13,6 +13,7 @@
  * All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names.
  */
 #include "tables.h"
+#include "halo/projectiles/api.hpp"
 #include "code_refs.hpp"
 #include "halo/cseries/api.hpp"
 #include <stdint.h>
@@ -355,11 +356,11 @@ __declspec(allocate(".geq$0069a2f0v")) __declspec(align(16)) uint32_t message_de
 #pragma section(".geq$0069a304v", read, write)
 __declspec(allocate(".geq$0069a304v")) __declspec(align(4)) uint32_t message_delta_unknown_table_0069a304[168] = {
     0x00000000u, 0x00000001u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
-    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000002u, 0x00000000u,
-    (uint32_t)message_delta_compute_size_1, (uint32_t)object_type_definition_return_true,
+    (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000002u, 0x00000000u,
+    (uint32_t)message_delta_compute_size_1, (uint32_t)halo::projectiles::object_type_definition_return_true,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000003u, 0x00000000u, (uint32_t)message_delta_compute_size_8,
-    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000004u, 0x00000000u,
-    (uint32_t)message_delta_compute_size_16, (uint32_t)object_type_definition_return_true,
+    (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000004u, 0x00000000u,
+    (uint32_t)message_delta_compute_size_16, (uint32_t)halo::projectiles::object_type_definition_return_true,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000005u, 0x00000001u, (uint32_t)message_delta_string_compute_size,
     (uint32_t)message_delta_count_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000006u, 0x00000001u,
     (uint32_t)message_delta_wide_string_compute_size, (uint32_t)message_delta_count_initialize,
@@ -379,21 +380,21 @@ __declspec(allocate(".geq$0069a304v")) __declspec(align(4)) uint32_t message_del
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000000fu, 0x00000001u,
     (uint32_t)message_delta_scalar_array_compute_size, (uint32_t)message_delta_count_initialize,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000010u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
-    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000011u, 0x00000001u,
+    (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000011u, 0x00000001u,
     (uint32_t)message_delta_first_dword_compute_size, (uint32_t)message_delta_flags_initialize,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000012u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
-    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000013u, 0x00000000u,
-    (uint32_t)message_delta_compute_size_6, (uint32_t)object_type_definition_return_true,
+    (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000013u, 0x00000000u,
+    (uint32_t)message_delta_compute_size_6, (uint32_t)halo::projectiles::object_type_definition_return_true,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000014u, 0x00000001u,
     (uint32_t)message_delta_first_dword_compute_size, (uint32_t)message_delta_quantized_real_initialize,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000015u, 0x00000001u, (uint32_t)message_delta_normal_compute_size,
     (uint32_t)message_delta_normal_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000016u, 0x00000000u,
     (uint32_t)message_delta_locality_compute_size, (uint32_t)message_delta_locality_initialize,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000017u, 0x00000000u, (uint32_t)message_delta_compute_size_4,
-    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000018u, 0x00000000u,
-    (uint32_t)message_delta_compute_size_3, (uint32_t)object_type_definition_return_true,
+    (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000018u, 0x00000000u,
+    (uint32_t)message_delta_compute_size_3, (uint32_t)halo::projectiles::object_type_definition_return_true,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000019u, 0x00000000u, (uint32_t)message_delta_compute_size_2,
-    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000001au, 0x00000001u,
+    (uint32_t)halo::projectiles::object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000001au, 0x00000001u,
     (uint32_t)message_delta_velocity_compute_size, (uint32_t)waypoint_table_quantize_initialize,
     (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000001bu, 0x00000000u,
     (uint32_t)message_delta_item_placement_compute_size, (uint32_t)message_delta_item_placement_initialize,

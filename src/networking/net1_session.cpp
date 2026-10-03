@@ -1,4 +1,6 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/text/api.hpp"
+#include "halo/scenario/api.hpp"
 #include <string.h>
 #include <wchar.h>
 #include <stdint.h>
@@ -27,7 +29,6 @@ extern char network_client_check_connection_quality(void);
 extern void network_game_client_apply_position_update(void *state, uint32_t *packet, void *tick_count, void *object);
 extern void network_player_update_history_log_write(const char *format, ...);
 extern wchar_t empty_string;
-extern wchar_t *text_string_list_get_string(int32_t tag_index, int32_t string_index);
 extern network_client_globals *network_client;
 extern network_server_globals *network_server;
 extern uint32_t profile_globals_block[];
@@ -80,7 +81,6 @@ extern void game_engine_apply_variant(const game_variant *variant);
 extern void game_engine_init_tick_record_for_mode(void);
 extern void main_menu_music_stop(void);
 extern int32_t network_channel_key_open(network_player_entry *entry);
-extern char scenario_load(char *path);
 extern uint8_t network_channel_table_default_flag;
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key);
 extern uint32_t player_data_iterator_advance(uint8_t slot_index);
@@ -321,7 +321,7 @@ wchar_t * GameRuntime::get_random_player_name()
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
-            return text_string_list_get_string((int32_t)tag_id, 0);
+            return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string((int32_t)tag_id, 0));
         }
     }
     return &empty_string;
@@ -656,7 +656,7 @@ void GameSessionView::generate_unique_random_name(wchar_t *out_name)
  * named)
  * address 0x4de6d0, size 405 bytes
  * name confidence: 0.55   rewrite confidence: 0.25
- * out/phase4/networking_functions.md: "Prepares and issues a scenario_load() request
+ * out/phase4/networking_functions.md: "Prepares and issues a halo::scenario::scenario_load() request
  * for the network game using the requested map name and seed, then, when hosting, opens a
  * channel for every connected machine and returns whether the map is now loaded." session at
  * param_1: server_name (+0x84), unknown_19e (+0x19e) and unknown_3ac (+0x3ac, the map-loaded
@@ -704,7 +704,7 @@ char GameSessionView::scenario_load_request()
     }
     cache_file_switch_map_by_path(request.map_name, 1);
     memcpy(main_game_globals + 8, &request, sizeof(request));
-    loaded = scenario_load(request.map_name);
+    loaded = halo::scenario::scenario_load(request.map_name);
     if (loaded == 0) {
         if (*main_game_globals == 0) {
             return session->map_loaded;

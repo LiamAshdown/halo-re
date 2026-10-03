@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/projectiles/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -13,10 +14,6 @@ extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
-extern void projectile_update_function_values(datum_index projectile_index);
-extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
-extern uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record);
-extern void projectile_response(datum_index projectile_index, collision_result *hit, real_point3d *out_position, real_vector3d *velocity);
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out);
@@ -28,11 +25,8 @@ extern datum_index sound_start_at_location(datum_index definition_index, sound_p
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void projectile_send_detonation(datum_index projectile_index);
-extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
-int projectile_update(uint32_t projectile_index);
 }
 
 namespace {
@@ -443,7 +437,7 @@ int ProjectileHandle::update()
 
 }
 
-extern "C" {
+namespace halo::projectiles {
 
 int projectile_update(uint32_t projectile_index)
 {

@@ -1,9 +1,11 @@
 #include "halo/camera/pov.hpp"
+#include "halo/models/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -46,7 +48,6 @@ extern flying_camera_transition_proc flying_camera_transition_procs[2][2];
 extern orbiting_camera_data flying_camera_saved_orbiting;
 extern uint8_t flying_camera_saved_orbiting_valid;
 extern editor_camera_data flying_camera_saved_flying;
-extern Scenario *global_scenario;
 extern uint8_t flying_camera_home_initialized;
 extern flying_camera_home flying_camera_home_location;
 extern float flying_camera_speed;
@@ -724,7 +725,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
             frame_index = frame;
         }
 
-        animation_get_root_node_matrix(&sample, frame_index, anim, 0);
+        halo::models::animation_get_root_node_matrix(&sample, frame_index, anim, 0);
 
         command->parameters.forward = *(Vector3D *)&sample.forward;
         command->parameters.up = *(Vector3D *)&sample.up;
@@ -969,8 +970,8 @@ void FlyingCamera::initialize(editor_camera_data *data, int16_t local_player_ind
     if (!flying_camera_home_initialized) {
         ScenarioPlayerStartingLocation *start = 0;
 
-        if (global_scenario->player_starting_locations.count != 0) {
-            start = (ScenarioPlayerStartingLocation *)global_scenario->player_starting_locations.pointer;
+        if (halo::scenario::globals().scenario->player_starting_locations.count != 0) {
+            start = (ScenarioPlayerStartingLocation *)halo::scenario::globals().scenario->player_starting_locations.pointer;
         }
         if (start != 0) {
             flying_camera_home_location.position = start->position;

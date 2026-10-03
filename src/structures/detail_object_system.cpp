@@ -7,13 +7,13 @@
 #include "halo/structures/structures.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern player_globals *local_player_globals;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t current_local_player_index;
 extern real_point3d render_camera_global;
 extern long lrint(double x);
@@ -54,9 +54,9 @@ void detail_object_system::update_render_list(void)
         return;
     }
 
-    detail_data = (global_structure_bsp->detail_objects.count == 0)
+    detail_data = (halo::scenario::globals().structure_bsp->detail_objects.count == 0)
         ? (ScenarioStructureBSPDetailObjectData *)0
-        : (ScenarioStructureBSPDetailObjectData *)global_structure_bsp->detail_objects.pointer;
+        : (ScenarioStructureBSPDetailObjectData *)halo::scenario::globals().structure_bsp->detail_objects.pointer;
 
     cell_x = (int16_t)(int32_t)lrint((double)(render_camera_global.x * 0.125f - 0.5f));
     cell_y = (int16_t)(int32_t)lrint((double)(render_camera_global.y * 0.125f - 0.5f));

@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -32,7 +33,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
     cluster_record = (ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer + local_player_0_cluster_index;
 
     {
-        int16_t region = scenario_location_fog_region(&camera_leaf, &camera_point);
+        int16_t region = halo::scenario::scenario_location_fog_region(&camera_leaf, &camera_point);
         if (region != -1) {
             region = (int16_t)((ScenarioStructureBSPFogRegion *)structure_bsp->fog_regions.pointer)[region].fog;
         }
@@ -216,7 +217,7 @@ void update_listener(void)
     listener->valid = 1;
 
     camera = &halo::camera::globals().observers[0].camera;
-    underwater = scenario_location_get_water_and_weather((real_point3d *)&camera->position,
+    underwater = halo::scenario::scenario_location_get_water_and_weather((real_point3d *)&camera->position,
         (bsp_leaf_reference *)&camera->leaf_index, (int16_t *)0);
     if (listener->underwater != underwater) {
         sound_location location = { 0 };

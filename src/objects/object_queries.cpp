@@ -1,13 +1,13 @@
 #include "halo/objects/object_queries.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern data_array *collideable_object_references;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count, int16_t *cluster_indices, int16_t max_output, datum_index *out_objects);
@@ -380,7 +380,7 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
         if (*word == 0) {
             continue;
         }
-        cluster_count = *(int32_t *)&global_structure_bsp->clusters.count;
+        cluster_count = *(int32_t *)&halo::scenario::globals().structure_bsp->clusters.count;
         lo = (int16_t)(word_index << 5);
         hi = lo + 0x20;
         if (hi > cluster_count) {

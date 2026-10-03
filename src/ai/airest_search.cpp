@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index);
@@ -23,7 +24,6 @@ extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask, int16_t start_index);
 extern void ai_search_context_init(ai_search_context *context, uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
 extern uint8_t ai_search_step(ai_search_context *context);
-extern ScenarioStructureBSP *global_structure_bsp;
 extern void ai_search_heap_sift_down(ai_search_context *context, int16_t index);
 extern void ai_search_expand_point_neighbors(ai_search_context *context, int16_t node_index, int16_t start_point_id);
 extern uint8_t path_find_heights_are_close(ScenarioStructureBSP *structure_bsp, real_point2d *point, int32_t surface_a, int32_t surface_b);

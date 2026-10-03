@@ -1,4 +1,5 @@
 #include "halo/hs/hs3_objects.hpp"
+#include "halo/scenario/api.hpp"
 #include "game.h"
 #include "units.h"
 #include <stdint.h>
@@ -16,7 +17,6 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
 extern datum_index *object_name_list;
 extern datum_index object_new_from_scenario_name(int16_t name_index);
-extern Scenario *global_scenario;
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
@@ -48,7 +48,6 @@ extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
 extern void object_notify_children_recursive(datum_index object_index);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void object_delete(datum_index object_index);
 extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,
@@ -241,7 +240,7 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
     if (object_index == k_datum_index_none) {
         return;
     }
-    flag = (uint8_t *)global_scenario->cutscene_flags.pointer + location_index * 0x5c;
+    flag = (uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer + location_index * 0x5c;
     placed = OBJ(object_index);
 
     if (detach_from_parent && *(datum_index *)(placed + 0x11c) != k_datum_index_none) {
@@ -449,7 +448,7 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
                 if ((salt == 0 || entry->identifier == salt) &&
                     (1 << (entry->type_flag & 0x1f) & 3) != 0 && entry->data != 0 &&
                     gate != 0 && unit_point_within_look_cone(angle_degrees * 0.017453292f, object_index,
-                        (real_point3d *)((uint8_t *)global_scenario->cutscene_flags.pointer + gate * 0x5c + 0x24)) != 0) {
+                        (real_point3d *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer + gate * 0x5c + 0x24)) != 0) {
 
                     return 1;
                 }
@@ -605,7 +604,7 @@ char ScriptObjects::object_list_test_trigger_volume(int32_t trigger_volume_index
     while (object_index != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
 
-        if (scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
+        if (halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
             if (!all_mode) {
                 return 1;
             }

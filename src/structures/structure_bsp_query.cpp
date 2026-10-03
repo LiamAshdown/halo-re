@@ -8,9 +8,9 @@
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
-extern ScenarioStructureBSP *global_structure_bsp;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point);
@@ -24,9 +24,9 @@ namespace halo::structures {
 int16_t structure_bsp_query::node_query_recursive(int32_t node_index, real_rectangle3d *parent_bounds, uint32_t *visited_bits, int32_t *output_array, int32_t max_count, real_point3d *point, float radius, real_rectangle3d *query_box, int16_t plane_count, real_plane3d *planes, int16_t inherited_classification)
 {
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
+        (ModelCollisionGeometryBSP *)halo::scenario::globals().structure_bsp->collision_bsp.pointer;
     ScenarioStructureBSPNode *compressed_bounds =
-        (ScenarioStructureBSPNode *)global_structure_bsp->nodes.pointer + node_index;
+        (ScenarioStructureBSPNode *)halo::scenario::globals().structure_bsp->nodes.pointer + node_index;
     real_rectangle3d node_bounds;
     int16_t classification = inherited_classification;
     int32_t written = 0;
@@ -85,7 +85,7 @@ int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_cla
 {
     int32_t leaf_index = raw_child & k_leaf_index_mask;
     ScenarioStructureBSPLeaf *leaf =
-        &((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index];
+        &((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index];
     int32_t written = 0;
 
     real_rectangle3d leaf_box;
@@ -103,7 +103,7 @@ int16_t structure_bsp_query::leaf_query(int32_t raw_child, int16_t inherited_cla
     }
 
     ScenarioStructureBSPSurfaceReference *leaf_surfaces =
-        (ScenarioStructureBSPSurfaceReference *)global_structure_bsp->leaf_surfaces.pointer;
+        (ScenarioStructureBSPSurfaceReference *)halo::scenario::globals().structure_bsp->leaf_surfaces.pointer;
     int32_t first = leaf->surface_references;
     int32_t end = first + leaf->surface_reference_count;
     for (int32_t i = first; i < end; i++) {
@@ -135,7 +135,7 @@ int32_t structure_bsp_query::collect_surfaces_in_clusters(int32_t *out_surfaces,
             break;
         }
         ScenarioStructureBSPCluster *cluster =
-            &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)[cluster_indices[c]];
+            &((ScenarioStructureBSPCluster *)halo::scenario::globals().structure_bsp->clusters.pointer)[cluster_indices[c]];
 
         for (int32_t s = 0; s < (int32_t)cluster->subclusters.count; s++) {
             if (written >= max_count) {
@@ -206,7 +206,7 @@ int16_t structure_bsp_query::query_surfaces(real_rectangle3d *query_box, real_po
         }
     }
 
-    return structure_bsp_query::node_query_recursive(0, (real_rectangle3d *)&global_structure_bsp->world_bounds_x, visited_bits, out_surfaces, max_count, query_point, radius, query_box, plane_count, planes, _structure_bsp_overlap_partial);
+    return structure_bsp_query::node_query_recursive(0, (real_rectangle3d *)&halo::scenario::globals().structure_bsp->world_bounds_x, visited_bits, out_surfaces, max_count, query_point, radius, query_box, plane_count, planes, _structure_bsp_overlap_partial);
 }
 
 uint8_t structure_bsp_query::points_within_band(real_point3d *points, int16_t point_count, float tolerance)
@@ -227,15 +227,15 @@ uint8_t structure_bsp_query::leaf_find_material_surface(real_point3d *point, int
 {
     int32_t leaf_index = raw_child & k_leaf_index_mask;
     ScenarioStructureBSPLeaf *leaf =
-        &((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index];
+        &((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[leaf_index];
     ScenarioStructureBSPSurfaceReference *leaf_surfaces =
-        (ScenarioStructureBSPSurfaceReference *)global_structure_bsp->leaf_surfaces.pointer;
+        (ScenarioStructureBSPSurfaceReference *)halo::scenario::globals().structure_bsp->leaf_surfaces.pointer;
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)global_structure_bsp->collision_bsp.pointer;
+        (ModelCollisionGeometryBSP *)halo::scenario::globals().structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSP3DNode *bsp3d_nodes =
         (ModelCollisionGeometryBSP3DNode *)collision_bsp->bsp3d_nodes.pointer;
     ScenarioStructureBSPLightmap *lightmaps =
-        (ScenarioStructureBSPLightmap *)global_structure_bsp->lightmaps.pointer;
+        (ScenarioStructureBSPLightmap *)halo::scenario::globals().structure_bsp->lightmaps.pointer;
 
     int32_t first = leaf->surface_references;
     int32_t end = first + leaf->surface_reference_count;
@@ -253,9 +253,9 @@ uint8_t structure_bsp_query::leaf_find_material_surface(real_point3d *point, int
             continue;
         }
         surface_index = leaf_surfaces[i].surface;
-        surface = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer + surface_index;
+        surface = (ScenarioStructureBSPSurface *)halo::scenario::globals().structure_bsp->surfaces.pointer + surface_index;
 
-        structure_bsp_view(global_structure_bsp).surface_material_locate(surface_index, out_material_index, out_lightmap_index);
+        structure_bsp_view(halo::scenario::globals().structure_bsp).surface_material_locate(surface_index, out_material_index, out_lightmap_index);
         material = &((ScenarioStructureBSPMaterial *)
             lightmaps[*out_lightmap_index].materials.pointer)[*out_material_index];
 

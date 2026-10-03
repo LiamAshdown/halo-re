@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
 extern void actor_movement_action_cancel(datum_index actor_index);
-extern Scenario *global_scenario;
 extern data_array *object_data;
 extern data_array *prop_data;
 extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
@@ -120,7 +120,7 @@ void AiActorView::link_to_unassigned_list()
 uint32_t AiObjects::type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference)
 {
     ScenarioCommandList *command_list =
-        &((ScenarioCommandList *)global_scenario->command_lists.pointer)[actor_type_index];
+        &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[actor_type_index];
 
     if ((uint32_t)command_reference[0] < (uint32_t)command_list->commands.count &&
         (ScenarioCommand *)command_list->commands.pointer + command_reference[0] != 0) {
@@ -581,7 +581,7 @@ int16_t ObjectListView::max_flee_grade()
             } else {
                 a = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
                 if (a->mode == _actor_mode_flee) {
-                    command_list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)
+                    command_list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)
                         [*(int16_t *)(a->mode_data.raw + 0x00)];
                     command_index = (int32_t)(uint32_t)a->mode_data.raw[8];
                     if (command_index < command_list->commands.count &&
@@ -1442,11 +1442,11 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
 
     encounter_index = (int16_t)packed_reference;
     if (packed_reference == 0xffffffff || encounter_index < 0 ||
-        global_scenario->encounters.count <= (int32_t)encounter_index) {
+        halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
         goto store;
     }
 
-    definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index];
+    definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
     squad_index = 0;
 
     if (packed_reference >> 0x1e == 1) {

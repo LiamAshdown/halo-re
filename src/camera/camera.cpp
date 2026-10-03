@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/scenario/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -20,7 +21,6 @@ extern camera_script_globals camera_script;
 extern player_control_globals *player_control_globals_ptr;
 extern data_array *object_data;
 extern data_array *player_data;
-extern Scenario *global_scenario;
 extern float observer_dt;
 extern game_engine_definition *current_game_engine;
 }
@@ -448,7 +448,7 @@ void CameraSystem::debug_start(int16_t camera_point_index, int16_t ticks, datum_
     ScenarioCutsceneCameraPoint *point;
     real_matrix4x3 matrix; 
 
-    point = (ScenarioCutsceneCameraPoint *)((uint8_t *)global_scenario->cutscene_camera_points.pointer +
+    point = (ScenarioCutsceneCameraPoint *)((uint8_t *)halo::scenario::globals().scenario->cutscene_camera_points.pointer +
                                              camera_point_index * sizeof(ScenarioCutsceneCameraPoint));
 
     camera_script.mode = _camera_script_mode_point;
