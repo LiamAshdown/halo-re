@@ -10,6 +10,7 @@
 extern "C" {
 extern uint8_t unknown_006893ef;
 extern uint8_t console_debug_toggle_689409;
+extern uint8_t console_debug_toggle_689404;
 extern uint8_t console_debug_toggle_689403;
 extern uint8_t console_debug_toggle_689421;
 extern uint8_t console_debug_toggle_68941e;
@@ -515,5 +516,14 @@ inline uint8_t &environment_alpha_testing_enabled = console_debug_toggle_68941c;
  * @address 0x6893f3
  */
 inline uint8_t &environment_diffuse_lights_enabled = console_debug_toggle_6893f3;
+
+/**
+ * Debug toggle (cleared by default only on the console): when zero, or when more than one local view is
+ * rendered, the detail object begin/draw/end passes return without drawing anything. Set by the video settings
+ * apply path.
+ *
+ * @address 0x689404
+ */
+inline uint8_t &detail_objects_enabled = console_debug_toggle_689404;
 
 }

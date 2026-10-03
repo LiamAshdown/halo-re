@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/units/unit.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
@@ -8,7 +9,6 @@ extern "C" {
 extern data_array *player_data;
 extern data_array *object_data;
 extern game_time_globals *game_time;
-extern uint32_t unit_noop_569670(uint32_t object_index);
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, void *out);
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, void *result);
@@ -36,7 +36,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
     uint8_t *player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
     datum_index unit = ((struct player *)player)->unit;
     datum_index target = (datum_index)k_datum_index_none;
-    uint32_t aim_unit = unit_noop_569670(unit);
+    uint32_t aim_unit = halo::units::UnitView(unit).resolve_camera_object();
     uint8_t *aim_unit_obj = (uint8_t *)((object_header *)object_data->data)[aim_unit & 0xffff].data;
     real cone[5];
 

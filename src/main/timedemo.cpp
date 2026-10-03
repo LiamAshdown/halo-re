@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include "halo/main/timedemo.hpp"
+#include "halo/rasterizer/globals.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 
@@ -46,8 +47,6 @@ extern "C" { extern uint8_t directsound_eax_enabled; }
 extern "C" { extern int32_t directsound_quality; }
 extern "C" { extern int16_t renderer_texture_quality; }
 extern "C" { extern int16_t light_count_enabled; }
-extern "C" { extern uint8_t console_debug_toggle_6893f2; }
-extern "C" { extern uint8_t console_debug_toggle_6893fa; }
 extern "C" { extern void main_queue_map_change(char *map_name); }
 extern "C" { extern char hs_compile_and_evaluate(const char *command); }
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
@@ -285,8 +284,8 @@ void Timedemo::benchmark_update(void)
             particles = "Off";
         }
         decals = halo::effects::globals().decals_for_all_responses != 0 ? "Yes" : "No";
-        shadows = console_debug_toggle_6893f2 != 0 ? "Yes" : "No";
-        specular = console_debug_toggle_6893fa != 0 ? "Yes" : "No";
+        shadows = halo::rasterizer::globals::object_shadows_enabled != 0 ? "Yes" : "No";
+        specular = halo::rasterizer::globals::specular_enabled != 0 ? "Yes" : "No";
         fprintf(file,
             "###Video Options###\nResolution= %d x %d\nRefresh rate= %d Hz\n"
             "Framerate throttle= No Vsync\nSpecular= %s\nShadows= %s\nDecals= %s\nParticles= %s\n"

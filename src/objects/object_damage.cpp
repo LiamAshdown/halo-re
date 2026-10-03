@@ -20,7 +20,6 @@ extern game_engine_definition *current_game_engine;
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
 extern void damage_effect_new_at_location(datum_index effect_tag, int16_t node_index, real_vector3d *normal, real_vector3d *incident, real_point3d *impact_position, uint32_t object_index);
 extern ModelCollisionGeometryMaterial default_collision_material;
-extern uint8_t g_00689481;
 extern uint8_t g_006f1cf4;
 extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer, datum_index death_object, int32_t killer_team, char credit_kills);
 extern float game_engine_compute_time_scale(int32_t param_a, int32_t param_b);
