@@ -45,6 +45,11 @@ static_assert(sizeof(rasterizer_render_target) == 0x14);
 static_assert(offsetof(rasterizer_render_target, surface) == 0x0c);
 static_assert(offsetof(rasterizer_render_target, texture) == 0x10);
 
+static_assert(sizeof(d3d_light9) == 0x68);
+static_assert(offsetof(d3d_light9, position) == 0x34);
+static_assert(offsetof(d3d_light9, range) == 0x4c);
+static_assert(offsetof(d3d_light9, phi) == 0x64);
+
 static_assert(sizeof(rasterizer_geometry_group_parameters) == 0x28);
 static_assert(offsetof(rasterizer_geometry_group_parameters, shader) == 0x1c);
 static_assert(offsetof(rasterizer_geometry_group_parameters, change_colors) == 0x20);

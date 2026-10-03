@@ -15,11 +15,27 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/rasterizer/constants.hpp"
+#include "halo/rasterizer/tag_access.hpp"
+#include "halo/core/bit_cast.hpp"
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
+#include <cstring>
 
 
 
 
 namespace halo::rasterizer {
+
+namespace {
+
+/** The Light tag a rasterizer light was built from. */
+const Light *light_tag(const rasterizer_light *light)
+{
+    return reinterpret_cast<const Light *>(static_cast<uintptr_t>(light->definition));
+}
+
+}  // namespace
 
 
 /**
@@ -30,7 +46,6 @@ namespace halo::rasterizer {
  */
 void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
 {
-    const uint8_t *raw = (const uint8_t *)shader;
     rasterizer_effect_slot *effect_slot = &rasterizer_effects[4];
     void *effect = effect_slot->effect;
     uint32_t bump_map_tag;
@@ -40,18 +55,18 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::environment_diffuse_lights_enabled == 0 || effect == 0) {
+    if (halo::rasterizer::fields::rasterizer_debug_mode_word != 0 || halo::rasterizer::fields::environment_diffuse_lights_enabled == 0 || effect == 0) {
         return;
     }
 
-    bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : halo::tag_id_bits(((struct ShaderEnvironment *)raw)->bump_map.tag_id);
+    bump_map_tag = halo::test_flag(shader->shader_environment_flags, halo::tags::shader_environment_tag_flag::bump_map_is_specular_mask) ? halo::k_dword_none : halo::tag_id_bits(shader->bump_map.tag_id);
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != halo::k_dword_none) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & halo::k_slot_mask].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
             bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
-            if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
+            if (bump_bitmap->type != 0) {
                 bump_bitmap = 0;
             }
         }
@@ -63,7 +78,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_tag & halo::k_slot_mask].data;
 
             if (bitmap != 0 && (int32_t)bitmap->bitmap_data.count > 3) {
-                bump_bitmap = (BitmapData *)((uint8_t *)bitmap->bitmap_data.pointer + 3 * 0x30);
+                bump_bitmap = tag_block_element<BitmapData>(bitmap->bitmap_data, 3);
             }
         }
     }
@@ -73,8 +88,8 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
         rasterizer_bound_bitmap_size_b[1] = (int16_t)bump_bitmap->height;
     }
 
-    constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
-    constants[1] = *(const float *)(raw + 0x13c);
+    constants[0] = shader->bump_map_scale_xy.x;
+    constants[1] = shader->bump_map_scale_xy.y;
     constants[2] = 1.0f;
     constants[3] = 1.0f;
     constants[4] = 1.0f;
@@ -88,9 +103,9 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
-    color[0] = *(float *)&((struct ShaderEnvironment *)raw)->material_color;
-    color[1] = *(const float *)(raw + 0x110);
-    color[2] = *(const float *)(raw + 0x114);
+    color[0] = shader->material_color.red;
+    color[1] = shader->material_color.green;
+    color[2] = shader->material_color.blue;
     color[3] = 1.0f;
     render_device().set_pixel_shader_constant_f(1, color, 1);
 
@@ -136,13 +151,13 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     light = &rasterizer_lights[light_index];
 
     if (rasterizer_effects[4].effect != 0) {
-        rasterizer_resolve_and_cache_submap_b(*(uint32_t *)((uint8_t *)light->definition + 0x70), 2, 1, 1, 0,
+        rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(light_tag(light)->primary_cube_map.tag_id), 2, 1, 1, 0,
                                               &rasterizer_effects[4]);
     }
 
-    yaw = halo::math::periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x8e), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0x90)) * 6.2831855f;
-    pitch = halo::math::periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x9e), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0xa0)) * 6.2831855f;
-    roll = halo::math::periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x96), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0x98)) * 6.2831855f;
+    yaw = halo::math::periodic_function_evaluate(light_tag(light)->yaw_function, rasterizer_time.time / light_tag(light)->yaw_period) * 6.2831855f;
+    pitch = halo::math::periodic_function_evaluate(light_tag(light)->pitch_function, rasterizer_time.time / light_tag(light)->pitch_period) * 6.2831855f;
+    roll = halo::math::periodic_function_evaluate(light_tag(light)->roll_function, rasterizer_time.time / light_tag(light)->roll_period) * 6.2831855f;
 
     halo::math::matrix4x3_from_euler_angles(orientation, yaw, pitch, roll);
     halo::math::matrix4x3_transform_normal(axis_a, light->forward, orientation);
@@ -300,63 +315,59 @@ namespace rasterizer_light_set_impl {
 void rasterizer_light_set(rasterizer_light *light)
 {
     uint32_t index;
-    float d3dlight[26];
-
+    d3d_light9 d3dlight;
 
     index = rasterizer_fixed_function_light_count;
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && rasterizer_caps.max_active_lights != 0 &&
         rasterizer_fixed_function_light_count < (int32_t)rasterizer_caps.max_active_lights) {
-        int i;
-        for (i = 0; i < 26; i++) {
-            d3dlight[i] = 0.0f;
-        }
+        std::memset(&d3dlight, 0, sizeof(d3dlight));
 
-        d3dlight[0x58 / 4] = 1.4f;
-        d3dlight[0x54 / 4] = 0.0f;
+        d3dlight.attenuation1 = 1.4f;
+        d3dlight.attenuation0 = 0.0f;
 
-        if (*(int32_t *)((uint8_t *)(uintptr_t)light->definition + 0x70) == -1) {
+        if (halo::tag_id_bits(light_tag(light)->primary_cube_map.tag_id) == halo::k_dword_none) {
 
-            d3dlight[0x34 / 4] = light->position.x;
-            d3dlight[0x04 / 4] = light->color.red * 10.0f;
-            d3dlight[0x38 / 4] = light->position.y;
-            d3dlight[0x3c / 4] = light->position.z;
-            *(int32_t *)&d3dlight[0x00 / 4] = halo::d3d9::k_light_point;
-            d3dlight[0x5c / 4] = 0.0f;
-            d3dlight[0x08 / 4] = light->color.green * 10.0f;
-            d3dlight[0x0c / 4] = light->color.blue * 10.0f;
+            d3dlight.position.x = light->position.x;
+            d3dlight.diffuse[0] = light->color.red * 10.0f;
+            d3dlight.position.y = light->position.y;
+            d3dlight.position.z = light->position.z;
+            d3dlight.type = halo::d3d9::k_light_point;
+            d3dlight.attenuation2 = 0.0f;
+            d3dlight.diffuse[1] = light->color.green * 10.0f;
+            d3dlight.diffuse[2] = light->color.blue * 10.0f;
         } else {
             float radius_scale;
             real_vector3d flashlight_offset;
 
-            d3dlight[0x40 / 4] = light->forward.i;
-            d3dlight[0x44 / 4] = light->forward.j;
-            d3dlight[0x34 / 4] = light->position.x;
-            d3dlight[0x38 / 4] = light->position.y;
+            d3dlight.direction.i = light->forward.i;
+            d3dlight.direction.j = light->forward.j;
+            d3dlight.position.x = light->position.x;
+            d3dlight.position.y = light->position.y;
             radius_scale = light->radius * 2.5f;
-            d3dlight[0x3c / 4] = light->position.z;
-            *(int32_t *)&d3dlight[0x00 / 4] = halo::d3d9::k_light_spot;
-            d3dlight[0x60 / 4] = 1.0f;
-            d3dlight[0x04 / 4] = radius_scale * light->color.red;
-            d3dlight[0x64 / 4] = 3.14f;
-            d3dlight[0x50 / 4] = 2.0f;
-            d3dlight[0x5c / 4] = 1.0f;
-            d3dlight[0x08 / 4] = radius_scale * light->color.green;
-            d3dlight[0x0c / 4] = radius_scale * light->color.blue;
-            d3dlight[0x48 / 4] = light->forward.k;
+            d3dlight.position.z = light->position.z;
+            d3dlight.type = halo::d3d9::k_light_spot;
+            d3dlight.theta = 1.0f;
+            d3dlight.diffuse[0] = radius_scale * light->color.red;
+            d3dlight.phi = 3.14f;
+            d3dlight.falloff = 2.0f;
+            d3dlight.attenuation2 = 1.0f;
+            d3dlight.diffuse[1] = radius_scale * light->color.green;
+            d3dlight.diffuse[2] = radius_scale * light->color.blue;
+            d3dlight.direction.k = light->forward.k;
 
-            if ((*(uint8_t *)(uintptr_t)light->definition & 0x10) != 0) {
+            if (halo::test_flag(light_tag(light)->flags, halo::tags::light_tag_flag::first_person_flashlight)) {
 
                 halo::math::vector3d_cross_product(flashlight_offset, light->up, light->forward);
                 halo::math::vector3d_normalize_with_length(flashlight_offset);
-                d3dlight[0x34 / 4] -= flashlight_offset.i * 0.3f;
-                d3dlight[0x38 / 4] -= flashlight_offset.j * 0.3f;
-                d3dlight[0x3c / 4] -= flashlight_offset.k * 0.3f;
+                d3dlight.position.x -= flashlight_offset.i * 0.3f;
+                d3dlight.position.y -= flashlight_offset.j * 0.3f;
+                d3dlight.position.z -= flashlight_offset.k * 0.3f;
             }
         }
 
-        d3dlight[0x4c / 4] = light->radius;
+        d3dlight.range = light->radius;
 
-        render_device().set_light(index, d3dlight);
+        render_device().set_light(index, &d3dlight);
         render_device().light_enable(rasterizer_fixed_function_light_count, 1);
         rasterizer_fixed_function_light_count = rasterizer_fixed_function_light_count + 1;
     }
@@ -377,26 +388,22 @@ void rasterizer_light_set_point_constants(int32_t light_index, int16_t slot, ras
     rasterizer_point_light_constants *dest = &dest_base[slot];
 
     if (light_index == -1) {
-        uint32_t *raw = (uint32_t *)dest;
-        int i;
-        for (i = 0; i < 0xc; i++) {
-            raw[i] = 0;
-        }
+        std::memset(dest, 0, sizeof(*dest));
         return;
     }
 
     {
         rasterizer_light *light = &rasterizer_lights[light_index];
-        uint8_t *definition = (uint8_t *)light->definition;
-        float cos_falloff_angle = *(float *)(definition + 0x1c);
-        float cos_cutoff_angle = *(float *)(definition + 0x20);
+        const Light *definition = light_tag(light);
+        float cos_falloff_angle = definition->cos_falloff_angle;
+        float cos_cutoff_angle = definition->cos_cutoff_angle;
 
         dest->position = light->position;
         dest->inverse_radius_squared = 1.0f / (light->radius * light->radius);
         dest->forward = light->forward;
         dest->color = light->color;
 
-        if (*(int32_t *)(definition + 0x1c) != -0x40800000) {
+        if (halo::bit_cast<uint32_t>(definition->cos_falloff_angle) != k_float_bits_minus_one) {
             float falloff_scale = 1.0f / (cos_falloff_angle - cos_cutoff_angle);
             dest->falloff_scale = falloff_scale;
             dest->falloff_offset = -(falloff_scale * cos_cutoff_angle);
@@ -440,12 +447,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
     int16_t i;
 
     if (halo::rasterizer::fields::model_lighting_ambient_override > 0.0f) {
-        float *words = (float *)&block;
-        int32_t w;
-
-        for (w = 0; w < 0x2c; w++) {
-            words[w] = 0.0f;
-        }
+        std::memset(&block, 0, sizeof(block));
         ambient_red = ambient_green = ambient_blue = halo::rasterizer::fields::model_lighting_ambient_override;
     } else {
         for (i = 0; i < 2; i++) {
@@ -506,7 +508,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
 void rasterizer_projected_light_constants_build(int32_t light_index)
 {
     rasterizer_light *light;
-    Light *definition;
+    const Light *definition;
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_3) {
@@ -514,11 +516,11 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     }
 
     light = &rasterizer_lights[light_index];
-    definition = (Light *)(uint8_t *)light->definition;
+    definition = light_tag(light);
 
-    if (*(int32_t *)&((struct Light *)definition)->cos_falloff_angle != (int32_t)0xbf800000 &&
-        (halo::tag_id_bits<int32_t>(((struct Light *)definition)->primary_cube_map.tag_id) != -1 ||
-         halo::tag_id_bits<int32_t>(((struct Light *)definition)->secondary_cube_map.tag_id) != -1)) {
+    if (halo::bit_cast<uint32_t>(definition->cos_falloff_angle) != k_float_bits_minus_one &&
+        (halo::tag_id_bits<int32_t>(definition->primary_cube_map.tag_id) != -1 ||
+         halo::tag_id_bits<int32_t>(definition->secondary_cube_map.tag_id) != -1)) {
         rasterizer_projected_light_shader_variant = 1;
         rasterizer_projected_light_luminance =
             light->color.red * 0.299f + light->color.green * 0.587f + light->color.blue * 0.114f;
@@ -534,7 +536,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
         light->color.red * 0.299f + light->color.green * 0.587f + light->color.blue * 0.114f;
 
     rasterizer_projected_light.inverse_radius =
-        1.0f / (((struct Light *)definition)->specular_radius_multiplier * light->radius) * 0.5f;
+        1.0f / (definition->specular_radius_multiplier * light->radius) * 0.5f;
 
     rasterizer_projected_light.basis[0][0] = 0.0f;
     rasterizer_projected_light.basis[0][1] = 0.0f;
@@ -567,7 +569,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
 void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
 {
     rasterizer_light *light;
-    Light *definition;
+    const Light *definition;
     int32_t cube_map_tag_index;
     real_vector3d cross_axis;
     float radius;
@@ -578,18 +580,18 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
     }
 
     light = &rasterizer_lights[light_index];
-    definition = (Light *)(uint8_t *)light->definition;
+    definition = light_tag(light);
 
-    cube_map_tag_index = halo::tag_id_bits<int32_t>(((struct Light *)definition)->primary_cube_map.tag_id);
+    cube_map_tag_index = halo::tag_id_bits<int32_t>(definition->primary_cube_map.tag_id);
     if (cube_map_tag_index == -1) {
-        cube_map_tag_index = halo::tag_id_bits<int32_t>(((struct Light *)definition)->secondary_cube_map.tag_id);
+        cube_map_tag_index = halo::tag_id_bits<int32_t>(definition->secondary_cube_map.tag_id);
     }
 
     halo::math::vector3d_cross_product(cross_axis, light->up, light->forward);
     halo::math::vector3d_normalize_with_length(cross_axis);
 
     rasterizer_projected_light.position = light->position;
-    radius = ((struct Light *)definition)->specular_radius_multiplier * light->radius;
+    radius = definition->specular_radius_multiplier * light->radius;
     rasterizer_projected_light.basis[0][3] = 1.0f;
     rasterizer_projected_light.basis[1][3] = 1.0f;
     rasterizer_projected_light.basis[2][3] = 1.0f;
@@ -632,7 +634,7 @@ static float real_pin_unit(float value)
 
 static uint32_t real_bits(float value)
 {
-    return *(uint32_t *)&value;
+    return halo::bit_cast<uint32_t>(value);
 }
 
 /**
@@ -827,7 +829,7 @@ void * rasterizer_shader_technique_for_name(void *effect, const char *name)
     for (; !found && major >= 0; major--, minor = 9) {
         for (; !found && minor >= 0; minor--) {
             sprintf(full_name, "%s_ps_%d_%d", name, major, minor);
-            technique = (void *)(uintptr_t)render_device().effect_get_technique_by_name(effect, full_name);
+            technique = d3d_arg(render_device().effect_get_technique_by_name(effect, full_name)).get();
             if (technique != 0) {
                 int32_t hr = render_device().effect_validate_technique(effect, technique);
                 found = hr >= 0;

@@ -293,6 +293,23 @@ typedef struct d3d_present_parameters {
     uint32_t presentation_interval; // 0x34 (used) 1 means vsync, 0x80000000 immediate
 } d3d_present_parameters;           // size 0x38
 
+// D3DLIGHT9 as handed to IDirect3DDevice9::SetLight by rasterizer_light_set 0x526760.
+typedef struct d3d_light9 {
+    uint32_t type;                  // 0x00 D3DLIGHTTYPE: 1 point, 2 spot
+    float diffuse[4];               // 0x04 r, g, b, a
+    float specular[4];              // 0x14
+    float ambient[4];               // 0x24
+    real_point3d position;          // 0x34
+    real_vector3d direction;        // 0x40
+    float range;                    // 0x4c
+    float falloff;                  // 0x50
+    float attenuation0;             // 0x54
+    float attenuation1;             // 0x58
+    float attenuation2;             // 0x5c
+    float theta;                    // 0x60
+    float phi;                      // 0x64
+} d3d_light9;                       // size 0x68
+
 // D3DCAPS9 as filled by IDirect3D9::GetDeviceCaps (+0x38, called in rasterizer_initialize_direct3d
 // 0x5169c0 with the literal address 0x007c10c0). Fields read by this module are marked.
 typedef struct d3d_caps9 {

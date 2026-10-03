@@ -433,6 +433,13 @@ inline uint8_t &rasterizer_fps = console_debug_toggle_6893e0;
 inline uint8_t &rasterizer_debug_mode = console_debug_toggle_6893e4;
 
 /**
+ * The same toggle read as the 16 bit value the retail tests compare: the debug mode byte and the byte after it.
+ *
+ * @address 0x6893e4
+ */
+inline uint16_t &rasterizer_debug_mode_word = halo::link::ref<uint16_t>(halo::rasterizer::vars().console_debug_toggle_6893e4);
+
+/**
  * hs global "rasterizer_wireframe": draw everything as wireframe (fill mode 2) and skip text backdrops.
  *
  * @address 0x6893e6
