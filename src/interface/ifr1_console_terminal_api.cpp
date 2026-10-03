@@ -9,7 +9,7 @@ namespace halo::interface {
  *
  * @address 0x496b50
  */
-void chimera__console_out(ColorARGB *color, char *format, ...)
+void chimera__console_out(ColorARGB *color, const char *format, ...)
 {
     va_list args;
     va_start(args, format);

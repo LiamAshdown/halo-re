@@ -237,7 +237,7 @@ void ChimeraBridge::load_main_menu(void)
     }
     halo::input::UiEvents::queue_sample_time_update();
     halo::interface::widget_close_all();
-    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, halo::k_word_none,
+    halo::interface::chimera__load_ui_widget("ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, halo::k_word_none,
                             (datum_index)-1, (datum_index)-1, -1);
     if (halo::networking::globals().join_error_code != -1) {
         halo::interface::display_error(halo::networking::globals().join_error_code, -1, 1, 0);
@@ -263,7 +263,7 @@ void ChimeraBridge::load_main_menu(void)
  *
  * @address 0x497a70
  */
-widget_instance * ChimeraBridge::load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
+widget_instance * ChimeraBridge::load_ui_widget(const const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
 {
     widget_instance *widget = (widget_instance *)0;
     int16_t slot = (controller_index == halo::k_word_none) ? 0 : (int16_t)controller_index;

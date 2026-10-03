@@ -418,7 +418,7 @@ uint32_t MenuListView::choice_handler()
                 halo::game::game_engine_send_round_reset_message();
                 halo::game::game_engine_player_profile_cache_sync_all(0, (void *)halo::k_dword_none);
             } else {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
+                halo::interface::chimera__console_out((ColorARGB *)0, "Cannot restart the map when the game is over.");
             }
         }
         handled = 1;

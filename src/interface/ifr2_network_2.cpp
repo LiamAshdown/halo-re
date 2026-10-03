@@ -17,7 +17,7 @@ extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern void widget_close_all(void);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
+extern widget_instance *chimera__load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
 extern void game_engine_ensure_variant_history_has_entry(void);
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
@@ -53,7 +53,7 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
     halo::game::globals().variant_saved_default_valid = 1;
 
     widget = halo::interface::chimera__load_ui_widget(
-        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
         (datum_index)halo::k_dword_none, (widget_instance *)0, halo::k_word_none, (datum_index)halo::k_dword_none,
         (datum_index)halo::k_dword_none, -1);
     if (widget != (widget_instance *)0) {

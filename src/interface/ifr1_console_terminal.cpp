@@ -68,7 +68,7 @@ namespace halo::interface {
  *
  * @address 0x496b50
  */
-void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
+void ConsoleTerminal::out(ColorARGB *color, const char *format, va_list args)
 {
     static const ColorARGB k_default_color = { 1.0f, 0.7f, 0.7f, 0.7f };
     datum_index message_handle;

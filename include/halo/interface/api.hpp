@@ -104,7 +104,7 @@ void chat_submit_input(void);
 uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data);
 void chimera__chat_open(int32_t chat_scope);
 void chimera__chat_out(uint8_t channel);
-void chimera__console_out(ColorARGB *color, char *format, ...);
+void chimera__console_out(ColorARGB *color, const char *format, ...);
 void chimera__console_out_copy(char *text);
 void chimera__do_show_loading_screen(void);
 void chimera__hud_message(int16_t local_player_index, const wchar_t *text);

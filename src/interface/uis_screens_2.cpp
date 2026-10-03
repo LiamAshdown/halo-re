@@ -48,7 +48,7 @@ uint32_t UiScreens::check_for_pause_game(void)
     int16_t player_count = 0;
     uint8_t single_player_at_start = 1;
     int16_t co_op_flag = -1;
-    char *tag_path;
+    const char *tag_path;
 
     if (halo::game::globals().game_time->initialized == 0 ||
         (halo::game::globals().game_time->active == 0 && halo::game::globals().game_time->paused == 0) ||
@@ -76,20 +76,20 @@ uint32_t UiScreens::check_for_pause_game(void)
         }
         switch (player_count) {
         case 1:
-            tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\1p_pause_game";
+            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\1p_pause_game";
             break;
         case 2:
-            tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
+            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
             break;
         case 3:
             if (!single_player_at_start) {
-                tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
+                tag_path = "ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
             } else {
-                tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
+                tag_path = "ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
             }
             break;
         case 4:
-            tag_path = (char *)"ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
+            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
             break;
         default:
             goto decrement_and_return;
@@ -99,25 +99,25 @@ uint32_t UiScreens::check_for_pause_game(void)
             if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                 goto decrement_and_return;
             }
-            tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game";
+            tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
         } else if (player_count > 1) {
             if (player_count == 2) {
                 if (ui_root_widget[0] != (widget_instance *)0 ||
                     halo::game::globals().game_time->paused != 0) {
                     goto decrement_and_return;
                 }
-                tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game_split_screen";
+                tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game_split_screen";
             } else {
                 if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                     goto decrement_and_return;
                 }
-                tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game";
+                tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
             }
         } else {
             if (ui_root_widget[0] != (widget_instance *)0) {
                 goto decrement_and_return;
             }
-            tag_path = (char *)"ui\\shell\\solo_game\\pause_game\\pause_game";
+            tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
         }
     }
 

@@ -23,7 +23,7 @@ namespace halo::interface {
  */
 class ConsoleTerminal {
 public:
-    static void out(ColorARGB *color, char *format, va_list args);
+    static void out(ColorARGB *color, const char *format, va_list args);
     static void out_copy(char *text);
     static void clear_bottom_line(uint8_t clear_text);
     static void clear_screen(void);

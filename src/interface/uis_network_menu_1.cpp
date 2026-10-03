@@ -52,7 +52,7 @@ extern uint8_t ui_network_wait_timed_out;
 extern void *widget_instance_find_root(widget_instance *widget);
 extern int32_t widget_get_sibling_index(widget_instance *widget);
 extern void chat_close(void);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
+extern widget_instance *chimera__load_ui_widget(const char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection);
 extern uint8_t autopatch_status_state_00719234;
@@ -476,7 +476,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                     widget_instance *opened;
 
                     opened = halo::interface::chimera__load_ui_widget(
-                        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+                        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
                         (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {
