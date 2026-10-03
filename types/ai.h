@@ -2400,6 +2400,7 @@ typedef struct ai_communication_event_definition {
     uint8_t (*predicate)(datum_index object_index, void *event_record,
                          datum_index speaker_actor_index); // 0x20 optional extra gate
 } ai_communication_event_definition; // size 0x24
+typedef char ai_communication_event_definition_size[sizeof(ai_communication_event_definition) == 0x24 ? 1 : -1];
 
 // One row of the second, larger AI communication table at 0x00655aa0 -- the "ai conversation"
 // line table ai_communication_broadcast @0x42d340 walks. A chain of rows shares one event_id
@@ -2438,6 +2439,7 @@ typedef struct ai_communication_line_definition {
     int16_t required_seat;        // 0x24 must equal the broadcast seat argument unless -1
     uint8_t unknown_26[2];        // 0x26 never read by the broadcast path
 } ai_communication_line_definition; // size 0x28
+typedef char ai_communication_line_definition_size[sizeof(ai_communication_line_definition) == 0x28 ? 1 : -1];
 
 // The per-candidate scratch record ai_communication_broadcast @0x42d340 builds on its stack,
 // one per surviving ai_communication_line_definition row (up to 16), scores, and then hands
