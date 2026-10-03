@@ -764,8 +764,8 @@ uint8_t ActorView::update_danger_avoidance()
     }
     {
         float dx = F(0x2dc) - position->x;
-        float dy = F(0x2e0) - position->y;
-        float dz = F(0x2e4) - position->z;
+        float dy = actor->danger_center.y - position->y;
+        float dz = actor->danger_center.z - position->z;
         float r = actor->danger_radius + 3.0f;
 
         if (r * r < dz * dz + dy * dy + dx * dx) {
@@ -777,8 +777,8 @@ uint8_t ActorView::update_danger_avoidance()
     }
 
     path_delta.i = F(0x2c8) - path_start->x;
-    path_delta.j = F(0x2cc) - path_start->y;
-    path_delta.k = F(0x2d0) - path_start->z;
+    path_delta.j = actor->danger_segment_end.y - path_start->y;
+    path_delta.k = actor->danger_segment_end.z - path_start->z;
     {
         float distance_squared = halo::math::point3d_distance_squared_to_segment(*path_start, path_delta, *position);
         float radius = actor->danger_object_radius;
@@ -802,8 +802,8 @@ uint8_t ActorView::update_danger_avoidance()
                 real_vector3d movement;
 
                 movement.i = F(0x518) * 3.0f;
-                movement.j = F(0x51c) * 3.0f;
-                movement.k = F(0x520) * 3.0f;
+                movement.j = actor->desired_movement_vector.y * 3.0f;
+                movement.k = actor->desired_movement_vector.z * 3.0f;
                 if (halo::math::segment3d_distance_squared_to_segment(path_start, position, &movement, &path_delta) <
                     radius_squared) {
                     crossing = 1;
@@ -1076,10 +1076,10 @@ void ActorView::update_look_target()
         ULT_V3(cache_c) = ULT_V3(cache_a);
     } else {
         uint8_t has_weapon;
-        uint8_t side_a = ((uint8_t *)a)[0x58d];
+        uint8_t side_a = a->unknown_58c[1];
         uint8_t look_follows = 0;
         uint8_t free_aim = 1;
-        uint8_t side_b = ((uint8_t *)a)[0x58e];
+        uint8_t side_b = a->unknown_58c[2];
         uint8_t claimed = 0;
         uint8_t in_cone = 0;
         uint8_t resolved = 0;
@@ -1113,7 +1113,7 @@ void ActorView::update_look_target()
 
         memset(&kind2, 0, sizeof(kind2));
         kind2.code = 2;
-        if (a->firing_target_type > 0 && a->firing_state == 2 && ((uint8_t *)a)[0x456] == 0 &&
+        if (a->firing_target_type > 0 && a->firing_state == 2 && a->unknown_455[1] == 0 &&
             halo::ai::actor_resolve_flee_source_point(&kind2, (real_vector3d *)&flee_point, actor_index)) {
             reason = 7;
             flee_look = 1;
@@ -1179,7 +1179,7 @@ void ActorView::update_look_target()
                 side_a = 0;
                 side_b = 0;
             }
-            section_done = ((((uint8_t *)a)[0x58d] == 0 && ((uint8_t *)a)[0x58e] == 0) || reason >= 6) ? 1 : 0;
+            section_done = ((a->unknown_58c[1] == 0 && a->unknown_58c[2] == 0) || reason >= 6) ? 1 : 0;
         }
 
         if (priority >= 2 && priority <= 6) {
@@ -1196,7 +1196,7 @@ void ActorView::update_look_target()
             if (priority >= 6 && halo::ai::actor_reset_queued_look_vector(actor_index)) {
                 goto take_all;
             }
-            if (priority >= 5 && (side_b || ((uint8_t *)a)[0x58d] != 0)) {
+            if (priority >= 5 && (side_b || a->unknown_58c[1] != 0)) {
                 goto take_all;
             }
             if (priority >= 4) {
@@ -1240,7 +1240,7 @@ void ActorView::update_look_target()
             goto voc_face;
         } else if (priority == 7 || priority == 8) {
             resolved = in_cone = (uint8_t)(priority == 8);
-            if (((uint8_t *)a)[0x58d] == 0) {
+            if (a->unknown_58c[1] == 0) {
                 if (!ult_cone(&voc_point, cache_a, cos_aim)) {
                     if (!halo::ai::actor_reset_queued_look_vector(actor_index)) {
                         goto switch_done;
@@ -1350,7 +1350,7 @@ void ActorView::update_look_target()
             goto idle_follow;
         idle_timers:
             if (resolved && in_cone) {
-                ((uint8_t *)a)[0x55f] = 1;
+                a->idle_look_state[1] = 1;
                 *(int32_t *)((uint8_t *)a + 0x568) = halo::ai::actor_look_get_wait_ticks(actor_index, 2, a->idle_look_state[0], range);
                 memcpy((uint8_t *)a + 0x57c, (uint8_t *)a + 0x56c, 16);
                 if (trust) {
@@ -1368,7 +1368,7 @@ void ActorView::update_look_target()
                 halo::ai::actor_look_randomize_direction(actor_index, range, (real_vector3d *)&voc_point);
             }
             *(int32_t *)((uint8_t *)a + 0x568) -= 1;
-            if (((uint8_t *)a)[0x55f] == 0) {
+            if (a->idle_look_state[1] == 0) {
                 goto body_turn;
             }
             if (!halo::ai::actor_resolve_flee_source_point((actor_flee_source_reason *)((uint8_t *)a + 0x57c), (real_vector3d *)&flee_point,
@@ -1388,7 +1388,7 @@ void ActorView::update_look_target()
         a->idle_major_active = 0;
         a->idle_look_state[0] = 0;
     clear_hold:
-        ((uint8_t *)a)[0x55f] = 0;
+        a->idle_look_state[1] = 0;
     body_turn:
         if (a->moving == 0 && a->forced_aim == 0 && !halo::units::unit_is_in_busy_animation_state(*(uint32_t *)&a->unit_index) &&
             a->active_unit_index == k_datum_index_none) {
@@ -1413,23 +1413,23 @@ void ActorView::update_look_target()
             ULT_V3(cache_a) = ULT_V3((uint8_t *)a + 0x174);
         }
     }
-    if (((uint8_t *)a)[0x58f] != 0) {
-        if (((uint8_t *)a)[0x590] == 0) {
+    if (a->unknown_58c[3] != 0) {
+        if (a->unknown_58c[4] == 0) {
             if (a->moving == 0 &&
                 a->unit_aiming_vector.k * a->desired_aiming_vector.z + a->unit_aiming_vector.j * a->desired_aiming_vector.y +
                 a->unit_aiming_vector.i * a->desired_aiming_vector.x > 0.9f) {
                 ULT_V3((uint8_t *)a + 0x598) = ULT_V3(cache_a);
-                ((uint8_t *)a)[0x590] = 1;
+                a->unknown_58c[4] = 1;
             }
         } else if (*(float *)(definition + 0x330) > 0.0f) {
             float limit = (float)cos((double)*(float *)(definition + 0x330));
             uint8_t keep = 0;
 
             if (a->flying != 0) {
-                keep = a->desired_facing_vector.z * *(float *)((uint8_t *)a + 0x5a0) + a->desired_facing_vector.y * *(float *)((uint8_t *)a + 0x59c) +
-                       a->desired_facing_vector.x * *(float *)((uint8_t *)a + 0x598) > limit &&
-                       *(float *)((uint8_t *)a + 0x5a0) * a->desired_aiming_vector.z + *(float *)((uint8_t *)a + 0x59c) * a->desired_aiming_vector.y +
-                       a->desired_aiming_vector.x * *(float *)((uint8_t *)a + 0x598) > limit;
+                keep = a->desired_facing_vector.z * a->oversteer_angle[3] + a->desired_facing_vector.y * a->oversteer_angle[2] +
+                       a->desired_facing_vector.x * a->oversteer_angle[1] > limit &&
+                       a->oversteer_angle[3] * a->desired_aiming_vector.z + a->oversteer_angle[2] * a->desired_aiming_vector.y +
+                       a->desired_aiming_vector.x * a->oversteer_angle[1] > limit;
             } else {
                 real_vector2d aim2, face2, hold2;
 
@@ -1437,20 +1437,20 @@ void ActorView::update_look_target()
                 aim2.j = a->desired_aiming_vector.y;
                 face2.i = a->desired_facing_vector.x;
                 face2.j = a->desired_facing_vector.y;
-                hold2.i = *(float *)((uint8_t *)a + 0x598);
-                hold2.j = *(float *)((uint8_t *)a + 0x59c);
+                hold2.i = a->oversteer_angle[1];
+                hold2.j = a->oversteer_angle[2];
                 if (halo::math::vector2d_normalize_with_length(face2) != 0.0f && halo::math::vector2d_normalize_with_length(aim2) != 0.0f &&
                     halo::math::vector2d_normalize_with_length(hold2) != 0.0f) {
                     keep = hold2.j * face2.j + hold2.i * face2.i > limit && aim2.j * hold2.j + aim2.i * hold2.i > limit;
                 }
             }
             if (!keep) {
-                ((uint8_t *)a)[0x590] = 0;
+                a->unknown_58c[4] = 0;
                 halo::ai::actor_update_facing_change_timer(actor_index);
             }
         }
     } else {
-        ((uint8_t *)a)[0x590] = 0;
+        a->unknown_58c[4] = 0;
     }
 
     ULT_V3((uint8_t *)a + 0x6fc) = ULT_V3(cache_a);
@@ -1751,7 +1751,7 @@ uint8_t ActorView::update_movement_destination()
                 float radius = halo::ai::actor_compute_accuracy_scale(actor_index);
 
                 if (radius * radius > halo::math::vector3d_distance_squared(*actor_held_firing_position(actor),
-                        *(real_point3d *)((uint8_t *)actor + 0x12c))) {
+                        actor->body_position)) {
                     at_position = 1;
                 }
             }
