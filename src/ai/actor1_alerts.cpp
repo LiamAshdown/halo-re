@@ -401,15 +401,14 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
-    uint8_t *record = (uint8_t *)out;
     int16_t mode = consideration_mode;
     uint8_t result = 1;
 
     memset(out, 0, 0x38);
-    *(int32_t *)record = halo::game::globals().game_time->game_time;
+    out->game_tick = halo::game::globals().game_time->game_time;
 
     if (mode == 5 || mode == 4) {
-        ((struct actor_combat_consideration *)record)->mode = mode;
+        out->mode = mode;
         return actor->vehicle_driving_type > 1;
     }
     if (mode == 2) {
@@ -425,24 +424,24 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
 
         result = 0;
         if (actor->swarm != 0) {
-            ((struct actor_combat_consideration *)record)->mode = mode;
+            out->mode = mode;
             return result;
         }
         unit = (object *)halo::ai::object_at(actor->unit_index);
         if ((static_cast<uint8_t>(unit->vitality_flags) & 0x80) != 0 || actor->target_unit_index == k_datum_index_none) {
-            ((struct actor_combat_consideration *)record)->mode = mode;
+            out->mode = mode;
             return result;
         }
         target = halo::ai::prop_at(actor->target_unit_index);
         if (actor_tag->melee_leap_range[1] == 0.0f || actor_tag->melee_leap_chance == 0.0f) {
-            record[0xa] = 0;
+            out->grenade_eligible = 0;
         } else if (target->flying != 0 || target->engaged_ticks > 0) {
-            record[0xa] = 1;
+            out->grenade_eligible = 1;
             leap = 1;
             mode = 3;
         } else {
             leap = halo::math::random_real() < actor_tag->melee_leap_chance;
-            record[0xa] = leap;
+            out->grenade_eligible = leap;
             if (target->distance < actor_tag->melee_leap_range[0]) {
                 leap = 0;
             } else if (leap) {
@@ -451,22 +450,22 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         }
         if (!halo::units::unit_get_weapon_marker_indices(actor->unit_index, leap, (uint32_t)&dx_to_key_frame,
                 (uint32_t)&dx_total, &frame_count, &key_frame)) {
-            ((struct actor_combat_consideration *)record)->mode = mode;
+            out->mode = mode;
             return result;
         }
         if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::suicidal_melee_attack)) {
-            ((struct actor_combat_consideration *)record)->position_index = frame_count;
-            ((struct actor_combat_consideration *)record)->distance_delta = 0.0f;
-            record[0x30] = 1;
+            out->position_index = frame_count;
+            out->distance_delta = 0.0f;
+            out->suicidal = 1;
         } else if (key_frame == 0) {
-            ((struct actor_combat_consideration *)record)->position_index = (int16_t)(frame_count / 2);
-            ((struct actor_combat_consideration *)record)->distance_delta = dx_total - dx_total * 0.5f;
+            out->position_index = (int16_t)(frame_count / 2);
+            out->distance_delta = dx_total - dx_total * 0.5f;
         } else {
-            ((struct actor_combat_consideration *)record)->position_index = key_frame;
-            ((struct actor_combat_consideration *)record)->distance_delta = dx_total - dx_to_key_frame;
+            out->position_index = key_frame;
+            out->distance_delta = dx_total - dx_to_key_frame;
         }
         wait = halo::ai::actor_get_consideration_wait_threshold(actor_index, mode, out);
-        ((struct actor_combat_consideration *)record)->wait_threshold = wait;
+        out->wait_threshold = wait;
         limit = mode == 3 ? 4.0f : 1.5f;
         if (limit > wait) {
             wait = limit;
@@ -477,14 +476,14 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
                 result = 1;
             }
         }
-        ((struct actor_combat_consideration *)record)->mode = mode;
+        out->mode = mode;
         return result;
     }
     if (mode == 0 && halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::use_stalking_behavior) && actor->combat_status >= 5 && actor->berserking == 0) {
         mode = 1;
     }
 
-    ((struct actor_combat_consideration *)record)->mode = mode;
+    out->mode = mode;
     return result;
 }
 
