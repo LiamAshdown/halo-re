@@ -635,7 +635,7 @@ uint8_t ActorView::process_pending_command_list()
     using namespace actor_process_pending_command_list_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t started = 0;
-    int16_t record[0x42];
+    actor_mode_data mode_data;
 
     if (actor->pending_command_list == -1) {
         return 0;
@@ -643,8 +643,8 @@ uint8_t ActorView::process_pending_command_list()
     if (actor->command_list_run_immediately == 0 && (actor->awareness_level == 0 || halo::ai::actor_wants_reload_or_swap(actor_index))) {
         return 0;
     }
-    if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)actor->pending_command_list, record) != 0) {
-        halo::ai::actor_set_mode(actor_index, 0xb, record);
+    if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)actor->pending_command_list, &mode_data.obey) != 0) {
+        halo::ai::actor_set_mode(actor_index, 0xb, &mode_data);
         started = 1;
     }
     actor->command_list_run_immediately = 0;
@@ -792,7 +792,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
     uint8_t forced = 0;
     uint8_t result = 0;
     datum_index rider_index;
-    uint8_t *rider;
+    unit_object *rider;
 
     if (driving == k_datum_index_none) {
         act->vehicle_eviction = 0;
@@ -825,22 +825,22 @@ uint8_t ActorView::process_vehicle_seat_exit()
     }
     act->vehicle_exit_forced = forced;
     rider_index = act->unit_index;
-    rider = (uint8_t *)halo::objects::object_try_and_get(rider_index, 3);
-    if (rider != 0 && halo::networking::globals().game_mode != 1 && *(datum_index *)(rider + 0x11c) != k_datum_index_none &&
-        *(int16_t *)(rider + 0x2f0) != -1) {
-        datum_index vehicle_index = *(datum_index *)(rider + 0x11c);
+    rider = (unit_object *)halo::objects::object_try_and_get(rider_index, 3);
+    if (rider != 0 && halo::networking::globals().game_mode != 1 && rider->base.parent_object != k_datum_index_none &&
+        rider->unit.vehicle_seat_index != -1) {
+        datum_index vehicle_index = rider->base.parent_object;
 
-        if (*(int16_t *)(rider + 0xb4) == 1) {
+        if (rider->base.type == 1) {
             unit_object *self = (unit_object *)OBJECT_DATA(rider_index);
 
             if (((struct object *)self)->parent_object != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(rider_index, ((struct object *)self)->parent_object);
             }
             biped_free_local_player_history(self);
-        } else if (!halo::units::unit_state_is_scripted_animation((unit_data *)(rider + 0x1f4))) {
-            uint8_t *rider_tag = TAG_DATA(*(datum_index *)rider);
+        } else if (!halo::units::unit_state_is_scripted_animation(&rider->unit)) {
+            uint8_t *rider_tag = TAG_DATA(rider->base.definition_tag);
             datum_index graph = *(datum_index *)(rider_tag + 0x44);
-            uint8_t *block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)rider[0x2a0] * 0x64;
+            uint8_t *block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)static_cast<uint8_t>(rider->unit.animation_definition_index) * 0x64;
 
             if (*(int32_t *)(block + 0x40) > 8) {
                 int16_t exit_animation = (*(int16_t **)(block + 0x44))[8];
@@ -865,9 +865,9 @@ uint8_t ActorView::process_vehicle_seat_exit()
                             OBJECT_HEADER(rider_index).flags |= 2;
                         }
                     }
-                    rider[0x2a3] = 0x1b;
+                    rider->unit.animation_state = 0x1b;
                     halo::ai::actor_notify_weapon_pickup_once(rider_index);
-                    if (*(int32_t *)(rider + 0x4) == 0) {
+                    if (rider->base.network_role == 0) {
                         halo::units::unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
                     act->exited_vehicle_index = act->active_unit_index;
@@ -2480,13 +2480,13 @@ namespace actor_swarm_for_each_component_local {
  *
  * @address 0x407040
  */
-void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record)
+void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, actor_mode_obey_data *obey)
 {
     using namespace actor_swarm_for_each_component_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (a->swarm == 0) {
-        callback(actor_index, a->unit_index, *caller_record, caller_record + 4, (int32_t)(intptr_t)(caller_record + 0x16), callback_extra);
+        callback(actor_index, a->unit_index, obey->command_list_index, &obey->action, &obey->aim, callback_extra);
         return;
     }
 
@@ -2495,15 +2495,14 @@ void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_ca
         int16_t i;
 
         for (i = 0; i < sw->component_count; i++) {
-            swarm_component *comp = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[sw->component_index[i] & halo::k_slot_mask];
-            uint8_t *comp_base = (uint8_t *)comp;
+            swarm_component *comp = halo::ai::swarm_component_at(sw->component_index[i]);
 
             if (reset_first != 0) {
-                memset(comp_base + 0x1c, 0, 0x24);
-                *(uint16_t *)&((struct swarm_component *)comp_base)->flags = (*(uint16_t *)&((struct swarm_component *)comp_base)->flags & 0xfffb) | 8;
+                memset(&comp->action, 0, sizeof(comp->action));
+                comp->flags = (uint8_t)((comp->flags & 0xfb) | 8);
             }
-            if ((comp_base[2] & 8) != 0) {
-                callback(actor_index, sw->unit_index[i], *caller_record, comp_base + 0x1c, 0, callback_extra);
+            if ((comp->flags & 8) != 0) {
+                callback(actor_index, sw->unit_index[i], obey->command_list_index, &comp->action, 0, callback_extra);
             }
         }
     }
@@ -2521,9 +2520,8 @@ void ActorView::swarm_for_each_component_thunk()
 {
     using namespace actor_swarm_for_each_component_thunk_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    uint16_t *caller_record = (uint16_t *)((uint8_t *)a + 0x9c);
 
-    halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_obey_member_advance, 0, caller_record);
+    halo::ai::actor_swarm_for_each_component(actor_index, 0, halo::ai::actor_obey_member_advance, 0, &a->mode_data.obey);
 }
 
 namespace actor_take_danger_escape_local {

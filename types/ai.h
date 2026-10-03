@@ -440,44 +440,70 @@ typedef struct actor_mode_vehicle_data {
 } actor_mode_vehicle_data;
 typedef char actor_mode_vehicle_data_size[sizeof(actor_mode_vehicle_data) == 0x4c ? 1 : -1];
 
-typedef struct actor_mode_obey_data {
-    int16_t command_list_index;         // 0x00 the command list being run
-    uint8_t unknown_02;                 // 0x02
-    uint8_t has_look_target;            // 0x03 update looks and aims at the target while it is set
-    uint8_t unknown_04;                 // 0x04
-    uint8_t finished;                   // 0x05 set once every member finished the list (process)
-    uint8_t unknown_06[6];              // 0x06
-    uint8_t attack_requested;           // 0x0c bit 0: update fights the target while combat_status is 5 or more
-    uint8_t movement_flags;             // 0x0d bit 0: strafe, bit 2: no jump
-    uint8_t unknown_0e[2];              // 0x0e
-    int16_t strafe_axis;                // 0x10 copied to actor.strafe_axis_override; counted down at 0xf
-    uint8_t unknown_12[2];              // 0x12
+// One member's command list execution record (squad action): the obey mode keeps one at actor.mode_data + 0x08 for a lone
+// actor, and every swarm component keeps one at swarm_component + 0x1c. actor_squad_action_execute / _is_complete / _list_process
+// advance it, actor_get_body_axis_vector fills axis and direction.
+typedef struct actor_squad_action_state {
+    uint8_t command_index;              // 0x00 index of the command being run (0xff before the first)
+    uint8_t retry_count;                // 0x01 how often the list jumped back in this pass, limited to 10
+    int16_t timer_ticks;                // 0x02 ticks left before the running command completes
+    uint8_t flags;                      // 0x04 bit 0 attack requested, bit 1 list finished, bit 2 wait for the vehicle line, bit 3/4 vehicle seat state
+    uint8_t movement_flags;             // 0x05 bit 0 strafe, bit 1 move command running, bit 2 vehicle drive command, bit 3 jump landed, bit 4 jump parameters valid
+    uint8_t unknown_06[2];              // 0x06
+    int16_t axis;                       // 0x08 body axis the movement follows: 0 forward, 1 back, 2 and 3 sideways; vehicle drive commands store other kinds
+    uint8_t unknown_0a[2];              // 0x0a
     union {
-        real_vector3d move_direction;   // 0x14 copied to actor.move_direction while movement_flags bit 0 is set
+        real_vector3d direction;        // 0x0c movement direction of a move command
         struct {
-            float horizontal_speed;     // 0x14 actor.jump_horizontal_velocity of the scripted jump
-            float vertical_speed;       // 0x18 actor.jump_vertical_velocity
+            float horizontal_speed;     // 0x0c jump speeds of a scripted jump
+            float vertical_speed;       // 0x10
         } jump;
     };
-    uint8_t unknown_20[0x0c];           // 0x20
-    uint8_t crouch;                     // 0x2c copied to the crouch control flags
-    uint8_t unknown_2d;                 // 0x2d
-    int16_t movement_style;             // 0x2e 1 or 3 stops looking at the target; copied to actor.movement_style_override
-    uint8_t unknown_30[0x14];           // 0x30
-    uint8_t has_look_point;             // 0x44 update looks at look_point while it is set
-    uint8_t unknown_45[3];              // 0x45
-    real_point3d look_point;            // 0x48
-    uint8_t unknown_54[8];              // 0x54
-    uint8_t secondary_action_pending;   // 0x5c a secondary action is queued once actor.secondary_action is free
-    uint8_t unknown_5d;                 // 0x5d
-    int16_t secondary_action;           // 0x5e -1 for none
-    int16_t communication_line;         // 0x60 -1 for none; broadcast once
-    uint8_t has_target_point;           // 0x62 update fires at target_point while it is set
-    uint8_t unknown_63;                 // 0x63
-    real_point3d target_point;          // 0x64
-    float burst_duration;               // 0x70 copied to actor.burst_duration_override
-    uint8_t throw_grenade;              // 0x74 update turns it into actor.throw_grenade and clears it
-    uint8_t unknown_75[0x0f];           // 0x75
+    real_point3d start_position;        // 0x18 where a move command started
+} actor_squad_action_state;             // size 0x24
+typedef char actor_squad_action_state_size[sizeof(actor_squad_action_state) == 0x24 ? 1 : -1];
+
+// What the command list tells the actor to aim, look at, shoot, move to or say. The obey mode keeps one at actor.mode_data + 0x2c;
+// the commands of a swarm have none.
+typedef struct actor_command_aim {
+    uint8_t crouch;                     // 0x00 copied to the crouch control flags
+    uint8_t unknown_01;                 // 0x01
+    int16_t movement_style;             // 0x02 0..3, copied to actor.movement_style_override
+    uint8_t move_requested;             // 0x04 a move command set move_point
+    uint8_t move_interrupts;            // 0x05 the move cancels the running movement action first
+    uint8_t unknown_06[2];              // 0x06
+    real_point3d move_point;            // 0x08 destination of the move command
+    int32_t move_surface_index;         // 0x14 pathfinding surface of move_point
+    uint8_t look_valid;                 // 0x18 update looks at look_point while it is set
+    uint8_t unknown_19[3];              // 0x19
+    real_point3d look_point;            // 0x1c
+    uint8_t unknown_28;                 // 0x28 set by command 0x1a together with unknown_2c
+    uint8_t unknown_29[3];              // 0x29
+    float unknown_2c;                   // 0x2c command 0x1a parameter
+    uint8_t secondary_action_pending;   // 0x30 a secondary action is queued once actor.secondary_action is free
+    uint8_t unknown_31;                 // 0x31
+    int16_t secondary_action;           // 0x32 -1 for none
+    int16_t communication_line;         // 0x34 -1 for none; broadcast once
+    uint8_t shoot_valid;                // 0x36 update fires at shoot_point while it is set
+    uint8_t unknown_37;                 // 0x37
+    real_point3d shoot_point;           // 0x38
+    float burst_duration;               // 0x44 copied to actor.burst_duration_override
+    uint8_t grenade_pending;            // 0x48 update turns it into actor.throw_grenade and clears it
+    uint8_t grenade_thrown;             // 0x49
+    int16_t grenade_style;              // 0x4a
+    real_point3d grenade_target;        // 0x4c
+} actor_command_aim;                    // size 0x58
+typedef char actor_command_aim_size[sizeof(actor_command_aim) == 0x58 ? 1 : -1];
+
+typedef struct actor_mode_obey_data {
+    int16_t command_list_index;         // 0x00 the command list being run
+    uint8_t allow_initiative;           // 0x02 command list flag 0: the actor may use its own initiative; passed to actor_update_combat_behavior
+    uint8_t allow_look;                 // 0x03 command list flag 2 inverted: update looks and aims at the target while it is set
+    uint8_t allow_communication;        // 0x04 command list flag 3 inverted
+    uint8_t finished;                   // 0x05 set once every member finished the list (process)
+    uint8_t unknown_06[2];              // 0x06
+    actor_squad_action_state action;    // 0x08 the actor's own command execution record
+    actor_command_aim aim;              // 0x2c
 } actor_mode_obey_data;
 typedef char actor_mode_obey_data_size[sizeof(actor_mode_obey_data) == 0x84 ? 1 : -1];
 
@@ -1229,7 +1255,8 @@ typedef struct swarm_component {
                                       //    actor_compute_swarm_avoidance_offset uses it as 'target' for the leap
                                       //    solve when flag bit 0 is set; actor_replace_object_reference remaps it
                                       //    like the other object references
-    uint8_t unknown_18[40];           // 0x18
+    uint8_t unknown_18[4];            // 0x18
+    actor_squad_action_state action;  // 0x1c the command list execution record of this member (zeroed by command_list_reset_record)
 } swarm_component;      // size 0x40
 // global 0x00880358: data_array *swarm_component_data  element size 0x40, capacity 0x100
 
@@ -2190,8 +2217,8 @@ typedef struct ai_target_candidate_list {
 
 // The callback actor_swarm_for_each_component @0x407040 and its thunk invoke per member.
 typedef void (*actor_swarm_member_callback)(uint32_t actor_index, datum_index unit_index,
-                                            uint16_t extra, void *component_record,
-                                            int32_t unused, uint32_t callback_extra);
+                                            uint16_t command_list_index, actor_squad_action_state *action,
+                                            actor_command_aim *aim, uint32_t callback_extra);
 
 // ---------------------------------------------------------------------------
 // Caller-owned scratch records

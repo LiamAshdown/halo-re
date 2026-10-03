@@ -40,7 +40,7 @@ void ActorView::mode_uncover_tick()
         if (actor_tag->defensive_crouch_type == 4) {
             act->mode_data.uncover.crouch = (uint8_t)(act->target_combat_status != 6);
         } else if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->target_combat_status == 5 &&
-                   (int8_t)PROP(act->target_unit_index)[0x121] <= 2) {
+                   (int8_t)halo::ai::prop_at(act->target_unit_index)->distance_class <= 2) {
             act->mode_data.uncover.crouch = 1;
         }
     } else if (kind == 1) {

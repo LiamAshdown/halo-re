@@ -170,7 +170,7 @@ void ActorView::schedule_grenade_throw()
     if (!(a->awareness_level > 1) || a->vocalization_line > 8) {
         return;
     }
-    if (a->mode == 0xb && !a->mode_data.obey.has_look_target) {
+    if (a->mode == 0xb && !a->mode_data.obey.allow_look) {
         return;
     }
     if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {

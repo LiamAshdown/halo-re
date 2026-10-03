@@ -77,7 +77,7 @@ void ActorView::type_crew_update()
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, actor->mode_data.obey.unknown_02, actor->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, actor->mode_data.obey.allow_initiative, actor->mode_data.obey.finished);
         return;
     case 12: {
         uint8_t forced = (actor->mode_data.converse.finished != 0 || actor->conversation_index == halo::k_dword_none) ? 1 : 0;
@@ -178,7 +178,7 @@ void ActorView::type_elite_update()
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
@@ -255,7 +255,7 @@ void ActorView::type_engineer_update()
         }
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
@@ -324,7 +324,7 @@ void ActorView::type_flood_carrier_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     default:
         break;
@@ -383,7 +383,7 @@ void ActorView::type_flood_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     case 13:
         if (act->danger_type == 0) {
@@ -472,7 +472,7 @@ void ActorView::type_grunt_update()
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
@@ -531,7 +531,7 @@ void ActorView::type_hunter_update()
         }
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
@@ -1086,7 +1086,7 @@ void ActorView::type_infection_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     default:
         break;
@@ -1167,7 +1167,7 @@ void ActorView::type_jackal_update()
     case 9:
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
@@ -1251,7 +1251,7 @@ void ActorView::type_marine_update()
         }
         return;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         return;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),
@@ -1306,7 +1306,7 @@ void ActorView::type_mounted_weapon_update()
         }
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     default:
         break;
@@ -1363,7 +1363,7 @@ void ActorView::type_sentinel_update()
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_combat_status_should_hold(actor_index, 3, 6), 0);
         break;
     case 11:
-        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.unknown_02, act->mode_data.obey.finished);
+        halo::ai::actor_update_combat_behavior(actor_index, act->mode_data.obey.allow_initiative, act->mode_data.obey.finished);
         break;
     case 12:
         halo::ai::actor_update_combat_behavior(actor_index, halo::ai::actor_command_list_permits_escalation(actor_index),

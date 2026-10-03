@@ -259,33 +259,31 @@ namespace c_actor_command_list_reset_record {
  *
  * @address 0x406dd0
  */
-void halo::ai::actor_ref::command_list_reset_record(datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void halo::ai::actor_ref::command_list_reset_record(datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
     using namespace c_actor_command_list_reset_record;
     uint32_t actor_index = datum;
-    uint8_t *record = (uint8_t *)component_record;
-    uint8_t *secondary = (uint8_t *)(uintptr_t)secondary_record;
 
     (void)actor_index;
     (void)unit_index;
-    (void)extra;
-    memset(record, 0, 0x24);
-    record[0] = 0xff;
+    (void)command_list_index;
+    memset(action, 0, sizeof(*action));
+    action->command_index = 0xff;
     if (*(uint8_t *)(uintptr_t)callback_extra != 0) {
-        record[4] |= 1;
+        action->flags |= 1;
     } else {
-        record[4] &= 0xfe;
+        action->flags &= 0xfe;
     }
-    if (secondary != 0) {
-        memset(secondary, 0, 0x58);
-        *(int16_t *)(secondary + 2) = -1;
+    if (aim != 0) {
+        memset(aim, 0, sizeof(*aim));
+        aim->movement_style = -1;
     }
 }
 
 namespace halo::ai {
-void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
-    halo::ai::actor_ref(actor_index).command_list_reset_record(unit_index, extra, component_record, secondary_record, callback_extra);
+    halo::ai::actor_ref(actor_index).command_list_reset_record(unit_index, command_list_index, action, aim, callback_extra);
 }
 }
 
@@ -633,7 +631,7 @@ namespace c_actor_get_body_axis_vector {
  *
  * @address 0x405390
  */
-void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_request *request)
+void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_squad_action_state *request)
 {
     using namespace c_actor_get_body_axis_vector;
     uint32_t actor_index = datum;
@@ -651,12 +649,12 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 
     switch (request->axis) {
     case 0:
-        request->result = reference;
+        request->direction = reference;
         return;
     case 1:
-        request->result.i = -reference.i;
-        request->result.j = -reference.j;
-        request->result.k = -reference.k;
+        request->direction.i = -reference.i;
+        request->direction.j = -reference.j;
+        request->direction.k = -reference.k;
         return;
     case 2:
     case 3:
@@ -673,11 +671,11 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
                 }
             }
             if (request->axis == 2) {
-                request->result = perp;
+                request->direction = perp;
             } else {
-                request->result.i = -perp.i;
-                request->result.j = -perp.j;
-                request->result.k = -perp.k;
+                request->direction.i = -perp.i;
+                request->direction.j = -perp.j;
+                request->direction.k = -perp.k;
             }
         }
         return;
@@ -685,7 +683,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 }
 
 namespace halo::ai {
-void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request)
+void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_squad_action_state *request)
 {
     halo::ai::actor_ref(actor_index).get_body_axis_vector(unit_index, request);
 }

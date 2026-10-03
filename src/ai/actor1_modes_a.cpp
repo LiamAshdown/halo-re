@@ -450,7 +450,7 @@ void halo::ai::obey_mode::enter()
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_obey_member_enter, 0, (uint16_t *)((uint8_t *)actor + 0x9c));
+    halo::ai::actor_swarm_for_each_component(actor_index, 0, halo::ai::actor_obey_member_enter, 0, &actor->mode_data.obey);
 }
 
 namespace halo::ai {
@@ -476,7 +476,7 @@ void halo::ai::obey_mode::exit()
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_obey_member_exit, 0, (uint16_t *)((uint8_t *)actor + 0x9c));
+    halo::ai::actor_swarm_for_each_component(actor_index, 0, halo::ai::actor_obey_member_exit, 0, &actor->mode_data.obey);
 }
 
 namespace halo::ai {
@@ -507,16 +507,16 @@ uint8_t halo::ai::obey_mode::process()
     actor_mode_obey_data *mode_data = &actor->mode_data.obey;
     uint8_t still_running = 1;
 
-    halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_squad_action_list_process,
-        (uint32_t)&still_running, (uint16_t *)mode_data);
+    halo::ai::actor_swarm_for_each_component(actor_index, 0, halo::ai::actor_squad_action_list_process,
+        (uint32_t)&still_running, mode_data);
     if (still_running && mode_data->finished == 0) {
         uint8_t *list = (uint8_t *)halo::scenario::globals().scenario->command_lists.pointer + mode_data->command_list_index * 0x60;
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor->airborne != 0) {
-            ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor->actor_definition_tag);
+            Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
 
-            if ((variant->flags & 0x200000) == 0) {
+            if ((actor_tag->flags & 0x200000) == 0) {
                 mark = 0;
             }
         }
@@ -551,7 +551,7 @@ void halo::ai::obey_mode::tick_members()
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_obey_member_tick, 0, (uint16_t *)((uint8_t *)actor + 0x9c));
+    halo::ai::actor_swarm_for_each_component(actor_index, 0, halo::ai::actor_obey_member_tick, 0, &actor->mode_data.obey);
 }
 
 namespace halo::ai {
@@ -580,78 +580,78 @@ void halo::ai::obey_mode::update()
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->mode_data.obey.has_target_point != 0) {
+    if (actor->mode_data.obey.aim.shoot_valid != 0) {
         actor->flee_reason = 7;
         actor->flee_source.code = 2;
         actor->look_posture = 4;
         actor->wants_to_fire = 1;
         actor->force_fire = 1;
         actor->forced_aim_valid = 1;
-        actor->forced_aim_point = actor->mode_data.obey.target_point;
-        actor->burst_duration_override = actor->mode_data.obey.burst_duration;
-    } else if (actor->mode_data.obey.has_look_point != 0 && (actor->movement_action_complete == 0 || actor->movement_completed != 0)) {
+        actor->forced_aim_point = actor->mode_data.obey.aim.shoot_point;
+        actor->burst_duration_override = actor->mode_data.obey.aim.burst_duration;
+    } else if (actor->mode_data.obey.aim.look_valid != 0 && (actor->movement_action_complete == 0 || actor->movement_completed != 0)) {
         actor->flee_reason = 4;
         actor->flee_source.code = 3;
-        actor->flee_source.payload.point = actor->mode_data.obey.look_point;
+        actor->flee_source.payload.point = actor->mode_data.obey.aim.look_point;
         if (actor->flying == 0) {
             actor->flee_source.payload.point.z = actor->aim_origin.z;
         }
         actor->look_posture = (int16_t)(actor->awareness_level < 3 ? 1 : 4);
-    } else if (actor->mode_data.obey.movement_style == 3 || actor->mode_data.obey.movement_style == 1) {
+    } else if (actor->mode_data.obey.aim.movement_style == 3 || actor->mode_data.obey.aim.movement_style == 1) {
         actor->flee_source.code = 0;
         actor->look_posture = 0;
         actor->flee_reason = 7;
-    } else if (actor->combat_status >= 5 && (actor->mode_data.obey.attack_requested & 1)) {
+    } else if (actor->combat_status >= 5 && (actor->mode_data.obey.action.flags & 1)) {
         actor->flee_source.code = 2;
         actor->look_posture = 4;
         actor->wants_to_fire = 1;
         actor->flee_reason = 7;
     } else {
         actor->flee_reason = 0;
-        if (actor->mode_data.obey.has_look_target != 0) {
+        if (actor->mode_data.obey.allow_look != 0) {
             actor->look_posture = (int16_t)(actor->awareness_level < 3 ? 1 : 4);
         } else {
             actor->look_posture = 0;
         }
     }
 
-    if (actor->mode_data.obey.throw_grenade != 0) {
+    if (actor->mode_data.obey.aim.grenade_pending != 0) {
         actor->throw_grenade = 1;
-        actor->mode_data.obey.throw_grenade = 0;
+        actor->mode_data.obey.aim.grenade_pending = 0;
     }
-    actor->crouch_decision[0] = actor->mode_data.obey.crouch;
-    actor->crouch_decision[1] = actor->mode_data.obey.crouch;
-    actor->movement_style_override = actor->mode_data.obey.movement_style;
+    actor->crouch_decision[0] = actor->mode_data.obey.aim.crouch;
+    actor->crouch_decision[1] = actor->mode_data.obey.aim.crouch;
+    actor->movement_style_override = actor->mode_data.obey.aim.movement_style;
 
-    if (actor->mode_data.obey.secondary_action_pending != 0 && actor->secondary_action == -1 &&
+    if (actor->mode_data.obey.aim.secondary_action_pending != 0 && actor->secondary_action == -1 &&
         (actor->unit_index == halo::k_dword_none || !halo::units::unit_is_in_busy_animation_state(actor->unit_index))) {
-        if (actor->mode_data.obey.secondary_action != -1) {
+        if (actor->mode_data.obey.aim.secondary_action != -1) {
             real_vector2d direction;
 
             direction.i = actor->desired_facing_vector.x;
             direction.j = actor->desired_facing_vector.y;
             halo::math::vector2d_normalize_with_length(direction);
-            halo::ai::actor_queue_secondary_action(actor_index, actor->mode_data.obey.secondary_action, &direction);
+            halo::ai::actor_queue_secondary_action(actor_index, actor->mode_data.obey.aim.secondary_action, &direction);
         }
-        if (actor->mode_data.obey.communication_line != -1) {
-            halo::ai::ai_communication_broadcast(actor->mode_data.obey.communication_line, actor->unit_index, halo::k_dword_none, -1, halo::k_dword_none, halo::k_dword_none, 0);
+        if (actor->mode_data.obey.aim.communication_line != -1) {
+            halo::ai::ai_communication_broadcast(actor->mode_data.obey.aim.communication_line, actor->unit_index, halo::k_dword_none, -1, halo::k_dword_none, halo::k_dword_none, 0);
         }
-        actor->mode_data.obey.secondary_action_pending = 0;
+        actor->mode_data.obey.aim.secondary_action_pending = 0;
     }
 
-    if (actor->mode_data.obey.movement_flags & 1) {
+    if (actor->mode_data.obey.action.movement_flags & 1) {
         actor->move_in_direction = 1;
-        actor->move_direction = actor->mode_data.obey.move_direction;
-        actor->strafe_axis_override = actor->mode_data.obey.strafe_axis;
+        actor->move_direction = actor->mode_data.obey.action.direction;
+        actor->strafe_axis_override = actor->mode_data.obey.action.axis;
     }
-    if ((actor->mode_data.obey.movement_flags & 4) == 0) {
+    if ((actor->mode_data.obey.action.movement_flags & 4) == 0) {
         return;
     }
-    if (actor->mode_data.obey.movement_flags & 8) {
-        if (!(actor->mode_data.obey.strafe_axis > 0)) {
+    if (actor->mode_data.obey.action.movement_flags & 8) {
+        if (!(actor->mode_data.obey.action.axis > 0)) {
             return;
         }
-    } else if (actor->mode_data.obey.strafe_axis == 0 && actor->airborne == 0 && !halo::units::unit_is_in_busy_animation_state(actor->unit_index)) {
+    } else if (actor->mode_data.obey.action.axis == 0 && actor->airborne == 0 && !halo::units::unit_is_in_busy_animation_state(actor->unit_index)) {
         real_vector2d direction;
         float x;
         float y;
@@ -665,15 +665,15 @@ void halo::ai::obey_mode::update()
             y = direction.j;
         }
         actor->jump_requested = 1;
-        actor->jump_is_leap = (uint8_t)(actor->mode_data.obey.jump.horizontal_speed * 0.7f > actor->mode_data.obey.jump.vertical_speed);
-        actor->jump_parameters_valid = (uint8_t)((actor->mode_data.obey.movement_flags >> 4) & 1);
+        actor->jump_is_leap = (uint8_t)(actor->mode_data.obey.action.jump.horizontal_speed * 0.7f > actor->mode_data.obey.action.jump.vertical_speed);
+        actor->jump_parameters_valid = (uint8_t)((actor->mode_data.obey.action.movement_flags >> 4) & 1);
         actor->jump_facing.j = y;
         actor->jump_facing.i = x;
-        actor->jump_horizontal_velocity = actor->mode_data.obey.jump.horizontal_speed;
-        actor->jump_vertical_velocity = actor->mode_data.obey.jump.vertical_speed;
-        actor->mode_data.obey.movement_flags = (uint8_t)(actor->mode_data.obey.movement_flags | 8);
-        if ((actor->mode_data.obey.movement_flags & 0x10) == 0) {
-            actor->mode_data.obey.strafe_axis = 0xf;
+        actor->jump_horizontal_velocity = actor->mode_data.obey.action.jump.horizontal_speed;
+        actor->jump_vertical_velocity = actor->mode_data.obey.action.jump.vertical_speed;
+        actor->mode_data.obey.action.movement_flags = (uint8_t)(actor->mode_data.obey.action.movement_flags | 8);
+        if ((actor->mode_data.obey.action.movement_flags & 0x10) == 0) {
+            actor->mode_data.obey.action.axis = 0xf;
         }
         return;
     }

@@ -414,9 +414,9 @@ void actor_notify_weapon_pickup_once(datum_index object_index)
  *
  * @address 0x406f80
  */
-void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
-    halo::ai::ActorView(actor_index).obey_member_advance(unit_index, command_list_index, component_record, secondary_record, callback_extra);
+    halo::ai::ActorView(actor_index).obey_member_advance(unit_index, command_list_index, action, aim, callback_extra);
 }
 
 /**
@@ -425,9 +425,9 @@ void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uin
  *
  * @address 0x406f30
  */
-void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
-    halo::ai::ActorView(actor_index).obey_member_enter(unit_index, command_list_index, component_record, secondary_record, callback_extra);
+    halo::ai::ActorView(actor_index).obey_member_enter(unit_index, command_list_index, action, aim, callback_extra);
 }
 
 /**
@@ -436,9 +436,9 @@ void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint1
  *
  * @address 0x406fa0
  */
-void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
-    halo::ai::ActorView(actor_index).obey_member_exit(unit_index, command_list_index, component_record, secondary_record, callback_extra);
+    halo::ai::ActorView(actor_index).obey_member_exit(unit_index, command_list_index, action, aim, callback_extra);
 }
 
 /**
@@ -447,9 +447,9 @@ void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16
  *
  * @address 0x406ff0
  */
-void actor_obey_member_tick(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void actor_obey_member_tick(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
-    halo::ai::ActorView(actor_index).obey_member_tick(unit_index, command_list_index, component_record, secondary_record, callback_extra);
+    halo::ai::ActorView(actor_index).obey_member_tick(unit_index, command_list_index, action, aim, callback_extra);
 }
 
 /**
@@ -1380,7 +1380,7 @@ int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spaw
  *
  * @address 0x405520
  */
-char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state)
+char actor_squad_action_execute(actor_command_aim *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, actor_squad_action_state *state)
 {
     return halo::ai::ActorOps::squad_action_execute(aim_state, actor_index, check_object_index, command_list_index, state);
 }
@@ -1391,7 +1391,7 @@ char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32
  *
  * @address 0x4066d0
  */
-uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state)
+uint8_t actor_squad_action_is_complete(actor_command_aim *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, actor_squad_action_state *state)
 {
     return halo::ai::ActorOps::squad_action_is_complete(aim_state, actor_index, check_object_index, command_list_index, state);
 }
@@ -1401,9 +1401,9 @@ uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index,
  *
  * @address 0x406e30
  */
-void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state, uint8_t *aim_state, uint8_t *out)
+void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object_index, uint16_t command_list_index, actor_squad_action_state *state, actor_command_aim *aim_state, uint32_t callback_extra)
 {
-    halo::ai::ActorView(actor_index).squad_action_list_process(check_object_index, command_list_index, state, aim_state, out);
+    halo::ai::ActorView(actor_index).squad_action_list_process(check_object_index, command_list_index, state, aim_state, reinterpret_cast<uint8_t *>(static_cast<uintptr_t>(callback_extra)));
 }
 
 /**
@@ -1412,7 +1412,7 @@ void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object
  *
  * @address 0x406c50
  */
-void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state, int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out)
+void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, actor_squad_action_state *state, int16_t command_list_index, actor_command_aim *aim_state, uint8_t *next_action_index_out)
 {
     halo::ai::ActorView(actor_index).squad_action_reset_entry(check_object_index, state, command_list_index, aim_state, next_action_index_out);
 }
@@ -1423,7 +1423,7 @@ void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_
  *
  * @address 0x407140
  */
-int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, int16_t *record)
+int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, actor_mode_obey_data *record)
 {
     return halo::ai::ActorView(actor_index).squad_action_status_broadcast(command_list_index, record);
 }
@@ -1467,9 +1467,9 @@ void actor_start_search_timer(datum_index actor_index, datum_index prop_index)
  *
  * @address 0x407040
  */
-void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record)
+void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, actor_mode_obey_data *obey)
 {
-    halo::ai::ActorView(actor_index).swarm_for_each_component(reset_first, callback, callback_extra, caller_record);
+    halo::ai::ActorView(actor_index).swarm_for_each_component(reset_first, callback, callback_extra, obey);
 }
 
 /**

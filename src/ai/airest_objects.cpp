@@ -1282,12 +1282,12 @@ void AiUnitView::flee_if_ready(uint32_t readiness_param)
 
     if (unit_object != 0) {
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
-        uint8_t mode_data[0x84];
+        actor_mode_data mode_data;
 
         if (unit->actor_index != (datum_index)k_datum_index_none &&
             (uint8_t)halo::ai::actor_squad_action_status_broadcast(unit->actor_index, (int16_t)readiness_param,
-                (int16_t *)mode_data) != 0) {
-            halo::ai::actor_set_mode(unit->actor_index, _actor_mode_flee, mode_data);
+                &mode_data.obey) != 0) {
+            halo::ai::actor_set_mode(unit->actor_index, _actor_mode_flee, &mode_data);
         }
     }
 }

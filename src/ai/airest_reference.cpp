@@ -519,11 +519,11 @@ void ReferenceView::flee_if_ready(uint32_t readiness_param)
     halo::ai::ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        uint8_t mode_data[0x84];
+        actor_mode_data mode_data;
 
         if (halo::ai::actor_squad_action_status_broadcast(iterator.actor_index, (int16_t)readiness_param,
-                (int16_t *)mode_data) != 0) {
-            halo::ai::actor_set_mode(iterator.actor_index, _actor_mode_flee, mode_data);
+                &mode_data.obey) != 0) {
+            halo::ai::actor_set_mode(iterator.actor_index, _actor_mode_flee, &mode_data);
         }
         a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     }
@@ -652,8 +652,8 @@ void ReferenceView::invoke_squad_callback_406f80()
     halo::ai::ai_reference_actor_iterator_new(packed_reference, &iterator);
     a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
-        halo::ai::actor_swarm_for_each_component(iterator.actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_obey_member_advance, 0,
-            (uint16_t *)((uint8_t *)halo::ai::globals().actor_data->data + (iterator.actor_index & halo::k_slot_mask) * k_actor_size + 0x9c));
+        halo::ai::actor_swarm_for_each_component(iterator.actor_index, 0, halo::ai::actor_obey_member_advance, 0,
+            &halo::ai::actor_at(iterator.actor_index)->mode_data.obey);
         a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     }
 }
