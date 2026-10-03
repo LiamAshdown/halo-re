@@ -33,7 +33,7 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
     struct actor *actor = halo::ai::actor_at(actor_index);
 
     memset(out, 0, 0x44);
-    *(int16_t *)out = W(0x33c);
+    *(int16_t *)out = (int16_t)actor->search_velocity_ticks;
     if (actor->order_committed != 0 || actor->swarm != 0) {
         *(int16_t *)(out + 0x24) = 1;
     } else if (actor->search_position_valid != 0 &&
@@ -62,7 +62,7 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
     }
     *(uint32_t *)(out + 0x3c) = actor->search_prop_index;
     if (actor->search_prop_index != halo::k_dword_none) {
-        *(int16_t *)(out + 0x02) = W(0x344);
+        *(int16_t *)(out + 0x02) = (int16_t)actor->search_prop_value;
         out[0x40] = actor->search_prop_flag;
     }
     return 1;
