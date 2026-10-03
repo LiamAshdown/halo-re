@@ -292,7 +292,28 @@ enum class raster_cap : uint32_t {
     none = 0,
     slope_scale_depth_bias = 0x02000000,
     depth_bias = 0x04000000,
+    anisotropy = 0x00020000,
 };
+
+/** True when the capability bits report any bit of cap. */
+constexpr bool has_raster_cap(uint32_t raster_caps, raster_cap cap) noexcept
+{
+    return (raster_caps & static_cast<uint32_t>(cap)) != 0;
+}
+
+/** D3DPTEXTURECAPS bits. */
+enum class texture_cap : uint32_t {
+    none = 0,
+    cube_map = 0x00000800,
+    volume_map = 0x00002000,
+    mip_cube_map = 0x00010000,
+};
+
+/** True when the capability bits report any bit of cap. */
+constexpr bool has_texture_cap(uint32_t texture_caps, texture_cap cap) noexcept
+{
+    return (texture_caps & static_cast<uint32_t>(cap)) != 0;
+}
 
 /** Index of a method of IDirect3DSurface9. */
 enum class surface_method : uint32_t {

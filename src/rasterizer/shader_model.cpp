@@ -912,12 +912,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
         }
     }
     set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
-    if (rasterizer_caps.raster_caps & 0x04000000) {
-        set_render_state(halo::d3d9::rs::depth_bias, 0);
-    }
-    if (rasterizer_caps.raster_caps & 0x02000000) {
-        set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-    }
+    rasterizer_clear_decal_zbias();
 }
 
 }  // namespace rasterizer_shader_model_draw_fixed_function_impl
@@ -1059,12 +1054,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
                                                   dynamic_vertex_slot);
         set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
     }
-    if (rasterizer_caps.raster_caps & 0x04000000) {
-        set_render_state(halo::d3d9::rs::depth_bias, 0);
-    }
-    if (rasterizer_caps.raster_caps & 0x02000000) {
-        set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-    }
+    rasterizer_clear_decal_zbias();
 }
 
 }  // namespace rasterizer_shader_model_draw_limited_impl
@@ -1457,12 +1447,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         }
     }
 
-    if (rasterizer_caps.raster_caps & 0x04000000) {
-        set_render_state(halo::d3d9::rs::depth_bias, 0);
-    }
-    if (rasterizer_caps.raster_caps & 0x02000000) {
-        set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-    }
+    rasterizer_clear_decal_zbias();
 }
 
 }  // namespace rasterizer_shader_model_draw_pixel_shader_impl

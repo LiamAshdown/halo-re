@@ -225,7 +225,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
     stage5_filter = 2;
     stage6_filter = 2;
-    if (halo::shell::globals().use_anisotropic_filter != 0 && (rasterizer_caps.raster_caps & 0x20000) != 0 &&
+    if (halo::shell::globals().use_anisotropic_filter != 0 && halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::anisotropy) &&
         1 < rasterizer_caps.max_anisotropy) {
         max_anisotropy = 8;
         if (rasterizer_caps.max_anisotropy < 8) {

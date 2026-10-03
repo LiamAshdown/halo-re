@@ -30,10 +30,10 @@ namespace halo::rasterizer {
 void chimera__transparent_decal_zbias(void)
 {
 
-    if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
+    if (halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::depth_bias)) {
         render_device().set_render_state(halo::d3d9::rs::depth_bias, __builtin_bit_cast(uint32_t, halo::shell::globals().transparent_decal_z_bias));
     }
-    if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
+    if (halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::slope_scale_depth_bias)) {
         render_device().set_render_state(halo::d3d9::rs::slope_scale_depth_bias, __builtin_bit_cast(uint32_t, halo::shell::globals().transparent_decal_slope_z_bias));
     }
 }
@@ -130,10 +130,10 @@ void decal_vertex_cache_release(datum_index handle)
 void rasterizer_apply_decal_zbias(void)
 {
 
-    if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
+    if (halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::depth_bias)) {
         render_device().set_render_state(halo::d3d9::rs::depth_bias, __builtin_bit_cast(uint32_t, halo::shell::globals().decal_z_bias));
     }
-    if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
+    if (halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::slope_scale_depth_bias)) {
         render_device().set_render_state(halo::d3d9::rs::slope_scale_depth_bias, __builtin_bit_cast(uint32_t, halo::shell::globals().decal_slope_z_bias));
     }
 }
@@ -147,10 +147,10 @@ void rasterizer_apply_decal_zbias(void)
 void rasterizer_clear_decal_zbias(void)
 {
 
-    if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
+    if (halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::depth_bias)) {
         render_device().set_render_state(halo::d3d9::rs::depth_bias, 0);
     }
-    if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
+    if (halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::slope_scale_depth_bias)) {
         render_device().set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
     }
 }
@@ -327,7 +327,7 @@ void * rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_cou
  */
 int rasterizer_decal_zbias_active(void)
 {
-    if ((rasterizer_caps.raster_caps & 0x6000000) == 0) {
+    if (!halo::d3d9::has_raster_cap(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::depth_bias | halo::d3d9::raster_cap::slope_scale_depth_bias)) {
         return 0;
     }
     return 1;
@@ -540,12 +540,7 @@ void rasterizer_end_decal_pass(void)
 {
 
     render_device().set_render_state(halo::d3d9::rs::fog_enable, 0);
-    if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        render_device().set_render_state(halo::d3d9::rs::depth_bias, 0);
-    }
-    if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        render_device().set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-    }
+    rasterizer_clear_decal_zbias();
     if (rasterizer_decal_layer == 3) {
         rasterizer_set_shader_stage_config(2);
     }

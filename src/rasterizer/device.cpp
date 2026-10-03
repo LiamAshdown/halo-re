@@ -1407,12 +1407,7 @@ void rasterizer_set_default_render_states(void)
 
     set_render_states(table1, sizeof(table1) / sizeof(table1[0]));
 
-    if ((rasterizer_caps.raster_caps & static_cast<uint32_t>(halo::d3d9::raster_cap::depth_bias)) != 0) {
-        set_render_state(halo::d3d9::rs::depth_bias, 0);
-    }
-    if ((rasterizer_caps.raster_caps & static_cast<uint32_t>(halo::d3d9::raster_cap::slope_scale_depth_bias)) != 0) {
-        set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-    }
+    rasterizer_clear_decal_zbias();
 
     set_render_states(table2, sizeof(table2) / sizeof(table2[0]));
 

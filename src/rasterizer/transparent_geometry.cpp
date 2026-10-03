@@ -758,12 +758,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
             chimera__rasterizer_set_frustum_z_func(0, 0);
         }
-        if (rasterizer_caps.raster_caps & 0x04000000) {
-            set_render_state(halo::d3d9::rs::depth_bias, 0);
-        }
-        if (rasterizer_caps.raster_caps & 0x02000000) {
-            set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-        }
+        rasterizer_clear_decal_zbias();
     }
 
     if (!attached) {
