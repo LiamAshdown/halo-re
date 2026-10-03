@@ -20,6 +20,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &magic_seat_animation_state_0069fde0 = halo::link::ref<int16_t>(halo::hs::vars().magic_seat_animation_state_0069fde0);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);

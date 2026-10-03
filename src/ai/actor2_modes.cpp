@@ -141,8 +141,8 @@ void ActorView::mode_uncover_update()
 
 
 namespace actor_mode_vehicle_enter_local {
-extern "C" {
-extern game_time_globals *game_time;
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -195,9 +195,9 @@ void ActorView::mode_vehicle_update()
 
 
 namespace actor_mode_wait_process_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**

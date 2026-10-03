@@ -11,9 +11,11 @@
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
-extern "C" {
-extern int32_t __ftol(void);
-}
+#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**

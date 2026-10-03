@@ -180,8 +180,8 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 }
 
 namespace actor_new_and_attach_to_unit_local {
-extern "C" {
-extern void *actor_type_procs[16];
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+#define ACTOR_AT(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -649,11 +649,8 @@ uint8_t ActorView::process_pending_command_list()
 
 
 namespace actor_process_vehicle_seat_exit_local {
-extern "C" {
-extern data_array *player_data;
-extern game_time_globals *game_time;
-extern network_client_globals *network_client;
-extern void player_update_history_free_all(void *history);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 #define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -2503,7 +2500,8 @@ typedef struct actor_dodge_entry {
     int16_t direction;
     float bias;
 } actor_dodge_entry;
-extern const actor_dodge_entry actor_dodge_table[];
+static auto &actor_dodge_table = halo::link::ref<const actor_dodge_entry []>(halo::ai::vars().actor_dodge_table);
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -2697,8 +2695,10 @@ void ActorView::unlink_unit()
 }
 
 namespace actor_vehicle_not_recently_left_local {
-extern "C" {
-extern game_time_globals *game_time;
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 /**

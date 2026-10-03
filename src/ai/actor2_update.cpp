@@ -719,8 +719,11 @@ void ActorView::update_crouch_state()
 }
 
 namespace actor_update_danger_avoidance_local {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -1451,9 +1454,10 @@ void ActorView::update_look_target()
 #undef ULT_V3
 
 namespace actor_update_melee_combat_action_local {
-extern "C" {
-extern uint8_t *actor_type_procs[];
-extern actor_mode_definition actor_mode_definitions[16];
+static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
+#define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
+#define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
 static uint8_t actor_combat_commit_position(datum_index actor_index, actor *a, prop *target, int16_t position)
 {
     datum_index object = target != 0 ? (uint32_t)target->last_perceived_time : k_datum_index_none;

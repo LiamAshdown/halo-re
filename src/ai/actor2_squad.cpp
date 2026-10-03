@@ -21,6 +21,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/core/libm.hpp"
 #include "halo/networking/api.hpp"
 
 namespace halo::ai {
@@ -116,12 +117,9 @@ void ActorView::obey_member_tick(datum_index unit_index, uint16_t command_list_i
 }
 
 namespace actor_squad_action_execute_local {
-extern "C" {
-extern double halo::x87::fcos(double x);
-extern double halo::x87::fsin(double x);
-extern data_array *player_data;
-extern const char k_empty_string[];
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &k_empty_string = halo::link::ref<const char []>(halo::networking::vars().k_empty_string);
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 

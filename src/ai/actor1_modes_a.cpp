@@ -564,8 +564,20 @@ void actor_mode_obey_tick_members(uint32_t actor_index)
 }
 
 namespace c_actor_mode_obey_update {
-extern "C" {
-extern real_vector2d *global_forward2d_pointer;
+static auto &global_forward2d_pointer = halo::link::ref<real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
+
+
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
+
+static void copy12(struct actor *actor, int to, int from)
+{
+    D(to) = D(from);
+    D(to + 4) = D(from + 4);
+    D(to + 8) = D(from + 8);
+}
 }
 
 

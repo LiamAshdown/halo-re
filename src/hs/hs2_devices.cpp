@@ -6,6 +6,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
+#include "halo/ai/api.hpp"
 
 
 #ifdef __cplusplus
