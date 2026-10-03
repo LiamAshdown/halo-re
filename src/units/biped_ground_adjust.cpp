@@ -454,7 +454,7 @@ uint32_t BipedView::ground_adjust_step()
 }
 
 /**
- * Once the Biped tag's "requires ground adjust" flag (biped_flags bit 0x200, UNSURE) is clear and the
+ * When the Biped tag has uses_limp_body_physics (biped_flags bit 0x200) set and the
  * ground-adjust dirty bit is still set, clears it along with its object.flags mirror.
  *
  * @address 0x55ad70
@@ -473,7 +473,7 @@ void UnitView::clear_ground_adjust_dirty()
 }
 
 /**
- * When the Biped tag requests ground adjustment (biped_flags bit 0x200, UNSURE) and the object is attached to
+ * When the Biped tag has uses_limp_body_physics (biped_flags bit 0x200) set and the object is attached to
  * a parent (object.flags bit 0x20) but the ground-adjust dirty bit isn't already set and the biped isn't
  * already grounded, resets the iteration counter, seeds the iteration limit to 0x14, and marks both the dirty
  * bit and its object.flags mirror.

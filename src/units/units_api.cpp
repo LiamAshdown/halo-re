@@ -376,13 +376,6 @@ datum_index unit_build_seat_occupant_zone_list(uint32_t unit_index)
 
 
 /**
- * C entry point for halo::units::UnitView::can_see_point; forwards to the C++ implementation unchanged.
- *
- * @address 0x56f800
- */
-
-
-/**
  * C entry point for halo::units::UnitView::cause_melee_damage; forwards to the C++ implementation unchanged.
  *
  * @address 0x56f2d0
