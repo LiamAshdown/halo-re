@@ -261,8 +261,8 @@ void ActorView::update_firing_state()
         fire_primary = 1;
     } else if (state == 2) {
         datum_index exclude = k_datum_index_none;
-        real_point3d *aim_point = (real_point3d *)((uint8_t *)a + 0x658);
-        real_point3d *final_point = (real_point3d *)((uint8_t *)a + 0x67c);
+        real_point3d *aim_point = &a->firing_aim_point;
+        real_point3d *final_point = (real_point3d *)&a->grenade_aim_direction;
         real_point3d origin;
         int32_t blocking_prop = -1;
 
@@ -333,7 +333,7 @@ void ActorView::update_firing_state()
                 } else {
                     facing = *(real_vector3d *)&a->facing.i;
                 }
-                halo::units::unit_add_marker_relative_offset(a->unit_index, 3, (float *)((uint8_t *)a + 0x12c), (uint32_t)&facing,
+                halo::units::unit_add_marker_relative_offset(a->unit_index, 3, (float *)&a->body_position, (uint32_t)&facing,
                                                 (uint32_t)offset, &origin);
             }
         }

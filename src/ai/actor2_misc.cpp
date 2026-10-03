@@ -153,10 +153,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->firing_target_prop_index = (datum_index)k_datum_index_none;
     self->last_grenade_check_time = halo::k_dword_none;
     self->grenade_target_prop_index = halo::k_dword_none;
-    self->avoidance_ray_clear_ticks = (datum_index)k_datum_index_none;
-    self->unknown_5cc = (datum_index)k_datum_index_none;
-    self->unknown_5d0 = (datum_index)k_datum_index_none;
-    self->unknown_5d4 = (datum_index)k_datum_index_none;
+    memset(self->avoidance_ray_clear_ticks, 0xff, sizeof(self->avoidance_ray_clear_ticks));
     self->avoidance_last_direction = -1;
     self->avoidance_turn_around_ticks = -1;
     self->vocalization_line = 0;

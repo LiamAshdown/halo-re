@@ -1104,11 +1104,8 @@ typedef struct actor {
                                         //    here; 0x415480 the facing / aiming / looking trio
     real_point3d desired_aiming_vector; // 0x5b0 the desired aiming vector (0x415480)
     real_point3d desired_looking_vector; // 0x5bc the desired looking vector (0x415480)
-    datum_index avoidance_ray_clear_ticks; // 0x5c8 0x4193d0 (actor_move_vector_avoidance) keeps one clear-tick byte
-                                           //    per ray at 0x5c8+k*2+j (16 bytes); actor_new sets all to 0xff
-    datum_index unknown_5cc;          // 0x5cc actor_new sets none
-    datum_index unknown_5d0;          // 0x5d0 actor_new sets none
-    datum_index unknown_5d4;          // 0x5d4 actor_new sets none
+    uint8_t avoidance_ray_clear_ticks[16]; // 0x5c8 0x4193d0 (actor_move_vector_avoidance) keeps one clear-tick byte
+                                           //    per ray at [k * 2 + j]; actor_new sets all to 0xff
     int16_t avoidance_last_direction; // 0x5d8 0x4193d0 biases weights toward the best direction chosen last tick
                                       //    (0..7) and stores the new one; -1 none (actor_new)
     uint8_t unknown_5da[2];           // 0x5da
@@ -2526,6 +2523,7 @@ typedef struct actor_firing_positions {
     real_vector3d velocity;       // 0x2c
 } actor_firing_positions;         // size 0x38
 
+
 // The block actor_fill_unit_position_context @0x41b930 fills for its callers.
 typedef struct actor_unit_position_context {
     real_point3d local_transform_position; // 0x00 UNSURE
@@ -2602,6 +2600,20 @@ typedef struct path_find_waypoint {
     int32_t surface_index;  // 0x00 the collision surface the point lies on, -1 for none
     real_point3d position;  // 0x04
 } path_find_waypoint;       // size 0x10
+
+// The path record path_find_reconstruct_path fills. It overlays the actor's movement_action_complete .. waypoint
+// run (+0x4a8 .. +0x504), so the movement code reads the finished path out of the actor itself.
+typedef struct path_find_result {
+    uint8_t found;                   // 0x00 actor.movement_action_complete
+    uint8_t unknown_01[3];           // 0x01
+    real_point3d end_point;          // 0x04 actor.path_end_point
+    int32_t end_surface_index;       // 0x10
+    float remaining_distance;        // 0x14 actor.path_remaining_distance
+    uint8_t valid;                   // 0x18
+    int8_t waypoint_count;           // 0x19 actor.waypoint_count
+    uint8_t unknown_1a[2];           // 0x1a
+    path_find_waypoint waypoints[4]; // 0x1c the 16-byte waypoint records actor.waypoint_cursor indexes
+} path_find_result;                  // size 0x5c
 
 typedef struct path_find_adjacent_edge {
     int32_t edge_id;        // 0x00 the neighboring vertex id (despite the name every caller uses it as a vertex, not an edge)

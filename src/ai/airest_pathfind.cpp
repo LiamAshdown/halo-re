@@ -92,20 +92,6 @@ static_assert(offsetof(path_find_obstacle_cache, valid) == 0x10588 && offsetof(p
 static_assert(offsetof(path_find_obstacle_cache, obstacle_lists) == 0x1058c && offsetof(path_find_obstacle_cache, searches) == 0x12dac);
 static_assert(offsetof(path_find_request, avoid_object_index) == 0x34);
 
-/** The path record reconstruct_path fills; it overlays the actor's movement_action_complete .. waypoint block (+0x4a8 .. +0x504). */
-struct path_find_result {
-    uint8_t found;
-    uint8_t unknown_01[3];
-    real_point3d end_point;
-    int32_t end_surface_index;
-    float remaining_distance;
-    uint8_t valid;
-    int8_t waypoint_count;
-    uint8_t unknown_1a[2];
-    path_find_waypoint waypoints[4];
-};
-static_assert(offsetof(path_find_result, end_point) == 4 && offsetof(path_find_result, end_surface_index) == 0x10);
-static_assert(offsetof(path_find_result, valid) == 0x18 && offsetof(path_find_result, waypoints) == 0x1c);
 
 static_assert(offsetof(ScenarioStructureBSP, collision_bsp) == 0xb0 && offsetof(ScenarioStructureBSP, pathfinding_surfaces) == 0x1e4);
 

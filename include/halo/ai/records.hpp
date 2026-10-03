@@ -95,6 +95,10 @@ static_assert(offsetof(Actor, hearing_distance) == 0x4c && offsetof(Actor, berse
 static_assert(offsetof(ActorVariant, first_burst_delay_time) == 0x80 && offsetof(ActorVariant, special_fire_mode) == 0x154 && offsetof(ActorVariant, grenade_type) == 0x180);
 static_assert(offsetof(Biped, biped_flags) == 0x2f4 && offsetof(Projectile, danger_radius) == 0x1a8 && offsetof(Weapon, triggers) == 0x4fc);
 static_assert(offsetof(Equipment, powerup_type) == 0x308);
+static_assert(sizeof(path_find_result) == 0x5c && offsetof(path_find_result, waypoints) == 0x1c);
+static_assert(offsetof(actor, moving) - offsetof(actor, movement_action_complete) == sizeof(path_find_result));
+static_assert(offsetof(actor, path_end_point) - offsetof(actor, movement_action_complete) == offsetof(path_find_result, end_point));
+static_assert(offsetof(actor, waypoint_count) - offsetof(actor, movement_action_complete) == offsetof(path_find_result, waypoint_count));
 static_assert(sizeof(actor_target_tally) == 0x7b && sizeof(path_find_request) == 0x48);
 static_assert(sizeof(actor_firing_positions) == 0x38 && offsetof(actor_firing_positions, location) == 0x24 && offsetof(actor_firing_positions, velocity) == 0x2c);
 static_assert(offsetof(actor, body_position) - offsetof(actor, aim_origin) == 0xc && offsetof(actor, location) - offsetof(actor, aim_origin) == 0x24);
@@ -112,6 +116,12 @@ static_assert(offsetof(Vehicle, vehicle_flags) == 0x2f0);
 static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && offsetof(ModelAnimationsAnimationGraphUnitSeat, animations) == 0x40);
 static_assert(offsetof(ModelAnimations, units) == 0xc);
 static_assert(offsetof(Object, animation_graph) == 0x38);
+
+/** The path record that overlays the actor's movement_action_complete .. waypoint run (what path_find_reconstruct_path fills). */
+inline path_find_result *path_result(actor *a)
+{
+    return reinterpret_cast<path_find_result *>(&a->movement_action_complete);
+}
 
 /** The bsp leaf and cluster an object record stores (object + 0x98) as a bsp_leaf_reference. */
 inline bsp_leaf_reference *object_location(object *record)

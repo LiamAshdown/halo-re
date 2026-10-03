@@ -351,7 +351,7 @@ void ActorView::run_mode_transition_loop()
 
         ActorTypeRegistry::get(self->type).transition(*this);
 
-        memset((uint8_t *)self + 0x2ec, 0, 0x19 * sizeof(uint32_t));
+        memset(&self->attack_pending, 0, 0x19 * sizeof(uint32_t));
 
         if ((keep_going != 0 && self->mode_changed == 0) || iterations > 9) {
             break;

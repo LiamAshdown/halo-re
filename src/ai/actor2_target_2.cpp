@@ -223,7 +223,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
             return;
         }
     }
-    memset((uint8_t *)self + 0x280, 0, 0x6c);
+    memset(&self->danger_type, 0, 0x6c);
     self->danger_type = 2;
     self->danger_object_index = object_index;
     self->danger_object_radius = radius;

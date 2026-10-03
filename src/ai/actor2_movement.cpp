@@ -242,7 +242,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
     distance = halo::math::vector3d_distance(self->destination, self->body_position);
 
     if (self->flying != 0) {
-        result = halo::ai::path_find_validate_and_record_goal((ai_path_candidate_goal *)((uint8_t *)self + 0x4a8), (void *)halo::scenario::globals().structure_bsp,
+        result = halo::ai::path_find_validate_and_record_goal((ai_path_candidate_goal *)&self->movement_action_complete, (void *)halo::scenario::globals().structure_bsp,
             (uint32_t)&self->body_position, 0, &self->destination);
     } else if (context != (path_find_context *)0) {
         halo::ai::path_find_set_goal(context, &self->destination, self->destination_surface_index, self->destination_radius);
@@ -403,7 +403,7 @@ void ActorView::movement_advance_waypoint()
             float *cur;
             real_point3d *target;
             self->moving = 1;
-            cur = (float *)((uint8_t *)self + 0x4c8 + (int8_t)self->waypoint_cursor * 0x10);
+            cur = &halo::ai::path_result(self)->waypoints[(int8_t)self->waypoint_cursor].position.x;
             target = (real_point3d *)&self->current_waypoint;
             target->x = cur[0];
             target->y = cur[1];
