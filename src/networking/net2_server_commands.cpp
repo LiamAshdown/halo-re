@@ -15,6 +15,7 @@
 #include <wchar.h>
 #include <stdint.h>
 #include "halo/networking/net2_server_commands.hpp"
+#include "halo/networking/server_command.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -739,20 +740,132 @@ void ServerCommands::tk_grace(uint32_t argument_count, int32_t *arguments)
 
 }  // namespace halo::networking
 
+namespace halo::networking {
+
+namespace {
+constexpr ArgumentCommand<int32_t, &ServerCommands::ban> k_ban(ServerCommandId::ban);
+constexpr ArgumentCommand<int32_t, &ServerCommands::ban_penalty> k_ban_penalty(ServerCommandId::ban_penalty);
+constexpr ArgumentCommand<int32_t, &ServerCommands::banlist_file> k_banlist_file(ServerCommandId::banlist_file);
+constexpr ArgumentCommand<int32_t, &ServerCommands::friendly_fire> k_friendly_fire(ServerCommandId::friendly_fire);
+constexpr NameCommand<&ServerCommands::kick> k_kick(ServerCommandId::kick);
+constexpr ArgumentCommand<uint16_t *, &ServerCommands::map> k_map(ServerCommandId::map);
+constexpr PlainCommand<&ServerCommands::map_reset> k_map_reset(ServerCommandId::map_reset);
+constexpr ArgumentCommand<int32_t, &ServerCommands::maxplayers> k_maxplayers(ServerCommandId::maxplayers);
+constexpr ArgumentCommand<char *, &ServerCommands::name> k_name(ServerCommandId::name);
+constexpr ArgumentCommand<char *, &ServerCommands::password> k_password(ServerCommandId::password);
+constexpr PlainCommand<&ServerCommands::players> k_players(ServerCommandId::players);
+constexpr ArgumentCommand<int32_t, &ServerCommands::rcon_password> k_rcon_password(ServerCommandId::rcon_password);
+constexpr ArgumentCommand<char *, &ServerCommands::single_flag_force_reset> k_single_flag_force_reset(ServerCommandId::single_flag_force_reset);
+constexpr PlainCommand<&ServerCommands::status> k_status(ServerCommandId::status);
+constexpr ArgumentCommand<int32_t, &ServerCommands::timelimit> k_timelimit(ServerCommandId::timelimit);
+constexpr ArgumentCommand<int32_t, &ServerCommands::tk_cooldown> k_tk_cooldown(ServerCommandId::tk_cooldown);
+constexpr ArgumentCommand<int32_t, &ServerCommands::tk_grace> k_tk_grace(ServerCommandId::tk_grace);
+
+constexpr const ServerCommand *k_commands[] = {
+    &k_ban,
+    &k_ban_penalty,
+    &k_banlist_file,
+    &k_friendly_fire,
+    &k_kick,
+    &k_map,
+    &k_map_reset,
+    &k_maxplayers,
+    &k_name,
+    &k_password,
+    &k_players,
+    &k_rcon_password,
+    &k_single_flag_force_reset,
+    &k_status,
+    &k_timelimit,
+    &k_tk_cooldown,
+    &k_tk_grace,
+};
+
+static_assert(sizeof(k_commands) / sizeof(k_commands[0]) == static_cast<size_t>(ServerCommandId::count));
+}  // namespace
+
+/**
+ * Returns the console name of a command.
+ */
+const char *server_command_name(ServerCommandId id)
+{
+    switch (id) {
+    case ServerCommandId::ban:
+        return "sv_ban";
+    case ServerCommandId::ban_penalty:
+        return "sv_ban_penalty";
+    case ServerCommandId::banlist_file:
+        return "sv_banlist_file";
+    case ServerCommandId::friendly_fire:
+        return "sv_friendly_fire";
+    case ServerCommandId::kick:
+        return "sv_kick";
+    case ServerCommandId::map:
+        return "sv_map";
+    case ServerCommandId::map_reset:
+        return "sv_map_reset";
+    case ServerCommandId::maxplayers:
+        return "sv_maxplayers";
+    case ServerCommandId::name:
+        return "sv_name";
+    case ServerCommandId::password:
+        return "sv_password";
+    case ServerCommandId::players:
+        return "sv_players";
+    case ServerCommandId::rcon_password:
+        return "sv_rcon_password";
+    case ServerCommandId::single_flag_force_reset:
+        return "sv_single_flag_force_reset";
+    case ServerCommandId::status:
+        return "sv_status";
+    case ServerCommandId::timelimit:
+        return "sv_timelimit";
+    case ServerCommandId::tk_cooldown:
+        return "sv_tk_cooldown";
+    case ServerCommandId::tk_grace:
+        return "sv_tk_grace";
+    default:
+        return "";
+    }
+}
+
+/**
+ * Returns the command object registered for `id`.
+ */
+const ServerCommand &ServerCommandRegistry::get(ServerCommandId id)
+{
+    return *k_commands[static_cast<size_t>(id)];
+}
+
+/**
+ * Finds a command by its console name (for example "sv_kick"); returns null when no command has that name.
+ */
+const ServerCommand *ServerCommandRegistry::find(const char *command_name)
+{
+    for (const ServerCommand *command : k_commands) {
+        if (strcmp(command->name(), command_name) == 0) {
+            return command;
+        }
+    }
+    return 0;
+}
+
+}  // namespace halo::networking
+
 extern "C" {
 void sv_ban(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::ban(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::ban).execute(argument_count, arguments);
 }
 
 void sv_ban_penalty(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::ban_penalty(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::ban_penalty).execute(argument_count, arguments);
 }
 
 void sv_banlist_file(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::banlist_file(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::banlist_file).execute(argument_count, arguments);
 }
 
 network_player_entry * sv_find_client_by_name_or_index(char *name_or_index)
@@ -762,42 +875,42 @@ network_player_entry * sv_find_client_by_name_or_index(char *name_or_index)
 
 void sv_friendly_fire(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::friendly_fire(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::friendly_fire).execute(argument_count, arguments);
 }
 
 void sv_kick(char *name_or_index)
 {
-    halo::networking::ServerCommands::kick(name_or_index);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::kick).execute(0, name_or_index);
 }
 
 void sv_map(uint32_t argument_count, uint16_t **arguments)
 {
-    halo::networking::ServerCommands::map(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::map).execute(argument_count, arguments);
 }
 
 void sv_map_reset(void)
 {
-    halo::networking::ServerCommands::map_reset();
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::map_reset).execute(0, 0);
 }
 
 void sv_maxplayers(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::maxplayers(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::maxplayers).execute(argument_count, arguments);
 }
 
 void sv_name(uint32_t argument_count, char **arguments)
 {
-    halo::networking::ServerCommands::name(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::name).execute(argument_count, arguments);
 }
 
 void sv_password(uint32_t argument_count, char **arguments)
 {
-    halo::networking::ServerCommands::password(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::password).execute(argument_count, arguments);
 }
 
 void sv_players(void)
 {
-    halo::networking::ServerCommands::players();
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::players).execute(0, 0);
 }
 
 uint32_t sv_players_find_by_team_index_desired(int8_t team_index_desired)
@@ -807,32 +920,32 @@ uint32_t sv_players_find_by_team_index_desired(int8_t team_index_desired)
 
 void sv_rcon_password(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::rcon_password(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::rcon_password).execute(argument_count, arguments);
 }
 
 void sv_single_flag_force_reset(uint32_t argument_count, char **arguments)
 {
-    halo::networking::ServerCommands::single_flag_force_reset(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::single_flag_force_reset).execute(argument_count, arguments);
 }
 
 void sv_status(void)
 {
-    halo::networking::ServerCommands::status();
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::status).execute(0, 0);
 }
 
 void sv_timelimit(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::timelimit(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::timelimit).execute(argument_count, arguments);
 }
 
 void sv_tk_cooldown(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::tk_cooldown(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::tk_cooldown).execute(argument_count, arguments);
 }
 
 void sv_tk_grace(uint32_t argument_count, int32_t *arguments)
 {
-    halo::networking::ServerCommands::tk_grace(argument_count, arguments);
+    halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::tk_grace).execute(argument_count, arguments);
 }
 
 }
