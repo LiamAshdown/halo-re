@@ -492,7 +492,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
 
         render_device().set_render_state(halo::d3d9::rs::ambient, (((red & 0xff) << 8 | (green & 0xff)) << 8) | (blue & 0xff));
     }
-    render_device().set_vertex_shader_constant_f(0xf, (const float *)&block, 0xb);
+    render_device().set_vertex_shader_constant_f(15, reinterpret_cast<const float *>(&block), 11);
 }
 
 }  // namespace rasterizer_prepare_lighting_constants_impl
@@ -722,7 +722,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
 
     rasterizer_fog_enabled = console_debug_toggle_6893fc;
     rasterizer_set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled);
-    rasterizer_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)(&window_fog->atmospheric_color)));
+    rasterizer_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int(&window_fog->atmospheric_color.red));
     rasterizer_set_render_state(halo::d3d9::rs::fog_table_mode, 0);
     rasterizer_set_render_state(halo::d3d9::rs::fog_vertex_mode, 3);
     rasterizer_set_render_state(halo::d3d9::rs::fog_start, real_bits(window_fog->atmospheric_minimum_distance));

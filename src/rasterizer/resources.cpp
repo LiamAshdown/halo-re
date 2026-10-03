@@ -1062,7 +1062,7 @@ static void copy_dwords(uint8_t *dst, const uint8_t *src, uint32_t byte_count)
 static void rasterizer_vertex_buffer_fill(void *locked, int16_t vertex_type, int32_t count, const uint8_t *source,
                                           const uint8_t *second_stream, uint32_t size)
 {
-    uint8_t *dst = (uint8_t *)locked;
+    uint8_t *dst = static_cast<uint8_t *>(locked);
     int32_t i;
 
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
@@ -1105,7 +1105,7 @@ static void rasterizer_vertex_buffer_fill(void *locked, int16_t vertex_type, int
  *
  * @address 0x524980
  */
-uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t second_stream, uint32_t size)
+uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_t vertex_type, int32_t count, void *source_data, int32_t second_stream, uint32_t size)
 {
     void *buffer;
     uint8_t ok = 1;
@@ -1130,8 +1130,8 @@ uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_
             ok = 0;
         }
         if (ok) {
-            rasterizer_vertex_buffer_fill(locked_data, vertex_type, count, (const uint8_t *)source_data,
-                                          (const uint8_t *)(uintptr_t)second_stream, size);
+            rasterizer_vertex_buffer_fill(locked_data, vertex_type, count, static_cast<const uint8_t *>(source_data),
+                                          reinterpret_cast<const uint8_t *>(static_cast<uintptr_t>(second_stream)), size);
             if (render_device().buffer_unlock(buffer) < 0) {
                 ok = 0;
             }

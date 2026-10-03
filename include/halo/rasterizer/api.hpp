@@ -331,7 +331,7 @@ using rasterizer_render_target_initialize_impl::rasterizer_render_target_initial
 namespace rasterizer_render_target_set_active_impl { void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear); }
 using rasterizer_render_target_set_active_impl::rasterizer_render_target_set_active;
 uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size);
-namespace rasterizer_vertex_buffer_create_impl { uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t second_stream, uint32_t size); }
+namespace rasterizer_vertex_buffer_create_impl { uint8_t rasterizer_vertex_buffer_create(rasterizer_vertex_buffer *record, int16_t vertex_type, int32_t count, void *source_data, int32_t second_stream, uint32_t size); }
 using rasterizer_vertex_buffer_create_impl::rasterizer_vertex_buffer_create;
 int32_t rasterizer_vertex_buffer_slot_allocate(int32_t vertex_type, uint32_t fvf, uint32_t length);
 void rasterizer_vertex_buffer_slot_recreate_lost(void);

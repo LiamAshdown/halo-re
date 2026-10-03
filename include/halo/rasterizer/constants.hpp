@@ -97,6 +97,9 @@ inline constexpr uint32_t k_lens_flare_marker_offset_mask = k_lens_flare_marker_
 /** Quads one frame of detail objects may fill the vertex buffer with. */
 inline constexpr int32_t k_detail_object_maximum_quads = 0x1000;
 
+/** Bytes of the per-frame scratch memory the model draw code copies lighting and skinning into. */
+inline constexpr uint32_t k_scratch_memory_bytes = 0x18000;
+
 /** D3DFMT_INDEX16. */
 inline constexpr uint32_t k_format_index16 = 101;
 

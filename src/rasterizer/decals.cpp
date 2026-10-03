@@ -117,7 +117,7 @@ void decal_geometry_cache_restore_procs(void)
  */
 uint8_t decal_vertex_cache_in_use(datum_index handle)
 {
-    decal *element = (decal *)((uint8_t *)decal_data->data + (uint32_t)(handle & halo::k_slot_mask) * sizeof(decal));
+    decal *element = &reinterpret_cast<decal *>(decal_data->data)[handle & halo::k_slot_mask];
 
     decal_vertex_cache_last_queried = handle;
     return (element->flags & 3) != 0;
@@ -312,7 +312,7 @@ void * rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_cou
 {
     ::cache *cache = rasterizer_decal_vertex_cache_handle;
     data_array *blocks = cache->entries;
-    uint32_t offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
+    uint32_t offset = (uint32_t)reinterpret_cast<cache_entry *>(blocks->data)[decal_index & halo::k_slot_mask].offset
                       << (cache->block_shift & 0x1f);
     void *buffer = rasterizer_decal_vertex_cache;
     void *data = 0;
@@ -377,7 +377,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
 
     decal_index = decal_grid_block[rasterizer_decal_layer * k_decal_grid_columns + cluster_index];
     while (decal_index != halo::k_dword_none) {
-        decal *record = (decal *)((uint8_t *)decal_data->data + (decal_index & halo::k_slot_mask) * sizeof(decal));
+        decal *record = &reinterpret_cast<decal *>(decal_data->data)[decal_index & halo::k_slot_mask];
         uint32_t definition_tag = static_cast<uint32_t>(record->definition_index);
         Decal *definition = (Decal *)halo::cache::globals().tag_instances[definition_tag & halo::k_slot_mask].data;
         int16_t type = definition->framebuffer_blend_function;
@@ -395,7 +395,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
         if (succeeded) {
             ::cache *cache = rasterizer_decal_vertex_cache_handle;
             data_array *blocks = cache->entries;
-            uint32_t first_offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
+            uint32_t first_offset = (uint32_t)reinterpret_cast<cache_entry *>(blocks->data)[decal_index & halo::k_slot_mask].offset
                                     << (cache->block_shift & 0x1f);
             uint32_t color = record->color;
             uint32_t alpha = (record->alpha * (color >> 24) + 0x7f) >> 8;

@@ -7,6 +7,7 @@
 #include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
@@ -153,8 +154,8 @@ void * chimera__rasterizer_memory_alloc(void *source, uint32_t size)
 
     new_used = rasterizer_scratch_memory_used + size;
     block = nullptr;
-    if (new_used < 0x18001) {
-        block = (uint8_t *)rasterizer_scratch_memory + rasterizer_scratch_memory_used;
+    if (new_used <= k_scratch_memory_bytes) {
+        block = static_cast<uint8_t *>(rasterizer_scratch_memory) + rasterizer_scratch_memory_used;
         rasterizer_scratch_memory_used = new_used;
         if (source != nullptr) {
             memcpy(block, source, size);
@@ -522,7 +523,7 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
             if (index_slot == -1) {
                 return;
             }
-            indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
+            indices = static_cast<uint16_t *>(halo::render::rasterizer_dynamic_index_slot_lock(index_slot));
             for (triangle = 0; triangle < triangle_count; triangle += 2) {
                 uint16_t base = (uint16_t)((triangle / 2) * 4);
                 uint16_t *quad = indices + triangle * 3;
@@ -667,7 +668,7 @@ namespace rasterizer_geometry_draw_fixed_function_impl {
  */
 void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dynamic_vertex_slot, rasterizer_vertex_buffer *vertex_buffer, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count)
 {
-    if (flags & 0x200) {
+    if (flags & _group_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration(rasterizer_vertex_declarations[14].declaration);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
@@ -710,7 +711,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
             nodes.node_count = 1;
         }
         chimera__rasterizer_set_model_skinning((uint8_t)(~(uint8_t)(group->flags >> 8) & 1), &nodes);
-        if (group->flags & 0x100) {
+        if (group->flags & _group_node_parts_bit) {
             chimera__rasterizer_set_up_node_parts(group->node_part_count, group->node_part_indices);
         }
         if (group->lighting != 0) {
