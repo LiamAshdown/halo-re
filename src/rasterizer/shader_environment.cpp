@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <cstddef>
 #include "halo/tags/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 
 namespace {
 
@@ -794,7 +795,7 @@ void rasterizer_shader_environment_lightmap_draw(const ShaderEnvironment *shader
     copy_bitmap_size(size[1], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->primary_detail_map.tag_id), 0, 1, 2, frame, slot));
     copy_bitmap_size(size[2], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->secondary_detail_map.tag_id), 0, 2, 2, frame, slot));
     copy_bitmap_size(size[3], rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(senv(shader)->micro_detail_map.tag_id), 0, 3, 2, frame, slot));
-    if (senv(shader)->diffuse_flags & 1) {
+    if (halo::test_flag(senv(shader)->diffuse_flags, halo::tags::shader_environment_diffuse_tag_flag::rescale_detail_maps)) {
         float base_width = (float)size[0][0];
         float base_height = (float)size[0][1];
 
@@ -983,15 +984,15 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
         return;
     }
     specular_flags = env->specular_flags;
-    if ((specular_flags & 4) == 0) {
+    if (!halo::test_flag(specular_flags, halo::tags::shader_environment_specular_tag_flag::lightmap_is_specular)) {
         return;
     }
-    effect_slot = (env->shader_environment_flags & 2) != 0 ? &rasterizer_effects[42] : &rasterizer_effects[43];
+    effect_slot = halo::test_flag(env->shader_environment_flags, halo::tags::shader_environment_tag_flag::bump_map_is_specular_mask) ? &rasterizer_effects[42] : &rasterizer_effects[43];
     effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
-    specular_exponent = (specular_flags & 1) != 0 ? 4.0f : 2.0f;
+    specular_exponent = halo::test_flag(specular_flags, halo::tags::shader_environment_specular_tag_flag::overbright) ? 4.0f : 2.0f;
 
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
@@ -1142,12 +1143,12 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     if (!(env->brightness > 0.0f) || !(rasterizer_projected_light_luminance > 0.0f)) {
         return;
     }
-    effect_slot = (env->shader_environment_flags & 2) != 0 ? &rasterizer_effects[40] : &rasterizer_effects[41];
+    effect_slot = halo::test_flag(env->shader_environment_flags, halo::tags::shader_environment_tag_flag::bump_map_is_specular_mask) ? &rasterizer_effects[40] : &rasterizer_effects[41];
     effect = effect_slot->effect;
     if (effect == 0) {
         return;
     }
-    specular_exponent = (env->specular_flags & 1) != 0 ? 4.0f : 2.0f;
+    specular_exponent = halo::test_flag(env->specular_flags, halo::tags::shader_environment_specular_tag_flag::overbright) ? 4.0f : 2.0f;
 
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
     render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index + rasterizer_projected_light_shader_variant].shader);
@@ -1256,7 +1257,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 
     reflection_type = env->reflection_type;
     if (reflection_type == 0 || reflection_type == 2) {
-        if ((env->shader_environment_flags & 2) != 0) {
+        if (halo::test_flag(env->shader_environment_flags, halo::tags::shader_environment_tag_flag::bump_map_is_specular_mask)) {
             reflection_type = 1;
         }
         if (halo::tag_id_bits(env->bump_map.tag_id) == halo::k_dword_none) {
@@ -1276,7 +1277,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         effect_index = 0x20;
         break;
     case 1:
-        effect_index = (env->shader_environment_flags & 2) != 0 ? 0x22 : 0x21;
+        effect_index = halo::test_flag(env->shader_environment_flags, halo::tags::shader_environment_tag_flag::bump_map_is_specular_mask) ? 0x22 : 0x21;
         break;
     default:
         effect_index = 0;
@@ -1440,7 +1441,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         return;
     }
 
-    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (shader->shader_environment_flags & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0 ? 1 : 0);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, halo::test_flag(shader->shader_environment_flags, halo::tags::shader_environment_tag_flag::alpha_tested) && halo::rasterizer::fields::environment_alpha_testing_enabled != 0 ? 1 : 0);
 
     map_tag = halo::tag_id_bits(env->map.tag_id);
     if (map_tag == halo::k_dword_none) {
@@ -1488,7 +1489,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     }
 
     rasterizer_resolve_and_cache_submap_b(map_tag, 0, 1, 0, frame, effect_slot);
-    if ((env->self_illumination_flags & 1) != 0) {
+    if (halo::test_flag(env->self_illumination_flags, halo::tags::is_unfiltered_flag_tag_flag::unfiltered)) {
         rasterizer_set_sampler_state(1, halo::d3d9::ss::mag_filter, 1);
         rasterizer_set_sampler_state(1, halo::d3d9::ss::min_filter, 1);
         rasterizer_set_sampler_state(1, halo::d3d9::ss::mip_filter, 1);
@@ -1613,7 +1614,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     if (console_debug_toggle_6893f1 == 0) {
         return;
     }
-    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (shader->shader_environment_flags & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, halo::test_flag(shader->shader_environment_flags, halo::tags::shader_environment_tag_flag::alpha_tested) && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
     colour = halo::rasterizer::pack_opaque_color(env->material_color.red, shader->material_color.green, shader->material_color.blue);
@@ -1703,7 +1704,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     if (console_debug_toggle_6893f1 == 0) {
         return;
     }
-    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (shader->shader_environment_flags & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, halo::test_flag(shader->shader_environment_flags, halo::tags::shader_environment_tag_flag::alpha_tested) && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
     colour = halo::rasterizer::pack_opaque_color(env->material_color.red, shader->material_color.green, shader->material_color.blue);
