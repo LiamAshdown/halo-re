@@ -1,0 +1,31 @@
+// game_engine_oddball_profile_post_update  (not a Ghidra function; the oddball game engine definition's +0x94 slot (profile_post_update); no C existed, so that
+//   stored pointer trapped as unlisted_46d1d0)
+// address 0x46d1d0, size 312 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x46d1d0..0x46d307: the profile_post_update decoder (called as (context, ECX) by
+//   0x466e60): a baseline message decodes the replicated copy with message_delta_decode_compound_field; an
+//   incremental one restores the 0x51 live dwords from 0x6b1148 out of the replicated copy, reads the changed
+//   subfields into them and copies the player scores, team scores and occupant table back. On a change those three
+//   blocks come from the replicated copy and, unless variant +0x8c is 2, the team and player scores are seconds and
+//   become ticks (* 30).
+// blam-cc: cdecl (called through the engine definition)
+
+
+Comments that preceded the functions:
+// The inline tail every decoder shares with message_delta_decode_compound_field: nothing changed, so the stream
+//   cursor moves past this message's bits when the target is inside the stream.
+// message_delta_read_changed_subfields plus the bookkeeping around it; returns whether anything changed.
+
+Inline comments that were in the source (comment | code on that line):
+  extern game_variant game_engine_variant; | // 0x006f1c88
+  extern int32_t king_alt_team_score[16]; | // 0x006b114c (oddball team score)
+  extern int32_t king_alt_player_score[]; | // 0x006b118c (oddball player score)
+  extern uint32_t king_hill_occupant_table[16]; | // 0x006b120c
+  extern uint8_t message_delta_decode_compound_field(void **context, void *destination); | // 0x4ec590, blam-cc: EAX context, ECX destination
+  int32_t changed_offset, int32_t destination_offset); | // 0x4ed1d0, blam-cc: EDI state
+  extern int32_t king_alt_score_target; | // 0x006b1148 (the oddball globals, 0x51 dwords)
+  extern int32_t king_alt_team_scores_network[16]; | // 0x0087a680 (their replicated copy)
+  extern int32_t king_alt_team_scores_network2[16]; | // 0x0087a684
+  extern int32_t king_alt_player_scores_network[16]; | // 0x0087a6c4
+  extern int32_t king_alt_scores_network_tail[16]; | // 0x0087a744
+

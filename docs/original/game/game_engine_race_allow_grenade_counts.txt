@@ -1,0 +1,33 @@
+// game_engine_race_allow_grenade_counts  (not a Ghidra function; the race game engine definition's +0x78 slot (allow_grenade_counts); no C existed, so that
+//   stored pointer trapped as unlisted_46e980)
+// address 0x46e980, size 67 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x46e980..0x46e9c2: the race engine's allow_grenade_counts slot, used as a spawn
+//   hook: as the server, for a player that has not died yet (+0xae) while fewer vehicles were placed than there are
+//   players, places the next race vehicle (0x46d6f0, with its tag picker 0x46d5d0; both exist only for this and are
+//   statics here). Returns 1.
+// blam-cc: cdecl (called through the engine definition)
+
+
+Comments that preceded the functions:
+// 0x46d5d0 (EAX index): the vehicle tag for the index-th race vehicle, by the variant's vehicle set (low nibble;
+//   the multiplayer information's vehicle references are 0x10 bytes, tag index at +0x0c). Set 8 is custom: per-type
+//   limits in 3-bit fields, consumed through race_vehicle_counts.
+// 0x46d6f0 (EAX player): while fewer than 8 have been placed, gives the player a vehicle at the nearest unused
+//   type-4 starting location (from its unit's origin, if it has one), facing along the location's facing; the
+//   vehicle's +0x5b0 remembers the location. The binary does not check object_new's result; neither does this.
+
+Inline comments that were in the source (comment | code on that line):
+  extern data_array *player_data; | // 0x0087a480
+  extern data_array *object_data; | // 0x008603b0
+  extern int16_t network_game_mode; | // 0x00719720
+  extern game_variant game_engine_variant; | // 0x006f1c88
+  extern int32_t race_used_locations[8]; | // 0x006b139c, the starting locations given a vehicle so far
+  extern int32_t race_used_location_count; | // 0x006b13bc
+  extern uint32_t race_vehicle_counts[4]; | // 0x006b13c0, custom vehicle set: warthogs, ghosts, rocket warthogs, the sixth vehicle
+  real_point3d *reference_point); | // 0x46d520, blam-cc: EDI excluded_count, EBX reference_point
+  datum_index role); | // 0x4f53a0, blam-cc: EAX placement
+  extern datum_index object_new(object_placement_data *placement); | // 0x4f5460, blam-cc: ECX placement
+  extern double cos(double x); | // C runtime
+  extern double sin(double x); | // C runtime
+

@@ -1,0 +1,97 @@
+// game_engine_variant_defaults_stalker  (Ghidra: FUN_00467450; named by analogy with classic_stalker)
+// address 0x467450, size 237 bytes
+// name confidence: 0.35   rewrite confidence: 0.8
+// evidence: types/game.h game_variant (0x98 bytes / 0x26 dwords); the function zeroes a
+//   0x98-byte stack buffer, writes the fields below into it by fixed offset, then block-
+//   copies all 0x26 dwords out to the caller's buffer -- the same pattern as every other
+//   game_engine_variant_defaults_* function in this module.
+// register convention: variant_options is the recognized cdecl stack parameter.
+// UNSURE: name is inferred by analogy with classic_stalker (0x464800) and the name-
+//   check ordering around it (out/phase4/game_types_notes.md); not directly confirmed.
+// reconciled: R37 game_variant.unknown_94 -> uint16 variant_flags (bit 0 built-in, high byte default index)
+
+Comments that preceded the functions:
+// Fills a game-variant options block with this built-in multiplayer game type's
+// hardcoded default settings. The block is zeroed first (which is also the default
+// for every field not listed below) and then copied out whole.
+// FIXED: the original returns its argument in EAX (mov eax,[ebp+8] ... rep movs; callers keep it)
+
+Inline comments that were in the source (comment | code on that line):
+  [game_engine_variant_defaults_stalker] defaults.health = 1.0f; | // 0x3f800000
+
+#if 0
+Original Ghidra decompilation (0x467450), from tools/pack.py 0x467450:
+
+
+void FUN_00467450(undefined4 *param_1)
+
+{
+  int iVar1;
+  undefined4 *puVar2;
+  undefined1 local_a0 [2];
+  undefined4 local_9e [11];
+  undefined4 local_70;
+  undefined1 local_6c;
+  uint local_68;
+  undefined4 local_64;
+  undefined1 local_60;
+  undefined4 local_5c;
+  undefined4 local_58;
+  undefined4 local_54;
+  undefined4 local_50;
+  undefined4 local_4c;
+  undefined4 local_48;
+  undefined4 local_44;
+  undefined4 local_40;
+  undefined4 local_3c;
+  undefined4 local_38;
+  undefined1 local_34;
+  undefined4 local_30;
+  undefined1 local_2c;
+  undefined4 local_28;
+  undefined1 local_24;
+  undefined1 local_22;
+  undefined1 local_21;
+  undefined4 local_20;
+  undefined2 local_c;
+  
+  local_a0 = (undefined1  [2])0x0;
+  puVar2 = (undefined4 *)(local_a0 + 2);
+  for (iVar1 = 0x25; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar2 = 0;
+    puVar2 = puVar2 + 1;
+  }
+  *(undefined2 *)puVar2 = 0;
+  local_68 = local_68 & 0xffffff43 | 0x143;
+  local_58 = 300;
+  local_40 = 0x249240;
+  local_3c = 0x249240;
+  local_30 = 300;
+  local_70 = 1;
+  local_64 = 1;
+  local_34 = 1;
+  local_2c = 1;
+  local_21 = 1;
+  local_6c = 1;
+  local_c = 1;
+  local_50 = 0;
+  local_4c = 0x3f800000;
+  local_5c = 0;
+  local_60 = 0;
+  local_54 = 0x96;
+  local_44 = 0;
+  local_38 = 0x708;
+  local_24 = 0;
+  local_20 = 0;
+  local_22 = 0;
+  local_48 = 3;
+  local_28 = 36000;
+  puVar2 = (undefined4 *)local_a0;
+  for (iVar1 = 0x26; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *param_1 = *puVar2;
+    puVar2 = puVar2 + 1;
+    param_1 = param_1 + 1;
+  }
+  return;
+}
+#endif

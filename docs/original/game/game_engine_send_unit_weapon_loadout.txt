@@ -1,0 +1,144 @@
+// game_engine_send_unit_weapon_loadout  (Ghidra: FUN_00477a80; named per
+// out/phase4/game_functions.md: "Sends a network message replicating a unit's full weapon
+// loadout (current weapon plus 4 inventory slots) to observers.")
+// address 0x477a80, size 481 bytes
+// name confidence: 0.45   rewrite confidence: 0.4
+// evidence: types/units.h unit_data (vehicle_seat_index 0x2f0, current_weapon_index 0x2f2,
+//   desired_weapon_index 0x2f4, weapons[4] 0x2f8); types/objects.h object::parent_object
+//   (0x11c); types/game.h player::kill_streak (0x68); the player-index-from-handle idiom
+//   `(handle & 0xffff) * sizeof(player) + player_data` used throughout this module; the
+//   already-rewritten game_engine_notify_kill_event.c / game_engine_koth_broadcast_hill_times.c
+//   establish the message_delta_encode_message / network_session_send_to_machine /
+//   network_session_broadcast_to_flagged broadcast-or-unicast shape reused verbatim here. `object_network_id_table`
+//   (0x00687130) is the same foreign, not-owned-by-this-module byte pointer already declared in
+//   src/objects/*.c and src/items/*.c; the inline open-hash-bucket walk at +0xc/+0x10/+0x14 is
+//   this function's own (no other rewritten file in the repository indexes those particular
+//   offsets), kept as raw pointer arithmetic rather than invented as a new named struct.
+// register convention: the unit object's index in EAX (in_EAX); `player_handle`, `value` and
+//   `machine_index` are this function's own three stack parameters.
+//   // blam-cc: EAX -> unit_index, stack -> player_handle, value, machine_index
+// UNSURE: the exact identity/shape of the hash table object_network_id_table+0xc/+0x10/+0x14
+//   points into (kept as raw offsets with the struct-shaped access it compiles to); hash_table_
+//   get's real argument list (elided by Ghidra at all three of its call sites here, same as
+//   every other call site of it in this module).
+
+
+Comments that preceded the functions:
+// UNSURE: manual open-hash lookup mirroring hash_table_get's own chained-bucket walk, inlined
+// by the compiler against object_network_id_table' own (unnamed) hash table sub-structure.
+// blam-cc: EAX -> unit_index, stack -> player_handle, value, machine_index
+// Builds a network message carrying: hashes of `player_handle` and `unit_index` (0 if either
+// is -1 or unmapped), `value` verbatim, a hash of the unit's parent object (if it has one), the
+// unit's vehicle seat index, its current weapon index (falling back to desired_weapon_index
+// when unarmed), a hash of each of its four weapon inventory slots, and the owning player's
+// kill-streak pair -- then sends it to `machine_index`, or broadcasts it via network_session_broadcast_to_flagged when
+// machine_index is -1.
+
+Inline comments that were in the source (comment | code on that line):
+  extern data_array *object_data; | // 0x008603b0
+  extern data_array *player_data; | // 0x0087a480
+  extern network_id_table *object_network_id_table; | // 0x00687130
+  extern uint8_t shared_hud_text_draw_state; | // 0x00871de0
+  extern int32_t hash_table_get(hash_table *table, int32_t key); | // 0x4f05e0, src/objects; blam-cc: ESI table, ECX key
+  extern uint8_t *machine_table; | // 0x00687558, its hash_table sits at +0x0c
+  extern uint8_t network_message_scratch[0x7ff8]; | // 0x00871de0
+  int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed); | // 0x4ec940, EAX buffer, EDX size
+  extern network_server_globals *network_server; | // 0x0071c2d4
+  int32_t immediate, int32_t flush_after, int32_t force, int32_t unused); | // 0x4e1a80, EAX bits, ECX server
+  uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6); | // 0x4e1930
+  [game_engine_send_unit_weapon_loadout] unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset); | // unit_data starts at object +0x1f4 (0x477b14: +0x2f0)
+  [game_engine_send_unit_weapon_loadout] fields.player_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle); | // 0x477aa4..0x477ab4
+  [game_engine_send_unit_weapon_loadout] fields.unit_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index); | // 0x477ac9..0x477ad6 (ECX = EBX)
+  [game_engine_send_unit_weapon_loadout] fields.parent_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)obj->parent_object); | // 0x477aee..0x477b04
+
+#if 0
+Original Ghidra decompilation (0x477a80), from tools/pack.py 0x477a80:
+
+void FUN_00477a80(int *param_1,undefined4 param_2,int param_3)
+
+{
+  int *piVar1;
+  void *pvVar2;
+  uint in_EAX;
+  int iVar3;
+  int iVar4;
+  int iVar5;
+  int iVar6;
+  int *piVar7;
+  int local_2c;
+  int local_28;
+  undefined4 local_24;
+  int local_20;
+  undefined2 local_1c;
+  int aiStack_18 [4];
+  short local_8;
+  undefined2 local_6;
+  undefined2 local_4;
+
+  pvVar2 = param_1;
+  iVar6 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc);
+  local_2c = 0;
+  if ((param_1 != (void *)0xffffffff) && (local_2c = hash_table_get(), local_2c == -1)) {
+    local_2c = 0;
+  }
+  local_28 = 0;
+  if ((in_EAX != 0xffffffff) && (local_28 = hash_table_get(), local_28 == -1)) {
+    local_28 = 0;
+  }
+  local_24 = param_2;
+  local_20 = 0;
+  if ((*(int *)(iVar6 + 0x11c) != -1) && (local_20 = hash_table_get(), local_20 == -1)) {
+    local_20 = 0;
+  }
+  local_1c = *(undefined2 *)(iVar6 + 0x2f0);
+  local_8 = *(short *)(iVar6 + 0x2f2);
+  if (local_8 == -1) {
+    local_8 = *(short *)(iVar6 + 0x2f4);
+  }
+  iVar5 = 0;
+  piVar7 = (int *)(iVar6 + 0x2f8);
+  do {
+    iVar6 = *piVar7;
+    iVar3 = 0;
+    if (iVar6 != -1) {
+      iVar3 = -1;
+      if (PTR_DAT_00687130[0xc] == '\x01') {
+        iVar4 = iVar6;
+        if (iVar6 < 0) {
+          iVar4 = -iVar6;
+        }
+        for (piVar1 = *(int **)(*(int *)(PTR_DAT_00687130 + 0x14) + 4 +
+                               (iVar4 % *(int *)(PTR_DAT_00687130 + 0x10)) * 8);
+            piVar1 != (int *)0x0; piVar1 = (int *)piVar1[2]) {
+          if (*piVar1 == iVar6) {
+            iVar3 = piVar1[1];
+            break;
+          }
+        }
+      }
+      if (iVar3 == -1) {
+        iVar3 = 0;
+      }
+    }
+    aiStack_18[iVar5] = iVar3;
+    iVar5 = iVar5 + 1;
+    piVar7 = piVar7 + 1;
+    if (3 < iVar5) {
+      iVar6 = ((uint)pvVar2 & 0xffff) * 0x200 + *(int *)(DAT_0087a480 + 0x34);
+      local_6 = *(undefined2 *)(iVar6 + 0x68);
+      local_4 = *(undefined2 *)(iVar6 + 0x6a);
+      param_1 = &local_2c;
+      param_2 = 0;
+      iVar6 = message_delta_encode_message(0,8,0,&param_1,0,1,'\0');
+      if (0 < iVar6) {
+        if (param_3 == -1) {
+          FUN_004e1a80(1,&DAT_00871de0,1,0,0);
+          return;
+        }
+        network_session_send_to_machine(1,&DAT_00871de0,iVar6,1,0,1,3);
+      }
+      return;
+    }
+  } while( true );
+}
+#endif
