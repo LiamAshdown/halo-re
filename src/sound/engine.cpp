@@ -110,7 +110,7 @@ void initialize(void)
                                 int16_t remaining = slot_count;
 
                                 do {
-                                    sound_channels[index].sound_index = (datum_index)0xffffffff;
+                                    sound_channels[index].sound_index = k_datum_index_none;
                                     sound_channels[index].type_flags = type_flags;
                                     sound_channels[index].current_permutation = nullptr;
                                     sound_channels[index].next_permutation = nullptr;
@@ -164,7 +164,7 @@ uint8_t reopen_device(sound_driver_parameters *new_parameters)
                 int16_t remaining = slot_count;
 
                 do {
-                    sound_channels[channel_index].sound_index = (datum_index)0xffffffff;
+                    sound_channels[channel_index].sound_index = k_datum_index_none;
                     sound_channels[channel_index].type_flags = type_flags;
                     sound_channels[channel_index].current_permutation = nullptr;
                     sound_channels[channel_index].next_permutation = nullptr;

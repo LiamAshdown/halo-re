@@ -294,7 +294,7 @@ void effect_ref::update(real dt)
     int16_t steps;
 
     if (object_index != k_datum_index_none) {
-        uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(object_index, 0xffffffff);
+        uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(object_index, _object_mask_all);
         uint8_t *root;
 
         if (obj == 0) {

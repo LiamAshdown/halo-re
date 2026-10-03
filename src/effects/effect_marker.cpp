@@ -51,7 +51,7 @@ void effect_view::environment_probe(uint32_t definition_index, int16_t location_
         delta.j = global_down3d_pointer->j * 0.3f;
         delta.k = global_down3d_pointer->k * 0.3f;
 
-        hit = halo::physics::collision_test_movement_segment(0xc2a0, &origin, &delta, 0xffffffff, &result);
+        hit = halo::physics::collision_test_movement_segment(0xc2a0, &origin, &delta, k_datum_index_none, &result);
         if (hit) {
             uint8_t in_sky = halo::scenario::scenario_location_get_water_and_weather(&result.point, &result.leaf, 0);
             int16_t material_type = in_sky ? 0x1c : result.material_type;

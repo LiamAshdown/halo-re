@@ -191,7 +191,7 @@ uint8_t item_ref::update()
             } else if (flags & _item_at_rest_on_object_bit) {
                 datum_index support = ((item_object *)obj)->item.resting_object_index;
 
-                if (halo::objects::object_try_and_get(support, 0xffffffff) != 0) {
+                if (halo::objects::object_try_and_get(support, _object_mask_all) != 0) {
                     real_point3d contact;
 
                     halo::math::matrix4x3_transform_point(contact, *(&((item_object *)obj)->item.contact_point),

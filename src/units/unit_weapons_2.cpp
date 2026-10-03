@@ -32,7 +32,7 @@ void halo::units::unit_clear_weapon_switch_state(unit_data *unit, uint8_t skip_n
     unit->zoom_level = -1;
     unit->desired_zoom_level = -1;
     unit->integrated_night_vision_power = 0.0f;
-    halo::game::unit_invalidate_local_player_zoom_level((datum_index)0xffffffff);
+    halo::game::unit_invalidate_local_player_zoom_level(k_datum_index_none);
 }
 
 namespace unit_spawn_with_starting_weapons_local {

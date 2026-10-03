@@ -379,7 +379,7 @@ uint32_t PhysicsMotion::tick(real_vector3d *velocity, uint32_t flags_arg, PointP
         delta.j = dt * velocity->j;
         delta.k = dt * velocity->k;
 
-        collided = halo::physics::collision_test_movement_segment(collision_flags, position, &delta, 0xffffffff, &hit);
+        collided = halo::physics::collision_test_movement_segment(collision_flags, position, &delta, k_datum_index_none, &hit);
         if (collided == 0) {
             if (hit.leaf.leaf_index != -1) {
                 *out_leaf = hit.leaf;

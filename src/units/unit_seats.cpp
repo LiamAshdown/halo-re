@@ -73,7 +73,7 @@ uint8_t UnitView::all_seats_unoccupied()
  */
 uint8_t halo::units::unit_any_dying_or_seat_transition(void)
 {
-    object_iterator iter = { _object_mask_unit, 1, 0, 0, 0xffffffff };
+    object_iterator iter = { _object_mask_unit, 1, 0, 0, k_datum_index_none };
     object *obj = halo::objects::object_iterator_next(&iter);
     while (obj != nullptr) {
         unit_data *unit = halo::units::unit_data_of(obj);
@@ -826,7 +826,7 @@ uint8_t UnitView::is_seat_control_available(int16_t command)
  */
 uint8_t halo::units::unit_is_seat_occupied(int32_t parent_index, int16_t seat_index)
 {
-    object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
+    object_iterator iter = { _object_mask_unit, 0, 0, 0, k_datum_index_none };
     object *obj = halo::objects::object_iterator_next(&iter);
     while (obj != nullptr) {
         if ((obj->parent_object == (uint32_t)parent_index) &&
@@ -971,7 +971,7 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
             continue;
         }
 
-        object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
+        object_iterator iter = { _object_mask_unit, 0, 0, 0, k_datum_index_none };
         object *occupant = halo::objects::object_iterator_next(&iter);
         uint32_t occupant_index = k_datum_index_none;
         while (occupant != nullptr) {

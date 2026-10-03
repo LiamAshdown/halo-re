@@ -195,7 +195,7 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
     object *obj;
     real_matrix4x3 *node_matrix;
 
-    if (halo::objects::object_try_and_get(owner, 0xffffffff) == 0) {
+    if (halo::objects::object_try_and_get(owner, _object_mask_all) == 0) {
         return 0;
     }
 

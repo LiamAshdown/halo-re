@@ -61,7 +61,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
     } else if (group == halo::groups::damage_effect) {
         damage_data dd;
         uint8_t *raw = (uint8_t *)&dd;
-        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(self->creator_object_index, 0xffffffff);
+        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(self->creator_object_index, _object_mask_all);
 
         halo::objects::damage_data_initialize(&dd, tag);
         if (creator != 0) {

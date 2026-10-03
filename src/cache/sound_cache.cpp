@@ -445,7 +445,7 @@ void sound_cache_manager::release_page(SoundPermutation *permutation)
     if (permutation->samples_pointer != halo::k_dword_none) {
         halo::memory::view(globals().sound_cache)->evict_entry((datum_index)permutation->samples_pointer);
     }
-    permutation->samples_pointer = 0xffffffff;
+    permutation->samples_pointer = k_datum_index_none;
     permutation->cache_page = 0;
     return;
 }

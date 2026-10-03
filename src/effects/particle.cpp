@@ -448,7 +448,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         if (self->object_index == k_datum_index_none) {
             return 1;
         }
-        if (halo::objects::object_try_and_get(self->object_index, 0xffffffff) != 0) {
+        if (halo::objects::object_try_and_get(self->object_index, _object_mask_all) != 0) {
             return 1;
         }
         halo::memory::datum_delete(particle_data, particle_handle);
@@ -515,7 +515,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         real friction, mass_related, decay;
 
         if ((self->flags & _particle_first_person_bit) == 0 &&
-            halo::objects::object_try_and_get(self->object_index, 0xffffffff) == 0) {
+            halo::objects::object_try_and_get(self->object_index, _object_mask_all) == 0) {
             halo::memory::datum_delete(particle_data, particle_handle);
             return 0;
         }
@@ -603,7 +603,7 @@ void particle_ref::refresh_structure_locations()
         } else if (entry->flags & _particle_first_person_bit) {
             point = &first_person_marker_node(first_person_weapon_interfaces, entry->first_person_weapon_index, entry->marker_index)->position;
         } else {
-            object *owner = halo::objects::object_try_and_get(entry->object_index, 0xffffffff);
+            object *owner = halo::objects::object_try_and_get(entry->object_index, _object_mask_all);
 
             if (owner == 0) {
                 halo::memory::datum_delete(particle_data, handle);

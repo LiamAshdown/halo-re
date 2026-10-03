@@ -627,7 +627,7 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
     real b_scale = scale_b;
 
     if (tag_id == k_datum_index_none) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != k_datum_index_none) {
@@ -646,7 +646,7 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
         halo::sound::sound_start_at_object_marker(creator, (Point3D *)global_zero_vector3d_pointer,
             (Vector3D *)halo::math::globals().global_forward3d_pointer, tag_id, -1, a_scale, 0);
     }
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 /**
@@ -1052,7 +1052,7 @@ uint32_t weapon_ref::stop_object_effect(datum_index tag_id)
     object *item_obj;
 
     if (tag_id == k_datum_index_none) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
@@ -1062,7 +1062,7 @@ uint32_t weapon_ref::stop_object_effect(datum_index tag_id)
     if (item_index != k_datum_index_none) {
         return halo::effects::effect_new_at_texture_coordinate(tag_id, item_index, -1, -1, -1);
     }
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 /**

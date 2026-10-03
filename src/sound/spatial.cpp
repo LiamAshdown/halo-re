@@ -342,13 +342,13 @@ void update_range_and_ducking(void)
 
         if (listener_index == -1) {
             if (!(instance->flags & _sound_out_of_range_bit)) {
-                instances::schedule_gain_fade(0xffffffff, 0, 2.0f, sound_handle);
+                instances::schedule_gain_fade(k_datum_index_none, 0, 2.0f, sound_handle);
                 instance->flags |= _sound_out_of_range_bit;
             }
         } else {
             instance->listener_index = listener_index;
             if (instance->flags & _sound_out_of_range_bit) {
-                instances::schedule_gain_fade(sound_handle, 0, 0.5f, 0xffffffff);
+                instances::schedule_gain_fade(sound_handle, 0, 0.5f, k_datum_index_none);
                 instance->flags &= ~_sound_out_of_range_bit;
             }
         }
@@ -359,7 +359,7 @@ void update_range_and_ducking(void)
                     instances::stop(sound_handle);
                     continue;
                 }
-                instances::schedule_gain_fade(0xffffffff, 0, 0.3f, sound_handle);
+                instances::schedule_gain_fade(k_datum_index_none, 0, 0.3f, sound_handle);
             } else if (definition->sound_class == soundclass_scripted_dialog_other && instance->channel_index == -1) {
                 instances::stop(sound_handle);
                 continue;
@@ -428,7 +428,7 @@ void Location::compute_obstruction_occlusion(int16_t listener_index, float refer
             delta.j = this->position.y - listener->position.y;
             delta.k = this->position.z - listener->position.z;
 
-            if (halo::physics::collision_test_movement_segment(0xc0e1, (real_point3d *)&listener->position, &delta, 0xffffffff,
+            if (halo::physics::collision_test_movement_segment(0xc0e1, (real_point3d *)&listener->position, &delta, k_datum_index_none,
                     &result) == 0) {
                 this->obstruction = 0.0f;
                 this->occlusion = 0.0f;

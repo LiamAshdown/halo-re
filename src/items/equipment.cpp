@@ -326,7 +326,7 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 
@@ -456,7 +456,7 @@ void equipment_ref::pickup_play_sound()
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;
         ((sound_location *)parameters)->gain = 1.0f;
-        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, 0xffffffff, 0, 0, 0, 0);
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 

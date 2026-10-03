@@ -328,7 +328,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         unit_index = (controlling_player == k_datum_index_none) ? k_datum_index_none :
             ((player *)halo::game::globals().player_data->data)[controlling_player & halo::k_slot_mask].unit;
         if (halo::objects::object_try_and_get(unit_index, 3) == 0 ||
-            halo::objects::object_try_and_get(dd->responsible_object, 0xffffffff) == 0) {
+            halo::objects::object_try_and_get(dd->responsible_object, _object_mask_all) == 0) {
             player_effect_reentry_count--;
             return;
         }

@@ -211,7 +211,7 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
             spawn_position.z = offset->k * 0.01f + position->z;
 
             if (*(uint32_t *)&entry->effect.tag_id != halo::k_dword_none) {
-                halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, nullptr, 1, 0,
+                halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, k_datum_index_none, nullptr, 1, 0,
                     &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, nullptr,
                     nullptr, 0);
             }
