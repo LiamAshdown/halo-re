@@ -45,7 +45,6 @@ extern float ai_communication_class_repeat_delay[];
 extern data_array *player_data;
 extern real DAT_00655ab4[];
 extern real DAT_00656b24[];
-extern game_engine_definition *current_game_engine;
 }
 
 namespace halo::ai {

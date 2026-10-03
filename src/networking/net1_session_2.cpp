@@ -11,16 +11,11 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern data_packet_group network_game_messages_group;
-extern uint8_t network_disconnect_timeout_flag;
 extern uint32_t profile_globals_block[0x7ff];
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
 extern network_client_globals *network_client;
-extern game_engine_definition *current_game_engine;
-extern void qr2_buffer_add(void *buffer, const char *value);
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 }
 

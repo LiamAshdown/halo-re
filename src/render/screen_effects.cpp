@@ -64,8 +64,6 @@ extern uint8_t frame_statistics_dropped[60];
 extern int16_t frame_statistics_count;
 extern lens_flare_batch_key lens_flare_current_key;
 extern uint32_t lens_flare_vertex_specular;
-extern float rasterizer_default_z_near;
-extern float rasterizer_default_z_far;
 extern uint32_t rasterizer_frustum_z_values[2];
 }
 

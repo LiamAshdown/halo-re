@@ -1,12 +1,6 @@
 #include "halo/shell/runtime.hpp"
 #include "halo/shell/layout.hpp"
 
-extern "C" {
-extern char hwreq_open_error_text[];
-extern const char hwreq_cannot_find_format[];
-extern const char hwreq_config_file_suffix[];
-extern const char hwreq_version_root_block[];
-}
 
 namespace halo::shell {
 

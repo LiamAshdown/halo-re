@@ -26,7 +26,6 @@ extern int32_t ui_pause_pending_count_00718fa0;
 extern uint8_t chat_dialog_open;
 extern widget_instance *ui_root_widget[1];
 extern uint8_t widget_memory_pool_valid;
-extern widget_history_node *ui_widget_history[3];
 }
 
 namespace halo::ui {

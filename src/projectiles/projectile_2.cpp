@@ -14,7 +14,6 @@
 
 extern "C" {
 extern real_vector3d *global_origin3d_pointer;
-extern game_main_globals *main_game_globals;
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern double cos(double x);
 extern double sin(double x);

@@ -11,7 +11,6 @@
 
 extern "C" {
 extern uint8_t weapon_infinite_ammo;
-extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern uint8_t weapon_client_side_projectiles;
 extern game_time_globals *game_time;

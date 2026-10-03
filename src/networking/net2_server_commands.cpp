@@ -33,8 +33,6 @@ extern int32_t sv_ban_penalty_seconds[4];
 extern char network_banlist_full_path[0x104];
 extern char profile_directory[0x105];
 extern int32_t sv_friendly_fire_mode;
-extern game_engine_definition * current_game_engine;
-extern int32_t game_variant_history_current;
 extern game_variant game_variant_saved_default;
 extern uint8_t game_variant_saved_default_valid;
 extern char game_engine_is_map_and_variant_valid(void);
@@ -43,7 +41,6 @@ extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *opt
 extern void widget_close_all(void);
 extern void game_engine_begin_end_game_sequence(void);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
-extern game_engine_state game_engine_state_value;
 extern void game_engine_reset_round_objects(void);
 extern void game_engine_send_round_reset_message(void);
 extern void game_engine_player_profile_cache_sync_all(int32_t commit);

@@ -41,7 +41,6 @@ extern int32_t resolution_selection_00719204;
 extern int32_t resolution_index_table_0065bf74[];
 extern uint32_t sv_maxplayers_value;
 extern uint32_t network_resolved_local_address;
-extern uint16_t local_port_006869b6;
 extern uint16_t ip_port_format_string_0066a564[];
 extern uint8_t network_host_name_flag_00719276;
 extern uint8_t ui_network_wait_active;

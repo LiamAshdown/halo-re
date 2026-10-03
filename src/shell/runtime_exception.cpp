@@ -3,7 +3,6 @@
 
 extern "C" {
 extern void *std_exception_vtable;
-extern void *logic_error_vtable;
 extern void *length_error_vtable;
 extern void *out_of_range_vtable;
 extern const char string_string_too_long[];

@@ -21,7 +21,6 @@ extern "C" {
 extern uint8_t controls_row_device_mask_table[];
 extern uint16_t controls_action_name_buffer[];
 extern const uint16_t hud_text_unbound[];
-extern uint32_t wcslen_halo(const uint16_t *text);
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[k_saved_player_profile_size];

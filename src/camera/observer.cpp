@@ -13,7 +13,6 @@
 extern "C" {
 extern observer observers[1];
 extern float observer_dt;
-extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
 extern int16_t observer_derivative_float_counts[5];

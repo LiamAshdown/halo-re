@@ -30,7 +30,6 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t ignore_object_index, void *out_record);
-extern float k_physics_gravity;
 extern float k_default_resting_plane[4];
 extern uint8_t physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model);
 extern uint32_t physics_shape_test_ray(physics_model *model, real_point3d *origin, real_vector3d *delta, physics_model_contact *out_contact);

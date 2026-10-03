@@ -35,7 +35,6 @@ extern game_time_globals *game_time;
 extern real_vector3d *global_down3d_pointer;
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void console_print_va(const char *format, ...);
-extern int16_t network_game_mode;
 extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 }

@@ -19,7 +19,6 @@ extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
 extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
-extern data_array *object_data;
 extern int32_t rasterizer_dynamic_index_cache_reserve(void);
 extern void *rasterizer_dynamic_index_slot_lock(void);
 extern void *rasterizer_dynamic_vertex_cache_lock(void);
@@ -27,7 +26,6 @@ extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
 extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg);
 extern void rasterizer_model_draw_restore_states(void);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
-extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, void *h);
 extern double sqrt(double x);
 }
 

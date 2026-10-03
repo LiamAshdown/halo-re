@@ -8,7 +8,6 @@ extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern data_array *collideable_object_references;
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
 extern data_array *object_data;

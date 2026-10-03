@@ -21,7 +21,6 @@ extern "C" {
 extern int16_t network_join_error_code;
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
-extern void * rcon_out_channel_key;
 extern uint8_t network_message_scratch[0x7ff8];
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int16_t network_game_mode;
@@ -33,7 +32,6 @@ extern double cos(double x);
 extern player_globals * local_player_globals;
 extern uint32_t update_client_staged[8];
 extern data_array * player_data;
-extern void * message_delta_definition_table;
 extern uint8_t update_server_pending_flush;
 extern uint8_t update_server_history_index;
 extern network_server_globals * network_server;

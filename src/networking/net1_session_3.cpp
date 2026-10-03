@@ -10,7 +10,6 @@ extern "C" {
 extern void *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 typedef struct data_array data_array;
 extern uint8_t *player_data;
 extern uint8_t *network_server;

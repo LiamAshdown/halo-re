@@ -25,21 +25,18 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern int32_t __ftol();
 extern char ai_marker_name_a[];
 extern double atan2(double y, double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
 extern double cos(double x);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern player_globals *local_player_globals;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void *network_object_index_cache;
 extern datum_index *noncollideable_cluster_first;
 extern void *noncollideable_cluster_partition;
-extern data_array *noncollideable_object_references;
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
 extern uint8_t object_marker_scratch[0x6c];

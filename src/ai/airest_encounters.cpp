@@ -20,7 +20,6 @@
 
 extern "C" {
 extern double fabs(double x);
-extern game_engine_definition *current_game_engine;
 extern game_time_globals *game_time;
 extern uint8_t *actor_type_procs[];
 extern int16_t ai_vocalization_line_table[4];

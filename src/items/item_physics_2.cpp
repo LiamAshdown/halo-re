@@ -13,7 +13,6 @@
 
 extern "C" {
 extern game_time_globals *game_time;
-extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern real_vector3d *global_down3d_pointer;

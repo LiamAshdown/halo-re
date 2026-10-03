@@ -20,7 +20,6 @@ extern uint8_t antenna_sprite_shader[];
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
 extern double sin(double x);
 extern double sqrt(double x);

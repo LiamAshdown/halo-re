@@ -10,10 +10,8 @@
 
 extern "C" {
 extern heap *widget_memory_pool;
-extern void *widget_memory_pool_name;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
-extern widget_history_node *ui_widget_history[3];
 extern int16_t quit_confirm_error_string_index;
 extern ui_pending_error ui_pending_error_alternate;
 extern ui_pending_error ui_pending_errors[4];

@@ -11,7 +11,6 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern data_array *decal_data;
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern cache *rasterizer_decal_vertex_cache_handle;

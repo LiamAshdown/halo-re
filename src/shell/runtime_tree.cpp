@@ -1,11 +1,5 @@
 #include "halo/shell/runtime.hpp"
 
-extern "C" {
-extern void *length_error_vtable;
-extern uint8_t length_error_throw_info[];
-extern void *out_of_range_vtable;
-extern uint8_t out_of_range_throw_info[];
-}
 
 #define NODE(p) ((hwreq_map_node *)(p))
 

@@ -24,7 +24,6 @@ extern uint32_t render_viewport_top;
 extern uint32_t screen_safe_area_right;
 extern uint32_t screen_safe_area_bottom;
 extern float game_engine_post_game_fade;
-extern wchar_t empty_string;
 }
 
 namespace halo::game {

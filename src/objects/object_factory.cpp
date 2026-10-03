@@ -25,8 +25,6 @@
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern uint8_t g_control_binding_secondary_active;
-extern uint8_t g_control_binding_state;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_scenario;
 extern const real_vector3d *global_white_color;

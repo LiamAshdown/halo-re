@@ -38,7 +38,6 @@ extern uint8_t *network_client;
 extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern uint8_t variant_teams_enabled_0071920c;
 extern int32_t variant_team_selection_00692b08;
 }
 

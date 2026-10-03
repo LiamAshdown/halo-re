@@ -76,8 +76,6 @@ extern uint8_t render_unknown_7bf04c[];
 extern void *k_render_identity_matrix_ptr;
 extern const ColorARGB *global_white_argb;
 extern real_vector3d default_axis_b;
-extern uint8_t console_debug_toggle_6893ec;
-extern uint8_t unknown_0071d1fa;
 extern uint32_t rasterizer_device_version;
 extern void **rasterizer_device;
 extern uint8_t king_hill_single_occupant_flag;

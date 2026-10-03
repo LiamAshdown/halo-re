@@ -26,10 +26,6 @@
 extern "C" {
 extern data_array *player_data;
 extern game_time_globals *game_time;
-extern uint8_t biped_detach_from_flipped_vehicle;
-extern uint8_t unit_updates_suppressed;
-extern real_point3d *global_origin3d_pointer;
-extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint8_t *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);

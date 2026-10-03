@@ -11,7 +11,6 @@
 
 extern "C" {
 extern game_variant game_variant_saved_default;
-extern uint8_t game_variant_saved_default_valid;
 extern int32_t game_variant_history_current;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;

@@ -18,7 +18,6 @@ extern real k_weapon_zoom_fov_minimum;
 extern char k_empty_string[1];
 extern double pow(double x, double y);
 extern int32_t k_weapon_minimum_age_ticks;
-extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);

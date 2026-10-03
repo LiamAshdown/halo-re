@@ -19,7 +19,6 @@
 
 extern "C" {
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern void player_reset_after_unit_change(uint32_t player_index);
 extern void player_update_history_free_all(void *history);

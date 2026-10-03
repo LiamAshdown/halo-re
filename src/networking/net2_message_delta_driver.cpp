@@ -19,7 +19,6 @@ extern uint8_t message_delta_item_count_bits[];
 extern uint8_t message_delta_parameters_enabled;
 extern int32_t message_delta_parameters_protocol_sequence;
 extern uint8_t message_delta_parameters_sending;
-extern message_delta_field_type_vtable message_delta_field_type_table[];
 extern uint8_t message_delta_unknown_table_0069a304[28][0x18];
 }
 

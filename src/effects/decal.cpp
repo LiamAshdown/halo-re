@@ -19,7 +19,6 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern real_point2d decal_clip_buffers[2][12];
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);

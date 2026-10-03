@@ -33,7 +33,6 @@ extern uint32_t k_default_resting_plane[4];
 extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
 extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern int32_t k_biped_minimum_age_ticks;
 extern data_array *player_data;
 extern uint8_t biped_detach_from_flipped_vehicle;

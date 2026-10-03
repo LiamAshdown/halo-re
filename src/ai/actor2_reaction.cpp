@@ -626,7 +626,6 @@ uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
 namespace actor_queue_sighted_target_dialogue_local {
 extern "C" {
 extern game_time_globals *game_time;
-extern uint8_t ai_debug_gate_87abc6;
 extern int16_t actor_dialogue_variant_table_a[];
 }
 }

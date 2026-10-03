@@ -44,8 +44,6 @@ extern "C" { extern uint8_t directsound_eax_enabled; }
 extern "C" { extern int32_t directsound_quality; }
 extern "C" { extern int16_t renderer_texture_quality; }
 extern "C" { extern int16_t light_count_enabled; }
-extern "C" { extern uint8_t console_debug_toggle_6893f2; }
-extern "C" { extern uint8_t console_debug_toggle_6893fa; }
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {
 

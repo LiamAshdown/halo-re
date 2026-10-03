@@ -83,8 +83,6 @@ typedef struct ColorARGB ColorARGB;
 extern void *console_message_default_color;
 extern void *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value);
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 extern void gcd_authenticate_user(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response, void *callback, void *instance);
 extern const char *gcd_getkeyhash(int32_t game_id, int32_t local_id);
 extern void gcd_disconnect_user(int32_t game_id, int32_t local_id);

@@ -54,7 +54,6 @@ extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer
 extern double sqrt(double x);
 extern double fabs(double x);
 extern render_camera render_camera_global;
-extern float unknown_00672f20;
 extern data_array *contrail_point_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;

@@ -27,7 +27,6 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
 extern char prop_array_name[];
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
 extern float k_random_scale_65536;
-extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern player_globals *local_player_globals;
 extern actor_mode_definition actor_mode_definitions[16];

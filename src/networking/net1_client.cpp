@@ -36,7 +36,6 @@ extern network_server_globals *network_server;
 extern player_globals *local_player_globals;
 extern uint8_t network_channel_table_default_flag;
 extern uint8_t network_client_vehicle_ack_enabled;
-extern network_id_table *machine_table;
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern uint8_t network_server_host_valid;
 extern uint32_t split_screen_quit_prompt_string;

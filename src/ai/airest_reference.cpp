@@ -24,8 +24,6 @@ extern double fsin(double angle);
 extern float k_real_zero;
 extern float k_real_one;
 extern data_array *player_data;
-extern int16_t network_game_mode;
-extern network_client_globals *network_client;
 extern void player_update_history_free_all(void *history);
 extern actor_mode_definition actor_mode_definitions[16];
 }

@@ -30,7 +30,6 @@ extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern void *main_game_globals;
 extern game_variant game_engine_active_variant;
-extern scenario_game_globals *global_scenario_game_globals;
 extern data_array *object_render_state_cache;
 extern breakable_surface_globals *breakable_surface_state;
 extern data_array *particle_data;

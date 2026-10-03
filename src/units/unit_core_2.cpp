@@ -20,8 +20,6 @@
 
 extern "C" {
 extern uint8_t *object_network_id_table;
-extern uint8_t event9_target;
-extern int32_t network_role_0071c2d4;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern data_array *player_data;
 extern uint8_t unit_updates_suppressed;

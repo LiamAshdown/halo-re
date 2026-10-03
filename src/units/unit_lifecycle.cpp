@@ -26,7 +26,6 @@
 
 extern "C" {
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
 extern real_vector3d placement_offset_table[27];
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
@@ -35,7 +34,6 @@ extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *c
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern game_engine_definition *current_game_engine;
 extern char *s_stand;
 extern double sqrt(double x);
 extern real_point3d *global_origin3d_pointer;

@@ -23,7 +23,6 @@
 
 extern "C" {
 extern int32_t autopatch_update_check_state;
-extern uint8_t * autopatch_update_cfg_directory;
 extern autopatch_download_slot autopatch_download_slots[2];
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];
 extern int32_t network_mutex_name_counter;

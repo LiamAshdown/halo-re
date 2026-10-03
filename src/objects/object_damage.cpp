@@ -30,7 +30,6 @@
 #include "halo/interface/api.hpp"
 
 extern "C" {
-extern game_engine_definition *current_game_engine;
 extern ModelCollisionGeometryMaterial default_collision_material;
 extern uint8_t g_006f1cf4;
 extern real_vector3d *global_down3d_pointer;

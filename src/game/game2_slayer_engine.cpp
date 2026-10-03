@@ -23,7 +23,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t network_message_scratch[0x7ff8];
 extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern int32_t game_engine_state_value;
 extern uint8_t custom_waypoints[];
 }
 

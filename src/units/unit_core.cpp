@@ -20,7 +20,6 @@
 extern "C" {
 extern double sqrt(double x);
 extern uint8_t *global_globals;
-extern uint8_t event9_target;
 extern network_id_table *object_network_id_table;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern player_globals *local_player_globals;

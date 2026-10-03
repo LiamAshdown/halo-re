@@ -17,7 +17,6 @@
 extern "C" {
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
-extern double cos(double x);
 extern double sin(double x);
 extern int32_t ui_time_milliseconds;
 extern heap *widget_memory_pool;

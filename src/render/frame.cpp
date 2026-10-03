@@ -42,7 +42,6 @@ extern render_fog render_fog_state;
 extern uint8_t render_clip_warning;
 extern uint32_t rasterizer_device_version;
 extern uint8_t rasterizer_caps_flag_68a;
-extern int16_t unknown_00719aac;
 extern void widget_draw_fullscreen_region(int16_t controller_index);
 }
 

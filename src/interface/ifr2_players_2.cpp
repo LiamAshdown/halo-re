@@ -21,9 +21,6 @@ extern "C" {
 extern int32_t safe_mode;
 extern int16_t renderer_texture_quality;
 extern uint8_t rasterizer_desktop_display_mode[];
-extern uint8_t console_debug_toggle_6893f7;
-extern uint8_t console_debug_toggle_6893f6;
-extern uint8_t console_debug_toggle_6893fa;
 extern uint32_t rasterizer_device_version;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int16_t light_count_enabled;

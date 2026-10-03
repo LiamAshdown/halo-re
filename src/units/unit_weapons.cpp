@@ -25,7 +25,6 @@
 #include "halo/interface/api.hpp"
 
 extern "C" {
-extern game_engine_definition *current_game_engine;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern Globals *global_globals;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
@@ -35,7 +34,6 @@ extern char s_left_hand_marker[];
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
 extern uint8_t *local_player_globals;
 extern uint8_t network_message_scratch[0x7ff8];
-extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern uint8_t *object_network_id_table;
 extern uint8_t weapon_bottomless_clip;

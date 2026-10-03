@@ -17,7 +17,6 @@ extern int16_t director_camera_mode;
 extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t network_join_error_reason;
 extern uint8_t *cinematic_screen_effect_state;
 }
 

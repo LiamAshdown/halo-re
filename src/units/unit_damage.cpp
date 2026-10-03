@@ -26,7 +26,6 @@
 extern "C" {
 extern data_array *player_data;
 extern game_time_globals *game_time;
-extern game_engine_definition *current_game_engine;
 extern uint8_t is_dedicated_server_flag;
 extern Globals *global_globals;
 extern uint8_t network_object_index_cache[];

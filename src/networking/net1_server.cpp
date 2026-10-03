@@ -25,7 +25,6 @@ extern network_server_globals *network_server;
 extern uint16_t network_challenge_packet_block[];
 extern network_client_globals *network_client;
 extern player_profile player_profile_cache[16];
-extern int32_t player_profile_cache_count;
 extern void player_update_queue_create(player_update_queue *queue);
 extern data_array *update_client_queues;
 extern data_array *update_server_queues;
@@ -52,7 +51,6 @@ extern int16_t pending_difficulty;
 extern void update_server_push_player_tick_history(void);
 extern void game_engine_tick(void);
 extern uint8_t game_engine_team_is_leading(uint32_t requested_team);
-extern game_variant game_engine_pending_variant;
 extern char variant_defaults_source[];
 typedef struct rcon_request_decode {
     char password[20];
