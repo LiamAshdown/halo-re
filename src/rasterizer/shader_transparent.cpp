@@ -46,6 +46,9 @@ static_assert(offsetof(ShaderTransparentChicagoMap, map_u_scale) == 0x54, "chica
 static_assert(offsetof(ShaderTransparentChicagoMap, u_animation_source) == 0xa4, "chicago map animation");
 static_assert(offsetof(ShaderTransparentGlass, perpendicular_brightness) == 0x8c, "glass brightness");
 static_assert(offsetof(ShaderTransparentGlass, bump_map_scale) == 0xbc, "glass bump scale");
+static_assert(offsetof(ShaderTransparentGlass, background_tint_map_scale) == 0x60, "glass tint scale");
+static_assert(offsetof(ShaderTransparentGlass, diffuse_map_scale) == 0x154, "glass diffuse scale");
+static_assert(offsetof(ShaderTransparentGlass, diffuse_detail_map_scale) == 0x168, "glass detail scale");
 static_assert(offsetof(ShaderTransparentGlass, bump_map) + offsetof(TagDependency, tag_id) == 0xcc, "glass bump id");
 static_assert(offsetof(ShaderTransparentGlass, reflection_map) + offsetof(TagDependency, tag_id) == 0xb8, "glass reflection id");
 static_assert(offsetof(ShaderTransparentGlass, diffuse_map) + offsetof(TagDependency, tag_id) == 0x164, "glass diffuse id");
@@ -126,7 +129,21 @@ void rasterizer_glass_diffuse_draw(transparent_geometry_group *group)
 
     render_device().set_vertex_shader((uint32_t)rasterizer_vertex_shaders[48 + shader_index].shader);
 
-    render_device().set_vertex_shader_constant_f(10, &group->position, 3);
+    {
+        // Retail 0x523690 builds c10..c12 (diffuse and detail map texture transforms) on the stack: the group's base
+        // map scale times the diffuse map scale and the diffuse detail map scale, then fixed constants.
+        const ShaderTransparentGlass *glass = shader_cast<ShaderTransparentGlass>(group->shader);
+        const float constants[12] = {
+            group->base_map_u_scale * glass->diffuse_map_scale,
+            group->base_map_v_scale * glass->diffuse_map_scale,
+            glass->diffuse_detail_map_scale * group->base_map_u_scale,
+            glass->diffuse_detail_map_scale * group->base_map_v_scale,
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+        };
+
+        render_device().set_vertex_shader_constant_f(10, constants, 3);
+    }
 
     chimera__rasterizer_set_texture(halo::tag_id_bits(shader_cast<ShaderTransparentGlass>(group->shader)->diffuse_map.tag_id), 0, 0, 1, (int16_t)group->shader_permutation);
     chimera__rasterizer_set_texture(halo::tag_id_bits(shader_cast<ShaderTransparentGlass>(group->shader)->diffuse_detail_map.tag_id), 1, 0, 2, (int16_t)group->shader_permutation);
@@ -617,7 +634,20 @@ void rasterizer_glass_tint_draw(transparent_geometry_group *group)
 
     render_device().set_vertex_shader((uint32_t)rasterizer_vertex_shaders[55 + shader_index].shader);
 
-    render_device().set_vertex_shader_constant_f(10, &group->position, 3);
+    {
+        // Retail 0x522930 builds c10..c12 (the tint map texture transform) on the stack: the group's base map scale
+        // times the glass background tint map scale, then fixed constants.
+        const ShaderTransparentGlass *glass = shader_cast<ShaderTransparentGlass>(group->shader);
+        const float constants[12] = {
+            group->base_map_u_scale * glass->background_tint_map_scale,
+            group->base_map_v_scale * glass->background_tint_map_scale,
+            1.0f, 1.0f,
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+        };
+
+        render_device().set_vertex_shader_constant_f(10, constants, 3);
+    }
 
     render_device().set_pixel_shader(0);
 
@@ -625,10 +655,19 @@ void rasterizer_glass_tint_draw(transparent_geometry_group *group)
     render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::src_color);
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
 
-    decal_color = ((((uint32_t)(int32_t)(group->tint.alpha * 255.0f) & 0xff) << 8 |
-                    ((uint32_t)(int32_t)(group->tint.red * 255.0f) & 0xff)) << 8 |
-                   ((uint32_t)(int32_t)(group->tint.green * 255.0f) & 0xff)) << 8 |
-                  ((uint32_t)(int32_t)(group->tint.blue * 255.0f) & 0xff);
+    {
+        // Retail packs 1 - blend_factor (1 unless mode == 1) as alpha and the glass tint color, not group->tint.
+        const ShaderTransparentGlass *glass = shader_cast<ShaderTransparentGlass>(group->shader);
+        float alpha = 1.0f;
+
+        if (group->parameters.mode == 1) {
+            alpha -= group->parameters.blend_factor;
+        }
+        decal_color = ((((uint32_t)(int32_t)(alpha * 255.0f) & 0xff) << 8 |
+                        ((uint32_t)(int32_t)(glass->background_tint_color.red * 255.0f) & 0xff)) << 8 |
+                       ((uint32_t)(int32_t)(glass->background_tint_color.green * 255.0f) & 0xff)) << 8 |
+                      ((uint32_t)(int32_t)(glass->background_tint_color.blue * 255.0f) & 0xff);
+    }
     render_device().set_render_state(halo::d3d9::rs::texture_factor, decal_color);
 
     render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
