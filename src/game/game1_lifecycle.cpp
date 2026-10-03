@@ -47,13 +47,13 @@ static auto &particle_data = halo::link::ref<uint32_t>(halo::effects::vars().par
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &team_data = halo::link::ref<data_array *>(halo::game::vars().team_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-static auto &widget_memory_pool = halo::link::ref<uint8_t *>(halo::ui::vars().widget_memory_pool);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &ui_root_widget = halo::link::ref<uint32_t [13]>(halo::ui::vars().ui_root_widget);
 static auto &sound_class_gains = halo::link::ref<uint32_t>(halo::game::vars().sound_class_gains);
 static auto &rasterizer_device = halo::link::ref<uint32_t>(halo::game::vars().rasterizer_device);
 static auto &rasterizer_decal_vertex_cache = halo::link::ref<void **>(halo::effects::vars().rasterizer_decal_vertex_cache);
 static auto &object_render_state_cache = halo::link::ref<uint32_t>(halo::game::vars().object_render_state_cache);
-static auto &terminal_messages = halo::link::ref<uint32_t *>(halo::main::vars().terminal_messages);
+static auto &terminal_messages = halo::link::ref<data_array *>(halo::main::vars().terminal_messages);
 static auto &game_state_write_buffer = halo::link::ref<void *>(halo::game::vars().game_state_write_buffer);
 static auto &input_event_queue_active = halo::link::ref<uint32_t [0x43]>(halo::ui::vars().input_event_queue_active);
 static auto &input_globals = halo::link::ref<uint32_t [0x97c]>(halo::main::vars().input_globals);
@@ -62,7 +62,7 @@ static auto &game_state_write_buffer_allocated = halo::link::ref<uint8_t>(halo::
 static auto &game_state_persistent_storage = halo::link::ref<void *>(halo::game::vars().game_state_persistent_storage);
 static auto &game_state_persistent_storage_created = halo::link::ref<uint8_t>(halo::game::vars().game_state_persistent_storage_created);
 static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
-static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
 static auto &game_engine_post_game_fade = halo::link::ref<float>(halo::game::vars().game_engine_post_game_fade);
 static auto &game_engine_dedicated_idle = halo::link::ref<uint8_t>(halo::game::vars().game_engine_dedicated_idle);
@@ -75,6 +75,8 @@ static auto &network_session_host_state = halo::link::ref<uint8_t>(halo::network
 static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [5]>(halo::game::vars().multiplayer_sound_queue);
 static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
 static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
+static_assert(sizeof(custom_waypoint [k_maximum_custom_waypoints]) == 0x400, "custom waypoint table size");
+static_assert(sizeof(player_profile [16]) == 0xc0 * sizeof(uint32_t), "player profile cache size");
 static auto &game_engine_auto_team_counter = halo::link::ref<int32_t>(halo::game::vars().game_engine_auto_team_counter);
 static auto &game_engine_ctf_reset_ticks = halo::link::ref<int32_t>(halo::game::vars().game_engine_ctf_reset_ticks);
 static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
@@ -90,15 +92,14 @@ namespace halo::game::engine1 {
 void Lifecycle::dispose(void)
 {
     uint32_t i;
-    uint32_t *cursor;
 
     halo::hs::hs_dispose_dynamic_globals();
     halo::interface::widget_close_all();
-    if (*(void **)(widget_memory_pool + 4) != (void *)0) {
-        GlobalFree(*(void **)(widget_memory_pool + 4));
+    if (widget_memory_pool->base != 0) {
+        GlobalFree(widget_memory_pool->base);
     }
-    *(uint32_t *)(widget_memory_pool + 4) = 0;
-    *(uint32_t *)(widget_memory_pool + 8) = 0;
+    widget_memory_pool->base = 0;
+    widget_memory_pool->size = 0;
 
     for (i = 0; i < 13; i = i + 1) {
         ui_root_widget[i] = 0;
@@ -114,18 +115,12 @@ void Lifecycle::dispose(void)
     }
 
     if (player_profile_cache_initialized == 1) {
-        cursor = (uint32_t *)player_profile_cache;
-        for (i = 0; i < 0xc0; i = i + 1) {
-            cursor[i] = 0;
-        }
+        memset(player_profile_cache, 0, sizeof(player_profile_cache));
         player_profile_cache_initialized = 0;
     }
 
     if (weather_particle_data != (void *)0) {
-        cursor = (uint32_t *)weather_particle_data;
-        for (i = 0; i < 14; i = i + 1) {
-            cursor[i] = 0;
-        }
+        memset(weather_particle_data, 0, 14 * sizeof(uint32_t));
         GlobalFree(weather_particle_data);
         weather_particle_data = (void *)0;
     }
@@ -149,13 +144,8 @@ void Lifecycle::dispose(void)
     if (halo::main::globals().console_win32_attached != 0) {
         halo::main::globals().console_win32_attached = 0;
     }
-    if (terminal_messages != (uint32_t *)0) {
-        if (*((uint8_t *)terminal_messages + 9 * 4) != 0) {
-            *((uint8_t *)terminal_messages + 9 * 4) = 0;
-        }
-        for (i = 0; i < 14; i = i + 1) {
-            terminal_messages[i] = 0;
-        }
+    if (terminal_messages != (data_array *)0) {
+        memset(terminal_messages, 0, sizeof(*terminal_messages));
         GlobalFree(terminal_messages);
     }
     halo::main::globals().terminal_initialized = 0;
@@ -278,7 +268,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                         success = 0;
                     } else {
                         root_obj = halo::game::object_at(best_root);
-                        success = halo::game::player_attach_unit_to_parent(player_handle, best_root, (uint8_t *)root_obj + 0xa0);
+                        success = halo::game::player_attach_unit_to_parent(player_handle, best_root, &root_obj->bounding_center);
                     }
                 }
                 plr = (player *)halo::memory::data_iterator_next(&player_iter);
@@ -306,7 +296,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
 void Lifecycle::begin_end_game_sequence(void)
 {
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && game_engine_state_value == _game_engine_state_not_started) {
-        *((uint8_t *)network_server + 0xa0f) = 1;
+        network_server->game_over = 1;
         game_engine_state_value = _game_engine_state_ending;
         game_engine_end_game_timer = 7.0f;
         halo::game::game_engine_queue_multiplayer_sound(1, halo::k_dword_none, 0);
@@ -406,8 +396,6 @@ uint8_t Lifecycle::get_teams_enabled(void)
 void Lifecycle::initialize_for_new_game(void)
 {
     int32_t map_index;
-    uint32_t *dst;
-    int32_t i;
     uint8_t initialize_result;
 
     if (current_game_engine != (game_engine_definition *)0) {
@@ -418,22 +406,15 @@ void Lifecycle::initialize_for_new_game(void)
         }
         halo::game::game_engine_validate_scenario_placements_noop();
 
-        dst = (uint32_t *)multiplayer_sound_queue;
-        for (i = 0x14; i != 0; i = i - 1) {
-            *dst = 0;
-            dst = dst + 1;
-        }
+        memset(multiplayer_sound_queue, 0, sizeof(multiplayer_sound_queue));
         multiplayer_sound_queue[0].player = (datum_index)halo::k_dword_none;
         multiplayer_sound_queue[0].sound_index = -1;
 
-        dst = (uint32_t *)custom_waypoints;
-        for (i = 0x100; i != 0; i = i - 1) {
-            *dst = 0;
-            dst = dst + 1;
-        }
+        memset(custom_waypoints, 0, sizeof(custom_waypoints));
 
         multiplayer_sound_queue[0].remaining_ticks = 0x3c;
-        *(uint32_t *)&multiplayer_sound_queue[0].broadcast = 0;
+        multiplayer_sound_queue[0].broadcast = 0;
+        memset(multiplayer_sound_queue[0].pad_0d, 0, sizeof(multiplayer_sound_queue[0].pad_0d));
         game_engine_auto_team_counter = 0;
         multiplayer_sound_queue_count = 1;
         game_engine_ctf_reset_ticks = 0;
@@ -490,8 +471,8 @@ int32_t Lifecycle::multiplayer_ui_state_id(void)
 {
     network_game_session *record;
 
-    if (network_server != (uint8_t *)0) {
-        record = &((network_server_globals *)network_server)->session;
+    if (network_server != (network_server_globals *)0) {
+        record = &network_server->session;
     } else if (network_client != (uint8_t *)0) {
         record = &((network_client_globals *)network_client)->session;
     } else {
