@@ -195,11 +195,11 @@ uint8_t halo::ai::charge_mode::process()
         uint8_t have_along = 0;
 
         if (target->distance < 0.8f) {
-            direction = *(real_vector3d *)((uint8_t *)target + 0xe0);
+            direction = *(real_vector3d *)&target->direction;
             strike = 1;
         } else {
-            real_vector3d *velocity = (real_vector3d *)((uint8_t *)target + 0xd4);
-            real_vector3d *facing = (real_vector3d *)((uint8_t *)target + 0xe0);
+            real_vector3d *velocity = (real_vector3d *)&target->velocity;
+            real_vector3d *facing = (real_vector3d *)&target->direction;
             float speed = halo::math::vector3d_length(*velocity);
             float factor = 0.0f;
             real_point3d lead;

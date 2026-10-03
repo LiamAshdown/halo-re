@@ -89,13 +89,13 @@ uint8_t halo::ai::alert_mode::process()
         return 0;
     }
     if (actor->encounter_index != halo::k_dword_none) {
-        uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (actor->encounter_index & halo::k_slot_mask) * 0xb0;
-        uint8_t *squad = *(uint8_t **)(encounter + 0x84) + actor->squad_index * 0xe8;
+        ScenarioEncounter *encounter = &halo::ai::reflexive_data<ScenarioEncounter>(halo::scenario::globals().scenario->encounters)[actor->encounter_index & halo::k_slot_mask];
+        ScenarioSquad *squad = &halo::ai::reflexive_data<ScenarioSquad>(encounter->squads)[actor->squad_index];
         int16_t next = actor->mode_data.alert.next_position;
 
-        if (next >= 0 && next < *(int32_t *)(squad + 0xc4)) {
-            uint8_t *position = *(uint8_t **)(squad + 0xc8) + next * 0x50;
-            float wait = halo::math::random_real_range(*(float *)(position + 0x14), *(float *)(position + 0x18)) * 30.0f;
+        if (next >= 0 && next < (int32_t)squad->move_positions.count) {
+            ScenarioMovePosition *position = &halo::ai::reflexive_data<ScenarioMovePosition>(squad->move_positions)[next];
+            float wait = halo::math::random_real_range(position->time[0], position->time[1]) * 30.0f;
 
             actor->mode_data.alert.current_position = actor->mode_data.alert.next_position;
             actor->mode_data.alert.next_position = -1;

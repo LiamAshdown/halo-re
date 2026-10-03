@@ -113,7 +113,7 @@ public:
     void set_mode(int32_t mode, void *mode_data);
     void set_override_target(uint8_t enable, datum_index override_target);
     void set_units_active(uint8_t dormant);
-    uint8_t should_hold_position(uint8_t *definition);
+    uint8_t should_hold_position(const ActorVariant *definition);
     uint8_t should_throw_grenade(char force);
     void snapshot_orientation();
     uint32_t solve_grenade_lob(real_point3d *point);

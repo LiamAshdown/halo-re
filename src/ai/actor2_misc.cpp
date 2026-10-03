@@ -1040,7 +1040,7 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
                 bonus_a = 2;
             } else if (target->in_water == self->in_water) {
                 if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
-                    if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
+                    if (target->distance >= variant_def->desired_combat_range[0]) {
                         bonus_a = 2;
                         if (target->distance >= variant_def->maximum_firing_distance) {
                             bonus_a = 1;
@@ -2223,7 +2223,7 @@ namespace actor_should_hold_position_local {
  *
  * @address 0x4105c0
  */
-uint8_t ActorView::should_hold_position(uint8_t *definition)
+uint8_t ActorView::should_hold_position(const ActorVariant *definition)
 {
     using namespace actor_should_hold_position_local;
     actor *self = halo::ai::actor_at(actor_index);
@@ -2243,8 +2243,8 @@ uint8_t ActorView::should_hold_position(uint8_t *definition)
     }
 
     {
-        float lo = *(float *)(definition + 0x80);
-        float hi = *(float *)(definition + 0x84);
+        float lo = definition->first_burst_delay_time[0];
+        float hi = definition->first_burst_delay_time[1];
         float r;
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -2347,7 +2347,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                 }
                 {
                     unit_object *new_obj = (unit_object *)halo::ai::object_at(new_object);
-                    char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
+                    char reuse_existing = (char)halo::ai::flag_set(actor_tag_data->flags, halo::tags::actor_tag_flag::swarm);
                     datum_index new_actor;
 
                     if (((object *)new_obj)->type == 0) {

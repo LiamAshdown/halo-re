@@ -1325,7 +1325,7 @@ void actor_set_units_active(datum_index actor_index, uint8_t dormant)
  *
  * @address 0x4105c0
  */
-uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
+uint8_t actor_should_hold_position(datum_index actor_index, const ActorVariant *definition)
 {
     return halo::ai::ActorView(actor_index).should_hold_position(definition);
 }

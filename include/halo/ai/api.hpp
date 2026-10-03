@@ -417,7 +417,7 @@ void actor_set_target_alert_stage1(datum_index target_prop_index, datum_index ac
 void actor_set_target_alert_stage2(datum_index target_prop_index, datum_index actor_index);
 void actor_set_target_alert_stage3(datum_index target_prop_index, datum_index actor_index);
 void actor_set_units_active(datum_index actor_index, uint8_t dormant);
-uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition);
+uint8_t actor_should_hold_position(datum_index actor_index, const ActorVariant *definition);
 uint8_t actor_should_throw_grenade(uint32_t actor_index, char force);
 void actor_snapshot_orientation(datum_index actor_index);
 uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point);

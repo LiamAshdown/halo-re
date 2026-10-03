@@ -240,7 +240,7 @@ void ActorView::update_firing_state()
         }
         if (next != -1) {
             if (next == 1) {
-                if (!halo::ai::actor_should_hold_position(actor_index, reinterpret_cast<uint8_t *>(def)) && !fire_primary) {
+                if (!halo::ai::actor_should_hold_position(actor_index, def) && !fire_primary) {
                     next = 2;
                     halo::ai::actor_update_aim_wander(actor_index);
                 }
