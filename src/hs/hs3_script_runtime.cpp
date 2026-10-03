@@ -8,32 +8,12 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
-    char detach_from_parent, char reorient);
 extern data_array *player_data;
 extern data_array *object_data;
-extern data_array *hs_thread_data;
-extern data_array *hs_globals_data;
-extern void hs_thread_evaluate_step(datum_index thread_handle);
-extern void object_lists_dispose_empty(void);
-extern void hs_syntax_node_garbage_collect(void);
-extern uint8_t hs_runtime_active;
 extern game_time_globals *game_time;
-extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
-extern int32_t hs_global_get_value(hs_global_reference reference);
-extern void hs_global_write_value(hs_global_reference reference);
-extern datum_index hs_thread_new(int32_t script_index, uint8_t type);
-extern int16_t hs_current_thread_index;
-extern void hs_allocate_script_node_table(void);
-extern char hs_compile_source(void);
-extern char hs_compile_postprocess(char **error_message, int32_t *error_offset);
-extern data_array *hs_syntax_data;
-extern void hs_dispose_dynamic_globals(void);
-extern uint8_t hs_syntax_data_is_local;
-extern char hs_scripts_compile_and_link(char restore_previous);
-extern void hs_scenario_scripts_initialize(void);
 extern byte_swap_definition hs_syntax_data_header_byte_swap_definition;
 extern byte_swap_definition hs_syntax_node_byte_swap_definition;
 }
@@ -59,7 +39,7 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
             uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8);
 
             if (!halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
-                hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
+                halo::hs::hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
             }
         }
         player_index = halo::memory::datum_next((int16_t)player_index, player_data);
@@ -77,13 +57,13 @@ void ScriptRuntime::runtime_initialize() const
 {
     int32_t i;
 
-    hs_thread_data = halo::saved_games::game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 );
-    hs_globals_data = halo::saved_games::game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 );
-    if (hs_thread_data != 0 && hs_globals_data != 0) {
-        hs_globals_data->valid = 1;
-        halo::memory::data_delete_all(hs_globals_data);
+    halo::hs::globals().thread_data = halo::saved_games::game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 );
+    halo::hs::globals().globals_data = halo::saved_games::game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 );
+    if (halo::hs::globals().thread_data != 0 && halo::hs::globals().globals_data != 0) {
+        halo::hs::globals().globals_data->valid = 1;
+        halo::memory::data_delete_all(halo::hs::globals().globals_data);
         for (i = 0; i < k_hs_builtin_global_count; i++) {
-            halo::memory::datum_new_at_index_with_salt((datum_index)i | 0x10000, hs_globals_data);
+            halo::memory::datum_new_at_index_with_salt((datum_index)i | 0x10000, halo::hs::globals().globals_data);
         }
     }
 }
@@ -102,30 +82,30 @@ void ScriptRuntime::runtime_update() const
     hs_thread *thread;
     char command_thread_pending;
 
-    if (hs_runtime_active == 0) {
+    if (halo::hs::globals().runtime_active == 0) {
         return;
     }
 
     current_tick = game_time->game_time;
     command_thread_pending = 0;
-    thread_handle = halo::memory::datum_next(-1, hs_thread_data);
+    thread_handle = halo::memory::datum_next(-1, halo::hs::globals().thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         if (thread->type == 2) {
             command_thread_pending = 1;
         }
         if (-1 < thread->wake_tick && thread->wake_tick <= current_tick) {
-            hs_thread_evaluate_step(thread_handle);
+            halo::hs::hs_thread_evaluate_step(thread_handle);
         }
-        thread_handle = halo::memory::datum_next((int16_t)thread_handle, hs_thread_data);
-        if (hs_runtime_active == 0) {
+        thread_handle = halo::memory::datum_next((int16_t)thread_handle, halo::hs::globals().thread_data);
+        if (halo::hs::globals().runtime_active == 0) {
             break;
         }
     }
 
-    object_lists_dispose_empty();
+    halo::hs::object_lists_dispose_empty();
     if (command_thread_pending == 0 && game_time->game_time % 16 == 0) {
-        hs_syntax_node_garbage_collect();
+        halo::hs::hs_syntax_node_garbage_collect();
     }
 }
 
@@ -151,15 +131,15 @@ void ScriptRuntime::scenario_scripts_initialize() const
     int32_t list_handle;
     object_list_header *list_header;
 
-    hs_thread_data->valid = 1;
-    halo::memory::data_delete_all(hs_thread_data);
-    hs_runtime_active = 1;
-    hs_current_thread_index = -1;
+    halo::hs::globals().thread_data->valid = 1;
+    halo::memory::data_delete_all(halo::hs::globals().thread_data);
+    halo::hs::globals().runtime_active = 1;
+    halo::hs::globals().current_thread_index = -1;
 
-    thread_handle = halo::memory::datum_new(hs_thread_data);
+    thread_handle = halo::memory::datum_new(halo::hs::globals().thread_data);
     init_thread = 0;
     if (thread_handle != k_datum_index_none) {
-        init_thread = (hs_thread *)((uint8_t *)hs_thread_data->data +
+        init_thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data +
             (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         init_thread->stack = (hs_stack_frame *)&init_thread->stack_data;
         init_thread->stack->previous = 0;
@@ -183,15 +163,15 @@ void ScriptRuntime::scenario_scripts_initialize() const
             slot = (int16_t)(reference & k_hs_global_index_mask) +
                    ((reference & k_hs_global_builtin_bit) ? 0 : k_hs_builtin_global_count);
 
-            if (-1 < slot && slot < hs_globals_data->maximum_count) {
-                global_slot = (hs_global *)((uint8_t *)hs_globals_data->data +
-                    hs_globals_data->size * slot);
+            if (-1 < slot && slot < halo::hs::globals().globals_data->maximum_count) {
+                global_slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
+                    halo::hs::globals().globals_data->size * slot);
                 if (global_slot->identifier == 0) {
-                    hs_globals_data->actual_count = hs_globals_data->actual_count + 1;
-                    if (hs_globals_data->last_index <= slot) {
-                        hs_globals_data->last_index = slot + 1;
+                    halo::hs::globals().globals_data->actual_count = halo::hs::globals().globals_data->actual_count + 1;
+                    if (halo::hs::globals().globals_data->last_index <= slot) {
+                        halo::hs::globals().globals_data->last_index = slot + 1;
                     }
-                    halo::memory::datum_element_initialize(hs_globals_data, global_slot);
+                    halo::memory::datum_element_initialize(halo::hs::globals().globals_data, global_slot);
                     global_slot->identifier = (int16_t)0xaced;
                 }
             }
@@ -199,12 +179,12 @@ void ScriptRuntime::scenario_scripts_initialize() const
             init_thread->script_index = -1;
             init_thread->stack->size = 0;
 
-            hs_thread_push(globals[i].initialization_expression_index, thread_handle,
-                &((hs_global *)hs_globals_data->data)[slot & halo::k_slot_mask].value);
+            halo::hs::hs_thread_push(globals[i].initialization_expression_index, thread_handle,
+                &((hs_global *)halo::hs::globals().globals_data->data)[slot & halo::k_slot_mask].value);
             if ((init_thread->flags & 1) != 0) {
-                hs_thread_evaluate_step(thread_handle);
+                halo::hs::hs_thread_evaluate_step(thread_handle);
                 if (globals[i].type == 0x17) {
-                    list_handle = hs_global_get_value(reference);
+                    list_handle = halo::hs::hs_global_get_value(reference);
                     if (list_handle != -1) {
                         list_header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
                             (list_handle & halo::k_slot_mask) * 0x0c);
@@ -212,15 +192,15 @@ void ScriptRuntime::scenario_scripts_initialize() const
                     }
                 }
             }
-            hs_global_write_value(reference);
+            halo::hs::hs_global_write_value(reference);
         }
-        halo::memory::datum_delete(hs_thread_data, thread_handle);
+        halo::memory::datum_delete(halo::hs::globals().thread_data, thread_handle);
     }
 
     scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
     for (i = 0; i < (int32_t)halo::scenario::globals().scenario->scripts.count; i++) {
         if (scripts[i].script_type != 3 && scripts[i].script_type != 4) {
-            hs_thread_new(i, 0);
+            halo::hs::hs_thread_new(i, 0);
         }
     }
 }
@@ -241,27 +221,27 @@ char ScriptRuntime::scripts_compile_and_link(char restore_previous) const
     char *error_message;
     int32_t error_offset;
 
-    saved_syntax_data = hs_syntax_data;
+    saved_syntax_data = halo::hs::globals().syntax_data;
     scenario = halo::scenario::globals().scenario;
     success = 1;
-    hs_allocate_script_node_table();
+    halo::hs::hs_allocate_script_node_table();
     no_scripts_but_source_files = (scenario->scripts.count == 0) && (0 < scenario->source_files.count);
-    hs_syntax_data = (data_array *)scenario->script_syntax_data.pointer;
-    hs_syntax_data->data = (uint8_t *)hs_syntax_data + 0x38;
-    if (no_scripts_but_source_files || (hs_compile_postprocess(&error_message, &error_offset) == 0)) {
-        success = hs_compile_source();
-        if ((success != 0) && (hs_compile_postprocess(&error_message, &error_offset) != 0)) {
+    halo::hs::globals().syntax_data = (data_array *)scenario->script_syntax_data.pointer;
+    halo::hs::globals().syntax_data->data = (uint8_t *)halo::hs::globals().syntax_data + 0x38;
+    if (no_scripts_but_source_files || (halo::hs::hs_compile_postprocess(&error_message, &error_offset) == 0)) {
+        success = halo::hs::hs_compile_source();
+        if ((success != 0) && (halo::hs::hs_compile_postprocess(&error_message, &error_offset) != 0)) {
             success = 1;
             goto restore;
         }
-        halo::memory::data_delete_all(hs_syntax_data);
+        halo::memory::data_delete_all(halo::hs::globals().syntax_data);
     } else if (0x3ff < (int32_t)scenario->script_string_data.size) {
         goto restore;
     }
     success = 0;
 restore:
     if (restore_previous != 0) {
-        hs_syntax_data = saved_syntax_data;
+        halo::hs::globals().syntax_data = saved_syntax_data;
     }
     return success;
 }
@@ -276,18 +256,18 @@ void ScriptRuntime::scripts_free() const
 {
     data_array *nodes;
 
-    nodes = hs_syntax_data;
-    if (hs_syntax_data != 0) {
-        hs_syntax_node_garbage_collect();
-        if (hs_syntax_data_is_local != 0) {
+    nodes = halo::hs::globals().syntax_data;
+    if (halo::hs::globals().syntax_data != 0) {
+        halo::hs::hs_syntax_node_garbage_collect();
+        if (halo::hs::globals().syntax_data_is_local != 0) {
             nodes->valid = 0;
             memset(nodes, 0, sizeof(*nodes));
             GlobalFree(nodes);
-            hs_syntax_data_is_local = 0;
+            halo::hs::globals().syntax_data_is_local = 0;
         }
-        hs_syntax_data = 0;
+        halo::hs::globals().syntax_data = 0;
     }
-    hs_dispose_dynamic_globals();
+    halo::hs::hs_dispose_dynamic_globals();
     halo::objects::globals().object_list_header_data->valid = 0;
     halo::objects::globals().object_list_reference_data->valid = 0;
 }
@@ -303,15 +283,15 @@ void ScriptRuntime::scripts_reload() const
     Scenario *scenario;
 
     scenario = (halo::scenario::globals().scenario_index != k_datum_index_none) ? halo::scenario::globals().scenario : 0;
-    hs_allocate_script_node_table();
+    halo::hs::hs_allocate_script_node_table();
     if ((scenario != 0) && (scenario->script_syntax_data.size != 0)) {
-        hs_scripts_compile_and_link(0);
+        halo::hs::hs_scripts_compile_and_link(0);
     }
     halo::objects::globals().object_list_header_data->valid = 1;
     halo::memory::data_delete_all(halo::objects::globals().object_list_header_data);
     halo::objects::globals().object_list_reference_data->valid = 1;
     halo::memory::data_delete_all(halo::objects::globals().object_list_reference_data);
-    hs_scenario_scripts_initialize();
+    halo::hs::hs_scenario_scripts_initialize();
 }
 
 /**
@@ -368,7 +348,7 @@ void ScriptRuntime::syntax_node_garbage_collect() const
     int16_t next_index;
     hs_syntax_node *scan;
 
-    nodes = hs_syntax_data;
+    nodes = halo::hs::globals().syntax_data;
     current = halo::memory::datum_next(-1, nodes);
     for (;;) {
         for (;;) {

@@ -4,14 +4,12 @@
 #include "units.h"
 #include "cutscene.h"
 #include "halo/cutscene/api.hpp"
+#include "halo/hs/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void player_update_history_play_local_player(int32_t target_update_id);
 extern uint8_t playback_requested_00719768;
 #ifdef __cplusplus
@@ -29,12 +27,12 @@ namespace halo::hs {
 void RecordingCommands::evaluate_play_update_history(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         player_update_history_play_local_player(arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -47,7 +45,7 @@ void RecordingCommands::evaluate_play_update_history(int16_t function_index, uin
 void RecordingCommands::evaluate_playback(int16_t function_index, uint32_t thread_index, char first)
 {
     playback_requested_00719768 = 1;
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -59,7 +57,7 @@ void RecordingCommands::evaluate_playback(int16_t function_index, uint32_t threa
 void RecordingCommands::evaluate_recording_kill(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -68,7 +66,7 @@ void RecordingCommands::evaluate_recording_kill(int16_t function_index, uint32_t
     if (recording != 0) {
         recording[0xa] |= 3;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -81,11 +79,11 @@ void RecordingCommands::evaluate_recording_kill(int16_t function_index, uint32_t
 void RecordingCommands::evaluate_recording_play(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)halo::cutscene::recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 0), thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::cutscene::recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 0), thread_index);
     }
 }
 
@@ -98,11 +96,11 @@ void RecordingCommands::evaluate_recording_play(int16_t function_index, uint32_t
 void RecordingCommands::evaluate_recording_play_and_delete(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)halo::cutscene::recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 8), thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::cutscene::recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 8), thread_index);
     }
 }
 
@@ -115,12 +113,12 @@ void RecordingCommands::evaluate_recording_play_and_delete(int16_t function_inde
 void RecordingCommands::evaluate_recording_play_and_hover(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t result = halo::cutscene::recorded_animation_start((datum_index)arguments[0], (int16_t)*(uint16_t *)&arguments[1], 0x10);
-        hs_thread_return((int32_t)result, thread_index);
+        halo::hs::hs_thread_return((int32_t)result, thread_index);
     }
 }
 
@@ -133,7 +131,7 @@ void RecordingCommands::evaluate_recording_play_and_hover(int16_t function_index
 void RecordingCommands::evaluate_recording_time(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -144,7 +142,7 @@ void RecordingCommands::evaluate_recording_time(int16_t function_index, uint32_t
     if (recording != 0 && *(datum_index *)(recording + 4) == unit) {
         ticks = *(uint16_t *)(recording + 8);
     }
-    hs_thread_return((int32_t)ticks, thread_index);
+    halo::hs::hs_thread_return((int32_t)ticks, thread_index);
     }
 }
 

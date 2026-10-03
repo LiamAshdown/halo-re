@@ -3,15 +3,13 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 #ifdef __cplusplus
 }
 #endif
@@ -27,7 +25,7 @@ namespace halo::hs {
 void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -42,7 +40,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
             result = halo::devices::device_group_set_value(group, *(float *)&arguments[1]);
         }
     }
-    hs_thread_return((int32_t)result, thread_index);
+    halo::hs::hs_thread_return((int32_t)result, thread_index);
     }
 }
 
@@ -55,7 +53,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
 void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -68,7 +66,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
             halo::devices::device_group_set_value_immediate(group, *(float *)&arguments[1]);
         }
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -81,7 +79,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
 void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -95,7 +93,7 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
         *(float *)(object + 0x1fc) = power;
         halo::devices::device_group_set_value(*(uint16_t *)(object + 0x1f8), power);
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 

@@ -20,6 +20,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -46,7 +47,6 @@ extern uint32_t profile_globals_block[0x1829];
 extern uint8_t game_state_write_buffer_allocated;
 extern void *game_state_persistent_storage;
 extern uint8_t game_state_persistent_storage_created;
-extern void hs_dispose_dynamic_globals(void);
 extern void widget_close_all(void);
 extern void objects_dispose(void);
 extern void network_shutdown(void);
@@ -95,7 +95,7 @@ void Lifecycle::dispose(void)
     uint32_t i;
     uint32_t *cursor;
 
-    hs_dispose_dynamic_globals();
+    halo::hs::hs_dispose_dynamic_globals();
     widget_close_all();
     if (*(void **)(widget_memory_pool + 4) != (void *)0) {
         GlobalFree(*(void **)(widget_memory_pool + 4));

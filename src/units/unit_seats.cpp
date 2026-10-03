@@ -18,9 +18,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
@@ -185,7 +185,7 @@ datum_index UnitView::build_seat_occupant_zone_list()
             object *child_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(child)].data;
             if (((_object_mask_unit & (1 << (child_obj->type & 0x1f))) != 0) &&
                 (((unit_data *)((uint8_t *)child_obj + k_unit_data_offset))->vehicle_seat_index != -1)) {
-                object_list_reference_add(result, child);
+                halo::hs::object_list_reference_add(result, child);
             }
             child = child_obj->next_object;
         }

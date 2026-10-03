@@ -10,10 +10,10 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
-extern datum_index object_list_get_first(datum_index header_index, object_list_iterator *iterator_out);
 extern uint8_t *actor_type_procs[];
 }
 
@@ -587,7 +587,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
     datum_index object_list_header = handle;
     if (object_list_header != (datum_index)k_datum_index_none && packed_reference != (uint32_t)k_datum_index_none) {
         object_list_iterator iterator;
-        datum_index object_index = object_list_get_first(object_list_header, &iterator);
+        datum_index object_index = halo::hs::object_list_get_first(object_list_header, &iterator);
 
         while (object_index != (datum_index)k_datum_index_none) {
             object *obj = halo::objects::object_try_and_get(object_index, 3);

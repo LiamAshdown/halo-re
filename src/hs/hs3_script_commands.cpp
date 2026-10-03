@@ -5,18 +5,12 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/main/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
 extern void player_update_history_log_set_name_filter(char *name);
 extern uint8_t ui_widget_show_path_flag;
-extern data_array *hs_thread_data;
-extern data_array *hs_syntax_data;
-extern datum_index hs_thread_find_by_script_index(int16_t script_index);
-extern void hs_thread_restart(uint32_t thread_index);
 }
 
 namespace halo::hs::part3 {
@@ -29,7 +23,7 @@ namespace halo::hs::part3 {
  */
 void ScriptCommands::evaluate_structure_bsp_index(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_thread_return((int32_t)(uint16_t)halo::scenario::globals().structure_bsp_index, thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::scenario::globals().structure_bsp_index, thread_index);
 }
 
 /**
@@ -41,12 +35,12 @@ void ScriptCommands::evaluate_structure_bsp_index(int16_t function_index, uint32
 void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     halo::scenario::scenario_structure_bsp_switch(*(int16_t *)&arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -59,12 +53,12 @@ void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread
 void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         Sleep((uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -77,12 +71,12 @@ void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thre
 void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         player_update_history_log_set_name_filter((char *)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -95,12 +89,12 @@ void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t funct
 void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     ui_widget_show_path_flag = *(uint8_t *)&arguments[0];
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -113,12 +107,12 @@ void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32
 void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::input::hs_unbind_control((const char *)arguments[0], (const char *)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -131,7 +125,7 @@ void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_ind
 void ScriptCommands::evaluate_version(int16_t function_index, uint32_t thread_index, char first) const
 {
     halo::main::console_print_error_va(0, "halo pc 01.00.10.0621 Apr 16 2014 15:54:48");
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -142,19 +136,19 @@ void ScriptCommands::evaluate_version(int16_t function_index, uint32_t thread_in
  */
 void ScriptCommands::evaluate_wake(int16_t function_index, uint32_t thread_index, char first) const
 {
-    uint8_t *syntax = (uint8_t *)hs_syntax_data->data;
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
+    uint8_t *syntax = (uint8_t *)halo::hs::globals().syntax_data->data;
+    uint8_t *frame = *(uint8_t **)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
     uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
     uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
     uint32_t argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & halo::k_slot_mask;
-    datum_index thread = hs_thread_find_by_script_index(*(int16_t *)(syntax + argument * 0x14 + 0x10));
+    datum_index thread = halo::hs::hs_thread_find_by_script_index(*(int16_t *)(syntax + argument * 0x14 + 0x10));
 
     (void)function_index;
     (void)first;
     if (thread != k_datum_index_none) {
-        hs_thread_restart(thread);
+        halo::hs::hs_thread_restart(thread);
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 }

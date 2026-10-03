@@ -22,6 +22,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -41,8 +42,6 @@ extern void set_profile_name(widget_instance *widget, const uint16_t *name_sourc
 extern void *ui_event_function_table[0xbe];
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
-extern int16_t hs_script_find_by_name(char *name);
-extern void hs_evaluate_expression(int32_t expression);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection);
@@ -613,12 +612,12 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
     int32_t action_kind = 0;
 
     if ((handler->flags & 0x400) != 0 && handler->script.string[0] != 0) {
-        int16_t script_index = hs_script_find_by_name(handler->script.string);
+        int16_t script_index = halo::hs::hs_script_find_by_name(handler->script.string);
 
         if (script_index != -1) {
             uint8_t *scripts = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x4a0);
 
-            hs_evaluate_expression(*(int32_t *)(scripts + (int32_t)script_index * 0x5c + 0x24));
+            halo::hs::hs_evaluate_expression(*(int32_t *)(scripts + (int32_t)script_index * 0x5c + 0x24));
         }
     }
 

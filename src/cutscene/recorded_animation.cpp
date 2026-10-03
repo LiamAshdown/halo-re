@@ -6,12 +6,12 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern data_array *recorded_animations;
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4];
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
-extern char hs_object_hierarchy_test(datum_index object_index);
 }
 
 namespace halo::cutscene {
@@ -250,7 +250,7 @@ void RecordedAnimationPlayer::update_all()
             }
 
             if (((record->flags & _recorded_animation_flag_delete_object_when_finished) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
-                if (hs_object_hierarchy_test(record->unit_index) == 0) {
+                if (halo::hs::hs_object_hierarchy_test(record->unit_index) == 0) {
                     halo::objects::object_delete(record->unit_index);
                 }
             }

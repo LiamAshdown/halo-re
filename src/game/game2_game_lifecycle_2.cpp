@@ -14,6 +14,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -25,7 +26,6 @@ extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
 extern void team_pair_overrides_tick(void);
 extern void game_engine_tick(void);
-extern void hs_runtime_update(void);
 extern void game_engine_players_update_server(void);
 extern void game_engine_players_update_client(void);
 extern void main_switch_structure_bsp(void);
@@ -65,7 +65,6 @@ extern void game_engine_initialize_for_new_game(void);
 extern void game_engine_reset_player_look_state(void);
 extern uint8_t update_server_new(void);
 extern void players_dispose(void);
-extern void hs_scripts_reload(void);
 extern void interface_local_player_state_reset(void);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
@@ -75,7 +74,6 @@ extern data_array *player_data;
 extern data_array *team_data;
 extern uint32_t text_localization_strings;
 extern void update_queues_dispose(void);
-extern void hs_scripts_free(void);
 extern void objects_flush_dirty_state(void);
 extern void widget_close_all(void);
 extern uint32_t global_scenario_index;
@@ -132,7 +130,7 @@ after_role_update:
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 
     game_engine_tick();
-    hs_runtime_update();
+    halo::hs::hs_runtime_update();
     halo::cutscene::recorded_animations_update();
     halo::objects::objects_update();
     main_switch_structure_bsp();
@@ -325,7 +323,7 @@ void GameLifecycle::start_new_map(void)
     dst[6] = 0xffffffff;
 
     cinematic_saved_music_gain = 0xbf800000;
-    hs_scripts_reload();
+    halo::hs::hs_scripts_reload();
     *((uint8_t *)recorded_animations + 0x24) = 1;
     halo::memory::data_delete_all((data_array *)recorded_animations);
 
@@ -349,7 +347,7 @@ void GameLifecycle::stop_current_map(void)
     halo::rasterizer::font_glyph_cache_clear_all();
     rasterizer_globals_data = 0;
     ((data_array *)recorded_animations)->valid = 0;
-    hs_scripts_free();
+    halo::hs::hs_scripts_free();
 
     ((uint8_t *)cinematic_globals_ptr)[8] = 0;
     ((uint8_t *)cinematic_globals_ptr)[9] = 0;

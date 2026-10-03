@@ -7,6 +7,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/hs/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cutscene/api.hpp"
@@ -694,24 +695,24 @@ void *hs_script_type_names[5] = {
 void *hs_empty_string = (void *)&k_empty_string;
 /* 0x00689380 */
 void *hs_autocomplete_procedures[18] = {
-    (void *)hs_enumerate_special_form_names,
-    (void *)hs_autocomplete_add_startup,
-    (void *)hs_autocomplete_add_type_names,
-    (void *)hs_autocomplete_add_function_names,
-    (void *)hs_autocomplete_add_script_names,
-    (void *)hs_autocomplete_add_global_names,
-    (void *)hs_autocomplete_add_encounter_names,
-    (void *)hs_autocomplete_add_command_list_names,
-    (void *)hs_autocomplete_add_starting_profile_names,
-    (void *)hs_autocomplete_add_conversation_names,
-    (void *)hs_autocomplete_add_object_names,
-    (void *)hs_autocomplete_add_trigger_volume_names,
-    (void *)hs_autocomplete_add_cutscene_flag_names,
-    (void *)hs_autocomplete_add_cutscene_camera_point_names,
-    (void *)hs_autocomplete_add_cutscene_title_names,
-    (void *)hs_autocomplete_add_recorded_animation_names,
-    (void *)hs_autocomplete_add_navpoint_names,
-    (void *)hs_autocomplete_add_hud_message_names
+    (void *)&halo::hs::hs_enumerate_special_form_names,
+    (void *)&halo::hs::hs_autocomplete_add_startup,
+    (void *)&halo::hs::hs_autocomplete_add_type_names,
+    (void *)&halo::hs::hs_autocomplete_add_function_names,
+    (void *)&halo::hs::hs_autocomplete_add_script_names,
+    (void *)&halo::hs::hs_autocomplete_add_global_names,
+    (void *)&halo::hs::hs_autocomplete_add_encounter_names,
+    (void *)&halo::hs::hs_autocomplete_add_command_list_names,
+    (void *)&halo::hs::hs_autocomplete_add_starting_profile_names,
+    (void *)&halo::hs::hs_autocomplete_add_conversation_names,
+    (void *)&halo::hs::hs_autocomplete_add_object_names,
+    (void *)&halo::hs::hs_autocomplete_add_trigger_volume_names,
+    (void *)&halo::hs::hs_autocomplete_add_cutscene_flag_names,
+    (void *)&halo::hs::hs_autocomplete_add_cutscene_camera_point_names,
+    (void *)&halo::hs::hs_autocomplete_add_cutscene_title_names,
+    (void *)&halo::hs::hs_autocomplete_add_recorded_animation_names,
+    (void *)&halo::hs::hs_autocomplete_add_navpoint_names,
+    (void *)&halo::hs::hs_autocomplete_add_hud_message_names
 };
 /* 0x006893c8 */
 uint32_t k_vehicle_minimum_age_ticks = 0x4u;

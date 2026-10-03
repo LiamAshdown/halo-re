@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/hs/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/cseries/api.hpp"
@@ -1064,18 +1065,18 @@ SLICE01_SIZE_CHECK(hs_newline_characters, 4);
 /* 0x0065b668, 0xc4 bytes */
 __declspec(align(4)) void * hs_parse_primitive_procedures[49] = {
     0, 0, 0, 0,
-    0, (void *)hs_parse_boolean, (void *)hs_parse_real, (void *)hs_parse_integer,
-    (void *)hs_parse_integer, (void *)hs_parse_string, (void *)hs_parse_script, (void *)hs_parse_trigger_volume,
-    (void *)hs_parse_cutscene_flag, (void *)hs_parse_cutscene_camera_point, (void *)hs_parse_cutscene_title, (void *)hs_parse_cutscene_recording,
-    (void *)hs_parse_device_group, (void *)hs_parse_ai, (void *)hs_parse_ai_command_list, (void *)hs_parse_starting_profile,
-    (void *)hs_parse_conversation, (void *)hs_parse_navpoint, (void *)hs_parse_hud_message, (void *)hs_parse_object_list,
-    (void *)hs_parse_tag_reference, (void *)hs_parse_tag_reference, (void *)hs_parse_tag_reference, (void *)hs_parse_tag_reference,
-    (void *)hs_parse_tag_reference, (void *)hs_parse_tag_reference, (void *)hs_parse_tag_reference, (void *)hs_parse_tag_reference,
-    (void *)hs_report_expected_enum_values, (void *)hs_report_expected_enum_values, (void *)hs_report_expected_enum_values, (void *)hs_report_expected_enum_values,
-    (void *)hs_report_expected_enum_values, (void *)hs_parse_object, (void *)hs_parse_object, (void *)hs_parse_object,
-    (void *)hs_parse_object, (void *)hs_parse_object, (void *)hs_parse_object, (void *)hs_parse_object_name,
-    (void *)hs_parse_object_name, (void *)hs_parse_object_name, (void *)hs_parse_object_name, (void *)hs_parse_object_name,
-    (void *)hs_parse_object_name
+    0, (void *)&halo::hs::hs_parse_boolean, (void *)&halo::hs::hs_parse_real, (void *)&halo::hs::hs_parse_integer,
+    (void *)&halo::hs::hs_parse_integer, (void *)&halo::hs::hs_parse_string, (void *)&halo::hs::hs_parse_script, (void *)&halo::hs::hs_parse_trigger_volume,
+    (void *)&halo::hs::hs_parse_cutscene_flag, (void *)&halo::hs::hs_parse_cutscene_camera_point, (void *)&halo::hs::hs_parse_cutscene_title, (void *)&halo::hs::hs_parse_cutscene_recording,
+    (void *)&halo::hs::hs_parse_device_group, (void *)&halo::hs::hs_parse_ai, (void *)&halo::hs::hs_parse_ai_command_list, (void *)&halo::hs::hs_parse_starting_profile,
+    (void *)&halo::hs::hs_parse_conversation, (void *)&halo::hs::hs_parse_navpoint, (void *)&halo::hs::hs_parse_hud_message, (void *)&halo::hs::hs_parse_object_list,
+    (void *)&halo::hs::hs_parse_tag_reference, (void *)&halo::hs::hs_parse_tag_reference, (void *)&halo::hs::hs_parse_tag_reference, (void *)&halo::hs::hs_parse_tag_reference,
+    (void *)&halo::hs::hs_parse_tag_reference, (void *)&halo::hs::hs_parse_tag_reference, (void *)&halo::hs::hs_parse_tag_reference, (void *)&halo::hs::hs_parse_tag_reference,
+    (void *)&halo::hs::hs_report_expected_enum_values, (void *)&halo::hs::hs_report_expected_enum_values, (void *)&halo::hs::hs_report_expected_enum_values, (void *)&halo::hs::hs_report_expected_enum_values,
+    (void *)&halo::hs::hs_report_expected_enum_values, (void *)&halo::hs::hs_parse_object, (void *)&halo::hs::hs_parse_object, (void *)&halo::hs::hs_parse_object,
+    (void *)&halo::hs::hs_parse_object, (void *)&halo::hs::hs_parse_object, (void *)&halo::hs::hs_parse_object, (void *)&halo::hs::hs_parse_object_name,
+    (void *)&halo::hs::hs_parse_object_name, (void *)&halo::hs::hs_parse_object_name, (void *)&halo::hs::hs_parse_object_name, (void *)&halo::hs::hs_parse_object_name,
+    (void *)&halo::hs::hs_parse_object_name
 };
 SLICE01_SIZE_CHECK(hs_parse_primitive_procedures, 196);
 

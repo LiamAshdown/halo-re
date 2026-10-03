@@ -14,6 +14,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern int32_t game_state_cursor;
@@ -36,9 +37,6 @@ extern void team_pair_table_allocate(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_allocate_tick_record(void);
 extern void players_initialize(void);
-extern void hs_scripts_reload(void);
-extern void hs_runtime_initialize(void);
-extern void object_lists_initialize(void);
 extern void interface_globals_allocate(void);
 extern void player_profile_subsystem_initialize(void);
 extern void widget_memory_pool_initialize(void);
@@ -151,9 +149,9 @@ void GameLifecycle::initialize(void)
     halo::ai::ai_initialize_for_new_map();
 
     widget_memory_pool_initialize();
-    object_lists_initialize();
-    hs_runtime_initialize();
-    hs_scripts_reload();
+    halo::hs::object_lists_initialize();
+    halo::hs::hs_runtime_initialize();
+    halo::hs::hs_scripts_reload();
 
     recorded_animations = halo::saved_games::game_state_new((char *)"recorded animations", 0x40, 0x64);
 

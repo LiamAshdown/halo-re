@@ -1,10 +1,9 @@
 #include "halo/hs/hs3_commands.hpp"
 #include <stdio.h>
 #include "halo/memory/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
 extern void sv_ban(uint32_t argument_count, int32_t *arguments);
 extern void network_banlist_print(void);
 extern void chimera__console_out(void *color, char *format, ...);
@@ -13,8 +12,6 @@ extern uint8_t g_006f1d25;
 extern void game_engine_begin_end_game_sequence(void);
 extern void *global_white_argb;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
-    int16_t *expected_types, char first);
 extern void game_engine_find_player_by_name(char *source_name);
 extern void sv_kick(char *name_or_index);
 extern void sv_map(uint32_t argument_count, uint16_t **arguments);
@@ -55,9 +52,9 @@ void ServerCommands::evaluate_sv_ban(int16_t function_index, uint32_t thread_ind
     uint32_t count = 0;
     int32_t *values = 0;
 
-    if (hs_evaluate_variadic_arguments(thread_index, (int32_t)first, &count, &values) != 0) {
+    if (halo::hs::hs_evaluate_variadic_arguments(thread_index, (int32_t)first, &count, &values) != 0) {
         sv_ban(count, values);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -70,7 +67,7 @@ void ServerCommands::evaluate_sv_ban(int16_t function_index, uint32_t thread_ind
 void ServerCommands::evaluate_sv_banlist(int16_t function_index, uint32_t thread_index, char first) const
 {
     network_banlist_print();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -88,7 +85,7 @@ void ServerCommands::evaluate_sv_end_game(int16_t function_index, uint32_t threa
     } else {
         chimera__console_out(global_white_argb, (char *)"sv_end_game is a server-only function!");
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -100,12 +97,12 @@ void ServerCommands::evaluate_sv_end_game(int16_t function_index, uint32_t threa
 void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         game_engine_find_player_by_name((char *)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -118,12 +115,12 @@ void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function
 void ServerCommands::evaluate_sv_kick(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         sv_kick((char *)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -136,12 +133,12 @@ void ServerCommands::evaluate_sv_kick(int16_t function_index, uint32_t thread_in
 void ServerCommands::evaluate_sv_map(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         sv_map((uint32_t)arguments[0], (uint16_t **)arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -154,7 +151,7 @@ void ServerCommands::evaluate_sv_map(int16_t function_index, uint32_t thread_ind
 void ServerCommands::evaluate_sv_map_next(int16_t function_index, uint32_t thread_index, char first) const
 {
     chimera__console_out(0, (char *)"sv_map_next is a dedicated server-only function!");
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -166,7 +163,7 @@ void ServerCommands::evaluate_sv_map_next(int16_t function_index, uint32_t threa
 void ServerCommands::evaluate_sv_map_reset(int16_t function_index, uint32_t thread_index, char first) const
 {
     sv_map_reset();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -178,7 +175,7 @@ void ServerCommands::evaluate_sv_map_reset(int16_t function_index, uint32_t thre
 void ServerCommands::evaluate_sv_mapcycle(int16_t function_index, uint32_t thread_index, char first) const
 {
     chimera__console_out(0, (char *)"sv_mapcycle is a dedicated server-only function!");
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -190,12 +187,12 @@ void ServerCommands::evaluate_sv_mapcycle(int16_t function_index, uint32_t threa
 void ServerCommands::evaluate_sv_mapcycle_add(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         chimera__console_out(0, (char *)"sv_mapcycle_add is a dedicated server-only function!");
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -208,7 +205,7 @@ void ServerCommands::evaluate_sv_mapcycle_add(int16_t function_index, uint32_t t
 void ServerCommands::evaluate_sv_mapcycle_begin(int16_t function_index, uint32_t thread_index, char first) const
 {
     chimera__console_out(0, (char *)"sv_mapcycle_begin is a dedicated server-only function!");
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -220,12 +217,12 @@ void ServerCommands::evaluate_sv_mapcycle_begin(int16_t function_index, uint32_t
 void ServerCommands::evaluate_sv_mapcycle_del(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         chimera__console_out(0, (char *)"sv_mapcycle_del is a dedicated server-only function!");
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -245,7 +242,7 @@ void ServerCommands::evaluate_sv_parameters_dump(int16_t function_index, uint32_
             fclose(file);
         }
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -261,7 +258,7 @@ void ServerCommands::evaluate_sv_parameters_reload(int16_t function_index, uint3
         message_delta_definitions_invoke_field_bindings();
         message_delta_parameters_protocol_send_update();
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -273,7 +270,7 @@ void ServerCommands::evaluate_sv_parameters_reload(int16_t function_index, uint3
 void ServerCommands::evaluate_sv_players(int16_t function_index, uint32_t thread_index, char first) const
 {
     sv_players();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -285,7 +282,7 @@ void ServerCommands::evaluate_sv_players(int16_t function_index, uint32_t thread
 void ServerCommands::evaluate_sv_status(int16_t function_index, uint32_t thread_index, char first) const
 {
     sv_status();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -297,7 +294,7 @@ void ServerCommands::evaluate_sv_status(int16_t function_index, uint32_t thread_
 void ServerCommands::evaluate_sv_unban(int16_t function_index, uint32_t thread_index, char first) const
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -308,7 +305,7 @@ void ServerCommands::evaluate_sv_unban(int16_t function_index, uint32_t thread_i
             halo::memory::growable_array_remove_element(&ban_list, (uint32_t)index);
             network_banlist_save();
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -326,11 +323,11 @@ void ServerCommands::map_list_matching_substring_evaluate(int16_t function_index
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         map_list_matching_substring(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -348,11 +345,11 @@ void ServerCommands::sv_ban_penalty_evaluate(int16_t function_index, datum_index
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_ban_penalty(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -370,11 +367,11 @@ void ServerCommands::sv_banlist_file_evaluate(int16_t function_index, datum_inde
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_banlist_file(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -392,11 +389,11 @@ void ServerCommands::sv_friendly_fire_evaluate(int16_t function_index, datum_ind
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_friendly_fire(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -414,11 +411,11 @@ void ServerCommands::sv_maxplayers_evaluate(int16_t function_index, datum_index 
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_maxplayers(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -436,11 +433,11 @@ void ServerCommands::sv_name_evaluate(int16_t function_index, datum_index thread
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_name(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -458,11 +455,11 @@ void ServerCommands::sv_password_evaluate(int16_t function_index, datum_index th
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_password(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -480,11 +477,11 @@ void ServerCommands::sv_rcon_password_evaluate(int16_t function_index, datum_ind
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_rcon_password(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -502,11 +499,11 @@ void ServerCommands::sv_single_flag_force_reset_evaluate(int16_t function_index,
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_single_flag_force_reset(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -524,11 +521,11 @@ void ServerCommands::sv_timelimit_evaluate(int16_t function_index, datum_index t
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_timelimit(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -546,11 +543,11 @@ void ServerCommands::sv_tk_cooldown_evaluate(int16_t function_index, datum_index
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_tk_cooldown(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 
@@ -568,11 +565,11 @@ void ServerCommands::sv_tk_grace_evaluate(int16_t function_index, datum_index th
 
     argument_count = 0;
     arguments = 0;
-    ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
+    ready = halo::hs::hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
         sv_tk_grace(argument_count, arguments);
 
-        hs_thread_return(0, thread);
+        halo::hs::hs_thread_return(0, thread);
     }
 }
 

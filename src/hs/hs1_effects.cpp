@@ -4,6 +4,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern void *memset(void *dst, int32_t value, uint32_t size);
@@ -135,7 +136,7 @@ void ScriptEffects::effect_spawn_on_marker(datum_index object_index, datum_index
 
 }
 
-extern "C" {
+namespace halo::hs {
 
 void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect)
 {

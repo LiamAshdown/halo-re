@@ -5,11 +5,10 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset);
 extern void hud_waypoint_activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind, float vertical_offset);
@@ -21,8 +20,6 @@ extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t co
 extern void cheat_all_weapons(void);
 extern void cheat_spawn_warthog(void);
 extern void cheat_teleport_to_camera(void);
-extern void hs_damage_apply_at_location(int16_t location_index, uint32_t damage_effect);
-extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage_effect);
 extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
 extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
 }
@@ -37,7 +34,7 @@ namespace halo::hs {
 void NavPointCommands::activate_nav_point_flag(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -47,7 +44,7 @@ void NavPointCommands::activate_nav_point_flag(int16_t function_index, uint32_t 
             hud_waypoint_activate_for_player(player, (datum_index)(int32_t)*(int16_t *)&arguments[2], 0,
                 *(int16_t *)&arguments[0], *(float *)&arguments[3]);
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -59,7 +56,7 @@ void NavPointCommands::activate_nav_point_flag(int16_t function_index, uint32_t 
 void NavPointCommands::activate_nav_point_object(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -69,7 +66,7 @@ void NavPointCommands::activate_nav_point_object(int16_t function_index, uint32_
         hud_waypoint_activate_for_player(player, (datum_index)arguments[2], 1, *(int16_t *)&arguments[0],
             *(float *)&arguments[3]);
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -82,13 +79,13 @@ void NavPointCommands::activate_nav_point_object(int16_t function_index, uint32_
 void NavPointCommands::activate_team_nav_point_flag(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     hud_waypoint_activate_for_team((datum_index)(int32_t)*(int16_t *)&arguments[2], *(int16_t *)&arguments[0],
         *(int16_t *)&arguments[1], 0, *(float *)&arguments[3]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -100,13 +97,13 @@ void NavPointCommands::activate_team_nav_point_flag(int16_t function_index, uint
 void NavPointCommands::activate_team_nav_point_object(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     hud_waypoint_activate_for_team((datum_index)arguments[2], *(int16_t *)&arguments[0], *(int16_t *)&arguments[1], 1,
         *(float *)&arguments[3]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -118,7 +115,7 @@ void NavPointCommands::activate_team_nav_point_object(int16_t function_index, ui
 void NavPointCommands::deactivate_nav_point_flag(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -127,7 +124,7 @@ void NavPointCommands::deactivate_nav_point_flag(int16_t function_index, uint32_
         if (player != k_datum_index_none) {
             hud_waypoint_deactivate_for_player(player, (datum_index)(int32_t)*(int16_t *)&arguments[1], 0);
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -139,7 +136,7 @@ void NavPointCommands::deactivate_nav_point_flag(int16_t function_index, uint32_
 void NavPointCommands::deactivate_nav_point_object(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -148,7 +145,7 @@ void NavPointCommands::deactivate_nav_point_object(int16_t function_index, uint3
         if (player != k_datum_index_none) {
             hud_waypoint_deactivate_for_player(player, (datum_index)arguments[1], 1);
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -160,12 +157,12 @@ void NavPointCommands::deactivate_nav_point_object(int16_t function_index, uint3
 void NavPointCommands::deactivate_team_nav_point_flag(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     hud_waypoint_deactivate_for_team(0, *(int16_t *)&arguments[0], (datum_index)(int32_t)*(int16_t *)&arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -177,12 +174,12 @@ void NavPointCommands::deactivate_team_nav_point_flag(int16_t function_index, ui
 void NavPointCommands::deactivate_team_nav_point_object(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
     hud_waypoint_deactivate_for_team(1, *(int16_t *)&arguments[0], (datum_index)arguments[1]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -216,12 +213,12 @@ const ScriptCommandGroup &NavPointCommands::commands()
 void WorldStateCommands::breakable_surfaces_enable(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         breakable_surface_state[0] = *(uint8_t *)&arguments[0];
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -235,7 +232,7 @@ void WorldStateCommands::run_breakable_surfaces_reset(int16_t function_index, ui
     (void)function_index;
     (void)first;
     halo::objects::breakable_surfaces_reset();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -246,11 +243,11 @@ void WorldStateCommands::run_breakable_surfaces_reset(int16_t function_index, ui
 void WorldStateCommands::custom_animation(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)halo::units::unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
+    halo::hs::hs_thread_return((int32_t)halo::units::unit_start_user_animation((uint32_t)arguments[0], (datum_index)arguments[1],
         (const char *)arguments[2], *(uint8_t *)&arguments[3]), thread_index);
     }
 }
@@ -264,11 +261,11 @@ void WorldStateCommands::custom_animation(int16_t function_index, uint32_t threa
 void WorldStateCommands::custom_animation_list(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)halo::ai::ai_object_list_start_user_animation_until_failure((datum_index)arguments[0],
+    halo::hs::hs_thread_return((int32_t)halo::ai::ai_object_list_start_user_animation_until_failure((datum_index)arguments[0],
         (datum_index)arguments[1], (const char *)arguments[2], *(uint8_t *)&arguments[3]), thread_index);
     }
 }
@@ -299,7 +296,7 @@ const ScriptCommandGroup &WorldStateCommands::commands()
 void CheatCommands::cheat_active_camouflage(int16_t function_index, uint32_t thread_index, char first)
 {
     cheat_make_selected_object_invincible();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -310,12 +307,12 @@ void CheatCommands::cheat_active_camouflage(int16_t function_index, uint32_t thr
 void CheatCommands::cheat_active_camouflage_local_player(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         cheat_make_player_invincible(*(int16_t *)arguments);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -329,7 +326,7 @@ void CheatCommands::cheat_all_powerups(int16_t function_index, uint32_t thread_i
     TagDependency *list = *(int32_t *)&global_globals->cheat_powerups.count != 0 ? (TagDependency *)global_globals->cheat_powerups.pointer : 0;
 
     cheat_spawn_objects_near_camera(list, *(int16_t *)&global_globals->cheat_powerups.count);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -344,7 +341,7 @@ void CheatCommands::cheat_all_vehicles(int16_t function_index, uint32_t thread_i
 
         cheat_spawn_objects_near_camera(*(TagDependency **)(element + 0x24), (int16_t)*(uint16_t *)(element + 0x20));
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -355,7 +352,7 @@ void CheatCommands::cheat_all_vehicles(int16_t function_index, uint32_t thread_i
 void CheatCommands::run_cheat_all_weapons(int16_t function_index, uint32_t thread_index, char first)
 {
     cheat_all_weapons();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -366,7 +363,7 @@ void CheatCommands::run_cheat_all_weapons(int16_t function_index, uint32_t threa
 void CheatCommands::run_cheat_spawn_warthog(int16_t function_index, uint32_t thread_index, char first)
 {
     cheat_spawn_warthog();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -377,7 +374,7 @@ void CheatCommands::run_cheat_spawn_warthog(int16_t function_index, uint32_t thr
 void CheatCommands::run_cheat_teleport_to_camera(int16_t function_index, uint32_t thread_index, char first)
 {
     cheat_teleport_to_camera();
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 namespace {
@@ -409,12 +406,12 @@ const ScriptCommandGroup &CheatCommands::commands()
 void DamageCommands::damage_new(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_damage_apply_at_location(*(int16_t *)&arguments[1], (uint32_t)arguments[0]);
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_damage_apply_at_location(*(int16_t *)&arguments[1], (uint32_t)arguments[0]);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -426,12 +423,12 @@ void DamageCommands::damage_new(int16_t function_index, uint32_t thread_index, c
 void DamageCommands::damage_object(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_damage_apply_with_sound((datum_index)arguments[1], (uint32_t)arguments[0]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_damage_apply_with_sound((datum_index)arguments[1], (uint32_t)arguments[0]);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -459,7 +456,7 @@ const ScriptCommandGroup &DamageCommands::commands()
 void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -469,7 +466,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
     if (device != k_datum_index_none) {
         result = *(int32_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x208);
     }
-    hs_thread_return(result, thread_index);
+    halo::hs::hs_thread_return(result, thread_index);
     }
 }
 
@@ -481,7 +478,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
 void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -490,7 +487,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
             power = *(int32_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[arguments[0] & halo::k_slot_mask].data + 0x1fc);
         }
-        hs_thread_return(power, thread_index);
+        halo::hs::hs_thread_return(power, thread_index);
     }
 }
 
@@ -502,7 +499,7 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
 void DeviceCommands::device_group_change_only_once_more_set(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -518,7 +515,7 @@ void DeviceCommands::device_group_change_only_once_more_set(int16_t function_ind
             }
             record[2] &= 0xfd;
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -530,12 +527,12 @@ void DeviceCommands::device_group_change_only_once_more_set(int16_t function_ind
 void DeviceCommands::device_group_get(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         float value = *(float *)((uint8_t *)halo::devices::globals().device_groups->data + (uint16_t)*(uint16_t *)&arguments[0] * 8 + 4);
-        hs_thread_return(*(int32_t *)&value, thread_index);
+        halo::hs::hs_thread_return(*(int32_t *)&value, thread_index);
     }
 }
 
@@ -547,11 +544,11 @@ void DeviceCommands::device_group_get(int16_t function_index, uint32_t thread_in
 void DeviceCommands::device_group_set(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)halo::devices::device_group_set_value(*(uint16_t *)&arguments[0], *(float *)&arguments[1]), thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::devices::device_group_set_value(*(uint16_t *)&arguments[0], *(float *)&arguments[1]), thread_index);
     }
 }
 
@@ -563,12 +560,12 @@ void DeviceCommands::device_group_set(int16_t function_index, uint32_t thread_in
 void DeviceCommands::device_group_set_immediate(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         halo::devices::device_group_set_value_immediate(*(uint16_t *)&arguments[0], *(float *)&arguments[1]);
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -580,7 +577,7 @@ void DeviceCommands::device_group_set_immediate(int16_t function_index, uint32_t
 void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -593,7 +590,7 @@ void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t threa
                 *(uint32_t *)(device + 0x214) &= 0xfffffffd;
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -605,7 +602,7 @@ void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t threa
 void DeviceCommands::device_operates_automatically_set(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -618,7 +615,7 @@ void DeviceCommands::device_operates_automatically_set(int16_t function_index, u
             *(uint32_t *)(device + 0x214) |= 1;
         }
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -630,7 +627,7 @@ void DeviceCommands::device_operates_automatically_set(int16_t function_index, u
 void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -645,7 +642,7 @@ void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uin
                 }
             }
         }
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -674,7 +671,7 @@ const ScriptCommandGroup &DeviceCommands::commands()
 
 }
 
-extern "C" {
+namespace halo::hs {
 
 void hs_evaluate_activate_nav_point_flag(int16_t function_index, uint32_t thread_index, char first)
 {

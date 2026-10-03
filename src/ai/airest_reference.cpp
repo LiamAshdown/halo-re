@@ -13,9 +13,9 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
-extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern const real_vector3d *global_down3d_pointer;
 extern double fcos(double angle);
 extern double fsin(double angle);
@@ -327,13 +327,13 @@ datum_index ReferenceView::build_object_list()
                 datum_index passenger;
 
                 if (a->unit_index != (datum_index)k_datum_index_none) {
-                    object_list_reference_add(header_index, a->unit_index);
+                    halo::hs::object_list_reference_add(header_index, a->unit_index);
                 }
 
                 passenger = a->cluster_unit_index;
                 while (passenger != (datum_index)k_datum_index_none) {
                     object_header *passenger_header = &((object_header *)halo::objects::globals().object_data->data)[passenger & halo::k_slot_mask];
-                    object_list_reference_add(header_index, passenger);
+                    halo::hs::object_list_reference_add(header_index, passenger);
                     passenger = *(datum_index *)((uint8_t *)passenger_header->data + 0x1fc);
                 }
 

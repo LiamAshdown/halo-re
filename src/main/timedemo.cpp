@@ -20,6 +20,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
@@ -45,7 +46,6 @@ extern "C" { extern int16_t renderer_texture_quality; }
 extern "C" { extern int16_t light_count_enabled; }
 extern "C" { extern uint8_t console_debug_toggle_6893f2; }
 extern "C" { extern uint8_t console_debug_toggle_6893fa; }
-extern "C" { extern char hs_compile_and_evaluate(const char *command); }
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {
 
@@ -150,13 +150,13 @@ void Timedemo::benchmark_update(void)
         game_time_force_single_tick++;
         return;
     case _timedemo_step_load_b30:
-        hs_compile_and_evaluate("map_name b30");
+        halo::hs::hs_compile_and_evaluate((char *)"map_name b30");
         break;
     case _timedemo_step_load_c10:
-        hs_compile_and_evaluate("map_name c10");
+        halo::hs::hs_compile_and_evaluate((char *)"map_name c10");
         break;
     case _timedemo_step_load_d20:
-        hs_compile_and_evaluate("map_name d20");
+        halo::hs::hs_compile_and_evaluate((char *)"map_name d20");
         break;
     case _timedemo_step_report:
         main_globals_data.quit = 1;

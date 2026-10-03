@@ -2,11 +2,10 @@
 #include <stdint.h>
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/hs/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
-extern void hs_thread_return(int32_t value, uint32_t thread_index);
 }
 
 namespace halo::game {
@@ -19,7 +18,7 @@ namespace halo::game {
 void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
@@ -29,7 +28,7 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
         if (unit_obj != 0) {
             gunner = ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->gunner_unit_index;
         }
-        hs_thread_return((int32_t)gunner, thread_index);
+        halo::hs::hs_thread_return((int32_t)gunner, thread_index);
     }
 }
 
@@ -42,13 +41,13 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
 void HsPlayerFunctions::vehicle_test_seat_evaluate(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t seated = halo::units::unit_is_child_seated_at_named_marker((datum_index)arguments[0],
             (char *)((const char *)(uintptr_t)(uint32_t)arguments[1]), (datum_index)arguments[2]);
-        hs_thread_return((int32_t)seated, thread_index);
+        halo::hs::hs_thread_return((int32_t)seated, thread_index);
     }
 }
 
@@ -61,13 +60,13 @@ void HsPlayerFunctions::vehicle_test_seat_evaluate(int16_t function_index, uint3
  */
 void HsPlayerFunctions::camo_screen_effect(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
 {
-    int32_t *args = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *args = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
     (void)index;
 
     if (args != 0) {
         int32_t result = halo::units::unit_build_seat_occupant_zone_list(args[0]);
-        hs_thread_return(result, thread_index);
+        halo::hs::hs_thread_return(result, thread_index);
     }
 }
 
@@ -81,7 +80,7 @@ void HsPlayerFunctions::camo_screen_effect(int16_t index, uint32_t thread_index,
  */
 void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_index, hs_function_definition *definition, char first)
 {
-    int32_t *args = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *args = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
     (void)index;
 
@@ -92,12 +91,12 @@ void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_in
         object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & 0xffff].data;
         if ((char)args[1] != 0) {
             *((uint8_t *)&target->vitality_flags + 1) |= 0x01;
-            hs_thread_return(0, thread_index);
+            halo::hs::hs_thread_return(0, thread_index);
             return;
         }
         *((uint8_t *)&target->vitality_flags + 1) &= 0xfe;
     }
-    hs_thread_return(0, thread_index);
+    halo::hs::hs_thread_return(0, thread_index);
 }
 
 /**
@@ -109,13 +108,13 @@ void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_in
 void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = hs_function_definitions[function_index];
-    int32_t *args = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+    int32_t *args = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
     if (args != 0) {
         object *target = (object *)((object_header *)halo::objects::globals().object_data->data)[args[0] & 0xffff].data;
         *((uint8_t *)&target->vitality_flags) |= 0x20;
-        hs_thread_return(0, thread_index);
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 

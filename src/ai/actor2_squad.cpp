@@ -10,6 +10,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 
 namespace halo::ai {
 
@@ -116,7 +117,6 @@ extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
 extern data_array *player_data;
-extern char hs_call_script_by_name(char *name);
 extern const char k_empty_string[];
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -473,7 +473,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         if (script < 0 || script >= *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x450)) {
             return 0;
         }
-        return hs_call_script_by_name(*(char **)((uint8_t *)halo::scenario::globals().scenario + 0x454) + script * 0x28);
+        return halo::hs::hs_call_script_by_name(*(char **)((uint8_t *)halo::scenario::globals().scenario + 0x454) + script * 0x28);
     }
 
     case 0xd: {
