@@ -94,7 +94,7 @@ void FirstPersonWeaponController::update()
         object *weapon_obj = object_get(fp->weapon_index);
         object *unit_obj = object_get(fp->unit_index);
         Weapon *weapon_tag = halo::interface::tag_data<Weapon>(weapon_obj->definition_tag);
-        datum_index animation_graph = *(datum_index *)&weapon_tag->first_person_animations.tag_id;
+        datum_index animation_graph = halo::interface::tag_handle(weapon_tag->first_person_animations.tag_id);
         ModelAnimations *animations = halo::interface::tag_data<ModelAnimations>(animation_graph);
         ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *list;
         uint32_t *weapon_flags = &((weapon_object *)weapon_obj)->weapon.flags;
@@ -112,7 +112,7 @@ void FirstPersonWeaponController::update()
             }
         }
 
-        if (halo::models::animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, reinterpret_cast<animation_state *>(&fp->current_animation),
+        if (halo::models::animation_state_advance(halo::interface::tag_handle(weapon_tag->first_person_animations.tag_id), reinterpret_cast<animation_state *>(&fp->current_animation),
                          reinterpret_cast<int32_t *>(&frame_sound), static_cast<animation_random_stream>(0)) == 2) {
             halo::interface::first_person_weapon_update_state(local_player_index);
         }
@@ -137,7 +137,7 @@ void FirstPersonWeaponController::update()
         }
 
         if (fp->moving_animation != -1) {
-            halo::models::animation_state_advance(*(datum_index *)&weapon_tag->first_person_animations.tag_id, reinterpret_cast<animation_state *>(&fp->moving_animation),
+            halo::models::animation_state_advance(halo::interface::tag_handle(weapon_tag->first_person_animations.tag_id), reinterpret_cast<animation_state *>(&fp->moving_animation),
                          reinterpret_cast<int32_t *>((datum_index *)0), static_cast<animation_random_stream>(0));
             if (!is_moving) {
                 if (fp->state == 0) {
@@ -363,7 +363,7 @@ void FirstPersonWeaponController::update_animation_controls()
         }
 
         halo::models::animation_graph::nodes_build_matrices(
-            *(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global,
+            halo::interface::tag_handle(weapon_tag->first_person_animations.tag_id), &render_camera_global,
             reinterpret_cast<real_matrix4x3 *>(((struct first_person_weapon_interface *)fp_raw)->node_matrices), reinterpret_cast<real_orientation *>(((struct first_person_weapon_interface *)fp_raw)->animation_control), &camera_forward_x, &camera_up);
     }
 }
@@ -409,7 +409,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     if (halo::main::render_local_view_count() > 1) {
         return;
     }
-    if (*(datum_index *)&effect->mask_fullscreen.tag_id == (datum_index)-1) {
+    if (halo::interface::tag_handle(effect->mask_fullscreen.tag_id) == (datum_index)-1) {
         return;
     }
     if (!halo::interface::has_bit(effect->desaturation_flags, halo::tags::weapon_hud_interface_screen_effect_definition_desaturation_tag_flag::connect_to_flashlight)) {

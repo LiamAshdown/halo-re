@@ -150,7 +150,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
     }
 
     if (is_begin) {
-        int32_t sound_tag_id = *(int32_t *)&hud_globals->checkpoint_sound.tag_id;
+        int32_t sound_tag_id = halo::interface::tag_handle(hud_globals->checkpoint_sound.tag_id);
         if (sound_tag_id != -1) {
             hud_sound_start_parameters parameters;
 
@@ -163,7 +163,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
 
     if (message_index != -1 && halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
         const uint16_t *text = empty_wide_string_pointer;
-        int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
+        int32_t string_list_tag_id = halo::interface::tag_handle(hud_globals->item_message_text.tag_id);
         if (string_list_tag_id != -1) {
             int32_t *string_list_tag_data = halo::interface::tag_data<int32_t>(string_list_tag_id);
             if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
@@ -207,7 +207,7 @@ void HudMessaging::display_loading_message(uint8_t is_begin)
 uint16_t * HudMessaging::get_message_string(int32_t message_index)
 {
     HUDGlobals *hud_globals = (HUDGlobals *)hud_globals_tag_data;
-    int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
+    int32_t string_list_tag_id = halo::interface::tag_handle(hud_globals->item_message_text.tag_id);
 
     if (string_list_tag_id != -1) {
         int32_t *string_list_tag_data = halo::interface::tag_data<int32_t>(string_list_tag_id);
@@ -558,7 +558,7 @@ void HudMessaging::set_player_message(int16_t message_index, int16_t local_playe
     if (hud_flags->help_text_shown != 0) {
         return;
     }
-    tag_id = *(datum_index *)&hud_globals_tag_data->hud_messages.tag_id;
+    tag_id = halo::interface::tag_handle(hud_globals_tag_data->hud_messages.tag_id);
     if (tag_id == (datum_index)-1) {
         return;
     }

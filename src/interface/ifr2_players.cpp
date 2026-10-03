@@ -122,7 +122,7 @@ void LocalPlayers::state_reset()
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    hud_text_draw_font_tag_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
+    hud_text_draw_font_tag_id = halo::interface::tag_handle(interface_bitmaps->font_terminal.tag_id);
     hud_text_draw_color_a = global_white_argb->alpha;
     hud_text_draw_color_r = global_white_argb->red;
     hud_text_draw_color_g = global_white_argb->green;

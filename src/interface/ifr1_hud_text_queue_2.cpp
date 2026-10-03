@@ -86,7 +86,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 message_index = 0;
             }
 
-            if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != halo::k_dword_none) {
+            if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none) {
                 UnicodeStringList *list =
                     (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
 

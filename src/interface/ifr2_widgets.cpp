@@ -157,8 +157,8 @@ void WidgetLifecycle::close()
                     uint8_t handled = 0;
 
                     if (fn(widget, nullptr, &handled) == 1 && halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) &&
-                        *(uint32_t *)&handler->widget_tag.tag_id != halo::k_dword_none) {
-                        halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
+                        halo::interface::tag_handle(handler->widget_tag.tag_id) != halo::k_dword_none) {
+                        halo::interface::widget_reopen_as_root_with_history(widget, halo::interface::tag_handle(handler->widget_tag.tag_id));
                     }
                 }
             }
@@ -313,7 +313,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
     if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag)) {
         UnicodeStringList *list =
-            halo::interface::tag_data<UnicodeStringList>(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id);
+            halo::interface::tag_data<UnicodeStringList>(halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id));
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
@@ -346,7 +346,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
         for (i = 0; i < tag->child_widgets.count; i++) {
             ChildWidgetReference *entry = (ChildWidgetReference *)(entries + i * 0x50);
-            datum_index child_tag_index = *(uint32_t *)&entry->widget_tag.tag_id;
+            datum_index child_tag_index = halo::interface::tag_handle(entry->widget_tag.tag_id);
 
             if (child_tag_index != (datum_index)-1) {
                 uint16_t controller = widget->controller_index;
@@ -379,9 +379,9 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     }
 
     if ((widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
-        *(uint32_t *)&tag->extended_description_widget.tag_id != halo::k_dword_none) {
+        halo::interface::tag_handle(tag->extended_description_widget.tag_id) != halo::k_dword_none) {
         widget_instance *desc = halo::interface::chimera__load_ui_widget(
-            nullptr, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
+            nullptr, halo::interface::tag_handle(tag->extended_description_widget.tag_id), widget,
             widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
 
         widget->extended_description = desc;
@@ -871,8 +871,8 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget->selection_index = -1;
         widget->list_render_data = nullptr;
     }
-    if (*(uint32_t *)&tag->background_bitmap.tag_id != halo::k_dword_none) {
-        tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & halo::k_slot_mask];
+    if (halo::interface::tag_handle(tag->background_bitmap.tag_id) != halo::k_dword_none) {
+        tag_instance *bg = &halo::cache::globals().tag_instances[halo::interface::tag_handle(tag->background_bitmap.tag_id) & halo::k_slot_mask];
         Bitmap *bitmap = (Bitmap *)bg->data;
         BitmapGroupSequence *seq = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
 

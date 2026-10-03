@@ -46,7 +46,7 @@ namespace halo::interface {
  */
 void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags, float fraction, float fraction_2, const hud_meter_placement *meter)
 {
-    datum_index bitmap_tag = *(datum_index *)&meter->meter_bitmap.tag_id;
+    datum_index bitmap_tag = halo::interface::tag_handle(meter->meter_bitmap.tag_id);
     uint8_t *bitmap_tag_data = halo::interface::tag_data<uint8_t>(bitmap_tag);
     BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, (int16_t)meter->sequence_index);
     const uint8_t *sprite_rect = 0;

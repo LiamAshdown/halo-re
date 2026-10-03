@@ -130,7 +130,7 @@ void HudWaypoints::draw_for_player()
     player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
     if (player_index == (datum_index)-1 ||
         (halo::interface::player_record(player_index))->unit == (datum_index)-1 ||
-        *(datum_index *)&hud_globals_tag_data->arrow_bitmap.tag_id == (datum_index)-1) {
+        halo::interface::tag_handle(hud_globals_tag_data->arrow_bitmap.tag_id) == (datum_index)-1) {
         halo::game::game_engine_update_custom_waypoint_navpoints(local_player_index);
         return;
     }
@@ -344,7 +344,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                 }
                 sequence = 0;
                 if ((flags & 2) == 0) {
-                    Bitmap *tag = halo::interface::tag_data<Bitmap>(*(datum_index *)&crosshair->crosshair_bitmap.tag_id);
+                    Bitmap *tag = halo::interface::tag_data<Bitmap>(halo::interface::tag_handle(crosshair->crosshair_bitmap.tag_id));
                     sequence = (BitmapGroupSequence *)tag->bitmap_group_sequence.pointer + (int16_t)overlay->sequence_index;
                 }
 
@@ -415,7 +415,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     break;
                 }
 
-                bitmap_tag = halo::interface::tag_data<Bitmap>(*(datum_index *)&crosshair->crosshair_bitmap.tag_id);
+                bitmap_tag = halo::interface::tag_data<Bitmap>(halo::interface::tag_handle(crosshair->crosshair_bitmap.tag_id));
                 {
                     int32_t bitmap_index = sequence != 0
                         ? (int16_t)((BitmapGroupSprite *)sequence->sprites.pointer)[frame].bitmap_index
@@ -584,8 +584,8 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
         }
     }
 
-    if (*(datum_index *)&hud->child_hud.tag_id != (datum_index)-1) {
-        halo::interface::hud_weapon_interface_draw_elements(*(datum_index *)&hud->child_hud.tag_id, local_player_index, weapon_tag, ammo,
+    if (halo::interface::tag_handle(hud->child_hud.tag_id) != (datum_index)-1) {
+        halo::interface::hud_weapon_interface_draw_elements(halo::interface::tag_handle(hud->child_hud.tag_id), local_player_index, weapon_tag, ammo,
                                            state_flags, overlay_types, numbers);
     }
 
@@ -971,8 +971,8 @@ void WeaponHud::state_update()
                     weapon_hud_ammo_state ammo;
 
                     halo::items::weapon_build_hud_ammo_state(weapon, &ammo);
-                    if (*(datum_index *)&weapon_tag->hud_interface.tag_id != (datum_index)-1) {
-                        halo::interface::hud_weapon_interface_meters_evaluate(*(datum_index *)&weapon_tag->hud_interface.tag_id, local_player_index,
+                    if (halo::interface::tag_handle(weapon_tag->hud_interface.tag_id) != (datum_index)-1) {
+                        halo::interface::hud_weapon_interface_meters_evaluate(halo::interface::tag_handle(weapon_tag->hud_interface.tag_id), local_player_index,
                                                              weapon, &ammo);
                     }
                 } else if (evaluate_default && halo::units::unit_count_deployed_weapons(unit_index) == 0) {
@@ -1102,7 +1102,7 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
 
             if (weapon_handle != (datum_index)-1) {
                 Weapon *weapon_tag = halo::interface::tag_data<Weapon>(object_get(weapon_handle)->definition_tag);
-                datum_index hud_interface = *(datum_index *)&weapon_tag->hud_interface.tag_id;
+                datum_index hud_interface = halo::interface::tag_handle(weapon_tag->hud_interface.tag_id);
                 if (hud_interface != (datum_index)-1) {
                     *out_intensity = intensity;
                     return (int32_t)hud_interface;

@@ -55,7 +55,7 @@ void HudWaypoints::draw_one(datum_index player_index)
         ? (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer
         : (GlobalsInterfaceBitmaps *)0;
     bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
-        *(datum_index *)&interface_bitmaps->multiplayer_hud_bitmap.tag_id, 0, 0);
+        halo::interface::tag_handle(interface_bitmaps->multiplayer_hud_bitmap.tag_id), 0, 0);
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }

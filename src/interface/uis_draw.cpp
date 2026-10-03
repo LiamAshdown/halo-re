@@ -160,7 +160,7 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
     rasterizer_data = (global_globals->rasterizer_data.count == 0)
         ? (GlobalsRasterizerData *)0
         : (GlobalsRasterizerData *)global_globals->rasterizer_data.pointer;
-    default_2d_tag = *(datum_index *)&rasterizer_data->default_2d.tag_id;
+    default_2d_tag = halo::interface::tag_handle(rasterizer_data->default_2d.tag_id);
     default_2d_bitmap = halo::interface::tag_data<Bitmap>(default_2d_tag);
     default_2d_bitmap_data = (BitmapData *)default_2d_bitmap->bitmap_data.pointer;
 

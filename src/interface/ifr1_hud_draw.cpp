@@ -276,7 +276,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     if (information->frame_rate != 0) {
         frame = halo::game::globals().game_time->game_time / (int32_t)information->frame_rate;
     }
-    halo::interface::hud_meter_resolve_bitmap_frame(*(datum_index *)&hud_globals_tag_data->icon_bitmap.tag_id,
+    halo::interface::hud_meter_resolve_bitmap_frame(halo::interface::tag_handle(hud_globals_tag_data->icon_bitmap.tag_id),
                                    (int16_t)information->sequence_index, (uint16_t)frame, (void **)&bitmap,
                                    &uv_offset);
     if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
@@ -548,7 +548,7 @@ void HudDraw::number(void *unused, const void *anchor, const hud_number_placemen
     GlobalsInterfaceBitmaps *interface_bitmaps = (global_globals->interface_bitmaps.count != 0)
         ? (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer
         : (GlobalsInterfaceBitmaps *)0;
-    datum_index digits_tag = *(datum_index *)&interface_bitmaps->hud_digits_definition.tag_id;
+    datum_index digits_tag = halo::interface::tag_handle(interface_bitmaps->hud_digits_definition.tag_id);
     HUDNumber *digits;
     uint8_t *digits_bitmap_data;
     BitmapData *bitmap;
@@ -566,7 +566,7 @@ void HudDraw::number(void *unused, const void *anchor, const hud_number_placemen
         return;
     }
     digits = halo::interface::tag_data<HUDNumber>(digits_tag);
-    pen.digits_bitmap = *(datum_index *)&digits->digits_bitmap.tag_id;
+    pen.digits_bitmap = halo::interface::tag_handle(digits->digits_bitmap.tag_id);
     digits_bitmap_data = halo::interface::tag_data<uint8_t>(pen.digits_bitmap);
     bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(pen.digits_bitmap, 0, 0);
     thousands = (value > 999);

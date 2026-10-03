@@ -96,7 +96,7 @@ void HudMessaging::receive_item_message(void **message)
             halo::game::player_trigger_full_health_effect(iterator.index);
             break;
         }
-        sound = *(datum_index *)&equipment_tag->pickup_sound.tag_id;
+        sound = halo::interface::tag_handle(equipment_tag->pickup_sound.tag_id);
     } else if (item_tag[0] == 2 && item_tag != 0) {
         sound = halo::interface::tag_handle(((struct Weapon *)item_tag)->pickup_sound.tag_id);
     } else {

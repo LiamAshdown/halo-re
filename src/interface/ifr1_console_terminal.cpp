@@ -19,6 +19,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/records.hpp"
 
 extern "C" {
 extern char console_echo_prefix[];
@@ -250,7 +251,7 @@ void ConsoleTerminal::draw_overlay(void)
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    font_terminal_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
+    font_terminal_id = halo::interface::tag_handle(interface_bitmaps->font_terminal.tag_id);
 
     if (halo::main::globals().terminal_initialized == 0) {
         return;

@@ -631,7 +631,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
     }
     {
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::give_focus_to_widget) && handled == 0) {
-            if (*(uint32_t *)&handler->widget_tag.tag_id == 0xffffffffu) {
+            if (halo::interface::tag_handle(handler->widget_tag.tag_id) == 0xffffffffu) {
                 ok = 0;
             } else {
                 widget_instance *root = widget;
@@ -640,7 +640,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 while (root->parent != (widget_instance *)0) {
                     root = root->parent;
                 }
-                found = halo::interface::widget_find_by_tag_id(root, *(datum_index *)&handler->widget_tag.tag_id);
+                found = halo::interface::widget_find_by_tag_id(root, halo::interface::tag_handle(handler->widget_tag.tag_id));
                 if (found != (widget_instance *)0) {
                     halo::interface::widget_instance_relink_focus(root, found);
                 }
@@ -648,20 +648,20 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             }
         }
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::reload_other_widget) && handled == 0 &&
-            *(uint32_t *)&handler->widget_tag.tag_id == 0xffffffffu) {
+            halo::interface::tag_handle(handler->widget_tag.tag_id) == 0xffffffffu) {
             ok = 0;
         }
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::close_current_widget) && handled == 0) {
             close_current = 1;
         }
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::close_other_widget) && handled == 0 &&
-            *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
+            halo::interface::tag_handle(handler->widget_tag.tag_id) != 0xffffffffu) {
             widget_instance *found = (widget_instance *)0;
             int32_t i;
 
             for (i = 0; i < 1; i++) {
                 if (ui_root_widget[i] != (widget_instance *)0) {
-                    found = halo::interface::widget_find_by_tag_id(ui_root_widget[i], *(datum_index *)&handler->widget_tag.tag_id);
+                    found = halo::interface::widget_find_by_tag_id(ui_root_widget[i], halo::interface::tag_handle(handler->widget_tag.tag_id));
                     if (found != (widget_instance *)0) {
                         break;
                     }
@@ -678,8 +678,8 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::close_all_widgets) && handled == 0) {
             close_all = 1;
         }
-        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) && *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
-            if (halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id) == 0) {
+        if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) && halo::interface::tag_handle(handler->widget_tag.tag_id) != 0xffffffffu) {
+            if (halo::interface::widget_reopen_as_root_with_history(widget, halo::interface::tag_handle(handler->widget_tag.tag_id)) == 0) {
                 ok = 0;
             } else {
                 if (action_kind == 0) action_kind = 2;
@@ -687,9 +687,9 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             }
         }
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::replace_self_w_widget) && handled == 0 &&
-            *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffffu) {
+            halo::interface::tag_handle(handler->widget_tag.tag_id) != 0xffffffffu) {
             widget_instance *replacement =
-                halo::interface::chimera__load_ui_widget(nullptr, *(datum_index *)&handler->widget_tag.tag_id,
+                halo::interface::chimera__load_ui_widget(nullptr, halo::interface::tag_handle(handler->widget_tag.tag_id),
                                          widget, widget->controller_index, (datum_index)-1,
                                          (datum_index)-1, -1);
 
@@ -739,10 +739,10 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             if (action_kind == 0) action_kind = 3;
             handled = 1;
         }
-        if (*(uint32_t *)&handler->sound_effect.tag_id != 0xffffffffu) {
+        if (halo::interface::tag_handle(handler->sound_effect.tag_id) != 0xffffffffu) {
             float position[3] = {0.0f, 1.0f, 1.0f};
 
-            halo::sound::sound_play_new(*(datum_index *)&handler->sound_effect.tag_id, (sound_location *)position, -1, 0, 0, 0, 0);
+            halo::sound::sound_play_new(halo::interface::tag_handle(handler->sound_effect.tag_id), (sound_location *)position, -1, 0, 0, 0, 0);
         }
         if (close_all == 0) {
             widget_instance *target = widget;
@@ -802,7 +802,7 @@ after_run_function:
             ConditionalWidgetReference *entry = (ConditionalWidgetReference *)(entries + i * 0x50);
 
             if (function_failed == 1 && halo::interface::has_bit(entry->flags, halo::tags::conditional_widget_reference_tag_flag::load_if_event_handler_function_fails) && handled == 0) {
-                datum_index open_tag = *(uint32_t *)&entry->widget_tag.tag_id;
+                datum_index open_tag = halo::interface::tag_handle(entry->widget_tag.tag_id);
 
                 if (open_tag != (datum_index)-1 && halo::interface::widget_reopen_as_root_with_history(widget, open_tag) != 0) {
                     handled = 1;

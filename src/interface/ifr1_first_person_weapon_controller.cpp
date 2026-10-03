@@ -789,8 +789,8 @@ void FirstPersonWeaponController::update_screen_effects(void)
     memset(&parameters, 0, sizeof(parameters));
 
     if (zoomed || !halo::interface::has_bit(effect->mask_flags, halo::tags::weapon_hud_interface_screen_effect_definition_mask_tag_flag::only_when_zoomed)) {
-        datum_index mask = (halo::main::render_local_view_count() > 1) ? *(datum_index *)&effect->mask_splitscreen.tag_id
-                                                : *(datum_index *)&effect->mask_fullscreen.tag_id;
+        datum_index mask = (halo::main::render_local_view_count() > 1) ? halo::interface::tag_handle(effect->mask_splitscreen.tag_id)
+                                                : halo::interface::tag_handle(effect->mask_fullscreen.tag_id);
         if (mask != (datum_index)-1) {
             parameters.mask_bitmap_data =
                 *(uint32_t *)(halo::interface::tag_data<uint8_t>(mask) + 0x64);

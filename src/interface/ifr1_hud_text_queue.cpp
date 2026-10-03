@@ -3,6 +3,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/text/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/records.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -39,7 +40,7 @@ void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_fl
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     dependency = (TagDependency *)((char *)interface_bitmaps + font_table_index * 0x10);
-    hud_text_draw_font_tag_id = *(int32_t *)&dependency->tag_id;
+    hud_text_draw_font_tag_id = halo::interface::tag_handle(dependency->tag_id);
 
     hud_text_draw_color_a = color.alpha;
     hud_text_draw_color_r = color.red;

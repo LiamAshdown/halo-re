@@ -123,10 +123,10 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
     parameters = hud_messaging_parameters;
     split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
-    font = *(datum_index *)&parameters->fullscreen_font.tag_id;
+    font = halo::interface::tag_handle(parameters->fullscreen_font.tag_id);
     if (halo::game::globals().local_player_globals->local_player_count > 1 &&
-        *(datum_index *)&parameters->splitscreen_font.tag_id != (datum_index)-1) {
-        font = *(datum_index *)&parameters->splitscreen_font.tag_id;
+        halo::interface::tag_handle(parameters->splitscreen_font.tag_id) != (datum_index)-1) {
+        font = halo::interface::tag_handle(parameters->splitscreen_font.tag_id);
     }
     halo::interface::hud_anchor_offset_to_screen_position(&parameters->anchor, split_screen, 0.0f,
                                          &parameters->anchor_offset.x, &origin.x, 0);
@@ -198,7 +198,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             messages_tag = halo::interface::tag_data<HUDMessageText>(*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id);
             message = hud_messaging->help_text;
         } else if (record->message != 0) {
-            messages_tag = halo::interface::tag_data<HUDMessageText>(*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id);
+            messages_tag = halo::interface::tag_data<HUDMessageText>(halo::interface::tag_handle(hud_globals_tag_data->hud_messages.tag_id));
             message = record->message;
         } else if (record->action_text[0] != 0) {
             halo::interface::hud_draw_message_text_span(&cursor, &line, record->action_text, 1);
@@ -247,7 +247,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                                                             (int16_t)string_index), 0);
                         } else {
                             halo::interface::hud_draw_message_text_span(&cursor, &line,
-                                halo::text::text_string_list_get_string(*(datum_index *)&hud_globals_tag_data->alternate_icon_text.tag_id,
+                                halo::text::text_string_list_get_string(halo::interface::tag_handle(hud_globals_tag_data->alternate_icon_text.tag_id),
                                                             (int16_t)string_index), 0);
                         }
                     } else if (record->arguments[argument] != 0) {
@@ -310,7 +310,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             const uint16_t *text;
             uint8_t plural;
             int32_t string_index;
-            datum_index strings = *(datum_index *)&hud_globals_tag_data->item_message_text.tag_id;
+            datum_index strings = halo::interface::tag_handle(hud_globals_tag_data->item_message_text.tag_id);
 
             if (slot->source_kind == 0xff) {
                 plural = slot->count > 1;

@@ -319,7 +319,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 
     bitmap = 0;
     uv_offset = 0;
-    halo::interface::hud_meter_resolve_bitmap_frame(*(datum_index *)&globals->arrow_bitmap.tag_id,
+    halo::interface::hud_meter_resolve_bitmap_frame(halo::interface::tag_handle(globals->arrow_bitmap.tag_id),
                                    (int16_t)(&arrow->on_screen_sequence_index)[visibility], 0, (void **)&bitmap,
                                    &uv_offset);
     if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
