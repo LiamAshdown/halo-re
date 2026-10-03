@@ -20,6 +20,7 @@
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -29,7 +30,7 @@ extern heap *widget_memory_pool;
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
@@ -355,7 +356,7 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
     }
 
     {
-        uint8_t profile_copy[0x1ffc];
+        uint8_t profile_copy[k_saved_player_profile_size];
 
         memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
         halo::interface::set_profile_name(tab_group->first_child->next_sibling, (const uint16_t *)(profile_copy + 2));

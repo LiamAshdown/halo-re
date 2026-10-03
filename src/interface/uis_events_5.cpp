@@ -45,7 +45,7 @@ extern int32_t network_host_edit_field_00719410;
 extern int32_t controls_capture_row;
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern uint8_t input_controls_live_006b3a48[0x890];
 extern uint8_t ui_flag_00719444;
 extern int32_t controls_device_label_count;

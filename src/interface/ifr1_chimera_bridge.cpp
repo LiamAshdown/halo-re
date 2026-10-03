@@ -15,6 +15,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -138,8 +139,8 @@ void ChimeraBridge::do_show_loading_screen(void)
     text_color.blue = 1.0f;
     bounds.top = 0;
     bounds.left = 0;
-    bounds.bottom = 0x1e0;
-    bounds.right = 0x280;
+    bounds.bottom = halo::interface::k_base_screen_height;
+    bounds.right = halo::interface::k_base_screen_width;
     if (bitmap_data != 0) {
         halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, nullptr,
                             packed_color);
@@ -148,7 +149,7 @@ void ChimeraBridge::do_show_loading_screen(void)
 
     bounds.left = 0;
     bounds.top = 0x19a;
-    bounds.right = 0x280;
+    bounds.right = halo::interface::k_base_screen_width;
     bounds.bottom = 0x1ae;
     switch (join_ui_state) {
     case 2:
@@ -194,7 +195,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 7)));
     case 8:
         bounds.top = 0x1cc;
-        bounds.bottom = 0x1e0;
+        bounds.bottom = halo::interface::k_base_screen_height;
         halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 9)));
         break;
     default:

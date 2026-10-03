@@ -52,7 +52,7 @@ int32_t UiCarousels::carousel_slot_compare_valid_first(const int32_t *a, const i
 void UiCarousels::level_carousel_refresh(widget_instance *widget)
 {
     int32_t visible[3];
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     int32_t i;
 
     memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
@@ -125,7 +125,7 @@ void UiCarousels::level_carousel_row_refresh(widget_instance *widget, int32_t le
  */
 void UiCarousels::map_list_carousel_refresh_window(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     int32_t window[3];
     int32_t slot;
 

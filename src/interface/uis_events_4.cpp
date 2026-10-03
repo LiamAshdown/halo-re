@@ -28,6 +28,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -36,7 +37,7 @@ extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
@@ -230,7 +231,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         }
         return 1;
     }
-    if (x >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.left + origin_x) && x <= 0x280 &&
+    if (x >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.left + origin_x) && x <= halo::interface::k_base_screen_width &&
         y >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.top + origin_y) && y <= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.bottom + origin_y)) {
         int32_t selection = widget->selection_index + 1;
 
@@ -361,7 +362,7 @@ uint8_t UiEventHandlers::event_4a24c0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
     uint8_t ok;
 
     memset(profile, 0, sizeof(profile));
@@ -380,7 +381,7 @@ uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
     int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
     int32_t item;
 

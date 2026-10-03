@@ -27,6 +27,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -36,7 +37,7 @@ extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t local_team_00714dd8;
-extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
+extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
 extern void network_game_setup_teardown(void);
 extern uint32_t game_engine_ensure_variant_history_has_entry(void);
 extern int32_t game_variant_history_current;
@@ -58,7 +59,7 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern uint8_t game_variant_saved_default[0x98];
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t network_host_edit_field_00719410;
 extern widget_history_node *ui_widget_history[3];
 }

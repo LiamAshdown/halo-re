@@ -28,6 +28,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern char level_select_current_path_00719068[0x106];
@@ -49,7 +50,7 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
+extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern uint8_t save_in_progress_00719010;

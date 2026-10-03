@@ -17,12 +17,13 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
 extern heap *widget_memory_pool;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern uint8_t directsound_initialized;
 extern uint8_t directsound_eax_available;
@@ -177,7 +178,7 @@ uint8_t UiControlsMenu::controls_options_reload_profile(void)
     profile_slot_lookup_cache_00692ac8 = -1;
     if ((selected_saved_item & 0xf) == 0) {
         if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-            uint8_t profile_copy[0x1ffc];
+            uint8_t profile_copy[k_saved_player_profile_size];
 
             memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
             halo::interface::player_profile_load(0, profile_copy, halo::saved_games::globals().player_profile_slots_handle);

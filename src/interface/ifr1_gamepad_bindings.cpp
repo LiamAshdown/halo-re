@@ -4,10 +4,11 @@
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t controls_assigned_gamepad_count;
 extern controls_gamepad_record controls_assigned_gamepads[4];
 extern controls_gamepad_record controls_available_gamepads[8];
@@ -44,7 +45,7 @@ namespace halo::interface {
  */
 uint8_t GamepadBindings::bindings_restore(void)
 {
-    uint8_t saved_profile[0x1ffc];
+    uint8_t saved_profile[k_saved_player_profile_size];
     int32_t i;
 
     if ((selected_saved_item & 0xf) != 0) {

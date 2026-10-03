@@ -8,6 +8,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -70,7 +71,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
     }
     if (resolution_index == -1) {
         for (i = 0; i < video_resolution_count; i++) {
-            if (video_resolutions[i].width == 0x280 && video_resolutions[i].height == 0x1e0) {
+            if (video_resolutions[i].width == halo::interface::k_base_screen_width && video_resolutions[i].height == halo::interface::k_base_screen_height) {
                 resolution_index = i;
                 break;
             }

@@ -13,6 +13,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -485,8 +486,8 @@ void VirtualKeyboard::render()
 
         rect.top = 0;
         rect.left = 0;
-        rect.bottom = 0x1e0;
-        rect.right = 0x280;
+        rect.bottom = halo::interface::k_base_screen_height;
+        rect.right = halo::interface::k_base_screen_width;
         halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)bitmap, 0, halo::k_dword_none);
     }
 
@@ -498,7 +499,7 @@ void VirtualKeyboard::render()
         rect.top = 0x4e;
         rect.left = 0x72;
         rect.bottom = 0x6e;
-        rect.right = 0x280;
+        rect.right = halo::interface::k_base_screen_width;
         halo::rasterizer::chimera__draw_16_bit_text(&rect, (int32_t *)&rect, 0, 0, (const int16_t *)title);
     }
 

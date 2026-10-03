@@ -18,7 +18,7 @@ extern const uint16_t hud_text_unbound[];
 extern uint32_t wcslen_halo(const uint16_t *text);
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern uint8_t control_keyboard_scan_table[0xda];
 extern uint32_t control_mouse_button_scan_table[7];
 extern uint32_t input_default_profile_guid[4];
@@ -155,7 +155,7 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
                 return result;
             }
         } else {
-            uint8_t profile[0x1ffc - 0x10];
+            uint8_t profile[k_saved_player_profile_size - 0x10];
             input_guid guid;
 
             memcpy(&guid, input_default_profile_guid, sizeof(guid));

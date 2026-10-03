@@ -48,7 +48,7 @@ namespace halo::ui {
  */
 void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     int16_t combo_index;
     const uint16_t *variant_description = 0;
 

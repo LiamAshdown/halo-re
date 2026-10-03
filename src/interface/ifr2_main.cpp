@@ -15,6 +15,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -155,7 +156,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
     if (new_cursor_x < 0) {
         ui_cursor_x = 0;
     } else {
-        ui_cursor_x = 0x280;
+        ui_cursor_x = halo::interface::k_base_screen_width;
         if (new_cursor_x < 0x281) {
             ui_cursor_x = new_cursor_x;
         }
@@ -165,7 +166,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
         ui_cursor_y = 0;
         return;
     }
-    ui_cursor_y = 0x1e0;
+    ui_cursor_y = halo::interface::k_base_screen_height;
     if (new_cursor_y < 0x1e1) {
         ui_cursor_y = new_cursor_y;
     }

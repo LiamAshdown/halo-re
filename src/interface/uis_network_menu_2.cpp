@@ -42,7 +42,7 @@ namespace halo::ui {
  */
 void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     widget_instance *target1;
     widget_instance *target2;
     widget_instance *target3;
@@ -71,7 +71,7 @@ void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
  */
 uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
 {
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
     int32_t choice;
     int32_t last_row;
     int32_t index;

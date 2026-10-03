@@ -575,7 +575,7 @@ tail_no_decrement:
  */
 void UiLists::selection_list_mirror_value_build(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     int16_t selected_value;
     widget_instance *target;
 

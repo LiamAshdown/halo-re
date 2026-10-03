@@ -3,6 +3,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -71,11 +72,11 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
                 continue;
             }
         }
-        if (mode.width > halo::shell::globals().maximum_resolution || mode.width < 0x280 || mode.height < 0x1e0 || mode.width > 0x12c0 ||
+        if (mode.width > halo::shell::globals().maximum_resolution || mode.width < halo::interface::k_base_screen_width || mode.height < halo::interface::k_base_screen_height || mode.width > 0x12c0 ||
             mode.height > 0xe10 || mode.refresh_rate > 0x78) {
             continue;
         }
-        if ((mode.width == 0x2d0 || mode.width == 0x350) && (mode.height == 0x240 || mode.height == 0x1e0)) {
+        if ((mode.width == 0x2d0 || mode.width == 0x350) && (mode.height == 0x240 || mode.height == halo::interface::k_base_screen_height)) {
             continue;
         }
         halo::interface::video_resolution_add((int32_t)mode.height, (int32_t)mode.width, (int32_t)mode.refresh_rate);

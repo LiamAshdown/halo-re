@@ -9,6 +9,7 @@
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t hud_text_message_time_base;
@@ -113,9 +114,9 @@ draw:
         clip.top = 0x32;
         clip.left = 0;
         clip.bottom = 0x1ae;
-        clip.right = 0x280;
+        clip.right = halo::interface::k_base_screen_width;
         dest.left = 0;
-        dest.right = 0x280;
+        dest.right = halo::interface::k_base_screen_width;
         for (i = 0; i < hud_text_message_queue.count; i++) {
             hud_text_message *entry = &((hud_text_message *)hud_text_message_queue.data)[i];
             ColorARGB *color = (entry->hold == 1) ? hud_text_message_normal_color : hud_text_message_hold_color;

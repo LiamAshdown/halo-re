@@ -12,6 +12,7 @@
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern char console_echo_prefix[];
@@ -278,16 +279,16 @@ void ConsoleTerminal::draw_overlay(void)
         {
             Rectangle2D rect;
 
-            rect.top = (int16_t)(0x1e0 - line_height - render_viewport_top[0]);
+            rect.top = (int16_t)(halo::interface::k_base_screen_height - line_height - render_viewport_top[0]);
             rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
-            rect.bottom = (int16_t)(0x1e0 - render_viewport_top[0]);
-            rect.right = (int16_t)(0x280 - render_viewport_top[1]);
+            rect.bottom = (int16_t)(halo::interface::k_base_screen_height - render_viewport_top[0]);
+            rect.right = (int16_t)(halo::interface::k_base_screen_width - render_viewport_top[1]);
             halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
         }
     }
 
     if (console_show_messages != 0) {
-        y = 0x1e0 - line_height;
+        y = halo::interface::k_base_screen_height - line_height;
         message_handle = halo::main::globals().console_message_head;
         while (message_handle != (datum_index)halo::k_dword_none && y != line_height && y - line_height >= 0) {
             message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
@@ -318,7 +319,7 @@ void ConsoleTerminal::draw_overlay(void)
                 rect.top = (int16_t)(y - render_viewport_top[0]);
                 rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
                 rect.bottom = (int16_t)(y + line_height - render_viewport_top[0]);
-                rect.right = (int16_t)(0x280 - render_viewport_top[1]);
+                rect.right = (int16_t)(halo::interface::k_base_screen_width - render_viewport_top[1]);
                 halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
             }
             halo::text::globals().hud_text_draw_background_mode = 0;

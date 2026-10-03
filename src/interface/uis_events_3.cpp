@@ -34,7 +34,7 @@
 
 extern "C" {
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -49,7 +49,7 @@ extern int16_t profile_slot_id[];
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
 extern uint8_t local_team_00714dd8[];
 extern uint32_t network_server_reset_game_stats(void);
-extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
+extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
 extern uint8_t level_select_flags_0071916b;

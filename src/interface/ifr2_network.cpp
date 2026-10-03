@@ -15,6 +15,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -30,7 +31,7 @@ extern variant_carousel_slot variant_carousel_slots[3];
 extern uint8_t profile_globals_block[0x60a4];
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern uint8_t default_profile_data[0x1ffc];
+extern uint8_t default_profile_data[k_saved_player_profile_size];
 extern char k_empty_string[];
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
@@ -263,7 +264,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     const char *password = 0;
     uint16_t wide_name[0x40];
     int32_t slots[100];
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
 
     if (!halo::shell::command_line_check_flag("-connect", &address) || address == 0) {
         return 0;

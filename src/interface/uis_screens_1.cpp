@@ -21,6 +21,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t chat_window_default_x;
@@ -203,12 +204,12 @@ void UiScreens::error_modal_update(void)
             bar.top = 0xef;
             bar.left = 0;
             bar.bottom = 0xf1;
-            bar.right = 0x280;
+            bar.right = halo::interface::k_base_screen_width;
             halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
             if (player_count_field > 2) {
                 bar.top = (player_count_field == 3) ? 0xf0 : 0;
                 bar.left = 0x13f;
-                bar.bottom = 0x1e0;
+                bar.bottom = halo::interface::k_base_screen_height;
                 bar.right = 0x141;
                 halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
             }

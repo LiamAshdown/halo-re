@@ -15,6 +15,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -529,7 +530,7 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
               ui_split_screen != 0)) ||
             (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
-            Rectangle2D dest = {0, 0, 0x1e0, 0x280};
+            Rectangle2D dest = {0, 0, halo::interface::k_base_screen_height, halo::interface::k_base_screen_width};
 
             halo::interface::widget_instance_render(widget, &dest, 0, 1, 0);
             drew_any = 1;
@@ -540,7 +541,7 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
         halo::interface::interface_draw_cursor();
     }
     if (0.0f <= state::screen_fade_progress && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f)) {
-        Rectangle2D rect = {0, 0, 0x1e0, 0x280};
+        Rectangle2D rect = {0, 0, halo::interface::k_base_screen_height, halo::interface::k_base_screen_width};
         int32_t fade_color;
 
         if (0.95f <= state::screen_fade_progress) {

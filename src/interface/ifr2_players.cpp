@@ -66,10 +66,10 @@ extern uint8_t player_profile_apply_video_options(uint8_t *settings);
 extern void player_profile_apply_audio_options(uint8_t *settings);
 extern player_control_settings input_globals[];
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_disk_copy[0x1ffc];
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_disk_copy[k_saved_player_profile_size];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern virtual_keyboard_globals virtual_keyboard;
-extern uint8_t default_profile_data[0x1ffc];
+extern uint8_t default_profile_data[k_saved_player_profile_size];
 extern int16_t current_local_player_index;
 }
 
@@ -471,7 +471,7 @@ void PlayerProfiles::auto_select()
 {
     int32_t count;
     int32_t slot;
-    uint8_t profile_data[0x1ffc];
+    uint8_t profile_data[k_saved_player_profile_size];
 
     count = 1;
     slot = -1;
@@ -669,7 +669,7 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     uint32_t i;
 
     record = profile_globals_block + (int32_t)player_index * 0x2004;
-    *(int32_t *)(record + 0x1ffc) = profile_id;
+    *(int32_t *)(record + k_saved_player_profile_size) = profile_id;
     dst_words = (uint32_t *)record;
     src_words = (uint32_t *)source_profile;
     for (i = 0x7ff; i != 0; i--) {

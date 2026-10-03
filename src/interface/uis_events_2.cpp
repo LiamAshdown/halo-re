@@ -31,7 +31,7 @@
 extern "C" {
 extern uint8_t *network_client;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
 extern growable_array ui_lists[3];
