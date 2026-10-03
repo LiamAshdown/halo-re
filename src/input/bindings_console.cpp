@@ -14,6 +14,11 @@
 #include "halo/input/bindings.hpp"
 #include "halo/input/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 namespace halo::input {
 
@@ -29,7 +34,7 @@ void Bindings::hs_bind_control(const char *device_class_name, const char *input_
     control_binding_descriptor binding;
     int16_t action_index;
 
-    if (halo::input::input_parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) != 0) {
+    if (halo::input::Bindings::parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) != 0) {
         action_index = halo::input::input_action_name_to_index((char *)action_name);
         if (action_index != (int16_t)k_input_unbound) {
             if (halo::input::input_apply_control_binding(&binding, action_index) != 0) {
@@ -54,11 +59,11 @@ void Bindings::hs_unbind_control(const char *device_class_name, const char *inpu
 {
     control_binding_descriptor binding;
 
-    if (halo::input::input_parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) == 0) {
+    if (halo::input::Bindings::parse_device_binding_string((char *)device_class_name, (char *)input_name, &binding) == 0) {
         return;
     }
 
-    halo::input::input_clear_control_binding(&binding);
+    halo::input::Bindings::clear_control_binding(&binding);
 
     switch (binding.device_type) {
     case _control_device_keyboard:

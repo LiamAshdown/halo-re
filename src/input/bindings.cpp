@@ -25,6 +25,11 @@
 #include "halo/input/state.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 namespace halo::input {
 
@@ -441,8 +446,7 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
     profile_handle = halo::saved_games::saved_game_create_default_profile(tag_profile_name);
     if (profile_handle != halo::k_dword_none) {
         if (halo::saved_games::player_profile_get((int32_t)profile_handle, &profile) != 0) {
-            if (halo::input::input_profile_copy_bindings_by_device(2, &profile,
-                    (saved_player_profile *)defaults->profile.pointer) != 0) {
+            if (halo::input::Bindings::profile_copy_bindings_by_device(2, &profile, (saved_player_profile *)defaults->profile.pointer) != 0) {
                 profile.flags |= 0x0006;
                 halo::saved_games::player_profile_save_539bf0((int32_t)profile_handle, &profile);
             }
@@ -636,10 +640,10 @@ uint8_t Bindings::get_last_used_binding(int16_t action, control_binding_descript
     found = (cached->device_type != 0);
 
     if (!found) {
-        found = halo::input::input_refresh_last_used_binding(input_state().last_input_device, action);
+        found = halo::input::Bindings::refresh_last_used_binding(input_state().last_input_device, action);
         if (!found) {
             for (device_class = 0; device_class < 5; device_class++) {
-                found = halo::input::input_refresh_last_used_binding(device_class, action);
+                found = halo::input::Bindings::refresh_last_used_binding(device_class, action);
                 if (found) {
                     break;
                 }
@@ -727,7 +731,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     int16_t pov_direction;
 
     if (_stricmp(device_class_name, "keyboard") == 0 || _stricmp(device_class_name, "key") == 0) {
-        index = halo::input::input_keyboard_key_name_to_index(name);
+        index = halo::input::BindingNames::keyboard_key_name_to_index(name);
         if (index == halo::k_word_none) {
             return 0;
         }
@@ -740,7 +744,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "mouse") == 0) {
-        index = halo::input::input_mouse_button_name_to_index(name);
+        index = halo::input::BindingNames::mouse_button_name_to_index(name);
         if (index == halo::k_word_none) {
             return 0;
         }
@@ -753,7 +757,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "mouseaxis") == 0) {
-        index = halo::input::input_mouse_axis_name_to_index(name, &byte_direction);
+        index = halo::input::BindingNames::mouse_axis_name_to_index(name, &byte_direction);
         if (index == halo::k_word_none) {
             return 0;
         }
@@ -766,7 +770,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystick") == 0) {
-        joystick_index = halo::input::input_joystick_button_name_to_index(name);
+        joystick_index = halo::input::BindingNames::joystick_button_name_to_index(name);
         if (joystick_index == -1) {
             return 0;
         }
@@ -779,7 +783,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystickaxis") == 0) {
-        joystick_index = halo::input::input_joystick_axis_name_to_index(name, &byte_direction);
+        joystick_index = halo::input::BindingNames::joystick_axis_name_to_index(name, &byte_direction);
         if (joystick_index == -1) {
             return 0;
         }
@@ -792,7 +796,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystickpov") == 0) {
-        joystick_index = halo::input::input_joystick_pov_name_to_index(name, &pov_direction);
+        joystick_index = halo::input::BindingNames::joystick_pov_name_to_index(name, &pov_direction);
         if (joystick_index == -1) {
             return 0;
         }
@@ -984,8 +988,7 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
         special_button = input_state().gamepad_action_buttons[slot][1];
     }
     if ((action == _input_action_accept || action == _input_action_back) && special_button != -1) {
-        halo::input::input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
-                                     _control_input_button, special_button, 0);
+        halo::input::Bindings::last_used_binding_set(action, _control_device_gamepad, (int16_t)slot, _control_input_button, special_button, 0);
         found = 1;
     }
 
@@ -1236,7 +1239,7 @@ void Bindings::test_input_device_defaults_find(char *device_id_ansi)
     uint8_t saved_profile[k_saved_player_profile_size];
     int32_t tag_id;
 
-    halo::input::input_guid_parse_ansi(&guid, device_id_ansi);
+    halo::input::DirectInput::guid_parse_ansi(&guid, device_id_ansi);
     tag_id = (int32_t)halo::input::input_device_default_profile_tag_find(guid, saved_profile);
     if (tag_id == -1) {
         console_printf_verbose((ColorARGB *)0, (char *)"deviceid %s has no default", device_id_ansi);

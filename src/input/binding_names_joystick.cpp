@@ -15,6 +15,11 @@
 #include "halo/input/binding_names.hpp"
 #include "halo/input/api.hpp"
 #include "halo/input/state.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 namespace halo::input {
 
@@ -91,7 +96,7 @@ int16_t BindingNames::joystick_pov_name_to_index(char *name, int16_t *out_direct
             }
 
             rest = match + length;
-            direction_index = halo::input::input_joystick_pov_direction_name_to_index(rest);
+            direction_index = halo::input::BindingNames::joystick_pov_direction_name_to_index(rest);
             *out_direction = direction_index;
             if (direction_index != -1) {
                 return (int16_t)pov_index;

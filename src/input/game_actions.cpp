@@ -24,6 +24,11 @@
 #include "halo/input/state.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 namespace halo::input {
 
@@ -222,7 +227,7 @@ void GameActions::game_action_update(void)
         if (action == k_input_unbound) {
         } else if (action >= _input_action_forward && action <= _input_action_look_right) {
             if (halo::input::input_get_key_state((int16_t)index) != 0) {
-                halo::input::input_accumulate_axis_value(settings, state, action);
+                halo::input::GameActions::accumulate_axis_value(settings, state, action);
             }
         } else {
             frames = halo::input::input_get_key_state((int16_t)index);
@@ -232,8 +237,7 @@ void GameActions::game_action_update(void)
             buttons[action] = frames;
         }
         if (halo::input::input_get_key_state((int16_t)index) != 0 && action != k_input_unbound) {
-            halo::input::input_last_used_binding_set(action, _control_device_keyboard, 0, _control_input_button,
-                                        (int16_t)index, 0);
+            halo::input::Bindings::last_used_binding_set(action, _control_device_keyboard, 0, _control_input_button, (int16_t)index, 0);
             input_state().last_input_device = 0;
         }
     }
@@ -250,7 +254,7 @@ void GameActions::game_action_update(void)
                 continue;
             }
             if (frames != 0) {
-                halo::input::input_accumulate_axis_value(settings, state, action);
+                halo::input::GameActions::accumulate_axis_value(settings, state, action);
             }
         } else {
             if (buttons[action] > frames) {
@@ -260,8 +264,7 @@ void GameActions::game_action_update(void)
         }
         if (input_state().mouse_device != (void *)0 && globals().suppressed == 0 &&
             input_state().live_mouse_state.button_frames[index] != 0 && action != k_input_unbound) {
-            halo::input::input_last_used_binding_set(action, _control_device_mouse, 0, _control_input_button,
-                                        (int16_t)index, 0);
+            halo::input::Bindings::last_used_binding_set(action, _control_device_mouse, 0, _control_input_button, (int16_t)index, 0);
             input_state().last_input_device = 0;
         }
     }
@@ -310,19 +313,19 @@ void GameActions::game_action_update(void)
             break;
         case _input_action_look_up:
             state->look_is_analog = 0;
-            state->look_y = halo::input::input_mouse_acceleration_evaluate(settings->mouse_look_y_sensitivity, delta < 0 ? -delta : delta);
+            state->look_y = halo::input::GameActions::mouse_acceleration_evaluate(settings->mouse_look_y_sensitivity, delta < 0 ? -delta : delta);
             break;
         case _input_action_look_down:
             state->look_is_analog = 0;
-            state->look_y = -halo::input::input_mouse_acceleration_evaluate(settings->mouse_look_y_sensitivity, delta < 0 ? -delta : delta);
+            state->look_y = -halo::input::GameActions::mouse_acceleration_evaluate(settings->mouse_look_y_sensitivity, delta < 0 ? -delta : delta);
             break;
         case _input_action_look_left:
             state->look_is_analog = 0;
-            state->look_x = halo::input::input_mouse_acceleration_evaluate(settings->mouse_look_x_sensitivity, delta < 0 ? -delta : delta);
+            state->look_x = halo::input::GameActions::mouse_acceleration_evaluate(settings->mouse_look_x_sensitivity, delta < 0 ? -delta : delta);
             break;
         case _input_action_look_right:
             state->look_is_analog = 0;
-            state->look_x = -halo::input::input_mouse_acceleration_evaluate(settings->mouse_look_x_sensitivity, delta < 0 ? -delta : delta);
+            state->look_x = -halo::input::GameActions::mouse_acceleration_evaluate(settings->mouse_look_x_sensitivity, delta < 0 ? -delta : delta);
             break;
         default:
             if (buttons[action] > frames) {
@@ -332,8 +335,7 @@ void GameActions::game_action_update(void)
             break;
         }
         if (action != k_input_unbound) {
-            halo::input::input_last_used_binding_set(action, _control_device_mouse, 0, _control_input_axis,
-                                        (int16_t)index, (int16_t)mouse_direction);
+            halo::input::Bindings::last_used_binding_set(action, _control_device_mouse, 0, _control_input_axis, (int16_t)index, (int16_t)mouse_direction);
             input_state().last_input_device = 0;
         }
     }
@@ -368,7 +370,7 @@ void GameActions::game_action_update(void)
             if (action == k_input_unbound || action == _input_action_accept || action == _input_action_back) {
             } else if (action >= _input_action_forward && action <= _input_action_look_right) {
                 if (frames != 0) {
-                    halo::input::input_accumulate_axis_value(settings, state, action);
+                    halo::input::GameActions::accumulate_axis_value(settings, state, action);
                 }
             } else {
                 if (buttons[action] > frames) {
@@ -377,8 +379,7 @@ void GameActions::game_action_update(void)
                 buttons[action] = frames;
             }
             if (device != -1 && pad->button_frames[index] != 0 && action != k_input_unbound) {
-                halo::input::input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
-                                            _control_input_button, (int16_t)index, 0);
+                halo::input::Bindings::last_used_binding_set(action, _control_device_gamepad, (int16_t)slot, _control_input_button, (int16_t)index, 0);
                 input_state().last_input_device = slot + 1;
             }
         }
@@ -455,9 +456,7 @@ void GameActions::game_action_update(void)
             }
 
             if (pad->axes[index] != 0 && action != k_input_unbound) {
-                halo::input::input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
-                                            _control_input_axis, (int16_t)index,
-                                            (int16_t)frame.axis_direction);
+                halo::input::Bindings::last_used_binding_set(action, _control_device_gamepad, (int16_t)slot, _control_input_axis, (int16_t)index, (int16_t)frame.axis_direction);
                 input_state().last_input_device = slot + 1;
             }
         }
@@ -484,22 +483,20 @@ void GameActions::game_action_update(void)
                 if (next_action >= 0x13 && next_action <= 0x1b &&
                     previous_action >= 0x13 && previous_action <= 0x1b) {
                     if (pov_applied[octant + 1] == 0) {
-                        halo::input::input_accumulate_axis_value(settings, state, next_action);
+                        halo::input::GameActions::accumulate_axis_value(settings, state, next_action);
                         pov_applied[octant + 1] = 1;
-                        halo::input::input_last_used_binding_set(next_action, _control_device_gamepad, (int16_t)slot,
-                                                    _control_input_pov, (int16_t)index, octant + 1);
+                        halo::input::Bindings::last_used_binding_set(next_action, _control_device_gamepad, (int16_t)slot, _control_input_pov, (int16_t)index, octant + 1);
                     }
                     if (pov_applied[octant - 1] == 0) {
-                        halo::input::input_accumulate_axis_value(settings, state, previous_action);
+                        halo::input::GameActions::accumulate_axis_value(settings, state, previous_action);
                         pov_applied[octant - 1] = 1;
-                        halo::input::input_last_used_binding_set(previous_action, _control_device_gamepad, (int16_t)slot,
-                                                    _control_input_pov, (int16_t)index, octant - 1);
+                        halo::input::Bindings::last_used_binding_set(previous_action, _control_device_gamepad, (int16_t)slot, _control_input_pov, (int16_t)index, octant - 1);
                     }
                 }
                 continue;
             }
             if (action >= _input_action_forward && action <= _input_action_look_right) {
-                halo::input::input_accumulate_axis_value(settings, state, action);
+                halo::input::GameActions::accumulate_axis_value(settings, state, action);
                 pov_applied[octant] = 1;
             } else if (action != _input_action_accept && action != _input_action_back) {
                 if (count < (int32_t)buttons[action]) {
@@ -507,8 +504,7 @@ void GameActions::game_action_update(void)
                 }
                 buttons[action] = (uint8_t)count;
             }
-            halo::input::input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
-                                        _control_input_pov, (int16_t)index, octant);
+            halo::input::Bindings::last_used_binding_set(action, _control_device_gamepad, (int16_t)slot, _control_input_pov, (int16_t)index, octant);
             input_state().last_input_device = slot + 1;
         }
     }
@@ -523,12 +519,12 @@ void GameActions::game_action_update(void)
         buttons[_input_action_switch_weapon] = 0;
     }
 
-    if (!halo::input::input_accumulator_is_idle(state, &previous)) {
+    if (!halo::input::GameActions::accumulator_is_idle(state, &previous)) {
         input_state().input_globals.idle = 0;
     }
 
     if (settings->look_inverted != 0 ||
-        (settings->look_inverted_driving != 0 && halo::input::input_should_invert_look(0))) {
+        (settings->look_inverted_driving != 0 && halo::input::GameActions::should_invert_look(0))) {
         state->look_y = -state->look_y;
     }
 }

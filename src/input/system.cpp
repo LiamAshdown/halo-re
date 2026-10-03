@@ -18,6 +18,11 @@
 #include "halo/cseries/api.hpp"
 #include "halo/input/state.hpp"
 #include "halo/input/directinput_constants.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/ui_events.hpp"
 
 namespace halo::input {
 
@@ -148,7 +153,7 @@ void InputSystem::update_tick(void)
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     input_state().input_globals.idle = 1;
-    halo::input::input_key_block_timers_expire();
+    halo::input::DirectInput::key_block_timers_expire();
 
     for (i = 0; i < k_input_system_key_count; i++) {
         input_state().input_globals.system_key_states[i] = halo::input::input_get_key_state(input_state().system_keys[i]);
@@ -157,7 +162,7 @@ void InputSystem::update_tick(void)
     mode = input_state().input_globals.mode_flags;
     if (mode == _input_mode_game_bit) {
         if (input_state().input_menu_exit_deadline < now_ms) {
-            halo::input::input_game_action_update();
+            halo::input::GameActions::game_action_update();
         }
     } else if ((mode & _input_mode_bind_scan_bit) != 0) {
         halo::input::input_scan_any_bound_input();
@@ -165,7 +170,7 @@ void InputSystem::update_tick(void)
         memset(&input_state().input_globals.states[0], 0, sizeof(input_state().input_globals.states[0]));
     } else if ((mode & _input_mode_menu_bit) != 0) {
         input_state().input_menu_exit_deadline = now_ms + k_input_menu_exit_delay_ms;
-        halo::input::input_menu_generate_events();
+        halo::input::UiEvents::menu_generate_events();
     }
 }
 

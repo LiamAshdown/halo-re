@@ -9,11 +9,6 @@
 
 namespace halo::models {
 
-void * animation_get_frame_data(ModelAnimationsAnimation *animation, int16_t frame)
-{
-    return halo::models::animation_view(animation).get_frame_data(frame);
-}
-
 void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total)
 {
     halo::models::animation_view(animation).get_frame_info_distance(dx_to_key_frame, dx_total);
@@ -22,21 +17,6 @@ void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, floa
 void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model, int16_t frame, real_orientation *out_orientations)
 {
     halo::models::animation_view(animation).get_frame_orientations(model, frame, out_orientations);
-}
-
-void animation_node_get_rotation(ModelAnimationsAnimation *animation, real frame, int16_t rotation_index, int16_t node, real_quaternion *out)
-{
-    halo::models::animation_view(animation).node_get_rotation(frame, rotation_index, node, out);
-}
-
-void animation_node_get_translation(ModelAnimationsAnimation *animation, real frame, int16_t translation_index, int16_t node, real_point3d *out)
-{
-    halo::models::animation_view(animation).node_get_translation(frame, translation_index, node, out);
-}
-
-void animation_node_get_scale(ModelAnimationsAnimation *animation, int16_t scale_index, real frame, real *out)
-{
-    halo::models::animation_view(animation).node_get_scale(scale_index, frame, out);
 }
 
 void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations)
@@ -84,21 +64,6 @@ int16_t animation_graph_find_animation_by_name(datum_index animation_graph_tag, 
     return halo::models::animation_graph::find_animation_by_name(animation_graph_tag, name);
 }
 
-int16_t animation_keyframe_time_search(uint16_t *times, int16_t count, int16_t frame)
-{
-    return halo::models::animation_graph::keyframe_time_search(times, count, frame);
-}
-
-void animation_quaternion16_decode(int16_t *source, real_quaternion *out)
-{
-    halo::models::animation_graph::quaternion16_decode(source, out);
-}
-
-void animation_quaternion48_decode(animation_quaternion48 *source, real_quaternion *out)
-{
-    halo::models::animation_graph::quaternion48_decode(source, out);
-}
-
 void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model)
 {
     halo::models::animation_graph::get_root_node_matrix(out, frame, animation, model);
@@ -132,16 +97,6 @@ void model_ik_solve_two_bone(real_matrix4x3 *target, real_matrix4x3 *middle, rea
 void model_nodes_get_default_transforms(GBXModel *model, real_orientation *out)
 {
     halo::models::model_view(model).get_default_transforms(out);
-}
-
-void model_render_parts(GBXModel *model, uint8_t *region_permutations, rasterizer_node_matrices *node_matrices, model_level_of_detail lod, uint16_t forced_shader_permutation, uint32_t flags)
-{
-    halo::models::model_view(model).render_parts(region_permutations, node_matrices, lod, forced_shader_permutation, flags);
-}
-
-int16_t model_marker_group_index_from_name(datum_index model_tag_id, const char *name)
-{
-    return halo::models::model_markers::group_index_from_name(model_tag_id, name);
 }
 
 int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations, int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum)

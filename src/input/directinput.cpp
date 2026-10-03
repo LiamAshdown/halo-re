@@ -25,6 +25,11 @@
 #include "halo/input/state.hpp"
 #include "halo/input/directinput_constants.hpp"
 #include "halo/core/win32_constants.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 namespace halo::input {
 
@@ -337,9 +342,9 @@ uint8_t DirectInput::directinput_initialize(void)
         input_error_log_once(hr, (char *)"DirectInputCreate");
         halo::input::input_directinput_release_devices();
     } else {
-        halo::input::input_keyboard_device_create();
-        halo::input::input_mouse_device_create();
-        halo::input::input_system_initialize();
+        halo::input::DirectInput::keyboard_device_create();
+        halo::input::DirectInput::mouse_device_create();
+        halo::input::InputSystem::system_initialize();
         halo::input::input_directinput_acquire_devices();
     }
     return hr >= 0;
@@ -442,7 +447,7 @@ void DirectInput::directinput_poll_devices(void)
         if (hr == halo::input::k_dierr_input_lost || hr == halo::input::k_dierr_not_acquired) {
             ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().mouse_device);
         } else if (hr == 0) {
-            halo::input::input_mouse_state_process(&input_state().live_mouse_state, &mouse_raw);
+            halo::input::DirectInput::mouse_state_process(&input_state().live_mouse_state, &mouse_raw);
             goto joystick_poll;
         } else {
             input_error_log_once(hr, (char *)"GetDeviceState (mouse)");
@@ -471,7 +476,7 @@ joystick_poll:
                 vtable = *(void ***)input_state().joystick_devices[i];
                 ((idirectinputdevice8_acquire_proc)vtable[7])(input_state().joystick_devices[i]);
             } else if (hr == 0) {
-                halo::input::input_joystick_state_process(&joystick_raw, &input_state().joystick_states[slot], &input_state().input_devices[i]);
+                halo::input::DirectInput::joystick_state_process(&joystick_raw, &input_state().joystick_states[slot], &input_state().input_devices[i]);
                 continue;
             } else {
                 input_error_log_once(hr, (char *)"Poll/GetDeviceState (gamepad)");
@@ -636,7 +641,7 @@ int32_t DirectInput::enumerate_gamepad_callback(const di_device_instance *instan
         failed = (char *)"GetCapabilities (gamepad)";
         goto fail;
     }
-    device->record.product_instance = (uint8_t)halo::input::input_device_count_by_guid((const uint32_t *)&instance->product_guid);
+    device->record.product_instance = (uint8_t)halo::input::DirectInput::device_count_by_guid((const uint32_t *)&instance->product_guid);
     device->instance_guid = instance->instance_guid;
     device->record.product_guid = instance->product_guid;
     halo::text::string_convert_ascii_to_unicode(device->record.name, 0x20a, instance->instance_name);
@@ -662,7 +667,7 @@ int32_t DirectInput::enumerate_gamepad_callback(const di_device_instance *instan
 
 fail:
     input_error_log_once(hr, failed);
-    halo::input::input_device_release((int16_t)index);
+    halo::input::DirectInput::device_release((int16_t)index);
     return 1;
 }
 

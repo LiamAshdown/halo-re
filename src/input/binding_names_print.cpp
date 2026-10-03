@@ -22,6 +22,11 @@
 #include "halo/input/state.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 #define k_gamepad_names_tag_path \
     "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names"
@@ -101,7 +106,7 @@ void BindingNames::print_bound_controls(void)
     for (key_index = 0; key_index < (int16_t)k_control_keyboard_key_count; key_index++) {
         if (input_state().keyboard_bindings[key_index] != k_input_unbound) {
             action_name_copy(action_name, input_state().keyboard_bindings[key_index]);
-            halo::input::input_get_keyboard_key_name(key_index, wide_name);
+            halo::input::BindingNames::get_keyboard_key_name(key_index, wide_name);
             narrow_copy(ascii, wide_name, 0x18);
             console_printf_verbose(0, (char *)"%s key bound to %s", ascii, action_name);
         }
@@ -121,13 +126,13 @@ void BindingNames::print_bound_controls(void)
     for (axis_index = 0; axis_index < k_control_mouse_axis_count; axis_index++) {
         if (input_state().mouse_axis_bindings[axis_index][0] != k_input_unbound) {
             action_name_copy(action_name, input_state().mouse_axis_bindings[axis_index][0]);
-            halo::input::input_get_mouse_axis_name(axis_index, 1, wide_name);
+            halo::input::BindingNames::get_mouse_axis_name(axis_index, 1, wide_name);
             narrow_copy(ascii, wide_name, 0x21);
             console_printf_verbose(0, (char *)"%s mouse axis bound to %s", ascii, action_name);
         }
         if (input_state().mouse_axis_bindings[axis_index][1] != k_input_unbound) {
             action_name_copy(action_name, input_state().mouse_axis_bindings[axis_index][1]);
-            halo::input::input_get_mouse_axis_name(axis_index, 0, wide_name);
+            halo::input::BindingNames::get_mouse_axis_name(axis_index, 0, wide_name);
             narrow_copy(ascii, wide_name, 0x21);
             console_printf_verbose(0, (char *)"%s mouse axis bound to %s", ascii, action_name);
         }

@@ -36,11 +36,6 @@ uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_re
     return halo::scenario::scenario_query::location_get_water_and_weather(point, leaf, weather_index_out);
 }
 
-uint32_t scenario_fog_region_resolve_tag(int16_t fog_region)
-{
-    return halo::scenario::scenario_query::fog_region_resolve_tag(fog_region);
-}
-
 uint8_t scenario_cluster_visibility_test(int16_t row_cluster, int16_t column_cluster)
 {
     return halo::scenario::scenario_query::cluster_visibility_test(row_cluster, column_cluster);
@@ -54,16 +49,6 @@ uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, rea
 void scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index, real_point3d *camera_position, render_fog *out)
 {
     halo::scenario::scenario_query::sky_fog_state_update(sky_index, local_player_index, camera_position, out);
-}
-
-void scenario_structure_bsp_activate_callbacks(void)
-{
-    halo::scenario::structure_bsp_switcher::activate_callbacks();
-}
-
-void scenario_structure_bsp_deactivate_callbacks(void)
-{
-    halo::scenario::structure_bsp_switcher::deactivate_callbacks();
 }
 
 uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index)
