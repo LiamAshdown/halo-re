@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_manager.hpp"
 #include "game.h"
 #include "physics.h"
@@ -641,7 +642,7 @@ void halo::objects::ObjectManager::garbage_collection()
     }
 
     for (handle = object_globals_pointer->first_tracked_object; handle != k_datum_index_none;
-         handle = *(datum_index *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(handle)].data + 0x110)) {
+         handle = *(datum_index *)(halo::objects::object_record_bytes(handle) + 0x110)) {
         list[count++] = handle;
     }
 

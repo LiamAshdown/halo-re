@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/units/api.hpp"
@@ -14,7 +15,7 @@ namespace halo::units {
  */
 void halo::units::biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
 {
-    unit_data *unit = (unit_data *)((uint8_t *)object_base + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(object_base);
 
     if ((flags & 0x4100) != 0) {
         double angle = halo::math::random_real_range(0.0, 6.2831855);

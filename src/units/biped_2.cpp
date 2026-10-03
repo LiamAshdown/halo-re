@@ -1,3 +1,7 @@
+#include "halo/units/animation_states.hpp"
+#include "halo/game/records.hpp"
+#include "halo/objects/record_access.hpp"
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -22,6 +26,8 @@
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+static constexpr float k_flat_ground_k = 0.0001f;
+static constexpr float k_ground_normal_offset = 0.0078125f;
 
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
@@ -46,8 +52,8 @@ namespace halo::units {
 void BipedView::integrate_movement(object *obj, int8_t *state)
 {
     uint32_t object_index = datum_handle;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    unit_data *unit = halo::units::unit_data_of(obj);
+    biped_data *biped = halo::units::biped_data_of(obj);
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     biped_movement_solver_data solve;
@@ -68,7 +74,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
 
     if (!test_flag(((Unit *)tag)->unit_flags, tags::unit_tag_flag::simple_creature)) {
         object *live = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-        solve.aiming = ((unit_data *)((uint8_t *)live + k_unit_data_offset))->aiming_vector;
+        solve.aiming = (halo::units::unit_data_of(live))->aiming_vector;
     } else {
         solve.aiming = obj->forward;
     }
@@ -97,219 +103,215 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
         solve.movement_delta.j = 0.0f;
         solve.movement_delta.k = 0.0f;
         solve.frozen_fraction = 1.0f;
-        goto step_crouch;
-    }
-
-    biped_flags = tag->biped_flags;
-    speed_scale = 1.0f;
-    if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
-    }
-
-    if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
-        (obj->vitality_flags & _object_health_frozen_bit) != 0) {
-        if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
-            uint8_t hurt = (0.2f < unit->stun);
-            if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
-                ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
-                hurt = 1;
-            }
-            if ((float)halo::libm::fabs((double)unit->throttle.j) <= (float)halo::libm::fabs((double)unit->throttle.i)) {
-                state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.i ? 4 : 5));
-            } else {
-                state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.j ? 6 : 7));
-            }
-        }
     } else {
-        state[0] = 0;
-    }
-
-    solve.movement_delta.i = global_origin3d_pointer->x;
-    solve.movement_delta.j = global_origin3d_pointer->y;
-    solve.movement_delta.k = global_origin3d_pointer->z;
-
-    if (obj->animation_index != -1 &&
-        ((obj->vitality_flags & _object_health_frozen_bit) != 0 ||
-         !test_flag(tag->biped_flags, tags::biped_tag_flag::flying)) &&
-        (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
-        ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)((uint8_t *)*(void **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data + 0x78) +
-                                         obj->animation_index * 0xb4);
-        float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
-
-        dyaw = 0.0f;
-        if (animation->frame_info_type == 1) {
-            float *f = frame_info + obj->animation_frame * 2;
-            solve.movement_delta.i = f[0];
-            solve.movement_delta.j = f[1];
-        } else if (animation->frame_info_type == 2) {
-            float *f = frame_info + obj->animation_frame * 3;
-            solve.movement_delta.i = f[0];
-            solve.movement_delta.j = f[1];
-            dyaw = f[2];
-        } else if (animation->frame_info_type == 3) {
-            float *f = frame_info + obj->animation_frame * 4;
-            solve.movement_delta.i = f[0];
-            solve.movement_delta.j = f[1];
-            solve.movement_delta.k = f[2];
-            dyaw = f[3];
+        biped_flags = tag->biped_flags;
+        speed_scale = 1.0f;
+        if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
+            speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
         }
-        solve.movement_delta.i = solve.movement_delta.i * speed_scale;
-        solve.movement_delta.j = solve.movement_delta.j * speed_scale;
-        solve.movement_delta.k = solve.movement_delta.k * speed_scale;
 
-        if (!((float)halo::libm::fabs((double)dyaw) < 0.0001f)) {
-            real_vector3d new_forward = obj->forward;
-            float dyaw_cos = (float)halo::libm::cos((double)dyaw);
-            float dyaw_sin = (float)halo::libm::sin((double)dyaw);
+        if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
+            (obj->vitality_flags & _object_health_frozen_bit) != 0) {
+            if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
+                uint8_t hurt = (0.2f < unit->stun);
+                if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
+                    ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
+                    hurt = 1;
+                }
+                if ((float)halo::libm::fabs((double)unit->throttle.j) <= (float)halo::libm::fabs((double)unit->throttle.i)) {
+                    state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.i ? 4 : 5));
+                } else {
+                    state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.j ? 6 : 7));
+                }
+            }
+        } else {
+            state[0] = 0;
+        }
 
-            halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
+        solve.movement_delta.i = global_origin3d_pointer->x;
+        solve.movement_delta.j = global_origin3d_pointer->y;
+        solve.movement_delta.k = global_origin3d_pointer->z;
 
-            if ((unit->control_flags & _unit_control_flag_exact_facing) != 0 &&
-                (unit->animation_state == _unit_animation_state_unknown_02 ||
-                 unit->animation_state == _unit_animation_state_unknown_03) &&
-                0.5f < unit->desired_facing_vector.i * obj->forward.i +
-                           unit->desired_facing_vector.j * obj->forward.j +
-                           unit->desired_facing_vector.k * obj->forward.k) {
-                real_vector3d before;
-                real_vector3d after;
+        if (obj->animation_index != -1 &&
+            ((obj->vitality_flags & _object_health_frozen_bit) != 0 ||
+             !test_flag(tag->biped_flags, tags::biped_tag_flag::flying)) &&
+            (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
+            ModelAnimationsAnimation *animation =
+                (ModelAnimationsAnimation *)((uint8_t *)*(void **)(halo::objects::tag_record_bytes(obj->animation_graph) + 0x78) +
+                                             obj->animation_index * 0xb4);
+            float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
-                halo::math::vector3d_cross_product(before, obj->forward, unit->desired_facing_vector);
-                halo::math::vector3d_cross_product(after, new_forward, unit->desired_facing_vector);
-                if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
-                        (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
-                    new_forward = unit->desired_facing_vector;
+            dyaw = 0.0f;
+            if (animation->frame_info_type == 1) {
+                float *f = frame_info + obj->animation_frame * 2;
+                solve.movement_delta.i = f[0];
+                solve.movement_delta.j = f[1];
+            } else if (animation->frame_info_type == 2) {
+                float *f = frame_info + obj->animation_frame * 3;
+                solve.movement_delta.i = f[0];
+                solve.movement_delta.j = f[1];
+                dyaw = f[2];
+            } else if (animation->frame_info_type == 3) {
+                float *f = frame_info + obj->animation_frame * 4;
+                solve.movement_delta.i = f[0];
+                solve.movement_delta.j = f[1];
+                solve.movement_delta.k = f[2];
+                dyaw = f[3];
+            }
+            solve.movement_delta.i = solve.movement_delta.i * speed_scale;
+            solve.movement_delta.j = solve.movement_delta.j * speed_scale;
+            solve.movement_delta.k = solve.movement_delta.k * speed_scale;
+
+            if (!((float)halo::libm::fabs((double)dyaw) < 0.0001f)) {
+                real_vector3d new_forward = obj->forward;
+                float dyaw_cos = (float)halo::libm::cos((double)dyaw);
+                float dyaw_sin = (float)halo::libm::sin((double)dyaw);
+
+                halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
+
+                if ((unit->control_flags & _unit_control_flag_exact_facing) != 0 &&
+                    (unit->animation_state == _unit_animation_state_unknown_02 ||
+                     unit->animation_state == _unit_animation_state_unknown_03) &&
+                    0.5f < unit->desired_facing_vector.i * obj->forward.i +
+                               unit->desired_facing_vector.j * obj->forward.j +
+                               unit->desired_facing_vector.k * obj->forward.k) {
+                    real_vector3d before;
+                    real_vector3d after;
+
+                    halo::math::vector3d_cross_product(before, obj->forward, unit->desired_facing_vector);
+                    halo::math::vector3d_cross_product(after, new_forward, unit->desired_facing_vector);
+                    if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
+                            (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
+                        new_forward = unit->desired_facing_vector;
+                    }
+                }
+
+                obj->forward = new_forward;
+                ::halo::units::unit_update_up_vector((Biped *)tag, (::object *)obj);
+            }
+        }
+
+        biped_flags = tag->biped_flags;
+        if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
+            (obj->vitality_flags & _object_health_frozen_bit) != 0) {
+            if (!test_flag(biped_flags, tags::biped_tag_flag::uses_player_physics) ||
+                unit->animation_state == _unit_animation_state_custom_animation) {
+                if (!test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::jumping)) {
+                    obj->velocity.i = solve.movement_delta.i;
+                    obj->velocity.j = solve.movement_delta.j;
+                    solve.maximum_acceleration = 3.4028235e+38f;
+                }
+            } else {
+                float stand_weight;
+                float forward_speed;
+                float sideways_speed;
+                float player_speed_scale;
+
+                player_info = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
+
+                if (cinematic_globals_ptr[9] != 0 || test_flag(biped_flags, tags::biped_tag_flag::unit_uses_old_ntsc_player_physics)) {
+                    player_info_copy = *player_info;
+                    player_info = &player_info_copy;
+                    player_info->walking_speed = 0.512f;
+                    player_info->run_forward = 2.25f;
+                    player_info->run_backward = 2.0f;
+                    player_info->run_sideways = 2.0f;
+                    player_info->run_acceleration = 0.32f;
+                }
+                if (halo::game::globals().current_engine != 0) {
+                    player_info_copy = *player_info;
+                    player_info = &player_info_copy;
+                    player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
+                                                 player_info->walking_speed;
+                    player_info->run_forward = player_info->speed_multiplier * player_info->run_forward +
+                                               player_info->run_forward;
+                    player_info->run_backward = player_info->speed_multiplier * player_info->run_backward +
+                                                player_info->run_backward;
+                    player_info->run_sideways = player_info->speed_multiplier * player_info->run_sideways +
+                                                player_info->run_sideways;
+                }
+
+                player_speed_scale = 1.0f;
+                if (unit->controlling_player != k_datum_index_none) {
+                    player_speed_scale = halo::game::player_at(unit->controlling_player)->speed;
+                }
+                speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *
+                              player_speed_scale * speed_scale;
+
+                stand_weight = 1.0f - biped->crouch_fraction;
+                if (unit->throttle.i <= 0.0f) {
+                    forward_speed = stand_weight * player_info->run_backward +
+                                    player_info->sneak_backward * biped->crouch_fraction;
+                } else {
+                    forward_speed = stand_weight * player_info->run_forward +
+                                    player_info->sneak_forward * biped->crouch_fraction;
+                }
+                solve.movement_delta.k = 0.0f;
+                sideways_speed = stand_weight * player_info->run_sideways +
+                                 player_info->sneak_sideways * biped->crouch_fraction;
+
+                if (unit->base_animation_state == _unit_base_animation_state_alert) {
+                    forward_speed = (unit->throttle.i <= 0.0f) ? 0.0f : player_info->walking_speed;
+                    sideways_speed = 0.0f;
+                }
+
+                solve.movement_delta.i = speed_scale * forward_speed * unit->throttle.i * 0.033333335f;
+                solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * 0.033333335f;
+                solve.maximum_acceleration = (stand_weight * player_info->run_acceleration +
+                                              player_info->sneak_acceleration * biped->crouch_fraction) *
+                                             0.033333335f;
+                solve.airborne_acceleration = player_info->airborne_acceleration * 0.033333335f;
+
+                if ((unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
+                    solve.facing = unit->desired_facing_vector;
+                }
+
+                if (object_update_gate_globals[2] != 0) {
+                    solve.movement_delta.k = player_info->double_speed_multiplier;
+                    solve.movement_delta.i = solve.movement_delta.i * solve.movement_delta.k;
+                    solve.movement_delta.j = solve.movement_delta.j * solve.movement_delta.k;
+                    solve.movement_delta.k = solve.movement_delta.k * 0.0f;
+                }
+            }
+        } else {
+            float throttle_length;
+            float crouch_modifier;
+            float sideways_rate;
+
+            throttle_length = (float)halo::libm::sqrt((double)(unit->throttle.k * unit->throttle.k +
+                                                   unit->throttle.j * unit->throttle.j +
+                                                   unit->throttle.i * unit->throttle.i));
+            if (1.0f <= throttle_length) {
+                throttle_length = 1.0f;
+            }
+
+            crouch_modifier = 1.0f;
+            if (0.0f < tag->crouch_velocity_modifier) {
+                if (biped->crouch_fraction == 1.0f) {
+                    crouch_modifier = tag->crouch_velocity_modifier;
+                } else if (0.0f < biped->crouch_fraction) {
+                    crouch_modifier = (tag->crouch_velocity_modifier - 1.0f) * biped->crouch_fraction + 1.0f;
                 }
             }
 
-            obj->forward = new_forward;
-            ::halo::units::unit_update_up_vector((Biped *)tag, (::object *)obj);
+            sideways_rate = crouch_modifier * tag->max_sidestep_velocity * speed_scale;
+            solve.movement_delta.i = crouch_modifier * tag->max_velocity * speed_scale *
+                                     unit->throttle.i * 0.033333335f;
+            solve.movement_delta.j = sideways_rate * unit->throttle.j * 0.033333335f;
+            solve.movement_delta.k = sideways_rate * unit->throttle.k * 0.033333335f;
+            solve.maximum_acceleration = ((1.0f - throttle_length) * tag->deceleration +
+                                          throttle_length * tag->acceleration) *
+                                         crouch_modifier * speed_scale * 0.033333335f;
+            solve.airborne_acceleration = solve.maximum_acceleration;
         }
+
+        if (test_flag(biped->flags, units::biped_flag::airborne) && biped->airborne_ticks < 0x16 &&
+            unit->actor_index != k_datum_index_none && halo::ai::actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
+            solve.steep_landing_maximum_slide = 0.1f;
+            solve.steep_landing_minimum_penetration = 0.5f;
+        }
+        solve.frozen_fraction = 0.0f;
     }
-
-    biped_flags = tag->biped_flags;
-    if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
-        (obj->vitality_flags & _object_health_frozen_bit) != 0) {
-        if (!test_flag(biped_flags, tags::biped_tag_flag::uses_player_physics) ||
-            unit->animation_state == _unit_animation_state_custom_animation) {
-            if (!test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::jumping)) {
-                obj->velocity.i = solve.movement_delta.i;
-                obj->velocity.j = solve.movement_delta.j;
-                solve.maximum_acceleration = 3.4028235e+38f;
-            }
-        } else {
-            float stand_weight;
-            float forward_speed;
-            float sideways_speed;
-            float player_speed_scale;
-
-            player_info = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
-
-            if (cinematic_globals_ptr[9] != 0 || test_flag(biped_flags, tags::biped_tag_flag::unit_uses_old_ntsc_player_physics)) {
-                player_info_copy = *player_info;
-                player_info = &player_info_copy;
-                player_info->walking_speed = 0.512f;
-                player_info->run_forward = 2.25f;
-                player_info->run_backward = 2.0f;
-                player_info->run_sideways = 2.0f;
-                player_info->run_acceleration = 0.32f;
-            }
-            if (halo::game::globals().current_engine != 0) {
-                player_info_copy = *player_info;
-                player_info = &player_info_copy;
-                player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
-                                             player_info->walking_speed;
-                player_info->run_forward = player_info->speed_multiplier * player_info->run_forward +
-                                           player_info->run_forward;
-                player_info->run_backward = player_info->speed_multiplier * player_info->run_backward +
-                                            player_info->run_backward;
-                player_info->run_sideways = player_info->speed_multiplier * player_info->run_sideways +
-                                            player_info->run_sideways;
-            }
-
-            player_speed_scale = 1.0f;
-            if (unit->controlling_player != k_datum_index_none) {
-                player_speed_scale = *(float *)((uint8_t *)halo::game::globals().player_data->data +
-                                                halo::datum_slot(unit->controlling_player) * 0x200 + 0x6c);
-            }
-            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *
-                          player_speed_scale * speed_scale;
-
-            stand_weight = 1.0f - biped->crouch_fraction;
-            if (unit->throttle.i <= 0.0f) {
-                forward_speed = stand_weight * player_info->run_backward +
-                                player_info->sneak_backward * biped->crouch_fraction;
-            } else {
-                forward_speed = stand_weight * player_info->run_forward +
-                                player_info->sneak_forward * biped->crouch_fraction;
-            }
-            solve.movement_delta.k = 0.0f;
-            sideways_speed = stand_weight * player_info->run_sideways +
-                             player_info->sneak_sideways * biped->crouch_fraction;
-
-            if (unit->base_animation_state == _unit_base_animation_state_alert) {
-                forward_speed = (unit->throttle.i <= 0.0f) ? 0.0f : player_info->walking_speed;
-                sideways_speed = 0.0f;
-            }
-
-            solve.movement_delta.i = speed_scale * forward_speed * unit->throttle.i * 0.033333335f;
-            solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * 0.033333335f;
-            solve.maximum_acceleration = (stand_weight * player_info->run_acceleration +
-                                          player_info->sneak_acceleration * biped->crouch_fraction) *
-                                         0.033333335f;
-            solve.airborne_acceleration = player_info->airborne_acceleration * 0.033333335f;
-
-            if ((unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
-                solve.facing = unit->desired_facing_vector;
-            }
-
-            if (object_update_gate_globals[2] != 0) {
-                solve.movement_delta.k = player_info->double_speed_multiplier;
-                solve.movement_delta.i = solve.movement_delta.i * solve.movement_delta.k;
-                solve.movement_delta.j = solve.movement_delta.j * solve.movement_delta.k;
-                solve.movement_delta.k = solve.movement_delta.k * 0.0f;
-            }
-        }
-    } else {
-        float throttle_length;
-        float crouch_modifier;
-        float sideways_rate;
-
-        throttle_length = (float)halo::libm::sqrt((double)(unit->throttle.k * unit->throttle.k +
-                                               unit->throttle.j * unit->throttle.j +
-                                               unit->throttle.i * unit->throttle.i));
-        if (1.0f <= throttle_length) {
-            throttle_length = 1.0f;
-        }
-
-        crouch_modifier = 1.0f;
-        if (0.0f < tag->crouch_velocity_modifier) {
-            if (biped->crouch_fraction == 1.0f) {
-                crouch_modifier = tag->crouch_velocity_modifier;
-            } else if (0.0f < biped->crouch_fraction) {
-                crouch_modifier = (tag->crouch_velocity_modifier - 1.0f) * biped->crouch_fraction + 1.0f;
-            }
-        }
-
-        sideways_rate = crouch_modifier * tag->max_sidestep_velocity * speed_scale;
-        solve.movement_delta.i = crouch_modifier * tag->max_velocity * speed_scale *
-                                 unit->throttle.i * 0.033333335f;
-        solve.movement_delta.j = sideways_rate * unit->throttle.j * 0.033333335f;
-        solve.movement_delta.k = sideways_rate * unit->throttle.k * 0.033333335f;
-        solve.maximum_acceleration = ((1.0f - throttle_length) * tag->deceleration +
-                                      throttle_length * tag->acceleration) *
-                                     crouch_modifier * speed_scale * 0.033333335f;
-        solve.airborne_acceleration = solve.maximum_acceleration;
-    }
-
-    if (test_flag(biped->flags, units::biped_flag::airborne) && biped->airborne_ticks < 0x16 &&
-        unit->actor_index != k_datum_index_none && halo::ai::actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
-        solve.steep_landing_maximum_slide = 0.1f;
-        solve.steep_landing_minimum_penetration = 0.5f;
-    }
-    solve.frozen_fraction = 0.0f;
-
-step_crouch:
     if (unit->base_animation_state == _unit_base_animation_state_crouch) {
         if (1.0f - biped->crouch_fraction <= tag->crouch_camera_velocity) {
             biped->crouch_fraction = 1.0f;
@@ -402,7 +404,7 @@ step_crouch:
     biped->ground_plane_distance = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
-        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);
+        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, tag, obj);
     }
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && !test_flag(biped->flags, units::biped_flag::airborne)) {
@@ -441,8 +443,8 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    unit_data *unit = halo::units::unit_data_of(obj);
+    biped_data *biped = halo::units::biped_data_of(obj);
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     biped_movement_solver_data solve;
@@ -493,220 +495,216 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
         solve.movement_delta.j = 0.0f;
         solve.movement_delta.k = 0.0f;
         solve.frozen_fraction = 1.0f;
-        goto step_crouch;
-    }
-
-    biped_flags = tag->biped_flags;
-    speed_scale = 1.0f;
-    if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
-    }
-
-    if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
-        (obj->vitality_flags & _object_health_frozen_bit) != 0) {
-        if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
-            uint8_t hurt = (0.2f < unit->stun);
-            if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
-                ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
-                hurt = 1;
-            }
-            if ((float)halo::libm::fabs((double)unit->throttle.j) <= (float)halo::libm::fabs((double)unit->throttle.i)) {
-                state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.i ? 4 : 5));
-            } else {
-                state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.j ? 6 : 7));
-            }
-        }
     } else {
-        state[0] = 0;
-    }
-
-    solve.movement_delta.i = global_origin3d_pointer->x;
-    solve.movement_delta.j = global_origin3d_pointer->y;
-    solve.movement_delta.k = global_origin3d_pointer->z;
-
-    if (obj->animation_index != -1 &&
-        ((obj->vitality_flags & _object_health_frozen_bit) != 0 ||
-         !test_flag(tag->biped_flags, tags::biped_tag_flag::flying)) &&
-        (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
-        ModelAnimationsAnimation *animation =
-            (ModelAnimationsAnimation *)(*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->animation_graph)].data + 0x78) +
-                                         obj->animation_index * 0xb4);
-        float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
-
-        dyaw = 0.0f;
-        if (animation->frame_info_type == 1) {
-            float *f = frame_info + obj->animation_frame * 2;
-            solve.movement_delta.i = f[0];
-            solve.movement_delta.j = f[1];
-        } else if (animation->frame_info_type == 2) {
-            float *f = frame_info + obj->animation_frame * 3;
-            solve.movement_delta.i = f[0];
-            solve.movement_delta.j = f[1];
-            dyaw = f[2];
-        } else if (animation->frame_info_type == 3) {
-            float *f = frame_info + obj->animation_frame * 4;
-            solve.movement_delta.i = f[0];
-            solve.movement_delta.j = f[1];
-            solve.movement_delta.k = f[2];
-            dyaw = f[3];
+        biped_flags = tag->biped_flags;
+        speed_scale = 1.0f;
+        if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
+            speed_scale = (float)(object_index % 0x89) * 0.00729927f * halo::game::weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
         }
-        solve.movement_delta.i = solve.movement_delta.i * speed_scale;
-        solve.movement_delta.j = solve.movement_delta.j * speed_scale;
-        solve.movement_delta.k = solve.movement_delta.k * speed_scale;
 
-        if (!((float)halo::libm::fabs((double)dyaw) < 0.0001f)) {
-            real_vector3d new_forward = obj->forward;
-            float dyaw_cos = (float)halo::libm::cos((double)dyaw);
-            float dyaw_sin = (float)halo::libm::sin((double)dyaw);
+        if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
+            (obj->vitality_flags & _object_health_frozen_bit) != 0) {
+            if (unit->throttle.i != 0.0f || unit->throttle.j != 0.0f || unit->throttle.k != 0.0f) {
+                uint8_t hurt = (0.2f < unit->stun);
+                if (0.0f < ((Unit *)tag)->stunned_movement_threshold &&
+                    ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
+                    hurt = 1;
+                }
+                if ((float)halo::libm::fabs((double)unit->throttle.j) <= (float)halo::libm::fabs((double)unit->throttle.i)) {
+                    state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.i ? 4 : 5));
+                } else {
+                    state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.j ? 6 : 7));
+                }
+            }
+        } else {
+            state[0] = 0;
+        }
 
-            halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
+        solve.movement_delta.i = global_origin3d_pointer->x;
+        solve.movement_delta.j = global_origin3d_pointer->y;
+        solve.movement_delta.k = global_origin3d_pointer->z;
 
-            if ((unit->control_flags & _unit_control_flag_exact_facing) != 0 &&
-                (unit->animation_state == _unit_animation_state_unknown_02 ||
-                 unit->animation_state == _unit_animation_state_unknown_03) &&
-                0.5f < unit->desired_facing_vector.i * obj->forward.i +
-                           unit->desired_facing_vector.j * obj->forward.j +
-                           unit->desired_facing_vector.k * obj->forward.k) {
-                real_vector3d before;
-                real_vector3d after;
+        if (obj->animation_index != -1 &&
+            ((obj->vitality_flags & _object_health_frozen_bit) != 0 ||
+             !test_flag(tag->biped_flags, tags::biped_tag_flag::flying)) &&
+            (unit->animation_state_flags & _unit_animation_flag_unknown_4) == 0) {
+            ModelAnimationsAnimation *animation =
+                (ModelAnimationsAnimation *)(*(uint8_t **)(halo::objects::tag_record_bytes(obj->animation_graph) + 0x78) +
+                                             obj->animation_index * 0xb4);
+            float *frame_info = (float *)(uint8_t *)animation->frame_info.pointer;
 
-                halo::math::vector3d_cross_product(before, obj->forward, unit->desired_facing_vector);
-                halo::math::vector3d_cross_product(after, new_forward, unit->desired_facing_vector);
-                if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
-                        (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
-                    new_forward = unit->desired_facing_vector;
-                    UnitView(object_index).try_set_animation_state(0);
+            dyaw = 0.0f;
+            if (animation->frame_info_type == 1) {
+                float *f = frame_info + obj->animation_frame * 2;
+                solve.movement_delta.i = f[0];
+                solve.movement_delta.j = f[1];
+            } else if (animation->frame_info_type == 2) {
+                float *f = frame_info + obj->animation_frame * 3;
+                solve.movement_delta.i = f[0];
+                solve.movement_delta.j = f[1];
+                dyaw = f[2];
+            } else if (animation->frame_info_type == 3) {
+                float *f = frame_info + obj->animation_frame * 4;
+                solve.movement_delta.i = f[0];
+                solve.movement_delta.j = f[1];
+                solve.movement_delta.k = f[2];
+                dyaw = f[3];
+            }
+            solve.movement_delta.i = solve.movement_delta.i * speed_scale;
+            solve.movement_delta.j = solve.movement_delta.j * speed_scale;
+            solve.movement_delta.k = solve.movement_delta.k * speed_scale;
+
+            if (!((float)halo::libm::fabs((double)dyaw) < 0.0001f)) {
+                real_vector3d new_forward = obj->forward;
+                float dyaw_cos = (float)halo::libm::cos((double)dyaw);
+                float dyaw_sin = (float)halo::libm::sin((double)dyaw);
+
+                halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
+
+                if ((unit->control_flags & _unit_control_flag_exact_facing) != 0 &&
+                    (unit->animation_state == _unit_animation_state_unknown_02 ||
+                     unit->animation_state == _unit_animation_state_unknown_03) &&
+                    0.5f < unit->desired_facing_vector.i * obj->forward.i +
+                               unit->desired_facing_vector.j * obj->forward.j +
+                               unit->desired_facing_vector.k * obj->forward.k) {
+                    real_vector3d before;
+                    real_vector3d after;
+
+                    halo::math::vector3d_cross_product(before, obj->forward, unit->desired_facing_vector);
+                    halo::math::vector3d_cross_product(after, new_forward, unit->desired_facing_vector);
+                    if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
+                            (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
+                        new_forward = unit->desired_facing_vector;
+                        UnitView(object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::idle));
+                    }
+                }
+
+                obj->forward = new_forward;
+                ::halo::units::unit_update_up_vector((Biped *)tag, (::object *)obj);
+            }
+        }
+
+        biped_flags = tag->biped_flags;
+        if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
+            (obj->vitality_flags & _object_health_frozen_bit) != 0) {
+            if (!test_flag(biped_flags, tags::biped_tag_flag::uses_player_physics) ||
+                unit->animation_state == _unit_animation_state_custom_animation) {
+                if (!test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::jumping)) {
+                    obj->velocity.i = solve.movement_delta.i;
+                    obj->velocity.j = solve.movement_delta.j;
+                    solve.maximum_acceleration = 3.4028235e+38f;
+                }
+            } else {
+                float stand_weight;
+                float forward_speed;
+                float sideways_speed;
+                float player_speed_scale;
+
+                player_info = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
+
+                if (cinematic_globals_ptr[9] != 0 || test_flag(biped_flags, tags::biped_tag_flag::unit_uses_old_ntsc_player_physics)) {
+                    player_info_copy = *player_info;
+                    player_info = &player_info_copy;
+                    player_info->walking_speed = 0.512f;
+                    player_info->run_forward = 2.25f;
+                    player_info->run_backward = 2.0f;
+                    player_info->run_sideways = 2.0f;
+                    player_info->run_acceleration = 0.32f;
+                }
+                if (halo::game::globals().current_engine != 0) {
+                    player_info_copy = *player_info;
+                    player_info = &player_info_copy;
+                    player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
+                                                 player_info->walking_speed;
+                    player_info->run_forward = player_info->speed_multiplier * player_info->run_forward +
+                                               player_info->run_forward;
+                    player_info->run_backward = player_info->speed_multiplier * player_info->run_backward +
+                                                player_info->run_backward;
+                    player_info->run_sideways = player_info->speed_multiplier * player_info->run_sideways +
+                                                player_info->run_sideways;
+                }
+
+                player_speed_scale = 1.0f;
+                if (unit->controlling_player != k_datum_index_none) {
+                    player_speed_scale = halo::game::player_at(unit->controlling_player)->speed;
+                }
+                speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *
+                              player_speed_scale * speed_scale;
+
+                stand_weight = 1.0f - biped->crouch_fraction;
+                if (unit->throttle.i <= 0.0f) {
+                    forward_speed = player_info->sneak_backward * biped->crouch_fraction +
+                                    stand_weight * player_info->run_backward;
+                } else {
+                    forward_speed = player_info->sneak_forward * biped->crouch_fraction +
+                                    stand_weight * player_info->run_forward;
+                }
+                solve.movement_delta.k = 0.0f;
+                sideways_speed = player_info->sneak_sideways * biped->crouch_fraction +
+                                 stand_weight * player_info->run_sideways;
+
+                if (unit->base_animation_state == _unit_base_animation_state_alert) {
+                    forward_speed = (unit->throttle.i <= 0.0f) ? 0.0f : player_info->walking_speed;
+                    sideways_speed = 0.0f;
+                }
+
+                solve.movement_delta.i = speed_scale * unit->throttle.i * forward_speed * 0.033333335f;
+                solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * 0.033333335f;
+                solve.maximum_acceleration = (player_info->sneak_acceleration * biped->crouch_fraction +
+                                              stand_weight * player_info->run_acceleration) *
+                                             0.033333335f;
+                solve.airborne_acceleration = player_info->airborne_acceleration * 0.033333335f;
+
+                if ((unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
+                    solve.facing = unit->desired_facing_vector;
+                }
+
+                if (object_update_gate_globals[2] != 0) {
+                    solve.movement_delta.k = player_info->double_speed_multiplier;
+                    solve.movement_delta.i = solve.movement_delta.i * solve.movement_delta.k;
+                    solve.movement_delta.j = solve.movement_delta.j * solve.movement_delta.k;
+                    solve.movement_delta.k = solve.movement_delta.k * 0.0f;
+                }
+            }
+        } else {
+            float throttle_length;
+            float crouch_modifier;
+
+            throttle_length = (float)halo::libm::sqrt((double)(unit->throttle.k * unit->throttle.k +
+                                                   unit->throttle.j * unit->throttle.j +
+                                                   unit->throttle.i * unit->throttle.i));
+            if (1.0f <= throttle_length) {
+                throttle_length = 1.0f;
+            }
+
+            crouch_modifier = 1.0f;
+            if (0.0f < tag->crouch_velocity_modifier) {
+                if (biped->crouch_fraction == 1.0f) {
+                    crouch_modifier = tag->crouch_velocity_modifier;
+                } else if (0.0f < biped->crouch_fraction) {
+                    crouch_modifier = (tag->crouch_velocity_modifier - 1.0f) * biped->crouch_fraction + 1.0f;
                 }
             }
 
-            obj->forward = new_forward;
-            ::halo::units::unit_update_up_vector((Biped *)tag, (::object *)obj);
+            solve.movement_delta.i = crouch_modifier * tag->max_velocity * speed_scale *
+                                     unit->throttle.i * 0.033333335f;
+            solve.movement_delta.j = crouch_modifier * tag->max_sidestep_velocity * speed_scale *
+                                     unit->throttle.j * 0.033333335f;
+            solve.movement_delta.k = crouch_modifier * tag->max_sidestep_velocity * speed_scale *
+                                     unit->throttle.k * 0.033333335f;
+            solve.maximum_acceleration = ((1.0f - throttle_length) * tag->deceleration +
+                                          throttle_length * tag->acceleration) *
+                                         crouch_modifier * speed_scale * 0.033333335f;
+            solve.airborne_acceleration = solve.maximum_acceleration;
         }
+
+        if (test_flag(biped->flags, units::biped_flag::airborne) && biped->airborne_ticks < 0x16 &&
+            unit->actor_index != k_datum_index_none && halo::ai::actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
+            solve.steep_landing_maximum_slide = 0.1f;
+            solve.steep_landing_minimum_penetration = 0.5f;
+        }
+        solve.frozen_fraction = 0.0f;
     }
-
-    biped_flags = tag->biped_flags;
-    if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
-        (obj->vitality_flags & _object_health_frozen_bit) != 0) {
-        if (!test_flag(biped_flags, tags::biped_tag_flag::uses_player_physics) ||
-            unit->animation_state == _unit_animation_state_custom_animation) {
-            if (!test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::jumping)) {
-                obj->velocity.i = solve.movement_delta.i;
-                obj->velocity.j = solve.movement_delta.j;
-                solve.maximum_acceleration = 3.4028235e+38f;
-            }
-        } else {
-            float stand_weight;
-            float forward_speed;
-            float sideways_speed;
-            float player_speed_scale;
-
-            player_info = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
-
-            if (cinematic_globals_ptr[9] != 0 || test_flag(biped_flags, tags::biped_tag_flag::unit_uses_old_ntsc_player_physics)) {
-                player_info_copy = *player_info;
-                player_info = &player_info_copy;
-                player_info->walking_speed = 0.512f;
-                player_info->run_forward = 2.25f;
-                player_info->run_backward = 2.0f;
-                player_info->run_sideways = 2.0f;
-                player_info->run_acceleration = 0.32f;
-            }
-            if (halo::game::globals().current_engine != 0) {
-                player_info_copy = *player_info;
-                player_info = &player_info_copy;
-                player_info->walking_speed = player_info->speed_multiplier * player_info->walking_speed +
-                                             player_info->walking_speed;
-                player_info->run_forward = player_info->speed_multiplier * player_info->run_forward +
-                                           player_info->run_forward;
-                player_info->run_backward = player_info->speed_multiplier * player_info->run_backward +
-                                            player_info->run_backward;
-                player_info->run_sideways = player_info->speed_multiplier * player_info->run_sideways +
-                                            player_info->run_sideways;
-            }
-
-            player_speed_scale = 1.0f;
-            if (unit->controlling_player != k_datum_index_none) {
-                player_speed_scale = *(float *)((uint8_t *)halo::game::globals().player_data->data +
-                                                halo::datum_slot(unit->controlling_player) * 0x200 + 0x6c);
-            }
-            speed_scale = (1.0f - player_info->stun_movement_penalty * unit->stun) *
-                          player_speed_scale * speed_scale;
-
-            stand_weight = 1.0f - biped->crouch_fraction;
-            if (unit->throttle.i <= 0.0f) {
-                forward_speed = player_info->sneak_backward * biped->crouch_fraction +
-                                stand_weight * player_info->run_backward;
-            } else {
-                forward_speed = player_info->sneak_forward * biped->crouch_fraction +
-                                stand_weight * player_info->run_forward;
-            }
-            solve.movement_delta.k = 0.0f;
-            sideways_speed = player_info->sneak_sideways * biped->crouch_fraction +
-                             stand_weight * player_info->run_sideways;
-
-            if (unit->base_animation_state == _unit_base_animation_state_alert) {
-                forward_speed = (unit->throttle.i <= 0.0f) ? 0.0f : player_info->walking_speed;
-                sideways_speed = 0.0f;
-            }
-
-            solve.movement_delta.i = speed_scale * unit->throttle.i * forward_speed * 0.033333335f;
-            solve.movement_delta.j = speed_scale * unit->throttle.j * sideways_speed * 0.033333335f;
-            solve.maximum_acceleration = (player_info->sneak_acceleration * biped->crouch_fraction +
-                                          stand_weight * player_info->run_acceleration) *
-                                         0.033333335f;
-            solve.airborne_acceleration = player_info->airborne_acceleration * 0.033333335f;
-
-            if ((unit->control_flags & _unit_control_flag_look_dont_turn) == 0) {
-                solve.facing = unit->desired_facing_vector;
-            }
-
-            if (object_update_gate_globals[2] != 0) {
-                solve.movement_delta.k = player_info->double_speed_multiplier;
-                solve.movement_delta.i = solve.movement_delta.i * solve.movement_delta.k;
-                solve.movement_delta.j = solve.movement_delta.j * solve.movement_delta.k;
-                solve.movement_delta.k = solve.movement_delta.k * 0.0f;
-            }
-        }
-    } else {
-        float throttle_length;
-        float crouch_modifier;
-
-        throttle_length = (float)halo::libm::sqrt((double)(unit->throttle.k * unit->throttle.k +
-                                               unit->throttle.j * unit->throttle.j +
-                                               unit->throttle.i * unit->throttle.i));
-        if (1.0f <= throttle_length) {
-            throttle_length = 1.0f;
-        }
-
-        crouch_modifier = 1.0f;
-        if (0.0f < tag->crouch_velocity_modifier) {
-            if (biped->crouch_fraction == 1.0f) {
-                crouch_modifier = tag->crouch_velocity_modifier;
-            } else if (0.0f < biped->crouch_fraction) {
-                crouch_modifier = (tag->crouch_velocity_modifier - 1.0f) * biped->crouch_fraction + 1.0f;
-            }
-        }
-
-        solve.movement_delta.i = crouch_modifier * tag->max_velocity * speed_scale *
-                                 unit->throttle.i * 0.033333335f;
-        solve.movement_delta.j = crouch_modifier * tag->max_sidestep_velocity * speed_scale *
-                                 unit->throttle.j * 0.033333335f;
-        solve.movement_delta.k = crouch_modifier * tag->max_sidestep_velocity * speed_scale *
-                                 unit->throttle.k * 0.033333335f;
-        solve.maximum_acceleration = ((1.0f - throttle_length) * tag->deceleration +
-                                      throttle_length * tag->acceleration) *
-                                     crouch_modifier * speed_scale * 0.033333335f;
-        solve.airborne_acceleration = solve.maximum_acceleration;
-    }
-
-    if (test_flag(biped->flags, units::biped_flag::airborne) && biped->airborne_ticks < 0x16 &&
-        unit->actor_index != k_datum_index_none && halo::ai::actor_check_vehicle_mode_timeout(unit->actor_index) != 0) {
-        solve.steep_landing_maximum_slide = 0.1f;
-        solve.steep_landing_minimum_penetration = 0.5f;
-    }
-    solve.frozen_fraction = 0.0f;
-
-step_crouch:
     if (unit->base_animation_state == _unit_base_animation_state_crouch) {
         crouch_step = 1.0f - biped->crouch_fraction;
         if (crouch_step <= tag->crouch_camera_velocity) {
@@ -817,7 +815,7 @@ step_crouch:
     biped->ground_plane_distance = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
-        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);
+        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, tag, obj);
     }
     if ((result_flags & _biped_movement_result_landed) == 0) {
         UnitView(object_index).track_target_lock_timeout();
@@ -826,7 +824,7 @@ step_crouch:
     if (unit->melee_state == _unit_melee_state_unknown_3 &&
         biped->melee_target_index != k_datum_index_none) {
         datum_index target_index = biped->melee_target_index;
-        uint8_t *target = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(target_index)].data;
+        object *target = reinterpret_cast<object *>(halo::objects::object_record_bytes(target_index));
         real_vector3d lunge;
         object_collision_context context;
         object_node_collision_result node_hit;
@@ -835,8 +833,8 @@ step_crouch:
         lunge.i = solve.result_position.x - solve.start_position.x;
         lunge.j = solve.result_position.y - solve.start_position.y;
         lunge.k = solve.result_position.z - solve.start_position.z;
-        if (halo::math::ray_intersects_sphere_test(solve.start_position, *((real_point3d *)&((struct object *)target)->bounding_center), lunge,
-                                       ((object *)target)->bounding_radius) &&
+        if (halo::math::ray_intersects_sphere_test(solve.start_position, *((real_point3d *)&target->bounding_center), lunge,
+                                       target->bounding_radius) &&
             halo::physics::object_collision_context_build(target_index, &context) &&
             halo::physics::object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
             !halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine), &solve.start_position, &lunge, object_index, &structure_hit)) {
@@ -885,8 +883,6 @@ step_crouch:
     }
 }
 
-#define K_GROUND_NORMAL_OFFSET 0.0078125f
-#define K_FLAT_GROUND_K        0.0001f
 /**
  * Engine function biped_movement_solve.
  *
@@ -993,7 +989,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
             direction.i = c.i * solve->movement_delta.j + b.i * solve->movement_delta.i;
             direction.j = c.j * solve->movement_delta.j + b.j * solve->movement_delta.i;
             direction.k = c.k * solve->movement_delta.j + b.k * solve->movement_delta.i + solve->movement_delta.k;
-        } else if (ground_normal->k > K_FLAT_GROUND_K) {
+        } else if (ground_normal->k > k_flat_ground_k) {
             lateral_x = solve->facing.i * solve->movement_delta.i - solve->movement_delta.j * solve->facing.j;
             direction.i = lateral_x;
             lateral_y = solve->movement_delta.j * solve->facing.i + solve->movement_delta.i * solve->facing.j;
@@ -1054,9 +1050,9 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
             c = delta;
         }
         *result_flags = jumping ? 2 : 0;
-        solve->result_velocity.i = (c.i - ground_normal->i * K_GROUND_NORMAL_OFFSET) + solve->velocity.i;
-        solve->result_velocity.j = (c.j - ground_normal->j * K_GROUND_NORMAL_OFFSET) + solve->velocity.j;
-        solve->result_velocity.k = (c.k - ground_normal->k * K_GROUND_NORMAL_OFFSET) + solve->velocity.k;
+        solve->result_velocity.i = (c.i - ground_normal->i * k_ground_normal_offset) + solve->velocity.i;
+        solve->result_velocity.j = (c.j - ground_normal->j * k_ground_normal_offset) + solve->velocity.j;
+        solve->result_velocity.k = (c.k - ground_normal->k * k_ground_normal_offset) + solve->velocity.k;
         if ((*result_flags & 2) != 0) {
             solve->result_velocity.k -= halo::physics::globals().gravity;
         }
@@ -1069,11 +1065,11 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         if (test_flag(flags, units::biped_movement_solver_flag::unknown_40)) {
             model_flags = 0;
         } else if (test_flag(flags, units::biped_movement_solver_flag::dead)) {
-            model_flags = 0xc0a0;
+            model_flags = k_dead_unit_collision_flags;
         } else if (test_flag(flags, units::biped_movement_solver_flag::passes_through_bipeds)) {
-            model_flags = 0xc2a0;
+            model_flags = k_pass_through_bipeds_collision_flags;
         } else {
-            model_flags = 0x20c3a0;
+            model_flags = k_unit_collision_flags;
         }
         a = *(real_vector3d *)&solve->start_position;
         delta = solve->result_velocity;
@@ -1358,8 +1354,8 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
                 }
             }
             if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
-                uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(header->data->definition_tag)].data;
-                if (((uint8_t)(((struct Unit *)tag)->melee_damage.path_size >> 16) & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
+                Unit *tag = halo::objects::tag_as<Unit>(header->data->definition_tag);
+                if (((uint8_t)(tag->melee_damage.path_size >> 16) & 4) != 0 && halo::raw_at<int16_t>(tag, 0x2ea) != -1) {
                     solve->result_surface_index = object_index;
                 }
             }
@@ -1377,13 +1373,13 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
 
         if (test_flag(flags, units::biped_movement_solver_flag::crouching) && test_flag(flags, units::biped_movement_solver_flag::crouch_began)) {
             object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(solve->object_index)].data;
-            unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+            unit_data *unit = halo::units::unit_data_of(obj);
 
             if (unit->controlling_player != k_datum_index_none) {
-                Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+                Biped *tag = halo::objects::tag_as<Biped>(obj->definition_tag);
                 if ((tag->biped_flags & 0x18) == 0) {
                     float half_height = tag->standing_collision_height * 0.5f;
-                    uint32_t query_flags = test_flag(flags, units::biped_movement_solver_flag::dead) ? 0xc0a0 : 0x20c3a0;
+                    uint32_t query_flags = test_flag(flags, units::biped_movement_solver_flag::dead) ? k_dead_unit_collision_flags : k_unit_collision_flags;
                     real_point3d center;
 
                     center.x = solve->result_position.x;
@@ -1407,8 +1403,6 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         }
     }
 }
-#undef K_GROUND_NORMAL_OFFSET
-#undef K_FLAT_GROUND_K
 
 /**
  * object_type_definition "biped" row, +0x50 column. Clears the whole biped_data extension to zero, reseeds
@@ -1421,7 +1415,7 @@ void BipedView::reset_state()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    biped_data *biped = halo::units::biped_data_of(obj);
     uint32_t *field = (uint32_t *)biped;
     int32_t i;
 

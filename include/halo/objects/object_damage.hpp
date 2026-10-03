@@ -98,8 +98,8 @@ public:
      *
      * @address 0x004ef2a0
      */
-    void apply_body_damage(int32_t region_index, int32_t node_index, void *plane, uint8_t *geometry,
-    uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags, float *body_damage_out,
+    void apply_body_damage(int32_t region_index, int32_t node_index, void *plane, ModelCollisionGeometry *geometry,
+    ModelCollisionGeometryMaterial *material, DamageEffect *effect_block, damage_data *dd, uint32_t *notify_flags, float *body_damage_out,
     float *material_multiplier_out, float damage, uint8_t is_local);
 
     /**
@@ -110,7 +110,7 @@ public:
      *
      * @address 0x004ef820
      */
-    void apply_shield_damage(uint8_t *geometry, uint8_t *material, uint8_t *effect_block, uint32_t *notify_flags,
+    void apply_shield_damage(ModelCollisionGeometry *geometry, ModelCollisionGeometryMaterial *material, DamageEffect *effect_block, uint32_t *notify_flags,
     float *shield_damage_out, float *remaining_damage, uint8_t is_local, uint8_t apply_state,
     object_shield_impulse_result *record);
 

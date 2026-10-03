@@ -269,7 +269,7 @@ public:
 };
 
 void biped_movement_solve(biped_movement_solver_data *solve);
-void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+void biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base);
 void biped_update_target_lock_timer(datum_index target, uint32_t object_index);
 void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out);
 void unit_ai_update_stagger_allocate(void);
@@ -352,7 +352,7 @@ void biped_placement_offset_centered_pill(datum_index object_index, object_place
 void biped_reset_state(uint32_t object_index);
 void biped_trigger_on_velocity_threshold(uint32_t object_index);
 uint8_t biped_update(uint32_t object_index);
-void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+void biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base);
 void biped_update_facing(uint32_t object_index, int8_t *out_animation_state);
 void biped_update_idle_basis(uint32_t object_index, uint8_t *state_out);
 void biped_update_scale_function_inputs(uint32_t object_index);

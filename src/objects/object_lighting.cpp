@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_lighting.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -93,8 +94,8 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
         material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
 
-        if (*(int32_t *)&bsp->lightmaps_bitmap.tag_id != -1 && (int16_t)lightmap->bitmap != -1) {
-            BitmapData *bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+        if ((int32_t)halo::objects::tag_handle(bsp->lightmaps_bitmap) != -1 && (int16_t)lightmap->bitmap != -1) {
+            BitmapData *bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
                 (int16_t)lightmap->bitmap);
             uint16_t *triangle =
                 (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
@@ -181,7 +182,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     ScenarioStructureBSP *bsp;
     ScenarioStructureBSPLightmap *lightmap;
     ScenarioStructureBSPMaterial *material;
-    uint8_t *shader;
+    Shader *shader;
     uint8_t *base_map_tag;
     datum_index base_map;
     BitmapData *lightmap_bitmap;
@@ -199,19 +200,19 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     bsp = halo::scenario::globals().structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&material->shader.tag_id & 0xffff].data;
+    shader = halo::objects::tag_as<Shader>(halo::objects::tag_handle(material->shader));
 
-    if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||
-        *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
-        *(int32_t *)(shader + 0x94) == -1 ||
+    if (*(int16_t *)&shader->shader_type != 3 ||
+        (int32_t)halo::objects::tag_handle(bsp->lightmaps_bitmap) == -1 ||
+        halo::raw_at<int32_t>(shader, 0x94) == -1 ||
         (int16_t)lightmap->bitmap == -1) {
         return;
     }
 
-    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
         (int16_t)lightmap->bitmap);
-    base_map = *(datum_index *)(shader + 0x94);
-    base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(base_map)].data;
+    base_map = halo::raw_at<datum_index>(shader, 0x94);
+    base_map_tag = halo::objects::tag_record_bytes(base_map);
     base_map_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(base_map,
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
 
@@ -481,16 +482,16 @@ void halo::objects::ObjectLighting::color_clamp_to_intensity(float intensity, Co
         scale = 1.0f;
     } else {
         float headroom = max_channel * (intensity + 1.0f);
+        bool keep_scale = false;
         if (headroom <= 1.0f) {
-            if (intensity <= headroom) {
-                goto apply;
-            }
+            keep_scale = intensity <= headroom;
         } else {
             intensity = 1.0f;
         }
-        scale = intensity / max_channel;
+        if (!keep_scale) {
+            scale = intensity / max_channel;
+        }
     }
-apply:
     color->red *= scale;
     color->green *= scale;
     color->blue *= scale;

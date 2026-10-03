@@ -1,3 +1,5 @@
+#include "halo/networking/game_mode.hpp"
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_factory.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -74,7 +76,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         joining = 1;
     } else {
         halo::input::control_binding_table_initialize();
-        if (halo::networking::globals().game_mode == 2) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             object_type_definition *vehicle = object_type_definitions[_object_type_vehicle];
             int32_t size = vehicle->scenario_placement_size;
             TagReflexive *placements = (TagReflexive *)(scenario + vehicle->scenario_placement_offset);
@@ -107,7 +109,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         int32_t size;
         int16_t i;
 
-        if (halo::networking::globals().game_mode == 1 && type == _object_type_vehicle) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && type == _object_type_vehicle) {
             continue;
         }
         if (((1 << type) & 0x240) != 0) {
@@ -134,8 +136,8 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
             }
             object = halo::objects::object_new_from_scenario_placement(placement, palette);
             if (object != k_datum_index_none && type == _object_type_vehicle) {
-                uint8_t *vehicle = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8);
-                ((vehicle_object *)vehicle)->vehicle.cinematic_facing_index = i;
+                vehicle_object *vehicle = reinterpret_cast<vehicle_object *>(*(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8));
+                vehicle->vehicle.cinematic_facing_index = i;
             }
             halo::objects::objects_garbage_collection();
         }
@@ -203,7 +205,7 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 halo::math::matrix4x3_from_euler_angles(basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
                                             *(float *)(placement + 0x1c));
                 tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
-                definition_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(tag)].data;
+                definition_data = halo::objects::tag_record_bytes(tag);
                 halo::math::matrix4x3_transform_point(origin, *((real_point3d *)(definition_data + 8)), basis);
                 if (halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == k_datum_index_none &&
                     halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == k_datum_index_none) {
@@ -281,7 +283,7 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
 {
     uint32_t role = 3;
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         Object *definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)placement->definition_tag].data;
         if (object_type_definitions[definition->object_type]->network_delta_message_type != -1) {
             role = 0;
@@ -293,7 +295,6 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
 
 namespace {
 static network_server_globals * &network_server__as_object_new_with_datum_role_control = reinterpret_cast<network_server_globals * &>(network_server);
-#define TAG_ID_AS_DATUM_INDEX(field) (*(datum_index *)&(field))
 }
 
 /**
@@ -335,10 +336,21 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     tag_inst = &halo::cache::globals().tag_instances[halo::datum_slot(definition_tag)];
     object_tag = (Object *)tag_inst->data;
 
+    auto report_out_of_objects = [&]() -> datum_index {
+        tag_path = halo::cache::globals().tag_instances[(uint16_t)(uint32_t)definition_tag].path;
+        last_slash = strrchr(tag_path, '\\');
+        if (last_slash != 0) {
+            tag_path = last_slash + 1;
+        }
+        sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
+        halo::main::console_print_error_va(0, network_log_path_format, out_of_objects_message);
+        return new_index;
+    };
+
     new_index = halo::objects::object_block_data_new(-1, object_data,
         object_type_definitions[object_tag->object_type]->object_size);
     if (new_index == k_datum_index_none) {
-        goto out_of_objects;
+        return report_out_of_objects();
     }
 
     header = (object_header *)object_data->data + halo::datum_slot(new_index);
@@ -377,7 +389,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     obj->damage_owner = k_datum_index_none;
     obj->placement_id = k_datum_index_none;
     obj->animation_index = -1;
-    obj->animation_graph = TAG_ID_AS_DATUM_INDEX(object_tag->animation_graph.tag_id);
+    obj->animation_graph = halo::objects::tag_handle(object_tag->animation_graph);
     obj->cached_render_state_index = -1;
     obj->parent_object = k_datum_index_none;
     obj->next_object = k_datum_index_none;
@@ -389,14 +401,14 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (test_flag(object_tag->flags, tags::object_tag_flag::does_not_cast_shadow)) {
         obj->flags |= _object_definition_flag0_bit;
     }
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->collision_model.tag_id) == k_datum_index_none) {
+    if (halo::objects::tag_handle(object_tag->collision_model) == k_datum_index_none) {
         obj->flags &= ~(uint32_t)_object_has_collision_model_bit;
     } else {
         obj->flags |= _object_has_collision_model_bit;
     }
 
     halo::objects::object_set_collision_enabled(new_index,
-        (uint8_t)(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none));
+        (uint8_t)(halo::objects::tag_handle(object_tag->model) != k_datum_index_none));
 
     obj->owner_team = (int16_t)placement->owner_team;
     obj->owner_linkage = placement->owner_linkage;
@@ -404,10 +416,10 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     *(int16_t *)((uint8_t *)obj + 0xbe) = placement->permutation_group;
     obj->forced_shader_permutation = (uint16_t)object_tag->forced_shader_permutation_index;
 
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) == k_datum_index_none) {
+    if (halo::objects::tag_handle(object_tag->model) == k_datum_index_none) {
         node_count = 1;
     } else {
-        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id))].data;
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(halo::objects::tag_handle(object_tag->model))].data;
         node_count = model->nodes.count;
     }
 
@@ -460,7 +472,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     }
 
     if (network_action_apply_active == 0 && active) {
-        if (halo::networking::globals().game_mode == 2 && obj->network_role == 0) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && obj->network_role == 0) {
             int32_t override_count;
             halo::objects::object_type_override_call_0x68(new_index);
             override_count = halo::objects::object_type_override_get_0x64(new_index, network_message_scratch,
@@ -475,26 +487,17 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         halo::objects::object_type_definitions_notify_0x30(new_index);
         halo::objects::object_block_data_free(object_data, new_index);
         new_index = k_datum_index_none;
-out_of_objects:
-        tag_path = halo::cache::globals().tag_instances[(uint16_t)(uint32_t)definition_tag].path;
-        last_slash = strrchr(tag_path, '\\');
-        if (last_slash != 0) {
-            tag_path = last_slash + 1;
-        }
-        sprintf(out_of_objects_message, "OUT OF OBJECTS: cannot create %s", tag_path);
-        halo::main::console_print_error_va(0, network_log_path_format, out_of_objects_message);
-        return new_index;
+        return report_out_of_objects();
     }
 
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id) != k_datum_index_none) {
+    if (halo::objects::tag_handle(object_tag->creation_effect) != k_datum_index_none) {
 
-        halo::effects::effect_new_on_object(new_index, TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id), new_index, -1,
+        halo::effects::effect_new_on_object(new_index, halo::objects::tag_handle(object_tag->creation_effect), new_index, -1,
             0.0f, 0.0f, (const ColorRGB *)0, (const effect_tint_source *)0);
         return new_index;
     }
     return new_index;
 }
-#undef TAG_ID_AS_DATUM_INDEX
 
 /**
  * Creates the object registered under a scenario name.
@@ -539,7 +542,7 @@ datum_index halo::objects::ObjectFactory::lookup_by_name(int16_t name_index)
 void halo::objects::ObjectFactory::notify_predicted_resources_if_valid(datum_index definition_tag)
 {
     if (definition_tag != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(definition_tag)].data;
+        uint8_t *tag_data = halo::objects::tag_record_bytes(definition_tag);
         halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
     }
 }
@@ -597,14 +600,14 @@ uint8_t halo::objects::SceneryObject::initialize()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
-    datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
+    Object *definition = halo::objects::tag_as<Object>(*(datum_index *)object);
+    datum_index graph = halo::objects::tag_handle(definition->animation_graph);
 
-    if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph)].data + 0x74) > 0) {
+    if (graph != k_datum_index_none && *(int32_t *)(halo::objects::tag_record_bytes(graph) + 0x74) > 0) {
         int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, (animation_random_stream)1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
-            ((struct object *)object)->animation_graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
+            ((struct object *)object)->animation_graph = halo::objects::tag_handle(definition->animation_graph);
             set_flag(((struct object *)object)->flags, objects::object_flag::unknown_80);
         }
     }

@@ -1,3 +1,5 @@
+#include "halo/objects/record_access.hpp"
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -32,20 +34,20 @@ namespace halo::units {
 void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    datum_index parent_index = ((unit_object *)unit)->base.parent_object;
+    unit_object *unit = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
+    datum_index parent_index = unit->base.parent_object;
     real_point3d reference;
     int have_reference = 0;
 
-    if (parent_index == k_datum_index_none && !test_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen)) {
-        if (((unit_object *)unit)->base.type == 0) {
+    if (parent_index == k_datum_index_none && !test_flag(unit->base.vitality_flags, objects::vitality_flag::health_frozen)) {
+        if (unit->base.type == _object_type_biped) {
             UnitView(unit_index).compute_marker_offset_position((real_vector3d *)reference_direction, (int16_t)mode, accumulator, world_point, (float *)offsets);
             return;
         }
-    } else if (((unit_object *)unit)->base.type == 0 && parent_index != k_datum_index_none) {
-        uint8_t *parent = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(parent_index)].data;
+    } else if (unit->base.type == _object_type_biped && parent_index != k_datum_index_none) {
+        object *parent = reinterpret_cast<object *>(halo::objects::object_record_bytes(parent_index));
 
-        if (((object *)parent)->type == 1 && UnitView(parent_index).predict_aim_target_position(&reference) != -1) {
+        if (parent->type == _object_type_vehicle && UnitView(parent_index).predict_aim_target_position(&reference) != -1) {
             have_reference = 1;
         }
     }
@@ -68,7 +70,7 @@ void UnitView::calculate_luminosity()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     object *parent = halo::objects::object_try_and_get(obj->parent_object, 3);
 
     if (parent == 0) {
@@ -79,7 +81,7 @@ void UnitView::calculate_luminosity()
         return;
     }
 
-    unit_data *parent_unit = (unit_data *)((uint8_t *)parent + k_unit_data_offset);
+    unit_data *parent_unit = halo::units::unit_data_of(parent);
     unit->illumination = parent_unit->illumination;
     unit->attached_light_luminosity = parent_unit->attached_light_luminosity;
 }
@@ -96,9 +98,9 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *tag_data = (uint8_t *)tag;
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    Biped *tag_data = reinterpret_cast<Biped *>(tag);
+    biped_data *biped = halo::units::biped_data_of(obj);
+    unit_data *unit = halo::units::unit_data_of(obj);
     float fraction;
 
     if (mode == 0) {
@@ -124,15 +126,15 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
         fraction = biped->crouch_fraction;
         if (!test_flag(biped->flags, units::biped_flag::airborne) && fraction > 0.0f && fraction < 1.0f) {
             float step = halo::game::globals().game_time->leftover_time * 29.999998f * tag->crouch_camera_velocity;
-            if (unit->base_animation_state == 3) {
+            if (unit->base_animation_state == _unit_base_animation_state_crouch) {
                 fraction += step;
             } else {
                 fraction -= step;
             }
         }
     }
-    out_position->z += fraction * ((struct Biped *)tag_data)->crouching_camera_height +
-                        (1.0f - fraction) * ((struct Biped *)tag_data)->standing_camera_height;
+    out_position->z += fraction * tag_data->crouching_camera_height +
+                        (1.0f - fraction) * tag_data->standing_camera_height;
 }
 
 /**
@@ -145,10 +147,10 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
 uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_direction)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     uint32_t mask = *(uint32_t *)(obj + 0x520);
     object_physics_context ctx;
-    uint8_t *physics;
+    Physics *physics;
     int32_t count;
     int16_t active_count = 0;
     int16_t i;
@@ -164,8 +166,8 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
         return 0;
     }
 
-    physics = (uint8_t *)ctx.definition;
-    count = *(int32_t *)(physics + 0x74);
+    physics = reinterpret_cast<Physics *>(ctx.definition);
+    count = physics->mass_points.count;
     sum = *global_zero_vector3d_pointer;
     if (count <= 0) {
         return 0;
@@ -173,7 +175,7 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
     i = 0;
     do {
         if ((mask & (1u << (i & 0x1f))) != 0) {
-            real_point3d *p = (real_point3d *)(*(uint8_t **)(physics + 0x78) + (int32_t)i * 0x80 + 0x38);
+            real_point3d *p = (real_point3d *)(&halo::objects::block_element<PhysicsMassPoint>(physics->mass_points, (int32_t)i).position.x);
             sum.x += p->x;
             sum.y += p->y;
             sum.z += p->z;
@@ -222,7 +224,7 @@ void UnitView::get_forward_vector_or_marker_normal(real_vector3d *out)
 
     object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
     if (out != (real_vector3d *)0) {
-        real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset) + unit_obj->parent_marker_index;
+        real_matrix4x3 *node = halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + unit_obj->parent_marker_index;
         halo::math::matrix4x3_transform_normal(*out, unit_obj->forward, *node);
     }
     return;
@@ -265,8 +267,8 @@ void UnitView::get_secondary_eye_marker_position(real_point3d *out)
 /**
  * REWRITTEN from objdump. For each contact point (stride 0x130) with flag bit 1 whose velocity (+0x54..+0x5c)
  * is faster than 0.03: intensity = clamp((speed - 0.03) * 4.5454545, 0, 1); position = contact +0x04 + normal
- * (+0x60) * (contact +0x74 - physics node +0x68 + 0.003); offset = velocity * (0.8660254 / speed) + normal *
- * 0.5; then material_effects_play_at_marker(tag +0x3dc, 9 + (node +0x24 & 1), contact +0x70, &obj +0x98,
+ * (+0x60) * (contact +0x74 - physics reinterpret_cast<uint8_t *>(node) +0x68 + 0.003); offset = velocity * (0.8660254 / speed) + normal *
+ * 0.5; then material_effects_play_at_marker(reinterpret_cast<uint8_t *>(tag) +0x3dc, 9 + (reinterpret_cast<uint8_t *>(node) +0x24 & 1), contact +0x70, &reinterpret_cast<uint8_t *>(obj) +0x98,
  * intensity, &position, &offset).
  *
  * @address 0x575460
@@ -274,20 +276,20 @@ void UnitView::get_secondary_eye_marker_position(real_point3d *out)
 void UnitView::update_marker_skid_effects(uint8_t *contact_points)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *physics_tag;
+    object *obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(unit_index));
+    Vehicle *tag = halo::objects::tag_as<Vehicle>(*(datum_index *)obj);
+    Physics *physics_tag;
     int32_t count;
     int16_t i;
 
-    if (*(int32_t *)(tag + 0x3dc) == -1) {
+    if ((int32_t)halo::objects::tag_handle(tag->material_effects) == -1) {
         return;
     }
-    physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    count = *(int32_t *)(physics_tag + 0x74);
+    physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.base.physics));
+    count = physics_tag->mass_points.count;
     for (i = 0; (int32_t)i < count; i++) {
         uint8_t *contact = contact_points + (int32_t)i * 0x130;
-        uint8_t *node = *(uint8_t **)(physics_tag + 0x78) + (int32_t)i * 0x80;
+        PhysicsMassPoint *node = &halo::objects::block_element<PhysicsMassPoint>(physics_tag->mass_points, (int32_t)i);
         real_vector3d *velocity = (real_vector3d *)(contact + 0x54);
         real_vector3d *normal = (real_vector3d *)(contact + 0x60);
         real_point3d *point = (real_point3d *)(contact + 0x04);
@@ -305,7 +307,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
             continue;
         }
         scaled = (speed - 0.03f) * 4.5454545f;
-        depth = *(real *)(contact + 0x74) - *(real *)(node + 0x68) + 0.003f;
+        depth = *(real *)(contact + 0x74) - node->radius + 0.003f;
         position.x = depth * normal->i + point->x;
         position.y = depth * normal->j + point->y;
         position.z = depth * normal->k + point->z;
@@ -319,8 +321,8 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
             scaled = 1.0f;
         }
         intensity_bits = *(uint32_t *)&scaled;
-        halo::effects::material_effects_play_at_marker(*(uint32_t *)(tag + 0x3dc), (int16_t)(9 + (*(uint32_t *)(node + 0x24) & 1)),
-            *(int16_t *)(contact + 0x70), (uint32_t *)&((struct object *)obj)->location_leaf_index, intensity_bits, &position, &offset);
+        halo::effects::material_effects_play_at_marker(halo::objects::tag_handle(tag->material_effects), (int16_t)(9 + (node->flags & 1)),
+            *(int16_t *)(contact + 0x70), (uint32_t *)&obj->location_leaf_index, intensity_bits, &position, &offset);
     }
 }
 

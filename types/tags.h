@@ -3683,7 +3683,9 @@ typedef struct ModelCollisionGeometry {
     uint8_t _pad_6[2];
     float maximum_body_vitality;
     float body_system_shock;
-    uint8_t _pad_10[24];
+    uint8_t _pad_10[16];
+    uint32_t unknown_20;
+    uint8_t _pad_24[4];
     uint8_t _pad_28[28];
     float friendly_damage_resistance;
     uint8_t _pad_48[8];

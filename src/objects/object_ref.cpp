@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_ref.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -509,7 +510,7 @@ real_matrix4x3 * halo::objects::ObjectRef::get_node_marker_address(int16_t node_
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    return (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset + node_index * 0x34);
+    return (halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes) + (node_index));
 }
 
 /**
@@ -526,7 +527,7 @@ char * halo::objects::ObjectRef::get_attachment_marker_name(int16_t attachment_i
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (attachment_index >= 0 && attachment_index < (int32_t)object_tag->attachments.count) {
-        return (char *)object_tag->attachments.pointer + 0x10 + attachment_index * 0x48;
+        return halo::objects::block_element<ObjectAttachment>(object_tag->attachments, attachment_index).marker.string;
     }
     return 0;
 }
@@ -545,7 +546,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
 
-    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data + 0x34), marker_name, (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
+    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)(halo::objects::tag_record_bytes(obj->definition_tag) + 0x34), marker_name, (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
 
     if ((int16_t)result == 0) {
         marker->node_index = 0;
@@ -564,7 +565,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
         marker->transform.position.z = 0.0f;
 
         obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        marker->node_transform = *(real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
+        marker->node_transform = *halo::objects::object_block<real_matrix4x3>(*obj, obj->nodes);
 
         if ((obj->flags & _object_mirrored_geometry_bit) != 0) {
             marker->node_transform.left.i = -marker->node_transform.left.i;
@@ -699,8 +700,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
         }
 
         parent = ((object_header *)object_data->data)[halo::datum_slot(parent_index)].data;
-        parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-                                         marker_index * 0x34);
+        parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + (marker_index));
 
         halo::math::matrix4x3_inverse(&inverse, *parent_node);
         halo::math::matrix4x3_transform_point(child->position, child->position, inverse);
@@ -752,8 +752,7 @@ void halo::objects::ObjectRef::snap_to_parent_marker_and_detach()
 
     {
         object *parent_node_owner = ((object_header *)object_data->data)[halo::datum_slot(child->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent_node_owner +
-            parent_node_owner->nodes.offset + (int8_t)child->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent_node_owner, parent_node_owner->nodes) + ((int8_t)child->parent_marker_index));
 
         real_matrix4x3 own_rotation;
         real_matrix4x3 local_transform;
@@ -879,8 +878,7 @@ void halo::objects::ObjectRef::get_position(real_point3d *out)
 
     {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-            (int8_t)obj->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
         halo::math::matrix4x3_transform_point(*out, obj->position, *parent_node);
     }
 }
@@ -907,8 +905,7 @@ void halo::objects::ObjectRef::get_orientation(real_vector3d *out_forward, real_
 
     {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-            (int8_t)obj->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
 
         if (out_forward != (real_vector3d *)0) {
             halo::math::matrix4x3_transform_normal(*out_forward, obj->forward, *parent_node);
@@ -934,8 +931,7 @@ real_matrix4x3 * halo::objects::ObjectRef::get_world_matrix(real_matrix4x3 *out)
 
     if (obj->parent_object != k_datum_index_none) {
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
-        real_matrix4x3 *parent_node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset +
-            (int8_t)obj->parent_marker_index * 0x34);
+        real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
         halo::math::globals().matrix4x3_multiply_procedure(parent_node, out, out);
     }
 
@@ -1050,7 +1046,7 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     Object *definition = (Object *)halo::cache::globals().tag_instances[
         ((object_header *)object_data->data)[halo::datum_slot(object_index)].data->definition_tag & 0xffff].data;
     GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
-    uint8_t *nodes = (uint8_t *)model->nodes.pointer;
+    ModelNode *nodes = halo::objects::block_elements<ModelNode>(model->nodes);
 
     object_marker marker_a;
     object_marker marker_b;
@@ -1064,9 +1060,9 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
     }
 
     {
-        int16_t node_b = *(int16_t *)(nodes + marker_a.node_index * 0x9c + 0x24);
+        int16_t node_b = nodes[marker_a.node_index].parent_node_index;
         if (node_b != -1) {
-            int16_t node_c = *(int16_t *)(nodes + node_b * 0x9c + 0x24);
+            int16_t node_c = nodes[node_b].parent_node_index;
             if (node_c != -1) {
                 real_matrix4x3 inverse;
 
@@ -1223,7 +1219,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
 
                         if (search_radius * search_radius <= dx * dx + dy * dy + dz * dz) {
 
-                            uint8_t *extended = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(*(uint16_t *)(zone_table + zone_offset + 0x34))].data;
+                            uint8_t *extended = halo::objects::object_record_bytes(*(uint16_t *)(zone_table + zone_offset + 0x34));
                             real_vector3d delta;
                             float length;
                             double angle;
@@ -1275,7 +1271,7 @@ void halo::objects::ObjectRef::notify_children_recursive()
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
         if (obj->definition_tag != k_datum_index_none) {
-            uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+            uint8_t *tag_data = halo::objects::tag_record_bytes(obj->definition_tag);
             halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
         }
 
@@ -1293,23 +1289,23 @@ uint8_t halo::objects::ObjectRef::reposition_to_spawn_location(real_point3d *tar
     uint32_t ignore_object_index)
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    object *obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
     real_vector3d delta;
     collision_result hit;
 
-    delta.i = ((object *)obj)->position.x - target_position->x;
-    delta.j = ((object *)obj)->position.y - target_position->y;
-    delta.k = ((object *)obj)->position.z - target_position->z;
+    delta.i = obj->position.x - target_position->x;
+    delta.j = obj->position.y - target_position->y;
+    delta.k = obj->position.z - target_position->z;
     if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), target_position, &delta, ignore_object_index, &hit) &&
-        ((object *)obj)->location_cluster_index != -1) {
+        obj->location_cluster_index != -1) {
         return 1;
     }
     if (hit.leaf.cluster_index == -1) {
         return 0;
     }
     halo::objects::object_unlink_cluster_or_notify_parent(object_index);
-    obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    *(real_point3d *)&((object *)obj)->position.x = hit.point;
+    obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(object_index));
+    *(real_point3d *)&obj->position.x = hit.point;
     halo::objects::object_set_cluster_and_parent(object_index, &hit.leaf);
     halo::objects::object_recalculate_bounding_radius(object_index);
     return 1;
@@ -1543,42 +1539,49 @@ uint32_t halo::objects::ObjectRef::animation_get_frames_remaining()
  *
  * @address 0x004fe740
  */
-uint8_t * halo::objects::ObjectRef::attachment_get_blended_marker(uint8_t *instance)
+LightVolumeFrame *halo::objects::ObjectRef::attachment_get_blended_marker(const LightVolume *tag)
 {
     uint32_t object_index = handle;
-    uint8_t *source = *(uint8_t **)(instance + 0x124);
+    LightVolumeFrame *source = halo::objects::block_elements<LightVolumeFrame>(tag->frames);
 
-    if (*(int32_t *)(instance + 0x120) < 2) {
+    if ((int32_t)tag->frames.count < 2) {
         return source;
     }
 
     {
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        int16_t selector = *(int16_t *)(instance + 0xb8) - 1;
+        int16_t selector = (int16_t)tag->frame_animation_source - 1;
         float weight;
 
         if (selector == -1) {
             weight = 1.0f;
         } else {
-            weight = *(float *)((uint8_t *)obj + 0x134 + selector * 4);
-            if (((1 << (selector & 0x1f)) & ((struct object *)obj)->function_valid_flags) == 0) {
+            weight = obj->function_out_values[selector];
+            if (((1 << (selector & 0x1f)) & obj->function_valid_flags) == 0) {
                 return source;
             }
         }
 
         {
             float inv = 1.0f - weight;
-            static const int offsets[16] = {
-                0x10, 0x14, 0x18, 0x3c, 0x40, 0x44, 0x68, 0x6c,
-                0x70, 0x74, 0x78, 0x7c, 0x80, 0x84, 0x88, 0x8c
+            static constexpr size_t k_blended_offsets[16] = {
+                offsetof(LightVolumeFrame, offset_from_marker), offsetof(LightVolumeFrame, offset_exponent),
+                offsetof(LightVolumeFrame, length), offsetof(LightVolumeFrame, radius_hither),
+                offsetof(LightVolumeFrame, radius_yon), offsetof(LightVolumeFrame, radius_exponent),
+                offsetof(LightVolumeFrame, tint_color_hither) + 0, offsetof(LightVolumeFrame, tint_color_hither) + 4,
+                offsetof(LightVolumeFrame, tint_color_hither) + 8, offsetof(LightVolumeFrame, tint_color_hither) + 12,
+                offsetof(LightVolumeFrame, tint_color_yon) + 0, offsetof(LightVolumeFrame, tint_color_yon) + 4,
+                offsetof(LightVolumeFrame, tint_color_yon) + 8, offsetof(LightVolumeFrame, tint_color_yon) + 12,
+                offsetof(LightVolumeFrame, tint_color_exponent), offsetof(LightVolumeFrame, brightness_exponent),
             };
+            LightVolumeFrame *scratch = reinterpret_cast<LightVolumeFrame *>(object_marker_scratch);
             int i;
             for (i = 0; i < 16; i++) {
-                float v = *(float *)(source + offsets[i]);
+                float v = halo::raw_at<float>(source, k_blended_offsets[i]);
 
-                *(float *)(object_marker_scratch + offsets[i]) = weight * v + inv * v;
+                halo::raw_at<float>(scratch, k_blended_offsets[i]) = weight * v + inv * v;
             }
         }
     }
-    return object_marker_scratch;
+    return reinterpret_cast<LightVolumeFrame *>(object_marker_scratch);
 }

@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/antenna.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -417,8 +418,8 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
 void halo::objects::AntennaView::render_geometry(Antenna *antenna_tag)
 {
     antenna *ant = self;
-    uint8_t *tag = (uint8_t *)antenna_tag;
-    int32_t count = *(int32_t *)&((struct Antenna *)tag)->vertices.count;
+    Antenna *tag = reinterpret_cast<Antenna *>(antenna_tag);
+    int32_t count = (int32_t)tag->vertices.count;
     build_sprite_data data;
     float fade;
     int16_t i;
@@ -426,13 +427,13 @@ void halo::objects::AntennaView::render_geometry(Antenna *antenna_tag)
     if (count == 0) {
         return;
     }
-    fade = (100.0f - ((struct Antenna *)tag)->cutoff_pixels) / (((struct Antenna *)tag)->falloff_pixels - ((struct Antenna *)tag)->cutoff_pixels);
+    fade = (100.0f - tag->cutoff_pixels) / (tag->falloff_pixels - tag->cutoff_pixels);
     if (fade < 0.0f) {
         fade = 0.0f;
     } else if (fade > 1.0f) {
         fade = 1.0f;
     }
-    data.bitmap_group_index = *(datum_index *)&((struct Antenna *)tag)->bitmaps.tag_id;
+    data.bitmap_group_index = halo::objects::tag_handle(tag->bitmaps);
     data.maximum_sprite_count = (int16_t)count;
     data.shader = (uint32_t)(uintptr_t)antenna_sprite_shader;
     data.sprite_count = 0;
@@ -440,18 +441,18 @@ void halo::objects::AntennaView::render_geometry(Antenna *antenna_tag)
     data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
 
-    for (i = 0; i < *(int32_t *)&((struct Antenna *)tag)->vertices.count; i++) {
+    for (i = 0; i < (int32_t)tag->vertices.count; i++) {
         antenna_vertex *vertex = &ant->vertices[i];
-        uint8_t *tag_vertex = *(uint8_t **)&((struct Antenna *)tag)->vertices.pointer + i * 0x80;
+        AntennaVertex *tag_vertex = &halo::objects::block_element<AntennaVertex>(tag->vertices, i);
         real_vector3d direction;
         ColorARGB color;
 
         direction.i = ant->vertices[i + 1].position.x - vertex->position.x;
         direction.j = ant->vertices[i + 1].position.y - vertex->position.y;
         direction.k = ant->vertices[i + 1].position.z - vertex->position.z;
-        color = ((struct AntennaVertex *)tag_vertex)->color;
+        color = tag_vertex->color;
         if (vertex->texture_scale != 0.0f && fade > 0.0f) {
-            halo::render::build_sprite(&data, (int16_t)((struct AntennaVertex *)tag_vertex)->sequence_index, 0, 1, &vertex->position, &direction, 0.0f,
+            halo::render::build_sprite(&data, (int16_t)tag_vertex->sequence_index, 0, 1, &vertex->position, &direction, 0.0f,
                 vertex->texture_scale, &color, fade, 0);
         }
     }

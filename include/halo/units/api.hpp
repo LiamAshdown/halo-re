@@ -54,7 +54,7 @@ void biped_network_baseline_take(uint32_t object_index);
 void biped_placement_offset_centered_pill(datum_index object_index, object_placement_data *placement);
 void biped_reset_state(uint32_t object_index);
 uint8_t biped_update(uint32_t object_index);
-void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base);
+void biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base);
 void biped_update_scale_function_inputs(uint32_t object_index);
 void biped_update_target_lock_timer(datum_index target, uint32_t object_index);
 int32_t object_find_nearest_biped(int32_t reference_object_index);

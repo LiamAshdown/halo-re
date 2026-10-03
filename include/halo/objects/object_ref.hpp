@@ -401,7 +401,7 @@ public:
      *
      * @address 0x004fe740
      */
-    uint8_t * attachment_get_blended_marker(uint8_t *instance);
+    LightVolumeFrame *attachment_get_blended_marker(const LightVolume *tag);
 
 private:
     uint32_t handle;

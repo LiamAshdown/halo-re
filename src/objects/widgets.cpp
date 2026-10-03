@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/widgets.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -91,7 +92,7 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
 
         for (type = 0; type < k_maximum_widget_types; type++) {
             if (widget_type_definitions[type].group_tag == *(uint32_t *)attachment) {
-                if (*(int32_t *)&((struct ObjectWidget *)attachment)->reference.tag_id != -1) {
+                if ((int32_t)halo::objects::tag_handle(((struct ObjectWidget *)attachment)->reference) != -1) {
                     datum_index handle = halo::memory::datum_new(widget_data);
                     if (handle != k_datum_index_none) {
                         widget *entry = &((widget *)widget_data->data)[halo::datum_slot(handle)];

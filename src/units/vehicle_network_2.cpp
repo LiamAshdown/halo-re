@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "win32.h"
 #include "halo/cseries/api.hpp"
@@ -70,8 +71,8 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
     if (obj == 0) {
         return 0;
     }
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    unit = halo::units::unit_data_of(obj);
+    vehicle = halo::units::vehicle_data_of(obj);
 
     key = 0;
     if (vehicle_index != k_datum_index_none) {

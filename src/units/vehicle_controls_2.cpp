@@ -1,3 +1,5 @@
+#include "halo/objects/record_access.hpp"
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -21,8 +23,8 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
-    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
+    Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     float *out_transform = powered_states;
     float wrapped;
 
@@ -33,7 +35,7 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
         vehicle->wheel_rotation = wrapped + tag->wheel_circumference;
     }
 
-    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+    if (physics_tag->powered_mass_points.count != 2) {
         halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }
@@ -71,11 +73,11 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
     float *out_transform = powered_states;
     float forward = vehicle->forward_velocity;
     float turning = vehicle->turning_velocity;
-    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    Physics *physics_tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     float wrapped;
 
     vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;
@@ -92,7 +94,7 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
         vehicle->right_wheel_rotation = wrapped + tag->wheel_circumference;
     }
 
-    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+    if (physics_tag->powered_mass_points.count != 2) {
         halo::physics::object_physics_tick(unit_index, 0, (uint32_t)mass_points, 0, 0);
         return;
     }

@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
@@ -43,7 +44,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     datum_index vehicle_index = datum_handle;
     uint8_t *vehicle = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
     uint8_t *record;
-    uint8_t *guard;
+    object *guard;
     vehicle_network_baseline baseline;
     real_vector3d side;
     uint8_t accepted;
@@ -59,8 +60,8 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         return;
     }
     record = (uint8_t *)message[0x11];
-    guard = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
-    if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && **(int32_t **)message == 1) {
+    guard = reinterpret_cast<object *>(halo::objects::object_record_bytes(vehicle_index));
+    if (test_flag(guard->flags, objects::object_flag::took_network_update) && **(int32_t **)message == 1) {
         int32_t incoming = record[5];
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
 
@@ -156,7 +157,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
 {
     using namespace vehicle_encode_network_create_local;
     datum_index vehicle_index = datum_handle;
-    uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
+    uint8_t *vehicle = halo::objects::object_record_bytes(vehicle_index);
     hash_table *keys = &object_network_id_table->id_to_index;
     vehicle_network_create_record record;
     void *item = &record;
@@ -202,17 +203,6 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
     return halo::networking::message_delta_encode_message(buffer, bit_budget, 0, 0x1c, 0, &item, 0, 1, 0);
 }
 
-namespace vehicle_network_baseline_take_local {
-
-static void copy3(uint8_t *obj, int32_t to, int32_t from)
-{
-    ((uint32_t *)(obj + to))[0] = ((uint32_t *)(obj + from))[0];
-    ((uint32_t *)(obj + to))[1] = ((uint32_t *)(obj + from))[1];
-    ((uint32_t *)(obj + to))[2] = ((uint32_t *)(obj + from))[2];
-}
-
-}
-
 /**
  * Engine function vehicle_network_baseline_take.
  *
@@ -220,22 +210,21 @@ static void copy3(uint8_t *obj, int32_t to, int32_t from)
  */
 void VehicleView::network_baseline_take()
 {
-    using namespace vehicle_network_baseline_take_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(object_index, 2);
+    vehicle_object *obj = reinterpret_cast<vehicle_object *>(halo::objects::object_try_and_get(object_index, 2));
 
     if (obj == 0) {
         return;
     }
-    ((struct vehicle_object *)obj)->vehicle.network_epoch++;
-    ((struct vehicle_object *)obj)->vehicle.network_position_pending = 1;
-    ((struct vehicle_object *)obj)->vehicle.network_delta_sequence = 1;
-    copy3(obj, 0x52c, 0x5c);
-    copy3(obj, 0x538, 0x68);
-    copy3(obj, 0x544, 0x8c);
-    copy3(obj, 0x550, 0x74);
-    ((struct vehicle_object *)obj)->vehicle.network_update_sequence = 0;
-    copy3(obj, 0x55c, 0x80);
+    obj->vehicle.network_epoch++;
+    obj->vehicle.network_position_pending = 1;
+    obj->vehicle.network_delta_sequence = 1;
+    obj->vehicle.network_baseline_position = obj->base.position;
+    obj->vehicle.network_baseline_velocity = obj->base.velocity;
+    obj->vehicle.network_baseline_angular_velocity = obj->base.angular_velocity;
+    obj->vehicle.network_baseline_forward = obj->base.forward;
+    obj->vehicle.network_update_sequence = 0;
+    obj->vehicle.network_baseline_up = obj->base.up;
 }
 
 }

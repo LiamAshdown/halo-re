@@ -35,6 +35,7 @@ enum class collision_test_flag : uint32_t {
     object_placeholder = 0x40000,
     object_sound_scenery = 0x80000,
     unstick = 0x100000,
+    unknown_200000 = 0x200000,
 };
 
 template <> struct enable_bit_flags<collision_test_flag> : std::true_type {};

@@ -108,7 +108,7 @@ public:
      *
      * @address 0x004fd650
      */
-    void particle_advance_time(uint32_t object_index, uint8_t *particle, float rate);
+    void particle_advance_time(uint32_t object_index, glow_particle *particle, float rate);
 
     /**
      * Links the particles of a glow instance into its render chain.
@@ -145,7 +145,7 @@ public:
      *
      * @address 0x004fde40
      */
-    void particle_reposition(uint8_t *particle, float phase_rate);
+    void particle_reposition(glow_particle *particle, float phase_rate);
 
 private:
     glow *self;

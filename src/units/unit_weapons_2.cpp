@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
@@ -70,7 +71,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
     int32_t creator = -1;
     int32_t machine = -1;
     datum_index vehicle_index;
-    uint8_t *vehicle;
+    vehicle_object *vehicle;
     int32_t i;
 
     if (*(int32_t *)*(int32_t **)command_record != 0) {
@@ -103,21 +104,21 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
         return;
     }
     halo::networking::network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
-    vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
-    memcpy(vehicle + 0x52c, &message.position, 12);
-    memcpy(vehicle + 0x538, &message.velocity, 12);
-    memcpy(vehicle + 0x544, &message.angular_velocity, 12);
-    memcpy(vehicle + 0x550, &message.forward, 12);
-    memcpy(vehicle + 0x55c, &message.up, 12);
-    vehicle[0x526] = message.network_epoch;
-    vehicle[0x525] = 1;
-    vehicle[0x527] = 0;
-    halo::objects::object_set_position_and_recalculate((real_point3d *)(vehicle + 0x52c), vehicle_index);
-    memcpy(vehicle + 0x68, vehicle + 0x538, 12);
-    memcpy(vehicle + 0x8c, vehicle + 0x544, 12);
-    memcpy(vehicle + 0x74, vehicle + 0x550, 12);
-    memcpy(vehicle + 0x80, vehicle + 0x55c, 12);
-    ((struct unit_object *)vehicle)->unit.network_update_applied = 1;
+    vehicle = reinterpret_cast<vehicle_object *>(halo::objects::object_record_bytes(vehicle_index));
+    memcpy(&vehicle->vehicle.network_baseline_position, &message.position, 12);
+    memcpy(&vehicle->vehicle.network_baseline_velocity, &message.velocity, 12);
+    memcpy(&vehicle->vehicle.network_baseline_angular_velocity, &message.angular_velocity, 12);
+    memcpy(&vehicle->vehicle.network_baseline_forward, &message.forward, 12);
+    memcpy(&vehicle->vehicle.network_baseline_up, &message.up, 12);
+    vehicle->vehicle.network_epoch = message.network_epoch;
+    vehicle->vehicle.network_position_pending = 1;
+    vehicle->vehicle.network_update_sequence = 0;
+    halo::objects::object_set_position_and_recalculate((real_point3d *)&vehicle->vehicle.network_baseline_position, vehicle_index);
+    memcpy(&vehicle->base.velocity, &vehicle->vehicle.network_baseline_velocity, 12);
+    memcpy(&vehicle->base.angular_velocity, &vehicle->vehicle.network_baseline_angular_velocity, 12);
+    memcpy(reinterpret_cast<uint8_t *>(vehicle) + 0x74, reinterpret_cast<uint8_t *>(vehicle) + 0x550, 12);
+    memcpy(reinterpret_cast<uint8_t *>(vehicle) + 0x80, reinterpret_cast<uint8_t *>(vehicle) + 0x55c, 12);
+    vehicle->unit.network_update_applied = 1;
     keys = (int32_t *)object_network_id_table->handles;
     for (i = 0; i < 4; i++) {
         int32_t weapon = message.weapon_keys[i] != 0 ? keys[message.weapon_keys[i]] : -1;
@@ -125,7 +126,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
         if (weapon != -1) {
             ::halo::units::unit_pickup_weapon(0, (uint32_t)weapon, vehicle_index);
         } else {
-            ((int32_t *)&((struct unit_object *)vehicle)->unit.weapons)[i] = -1;
+            ((int32_t *)&vehicle->unit.weapons)[i] = -1;
         }
     }
 }

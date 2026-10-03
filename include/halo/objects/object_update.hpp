@@ -58,7 +58,7 @@ public:
      * @address 0x004f8207
      */
     static void function_evaluate_input(float initial_angle_input, float initial_st0, int16_t *selectors,
-    float *out_values, uint8_t *object_tag_data, int32_t object_index_scaled, int32_t remaining_count);
+    float *out_values, object *object_record, int32_t object_index_scaled, int32_t remaining_count);
 
     /**
      * Recomputes the bounding radius of an object and its children.

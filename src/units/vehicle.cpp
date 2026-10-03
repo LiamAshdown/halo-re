@@ -1,3 +1,7 @@
+#include "halo/networking/game_mode.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/units/flags.hpp"
@@ -38,7 +42,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    return halo::objects::tag_record_bytes(*(datum_index *)object);
 }
 
 }
@@ -63,7 +67,7 @@ uint8_t VehicleView::create()
         clear_flag(((struct object *)object)->flags, objects::object_flag::at_rest);
         ((struct object *)object)->position.z += *(float *)(definition + 4) * 0.5f;
     }
-    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client || halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         ((struct vehicle_object *)object)->vehicle.network_position_pending = 0;
         ((struct vehicle_object *)object)->vehicle.network_epoch = 0;
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
@@ -85,7 +89,7 @@ uint8_t VehicleView::create()
 uint8_t VehicleView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
     int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
 
     if (stamp == -1) {
@@ -108,7 +112,7 @@ void VehicleView::reset_state()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
 
     vehicle->flags = 0;
     vehicle->decay_ticks_remaining = 0;
@@ -135,9 +139,6 @@ void VehicleView::reset_state()
     vehicle->active_marker_mask = 0;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
-#define F(p, o) (*(float *)((p) + (o)))
 /**
  * Engine function vehicle_update.
  *
@@ -146,14 +147,14 @@ void VehicleView::reset_state()
 uint32_t VehicleView::update()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = OBJECT_DATA(object_index);
-    uint8_t *tag = TAG_DATA(*(datum_index *)obj);
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    Vehicle *tag = halo::objects::tag_as<Vehicle>(*(datum_index *)obj);
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
     real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     static uint8_t node_output[0xc00];
     static uint8_t contact_points[0x2600];
 
-    if (halo::networking::globals().game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         halo::game::globals().game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
         if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2]), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
@@ -184,7 +185,7 @@ uint32_t VehicleView::update()
             clear_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::has_ground_contact);
         }
         if ((control & 2) ||
-            ((((struct Vehicle *)tag)->vehicle_flags & 0x10) &&
+            (test_flag(tag->vehicle_flags, tags::vehicle_tag_flag::control_opposite_speed_sets_brake) &&
              ((throttle > 0.0f && speed < 0.0f) || (throttle < 0.0f && speed > 0.0f)))) {
             set_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::hovering);
         } else {
@@ -214,10 +215,10 @@ uint32_t VehicleView::update()
                     a = *forward;
                 }
                 spin = up->k * -2.0f;
-                if (!(spin >= ((struct Vehicle *)tag)->minimum_flipping_angular_velocity)) {
-                    spin = ((struct Vehicle *)tag)->minimum_flipping_angular_velocity;
-                } else if (!(spin <= ((struct Vehicle *)tag)->maximum_flipping_angular_velocity)) {
-                    spin = ((struct Vehicle *)tag)->maximum_flipping_angular_velocity;
+                if (!(spin >= tag->minimum_flipping_angular_velocity)) {
+                    spin = tag->minimum_flipping_angular_velocity;
+                } else if (!(spin <= tag->maximum_flipping_angular_velocity)) {
+                    spin = tag->maximum_flipping_angular_velocity;
                 }
                 spin *= sign;
                 clear_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest);
@@ -232,13 +233,13 @@ uint32_t VehicleView::update()
                 ((struct object *)obj)->angular_velocity.i = a.i * spin;
                 ((struct object *)obj)->angular_velocity.j = a.j * spin;
                 ((struct object *)obj)->angular_velocity.k = a.k * spin;
-                if (((struct Vehicle *)tag)->vehicle_type == 0) {
+                if (tag->vehicle_type == vehicletype_human_tank) {
                     float along = forward->k * ((struct object *)obj)->velocity.k + forward->j * ((struct object *)obj)->velocity.j + ((struct object *)obj)->velocity.i * forward->i;
 
                     ((struct object *)obj)->velocity.i = along * forward->i;
                     ((struct object *)obj)->velocity.j = along * forward->j;
                     ((struct object *)obj)->velocity.k = along * forward->k;
-                } else if (((struct Vehicle *)tag)->vehicle_type == 5) {
+                } else if (tag->vehicle_type == vehicletype_alien_fighter) {
                     if (-0.01f <= ((struct object *)obj)->velocity.k) {
                         ((struct object *)obj)->velocity.k = -0.01f;
                     }
@@ -252,28 +253,28 @@ uint32_t VehicleView::update()
         }
 
         if ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 8) {
-            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, 0.0f, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, 0.0f, 1.0f);
         } else {
-            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, ((struct unit_object *)obj)->unit.throttle.i, 1.0f);
-            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x330), (float *)&((struct vehicle_object *)obj)->vehicle.sideways_velocity, ((struct unit_object *)obj)->unit.throttle.j, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, ((struct unit_object *)obj)->unit.throttle.i, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x330), (float *)&((struct vehicle_object *)obj)->vehicle.sideways_velocity, ((struct unit_object *)obj)->unit.throttle.j, 1.0f);
         }
-        if (((struct Vehicle *)tag)->vehicle_type != 0) {
+        if (tag->vehicle_type != vehicletype_human_tank) {
             float target = ((struct vehicle_object *)obj)->vehicle.forward_velocity >= 0.0f ? angle : -angle;
-            float low = ((struct Vehicle *)tag)->maximum_right_turn * 0.017453292f;
+            float low = tag->maximum_right_turn * 0.017453292f;
 
             if (!(target >= low)) {
                 target = low;
             } else {
-                float high = ((struct Vehicle *)tag)->maximum_left_turn * 0.017453292f;
+                float high = tag->maximum_left_turn * 0.017453292f;
 
                 if (!(target <= high)) {
                     target = high;
                 }
             }
-            halo::physics::physics_scalar_move_toward_target((physics_scalar_range *)(tag + 0x308), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0, target,
-                                              ((struct Vehicle *)tag)->turn_rate * 0.017453292f * 0.033333335f);
+            halo::physics::physics_scalar_move_toward_target((physics_scalar_range *)(reinterpret_cast<uint8_t *>(tag) + 0x308), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0, target,
+                                              tag->turn_rate * 0.017453292f * 0.033333335f);
         } else if (((struct vehicle_object *)obj)->vehicle.forward_velocity == 0.0f) {
-            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, 1.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, 1.0f);
         } else {
             float target = angle * 0.63661975f;
 
@@ -282,11 +283,11 @@ uint32_t VehicleView::update()
             } else if (!(target <= 1.0f)) {
                 target = 1.0f;
             }
-            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, target * ((struct Vehicle *)tag)->maximum_forward_speed, 2.0f);
+            halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, target * tag->maximum_forward_speed, 2.0f);
         }
 
-        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none) {
-            uint32_t flags = ((struct Vehicle *)tag)->vehicle_flags;
+        if (halo::objects::tag_handle(tag->base.base.physics) != k_datum_index_none) {
+            uint32_t flags = tag->vehicle_flags;
 
             if (((flags & 1) && ((struct vehicle_object *)obj)->vehicle.forward_velocity != 0.0f) || ((flags & 2) && ((struct vehicle_object *)obj)->vehicle.turning_velocity != 0.0f) ||
                 ((flags & 4) && ((struct unit_object *)obj)->unit.driver_seat_power != 0.0f) || ((flags & 8) && ((struct unit_object *)obj)->unit.gunner_seat_power != 0.0f) ||
@@ -294,16 +295,16 @@ uint32_t VehicleView::update()
                 clear_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest);
             }
         }
-        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none && !(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest))) {
+        if (halo::objects::tag_handle(tag->base.base.physics) != k_datum_index_none && !(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest))) {
             b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
-            switch (((struct Vehicle *)tag)->vehicle_type) {
-            case 0: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
-            case 1: VehicleView(object_index).calculate_steering_wheel_controls(contact_points, (float *)node_output); break;
-            case 2: VehicleView(object_index).calculate_lean_controls(contact_points, (float *)node_output); break;
-            case 3: VehicleView(object_index).calculate_ground_lean_controls(contact_points); break;
-            case 4: VehicleView(object_index).calculate_wing_flex_controls(angle, node_output, contact_points); break;
-            case 5: VehicleView(object_index).calculate_mounted_controls_dispatch(contact_points, node_output); break;
-            case 6: halo::physics::object_physics_tick(object_index, 0, (uint32_t)contact_points, 0, 0); break;
+            switch (tag->vehicle_type) {
+            case vehicletype_human_tank: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
+            case vehicletype_human_jeep: VehicleView(object_index).calculate_steering_wheel_controls(contact_points, (float *)node_output); break;
+            case vehicletype_human_boat: VehicleView(object_index).calculate_lean_controls(contact_points, (float *)node_output); break;
+            case vehicletype_human_plane: VehicleView(object_index).calculate_ground_lean_controls(contact_points); break;
+            case vehicletype_alien_scout: VehicleView(object_index).calculate_wing_flex_controls(angle, node_output, contact_points); break;
+            case vehicletype_alien_fighter: VehicleView(object_index).calculate_mounted_controls_dispatch(contact_points, node_output); break;
+            case vehicletype_turret: halo::physics::object_physics_tick(object_index, 0, (uint32_t)contact_points, 0, 0); break;
             default: break;
             }
             if (!unit_updates_suppressed) {
@@ -317,9 +318,9 @@ uint32_t VehicleView::update()
                 ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
             if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::unknown_1000000)) &&
-                ((1u << ((uint8_t)((struct Vehicle *)tag)->vehicle_type & 0x1f)) & 0x28)) {
-                float floor_z = F(global_structure_bsp, 0x10);
-                float ceiling_z = F(global_structure_bsp, 0x14);
+                ((1u << ((uint8_t)tag->vehicle_type & 0x1f)) & ((1u << vehicletype_human_plane) | (1u << vehicletype_alien_fighter)))) {
+                float floor_z = *(float *)(global_structure_bsp + 0x10);
+                float ceiling_z = *(float *)(global_structure_bsp + 0x14);
 
                 if (floor_z != 0.0f && ((struct object *)obj)->position.z < floor_z) {
                     ((struct object *)obj)->velocity.k += ((floor_z - ((struct object *)obj)->position.z) * 0.015625f - ((struct object *)obj)->velocity.k * 0.0625f) * ((struct unit_object *)obj)->unit.driver_seat_power;
@@ -333,18 +334,18 @@ uint32_t VehicleView::update()
             UnitView(object_index).update_marker_traction_effects();
         }
 
-        if ((((struct Vehicle *)tag)->vehicle_flags & 0x40) && !unit_updates_suppressed) {
-            uint8_t *impact = (uint8_t *)global_globals->falling_damage.pointer;
+        if (test_flag(tag->vehicle_flags, tags::vehicle_tag_flag::kills_riders_at_terminal_velocity) && !unit_updates_suppressed) {
+            GlobalsFallingDamage *impact = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
 
-            if (((struct object *)obj)->velocity.k < -F(impact, 0x8c)) {
+            if (((struct object *)obj)->velocity.k < -impact->maximum_falling_velocity) {
                 datum_index child = ((unit_object *)obj)->base.first_child_object;
 
                 while (child != k_datum_index_none) {
-                    uint8_t *child_obj = OBJECT_DATA(child);
+                    object *child_obj = reinterpret_cast<object *>(halo::objects::object_record_bytes(child));
                     damage_data dd;
 
                     memset(&dd, 0, sizeof(dd));
-                    dd.damage_effect_tag = *(datum_index *)(impact + 0x38);
+                    dd.damage_effect_tag = halo::objects::tag_handle(impact->distance_damage);
                     dd.material_type = -1;
                     dd.responsible_player = k_datum_index_none;
                     dd.responsible_object = k_datum_index_none;
@@ -353,19 +354,19 @@ uint32_t VehicleView::update()
                     dd.random_blend = 1.0f;
                     dd.multiplier = 1.0f;
                     halo::objects::object_apply_damage(&dd, child, -1, -1, -1, 0);
-                    child = ((struct object *)child_obj)->next_object;
+                    child = child_obj->next_object;
                 }
             }
         }
     }
 
-    if (*(datum_index *)&((Unit *)tag)->base.animation_graph.tag_id != k_datum_index_none) {
+    if (halo::objects::tag_handle(tag->base.base.animation_graph) != k_datum_index_none) {
         int8_t request[2] = {0, 0};
 
         UnitView(object_index).update_animation_state_machine(request);
     }
     {
-        uint8_t over_blur = (uint8_t)(((struct Vehicle *)tag)->blur_speed <= (float)halo::libm::fabs(((struct vehicle_object *)obj)->vehicle.forward_velocity));
+        uint8_t over_blur = (uint8_t)(tag->blur_speed <= (float)halo::libm::fabs(((struct vehicle_object *)obj)->vehicle.forward_velocity));
 
         if (over_blur != ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 1)) {
             halo::objects::object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);
@@ -378,8 +379,5 @@ uint32_t VehicleView::update()
     }
     return 1;
 }
-#undef OBJECT_DATA
-#undef TAG_DATA
-#undef F
 
 }

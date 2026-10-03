@@ -5,9 +5,19 @@
  */
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include "halo/objects/engine_types.hpp"
 
 namespace halo::objects {
+
+/** Element header shared by the light_volume_instances and lightning_instances data arrays: the datum salt and the definition tag. */
+struct effect_widget_instance {
+    int16_t identifier;
+    uint8_t unknown_02[2];
+    uint32_t definition_tag;
+};
+static_assert(offsetof(effect_widget_instance, definition_tag) == 4);
 
 /**
  * Light volume widgets: datum table management and the render hooks.
