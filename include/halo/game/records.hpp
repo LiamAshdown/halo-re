@@ -119,6 +119,11 @@ static_assert(sizeof(remote_player_update_cache) == 0x1c8 - 0x120);
 
 static_assert(sizeof(player) == 0x200);
 static_assert(offsetof(unit_object, unit) == k_unit_data_offset);
+static_assert(offsetof(object, velocity) == 0x68);
+static_assert(offsetof(object, forward) == 0x74);
+static_assert(offsetof(object, up) == 0x80);
+static_assert(offsetof(object, bounding_center) == 0xa0);
+static_assert(offsetof(object, position) == 0x5c);
 static_assert(offsetof(item_object, item) == k_item_data_offset);
 static_assert(offsetof(Unit, seats) == 0x2e4);
 static_assert(offsetof(UnitSeat, marker_name) == 0x24);

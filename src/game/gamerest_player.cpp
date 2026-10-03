@@ -583,7 +583,7 @@ uint8_t PlayerView::execute_pending_interaction()
 {
     player *record = halo::game::player_at(player_index);
     datum_index unit_index = record->unit;
-    uint8_t *unit = halo::game::object_bytes(unit_index);
+    unit_object *unit = halo::game::unit_at(unit_index);
     datum_index target_index = record->interaction_object;
     uint16_t seat = *(uint16_t *)&record->interaction_seat;
     uint8_t handled = 0;
@@ -592,7 +592,7 @@ uint8_t PlayerView::execute_pending_interaction()
     case 5:
         halo::units::unit_clear_selected_equipment(unit_index);
         if (halo::units::unit_try_select_equipment(unit_index, target_index, 0)) {
-            halo::interface::hud_post_item_message(0, (int32_t)*(datum_index *)halo::game::object_bytes(target_index), 0,
+            halo::interface::hud_post_item_message(0, (int32_t)halo::game::object_at(target_index)->definition_tag, 0,
                 record->local_player_index, (int8_t)record->machine_index);
         }
         break;
@@ -633,11 +633,11 @@ uint8_t PlayerView::execute_pending_interaction()
             break;
         }
         if (occupant == k_datum_index_none ||
-            *(datum_index *)(halo::game::object_bytes(occupant) + 0x1f4) == k_datum_index_none) {
+            halo::game::unit_at(occupant)->unit.actor_index == k_datum_index_none) {
             return 0;
         }
         halo::ai::actor_check_vehicle_target_available(record->unit,
-            *(datum_index *)(halo::game::object_bytes(occupant) + 0x1f4), 1);
+            halo::game::unit_at(occupant)->unit.actor_index, 1);
         break;
     }
     case 10:
@@ -647,8 +647,8 @@ uint8_t PlayerView::execute_pending_interaction()
         uint8_t *target = halo::game::object_bytes(target_index);
         int8_t direction;
 
-        ((unit_object *)unit)->unit.last_parent_object_index = target_index;
-        ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
+        unit->unit.last_parent_object_index = target_index;
+        unit->unit.last_seat_change_tick = game_time->game_time;
         if (halo::libm::fabs(((struct object *)target)->forward.k) > 0.7071067690849304) {
             direction = (int8_t)((((struct object *)target)->forward.k < 0.0f) ? 4 : 3);
         } else {
@@ -676,7 +676,7 @@ uint8_t PlayerView::execute_pending_interaction()
         return 0;
     }
     handled = 1;
-    if (((unit_object *)unit)->base.network_role == 0) {
+    if (unit->base.network_role == 0) {
         halo::game::game_engine_notify_player_interaction(player_index, record->interaction_object, 0,
             *(uint16_t *)&record->interaction_type, *(uint16_t *)&record->interaction_seat, -1);
     }
@@ -692,7 +692,7 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
 {
     player *record = halo::game::player_at(player_index);
     datum_index unit_index = record->unit;
-    uint8_t *unit = halo::game::object_bytes(unit_index);
+    unit_object *unit = halo::game::unit_at(unit_index);
     datum_index held_weapon = k_datum_index_none;
     uint8_t result = 0;
 
@@ -704,7 +704,7 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
         if (halo::units::unit_drop_current_weapon(unit_index, 1) &&
             halo::units::unit_pickup_weapon(1, record->interaction_object, unit_index)) {
             halo::interface::hud_add_item_message(record->local_player_index,
-                (int32_t)*(datum_index *)halo::game::object_bytes(record->interaction_object), 0, 0);
+                (int32_t)halo::game::object_at(record->interaction_object)->definition_tag, 0, 0);
             LocalPlayerUnit(unit_index).invalidate_local_player_zoom_level();
             picked_up = 1;
         }
@@ -719,12 +719,12 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
             return 0;
         }
         halo::interface::hud_add_item_message(record->local_player_index,
-            (int32_t)*(datum_index *)halo::game::object_bytes(record->interaction_object), 0, 0);
+            (int32_t)halo::game::object_at(record->interaction_object)->definition_tag, 0, 0);
         break;
     default:
         return 0;
     }
-    if (((unit_object *)unit)->base.network_role == 0) {
+    if (unit->base.network_role == 0) {
         halo::game::game_engine_notify_player_interaction(player_index, record->interaction_object, 1,
             *(uint16_t *)&record->interaction_type, *(uint16_t *)&record->interaction_seat, (int32_t)held_weapon);
     }
@@ -805,7 +805,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
 
             (void)volumes;
             if (*(int16_t *)(volume + 0x2) == halo::scenario::globals().structure_bsp_index && player_unit != k_datum_index_none &&
-                halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(halo::game::object_bytes(player_unit) + 0xa0))) {
+                halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)&halo::game::object_at(player_unit)->bounding_center)) {
                 placed = 0;
                 break;
             }
@@ -819,7 +819,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
     if (target_object == k_datum_index_none) {
         return placed;
     }
-    facing = *(real_vector3d *)(halo::game::object_bytes(target_object) + 0x74);
+    facing = halo::game::object_at(target_object)->forward;
     {
 
         int16_t index = (int16_t)target_object;
@@ -1119,7 +1119,7 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
     uint8_t *record = (uint8_t *)p;
     datum_index unit_index = ((struct player *)record)->unit;
     datum_index interaction_object = ((struct player *)record)->interaction_object;
-    uint8_t *unit = halo::game::object_bytes(unit_index);
+    unit_object *unit = halo::game::unit_at(unit_index);
 
     switch (((struct player *)record)->interaction_type) {
     case 6: {
@@ -1129,8 +1129,8 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
             int32_t i;
 
             for (i = 0; i < 4; i++) {
-                if (((unit_object *)unit)->unit.weapons[i] == target_weapon) {
-                    ((unit_object *)unit)->unit.desired_weapon_index = (int16_t)i;
+                if (unit->unit.weapons[i] == target_weapon) {
+                    unit->unit.desired_weapon_index = (int16_t)i;
                     halo::units::unit_ready_desired_weapon(unit_index, 1);
                     break;
                 }
@@ -1139,7 +1139,7 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
         if (halo::units::unit_drop_current_weapon(unit_index, 1) &&
             halo::units::unit_pickup_weapon(1, interaction_object, unit_index)) {
             halo::interface::hud_add_item_message(((struct player *)record)->local_player_index,
-                (int32_t)*(datum_index *)halo::game::object_bytes(interaction_object), 0, 0);
+                (int32_t)halo::game::object_at(interaction_object)->definition_tag, 0, 0);
             LocalPlayerUnit(unit_index).invalidate_local_player_zoom_level();
         }
         return 1;
@@ -1147,7 +1147,7 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
     case 7:
         if (halo::units::unit_pickup_weapon(1, interaction_object, unit_index)) {
             halo::interface::hud_add_item_message(((struct player *)record)->local_player_index,
-                (int32_t)*(datum_index *)halo::game::object_bytes(interaction_object), 0, 0);
+                (int32_t)halo::game::object_at(interaction_object)->definition_tag, 0, 0);
         }
         return 0;
     default:
