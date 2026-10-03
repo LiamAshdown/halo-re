@@ -23,7 +23,6 @@ static auto &network_client = halo::link::ref<network_client_globals *>(halo::ne
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_disconnect_notice_shown = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_notice_shown);
-static auto &local_player_globals = halo::link::ref<uint8_t [8]>(halo::game::vars().local_player_globals);
 static auto &network_game_socket_port = halo::link::ref<uint32_t>(halo::networking::vars().network_game_socket_port);
 static auto &progress_screen_text = halo::link::ref<int32_t>(halo::main::vars().progress_screen_text);
 static auto &network_session_active = halo::link::ref<uint8_t>(halo::networking::vars().network_session_active);
@@ -34,12 +33,23 @@ static auto &network_join_target_address = halo::link::ref<uint16_t [128]>(halo:
 static auto &empty_string = halo::link::ref<uint16_t>(halo::game::vars().empty_string);
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_join_error_reason = halo::link::ref<int32_t>(halo::networking::vars().network_join_error_reason);
-static auto &split_screen_quit_prompt_string = halo::link::ref<uint8_t [4]>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint32_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
 static auto &network_ellipsis_dots = halo::link::ref<const char []>(halo::networking::vars().network_ellipsis_dots);
+
+namespace {
+
+/** The sockaddr_in layout of the address record the hostname resolver hands its callback. */
+struct socket_address_v4 {
+    int16_t family;
+    int16_t port;
+    uint32_t address;
+};
+
+}
 
 namespace halo::networking {
 
@@ -54,11 +64,7 @@ namespace halo::networking {
  */
 void ClientView::connection_handshake_tick(int16_t state, network_server_globals *owner)
 {
-    network_timer_pair *timer;
-    uint8_t *base;
-
-    base = (uint8_t *)owner;
-    timer = (network_timer_pair *)(base + 0x9c8);
+    network_timer_pair *timer = &owner->handshake_timer;
 
     if (owner->handshake_blocked != 0) {
         return;
@@ -117,7 +123,7 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
             ready = halo::networking::network_channel_short_disconnect_timeout();
             owner->handshake_state = 1;
             halo::networking::network_timer_start(timer, ready != 0 ? 10999 : 30999);
-            *(int32_t *)(base + 0x9d0) = 0;
+            owner->unknown_9d0 = 0;
             owner->handshake_flag = 0;
         }
     }
@@ -142,7 +148,7 @@ void ClientView::rejoin_check(int8_t machine_player_index)
     uint32_t send_result;
 
     if (network_client != 0) {
-        own_id = *(int16_t *)network_client;
+        own_id = static_cast<int16_t>(network_client->machine_index);
         if (own_id != -1) {
             for (i = 0; i < 0x10; i++) {
                 player = &network_client->session.players[i];
@@ -206,14 +212,14 @@ void ClientView::disconnect_notify_dropped_machines()
     }
     if (client->network_error_displayed == 0) {
         player_index = -1;
-        if (*(int32_t *)&local_player_globals[4] != -1) {
+        if (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) {
             player_index = 0;
         }
         player_index_16 = (int16_t)player_index;
         while (player_index_16 != -1) {
             halo::interface::display_error(8, player_index, 1, 0);
             next = -1;
-            if (*(int32_t *)&local_player_globals[4] != -1 && (int16_t)player_index < 0) {
+            if (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none && (int16_t)player_index < 0) {
                 next = 0;
             }
             player_index = next;
@@ -349,8 +355,9 @@ void JoinView::hostname_resolved_callback(int32_t resolve_failed, uint32_t unuse
     (void)unused;
 
     if (hostent != 0) {
-        uint32_t address = *(uint32_t *)(hostent + 4);
-        uint32_t port = gt2NetworkToHostShort(*(int16_t *)(hostent + 2));
+        const socket_address_v4 *socket_address = reinterpret_cast<const socket_address_v4 *>(hostent);
+        uint32_t address = socket_address->address;
+        uint32_t port = gt2NetworkToHostShort(socket_address->port);
 
         gt2AddressToString(address, port, resolved_address);
     }
@@ -370,8 +377,7 @@ void JoinView::hostname_resolved_callback(int32_t resolve_failed, uint32_t unuse
         network_join_error_code = 0x2b;
     }
     network_join_error_reason = 0;
-    *(uint16_t *)split_screen_quit_prompt_string = 0xffff;
-    split_screen_quit_prompt_string[3] = 1;
+    split_screen_quit_prompt_string = (split_screen_quit_prompt_string & 0x00ff0000u) | 0x0100ffffu;
 }
 
 /**
