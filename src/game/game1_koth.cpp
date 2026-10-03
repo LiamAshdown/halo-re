@@ -917,8 +917,8 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             dst[10] = ((uint32_t *)src)[4];
             *(uint16_t *)(dst + 0xb) = *(uint16_t *)(src + 5);
             *(uint16_t *)((uint8_t *)dst + 0x2e) = *(uint16_t *)((uint8_t *)src + 0x16);
-            dst[0xc] = 0x3f000000;
-            dst[0xd] = 0x3f000000;
+            dst[0xc] = halo::game::k_float_half_bits;
+            dst[0xd] = halo::game::k_float_half_bits;
             src = src + 0x11;
             dst = dst + 0x11;
             count--;

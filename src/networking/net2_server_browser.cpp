@@ -687,16 +687,16 @@ char * ServerBrowser::custom_options_pack(server_browser_custom_options *options
             low = 0x40000003;
         }
     }
-    if (options->health_bits != 0x3f000000) {
+    if (options->health_bits != halo::game::k_float_half_bits) {
         if (options->health_bits == halo::game::k_float_one_bits) {
             low = low | 4;
-        } else if (options->health_bits == 0x3fc00000) {
+        } else if (options->health_bits == halo::game::k_float_one_and_half_bits) {
             low = low | 8;
-        } else if (options->health_bits == 0x40000000) {
+        } else if (options->health_bits == halo::game::k_float_two_bits) {
             low = low | 0xc;
-        } else if (options->health_bits == 0x40400000) {
+        } else if (options->health_bits == halo::game::k_float_three_bits) {
             low = low | 0x10;
-        } else if (options->health_bits == 0x40800000) {
+        } else if (options->health_bits == halo::game::k_float_four_bits) {
             low = low | 0x14;
         }
     }
@@ -804,11 +804,11 @@ void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_opti
     }
 
     switch ((low >> 2) & 7) {
-    case 0: out->health_bits = 0x3f000000; break;
-    case 2: out->health_bits = 0x3fc00000; break;
-    case 3: out->health_bits = 0x40000000; break;
-    case 4: out->health_bits = 0x40400000; break;
-    case 5: out->health_bits = 0x40800000; break;
+    case 0: out->health_bits = halo::game::k_float_half_bits; break;
+    case 2: out->health_bits = halo::game::k_float_one_and_half_bits; break;
+    case 3: out->health_bits = halo::game::k_float_two_bits; break;
+    case 4: out->health_bits = halo::game::k_float_three_bits; break;
+    case 5: out->health_bits = halo::game::k_float_four_bits; break;
     default: out->health_bits = halo::game::k_float_one_bits; break;
     }
 

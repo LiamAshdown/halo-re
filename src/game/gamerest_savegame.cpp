@@ -1,7 +1,6 @@
 #include "halo/game/gamerest_savegame.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/tag_groups.hpp"
-#include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include <wchar.h>

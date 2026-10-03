@@ -22,6 +22,13 @@ inline constexpr uint32_t k_default_vehicle_set = 0x249240;
 /** Bit pattern of 1.0f, for the places that move floats through integer slots. */
 inline constexpr uint32_t k_float_one_bits = 0x3f800000;
 
+/** Bit patterns of common floats, for the places that move floats through integer slots. */
+inline constexpr uint32_t k_float_half_bits = 0x3f000000;
+inline constexpr uint32_t k_float_one_and_half_bits = 0x3fc00000;
+inline constexpr uint32_t k_float_two_bits = 0x40000000;
+inline constexpr uint32_t k_float_three_bits = 0x40400000;
+inline constexpr uint32_t k_float_four_bits = 0x40800000;
+
 /** XOR key of the data iterator signature ('iter'). */
 inline constexpr uint32_t k_iterator_signature_key = 0x69746572;
 

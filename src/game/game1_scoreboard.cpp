@@ -7,7 +7,6 @@
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
-#include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
