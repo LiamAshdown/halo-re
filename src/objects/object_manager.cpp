@@ -353,7 +353,7 @@ void halo::objects::ObjectManager::update()
     object_header *headers;
     int16_t last_index;
 
-    restrict_to_units = (*(uint8_t *)((uint8_t *)game_time + 0xc) & 1) != 0 && main_game_globals[2] != 0;
+    restrict_to_units = ((uint8_t)game_time->game_time & 1) != 0 && main_game_globals[2] != 0;
 
     globals->active_garbage_object_count = 0;
 

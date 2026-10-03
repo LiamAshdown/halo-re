@@ -226,18 +226,18 @@ void halo::objects::ObjectUpdater::update_export_functions()
             continue;
         }
         switch (source) {
-        case 1: value = *(float *)(object + 0xe0); break;
-        case 2: value = clamp_to_one(*(float *)(object + 0xe4)); break;
-        case 3: value = *(float *)(object + 0xec); break;
-        case 4: value = *(float *)(object + 0xe8); break;
+        case 1: value = ((struct object *)object)->body_vitality; break;
+        case 2: value = clamp_to_one(((struct object *)object)->shield_vitality); break;
+        case 3: value = ((struct object *)object)->current_body_damage; break;
+        case 4: value = ((struct object *)object)->current_shield_damage; break;
         case 5:
             if (*(uint32_t *)output == 0x3f800000) {
                 value = random_real();
             }
             break;
-        case 18: value = (object[0x106] & 4) != 0 ? 0.0f : 1.0f; break;
+        case 18: value = ((uint8_t)((struct object *)object)->vitality_flags & 4) != 0 ? 0.0f : 1.0f; break;
         case 19: {
-            float *forward = (float *)(object + *(int16_t *)(object + 0x1f2) + 4);
+            float *forward = (float *)(object + ((struct object *)object)->nodes.offset + 4);
 
             if (!(fabs(forward[2]) < 0.995)) {
                 value = *output;
@@ -613,7 +613,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    float *position = (float *)(obj + 0x5c);
+    float *position = (float *)&((struct object *)obj)->position;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -791,7 +791,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
             if (tag_color->scale_by != 0) {
                 float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
 
-                color_interpolate((ColorRGB *)((uint8_t *)tag_color + 0x14), (ColorRGB *)((uint8_t *)tag_color + 8), out,
+                color_interpolate((ColorRGB *)&tag_color->color_upper_bound, (ColorRGB *)((uint8_t *)tag_color + 8), out,
                     *(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags, t);
             }
             if (tag_color->darken_by != 0) {
@@ -900,7 +900,7 @@ void halo::objects::ObjectUpdater::update_functions()
             }
         }
         if (fn->turn_off_with != -1 &&
-            (obj[0x123] & (uint8_t)(1u << (fn->turn_off_with & 0x1f))) == 0) {
+            (((struct object *)obj)->function_valid_flags & (uint8_t)(1u << (fn->turn_off_with & 0x1f))) == 0) {
             valid = 0;
         }
         if (fn->flags & 2) {
@@ -908,9 +908,9 @@ void halo::objects::ObjectUpdater::update_functions()
         }
         *(float *)(obj + 0x134 + i * 4) = value;
         if (valid) {
-            obj[0x123] = (uint8_t)(obj[0x123] | (1u << i));
+            ((struct object *)obj)->function_valid_flags = (uint8_t)(((struct object *)obj)->function_valid_flags | (1u << i));
         } else {
-            obj[0x123] = (uint8_t)(obj[0x123] & ~(1u << i));
+            ((struct object *)obj)->function_valid_flags = (uint8_t)(((struct object *)obj)->function_valid_flags & ~(1u << i));
         }
     }
 }

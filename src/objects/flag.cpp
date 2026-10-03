@@ -295,7 +295,7 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
     uint32_t arg4)
 {
     uint8_t *self = (uint8_t *)flag_data->data + (flag_index & 0xffff) * 0x16bc;
-    Flag *tag = (Flag *)tag_instances[*(datum_index *)(self + 0xc) & 0xffff].data;
+    Flag *tag = (Flag *)tag_instances[(datum_index)((struct object *)self)->network_update_tick & 0xffff].data;
 
     *(datum_index *)(self + 8) = object_index;
     if (*(int16_t *)(self + 6) > 5 || self[3] == 0) {

@@ -345,13 +345,13 @@ void halo::objects::LightSystem::update_all()
 
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
             tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
-            color_interpolate_argb_with_tint(*(uint32_t *)(tag + 0x34), tag + 0x48, color, tint, tag + 0x38, t);
+            color_interpolate_argb_with_tint(*(uint32_t *)&((struct Unit *)tag)->base.model.tag_id, tag + 0x48, color, tint, tag + 0x38, t);
             blend = t;
         } else {
             int32_t age_ticks = tick - ((struct light *)light)->marker_link;
             float phase = (float)age_ticks / *(float *)(tag + 0xf4);
             t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->transient_color_scale;
-            color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
+            color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)&((struct Unit *)tag)->base.model.tag_id, t);
 
             memcpy(&blend, &age_ticks, sizeof(blend));
         }
@@ -379,7 +379,7 @@ void halo::objects::LightSystem::update_all()
         }
 
         if ((light[2] & 1) != 0) {
-            float intensity = ((1.0f - blend) * *(float *)(tag + 8) + blend * *(float *)(tag + 0xc)) * *(float *)(tag + 4);
+            float intensity = ((1.0f - blend) * *(float *)(tag + 8) + blend * ((struct Unit *)tag)->base.bounding_offset.y) * *(float *)(tag + 4);
 
             ((struct light *)light)->radius = intensity;
             if (intensity != 0.0f) {
@@ -714,9 +714,9 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
         object *owner = ((object_header *)object_data->data)[owner_object & 0xffff].data;
         uint8_t *node = (uint8_t *)owner + owner->nodes.offset + entry->marker_index * 0x34;
 
-        real_point3d *local_position = (real_point3d *)((uint8_t *)entry + 0x60);
-        real_vector3d *local_direction = (real_vector3d *)((uint8_t *)entry + 0x6c);
-        real_vector3d *up = (real_vector3d *)((uint8_t *)entry + 0x48);
+        real_point3d *local_position = (real_point3d *)&entry->local_position;
+        real_vector3d *local_direction = (real_vector3d *)&entry->local_direction;
+        real_vector3d *up = (real_vector3d *)&entry->up;
         real_vector3d *world_direction;
 
         matrix4x3_transform_point(&entry->position, local_position, (real_matrix4x3 *)node);
@@ -728,33 +728,33 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
 
     if ((entry->flags & _light_attached_bit) != 0) {
         uint8_t *light_tag = (uint8_t *)tag_instances[entry->definition_tag & 0xffff].data;
-        float attenuation = *(float *)(light_tag + 0xc) * *(float *)(light_tag + 4);
+        float attenuation = ((struct Light *)light_tag)->radius_modifer[1] * *(float *)(light_tag + 4);
         bsp_leaf_reference leaf_reference;
         real_point3d position;
         float radius;
 
         if ((*light_tag & 2) == 0) {
-            attenuation = attenuation * *(float *)(light_tag + 0x24);
+            attenuation = attenuation * ((struct Light *)light_tag)->specular_radius_multiplier;
         }
 
-        if (*(float *)(light_tag + 0x18) <= attenuation) {
-            if (*(float *)(light_tag + 0x14) >= 1.5707964f) {
+        if (((struct Light *)light_tag)->lens_flare_only_radius <= attenuation) {
+            if (((struct Light *)light_tag)->cutoff_angle >= 1.5707964f) {
                 position = entry->position;
-            } else if (*(float *)(light_tag + 0x14) >= 0.7853982f) {
-                float offset = attenuation * *(float *)(light_tag + 0x20);
+            } else if (((struct Light *)light_tag)->cutoff_angle >= 0.7853982f) {
+                float offset = attenuation * ((struct Light *)light_tag)->cos_cutoff_angle;
                 position.x = offset * entry->direction.i + entry->position.x;
                 position.y = offset * entry->direction.j + entry->position.y;
                 position.z = offset * entry->direction.k + entry->position.z;
-                attenuation = attenuation * *(float *)(light_tag + 0x28);
+                attenuation = attenuation * ((struct Light *)light_tag)->sin_cutoff_angle;
             } else {
-                attenuation = attenuation / *(float *)(light_tag + 0x20);
+                attenuation = attenuation / ((struct Light *)light_tag)->cos_cutoff_angle;
                 position.x = attenuation * entry->direction.i + entry->position.x;
                 position.y = attenuation * entry->direction.j + entry->position.y;
                 position.z = attenuation * entry->direction.k + entry->position.z;
             }
         } else {
             position = entry->position;
-            attenuation = *(float *)(light_tag + 0x18);
+            attenuation = ((struct Light *)light_tag)->lens_flare_only_radius;
         }
         radius = attenuation;
 

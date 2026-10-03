@@ -298,10 +298,10 @@ uint8_t halo::objects::ObjectQueries::cluster_stamp_mark_visited(datum_index obj
 {
     uint8_t *object = object_get(object_index);
 
-    if (*(int32_t *)(object + 0x14) == object_cluster_stamp) {
+    if (((struct object *)object)->cluster_stamp == object_cluster_stamp) {
         return 0;
     }
-    *(int32_t *)(object + 0x14) = object_cluster_stamp;
+    ((struct object *)object)->cluster_stamp = object_cluster_stamp;
     return 1;
 }
 

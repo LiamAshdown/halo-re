@@ -348,8 +348,8 @@ void halo::objects::ObjectLighting::gather_light_list(uint8_t *out)
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    real_point3d center = *(real_point3d *)(object + 0xa0);
-    float radius = *(float *)(object + 0xac);
+    real_point3d center = ((struct object *)object)->bounding_center;
+    float radius = ((struct object *)object)->bounding_radius;
     int16_t *count = (int16_t *)(out + 0x40);
     uint32_t cursor[2];
     float intensities[2];

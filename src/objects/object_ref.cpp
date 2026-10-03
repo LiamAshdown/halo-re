@@ -400,7 +400,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
             location = &local_location;
             if (local_location.cluster_index == -1) {
 
-                scenario_location_from_point(&local_location, (real_point3d *)((uint8_t *)obj + 0x5c));
+                scenario_location_from_point(&local_location, (real_point3d *)&((struct object *)obj)->position);
             }
         }
 
@@ -462,7 +462,7 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
 
     if (obj->parent_object == k_datum_index_none) {
 
-        cluster_reference_remove_all(object_index, (datum_index *)((uint8_t *)obj + 0x10c),
+        cluster_reference_remove_all(object_index, (datum_index *)&((struct object *)obj)->placement_id,
                      (obj->flags & 0x2000000) != 0 ? (void *)&collideable_cluster_first
                                                    : (void *)&noncollideable_cluster_first);
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
@@ -475,7 +475,7 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
         object *parent = object_try_and_get(obj->parent_object, _object_mask_all);
         if (parent != 0) {
 
-            object_remove_from_sibling_list((datum_index *)((uint8_t *)parent + 0x118), object_index);
+            object_remove_from_sibling_list((datum_index *)&((struct object *)parent)->first_child_object, object_index);
         }
     }
 
@@ -1248,7 +1248,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
                 uint32_t zone_index = datum_next(-1, player_data);
 
                 while (zone_index != 0xffffffff) {
-                    uint8_t *zone_table = *(uint8_t **)((uint8_t *)player_data + 0x34);
+                    uint8_t *zone_table = (uint8_t *)player_data->data;
                     int32_t zone_offset = (int32_t)(zone_index & 0xffff) * 0x200;
                     int32_t zone_cluster_head = *(int32_t *)(zone_table + zone_offset + 0x34);
 
@@ -1279,9 +1279,9 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
 
                             c = cos(angle + 0.7853982);
 
-                            if (delta.i * *(float *)(extended + 0x230) +
-                                delta.j * *(float *)(extended + 0x234) +
-                                delta.k * *(float *)(extended + 0x238) <= c) {
+                            if (delta.i * ((struct unit_object *)extended)->unit.desired_aiming_vector.i +
+                                delta.j * ((struct unit_object *)extended)->unit.desired_aiming_vector.j +
+                                delta.k * ((struct unit_object *)extended)->unit.desired_aiming_vector.k <= c) {
                                 zone_index = datum_next((int16_t)zone_index, player_data);
                                 continue;
                             }
@@ -1603,7 +1603,7 @@ uint8_t * halo::objects::ObjectRef::attachment_get_blended_marker(uint8_t *insta
             weight = 1.0f;
         } else {
             weight = *(float *)((uint8_t *)obj + 0x134 + selector * 4);
-            if (((1 << (selector & 0x1f)) & *((uint8_t *)obj + 0x123)) == 0) {
+            if (((1 << (selector & 0x1f)) & ((struct object *)obj)->function_valid_flags) == 0) {
                 return source;
             }
         }
