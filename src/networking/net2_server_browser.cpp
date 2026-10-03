@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "halo/networking/net2_server_browser.hpp"
+#include "halo/networking/server_sort.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -1899,23 +1900,7 @@ skip_gametype_check:
 
 server_browser_sort_comparator ServerBrowser::sort_comparator_select(void)
 {
-    int32_t (*const server_list_scroll_clamp)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_scroll_clamp);
-    int32_t (*const server_list_compare_by_ping_then_hostname)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_compare_by_ping_then_hostname);
-    int32_t (*const server_list_compare_by_gametype)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_compare_by_gametype);
-    int32_t (*const server_list_compare_by_players)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_compare_by_players);
-    int32_t (*const server_list_compare_by_hostname)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_compare_by_hostname);
-    switch (server_browser_sort_column) {
-    case 1:
-        return server_list_scroll_clamp;
-    case 2:
-        return server_list_compare_by_gametype;
-    case 3:
-        return server_list_compare_by_ping_then_hostname;
-    case 4:
-        return server_list_compare_by_players;
-    default:
-        return server_list_compare_by_hostname;
-    }
+    return ServerSortRegistry::for_column(server_browser_sort_column).comparator();
 }
 
 void ServerBrowser::total_players_compute(server_list_globals *array)
