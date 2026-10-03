@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/antenna.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -432,7 +433,7 @@ void halo::objects::AntennaView::render_geometry(Antenna *antenna_tag)
     } else if (fade > 1.0f) {
         fade = 1.0f;
     }
-    data.bitmap_group_index = *(datum_index *)&((struct Antenna *)tag)->bitmaps.tag_id;
+    data.bitmap_group_index = halo::objects::tag_handle(((struct Antenna *)tag)->bitmaps);
     data.maximum_sprite_count = (int16_t)count;
     data.shader = (uint32_t)(uintptr_t)antenna_sprite_shader;
     data.sprite_count = 0;

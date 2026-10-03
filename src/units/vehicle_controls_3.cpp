@@ -37,7 +37,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
     unit_data *unit = halo::units::unit_data_of(obj);
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     int32_t node_count = *(int32_t *)(physics_tag + 0x68);
     bsp_leaf_reference bank_leaf = {obj->location_leaf_index, obj->location_cluster_index, 0};
     float bank_lookup = halo::scenario::location_view(&bank_leaf).water_surface_distance(&obj->position);

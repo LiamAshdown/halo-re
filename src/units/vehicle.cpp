@@ -285,7 +285,7 @@ uint32_t VehicleView::update()
             halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(tag + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, target * ((struct Vehicle *)tag)->maximum_forward_speed, 2.0f);
         }
 
-        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none) {
+        if (halo::objects::tag_handle(((Unit *)tag)->base.physics) != k_datum_index_none) {
             uint32_t flags = ((struct Vehicle *)tag)->vehicle_flags;
 
             if (((flags & 1) && ((struct vehicle_object *)obj)->vehicle.forward_velocity != 0.0f) || ((flags & 2) && ((struct vehicle_object *)obj)->vehicle.turning_velocity != 0.0f) ||
@@ -294,7 +294,7 @@ uint32_t VehicleView::update()
                 clear_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest);
             }
         }
-        if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none && !(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest))) {
+        if (halo::objects::tag_handle(((Unit *)tag)->base.physics) != k_datum_index_none && !(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest))) {
             b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
             switch (((struct Vehicle *)tag)->vehicle_type) {
             case 0: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
@@ -359,7 +359,7 @@ uint32_t VehicleView::update()
         }
     }
 
-    if (*(datum_index *)&((Unit *)tag)->base.animation_graph.tag_id != k_datum_index_none) {
+    if (halo::objects::tag_handle(((Unit *)tag)->base.animation_graph) != k_datum_index_none) {
         int8_t request[2] = {0, 0};
 
         UnitView(object_index).update_animation_state_machine(request);

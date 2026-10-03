@@ -35,7 +35,7 @@ void halo::units::unit_trigger_material_hit_effect(int16_t material_index, datum
 {
     uint8_t *material_record;
 
-    if (material_index < 0 || material_index >= *(int32_t *)&global_globals->materials.count) {
+    if (material_index < 0 || material_index >= (int32_t)global_globals->materials.count) {
         if (material_table_warning_issued == 0) {
             material_table_bad_index = -1;
             material_table_warning_issued = 1;
@@ -80,10 +80,10 @@ uint32_t UnitView::update_marker_traction_effects()
     real max_rise = 0.0f;
     int16_t i;
 
-    if (*(int32_t *)&((Unit *)tag)->base.animation_graph.tag_id == -1) {
+    if ((int32_t)halo::objects::tag_handle(((Unit *)tag)->base.animation_graph) == -1) {
         return 0;
     }
-    graph = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.animation_graph.tag_id);
+    graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.animation_graph));
     if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return 0;
     }
@@ -91,7 +91,7 @@ uint32_t UnitView::update_marker_traction_effects()
     if (node_array == 0) {
         return 0;
     }
-    physics = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
+    physics = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     halo::math::matrix4x3_from_forward_up(*((real_vector3d *)&((struct object *)obj)->up), *((real_vector3d *)&((struct object *)obj)->forward), basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 

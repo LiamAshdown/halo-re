@@ -752,7 +752,7 @@ void UnitView::set_facing_from_index_table()
         halo::objects::object_set_position_and_orientation(object_index, &forward, halo::math::globals().global_up3d_pointer, spawn_position);
     }
 
-    if (*(int32_t *)&((struct Object *)tag)->physics.tag_id == -1) {
+    if ((int32_t)halo::objects::tag_handle(((struct Object *)tag)->physics) == -1) {
         set_flag(obj->flags, objects::object_flag::at_rest);
     } else {
         clear_flag(obj->flags, objects::object_flag::at_rest);
@@ -1039,7 +1039,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (require_still && !soft_ping && !forced) {
         return;
     }
-    graph_tag = *(datum_index *)&((struct Object *)unit_tag)->animation_graph.tag_id;
+    graph_tag = halo::objects::tag_handle(((struct Object *)unit_tag)->animation_graph);
     graph = halo::objects::tag_record_bytes(graph_tag);
 
     if (!hard_ping && !forced) {

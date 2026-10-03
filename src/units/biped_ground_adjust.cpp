@@ -44,7 +44,7 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
     uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id);
+    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->animation_graph));
     int32_t i;
 
     for (i = 0; i < *(int32_t *)&((ModelAnimations *)graph)->nodes.count; i++) {
@@ -120,7 +120,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
     uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id);
+    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->animation_graph));
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
     uint8_t limit = ((struct biped_object *)obj)->biped.ground_adjust_iteration_limit;
     uint8_t iteration;
@@ -238,7 +238,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 bone.j = self->y - parent->y;
                 bone.k = self->z - parent->z;
                 {
-                    uint8_t *model = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->model.tag_id);
+                    uint8_t *model = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->model));
 
                     rest_length = *(float *)(*(uint8_t **)(model + 0xbc) + node_index * 0x9c + 0x44);
                 }
@@ -315,7 +315,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
     uint32_t object_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
     uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id);
+    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Object *)object_tag)->animation_graph));
     uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
     uint8_t *self_node = graph_nodes + node_index * 0x40;
     int16_t parent_index = *(int16_t *)(self_node + 0x24);

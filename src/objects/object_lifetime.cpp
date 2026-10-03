@@ -372,7 +372,7 @@ void halo::objects::ObjectLifetime::create_attachments()
 
     for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {
         uint8_t *attachment = *(uint8_t **)&((struct Object *)definition)->attachments.pointer + i * 0x48;
-        datum_index tag = *(datum_index *)&((struct ObjectAttachment *)attachment)->type.tag_id;
+        datum_index tag = halo::objects::tag_handle(((struct ObjectAttachment *)attachment)->type);
         int16_t first_scale = (int16_t)(((struct ObjectAttachment *)attachment)->primary_scale - 1);
         int16_t second_scale = (int16_t)((uint16_t)((struct ObjectAttachment *)attachment)->secondary_scale - 1);
         int16_t change_color = (int16_t)((uint16_t)((struct ObjectAttachment *)attachment)->change_color - 1);

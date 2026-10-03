@@ -94,7 +94,7 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
             flag *entry = &((flag *)flag_data->data)[halo::datum_slot(handle)];
 
             if (tag->height * tag->width < (int32_t)k_maximum_flag_cloth_vertices &&
-                tag->width < 0x28 && *(int32_t *)&tag->blue_flag_shader.tag_id != -1) {
+                tag->width < 0x28 && (int32_t)halo::objects::tag_handle(tag->blue_flag_shader) != -1) {
                 int16_t row;
 
                 entry->definition_tag = flag_tag;

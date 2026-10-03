@@ -94,8 +94,8 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
         material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
 
-        if (*(int32_t *)&bsp->lightmaps_bitmap.tag_id != -1 && (int16_t)lightmap->bitmap != -1) {
-            BitmapData *bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+        if ((int32_t)halo::objects::tag_handle(bsp->lightmaps_bitmap) != -1 && (int16_t)lightmap->bitmap != -1) {
+            BitmapData *bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
                 (int16_t)lightmap->bitmap);
             uint16_t *triangle =
                 (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
@@ -200,16 +200,16 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     bsp = halo::scenario::globals().structure_bsp;
     lightmap = (ScenarioStructureBSPLightmap *)(uintptr_t)bsp->lightmaps.pointer + lightmap_index;
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
-    shader = halo::objects::tag_record_bytes(*(uint32_t *)&material->shader.tag_id);
+    shader = halo::objects::tag_record_bytes(halo::objects::tag_handle(material->shader));
 
     if (*(int16_t *)&((struct Shader *)shader)->shader_type != 3 ||
-        *(int32_t *)&bsp->lightmaps_bitmap.tag_id == -1 ||
+        (int32_t)halo::objects::tag_handle(bsp->lightmaps_bitmap) == -1 ||
         *(int32_t *)(shader + 0x94) == -1 ||
         (int16_t)lightmap->bitmap == -1) {
         return;
     }
 
-    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
         (int16_t)lightmap->bitmap);
     base_map = *(datum_index *)(shader + 0x94);
     base_map_tag = halo::objects::tag_record_bytes(base_map);

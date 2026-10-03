@@ -395,7 +395,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model.tag_id) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
@@ -426,10 +426,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = halo::objects::object_record_bytes(object_index);
         uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             halo::objects::object_header_of(object_index).flags |= 2;
         }
@@ -535,7 +535,7 @@ uint8_t BipedView::update()
                     biped_free_local_player_history(halo::objects::object_record_bytes(object_index));
                 } else if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
                     uint8_t *self_tag = halo::objects::tag_record_bytes(*(datum_index *)self);
-                    datum_index graph = *(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id;
+                    datum_index graph = halo::objects::tag_handle(((struct Unit *)self_tag)->base.animation_graph);
                     uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)self)->unit.animation_definition_index * 0x64;
 
                     if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
@@ -546,14 +546,14 @@ uint8_t BipedView::update()
                         if (((struct unit_object *)halo::objects::object_record_bytes(vehicle_index))->unit.driver_unit_index == object_index) {
                             UnitView((int32_t)vehicle_index).notify_weapon_removed();
                         }
-                        UnitView(object_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
+                        UnitView(object_index).set_custom_animation(halo::objects::tag_handle(((struct Unit *)self_tag)->base.animation_graph), halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
                         object = halo::objects::object_record_bytes(object_index);
                         object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
-                        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+                        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
                             if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
                                 halo::objects::object_for_each_light_attachment(object_index, 0, 1);
                             }
-                            if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+                            if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
                                 clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                                 halo::objects::object_header_of(object_index).flags |= 2;
                             }

@@ -119,7 +119,7 @@ datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datu
     Light *tag = (Light *)halo::cache::globals().tag_instances[halo::datum_slot(light_tag)].data;
     datum_index handle = k_datum_index_none;
 
-    if (test_flag(tag->flags, tags::light_tag_flag::dynamic) || *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id != -1) {
+    if (test_flag(tag->flags, tags::light_tag_flag::dynamic) || (int32_t)halo::objects::tag_handle(((struct Light *)tag)->lens_flare) != -1) {
         handle = halo::memory::datum_new(light_data);
 
         if (handle != k_datum_index_none) {
@@ -134,7 +134,7 @@ datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datu
 
             *(int16_t *)&((struct light *)entry)->local_position.x = change_color_index;
 
-            if (always_visible == 0 && *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id == -1) {
+            if (always_visible == 0 && (int32_t)halo::objects::tag_handle(((struct Light *)tag)->lens_flare) == -1) {
                 entry->flags = 0;
             } else {
                 entry->flags = always_visible | _light_attached_bit;

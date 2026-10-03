@@ -309,7 +309,7 @@ uint8_t UnitView::new_()
     uint32_t *field;
     int32_t i;
 
-    if (*(int32_t *)&tag->base.animation_graph.tag_id == -1) {
+    if ((int32_t)halo::objects::tag_handle(tag->base.animation_graph) == -1) {
         return 0;
     }
 
@@ -426,7 +426,7 @@ uint8_t UnitView::new_()
     if (tag->seats.count > 0) {
         int32_t seat_index = 0;
         UnitSeat *seats = (UnitSeat *)tag->seats.pointer;
-        while (*(int32_t *)&seats[seat_index].built_in_gunner.tag_id == -1) {
+        while ((int32_t)halo::objects::tag_handle(seats[seat_index].built_in_gunner) == -1) {
             seat_index = seat_index + 1;
             if (seat_index >= (int32_t)tag->seats.count) {
                 goto done_seat_scan;
@@ -489,13 +489,13 @@ int32_t UnitView::pick_random_spawned_actor_count()
     unit_data *unit = halo::units::unit_data_of(unit_obj);
     if ((unit->flags & _unit_flag_permutation_chosen) == 0) {
         Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
-        if (*(int32_t *)&unit_tag->spawned_actor.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(unit_tag->spawned_actor) != -1) {
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             int32_t range = (int32_t)(int16_t)(unit_tag->spawned_actor_count[1] + 1) - (int32_t)unit_tag->spawned_actor_count[0];
             result = (int32_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> halo::k_random_high_shift)) >> 0x10) +
                      (int32_t)((((uint32_t)halo::cache::globals().tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
-                result = halo::ai::actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
+                result = halo::ai::actor_spawn_additional_units(halo::objects::tag_handle(((struct Unit *)unit_tag)->spawned_actor), (int16_t)result,
                     unit_index, ((struct Unit *)unit_tag)->spawned_velocity * 0.033333335f);
             }
             unit->flags |= _unit_flag_permutation_chosen;

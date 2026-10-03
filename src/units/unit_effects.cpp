@@ -285,7 +285,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
     if (*(int32_t *)(tag + 0x3dc) == -1) {
         return;
     }
-    physics_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
+    physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     count = *(int32_t *)(physics_tag + 0x74);
     for (i = 0; (int32_t)i < count; i++) {
         uint8_t *contact = contact_points + (int32_t)i * 0x130;

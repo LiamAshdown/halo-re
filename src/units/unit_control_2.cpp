@@ -59,7 +59,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
     uint32_t unit_index = datum_handle;
     uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
     uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)unit);
-    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id);
+    uint8_t *graph = halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)unit_tag)->base.animation_graph));
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     uint8_t *block;
     float aim_yaw;

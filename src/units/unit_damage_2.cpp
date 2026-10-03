@@ -117,7 +117,7 @@ void UnitView::melee_attack_scan()
         }
     }
     if (damage_effect == k_datum_index_none) {
-        damage_effect = *(datum_index *)&((struct Unit *)unit_tag)->melee_damage.tag_id;
+        damage_effect = halo::objects::tag_handle(((struct Unit *)unit_tag)->melee_damage);
     }
 
     if (best_object != k_datum_index_none) {

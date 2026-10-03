@@ -548,7 +548,7 @@ controls:
                 }
                 if (toggle_light && (test_flag(((unit_object *)obj)->unit.flags, units::unit_flag::unknown_80000) || ((struct unit_object *)obj)->unit.integrated_light_energy > 0.2f) &&
                     ((unit_object *)obj)->base.parent_object == k_datum_index_none) {
-                    halo::effects::effect_new_on_object(unit_index, *(datum_index *)&((Unit *)tag)->integrated_light_toggle.tag_id, unit_index, -1, 0.0f, 0.0f, 0, 0);
+                    halo::effects::effect_new_on_object(unit_index, halo::objects::tag_handle(((Unit *)tag)->integrated_light_toggle), unit_index, -1, 0.0f, 0.0f, 0, 0);
                     ((unit_object *)obj)->unit.flags ^= 0x80000;
                 }
             }

@@ -124,7 +124,7 @@ void UnitView::apply_impulse_to_seat(real_vector3d *impulse)
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     uint8_t *tag = halo::objects::tag_record_bytes(obj->definition_tag);
 
-    if (*(int32_t *)&((Unit *)tag)->base.physics.tag_id == -1) {
+    if ((int32_t)halo::objects::tag_handle(((Unit *)tag)->base.physics) == -1) {
         return;
     }
 
@@ -207,7 +207,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model.tag_id) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
@@ -238,10 +238,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = halo::objects::object_record_bytes(object_index);
         uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             halo::objects::object_header_of(object_index).flags |= 2;
         }
@@ -395,7 +395,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model.tag_id) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
@@ -426,10 +426,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = halo::objects::object_record_bytes(object_index);
         uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             halo::objects::object_header_of(object_index).flags |= 2;
         }
@@ -582,10 +582,10 @@ void UnitView::detach_reposition_and_nudge()
     ((unit_object *)self)->base.velocity.k = push.k + ((unit_object *)self)->base.velocity.k;
     object = halo::objects::object_record_bytes(unit_index);
     tag = halo::objects::tag_record_bytes(*(datum_index *)object);
-    if (*(int32_t *)&((struct Unit *)tag)->base.model.tag_id != -1 && (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision))) {
+    if ((int32_t)halo::objects::tag_handle(((struct Unit *)tag)->base.model) != -1 && (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision))) {
         halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
     }
-    if (*(int32_t *)&((struct Unit *)tag)->base.model.tag_id != -1) {
+    if ((int32_t)halo::objects::tag_handle(((struct Unit *)tag)->base.model) != -1) {
         clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
         ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags |= 0x02;
     }
@@ -712,16 +712,16 @@ uint32_t halo::units::unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t se
     }
 
     unit_tag = halo::objects::tag_record_bytes(*(datum_index *)unit);
-    unit_seat = *(uint8_t **)(halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
+    unit_seat = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)unit_tag)->base.animation_graph)) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
     if (*(int32_t *)(unit_seat + 0x40) > 7 && (*(int16_t **)(unit_seat + 0x44))[7] != -1) {
         int16_t enter_animation = (*(int16_t **)(unit_seat + 0x44))[7];
         uint8_t *reloaded;
         int16_t animation;
 
         halo::objects::object_copy_default_node_transforms(unit_index, 6);
-        animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, enter_animation, (animation_random_stream)1);
+        animation = halo::models::animation_choose_random_permutation(halo::objects::tag_handle(((struct Unit *)unit_tag)->base.animation_graph), enter_animation, (animation_random_stream)1);
         reloaded = halo::objects::object_record_bytes(unit_index);
-        ((struct object *)reloaded)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
+        ((struct object *)reloaded)->animation_graph = halo::objects::tag_handle(((struct Unit *)unit_tag)->base.animation_graph);
         ((struct object *)reloaded)->animation_index = animation;
         ((struct object *)reloaded)->animation_frame = 0;
         ((struct unit_object *)unit)->unit.animation_state = 0x1a;
@@ -1410,7 +1410,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model.tag_id) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
@@ -1441,10 +1441,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = halo::objects::object_record_bytes(object_index);
         uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             halo::objects::object_header_of(object_index).flags |= 2;
         }
@@ -1816,7 +1816,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model.tag_id) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
@@ -1847,10 +1847,10 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = halo::objects::object_record_bytes(object_index);
         uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1 && test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
             halo::objects::object_header_of(object_index).flags |= 2;
         }
@@ -1951,7 +1951,7 @@ void UnitView::try_exit_controlled_seat()
     }
     if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
         uint8_t *self_tag = halo::objects::tag_record_bytes(*(datum_index *)self);
-        datum_index graph = *(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id;
+        datum_index graph = halo::objects::tag_handle(((struct Unit *)self_tag)->base.animation_graph);
         uint8_t *seat_block = *(uint8_t **)(halo::objects::tag_record_bytes(graph) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)self)->unit.animation_definition_index * 0x64;
 
         if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
@@ -1963,14 +1963,14 @@ void UnitView::try_exit_controlled_seat()
             if (((struct unit_object *)halo::objects::object_record_bytes(vehicle_index))->unit.driver_unit_index == unit_index) {
                 UnitView((int32_t)vehicle_index).notify_weapon_removed();
             }
-            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
+            UnitView(unit_index).set_custom_animation(halo::objects::tag_handle(((struct Unit *)self_tag)->base.animation_graph), halo::models::animation_choose_random_permutation(graph, exit_animation, (animation_random_stream)1));
             object = halo::objects::object_record_bytes(unit_index);
             object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
-            if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+            if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
                 if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
                     halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
                 }
-                if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+                if ((int32_t)halo::objects::tag_handle(((struct Object *)object_tag)->model) != -1) {
                     clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                     halo::objects::object_header_of(unit_index).flags |= 2;
                 }

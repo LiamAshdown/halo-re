@@ -160,12 +160,12 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
             if (weapon_index != k_datum_index_none) {
                 object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(weapon_index)].data;
                 Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
-                weapon_response_tag = *(int32_t *)&weapon_tag->player_melee_response.tag_id;
-                secondary_damage_effect = *(int32_t *)&((struct Weapon *)weapon_tag)->player_melee_response.tag_id;
+                weapon_response_tag = (int32_t)halo::objects::tag_handle(weapon_tag->player_melee_response);
+                secondary_damage_effect = (int32_t)halo::objects::tag_handle(((struct Weapon *)weapon_tag)->player_melee_response);
             }
         }
         int32_t damage_effect_tag = (weapon_response_tag != -1) ? weapon_response_tag
-                                                                  : *(int32_t *)&tag->melee_damage.tag_id;
+                                                                  : (int32_t)halo::objects::tag_handle(tag->melee_damage);
 
         if (best_object != k_datum_index_none) {
             object *best_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(best_object)].data;
@@ -604,7 +604,7 @@ void UnitView::update_ground_contact_counter(uint8_t *contact_points)
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
     int32_t count = *(int32_t *)(physics_tag + 0x74);
     int32_t i;

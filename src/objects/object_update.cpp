@@ -377,7 +377,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         orientations = (real_orientation *)(obj + ((struct object *)obj)->node_function_defaults.offset);
     }
 
-    if (*(int32_t *)&def->model.tag_id == -1) {
+    if ((int32_t)halo::objects::tag_handle(def->model) == -1) {
 
         nodes[0].scale = 1.0f;
         nodes[0].forward = ((struct object *)obj)->forward;
@@ -385,7 +385,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         halo::math::vector3d_cross_product(nodes[0].left, nodes[0].forward, nodes[0].up);
         nodes[0].position = ((struct object *)obj)->position;
     } else {
-        GBXModel *model = halo::objects::tag_as<GBXModel>(*(uint32_t *)&def->model.tag_id);
+        GBXModel *model = halo::objects::tag_as<GBXModel>(halo::objects::tag_handle(def->model));
         real_matrix4x3 *parent_matrix = 0;
         uint8_t absolute_root = 0;
         int16_t queue[k_maximum_nodes_per_model];
@@ -412,8 +412,8 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             halo::models::model_view((GBXModel *)model).get_default_transforms(orientations);
         }
 
-        if (*(int32_t *)&def->animation_graph.tag_id != -1) {
-            ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(*(uint32_t *)&def->animation_graph.tag_id);
+        if ((int32_t)halo::objects::tag_handle(def->animation_graph) != -1) {
+            ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(def->animation_graph));
             int16_t i;
             for (i = 0; (int32_t)i < graph->objects.count; i++) {
                 ModelAnimationsAnimationGraphObjectOverlay *entry = &halo::objects::block_element<ModelAnimationsAnimationGraphObjectOverlay>(graph->objects, (int32_t)i);
@@ -445,7 +445,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             orientations[0].translation.y *= scale;
             orientations[0].translation.z *= scale;
         }
-        if (*(int32_t *)&def->animation_graph.tag_id != -1) {
+        if ((int32_t)halo::objects::tag_handle(def->animation_graph) != -1) {
             halo::objects::object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
         }
         if (((struct object *)obj)->node_function_count > 0) {
@@ -482,8 +482,8 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         orientation.left.j = -orientation.left.j;
                         orientation.left.k = -orientation.left.k;
                     }
-                    if (*(int32_t *)&def->physics.tag_id != -1) {
-                        Physics *tag = halo::objects::tag_as<Physics>(*(uint32_t *)&def->physics.tag_id);
+                    if ((int32_t)halo::objects::tag_handle(def->physics) != -1) {
+                        Physics *tag = halo::objects::tag_as<Physics>(halo::objects::tag_handle(def->physics));
                         real_point3d negated;
                         negated.x = -tag->center_of_mass.x;
                         negated.y = -tag->center_of_mass.y;
@@ -581,7 +581,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
         ColorRGB *final_color = (ColorRGB *)(obj + 0x1b8 + i * 0xc);
 
         *working = colors[i];
-        if (i < *(int32_t *)&tag->change_colors.count) {
+        if (i < (int32_t)tag->change_colors.count) {
             ObjectChangeColors *change_color = reinterpret_cast<ObjectChangeColors *>(*(uint8_t **)&tag->change_colors.pointer + i * 0x2c);
 
             double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +

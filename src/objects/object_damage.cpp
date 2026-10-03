@@ -139,8 +139,8 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
     uint16_t *vitality_flags = (uint16_t *)&obj->base.vitality_flags;
     float *shield = (float *)&obj->base.shield_vitality;
 
-    if (*(datum_index *)&object_tag->collision_model.tag_id != k_datum_index_none) {
-        ModelCollisionGeometry *geometry = halo::objects::tag_as<ModelCollisionGeometry>(*(datum_index *)&object_tag->collision_model.tag_id);
+    if (halo::objects::tag_handle(object_tag->collision_model) != k_datum_index_none) {
+        ModelCollisionGeometry *geometry = halo::objects::tag_as<ModelCollisionGeometry>(halo::objects::tag_handle(object_tag->collision_model));
 
         if (geometry != 0) {
             uint16_t flags = *vitality_flags;
@@ -345,7 +345,7 @@ void halo::objects::ObjectDamage::set_shield_depleted_flag()
     }
 
     {
-        datum_index collision_model = *(datum_index *)&((Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data)->collision_model.tag_id;
+        datum_index collision_model = halo::objects::tag_handle(((Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data)->collision_model);
 
         if (collision_model != k_datum_index_none) {
 
@@ -547,7 +547,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 applied = 1;
             }
             {
-                datum_index model = *(datum_index *)&target_tag->base.collision_model.tag_id;
+                datum_index model = halo::objects::tag_handle(target_tag->base.collision_model);
 
                 if (model != k_datum_index_none && (*halo::objects::tag_record_bytes(model) & 8) &&
                     target->base.first_child_object != k_datum_index_none) {
@@ -1611,7 +1611,7 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
                 (ModelCollisionGeometry *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data;
             ModelCollisionGeometryRegion *region = &((ModelCollisionGeometryRegion *)geometry->regions.pointer)[region_index];
 
-            halo::effects::effect_new_on_object(object_index, *(datum_index *)&((struct ModelCollisionGeometryRegion *)region)->destroyed_effect.tag_id, object_index, -1,
+            halo::effects::effect_new_on_object(object_index, halo::objects::tag_handle(((struct ModelCollisionGeometryRegion *)region)->destroyed_effect), object_index, -1,
                 0.0f, 0.0f, 0, 0);
             halo::objects::object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
 

@@ -55,7 +55,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     datum_index object_index = datum_handle;
     uint8_t *obj = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
     uint8_t *vehicle_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    datum_index graph_tag = *(datum_index *)&((struct Object *)vehicle_tag)->animation_graph.tag_id;
+    datum_index graph_tag = halo::objects::tag_handle(((struct Object *)vehicle_tag)->animation_graph);
     uint8_t *graph;
     uint8_t *entry;
     uint8_t *animations;
@@ -306,7 +306,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     uint32_t unit_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
@@ -418,7 +418,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     uint32_t unit_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     uint8_t *powered = (uint8_t *)out_record;
     real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -504,7 +504,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     uint32_t unit_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
     real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -616,7 +616,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     uint32_t unit_index = datum_handle;
     uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
-    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
     real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
     real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
@@ -707,7 +707,7 @@ void VehicleView::calculate_mounted_controls_dispatch(void *out_transform, void 
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *physics_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
+    uint8_t *physics_tag = halo::objects::tag_record_bytes(halo::objects::tag_handle(((Unit *)tag)->base.physics));
 
     if (*(float *)physics_tag > 0.0f) {
         VehicleView(unit_index).calculate_ground_contact_lean_alt(out_record, out_transform);
@@ -736,7 +736,7 @@ void VehicleView::create_hover_thruster_effects()
     int16_t i;
     static char *names[3] = { (char *)"incident", (char *)"normal", (char *)"reflected" };
 
-    if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1) {
+    if ((int32_t)halo::objects::tag_handle(((struct Vehicle *)tag)->effect) == -1) {
         return;
     }
     hover_count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"hover thrusters", (object_marker *)markers, 0xf);
@@ -776,7 +776,7 @@ void VehicleView::create_hover_thruster_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             scale = 1.0f - result.t;
-            halo::effects::effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, k_datum_index_none, 0, 3, (uint32_t)(uintptr_t)names, points, (uint32_t)(uintptr_t)vectors,
+            halo::effects::effect_new_with_color(halo::objects::tag_handle(((struct Vehicle *)tag)->effect), k_datum_index_none, 0, 3, (uint32_t)(uintptr_t)names, points, (uint32_t)(uintptr_t)vectors,
                 scale, scale, 0, 0, 1);
         }
     }
@@ -800,7 +800,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
     int16_t i;
     static char *names[4] = { (char *)"incident", (char *)"normal", (char *)"reflected", (char *)"midpoint" };
 
-    if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
+    if ((int32_t)halo::objects::tag_handle(((struct Vehicle *)tag)->effect) == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
         return;
     }
     count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"hover thrusters", (object_marker *)markers, 0xf);
@@ -848,7 +848,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             vectors[3] = vectors[2];
-            halo::effects::effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, k_datum_index_none, 0, 4, (uint32_t)(uintptr_t)names, points, (uint32_t)(uintptr_t)vectors, v, v,
+            halo::effects::effect_new_with_color(halo::objects::tag_handle(((struct Vehicle *)tag)->effect), k_datum_index_none, 0, 4, (uint32_t)(uintptr_t)names, points, (uint32_t)(uintptr_t)vectors, v, v,
                 0, 0, 1);
         }
     }
