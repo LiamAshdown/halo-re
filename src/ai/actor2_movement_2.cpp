@@ -409,7 +409,6 @@ void ActorView::movement_update()
 {
     using namespace actor_movement_update_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffffu];
-    uint8_t *actor_base = (uint8_t *)a;
     Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
 
     uint8_t sidestep_mode = 0;
@@ -433,13 +432,13 @@ void ActorView::movement_update()
     a->desired_facing_vector = *(const real_point3d *)&a->facing;
 
     a->turn_required = 0;
-    actor_base[0x58d] = 1;
-    actor_base[0x58e] = 1;
+    a->aim_unlocked = 1;
+    a->look_unlocked = 1;
 
     if (a->move_in_direction != 0) {
         a->desired_movement_vector = *(const real_point3d *)&a->move_direction;
         a->moving = 1;
-        actor_base[0x58d] = 0;
+        a->aim_unlocked = 0;
         a->avoidance_direction = *global_origin3d_pointer;
         a->avoidance_scale = 0.0f;
         a->avoidance_emergency = 0.0f;
@@ -504,9 +503,9 @@ void ActorView::movement_update()
     movement_style = a->movement_style_override;
     if (movement_style == -1) {
         movement_style = 2;
-        if (actor_base[0x429] != 0) {
+        if (a->cowering != 0) {
             movement_style = 4;
-        } else if (actor_base[0x428] != 0) {
+        } else if (a->crouch_hold != 0) {
             movement_style = 3;
         } else if (a->awareness_level == 1) {
             movement_style = 1;
@@ -521,9 +520,9 @@ void ActorView::movement_update()
 
     if (a->movement_action_complete != 0 &&
         actor_def->stationary_movement_dist <= a->movement_timer) {
-        movement_mode = actor_base[0x427];
+        movement_mode = a->crouch_decision[1];
     } else {
-        movement_mode = actor_base[0x426];
+        movement_mode = a->crouch_decision[0];
     }
 
     context = a->vehicle_driving_type;
@@ -531,23 +530,23 @@ void ActorView::movement_update()
         if (a->order_committed != 0) {
             a->moving = 0;
             a->moving_facing_direction = 0;
-            actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->vehicle_gunner != 0) ? 1 : 0);
-            actor_base[0x58e] = 0;
+            a->aim_unlocked = (uint8_t)((a->type == 0xf || a->vehicle_gunner != 0) ? 1 : 0);
+            a->look_unlocked = 0;
             movement_mode = 0;
         } else if (a->secondary_action != -1) {
             a->moving = 0;
-            actor_base[0x58d] = 0;
-            actor_base[0x58e] = 0;
+            a->aim_unlocked = 0;
+            a->look_unlocked = 0;
             movement_mode = 0;
         } else if (a->control_animation_mode == 1) {
             a->moving = 0;
-            actor_base[0x58d] = 0;
-            actor_base[0x58e] = 0;
+            a->aim_unlocked = 0;
+            a->look_unlocked = 0;
             face_along_heading = 1;
             movement_mode = 0;
         } else if (a->airborne != 0 && a->flying == 0) {
             a->moving = 0;
-            actor_base[0x58d] = 1;
+            a->aim_unlocked = 1;
             movement_mode = 0;
         } else if (a->grenade_throw_pending != 0) {
             real_vector3d away;
@@ -557,18 +556,18 @@ void ActorView::movement_update()
             a->moving = 0;
             movement_mode = 0;
             if (halo::math::vector3d_normalize_with_length(away) == 0.0f) {
-                actor_base[0x58d] = 1;
+                a->aim_unlocked = 1;
             } else {
                 a->desired_facing_vector.x = away.i;
                 a->desired_facing_vector.y = away.j;
                 a->desired_facing_vector.z = away.k;
-                actor_base[0x58d] = 0;
-                actor_base[0x58e] = 0;
+                a->aim_unlocked = 0;
+                a->look_unlocked = 0;
                 a->turn_required = 1;
             }
         } else if (a->incoming_fire_ticks >= 1) {
             a->moving = 0;
-            actor_base[0x58d] = 1;
+            a->aim_unlocked = 1;
             movement_mode = (uint8_t)((actor_def->flags >> 0x1e) & 1);
         } else {
             clear_recognition = 1;
@@ -608,7 +607,7 @@ void ActorView::movement_update()
             if (unit_vehicle->airborne_ticks != 0) {
                 vehicle_stuck = 1;
                 a->moving = 0;
-                actor_base[0x58d] = 1;
+                a->aim_unlocked = 1;
                 movement_mode = 0;
             } else if (0.7f <= unit_vehicle->ground_lean) {
                 take_sideslip = 1;
@@ -643,8 +642,8 @@ void ActorView::movement_update()
                 movement_mode = 0;
             } else {
                 a->moving = 0;
-                actor_base[0x58d] = 0;
-                actor_base[0x58e] = 0;
+                a->aim_unlocked = 0;
+                a->look_unlocked = 0;
                 a->desired_facing_vector.x = -direction.i;
                 movement_mode = 0;
                 a->desired_facing_vector.y = -direction.j;
@@ -653,7 +652,7 @@ void ActorView::movement_update()
         } else {
             a->moving = 0;
             a->moving_facing_direction = 0;
-            actor_base[0x58d] = (uint8_t)((a->type == 0xf || a->vehicle_gunner != 0) ? 1 : 0);
+            a->aim_unlocked = (uint8_t)((a->type == 0xf || a->vehicle_gunner != 0) ? 1 : 0);
             movement_mode = 0;
         }
 
@@ -677,20 +676,20 @@ void ActorView::movement_update()
     }
 
     if (a->moving != 0) {
-        actor_base[0x58e] = 0;
-        actor_base[0x58d] = 0;
+        a->look_unlocked = 0;
+        a->aim_unlocked = 0;
     } else if (face_along_heading) {
         a->desired_facing_vector = *(const real_point3d *)&a->facing;
-        actor_base[0x58e] = 0;
+        a->look_unlocked = 0;
         a->moving_facing_direction = 0;
-        actor_base[0x58d] = 0;
-    } else if (actor_base[0x590] != 0) {
+        a->aim_unlocked = 0;
+    } else if (a->stationary_facing_held != 0) {
         a->desired_facing_vector.x = a->oversteer_angle[1];
         a->desired_facing_vector.y = a->oversteer_angle[2];
         a->desired_facing_vector.z = a->oversteer_angle[3];
-        actor_base[0x58e] = 1;
+        a->look_unlocked = 1;
         a->moving_facing_direction = 0;
-        actor_base[0x58d] = 0;
+        a->aim_unlocked = 0;
     }
 
     if (clear_recognition && a->moving == 0) {
@@ -700,9 +699,9 @@ void ActorView::movement_update()
     if (a->moving != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::cannot_move_while_crouching)) {
         movement_mode = 0;
     }
-    actor_base[0x58f] = 0;
+    a->stationary_facing_enabled = 0;
     if (movement_mode != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::fixed_crouch_facing)) {
-        actor_base[0x58f] = 1;
+        a->stationary_facing_enabled = 1;
     }
     a->crouching = movement_mode;
     if (movement_mode != 0) {
@@ -774,9 +773,7 @@ void ActorView::movement_update()
         }
     }
 
-    *(uint32_t *)&((struct actor *)actor_base)->control_animation_impulse = *(uint32_t *)&((struct actor *)actor_base)->secondary_action;
-    *(uint32_t *)(actor_base + 0x6f0) = *(uint32_t *)(actor_base + 0x41c);
-    *(uint32_t *)(actor_base + 0x6f4) = *(uint32_t *)(actor_base + 0x420);
+    memcpy(&a->control_animation_impulse, &a->secondary_action, 3 * sizeof(uint32_t));
 }
 
 }

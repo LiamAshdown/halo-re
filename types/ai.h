@@ -1085,8 +1085,8 @@ typedef struct actor {
         datum_index idle_look_prop_index; // 0x580 idle_look_direction_type 1 (replace_object_reference patches it)
     };
     uint8_t look_claimed;             // 0x58c a vocalization or firing look claimed the look point this tick
-    uint8_t look_side_a;              // 0x58d
-    uint8_t look_side_b;              // 0x58e
+    uint8_t aim_unlocked;              // 0x58d movement_update clears it while the actor moves or faces a heading; the idle look treats the aim as free while it is set
+    uint8_t look_unlocked;              // 0x58e same for the look direction
     uint8_t stationary_facing_enabled; // 0x58f
     uint8_t stationary_facing_held;   // 0x590 the actor holds the stationary facing at stationary_facing_hold
     uint8_t turn_required;            // 0x591 set by 0x415480 when body must turn to its aim and by 0x4180c0 when no

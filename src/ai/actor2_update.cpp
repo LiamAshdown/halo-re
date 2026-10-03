@@ -1069,10 +1069,10 @@ void ActorView::update_look_target()
         ult_v3(cache_c) = ult_v3(cache_a);
     } else {
         uint8_t has_weapon;
-        uint8_t side_a = a->look_side_a;
+        uint8_t side_a = a->aim_unlocked;
         uint8_t look_follows = 0;
         uint8_t free_aim = 1;
-        uint8_t side_b = a->look_side_b;
+        uint8_t side_b = a->look_unlocked;
         uint8_t claimed = 0;
         uint8_t in_cone = 0;
         uint8_t resolved = 0;
@@ -1172,7 +1172,7 @@ void ActorView::update_look_target()
                 side_a = 0;
                 side_b = 0;
             }
-            section_done = ((a->look_side_a == 0 && a->look_side_b == 0) || reason >= 6) ? 1 : 0;
+            section_done = ((a->aim_unlocked == 0 && a->look_unlocked == 0) || reason >= 6) ? 1 : 0;
         }
 
         auto voc_claim = [&]() {
@@ -1238,7 +1238,7 @@ void ActorView::update_look_target()
                 lane_or_take();
             } else if (priority >= 6 && halo::ai::actor_reset_queued_look_vector(actor_index)) {
                 take_all();
-            } else if (priority >= 5 && (side_b || a->look_side_a != 0)) {
+            } else if (priority >= 5 && (side_b || a->aim_unlocked != 0)) {
                 take_all();
             } else if (priority >= 4) {
                 if (in_cone) {
@@ -1256,7 +1256,7 @@ void ActorView::update_look_target()
             bool aim_only = false;
 
             resolved = in_cone = (uint8_t)(priority == 8);
-            if (a->look_side_a == 0) {
+            if (a->aim_unlocked == 0) {
                 if (!ult_cone(&voc_point, cache_a, cos_aim)) {
                     if (!halo::ai::actor_reset_queued_look_vector(actor_index)) {
                         skip_voc = true;
