@@ -1,0 +1,1396 @@
+====================================================================================================
+original file: src/render/render_sky.c
+====================================================================================================
+// render_sky  (Ghidra: sky_render_lights_and_lens_flares, phase-2 name; CEA render_sky(void),
+// hint only; renamed)
+// address 0x510c50, size 1325 bytes
+// name confidence: 0.7   rewrite confidence: 0.7
+// evidence: objdump -d -M intel 0x510c50..0x511184 (__chkstk 0x1660 frame), every stack slot
+//   followed through the pushes. Types from types/tags.h Scenario.skies (+0x30, TagDependency
+//   stride 0x10), Sky (model +0x0c, animation_graph +0x1c, shader_functions +0xac, animations
+//   +0xb8 stride 0x24, lights +0xc4 stride 0x74), SkyLight (lens_flare id +0x0c, marker name
+//   +0x10, direction +0x68 / +0x6c), GBXModel.nodes (+0xb8), ModelAnimations.animations (+0x74,
+//   stride 0xb4; frame_count +0x22, node_count +0x2c).
+//   - only when the render cluster has a sky (render_cluster_has_sky 0x007c334d, sky index
+//     0x007c334e, types/structures.h). The sky tag lookup has no NULL check after it.
+//   - model_nodes_get_default_transforms 0x4d7610 (ESI model, stack nodes); for each sky
+//     animation with a valid animation index and a non zero period whose animation graph entry
+//     has as many nodes as the model, sky_animation_times[i] = fmod(frame time (0x007c3110) /
+//     period + it, 1.0), then 0x4d53f0 (EDI = animation, stack frame_count * time, nodes). The
+//     animation entry is picked with the *sky animation* index i (imul esi,0xb4 at 0x510d49),
+//     not with the animation_index the bounds check just used; reproduced.
+//   - 0x4d7690 builds the node matrices: EAX = *global_zero_vector3d_pointer (0x006966f8), ECX =
+//     *global_forward3d_pointer (0x00696718), stack (model, matrices, nodes, *global_up3d_pointer 0x00696720).
+//   - function values: 1.0 for every shader function (at most 8 floats on the stack).
+//   - each light with a lens flare: direction from the Euler angles (cos pitch cos yaw,
+//     cos pitch sin yaw, sin pitch) when the marker name is empty, else from the camera to the
+//     first marker of that name (model_markers_get_by_name 0x4d7850: ECX model tag, EAX name,
+//     stack (0, 0, matrices, 0, &marker, 1); position at marker +0x60), normalized unless
+//     shorter than 0.0001 (double 0x672bd8). light_transient_add 0x4f1600 then gets EAX = the
+//     lens flare tag, EDX = *global_white_color (0x00686b04 -> {1,1,1}), stack (camera +
+//     direction * 1023.875, -direction, normalize(perpendicular(-direction)), 1.0).
+//   - the sky is drawn at 1/1024 scale around 0.99902344 * camera position: every node matrix
+//     is premultiplied by that matrix through the function pointer at 0x00696664
+//     (matrix4x3_multiply 0x4cc0d0, cdecl (a, b, out) with b == out), then render_model 0x4d6fc0
+//     (EAX model tag, ECX matrices, stack (0, 0, 0, function values, lighting, camera position,
+//     0, 0, 0, 0, flags 1)) with a zeroed render_lighting whose ambient is white.
+//   - the 0x006893ec debug toggle wraps the draw (0x0069c74c / 0x0071d1fa = 1 before;
+//     D3DRS_LIGHTING (0x89) 0 after on pre 0xffff0101 devices), as in render_objects 0x50e930.
+// register convention: none (void).
+//   // blam-cc: void
+// UNSURE: the names of 0x4d53f0 (functions.txt model_vertices_get_interpolated_frame; it
+//   samples an animation into the node array) and 0x4d7690 (unnamed; builds node matrices from
+//   nodes and a root transform); that light_transient_add is really the lens flare / sun light
+//   registration (it takes the SkyLight lens flare tag).
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "rasterizer.h"
+#include "objects.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t render_cluster_has_sky;               // 0x007c334d, structures module
+extern int16_t render_cluster_sky_index;             // 0x007c334e, structures module
+extern Scenario *global_scenario;                    // 0x00746f8c
+extern tag_instance *tag_instances;                  // 0x0087bc14
+extern float render_time_since_frame;                // 0x007c3110, this module
+extern float sky_animation_times[9];                 // 0x006b923c, this module
+extern render_camera render_camera_global;           // 0x007c3114, this module
+extern real_point3d *global_zero_vector3d_pointer;                // 0x006966f8 -> {0,0,0}
+extern real_vector3d *global_forward3d_pointer;              // 0x00696718 -> {1,0,0}
+extern real_vector3d *global_up3d_pointer;                   // 0x00696720 -> {0,0,1}
+extern real_matrix4x3 *k_render_identity_matrix_ptr;           // 0x0069673c -> identity at 0x0065c208
+extern ColorRGB *global_white_color;              // 0x00686b04 -> {1,1,1} at 0x0065513c
+extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b,
+                                          real_matrix4x3 *out); // 0x00696664 -> 0x4cc0d0
+extern uint8_t console_debug_toggle_6893ec;          // 0x006893ec
+extern uint8_t rasterizer_render_states_dirty;       // 0x0069c74c
+extern uint8_t unknown_0071d1fa;                     // 0x0071d1fa UNSURE
+extern uint32_t rasterizer_device_version;           // 0x007c118c
+extern void *rasterizer_device;                      // 0x0071d174
+
+extern void model_nodes_get_default_transforms(GBXModel *model, void *nodes);
+    // 0x4d7610, models; blam-cc: ESI -> model, stack -> nodes
+extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame,
+                                                             void *out_orientations);
+    // 0x4d53f0, models (Ghidra: model_vertices_get_interpolated_frame); blam-cc: EDI -> animation, stack -> (frame, nodes)
+extern void model_nodes_build_matrices(real_point3d *position, real_vector3d *forward, GBXModel *model,
+                         real_matrix4x3 *matrices, void *nodes, real_vector3d *up);
+    // 0x4d7690, models; blam-cc: EAX -> position, ECX -> forward, stack -> (model, matrices,
+    // nodes, up); ECX is handed on to matrix4x3_from_forward_up
+extern int16_t model_markers_get_by_name(datum_index model_tag, const char *name,
+    uint8_t *permutations, uint32_t reserved, real_matrix4x3 *node_matrices, uint32_t flags,
+    object_marker *out, int32_t maximum_count);
+    // 0x4d7850, models; blam-cc: ECX -> model_tag, EAX -> name, stack -> the other six
+extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
+    // 0x4cd670, math; blam-cc: ECX -> out, EDX -> dir
+extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
+    real_vector3d *direction, real_vector3d *up, float intensity);
+    // 0x4f1600, objects module; blam-cc: EAX=light_tag, EDX=color, stack=(position, direction,
+    // up, intensity); src/objects types the two middle slots as opaque uint32_t
+extern void render_model(TagID model_tag_id, void *node_matrices, float level_of_detail_pixels,
+                         uint8_t *region_permutations, ColorRGB *change_colors, float *function_out_values,
+                         render_lighting *lighting, real_point3d *bounding_center, float bounding_radius,
+                         render_model_effect *effect, datum_index object_index,
+                         uint16_t forced_shader_permutation, uint32_t flags);
+    // 0x4d6fc0, models; blam-cc: EAX -> model_tag_id, ECX -> node_matrices, stack -> the rest
+    // (CEA render_model(model_index, level_of_detail_pixels, node_matrices, ...))
+extern double fmod(double x, double y); // 0x628cca, MSVC 7.1 CRT _CIfmod
+extern double sqrt(double x);           // x87 FSQRT
+extern double fabs(double x);           // x87 FABS
+extern double sin(double x);            // x87 FSIN
+extern double cos(double x);            // x87 FCOS
+
+typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
+
+static datum_index tag_id_of(TagID id)
+{
+    return *(datum_index *)&id;
+}
+
+// Animates and draws the sky model of the current render cluster (scaled to 1/1024 around the
+// camera) and registers one transient light per sky light that has a lens flare, placed 1023.875
+// units away along the light direction.
+void render_sky(void)
+{
+    datum_index sky_tag;
+    Sky *sky;
+    GBXModel *model;
+    uint8_t nodes[0x800];
+    real_matrix4x3 matrices[64];
+    float function_values[8];
+    render_lighting lighting;
+    real_matrix4x3 sky_transform;
+    int16_t i;
+
+    if (!render_cluster_has_sky) {
+        return;
+    }
+    sky_tag = 0xffffffff;
+    if (render_cluster_sky_index >= 0 &&
+        (int32_t)render_cluster_sky_index < (int32_t)global_scenario->skies.count) {
+        sky_tag = tag_id_of(((ScenarioSky *)global_scenario->skies.pointer)[render_cluster_sky_index].sky.tag_id);
+    }
+    sky = 0;
+    if (sky_tag != 0xffffffff) {
+        sky = (Sky *)tag_instances[(uint16_t)sky_tag].data;
+    }
+    model = (GBXModel *)tag_instances[sky->model.tag_id.index].data;
+    model_nodes_get_default_transforms(model, nodes);
+
+    if (tag_id_of(sky->animation_graph.tag_id) != 0xffffffff) {
+        ModelAnimations *graph =
+            (ModelAnimations *)tag_instances[sky->animation_graph.tag_id.index].data;
+
+        for (i = 0; (int32_t)i < (int32_t)sky->animations.count; i++) {
+            SkyAnimation *entry = &((SkyAnimation *)sky->animations.pointer)[i];
+
+            if (entry->animation_index >= 0 &&
+                (int32_t)entry->animation_index < (int32_t)graph->animations.count &&
+                entry->period != 0.0f) {
+                ModelAnimationsAnimation *animation =
+                    &((ModelAnimationsAnimation *)graph->animations.pointer)[i];
+
+                if ((int32_t)(int16_t)animation->node_count == (int32_t)model->nodes.count) {
+                    float time = (float)fmod(render_time_since_frame / entry->period +
+                                             sky_animation_times[i], 1.0);
+
+                    sky_animation_times[i] = time;
+                    animation_overlay_interpolated_frame_orientations(animation,
+                        (float)(int32_t)(int16_t)animation->frame_count * time, nodes);
+                }
+            }
+        }
+    }
+
+    model_nodes_build_matrices(global_zero_vector3d_pointer, global_forward3d_pointer, model, matrices, nodes, global_up3d_pointer);
+
+    for (i = 0; (int32_t)i < (int32_t)sky->shader_functions.count; i++) {
+        function_values[i] = 1.0f;
+    }
+
+    for (i = 0; (int32_t)i < (int32_t)sky->lights.count; i++) {
+        SkyLight *light = &((SkyLight *)sky->lights.pointer)[i];
+        real_vector3d direction;
+        real_point3d position;
+        real_vector3d toward_camera;
+        real_vector3d up;
+        real length;
+
+        if (tag_id_of(light->lens_flare.tag_id) == 0xffffffff) {
+            continue;
+        }
+        if (light->lens_flare_marker_name.string[0] == '\0') {
+            real cos_pitch = (real)cos(light->direction.pitch);
+
+            direction.i = (real)cos(light->direction.yaw) * cos_pitch;
+            direction.j = (real)sin(light->direction.yaw) * cos_pitch;
+            direction.k = (real)sin(light->direction.pitch);
+        } else {
+            object_marker marker;
+
+            if (model_markers_get_by_name(tag_id_of(sky->model.tag_id), light->lens_flare_marker_name.string, 0, 0,
+                                          matrices, 0, &marker, 1) == 0) {
+                continue;
+            }
+            direction.i = marker.node_transform.position.x - render_camera_global.position.x;
+            direction.j = marker.node_transform.position.y - render_camera_global.position.y;
+            direction.k = marker.node_transform.position.z - render_camera_global.position.z;
+            length = (real)sqrt(direction.k * direction.k + direction.j * direction.j +
+                                direction.i * direction.i);
+            if (fabs(length) >= 0.0001) {
+                real inverse = 1.0f / length;
+
+                direction.i = inverse * direction.i;
+                direction.j = direction.j * inverse;
+                direction.k = direction.k * inverse;
+            }
+        }
+
+        position.x = direction.i * 1023.875f + render_camera_global.position.x;
+        position.y = 1023.875f * direction.j + render_camera_global.position.y;
+        position.z = direction.k * 1023.875f + render_camera_global.position.z;
+        toward_camera.i = -direction.i;
+        toward_camera.j = -direction.j;
+        toward_camera.k = -direction.k;
+        vector3d_build_perpendicular(&up, &toward_camera);
+        length = (real)sqrt(up.k * up.k + up.j * up.j + up.i * up.i);
+        if (fabs(length) >= 0.0001) {
+            real inverse = 1.0f / length;
+
+            up.i = up.i * inverse;
+            up.j = up.j * inverse;
+            up.k = up.k * inverse;
+        }
+        light_transient_add(tag_id_of(light->lens_flare.tag_id), global_white_color, &position,
+                            &toward_camera, &up, 1.0f);
+    }
+
+    sky_transform = *k_render_identity_matrix_ptr;
+    sky_transform.position.x = render_camera_global.position.x * 0.99902344f;
+    sky_transform.position.y = render_camera_global.position.y * 0.99902344f;
+    sky_transform.position.z = render_camera_global.position.z * 0.99902344f;
+    sky_transform.scale = 0.0009765625f; // 0x3a800000, 1/1024
+    for (i = 0; (int32_t)i < (int32_t)model->nodes.count; i++) {
+        matrix4x3_multiply_procedure(&sky_transform, &matrices[i], &matrices[i]);
+    }
+
+    if (console_debug_toggle_6893ec) {
+        rasterizer_render_states_dirty = 1;
+        unknown_0071d1fa = 1;
+    }
+    {
+        uint8_t *raw = (uint8_t *)&lighting;
+        uint32_t k;
+
+        for (k = 0; k < sizeof(lighting); k++) {
+            raw[k] = 0;
+        }
+    }
+    lighting.ambient_color = *global_white_color;
+    render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
+                 &render_camera_global.position, 0.0f, 0, 0, 0, 1);
+
+    if (console_debug_toggle_6893ec && rasterizer_device_version < 0xffff0101) {
+        d3d_set_render_state_fn set_render_state =
+            (d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4];
+
+        set_render_state(rasterizer_device, 0x89, 0);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x510c50):
+
+/* WARNING: Function: __chkstk replaced with injection: alloca_probe */
+
+void sky_render_lights_and_lens_flares(void)
+
+{
+  short *psVar1;
+  char cVar2;
+  int iVar3;
+  int iVar4;
+  float fVar5;
+  short sVar6;
+  uint uVar7;
+  int iVar8;
+  short sVar9;
+  char *pcVar10;
+  int iVar11;
+  int iVar12;
+  undefined4 *puVar13;
+  undefined4 *puVar14;
+  float10 fVar15;
+  float10 fVar16;
+  float10 fVar17;
+  float fStack_1648;
+  undefined1 auStack_1644 [60];
+  float fStack_1608;
+  float fStack_1604;
+  float fStack_1600;
+  float fStack_15f0;
+  float fStack_15ec;
+  float fStack_15e8;
+  float fStack_15e4;
+  float fStack_15e0;
+  float fStack_15dc;
+  undefined4 auStack_15d4 [10];
+  float fStack_15ac;
+  float fStack_15a8;
+  float fStack_15a4;
+  undefined4 auStack_159c [8];
+  undefined4 auStack_157c [30];
+  undefined1 local_1504 [2048];
+  undefined1 local_d04 [3328];
+  undefined4 uStack_4;
+  
+  iVar8 = DAT_0087bc14;
+  uStack_4 = 0x510c5a;
+  if (DAT_007c334d != '\0') {
+    uVar7 = 0xffffffff;
+    if ((-1 < DAT_007c334e) && ((int)DAT_007c334e < *(int *)(global_scenario + 0x30))) {
+      uVar7 = *(uint *)(DAT_007c334e * 0x10 + 0xc + *(int *)(global_scenario + 0x34));
+    }
+    iVar11 = 0;
+    if (uVar7 != 0xffffffff) {
+      iVar11 = *(int *)((uVar7 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    }
+    iVar3 = *(int *)((*(uint *)(iVar11 + 0xc) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    model_nodes_get_default_transforms(local_1504);
+    if (*(uint *)(iVar11 + 0x1c) != 0xffffffff) {
+      iVar8 = *(int *)((*(uint *)(iVar11 + 0x1c) & 0xffff) * 0x20 + 0x14 + iVar8);
+      iVar12 = 0;
+      sVar9 = 0;
+      if (0 < *(int *)(iVar11 + 0xb8)) {
+        do {
+          psVar1 = (short *)(*(int *)(iVar11 + 0xbc) + iVar12 * 0x24);
+          sVar6 = *psVar1;
+          if ((((-1 < sVar6) && ((int)sVar6 < *(int *)(iVar8 + 0x74))) &&
+              (*(float *)(psVar1 + 2) != 0.0)) &&
+             (iVar4 = *(int *)(iVar8 + 0x78),
+             (int)*(short *)(iVar12 * 0xb4 + 0x2c + iVar4) == *(int *)(iVar3 + 0xb8))) {
+            fVar15 = (float10)FUN_00628cca();
+            (&DAT_006b923c)[iVar12] = (float)fVar15;
+            model_vertices_get_interpolated_frame
+                      ((float)((float10)(int)*(short *)(iVar12 * 0xb4 + iVar4 + 0x22) * fVar15),
+                       local_1504);
+          }
+          sVar9 = sVar9 + 1;
+          iVar12 = (int)sVar9;
+        } while (iVar12 < *(int *)(iVar11 + 0xb8));
+      }
+    }
+    FUN_004d7690(iVar3,local_d04,local_1504,PTR_DAT_00696720);
+    sVar9 = 0;
+    if (0 < *(int *)(iVar11 + 0xac)) {
+      iVar8 = 0;
+      do {
+        sVar9 = sVar9 + 1;
+        auStack_159c[iVar8] = 0x3f800000;
+        iVar8 = (int)sVar9;
+      } while (iVar8 < *(int *)(iVar11 + 0xac));
+    }
+    sVar9 = 0;
+    if (0 < *(int *)(iVar11 + 0xc4)) {
+      iVar8 = 0;
+      do {
+        iVar8 = iVar8 * 0x74 + *(int *)(iVar11 + 200);
+        if (*(int *)(iVar8 + 0xc) != -1) {
+          pcVar10 = (char *)(iVar8 + 0x10);
+          do {
+            cVar2 = *pcVar10;
+            pcVar10 = pcVar10 + 1;
+          } while (cVar2 != '\0');
+          if (pcVar10 == (char *)(iVar8 + 0x11)) {
+            fVar17 = (float10)fcos((float10)*(float *)(iVar8 + 0x6c));
+            fVar16 = (float10)fcos((float10)*(float *)(iVar8 + 0x68));
+            fVar16 = fVar16 * (float10)(float)fVar17;
+            fVar15 = (float10)fsin((float10)*(float *)(iVar8 + 0x68));
+            fVar15 = fVar15 * (float10)(float)fVar17;
+            fVar17 = (float10)fsin((float10)*(float *)(iVar8 + 0x6c));
+            fStack_1648 = (float)fVar17;
+          }
+          else {
+            sVar6 = model_markers_get_by_name(0,0,local_d04,0,auStack_1644,1);
+            if (sVar6 == 0) goto LAB_00510ff4;
+            fVar16 = (float10)fStack_15e4 - (float10)DAT_007c3114;
+            fVar15 = (float10)fStack_15e0 - (float10)DAT_007c3118;
+            fStack_1648 = (float)((float10)fStack_15dc - (float10)DAT_007c311c);
+            fVar17 = SQRT(fVar16 * fVar16 +
+                          fVar15 * fVar15 +
+                          ((float10)fStack_15dc - (float10)DAT_007c311c) * (float10)fStack_1648);
+            if ((float10)9.999999747378752e-05 <= ABS(fVar17)) {
+              fVar17 = (float10)1.0 / fVar17;
+              fVar16 = fVar17 * fVar16;
+              fVar15 = fVar15 * fVar17;
+              fStack_1648 = (float)((float10)fStack_1648 * fVar17);
+            }
+          }
+          fStack_15e4 = (float)(fVar16 * (float10)1023.875 + (float10)DAT_007c3114);
+          fStack_15e0 = (float)((float10)1023.875 * fVar15 + (float10)DAT_007c3118);
+          fStack_15dc = fStack_1648 * 1023.875 + DAT_007c311c;
+          fStack_1608 = (float)-fVar16;
+          fStack_1604 = (float)-fVar15;
+          fStack_1600 = -fStack_1648;
+          vector3d_build_perpendicular();
+          fVar5 = SQRT(fStack_15f0 * fStack_15f0 +
+                       fStack_15ec * fStack_15ec + fStack_15e8 * fStack_15e8);
+          if (0.0001 <= ABS(fVar5)) {
+            fVar5 = 1.0 / fVar5;
+            fStack_15f0 = fStack_15f0 * fVar5;
+            fStack_15ec = fStack_15ec * fVar5;
+            fStack_15e8 = fStack_15e8 * fVar5;
+          }
+          light_transient_add(&fStack_15e4,&fStack_1608,&fStack_15f0,0x3f800000);
+        }
+LAB_00510ff4:
+        sVar9 = sVar9 + 1;
+        iVar8 = (int)sVar9;
+      } while (iVar8 < *(int *)(iVar11 + 0xc4));
+    }
+    puVar13 = (undefined4 *)PTR_DAT_0069673c;
+    puVar14 = auStack_15d4;
+    for (iVar8 = 0xd; iVar8 != 0; iVar8 = iVar8 + -1) {
+      *puVar14 = *puVar13;
+      puVar13 = puVar13 + 1;
+      puVar14 = puVar14 + 1;
+    }
+    fStack_15a8 = DAT_007c3118 * 0.99902344;
+    fStack_15a4 = DAT_007c311c * 0.99902344;
+    sVar9 = 0;
+    auStack_15d4[0] = 0x3a800000;
+    fStack_15ac = DAT_007c3114 * 0.99902344;
+    if (0 < *(int *)(iVar3 + 0xb8)) {
+      iVar8 = 0;
+      do {
+        (*(code *)PTR_matrix4x3_multiply_00696664)
+                  (auStack_15d4,local_d04 + iVar8 * 0x34,local_d04 + iVar8 * 0x34);
+        sVar9 = sVar9 + 1;
+        iVar8 = (int)sVar9;
+      } while (iVar8 < *(int *)(iVar3 + 0xb8));
+    }
+    if (DAT_006893ec != '\0') {
+      DAT_0069c74c = 1;
+      DAT_0071d1fa = 1;
+    }
+    puVar13 = auStack_157c;
+    for (iVar8 = 0x1d; iVar8 != 0; iVar8 = iVar8 + -1) {
+      *puVar13 = 0;
+      puVar13 = puVar13 + 1;
+    }
+    auStack_157c[0] = *(undefined4 *)PTR_DAT_00686b04;
+    auStack_157c[1] = *(undefined4 *)(PTR_DAT_00686b04 + 4);
+    auStack_157c[2] = *(undefined4 *)(PTR_DAT_00686b04 + 8);
+    FUN_004d6fc0(0,0,0,auStack_159c,auStack_157c,&DAT_007c3114,0,0,0,0,1);
+    if ((DAT_006893ec != '\0') && (DAT_007c118c < 0xffff0101)) {
+      (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0x89,0);
+    }
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window.c
+====================================================================================================
+// render_window  (Ghidra: render_scene_draw, phase-2 name; CEA render_window(local_player_index,
+// source_camera, source_frustum, rasterizer_camera, rasterizer_frustum, rasterizer_target,
+// has_mirror), hint only; renamed)
+// address 0x50bfb0, size 1498 bytes
+// name confidence: 0.75   rewrite confidence: 0.7
+// evidence: objdump -d -M intel 0x50bfb0..0x50c589, traced with the push depth at every stack
+//   reference. Ghidra's decompile has the right order of calls but drops every register
+//   argument (EDI stage for 0x51a810, EBX / ECX for 0x457000, EAX / ECX for 0x552de0, AL for
+//   0x494af0, AX for 0x519200 / 0x4984c0, EAX for 0x50eb70, EBX for 0x512530).
+//   - seven cdecl stack arguments; the frame holds an object_render_data at esp+0x10 (the
+//     shadow pass block) and the rasterizer_window_parameters at esp+0x58 (0x96 dword rep stosd).
+//   - render_window_count (0x007c3104) += 1, current_local_player_index (0x007c3108) = arg 0 as a
+//     word; source camera -> 0x007c3114 (0x15 dwords), source frustum -> 0x007c3168 (99 dwords);
+//     the parameters get the rasterizer camera and frustum, type = rasterizer_target,
+//     window_index = render_window_index (0x007c310a), +0x04 = has_mirror and the fog copied
+//     from 0x007c32f4 (0x14 dwords).
+//   - player_effect_build_screen_flash 0x457000: ECX = local player index, EBX =
+//     &parameters.screen_flash (esp+0x290 = 0x58 + 0x238).
+//   - the decal passes: rasterizer_decal_pass_begin 0x51a810 (EDI = stage), then
+//     rasterizer_decals_draw_cluster 0x51aa50 (cdecl, zero extended cluster index) for every
+//     visible cluster (0x007c3390 stride 0x1a0, count 0x007d0390), then
+//     rasterizer_end_decal_pass 0x51b0e0 -- except the stage 1 and stage 4 passes, which end
+//     with the fog / depth bias state reset instead (FOGENABLE 0, and DEPTHBIAS 0xc3 /
+//     SLOPESCALEDEPTHBIAS 0xaf to 0 when rasterizer_caps.raster_caps has 0x04000000 /
+//     0x02000000, and rasterizer_set_shader_stage_config(2) when rasterizer_decal_layer
+//     (0x006d98dc) is 3). Stages 2 and 0 / 1 only run when the decal toggles allow
+//     (word 0x006893e4 == 0 and byte 0x006893f5 != 0).
+//   - the structure passes: structure_leaf_faces_for_each 0x552de0 (EAX = visible_surface_count
+//     0x00850394, ECX = visible_surface_indices 0x00850398, stack (picked_surfaces_geometry
+//     0x006e3adc, lightmap_begin, material, lightmap_end, transparent)) with the callbacks at
+//     0x511f70..0x5120c0 and the empty function 0x44ad80, each gated on picked_surfaces_valid
+//     (0x006e3ad8) re-read after every pass. The 0x0069c67c word is forced to 1 around the
+//     first lit pass when the BSP has no lightmaps bitmap (+0x0c tag id -1) and restored after.
+//   - render_object_shadows 0x50eb70 (EAX = the shadow block: object -1, lighting 0,
+//     shadow_pass 1, +0x09 1, +0x40 0, +0x44 -1) when object shadows (0x0069c614) are on.
+//   - current_game_engine->post_rasterize (+0x34) when both are non NULL.
+//   - render_contrails(0xfffffff3) (cdecl), transparent_geometry_group_draw_all(1) and (0).
+//   - at the end, for a window whose window_index is -1 (0x007c1222),
+//     rasterizer_frame_statistics_sample (EBX = &rasterizer_frame_statistics_state, stack 0)
+//     and rasterizer_frame_statistics_draw.
+// register convention: cdecl, seven stack arguments.
+//   // blam-cc: cdecl
+// UNSURE: the callbacks at 0x511f70..0x5120c0 are small trampolines Ghidra never created as
+//   functions (0x511f70 jumps through the pointer at 0x007c0490, 0x512070 to 0x5202f0, the
+//   others forward their arguments to 0x521f90 / 0x520910 / 0x520970 / 0x520e50 / 0x522300 /
+//   0x51ee60); they are declared, not written. Callback argument types follow
+//   types/structures.h. The meaning of 0x0069c67c is open.
+
+// VERIFIED against disassembly 0x50bfb0..0x50c589 (2026-09-30) for the indirect calls (post_rasterize +0x34 takes no
+//   arguments: `call eax` with nothing pushed; the [device+0xe4] calls are SetRenderState via set_render_state) and for
+//   the order of every direct call; the arithmetic between the calls was not re-compared instruction by instruction.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "rasterizer.h"
+#include "structures.h"
+#include "game.h"
+#include "render.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t render_window_count;                   // 0x007c3104, this module
+extern int16_t current_local_player_index;             // 0x007c3108, this module
+extern int16_t render_window_index;                   // 0x007c310a, this module
+extern render_camera render_camera_global;            // 0x007c3114, this module
+extern render_frustum render_frustum_global;          // 0x007c3168, this module
+extern render_fog render_fog_state;                   // 0x007c32f4, this module
+extern rasterizer_frame_statistics rasterizer_frame_statistics_state; // 0x007c30a0, this module
+extern rasterizer_window_parameters rasterizer_window; // 0x007c1220, rasterizer module
+extern uint8_t console_debug_toggle_69c614;           // 0x0069c614 object shadows enabled
+extern int16_t console_debug_toggle_6893e4;           // 0x006893e4 (read as a word here)
+extern uint8_t decals_for_all_responses;           // 0x006893f5 decals enabled
+extern int16_t visible_cluster_count;                 // 0x007d0390, structures module
+extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters]; // 0x007c3390
+extern int16_t visible_surface_count;                 // 0x00850394, structures module
+extern int32_t visible_surface_indices[0x4000];       // 0x00850398, structures module
+extern uint8_t picked_surfaces_valid;                 // 0x006e3ad8, structures module
+extern int32_t picked_surfaces_geometry;              // 0x006e3adc, structures module
+extern ScenarioStructureBSP *global_structure_bsp;           // 0x00746f9c
+extern int16_t render_force_flag;               // 0x0069c67c UNSURE (read as a word)
+extern uint32_t rasterizer_active_environment_effect; // 0x0071d1d0 rasterizer_effect_slot*
+extern int32_t transparent_geometry_group_last_drawn_key; // 0x006e1d58, rasterizer module
+extern uint8_t rasterizer_secondary_groups_drawn;     // 0x0071d274, rasterizer module
+extern int16_t rasterizer_decal_layer;                // 0x006d98dc, rasterizer module
+extern d3d_caps9 rasterizer_caps;                     // 0x007c10c0, rasterizer module
+extern void *rasterizer_device;                       // 0x0071d174
+extern game_engine_definition *current_game_engine;   // 0x006f1d20, game module
+
+extern void structure_bsp_cluster_visibility_update(void); // 0x5537c0, structures module
+extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
+    // 0x457000, effects module; blam-cc: EBX -> out, CX -> local_player_index
+extern void rasterizer_begin_frame(rasterizer_window_parameters *source); // 0x5175c0 (cdecl)
+extern void first_person_weapon_update_zoom_static_tint(uint8_t enabled); // 0x494af0; AL
+extern void billboard_system_frame_init(void);        // 0x511410, this module
+extern void render_sky(void);                         // 0x510c50, this module
+extern void first_person_weapon_update_active_state(void); // 0x492430, interface module
+extern void object_lights_update_all(void);           // 0x4f0cf0, objects module
+extern void render_objects(void);                     // 0x50e930, this module
+extern void structure_picked_polygon_refresh(void);   // 0x5527f0, structures module
+extern void structure_picked_polygon_draw(void);      // 0x5528f0, structures module
+extern void lens_flare_update_samples(void);          // 0x513ba0, rasterizer module
+extern void render_object_shadows(object_render_data *data); // 0x50eb70, this module; EAX
+extern void lights_apply_spot_falloff(void);          // 0x4f1780, objects module
+extern void lights_apply_spot_falloff_specular(void); // 0x4f1950, objects module
+extern void rasterizer_decal_pass_begin(int16_t stage); // 0x51a810; blam-cc: DI -> stage
+extern void rasterizer_decals_draw_cluster(int16_t cluster_index); // 0x51aa50 (cdecl)
+extern void rasterizer_end_decal_pass(void);          // 0x51b0e0
+extern void rasterizer_fog_screen_overlay_set_states(void); // 0x51def0
+extern void rasterizer_force_bilinear_filtering(void); // 0x51e9f0
+extern void rasterizer_dynamic_light_technique_ps2_set_states(void); // 0x521cc0
+extern void rasterizer_shader_environment_technique_multipurpose_set_states(void); // 0x520790
+extern void rasterizer_shader_environment_technique_self_illumination_set_states(void); // 0x520b90
+extern void rasterizer_shader_decal_pass_set_states(void); // 0x520020
+extern void rasterizer_water_fade_compute_and_set_states(void); // 0x51eb20
+extern void rasterizer_set_shader_stage_config(int16_t mode); // 0x519200; blam-cc: AX -> mode
+extern void structure_leaf_faces_for_each(int32_t render_context,
+    structure_lightmap_begin_callback lightmap_begin, structure_material_callback material_cb,
+    structure_lightmap_end_callback lightmap_end,
+    structure_transparent_material_callback transparent_material_cb,
+    int32_t *surface_indices, int16_t surface_index_count);
+    // 0x552de0, structures module; blam-cc: ECX -> surface_indices,
+    // EAX -> surface_index_count, stack -> the first five
+extern void weather_update_local_player(void);        // 0x458a90, effects module
+extern void render_particles(void);                   // 0x50fd90, this module
+extern void particle_systems_render(void);            // 0x454b40, effects module
+extern void render_contrails(uint32_t render_type_flags); // 0x50df20, this module (cdecl here)
+extern void transparent_geometry_group_draw_all(uint8_t resort); // 0x5154a0 (cdecl)
+extern void detail_objects_update_render_list(void);  // 0x5522d0, structures module
+extern void lens_flare_render_all(void);              // 0x513cf0, rasterizer module
+extern void first_person_weapon_update_screen_effects(void); // 0x494730, interface module
+extern void rasterizer_screen_flash_render(void);     // 0x52ed00, rasterizer module
+extern void widget_draw_fullscreen_region(int16_t controller_index); // 0x4984c0; AX
+extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics,
+                                               uint8_t dropped);
+    // 0x512530, this module; blam-cc: EBX -> statistics, stack -> dropped
+extern void rasterizer_frame_statistics_draw(void);   // 0x512e80, this module
+
+// structure pass callbacks (code in this range that Ghidra never made functions; see header)
+extern void render_window_structure_material_0x511f70(void *shader_data,
+    int16_t shader_permutation, int32_t render_context, int32_t first_surface,
+    int32_t surface_count); // jmp [0x007c0490]
+extern void render_window_structure_lightmap_begin_0x511f90(void *bitmap_data);
+extern void render_window_structure_material_0x511fe0(void *shader_data, int16_t shader_permutation,
+    int32_t render_context, int32_t first_surface, int32_t surface_count);
+extern void render_window_structure_lightmap_begin_0x512010(void *bitmap_data);
+extern void render_window_structure_material_0x512020(void *shader_data, int16_t shader_permutation,
+    int32_t render_context, int32_t first_surface, int32_t surface_count);
+extern void render_window_structure_material_0x512040(void *shader_data, int16_t shader_permutation,
+    int32_t render_context, int32_t first_surface, int32_t surface_count);
+extern void render_window_structure_material_0x512070(void *shader_data, int16_t shader_permutation,
+    int32_t render_context, int32_t first_surface, int32_t surface_count);
+extern void render_window_structure_transparent_0x512080(void *shader_data,
+    int16_t shader_permutation, int32_t render_context, int32_t first_surface,
+    int32_t surface_count);
+extern void render_window_structure_material_0x5120c0(void *shader_data, int16_t shader_permutation,
+    int32_t render_context, int32_t first_surface, int32_t surface_count);
+extern void function_do_nothing(void);                 // 0x44ad80: a bare ret
+
+typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
+
+static void set_render_state(uint32_t state, uint32_t value)
+{
+    ((d3d_call2_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, state, value);
+}
+
+static void draw_visible_cluster_decals(void)
+{
+    int16_t i;
+
+    for (i = 0; i < visible_cluster_count; i++) {
+        rasterizer_decals_draw_cluster((int16_t)(uint16_t)visible_clusters[i].cluster_index);
+    }
+}
+
+// The fog and depth bias reset that closes the stage 1 and stage 4 decal passes.
+static void reset_decal_fog_and_depth_bias(void)
+{
+    set_render_state(0x1c, 0); // D3DRS_FOGENABLE
+    if ((rasterizer_caps.raster_caps & 0x04000000) != 0) {
+        set_render_state(0xc3, 0); // D3DRS_DEPTHBIAS
+    }
+    if ((rasterizer_caps.raster_caps & 0x02000000) != 0) {
+        set_render_state(0xaf, 0); // D3DRS_SLOPESCALEDEPTHBIAS
+    }
+    if (rasterizer_decal_layer == 3) {
+        rasterizer_set_shader_stage_config(2);
+    }
+}
+
+static void structure_pass(structure_lightmap_begin_callback lightmap_begin,
+                           structure_material_callback material_cb,
+                           structure_lightmap_end_callback lightmap_end,
+                           structure_transparent_material_callback transparent_material_cb)
+{
+    structure_leaf_faces_for_each(picked_surfaces_geometry, lightmap_begin, material_cb,
+                                  lightmap_end, transparent_material_cb, visible_surface_indices,
+                                  visible_surface_count);
+}
+
+// Draws one window: publishes the cameras and frustum for the rest of the renderer, begins the
+// rasterizer frame, then runs every scene pass in order (sky, lights, objects, shadows, decals,
+// structure lightmap / environment / decal / water passes, game engine overlay, weather,
+// particles, contrails, transparent geometry, detail objects, lens flares, first person screen
+// effects, screen flash, fullscreen widgets) and, in the extra window, the frame statistics.
+void render_window(int16_t local_player_index, render_camera *source_camera,
+                   render_frustum *source_frustum, render_camera *rasterizer_camera,
+                   render_frustum *rasterizer_frustum, int16_t rasterizer_target,
+                   uint8_t has_mirror)
+{
+    object_render_data shadow_data;
+    rasterizer_window_parameters parameters;
+    uint8_t *raw;
+    uint32_t i;
+    int16_t saved_69c67c;
+
+    render_window_count++;
+    current_local_player_index = local_player_index;
+    raw = (uint8_t *)&parameters;
+    for (i = 0; i < sizeof(parameters); i++) {
+        raw[i] = 0;
+    }
+    render_camera_global = *source_camera;
+    render_frustum_global = *source_frustum;
+    parameters.camera = *rasterizer_camera;
+    parameters.frustum = *rasterizer_frustum;
+    parameters.has_mirror = has_mirror;
+    parameters.type = rasterizer_target;
+    parameters.window_index = render_window_index;
+    parameters.fog = render_fog_state;
+
+    structure_bsp_cluster_visibility_update();
+    player_effect_build_screen_flash(&parameters.screen_flash, local_player_index);
+    rasterizer_begin_frame(&parameters);
+    first_person_weapon_update_zoom_static_tint(1);
+    billboard_system_frame_init();
+    render_sky();
+    first_person_weapon_update_active_state();
+    object_lights_update_all();
+    render_objects();
+    structure_picked_polygon_refresh();
+    structure_picked_polygon_draw();
+    lens_flare_update_samples();
+    if (console_debug_toggle_69c614) {
+        shadow_data.object_index = 0xffffffff;
+        shadow_data.unknown_44 = -1;
+        shadow_data.lighting = 0;
+        shadow_data.shadow_pass = 1;
+        shadow_data.outside_fog_plane = 1;
+        shadow_data.shadow_radius = 0.0f;
+        render_object_shadows(&shadow_data);
+    }
+    lights_apply_spot_falloff();
+
+    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+        rasterizer_decal_pass_begin(2);
+        draw_visible_cluster_decals();
+        rasterizer_end_decal_pass();
+    }
+    rasterizer_decal_pass_begin(3);
+    draw_visible_cluster_decals();
+    rasterizer_end_decal_pass();
+
+    if (picked_surfaces_valid) {
+        rasterizer_fog_screen_overlay_set_states();
+        structure_pass(0, (structure_material_callback)render_window_structure_material_0x511f70,
+                       0, 0);
+        rasterizer_force_bilinear_filtering();
+    }
+
+    if (console_debug_toggle_6893e4 == 0 && decals_for_all_responses) {
+        rasterizer_decal_pass_begin(0);
+        draw_visible_cluster_decals();
+        rasterizer_end_decal_pass();
+        rasterizer_decal_pass_begin(1);
+        draw_visible_cluster_decals();
+        reset_decal_fog_and_depth_bias();
+    }
+    lights_apply_spot_falloff_specular();
+
+    if (picked_surfaces_valid) {
+        saved_69c67c = render_force_flag;
+        // the BSP has no lightmaps bitmap (lightmaps_bitmap.tag_id, +0x0c, is -1)
+        if (*(int32_t *)&global_structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
+            render_force_flag = 1;
+        }
+        rasterizer_dynamic_light_technique_ps2_set_states();
+        structure_pass(render_window_structure_lightmap_begin_0x511f90,
+                       (structure_material_callback)render_window_structure_material_0x511fe0,
+                       (structure_lightmap_end_callback)function_do_nothing, 0);
+        render_force_flag = saved_69c67c;
+        if (picked_surfaces_valid) {
+            rasterizer_shader_environment_technique_multipurpose_set_states();
+            structure_pass(render_window_structure_lightmap_begin_0x512010,
+                           (structure_material_callback)render_window_structure_material_0x512020,
+                           (structure_lightmap_end_callback)function_do_nothing, 0);
+            rasterizer_active_environment_effect = 0;
+            if (picked_surfaces_valid) {
+                rasterizer_shader_environment_technique_self_illumination_set_states();
+                structure_pass(0, (structure_material_callback)render_window_structure_material_0x512040,
+                               0, 0);
+                if (picked_surfaces_valid) {
+                    rasterizer_shader_decal_pass_set_states();
+                    structure_pass(0,
+                        (structure_material_callback)render_window_structure_material_0x512070, 0, 0);
+                    if (picked_surfaces_valid) {
+                        transparent_geometry_group_last_drawn_key = 0;
+                        rasterizer_secondary_groups_drawn = 0;
+                        structure_pass(0, 0, 0,
+                            (structure_transparent_material_callback)
+                                render_window_structure_transparent_0x512080);
+                        if (picked_surfaces_valid) {
+                            rasterizer_water_fade_compute_and_set_states();
+                            structure_pass(0,
+                                (structure_material_callback)render_window_structure_material_0x5120c0,
+                                0, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (current_game_engine != 0 && current_game_engine->post_rasterize != 0) {
+        ((void (*)(void))current_game_engine->post_rasterize)();
+    }
+    weather_update_local_player();
+    render_particles();
+    particle_systems_render();
+    render_contrails(0xfffffff3);
+    transparent_geometry_group_draw_all(1);
+
+    rasterizer_decal_pass_begin(4);
+    draw_visible_cluster_decals();
+    reset_decal_fog_and_depth_bias();
+    detail_objects_update_render_list();
+    transparent_geometry_group_draw_all(0);
+    rasterizer_set_shader_stage_config(0);
+
+    if (picked_surfaces_valid) {
+        structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
+        structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
+    }
+    lens_flare_render_all();
+    first_person_weapon_update_screen_effects();
+    rasterizer_screen_flash_render();
+    widget_draw_fullscreen_region(local_player_index);
+    if (rasterizer_window.window_index == -1) {
+        rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
+        rasterizer_frame_statistics_draw();
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x50bfb0):
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void render_scene_draw(undefined2 param_1,undefined4 *param_2,undefined4 *param_3,
+                      undefined4 *param_4,undefined4 *param_5,short param_6,undefined1 param_7)
+
+{
+  int iVar1;
+  short sVar2;
+  undefined4 *puVar3;
+  short *psVar4;
+  undefined4 *puVar5;
+  short local_258;
+  undefined2 local_256;
+  undefined1 local_254;
+  undefined4 local_250 [21];
+  undefined4 local_1fc [99];
+  undefined4 local_70 [28];
+  
+  DAT_007c3104 = DAT_007c3104 + 1;
+  DAT_007c3108 = param_1;
+  psVar4 = &local_258;
+  for (iVar1 = 0x96; iVar1 != 0; iVar1 = iVar1 + -1) {
+    psVar4[0] = 0;
+    psVar4[1] = 0;
+    psVar4 = psVar4 + 2;
+  }
+  puVar3 = &DAT_007c3114;
+  for (iVar1 = 0x15; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *param_2;
+    param_2 = param_2 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar3 = &DAT_007c3168;
+  for (iVar1 = 99; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *param_3;
+    param_3 = param_3 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar3 = local_250;
+  for (iVar1 = 0x15; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *param_4;
+    param_4 = param_4 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  puVar3 = local_1fc;
+  for (iVar1 = 99; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar3 = *param_5;
+    param_5 = param_5 + 1;
+    puVar3 = puVar3 + 1;
+  }
+  local_254 = param_7;
+  local_258 = param_6;
+  local_256 = _DAT_007c310a;
+  puVar3 = &DAT_007c32f4;
+  puVar5 = local_70;
+  for (iVar1 = 0x14; iVar1 != 0; iVar1 = iVar1 + -1) {
+    *puVar5 = *puVar3;
+    puVar3 = puVar3 + 1;
+    puVar5 = puVar5 + 1;
+  }
+  FUN_005537c0();
+  FUN_00457000();
+  rasterizer_begin_frame(&local_258);
+  FUN_00494af0();
+  FUN_00511410();
+  sky_render_lights_and_lens_flares();
+  FUN_00492430();
+  object_lights_update_all();
+  FUN_0050e930();
+  FUN_005527f0();
+  FUN_005528f0();
+  FUN_00513ba0();
+  if (DAT_0069c614 != '\0') {
+    FUN_0050eb70();
+  }
+  lights_apply_spot_falloff();
+  if ((DAT_006893e4 == 0) && (DAT_006893f5 != '\0')) {
+    FUN_0051a810();
+    sVar2 = 0;
+    if (0 < DAT_007d0390) {
+      do {
+        FUN_0051aa50((&DAT_007c3390)[sVar2 * 0xd0]);
+        sVar2 = sVar2 + 1;
+      } while (sVar2 < DAT_007d0390);
+    }
+    FUN_0051b0e0();
+  }
+  FUN_0051a810();
+  sVar2 = 0;
+  if (0 < DAT_007d0390) {
+    do {
+      FUN_0051aa50((&DAT_007c3390)[sVar2 * 0xd0]);
+      sVar2 = sVar2 + 1;
+    } while (sVar2 < DAT_007d0390);
+  }
+  FUN_0051b0e0();
+  if (DAT_006e3ad8 != '\0') {
+    FUN_0051def0();
+    FUN_00552de0(DAT_006e3adc,0,&DAT_00511f70,0,0);
+    FUN_0051e9f0();
+  }
+  if ((DAT_006893e4 == 0) && (DAT_006893f5 != '\0')) {
+    FUN_0051a810();
+    sVar2 = 0;
+    if (0 < DAT_007d0390) {
+      do {
+        FUN_0051aa50((&DAT_007c3390)[sVar2 * 0xd0]);
+        sVar2 = sVar2 + 1;
+      } while (sVar2 < DAT_007d0390);
+    }
+    FUN_0051b0e0();
+    FUN_0051a810();
+    sVar2 = 0;
+    if (0 < DAT_007d0390) {
+      do {
+        FUN_0051aa50((&DAT_007c3390)[sVar2 * 0xd0]);
+        sVar2 = sVar2 + 1;
+      } while (sVar2 < DAT_007d0390);
+    }
+    (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0x1c,0);
+    if ((_DAT_007c10e4 & 0x4000000) != 0) {
+      (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0xc3,0);
+    }
+    if ((_DAT_007c10e4 & 0x2000000) != 0) {
+      (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0xaf,0);
+    }
+    if (DAT_006d98dc == 3) {
+      rasterizer_set_shader_stage_config();
+    }
+  }
+  lights_apply_spot_falloff_specular();
+  if (DAT_006e3ad8 != '\0') {
+    sVar2 = (short)_DAT_0069c67c;
+    if ((*(int *)(DAT_00746f9c + 0xc) == -1) && (sVar2 == 0)) {
+      _DAT_0069c67c = CONCAT22(DAT_0069c67e,1);
+    }
+    FUN_00521cc0();
+    FUN_00552de0(DAT_006e3adc,&LAB_00511f90,&LAB_00511fe0,FUN_0044ad80,0);
+    _DAT_0069c67c = CONCAT22(DAT_0069c67e,sVar2);
+    if (DAT_006e3ad8 != '\0') {
+      FUN_00520790();
+      FUN_00552de0(DAT_006e3adc,&LAB_00512010,&LAB_00512020,FUN_0044ad80,0);
+      DAT_0071d1d0 = 0;
+      if (DAT_006e3ad8 != '\0') {
+        FUN_00520b90();
+        FUN_00552de0(DAT_006e3adc,0,&LAB_00512040,0,0);
+        if (DAT_006e3ad8 != '\0') {
+          FUN_00520020();
+          FUN_00552de0(DAT_006e3adc,0,&LAB_00512070,0,0);
+          if (DAT_006e3ad8 != '\0') {
+            DAT_006e1d58 = 0;
+            DAT_0071d274 = 0;
+            FUN_00552de0(DAT_006e3adc,0,0,0,&LAB_00512080);
+            if (DAT_006e3ad8 != '\0') {
+              FUN_0051eb20();
+              FUN_00552de0(DAT_006e3adc,0,&LAB_005120c0,0,0);
+            }
+          }
+        }
+      }
+    }
+  }
+  if ((DAT_006f1d20 != 0) && (*(code **)(DAT_006f1d20 + 0x34) != (code *)0x0)) {
+    (**(code **)(DAT_006f1d20 + 0x34))();
+  }
+  FUN_00458a90();
+  contrail_render_all_active();
+  FUN_00454b40();
+  contrail_render_by_object_type_mask(0xfffffff3);
+  transparent_geometry_group_draw_all(1);
+  FUN_0051a810();
+  sVar2 = 0;
+  if (0 < DAT_007d0390) {
+    do {
+      FUN_0051aa50((&DAT_007c3390)[sVar2 * 0xd0]);
+      sVar2 = sVar2 + 1;
+    } while (sVar2 < DAT_007d0390);
+  }
+  (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0x1c,0);
+  if ((_DAT_007c10e4 & 0x4000000) != 0) {
+    (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0xc3,0);
+  }
+  if ((_DAT_007c10e4 & 0x2000000) != 0) {
+    (**(code **)(*DAT_0071d174 + 0xe4))(DAT_0071d174,0xaf,0);
+  }
+  if (DAT_006d98dc == 3) {
+    rasterizer_set_shader_stage_config();
+  }
+  FUN_005522d0();
+  transparent_geometry_group_draw_all(0);
+  rasterizer_set_shader_stage_config();
+  if (DAT_006e3ad8 != '\0') {
+    FUN_00552de0(DAT_006e3adc,0,FUN_0044ad80,0,0);
+    FUN_00552de0(DAT_006e3adc,0,FUN_0044ad80,0,0);
+  }
+  decal_render_active_list();
+  FUN_00494730();
+  rasterizer_screen_flash_render();
+  FUN_004984c0();
+  if (DAT_007c1220._2_2_ == -1) {
+    rasterizer_frame_statistics_sample(0);
+    rasterizer_frame_statistics_draw();
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_lightmap_begin_0x511f90.c
+====================================================================================================
+// render_window_structure_lightmap_begin_0x511f90  (not a Ghidra function; a structure pass callback thunk)
+// address 0x511f90, size 65 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x511f90: with debug toggle 0x006893e4 clear, 0x006893f7 set and a ps_1_4+ card (0x007c118c), a lightmap
+//   argument goes to 0x006e0a6c with 0x006e0a68 = 0; a NULL one stores 0 and sets 0x006e0a68 = 1.
+// blam-cc: stack -> bitmap_data (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int16_t console_debug_toggle_6893e4; // 0x006893e4
+extern uint8_t console_debug_toggle_6893f7; // 0x006893f7
+extern uint32_t rasterizer_device_version; // 0x007c118c
+extern void *rasterizer_lightmap_bitmap; // 0x006e0a6c
+extern uint8_t rasterizer_lightmap_bitmap_missing; // 0x006e0a68
+
+void render_window_structure_lightmap_begin_0x511f90(void *bitmap_data)
+{
+    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
+        rasterizer_device_version < 0xffff0104) {
+        return;
+    }
+    if (bitmap_data != 0) {
+        rasterizer_lightmap_bitmap = bitmap_data;
+        rasterizer_lightmap_bitmap_missing = 0;
+    } else {
+        rasterizer_lightmap_bitmap = 0;
+        rasterizer_lightmap_bitmap_missing = 1;
+    }
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_lightmap_begin_0x512010.c
+====================================================================================================
+// render_window_structure_lightmap_begin_0x512010  (not a Ghidra function; a structure pass callback thunk)
+// address 0x512010, size 9 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x512010: EAX = the argument, jmp 0x520910 (rasterizer_shader_environment_set_lightmap).
+// blam-cc: stack -> bitmap_data (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_shader_environment_set_lightmap(void *lightmap); // 0x520910, EAX
+
+void render_window_structure_lightmap_begin_0x512010(void *bitmap_data)
+{
+    rasterizer_shader_environment_set_lightmap(bitmap_data);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x511f40.c
+====================================================================================================
+// render_window_structure_material_0x511f40  (not a Ghidra function; a structure pass callback thunk)
+// address 0x511f40, size 6 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x511f40: jmp DWORD PTR ds:0x7c0494 -- forwards every argument to the procedure the rasterizer stored in 0x007c0494.
+// blam-cc: stack -> material callback arguments (cdecl, forwarded)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void *unknown_007c0494; // 0x007c0494
+
+void render_window_structure_material_0x511f40(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))unknown_007c0494)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x511f50.c
+====================================================================================================
+// render_window_structure_material_0x511f50  (not a Ghidra function; a structure pass callback thunk)
+// address 0x511f50, size 28 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x511f50: calls rasterizer_object_shadow_structure_draw (0x531570) with EAX = argument 5 (the vertex buffer) and
+//   stack (arguments 2, 3, 4: dynamic index slot, first primitive, primitive count).
+// blam-cc: stack -> material callback arguments (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_object_shadow_structure_draw(void *vertex_buffer, int32_t dynamic_index_slot, int32_t first_primitive,
+    int32_t primitive_count); // 0x531570, EAX, stack
+
+void render_window_structure_material_0x511f50(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_object_shadow_structure_draw(material_extra, render_context, first_surface, surface_count);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x511f70.c
+====================================================================================================
+// render_window_structure_material_0x511f70  (not a Ghidra function; a structure pass callback thunk)
+// address 0x511f70, size 6 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x511f70: jmp DWORD PTR ds:0x7c0490 -- forwards every argument to the procedure the rasterizer stored in 0x007c0490.
+// blam-cc: stack -> material callback arguments (cdecl, forwarded)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void *unknown_007c0490; // 0x007c0490
+
+void render_window_structure_material_0x511f70(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))unknown_007c0490)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x511f80.c
+====================================================================================================
+// render_window_structure_material_0x511f80  (not a Ghidra function; a structure pass callback thunk)
+// address 0x511f80, size 5 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x511f80: jmp 0x521900 -- rasterizer_shader_environment_projected_light_draw with the arguments unchanged.
+// blam-cc: stack -> material callback arguments (cdecl, forwarded)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_shader_environment_projected_light_draw(void *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer); // 0x521900
+
+void render_window_structure_material_0x511f80(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_shader_environment_projected_light_draw(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x511fe0.c
+====================================================================================================
+// render_window_structure_material_0x511fe0  (not a Ghidra function; a structure pass callback thunk)
+// address 0x511fe0, size 38 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x511fe0: calls rasterizer_shader_environment_lightmap_specular_draw (0x521f90) with EAX = argument 0 and
+//   stack (arguments 1..5).
+// blam-cc: stack -> material callback arguments (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_shader_environment_lightmap_specular_draw(void *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer); // 0x521f90, EAX, stack
+
+void render_window_structure_material_0x511fe0(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_shader_environment_lightmap_specular_draw(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x512020.c
+====================================================================================================
+// render_window_structure_material_0x512020  (not a Ghidra function; a structure pass callback thunk)
+// address 0x512020, size 32 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x512020: calls rasterizer_shader_environment_technique_draw (0x520970) with EAX = argument 5 (vertex buffer),
+//   ECX = argument 0 (shader) and stack (arguments 2, 3, 4).
+// blam-cc: stack -> material callback arguments (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_shader_environment_technique_draw(void *vertex_buffer, void *shader, int32_t dynamic_index_slot,
+    int32_t first_primitive, int32_t primitive_count); // 0x520970, EAX, ECX, stack
+
+void render_window_structure_material_0x512020(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_shader_environment_technique_draw(material_extra, shader_data, render_context, first_surface, surface_count);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x512040.c
+====================================================================================================
+// render_window_structure_material_0x512040  (not a Ghidra function; a structure pass callback thunk)
+// address 0x512040, size 38 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x512040: calls rasterizer_shader_environment_dynamic_mirror_draw (0x520e50) with EAX = argument 0 and
+//   stack (arguments 1..5).
+// blam-cc: stack -> material callback arguments (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_shader_environment_dynamic_mirror_draw(void *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer); // 0x520e50, EAX, stack
+
+void render_window_structure_material_0x512040(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_shader_environment_dynamic_mirror_draw(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x512070.c
+====================================================================================================
+// render_window_structure_material_0x512070  (not a Ghidra function; a structure pass callback thunk)
+// address 0x512070, size 5 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x512070: jmp 0x5202f0 -- rasterizer_shader_environment_reflection_draw with the arguments unchanged.
+// blam-cc: stack -> material callback arguments (cdecl, forwarded)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_shader_environment_reflection_draw(void *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer); // 0x5202f0
+
+void render_window_structure_material_0x512070(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_shader_environment_reflection_draw(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_material_0x5120c0.c
+====================================================================================================
+// render_window_structure_material_0x5120c0  (not a Ghidra function; a structure pass callback thunk)
+// address 0x5120c0, size 33 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x5120c0: calls rasterizer_water_ripple_draw (0x51ee60) with EAX = argument 5 (vertex buffer) and stack
+//   (argument 0 shader, then arguments 2, 3, 4).
+// blam-cc: stack -> material callback arguments (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_water_ripple_draw(void *vertex_buffer, void *shader, int32_t dynamic_index_slot, int32_t first_primitive,
+    int32_t primitive_count); // 0x51ee60, EAX, stack
+
+void render_window_structure_material_0x5120c0(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra)
+{
+    rasterizer_water_ripple_draw(material_extra, shader_data, render_context, first_surface, surface_count);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+====================================================================================================
+original file: src/render/render_window_structure_transparent_0x512080.c
+====================================================================================================
+// render_window_structure_transparent_0x512080  (not a Ghidra function; a structure pass callback thunk)
+// address 0x512080, size 63 bytes
+// name confidence: 0.5  rewrite confidence: 0.95
+// evidence: passed to structure_pass by render_window (render_window.c declares it by this name); code Ghidra never
+//   made a function (int3 padding around it). Campaign track: the first level geometry pass.
+// objdump 0x512080: calls rasterizer_transparent_geometry_group_new (0x522300) with EAX = argument 7 and stack
+//   (arguments 0..6, 8, 10, 11); argument 9 is not passed.
+// blam-cc: stack -> transparent material callback arguments (cdecl)
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern void rasterizer_transparent_geometry_group_new(void *shader, int16_t shader_permutation, uint32_t lightmap_bitmap,
+    uint32_t dynamic_index_slot, uint32_t first_index, uint32_t primitive_count, uint32_t vertex_buffer, void *tint,
+    uint32_t lighting, uint32_t flags, void *world_position); // 0x522300, stack, EAX = world_position
+
+void render_window_structure_transparent_0x512080(void *shader_data, int16_t shader_permutation, void *bitmap,
+    int32_t render_context, int32_t surface_offset, int16_t surface_count, void *material_extra, void *rendered_vertices,
+    void *lightmap_vertices, void *coplanar_vector, void *lightmap_vertices_offset, int32_t zero)
+{
+    rasterizer_transparent_geometry_group_new(shader_data, shader_permutation, (uint32_t)bitmap, (uint32_t)render_context,
+        (uint32_t)surface_offset, (uint32_t)(uint16_t)surface_count, (uint32_t)material_extra, lightmap_vertices,
+        (uint32_t)lightmap_vertices_offset, (uint32_t)zero, rendered_vertices);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
