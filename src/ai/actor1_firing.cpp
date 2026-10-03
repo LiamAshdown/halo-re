@@ -1024,12 +1024,11 @@ namespace c_actor_get_firing_positions {
  *
  * @address 0x41c1e0
  */
-void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, real_point3d *query_point)
+void halo::ai::firing_position_ops::get_firing_positions(actor_firing_positions *out_block, real_point3d *query_point)
 {
     using namespace c_actor_get_firing_positions;
     datum_index actor_index = datum;
     actor *self;
-    uint32_t *src;
     int32_t i;
     swarm *group;
     int16_t component_count;
@@ -1041,12 +1040,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
     self = halo::ai::actor_at(actor_index);
 
     if (self->swarm == 0) {
-        src = (uint32_t *)&self->aim_origin;
-        for (i = 0xe; i != 0; i--) {
-            *out_block = *src;
-            src++;
-            out_block++;
-        }
+        *out_block = *reinterpret_cast<actor_firing_positions *>(&self->aim_origin);
         return;
     }
 
@@ -1076,7 +1070,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
 }
 
 namespace halo::ai {
-void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point)
+void actor_get_firing_positions(datum_index actor_index, actor_firing_positions *out_block, real_point3d *query_point)
 {
     halo::ai::firing_position_ops(actor_index).get_firing_positions(out_block, query_point);
 }

@@ -29,7 +29,7 @@ public:
     uint8_t firing_position_run_reject_rules(actor_firing_position_query *query, actor_firing_position_candidate *candidate);
     void firing_position_run_score_rules(uint16_t count, actor_firing_position_query *query, actor_firing_position_candidate *candidates);
     uint32_t get_firing_position_group_mask(int16_t kind, int16_t search_override);
-    void get_firing_positions(uint32_t *out_block, real_point3d *query_point);
+    void get_firing_positions(actor_firing_positions *out_block, real_point3d *query_point);
 
     datum_index datum;
 };

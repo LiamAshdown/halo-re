@@ -33,8 +33,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
     uint8_t *list_enemy, uint8_t *list_friend)
 {
     real_point3d position;
-    uint32_t block[14];
-    real_point3d *block_point = (real_point3d *)&block[3];
+    actor_firing_positions block;
+    real_point3d *block_point = &block.body_position;
     datum_index target = object_index;
     datum_index target_actor_index;
     unit_object *unit = object;
@@ -50,10 +50,10 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
     uint8_t *list;
 
     halo::objects::object_get_position(&position, object_index);
-    halo::ai::actor_get_firing_positions(actor_index, block, &position);
+    halo::ai::actor_get_firing_positions(actor_index, &block, &position);
     if (object->unit.swarm_actor_index != k_datum_index_none) {
         target_actor_index = object->unit.swarm_actor_index;
-        target = halo::ai::object_find_nearest_squad_member(target_actor_index, block, k_datum_index_none, 1);
+        target = halo::ai::object_find_nearest_squad_member(target_actor_index, &block, k_datum_index_none, 1);
         if (target == k_datum_index_none) {
             return;
         }
@@ -183,7 +183,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         if (prop_index == k_datum_index_none) {
             return;
         }
-        halo::ai::actor_target_data_refresh(actor_index, prop_index, block, 0, 0);
+        halo::ai::actor_target_data_refresh(actor_index, prop_index, &block, 0, 0);
         if (!firing) {
             *(int16_t *)list = (int16_t)(*(int16_t *)list + 1);
         }
@@ -193,8 +193,8 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
 {
     float radius = halo::ai::tag_data<Projectile>(object->base.definition_tag)->danger_radius;
     real_point3d position;
-    uint32_t block[14];
-    real_point3d *block_point = (real_point3d *)&block[3];
+    actor_firing_positions block;
+    real_point3d *block_point = &block.body_position;
     float distance;
     datum_index owner;
     datum_index owner_unit = k_datum_index_none;
@@ -206,7 +206,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
         return;
     }
     halo::objects::object_get_position(&position, object_index);
-    halo::ai::actor_get_firing_positions(actor_index, block, &position);
+    halo::ai::actor_get_firing_positions(actor_index, &block, &position);
     {
         float dx = position.x - block_point->x;
         float dy = position.y - block_point->y;

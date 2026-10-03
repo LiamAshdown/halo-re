@@ -3442,7 +3442,7 @@ void Encounters::update_activation()
  *
  * @address 0x41c2c0
  */
-datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group)
+datum_index Encounters::find_nearest_squad_member(datum_index actor_index, const actor_firing_positions *reference, datum_index exclude_index, char stamp_group)
 {
     actor *self;
     datum_index swarm_index;
@@ -3462,9 +3462,9 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void 
     swarm_index = self->swarm_index;
     best = k_datum_index_none;
     best_dist = 3.4028235e+38f;
-    rx = *(float *)((uint8_t *)reference + 0xc);
-    ry = *(float *)((uint8_t *)reference + 0x10);
-    rz = *(float *)((uint8_t *)reference + 0x14);
+    rx = reference->body_position.x;
+    ry = reference->body_position.y;
+    rz = reference->body_position.z;
 
     if (swarm_index == k_datum_index_none) {
         cursor = self->cluster_unit_index;

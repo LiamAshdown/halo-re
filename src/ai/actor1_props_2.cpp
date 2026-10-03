@@ -55,9 +55,9 @@ void halo::ai::prop_ops::danger_update_reaction()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t *object;
-    uint32_t block[14];
+    actor_firing_positions block;
     real_point3d *position = &actor->flee_from_point;
-    real_point3d *block_point = (real_point3d *)&block[3];
+    real_point3d *block_point = &block.body_position;
     uint8_t noticed = 0;
     uint8_t own = 0;
 
@@ -70,7 +70,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         return;
     }
     halo::objects::object_get_position(position, actor->danger_object_index);
-    halo::ai::actor_get_firing_positions(actor_index, block, position);
+    halo::ai::actor_get_firing_positions(actor_index, &block, position);
     actor->danger_velocity = *(real_vector3d *)&((struct object *)object)->velocity.i;
     {
         float dx = position->x - block_point->x;
@@ -140,10 +140,10 @@ void halo::ai::prop_ops::danger_update_reaction()
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
-        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28), cluster,
-            position, (real_point3d *)block, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
+        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(block.location.cluster_index, cluster,
+            position, &block.aim_origin, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
         actor = halo::ai::actor_at(actor_index);
-        if (halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
+        if (halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, &block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
         }
@@ -155,7 +155,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         float vj = ((struct object *)object)->velocity.j;
         float vk = ((struct object *)object)->velocity.k;
         uint8_t asleep;
-        uint8_t *location;
+        bsp_leaf_reference *location;
         int16_t status;
 
         if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || ((struct Object *)tag)->bounding_radius + 10.0f < actor->danger_distance) {
@@ -175,19 +175,19 @@ void halo::ai::prop_ops::danger_update_reaction()
             }
         }
         asleep = actor_danger_asleep(actor);
-        location = object + 0x98;
+        location = halo::ai::object_location((struct object *)object);
         if (((struct object *)object)->parent_object != halo::k_dword_none) {
-            location = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index)) + 0x98;
+            location = halo::ai::object_location(halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index)));
         }
-        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
-            *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
+        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(block.location.cluster_index,
+            location->cluster_index, position, &block.aim_origin, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
         if (!asleep &&
-            halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
+            halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, &block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
             break;
         }
-        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, block, *(int16_t *)(tag + 0x182),
+        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, &block, *(int16_t *)(tag + 0x182),
                 position) >= 2) {
             noticed = 1;
         }

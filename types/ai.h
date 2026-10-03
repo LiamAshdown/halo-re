@@ -2515,6 +2515,17 @@ typedef struct bool_float_return {
     float value;    // ST0
 } bool_float_return;
 
+// The 0x38-byte block actor_get_firing_positions fills: a copy of the actor's aim_origin .. unknown_14c run
+// (aim origin, body position, forward vector, bsp location, velocity), or the same data taken from the nearest
+// unit of a swarm. Target perception, hearing, danger and squad-link code measure against it.
+typedef struct actor_firing_positions {
+    real_point3d aim_origin;      // 0x00 actor.aim_origin
+    real_point3d body_position;   // 0x0c actor.body_position
+    real_vector3d forward;        // 0x18 the unit forward vector
+    bsp_leaf_reference location;  // 0x24 bsp leaf and cluster of the head position
+    real_vector3d velocity;       // 0x2c
+} actor_firing_positions;         // size 0x38
+
 // The block actor_fill_unit_position_context @0x41b930 fills for its callers.
 typedef struct actor_unit_position_context {
     real_point3d local_transform_position; // 0x00 UNSURE

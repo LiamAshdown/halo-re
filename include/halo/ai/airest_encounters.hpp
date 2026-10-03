@@ -87,7 +87,7 @@ public:
     static void spawn_initial();
     static void update();
     static void update_activation();
-    static datum_index find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
+    static datum_index find_nearest_squad_member(datum_index actor_index, const actor_firing_positions *reference, datum_index exclude_index, char stamp_group);
     static int32_t find_encounter_index_by_name(Scenario *scenario, char *name);
 };
 

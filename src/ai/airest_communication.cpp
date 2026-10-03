@@ -83,13 +83,13 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     }
     for (a = halo::ai::actor_iterator_next(&iterator); a != 0; a = halo::ai::actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;
-        uint32_t block[14];
+        actor_firing_positions block;
 
         if (a->combat_status >= 7) {
             continue;
         }
-        halo::ai::actor_get_firing_positions(actor_index, block, point);
-        if ((int16_t)halo::ai::actor_target_hearing_check(&location, 0, actor_index, block, gate, point) < 2) {
+        halo::ai::actor_get_firing_positions(actor_index, &block, point);
+        if ((int16_t)halo::ai::actor_target_hearing_check(&location, 0, actor_index, &block, gate, point) < 2) {
             continue;
         }
         if (event_type == 0) {
@@ -2051,11 +2051,11 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
         prop_index = halo::ai::actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
         if (prop_index != k_datum_index_none) {
             prop *p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
-            uint32_t firing[0x18];
+            actor_firing_positions firing;
 
-            halo::ai::actor_get_firing_positions(actor_index, firing, &position);
+            halo::ai::actor_get_firing_positions(actor_index, &firing, &position);
             if ((int16_t)halo::ai::actor_target_hearing_check(location, (int16_t)static_cast<uint16_t>(p->obstruction), actor_index,
-                                           firing, gate, &position) >= 2) {
+                                           &firing, gate, &position) >= 2) {
                 halo::ai::actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
                 halo::ai::ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);
             }

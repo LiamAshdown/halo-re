@@ -1511,7 +1511,7 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
  *
  * @address 0x41c4b0
  */
-void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign)
+void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, actor_firing_positions *reference, char force, char allow_reassign)
 {
     halo::ai::ActorView(actor_index).target_data_refresh(target_prop_index, reference, force, allow_reassign);
 }
@@ -1588,7 +1588,7 @@ uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_ind
  *
  * @address 0x41c030
  */
-uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position)
+uint16_t actor_target_hearing_check(const bsp_leaf_reference *record, int16_t stance, datum_index actor_index, const actor_firing_positions *target_ref, int16_t gate, real_point3d *listener_position)
 {
     return halo::ai::ActorOps::target_hearing_check(record, stance, actor_index, target_ref, gate, listener_position);
 }
@@ -1698,7 +1698,7 @@ uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index tar
  *
  * @address 0x41c8f0
  */
-void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, void *scratch)
+void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, actor_firing_positions *scratch)
 {
     halo::ai::ActorView(actor_index).target_update_tracking_speed(target_prop_index, scratch);
 }

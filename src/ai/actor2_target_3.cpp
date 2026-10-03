@@ -46,8 +46,8 @@ void ActorView::target_relationship_think()
     uint8_t need_aim_refresh;
     uint8_t released;
     uint8_t had_conflict;
-    uint8_t scratch1[56];
-    uint8_t scratch2[56];
+    actor_firing_positions scratch1;
+    actor_firing_positions scratch2;
     int16_t danger_type;
     int16_t timer;
     actor *owner;
@@ -247,10 +247,10 @@ void ActorView::target_relationship_think()
             }
 
             if ((target->in_use != 0 && (target->state < 0 || target->state > 1)) || refresh_needed) {
-                halo::ai::actor_target_data_refresh(actor_index, target_prop_index, scratch1, 0, need_aim_refresh);
+                halo::ai::actor_target_data_refresh(actor_index, target_prop_index, &scratch1, 0, need_aim_refresh);
             }
             if (need_aim_refresh != 0) {
-                halo::ai::actor_target_update_tracking_speed(actor_index, target_prop_index, scratch1);
+                halo::ai::actor_target_update_tracking_speed(actor_index, target_prop_index, &scratch1);
             }
         } else {
             target->in_use = 0;
@@ -322,7 +322,7 @@ void ActorView::target_relationship_think()
                     (target->is_parented != 0 ||
                      ((owner == (actor *)0 || (owner->active != 0 && owner->keep_unit_alive == 0)) &&
                       target->distance * target->distance <= 1600.0f))) {
-                    halo::ai::actor_target_data_refresh(actor_index, target_prop_index, scratch2, 0, 0);
+                    halo::ai::actor_target_data_refresh(actor_index, target_prop_index, &scratch2, 0, 0);
                     halo::ai::actor_target_get_relationship_object(target_prop_index);
                     paired_prop = halo::ai::actor_allocate_paired_prop(actor_index, target_prop_index);
                 }

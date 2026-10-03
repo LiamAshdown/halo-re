@@ -138,10 +138,10 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
 void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate)
 {
     uint8_t *source = halo::ai::object_bytes(source_unit_index);
-    uint8_t *location = source + 0x98;
+    bsp_leaf_reference *location = halo::ai::object_location((object *)source);
     datum_index owner_actor = *(datum_index *)(source + 0x1f8);
     uint32_t cluster_bits[16];
-    uint32_t firing_block[14];
+    actor_firing_positions firing_block;
     real_point3d source_position;
     actor_iterator_state iterator;
     int32_t cluster_count;
@@ -152,11 +152,11 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         owner_actor = halo::units::unit_data_of(source)->actor_index;
     }
     if (((struct object *)source)->parent_object != k_datum_index_none) {
-        location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
+        location = halo::ai::object_location(halo::ai::object_at(halo::objects::object_get_root_object_index(source_unit_index)));
     }
     cluster_count = static_cast<int32_t>(halo::scenario::globals().structure_bsp->clusters.count);
     memset(cluster_bits, 0, sizeof(cluster_bits));
-    source_cluster = *(int16_t *)(location + 0x4);
+    source_cluster = location->cluster_index;
     if (source_cluster != -1) {
         int16_t i;
 
@@ -196,8 +196,8 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             !(cluster_bits[actor_cluster >> 5] & (1u << (actor_cluster & 0x1f)))) {
             continue;
         }
-        halo::ai::actor_get_firing_positions(actor_index, firing_block, &source_position);
-        if ((int16_t)halo::ai::actor_target_hearing_check(location, 0, actor_index, firing_block, gate, &source_position) < 2) {
+        halo::ai::actor_get_firing_positions(actor_index, &firing_block, &source_position);
+        if ((int16_t)halo::ai::actor_target_hearing_check(location, 0, actor_index, &firing_block, gate, &source_position) < 2) {
             continue;
         }
         prop_index = halo::ai::actor_find_or_create_shared_prop(source_unit_index, actor_index, 1, 1);
@@ -205,7 +205,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             continue;
         }
         p = halo::ai::prop_at(prop_index);
-        if ((int16_t)halo::ai::actor_target_hearing_check((uint8_t *)p + 0xfc, (int16_t)(uint16_t)p->obstruction, actor_index, firing_block,
+        if ((int16_t)halo::ai::actor_target_hearing_check(&p->location, (int16_t)(uint16_t)p->obstruction, actor_index, &firing_block,
                 gate, &p->last_known_position) < 2) {
             continue;
         }

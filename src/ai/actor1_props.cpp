@@ -420,7 +420,7 @@ static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
  *
  * @address 0x41ea60
  */
-uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
+uint8_t halo::ai::prop_ops::danger_register_stationary_object(const actor_firing_positions *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
 {
     using namespace c_actor_danger_register_stationary_object;
     actor *self;
@@ -429,8 +429,8 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     float bounding_radius;
     float velocity_sq;
     real_point3d fetched_position;
-    uint32_t local_positions[14];
-    const float *block;
+    actor_firing_positions local_positions;
+    const actor_firing_positions *block;
     float px, py, pz;
     float dx, dy, dz;
     float distance;
@@ -459,14 +459,14 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
             pz = fetched_position.z;
 
             block = reference;
-            if (block == (const float *)0) {
-                halo::ai::actor_get_firing_positions(actor_index, local_positions, &fetched_position);
-                block = (const float *)local_positions;
+            if (block == (const actor_firing_positions *)0) {
+                halo::ai::actor_get_firing_positions(actor_index, &local_positions, &fetched_position);
+                block = &local_positions;
             }
 
-            dx = px - *(float *)((const uint8_t *)block + 0xc);
-            dy = py - *(float *)((const uint8_t *)block + 0x10);
-            dz = pz - *(float *)((const uint8_t *)block + 0x14);
+            dx = px - block->body_position.x;
+            dy = py - block->body_position.y;
+            dz = pz - block->body_position.z;
             distance = sqrt_f(dx * dx + dy * dy + dz * dz);
 
             bounding_radius = tag_data->base.base.bounding_radius;
@@ -516,7 +516,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 }
 
 namespace halo::ai {
-uint8_t actor_danger_register_stationary_object(const float *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
+uint8_t actor_danger_register_stationary_object(const actor_firing_positions *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
 {
     return halo::ai::prop_ops::danger_register_stationary_object(reference, actor_index, object_index, unknown_byte);
 }
@@ -884,18 +884,18 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
 
         if (result == (datum_index)halo::k_dword_none) {
             if ((create_if_missing != 0) && (self->active != 0)) {
-                uint8_t scratch[56];
+                actor_firing_positions scratch;
 
                 result = halo::ai::actor_find_or_allocate_prop(actor_index, object_index,
                     (char)halo::game::teams_are_enemies(((struct object *)object)->owner_team, self->team));
                 if (result != (datum_index)halo::k_dword_none) {
                     prop *p = halo::ai::prop_at(result);
 
-                    halo::ai::actor_target_data_refresh(actor_index, result, scratch, 0, flag);
+                    halo::ai::actor_target_data_refresh(actor_index, result, &scratch, 0, flag);
                     p->retain_timer = 0x1e;
                     p->just_created = 1;
 
-                    if ((uint8_t)flag != 0 && (halo::ai::actor_target_update_tracking_speed(actor_index, result, scratch), 1 < p->perception_level)) {
+                    if ((uint8_t)flag != 0 && (halo::ai::actor_target_update_tracking_speed(actor_index, result, &scratch), 1 < p->perception_level)) {
                         uint8_t seen_flag = halo::ai::actor_target_has_conflicting_neighbor(actor_index, result);
                         p->state = 3;
                         halo::ai::actor_target_reset_combat_flags(result, actor_index, 0, seen_flag);

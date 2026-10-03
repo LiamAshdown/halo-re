@@ -1975,7 +1975,7 @@ void encounters_update_activation()
  *
  * @address 0x41c2c0
  */
-datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group)
+datum_index object_find_nearest_squad_member(datum_index actor_index, const actor_firing_positions *reference, datum_index exclude_index, char stamp_group)
 {
     return halo::ai::Encounters::find_nearest_squad_member(actor_index, reference, exclude_index, stamp_group);
 }
