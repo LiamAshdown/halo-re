@@ -533,7 +533,7 @@ void Koth::build_hill_boundary_fence(void)
 uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
 {
     uint32_t idx = player_index & halo::k_datum_slot_mask;
-    player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
+    player *p = halo::game::player_at(idx);
     int32_t occupied_slots;
     int32_t i;
     uint32_t result = 0;
@@ -740,7 +740,7 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
 void Koth::player_tick(uint32_t player_index)
 {
     uint32_t idx = player_index & halo::k_datum_slot_mask;
-    player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
+    player *p = halo::game::player_at(idx);
 
     *(uint32_t *)&((struct player *)p)->hud_message_index = 0xffffffff;
     *(uint32_t *)&((struct player *)p)->hud_message_player = 0xffffffff;

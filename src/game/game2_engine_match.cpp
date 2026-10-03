@@ -52,7 +52,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
     if (index < 0 || index >= player_data->maximum_count) {
         return;
     }
-    t = (player *)((uint8_t *)player_data->data + player_data->size * index);
+    t = halo::game::player_at(index);
     if (t->identifier == 0 || (salt != 0 && t->identifier != salt)) {
         return;
     }
@@ -265,7 +265,7 @@ void EngineMatch::tick(void)
                 int16_t salt = (int16_t)((uint32_t)handle >> 16);
 
                 if (handle != (datum_index)halo::k_dword_none && index >= 0 && index < player_data->maximum_count) {
-                    player *q = (player *)((uint8_t *)player_data->data + player_data->size * index);
+                    player *q = halo::game::player_at(index);
 
                     if (q->identifier != 0 && (salt == 0 || q->identifier == salt) && q->medal_streak_count != 0) {
                         int32_t timer = q->medal_streak_timer;

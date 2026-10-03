@@ -2144,7 +2144,7 @@ void Players::remove_player(datum_index player_handle)
     update_server_queue *server_entry;
 
     index = (int32_t)(uint16_t)player_handle;
-    p = (player *)((uint8_t *)player_data->data + (uint32_t)index * player_data->size);
+    p = halo::game::player_at(index);
 
     halo::memory::datum_delete(update_client_queues, player_handle);
 
