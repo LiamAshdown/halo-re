@@ -12,13 +12,13 @@ fails, revert the latest merges one by one until it is green and log the offende
 | agent id | modules | status | merged |
 |---|---|---|---|
 | a58adc644eb7b93a4 | memory, cseries, cache | running | no |
-| a8c68560df27ca293 | structures, scenario, bitmaps, models, text, shaders | running | no |
+| a8c68560df27ca293 | structures, scenario, bitmaps, models, text, shaders | done | pending (all 6 checks 0 missing/0 extra; text uses a Strategy) |
 | a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | done | yes (e92165ab; all 5 checks 0 missing/0 extra; handle classes, no registry because dispatch tables are fixed data in standalone/data) |
 | a30d258f6c14fe84c | input, main, physics | done | yes (f1a0498d; checks 0 missing/0 extra; static-function service classes) |
 | a48cce8b581c8e3c3 | items, effects | done | yes (e93f959d; check items 115/115, effects 162/162; classes in anonymous namespaces, no Strategy/State patterns yet) |
 | a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | done | pending (branch worktree-agent-a18f610ee74d844a2, commit d61c3c75) |
 | a828a5b449c367e7c | units | done | yes (9a6e0ae8; check units 410 base, 0 missing, 263 new halo:: symbols; UnitView/BipedView/VehicleView; no UnitTypeBehavior registry) |
-| a8e2e4a6addbda413 | objects | running | no |
+| a8e2e4a6addbda413 | objects | done | pending (commit 0f5ac3b4; 328 base, 0 missing, 0 extra) |
 | a9d9f7699c4305c1b | sound | running | no |
 | a1b3c49331e6b7427 (Opus) | math pilot (+ glm); writes docs/CPP_CONVENTIONS_MATH_PILOT.md | running | no |
 
@@ -37,3 +37,6 @@ Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 - harness/gen_link.py scans src/*/*.c for extern address comments; converted modules no longer appear there (standalone link tables are not affected). Revisit if the regenerate tools are needed.
 
 - INTEGRATION BUILD #1 in progress (started by the lead after merging items, effects, units, camera group, input/main/physics; retail files hidden as *.hidden while it runs; log build/cxx_wave1_build.log). The supervising loop must not start another build, must not MERGE anything (it would change sources under the build), and must not touch the hidden files until this entry says "finished". Pending merges after it finishes: a18f610ee74d844a2 (saved_games, render: done, checks 0 missing/0 extra; view classes + c_api shims).
+
+- Pending merges after integration build 1 finishes (in this order, run the module symbol checks after each): a18f610ee74d844a2 (saved_games, render), a8e2e4a6addbda413 (objects), a8c68560df27ca293 (structures, scenario, bitmaps, models, text, shaders), a816627a3d7da40e7 (ai_actor_1: commit cd6044c0, ai check 793 base 0 missing 0 extra). Then run integration build #2.
+- Wave 2 launched: ai_rest = a3286720ac0c33a33, hs_1 = ac1b96a5f35fa3abd, hs_2 = a19b5ccfa208639bd, hs_3 = a86799ccf54aaf388 (worktrees fast-forwarded by the lead). When fast-forwarding an agent worktree, first delete the untracked files the agent copied (docs/CPP_CONVENTIONS.md, tools/check_module_symbols.py) or git refuses.
