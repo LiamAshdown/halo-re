@@ -842,7 +842,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         goto return_false;
     }
     if (self->mode == 10 &&
-        (*(int16_t *)((uint8_t *)self + 0xa0) == 2 || *(int16_t *)((uint8_t *)self + 0xa0) == 3)) {
+        (self->mode_data.charge.stage == 2 || self->mode_data.charge.stage == 3)) {
         goto return_false;
     }
     if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index)) {
