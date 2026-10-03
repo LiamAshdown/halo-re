@@ -57,6 +57,7 @@ struct ai_reference_platoon_range;
 struct ai_reference_squad_iterator;
 struct ai_scored_candidate;
 struct ai_search_context;
+struct ai_target_candidate_list;
 struct ai_search_edge_result;
 struct ai_search_nearest_point_result;
 struct ai_search_obstacle_list;
@@ -435,7 +436,7 @@ uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_in
 uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index, datum_index owner_reference, datum_index pair_reference);
 void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, actor_firing_positions *reference, char force, char allow_reassign);
 uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor_index, uint8_t *out_conflict_flag);
-void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a, int16_t *candidates_b);
+void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, ai_target_candidate_list *candidates_a, ai_target_candidate_list *candidates_b);
 uint8_t actor_target_get_backup_priority(datum_index target_prop_index);
 uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
 void actor_target_get_relationship_object(datum_index target_prop_index);

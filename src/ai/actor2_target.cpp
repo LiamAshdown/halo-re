@@ -958,7 +958,7 @@ void ActorView::target_scan_potential_targets()
                 }
                 while (chain_object != -1) {
                     halo::ai::actor_target_evaluate_squad_link(actor_index, chain_object,
-                                                     (int16_t *)&list_a, (int16_t *)&list_b);
+                                                     &list_a, &list_b);
                     if (owner_cluster_ref == -1) {
                         chain_object = -1;
                     } else {
@@ -981,7 +981,7 @@ void ActorView::target_scan_potential_targets()
                 }
                 while (chain_object != -1) {
                     halo::ai::actor_target_evaluate_squad_link(actor_index, chain_object,
-                                                     (int16_t *)&list_a, (int16_t *)&list_b);
+                                                     &list_a, &list_b);
                     if (owner_cluster_ref == -1) {
                         chain_object = -1;
                     } else {

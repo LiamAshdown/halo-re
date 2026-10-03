@@ -1533,7 +1533,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
  *
  * @address 0x41e320
  */
-void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a, int16_t *candidates_b)
+void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, ai_target_candidate_list *candidates_a, ai_target_candidate_list *candidates_b)
 {
     halo::ai::ActorView(actor_index).target_evaluate_squad_link(object_index, candidates_a, candidates_b);
 }

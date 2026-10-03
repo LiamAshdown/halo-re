@@ -15,22 +15,22 @@ namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
 static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
-static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
+static void squad_link_add_far(ai_target_candidate_list *list, datum_index object_index, float distance_squared)
 {
-    int16_t count = *(int16_t *)(list + 2);
-    uint8_t *entry;
+    int16_t count = list->entry_count;
+    ai_target_candidate *entry;
 
     if (count >= 0x80) {
         return;
     }
-    entry = list + 4 + count * 0xc;
-    *(datum_index *)(entry + 0) = object_index;
-    *(int32_t *)(entry + 4) = -1;
-    *(float *)(entry + 8) = distance_squared;
-    *(int16_t *)(list + 2) = (int16_t)(count + 1);
+    entry = &list->entries[count];
+    entry->object_index = object_index;
+    entry->prop_index = (datum_index)-1;
+    entry->distance = distance_squared;
+    list->entry_count = (int16_t)(count + 1);
 }
 static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_index object_index, unit_object *object,
-    uint8_t *list_enemy, uint8_t *list_friend)
+    ai_target_candidate_list *list_enemy, ai_target_candidate_list *list_friend)
 {
     real_point3d position;
     actor_firing_positions block;
@@ -47,7 +47,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
     int16_t since_fired;
     float radius;
     float distance_squared;
-    uint8_t *list;
+    ai_target_candidate_list *list;
 
     halo::objects::object_get_position(&position, object_index);
     halo::ai::actor_get_firing_positions(actor_index, &block, &position);
@@ -185,7 +185,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         }
         halo::ai::actor_target_data_refresh(actor_index, prop_index, &block, 0, 0);
         if (!firing) {
-            *(int16_t *)list = (int16_t)(*(int16_t *)list + 1);
+            list->seen_count = (int16_t)(list->seen_count + 1);
         }
     }
 }
@@ -254,7 +254,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
  *
  * @address 0x41e320
  */
-void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *candidates_a, int16_t *candidates_b)
+void ActorView::target_evaluate_squad_link(datum_index object_index, ai_target_candidate_list *candidates_a, ai_target_candidate_list *candidates_b)
 {
     using namespace actor_target_evaluate_squad_link_local;
     actor *self = halo::ai::actor_at(actor_index);
@@ -266,8 +266,8 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
             ((struct object *)object)->cluster_stamp = halo::physics::globals().object_cluster_stamp;
             switch (((struct object *)object)->type) {
             case 0:
-                squad_link_evaluate_biped(actor_index, self, object_index, object, (uint8_t *)candidates_a,
-                    (uint8_t *)candidates_b);
+                squad_link_evaluate_biped(actor_index, self, object_index, object, candidates_a,
+                    candidates_b);
                 break;
             case 1:
                 if (object->unit.driver_unit_index == k_datum_index_none) {

@@ -126,7 +126,7 @@ public:
     void swarm_for_each_component_thunk();
     uint8_t target_data_acquire(datum_index object_index, datum_index owner_reference, datum_index pair_reference);
     void target_data_refresh(uint32_t target_prop_index, actor_firing_positions *reference, char force, char allow_reassign);
-    void target_evaluate_squad_link(datum_index object_index, int16_t *candidates_a, int16_t *candidates_b);
+    void target_evaluate_squad_link(datum_index object_index, ai_target_candidate_list *candidates_a, ai_target_candidate_list *candidates_b);
     uint16_t target_get_priority_class(datum_index target_prop_index);
     uint8_t target_has_conflicting_neighbor(datum_index target_prop_index);
     uint8_t target_is_visible_or_object_count_ok(int16_t kind);
