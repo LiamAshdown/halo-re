@@ -7,11 +7,11 @@
 #include "halo/effects/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern data_array *decal_data;
-extern game_time_globals *game_time;
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern cache *rasterizer_decal_vertex_cache_handle;
 extern void *rasterizer_decal_vertex_cache;
@@ -547,7 +547,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
         }
 
         self->position = placement->point;
-        self->creation_game_time = game_time->game_time;
+        self->creation_game_time = halo::game::globals().game_time->game_time;
         self->sequence_index = (uint8_t)sequence_index;
         self->sprite_bitmap_index = (uint8_t)sprite_bitmap_index;
         self->unknown_1a = 0;

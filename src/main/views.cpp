@@ -36,14 +36,12 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern render_view render_views[2]; }
-extern "C" { extern game_engine_definition *current_game_engine; }
-extern "C" { extern game_engine_state game_engine_state_value; }
-extern "C" { extern player_globals *local_player_globals; }
-extern "C" { extern uint8_t widget_memory_pool_valid; }
 extern "C" { extern widget_instance *ui_root_widget[1]; }
 extern "C" { extern uint8_t render_view_local_player_sticky; }
 extern "C" { extern int32_t screenshots; }
@@ -77,15 +75,15 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count + 1;
     halo::sound::sound_update();
 
-    showing_results = (current_game_engine != 0 && (int32_t)game_engine_state_value > 1 &&
-                        (int32_t)game_engine_state_value < 4)
+    showing_results = (halo::game::globals().current_engine != 0 && (int32_t)halo::game::globals().state > 1 &&
+                        (int32_t)halo::game::globals().state < 4)
                           ? 1
                           : 0;
 
-    local_player_count_field = local_player_globals->local_player_count;
+    local_player_count_field = halo::game::globals().local_player_globals->local_player_count;
     view_count = 1;
 
-    if (widget_memory_pool_valid != 0 && ui_root_widget[0] != 0) {
+    if (halo::interface::globals().widget_memory_pool_valid != 0 && ui_root_widget[0] != 0) {
         strstr(ui_root_widget[0]->name, "error_modal");
     }
     if (showing_results || halo::cutscene::globals().cinematic_globals->in_progress != 0) {
@@ -108,7 +106,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
                     candidate = 0;
                 } else {
                     candidate = -1;
-                    if (local_player_globals->local_players[0] != k_datum_index_none &&
+                    if (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none &&
                         resolved_local_player_index < 0) {
                         candidate = 0;
                     }
@@ -187,10 +185,10 @@ int RenderViews::local_view_count(void)
 {
     int16_t local_player_count_field;
 
-    if ((current_game_engine == 0 || (int32_t)game_engine_state_value < 2 ||
-         (int32_t)game_engine_state_value > 3) &&
+    if ((halo::game::globals().current_engine == 0 || (int32_t)halo::game::globals().state < 2 ||
+         (int32_t)halo::game::globals().state > 3) &&
         halo::cutscene::globals().cinematic_globals->in_progress == 0) {
-        local_player_count_field = local_player_globals->local_player_count;
+        local_player_count_field = halo::game::globals().local_player_globals->local_player_count;
         if (local_player_count_field > 0 && local_player_count_field < 2) {
             return local_player_count_field;
         }
@@ -244,7 +242,6 @@ void RenderViews::pregame_view_initialize(void)
 
 }
 
-extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern console_globals console_globals_data; }
 namespace halo::main {
 
@@ -286,7 +283,7 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
         }
 
         if (view->local_player_index != -1 && console_globals_data.active == 0 &&
-            game_time->paused == 0) {
+            halo::game::globals().game_time->paused == 0) {
             if (halo::camera::camera_get_type_for_player(view->local_player_index) != 3) {
                 real_matrix4x3 shake_matrix;
                 real_matrix4x3 orientation;

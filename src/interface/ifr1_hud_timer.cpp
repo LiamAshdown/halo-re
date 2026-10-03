@@ -1,10 +1,10 @@
 #include "halo/interface/ifr1_hud_timer.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
-extern game_time_globals *game_time;
 extern Globals *global_globals;
 extern HUDGlobals *hud_globals_tag_data;
 extern int16_t current_local_player_index;
@@ -16,7 +16,7 @@ namespace halo::interface {
 /**
  * Binds the timer to the engine's HUD messaging state and game clock.
  */
-HudTimer::HudTimer() : messaging(hud_messaging), time(game_time)
+HudTimer::HudTimer() : messaging(hud_messaging), time(halo::game::globals().game_time)
 {
 }
 

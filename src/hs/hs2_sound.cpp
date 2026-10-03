@@ -6,6 +6,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,7 +22,6 @@ extern float sound_master_gain;
 extern int16_t sound_supplementary_buffers_00746122;
 extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale);
 extern void sound_impulse_fade_out(datum_index sound_index);
-extern game_time_globals *game_time;
 #ifdef __cplusplus
 }
 #endif
@@ -259,7 +259,7 @@ void SoundCommands::evaluate_sound_impulse_time(int16_t function_index, uint32_t
         int32_t end_time = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[sound & halo::k_slot_mask].data + 0x90);
 
         if (end_time != -1) {
-            ticks = end_time - game_time->game_time;
+            ticks = end_time - halo::game::globals().game_time->game_time;
             if (ticks <= 0) {
                 ticks = 0;
             }

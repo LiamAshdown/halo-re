@@ -12,9 +12,6 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern real_vector3d *global_origin3d_pointer;
 extern game_main_globals *main_game_globals;
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
@@ -143,7 +140,7 @@ int ProjectileHandle::update()
             real_vector3d to_target;                    
             real_vector3d axis;                         
             int32_t salt = (int32_t)projectile_index >> 16;
-            int32_t tick = game_time->game_time;
+            int32_t tick = halo::game::globals().game_time->game_time;
             real angle_a;
             real angle_b;
 
@@ -316,9 +313,9 @@ int ProjectileHandle::update()
             moved.k = swept.z - self->base.position.z;
             self->projectile.distance_travelled = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
             if (!flyby_played && *(datum_index *)&definition->flyby_sound.tag_id != k_datum_index_none &&
-                *(datum_index *)local_player_globals->local_players != k_datum_index_none) {
-                datum_index local_player = *(datum_index *)local_player_globals->local_players;
-                datum_index listener = ((player *)player_data->data)[halo::datum_slot(local_player)].unit;
+                *(datum_index *)halo::game::globals().local_player_globals->local_players != k_datum_index_none) {
+                datum_index local_player = *(datum_index *)halo::game::globals().local_player_globals->local_players;
+                datum_index listener = ((player *)halo::game::globals().player_data->data)[halo::datum_slot(local_player)].unit;
 
                 if (listener != k_datum_index_none && listener != shooter) {
                     real_point3d *center = &((object *)OBJECT_DATA(listener))->bounding_center;

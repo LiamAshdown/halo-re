@@ -13,7 +13,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
-extern game_time_globals *game_time;
 extern void actor_target_scan_potential_targets(datum_index actor_index);
 extern void actor_danger_update_reaction(datum_index actor_index);
 extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
@@ -402,7 +401,7 @@ restart:
         if (target->state == 4 &&
             (target->visual_perception > 1 ||
              (self->firing_target_type == 1 && self->firing_target_prop_index == target_prop_index &&
-              game_time->game_time % 3 == 0))) {
+              halo::game::globals().game_time->game_time % 3 == 0))) {
             char nearly_dead = self->vehicle_gunner_bombards[0];
             int16_t threshold = (int16_t)((nearly_dead != 0) ? 300 : 45);
             target->inspection_ticks += 1;

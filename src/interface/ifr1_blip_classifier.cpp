@@ -4,14 +4,10 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 
-extern "C" {
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-}
 
 static player *blip_player(datum_index player_index)
 {
-    return (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200);
+    return (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200);
 }
 
 namespace halo::interface {
@@ -25,7 +21,7 @@ namespace halo::interface {
 uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_index)
 {
     datum_index viewer = (local_player_index != -1 && local_player_index < 1)
-                             ? local_player_globals->local_players[local_player_index] : (datum_index)-1;
+                             ? halo::game::globals().local_player_globals->local_players[local_player_index] : (datum_index)-1;
     int32_t viewer_team = blip_player(viewer)->team;
     int32_t owner_local_index;
     uint8_t *object_data_ptr;

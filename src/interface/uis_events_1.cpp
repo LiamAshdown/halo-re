@@ -29,7 +29,6 @@
 extern "C" {
 extern uint8_t level_select_entries[0x50];
 extern int16_t pending_difficulty;
-extern int16_t local_player_count;
 extern uint8_t save_in_progress_00719010;
 extern uint8_t network_join_error_reason;
 extern uint16_t split_screen_quit_prompt_string;
@@ -46,7 +45,6 @@ extern int16_t network_game_mode;
 extern uint8_t network_host_handoff_requested;
 extern uint8_t network_disconnect_timeout_flag;
 extern int32_t network_game_server_host_create(void);
-extern int32_t game_variant_history_current;
 extern int32_t selected_saved_item;
 extern void network_dispatch_initialize(void);
 extern uint8_t *map_list;
@@ -63,7 +61,6 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern uint8_t game_variant_saved_default[0x98];
-extern uint8_t game_variant_saved_default_valid;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern int32_t network_host_edit_field_00719410;
 extern widget_history_node *ui_widget_history[3];
@@ -158,7 +155,7 @@ uint8_t UiEventHandlers::event_49cfa0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d0d0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    local_player_count = 1;
+    halo::game::globals().local_player_count = 1;
     save_in_progress_00719010 = 1;
     halo::interface::ui_start_campaign_from_level_one(widget, event);
     return 1;
@@ -301,7 +298,7 @@ uint8_t UiEventHandlers::event_49d480(widget_instance *widget, int16_t *event, u
         halo::game::game_engine_ensure_variant_history_has_entry();
         ok = (uint8_t)network_game_server_host_create();
         if (ok == 1) {
-            game_variant_history_current = -1;
+            halo::game::globals().variant_history_current = -1;
             halo::game::game_engine_apply_current_custom_variant();
             halo::game::game_engine_sync_variant_defaults();
             network_game_mode = 2;
@@ -333,7 +330,7 @@ uint8_t UiEventHandlers::event_49d480(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d520(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    local_player_count = 1;
+    halo::game::globals().local_player_count = 1;
     save_in_progress_00719010 = 1;
     return 1;
 }
@@ -360,7 +357,7 @@ uint8_t UiEventHandlers::event_49d540(widget_instance *widget, int16_t *event, u
     network_disconnect_timeout_flag = 0;
     network_game_mode = 0;
     save_in_progress_00719010 = 0;
-    local_player_count = 1;
+    halo::game::globals().local_player_count = 1;
     selected_saved_item = -1;
     if (music_pending == 0) {
         halo::interface::main_menu_play_title_music();
@@ -375,7 +372,7 @@ uint8_t UiEventHandlers::event_49d540(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d5b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    local_player_count = 1;
+    halo::game::globals().local_player_count = 1;
     save_in_progress_00719010 = 0;
     network_dispatch_initialize();
     return 1;
@@ -568,7 +565,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
         halo::saved_games::saved_game_last_mp_variant_clear(directory);
     }
     memcpy(game_variant_saved_default, variant, sizeof(variant));
-    game_variant_saved_default_valid = 1;
+    halo::game::globals().variant_saved_default_valid = 1;
     if (network_game_mode != 2) {
         return 1;
     }

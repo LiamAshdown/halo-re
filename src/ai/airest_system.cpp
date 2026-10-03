@@ -42,10 +42,8 @@ extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_in
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
 extern float k_random_scale_65536;
 extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request);
-extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern void actor_dispatch_perception_reset(datum_index actor_index);
-extern player_globals *local_player_globals;
 extern actor_mode_definition actor_mode_definitions[16];
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index unit_index, datum_index actor_variant_tag, uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68);
@@ -55,7 +53,6 @@ extern void actor_clear_target_state(datum_index actor_index);
 extern void encounter_deactivate(datum_index encounter_index);
 extern void encounters_reset(void);
 extern void ai_communication_reset(void);
-extern game_time_globals *game_time;
 extern void ai_process_vehicle_entry_queue(void);
 extern void ai_conversation_update(void);
 extern void encounters_update(void);
@@ -768,7 +765,7 @@ void AiSystem::recompute_all_relationship_flags()
             actor_team = a->team;
 
             hostile = 1;
-            if (current_game_engine == 0) {
+            if (halo::game::globals().current_engine == 0) {
                 if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                     int32_t pair = (int32_t)object_team + actor_team * 10;
                     uint32_t bit = *(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4);
@@ -844,7 +841,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         uint8_t carry = 0;
         datum_index prop_index;
 
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             enemies = team != 1;
         } else {
             int32_t index;
@@ -893,7 +890,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
         }
         cluster = *(int16_t *)(OBJ(root) + 0x9c);
         if (cluster == -1 ||
-            (*(uint32_t *)&local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
+            (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
         }
     }
@@ -1073,7 +1070,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
     uint8_t skip_close_check;
     int16_t kind;
 
-    current_tick = game_time->game_time;
+    current_tick = halo::game::globals().game_time->game_time;
 
     iterator.data = prop_data;
     iterator.next_index = 0;

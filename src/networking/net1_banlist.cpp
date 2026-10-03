@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t network_console_connection_id;
@@ -22,7 +23,6 @@ extern void string_trim_whitespace(char **string_ptr);
 extern growable_array ban_list;
 extern void *console_color_00685214;
 extern void *actor_mode_default_look_weights;
-extern data_array *player_data;
 extern network_server_globals *network_server;
 extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds, network_player_entry *target_player);
 extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
@@ -226,10 +226,10 @@ uint8_t Banlist::autoban_player(datum_index player_handle)
     if (index < 0) {
         return 0;
     }
-    if (index >= player_data->maximum_count) {
+    if (index >= halo::game::globals().player_data->maximum_count) {
         return 0;
     }
-    target_player = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index);
+    target_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index);
     if (target_player->identifier == 0) {
         return 0;
     }

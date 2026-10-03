@@ -7,6 +7,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -16,7 +17,6 @@ extern "C" {
 extern const real_vector3d *global_down3d_pointer;
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern data_array *effect_location_data;
-extern player_globals *local_player_globals;
 extern uint8_t *effect_marker_callback_context;
 extern data_array *effect_data;
 extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
@@ -141,7 +141,7 @@ effect_location_marker * effect_view::next(datum_index *marker, int32_t mode)
 
     if (mode == 1 ||
         (mode == 3 && self->first_person_weapon_index != -1 &&
-         local_player_globals->local_player_count == 1)) {
+         halo::game::globals().local_player_globals->local_player_count == 1)) {
         if (entry->marker_index == 0xffff || (entry->marker_index & 0x8000) == 0) {
             return halo::effects::effect_marker_next(self, marker, mode);
         }

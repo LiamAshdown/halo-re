@@ -16,19 +16,14 @@
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern Globals *global_globals;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern int16_t current_local_player_index;
 extern float render_camera_global;
 extern float camera_position_y;
 extern float camera_position_z;
 extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels);
-extern player_control_globals *player_control_globals_ptr;
 extern float camera_field_of_view;
 extern uint32_t rasterizer_device_version;
 extern uint8_t rasterizer_caps_flag_68a;
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
 }
 
 static float clamp_unit(float value)
@@ -275,9 +270,9 @@ void FirstPersonWeaponController::interface_tick(void)
 
     fp = &first_person_weapon_interfaces[0];
 
-    if (local_player_globals->local_players[0] != (datum_index)0xffffffff) {
-        record = (player *)((char *)player_data->data +
-                             (local_player_globals->local_players[0] & 0xffff) * sizeof(player));
+    if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)0xffffffff) {
+        record = (player *)((char *)halo::game::globals().player_data->data +
+                             (halo::game::globals().local_player_globals->local_players[0] & 0xffff) * sizeof(player));
         unit_index = record->unit;
 
         if (fp->unit_index != unit_index) {
@@ -688,11 +683,11 @@ void FirstPersonWeaponController::update_lighting(void)
     if (current_local_player_index >= 1) {
         return;
     }
-    player_handle = local_player_globals->local_players[current_local_player_index];
+    player_handle = halo::game::globals().local_player_globals->local_players[current_local_player_index];
     if (player_handle == 0xffffffff) {
         return;
     }
-    player_record = (player *)((char *)player_data->data + (uint16_t)player_handle * player_data->size);
+    player_record = (player *)((char *)halo::game::globals().player_data->data + (uint16_t)player_handle * halo::game::globals().player_data->size);
     unit_handle = player_record->unit;
     if (unit_handle == 0xffffffff) {
         return;
@@ -785,7 +780,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     desired_zoom_level = -1;
     if (current_local_player_index != -1) {
         desired_zoom_level =
-            player_control_globals_ptr->local_players[current_local_player_index].desired_zoom_level;
+            halo::game::globals().player_control->local_players[current_local_player_index].desired_zoom_level;
     }
     zoomed = (desired_zoom_level != -1);
     memset(&parameters, 0, sizeof(parameters));
@@ -851,8 +846,8 @@ void FirstPersonWeaponController::update_screen_effects(void)
 
 post_hud:
     halo::interface::hud_update_player();
-    if (current_game_engine != (void *)0) {
-        if ((int32_t)game_engine_state_value > 1) {
+    if (halo::game::globals().current_engine != (void *)0) {
+        if ((int32_t)halo::game::globals().state > 1) {
             halo::game::game_engine_post_rasterize_post_game();
             return;
         }

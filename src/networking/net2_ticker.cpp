@@ -13,9 +13,9 @@
 #include "halo/networking/net2_ticker.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern heap * widget_memory_pool;
 extern void * hud_text_draw_font_tag_id;
 extern uint16_t hud_text_draw_color_or_flags;
 extern uint16_t hud_text_draw_column;
@@ -64,7 +64,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
 
             display_text = (wchar_t *)halo::memory::heap_reallocate((void *)(uintptr_t)text_row[0xf],
                 (uint32_t)((uint16_t)((int16_t)(self->length + 1)) & 0x7fff) << 1,
-                widget_memory_pool);
+                halo::interface::globals().widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;
             if (display_text != 0) {
                 wcsncpy(display_text, (const wchar_t *)self->text, self->length);
@@ -77,7 +77,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
 
             max_width[0] = halo::text::text_measure_string_fit_width(self->text, max_width);
             display_text = (wchar_t *)halo::memory::heap_reallocate((void *)(uintptr_t)text_row[0xf],
-                (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), widget_memory_pool);
+                (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), halo::interface::globals().widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;
             if (display_text != 0) {
                 wcsncpy(display_text, (const wchar_t *)self->text + self->scroll_cursor, tail_length);
@@ -93,7 +93,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
         }
     } else {
         display_text = (wchar_t *)halo::memory::heap_reallocate((void *)(uintptr_t)text_row[0xf],
-            (uint32_t)((fit_count * 2 + 2) & 0xffff), widget_memory_pool);
+            (uint32_t)((fit_count * 2 + 2) & 0xffff), halo::interface::globals().widget_memory_pool);
         text_row[0xf] = (uint32_t)(uintptr_t)display_text;
         if (display_text != 0) {
             wcsncpy(display_text, (const wchar_t *)self->text + self->scroll_cursor, fit_count);
@@ -118,7 +118,7 @@ void TickerTextBuffer::append(wchar_t *text, int32_t reset_column, ticker_text_b
             self->capacity = 0x20;
         }
         self->text = (uint16_t *)halo::memory::heap_reallocate(0, (uint16_t)((int16_t)self->capacity) << 1,
-            widget_memory_pool);
+            halo::interface::globals().widget_memory_pool);
         self->length = 0;
         self->start_column = reset_column;
     } else {
@@ -132,7 +132,7 @@ void TickerTextBuffer::append(wchar_t *text, int32_t reset_column, ticker_text_b
                     self->capacity = self->capacity * 2;
                 }
                 self->text = (uint16_t *)halo::memory::heap_reallocate(self->text,
-                    (uint16_t)((int16_t)self->capacity) << 1, widget_memory_pool);
+                    (uint16_t)((int16_t)self->capacity) << 1, halo::interface::globals().widget_memory_pool);
             } while (self->capacity <= self->length + 1 + text_length);
         }
         if (self->text != 0) {
@@ -150,9 +150,9 @@ void TickerTextBuffer::reset(ticker_text_buffer *self)
         heap_block *block = (heap_block *)((uint8_t *)self->text - 0x10);
         uint32_t size = block->size & k_heap_block_size_mask;
 
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)size;
-        widget_memory_pool->allocation_count -= 1;
+        halo::memory::heap_unlink_block(block, halo::interface::globals().widget_memory_pool);
+        halo::interface::globals().widget_memory_pool->bytes_allocated -= (int32_t)size;
+        halo::interface::globals().widget_memory_pool->allocation_count -= 1;
     }
     self->text = 0;
     self->capacity = 0;

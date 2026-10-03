@@ -8,6 +8,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -22,7 +23,6 @@ extern uint8_t decals_enabled;
 extern uint8_t decals_for_all_responses;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
-extern game_time_globals *game_time;
 extern long lrint(double x);
 }
 
@@ -607,7 +607,7 @@ void decal_ref::update_fade()
 {
     datum_index decal_index = datum;
     decal *self = &((decal *)decal_data->data)[(uint16_t)decal_index];
-    real age = (real)(game_time->game_time - self->creation_game_time) * 0.033333335f;
+    real age = (real)(halo::game::globals().game_time->game_time - self->creation_game_time) * 0.033333335f;
 
     self->alpha = 0xff;
 

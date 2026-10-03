@@ -2,6 +2,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/input/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern void *mouse_device;
@@ -11,9 +12,6 @@ extern uint8_t director_camera_switching;
 extern director_globals camera_director_globals;
 extern director directors[1];
 extern uint8_t *hs_camera_control_pointer;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern player_control_globals *player_control_globals_ptr;
 extern camera_input_axis_definition camera_input_axes[4];
 extern double pow(double base, double exponent);
 }
@@ -117,10 +115,10 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
     if (local_player_index == -1 || local_player_index >= 1) {
         player_index = k_datum_index_none;
     } else {
-        player_index = local_player_globals->local_players[local_player_index];
+        player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
     }
     
-    player_record = (player *)((uint8_t *)player_data->data + (halo::datum_slot(player_index)) * sizeof(player));
+    player_record = (player *)((uint8_t *)halo::game::globals().player_data->data + (halo::datum_slot(player_index)) * sizeof(player));
     player_is_dead = (player_record->unit == k_datum_index_none && player_record->deaths > 0);
 
     if (*hs_camera_control_pointer != 0) {
@@ -140,7 +138,7 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
     } else if (director->pov_proc == halo::camera::camera_track_compute_pov) {
         int16_t seat_camera_state;
         int16_t third_person = halo::camera::camera_get_seat_camera_state(
-            player_control_globals_ptr->local_players[local_player_index].unit, &seat_camera_state);
+            halo::game::globals().player_control->local_players[local_player_index].unit, &seat_camera_state);
 
         if (third_person == 1) {
             third_person_camera_data *third = &director->data.third_person;
@@ -202,7 +200,7 @@ void DirectorHandle::update_seat_camera(uint8_t force)
     director *director = &directors[local_player_index];
     int16_t seat_camera_state;
     int16_t third_person = halo::camera::camera_get_seat_camera_state(
-        player_control_globals_ptr->local_players[local_player_index].unit, &seat_camera_state);
+        halo::game::globals().player_control->local_players[local_player_index].unit, &seat_camera_state);
 
     if (!force && director->seat_camera_state == seat_camera_state) {
         return;

@@ -11,19 +11,18 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern game_time_globals *game_time;
 extern uint32_t global_structure_collision_bsp;
 extern datum_index *light_cluster_first;
 extern data_array *light_cluster_references;
 extern data_array *light_data;
 extern data_array *light_object_references;
-extern player_globals *local_player_globals;
 extern uint8_t *main_game_globals;
 extern char network_log_path_format[];
 extern datum_index *noncollideable_cluster_first;
@@ -315,7 +314,7 @@ void halo::objects::ObjectManager::update()
     object_header *headers;
     int16_t last_index;
 
-    restrict_to_units = ((uint8_t)game_time->game_time & 1) != 0 && main_game_globals[2] != 0;
+    restrict_to_units = ((uint8_t)halo::game::globals().game_time->game_time & 1) != 0 && main_game_globals[2] != 0;
 
     globals->active_garbage_object_count = 0;
 
@@ -326,7 +325,7 @@ void halo::objects::ObjectManager::update()
         globals->cluster_pvs_previous[i] = globals->cluster_pvs_current[i];
     }
     for (i = 0; i < word_count; i++) {
-        globals->cluster_pvs_current[i] = *(uint32_t *)&local_player_globals->cluster_pvs[i];
+        globals->cluster_pvs_current[i] = *(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[i];
     }
 
     changed = 0;
@@ -695,7 +694,7 @@ void halo::objects::ObjectManager::garbage_collection()
         uint8_t stale;
         uint32_t last = object_globals_pointer->last_garbage_collection_time;
 
-        stale = (uint8_t)(last == k_datum_index_none || !((int32_t)last + 0x96 >= game_time->game_time));
+        stale = (uint8_t)(last == k_datum_index_none || !((int32_t)last + 0x96 >= halo::game::globals().game_time->game_time));
 
         for (;;) {
             uint8_t significant = 0;
@@ -780,7 +779,7 @@ void halo::objects::ObjectManager::garbage_collection()
         }
     }
 
-    object_globals_pointer->last_garbage_collection_time = (uint32_t)game_time->game_time;
+    object_globals_pointer->last_garbage_collection_time = (uint32_t)halo::game::globals().game_time->game_time;
     object_globals_pointer->garbage_collect_requested = 0;
 }
 

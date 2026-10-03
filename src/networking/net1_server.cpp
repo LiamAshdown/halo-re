@@ -34,19 +34,14 @@ extern uint16_t network_challenge_packet_block[];
 extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length);
 extern network_client_globals *network_client;
 extern player_profile player_profile_cache[16];
-extern int32_t player_profile_cache_count;
 extern char network_player_join_finalize(void);
 extern char network_channel_key_open(void);
 extern uint32_t player_data_iterator_advance(uint8_t slot_index);
-extern data_array *update_client_queues;
-extern data_array *update_server_queues;
 extern void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine);
 extern void network_object_release_ownership_claim(uint8_t slot_index);
 extern data_packet_group network_game_messages_group;
 extern void network_game_server_handle_client_join(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine, uint8_t bl_passthrough);
 extern char network_server_build_full_game_info_packet(network_machine *machine);
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
 extern void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
 extern void build_player_full_resync_update(int32_t machine_id);
 typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_id);
@@ -83,7 +78,6 @@ extern void network_game_generate_unique_random_name(void);
 extern char network_player_name_collision_check(void);
 extern void network_player_assign_random_color(void);
 extern uint32_t network_player_entry_add(network_player_entry *entry, network_game_session *session);
-extern game_variant game_engine_pending_variant;
 extern char variant_defaults_source[];
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
 typedef struct rcon_request_decode {
@@ -467,9 +461,9 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
                                     uint32_t slot_handle = player_data_iterator_advance((uint8_t)entry->slot_index);
                                     datum_index queue_handle;
 
-                                    halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_client_queues);
-                                    queue_handle = halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_server_queues);
-                                    halo::game::player_update_queue_create(&((update_server_queue *)update_server_queues->data)[queue_handle & 0xffff].queue);
+                                    halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, halo::game::globals().update_client_queues);
+                                    queue_handle = halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, halo::game::globals().update_server_queues);
+                                    halo::game::player_update_queue_create(&((update_server_queue *)halo::game::globals().update_server_queues->data)[queue_handle & 0xffff].queue);
                                 }
                             }
                         }
@@ -486,7 +480,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
                                     if (profile->in_use == 0) {
                                         profile->in_use = 1;
                                         profile->player = (datum_index)player_datum;
-                                        player_profile_cache_count = player_profile_cache_count + 1;
+                                        halo::game::globals().profile_cache_count = halo::game::globals().profile_cache_count + 1;
                                         break;
                                     }
                                 }
@@ -612,8 +606,8 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
             datum = player_data_iterator_advance((uint8_t)entry->slot_index) ;
             if (datum != 0xffffffff) {
                 player_index = (int16_t)datum;
-                if (player_index >= 0 && player_index < player_data->maximum_count) {
-                    plr = (player *)((uint8_t *)player_data->data + player_data->size * player_index);
+                if (player_index >= 0 && player_index < halo::game::globals().player_data->maximum_count) {
+                    plr = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * player_index);
                     if (plr->identifier != 0) {
                         salt = (int16_t)(datum >> 16);
                         if (salt == 0 || plr->identifier == salt) {
@@ -641,9 +635,9 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
         entry = entry + 1;
         remaining = remaining - 1;
         if (remaining == 0) {
-            if (current_game_engine != 0 &&
-                *(void **)((uint8_t *)current_game_engine + 0x90) != 0) {
-                ((network_join_complete_callback)(*(void **)((uint8_t *)current_game_engine + 0x90)))(0, machine_id);
+            if (halo::game::globals().current_engine != 0 &&
+                *(void **)((uint8_t *)halo::game::globals().current_engine + 0x90) != 0) {
+                ((network_join_complete_callback)(*(void **)((uint8_t *)halo::game::globals().current_engine + 0x90)))(0, machine_id);
             }
             return;
         }
@@ -924,7 +918,7 @@ uint32_t ServerView::session_finalize_and_add_player(network_player_entry *entry
 int32_t ServerView::session_reset_defaults()
 {
     network_server_globals *server = self;
-    memcpy(&server->session.variant, &game_engine_pending_variant, sizeof(game_variant));
+    memcpy(&server->session.variant, &halo::game::globals().pending_variant, sizeof(game_variant));
     strncpy(server->session.server_name, variant_defaults_source, 0x3f);
     server->session.server_name[0x3f] = 0;
     server->session.unknown_07e = 0;
@@ -1488,7 +1482,7 @@ uint32_t ServerMessageHandlers::ping_timestamp(int32_t **message)
         return 1;
     }
     if (message_delta_decode_compound_field(message, decode_scratch) == 1) {
-        player = (uint8_t *)halo::memory::datum_get((datum_index)decode_scratch[0], player_data);
+        player = (uint8_t *)halo::memory::datum_get((datum_index)decode_scratch[0], halo::game::globals().player_data);
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
             int32_t now = halo::cseries::time_query_performance_counter_ms();

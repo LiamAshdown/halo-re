@@ -29,6 +29,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern float sky_animation_times[9];
@@ -47,7 +48,6 @@ extern double fabs(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern int32_t render_window_count;
-extern int16_t current_local_player_index;
 extern int16_t render_window_index;
 extern render_frustum render_frustum_global;
 extern render_fog render_fog_state;
@@ -58,7 +58,6 @@ extern uint32_t rasterizer_active_environment_effect;
 extern int32_t transparent_geometry_group_last_drawn_key;
 extern uint8_t rasterizer_secondary_groups_drawn;
 extern int16_t rasterizer_decal_layer;
-extern game_engine_definition *current_game_engine;
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
 extern void object_lights_update_all(void);
 extern void lights_apply_spot_falloff(void);
@@ -327,7 +326,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     int16_t saved_69c67c;
 
     render_window_count++;
-    current_local_player_index = local_player_index;
+    halo::interface::globals().current_local_player_index = local_player_index;
     raw = (uint8_t *)&parameters;
     for (i = 0; i < sizeof(parameters); i++) {
         raw[i] = 0;
@@ -432,8 +431,8 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         }
     }
 
-    if (current_game_engine != 0 && current_game_engine->post_rasterize != 0) {
-        ((void (*)(void))current_game_engine->post_rasterize)();
+    if (halo::game::globals().current_engine != 0 && halo::game::globals().current_engine->post_rasterize != 0) {
+        ((void (*)(void))halo::game::globals().current_engine->post_rasterize)();
     }
     halo::effects::weather_update_local_player();
     halo::render::render_particles();

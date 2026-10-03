@@ -23,7 +23,6 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 
-extern "C" { extern uint8_t game_engine_teams_enabled_flag; }
 extern "C" { extern uint8_t g_control_binding_state; }
 extern "C" { extern uint8_t g_control_binding_secondary_active; }
 extern "C" { extern Globals *global_globals; }
@@ -43,7 +42,7 @@ void Bindings::control_binding_table_initialize(void)
     int32_t outer_row = 0;
     int32_t field_index;
 
-    g_control_binding_secondary_active = (game_engine_teams_enabled_flag != 0);
+    g_control_binding_secondary_active = (halo::game::globals().teams_enabled != 0);
     g_control_binding_state = 0;
 
     row = g_control_binding_region_e4;

@@ -7,6 +7,17 @@
 
 #include <stdint.h>
 
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "cache.h"
+#include "game.h"
+struct data_array;
+struct game_engine_definition;
+struct game_time_globals;
+struct player_control_globals;
+struct player_globals;
+
 struct Point2D;
 struct ScenarioPlayerStartingLocation;
 struct TagDependency;
@@ -35,6 +46,32 @@ typedef float real;
 typedef uint32_t datum_index;
 
 namespace halo::game {
+
+/**
+ * The engine globals the game module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    game_engine_definition *&current_engine;
+    game_variant &variant;
+    game_engine_state &state;
+    uint8_t &teams_enabled;
+    game_variant &pending_variant;
+    int32_t &variant_history_current;
+    game_variant &variant_saved_default;
+    uint8_t &variant_saved_default_valid;
+    int32_t &profile_cache_count;
+    data_array *&player_data;
+    player_globals *&local_player_globals;
+    player_control_globals *&player_control;
+    data_array *&update_client_queues;
+    data_array *&update_server_queues;
+    int16_t &local_player_count;
+    game_time_globals *&game_time;
+    int32_t &time_force_single_tick;
+};
+
+Globals &globals();
 
 uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path, uint32_t out_path_size);
 uint32_t XDeleteSaveGame(const uint16_t *save_game_name, const char *root_path);

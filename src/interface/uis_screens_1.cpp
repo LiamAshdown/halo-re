@@ -20,6 +20,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t chat_window_default_x;
@@ -45,11 +46,8 @@ extern float cursor_sensitivity_y;
 extern double cursor_sensitivity_curve_scale;
 extern double cursor_sensitivity_curve_bias;
 extern int32_t __ftol(double x);
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
-extern player_globals *local_player_globals;
 extern float ui_saved_color[3];
 extern const ColorARGB *global_white_argb;
 extern int32_t network_disabled_flag;
@@ -193,12 +191,12 @@ void UiScreens::error_modal_update(void)
 {
     int16_t player_count_field;
 
-    if ((current_game_engine == (void *)0 || (int32_t)game_engine_state_value < 2 || (int32_t)game_engine_state_value > 3) &&
+    if ((halo::game::globals().current_engine == (void *)0 || (int32_t)halo::game::globals().state < 2 || (int32_t)halo::game::globals().state > 3) &&
         halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
             strstr(ui_root_widget[0]->name, "error_modal");
         }
-        player_count_field = *(int16_t *)((char *)local_player_globals + 0xc);
+        player_count_field = *(int16_t *)((char *)halo::game::globals().local_player_globals + 0xc);
         if (player_count_field > 1) {
             Rectangle2D bar;
 

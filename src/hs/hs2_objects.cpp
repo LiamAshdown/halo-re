@@ -9,6 +9,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +20,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void hs_effect_spawn_at_location(int16_t location_index, uint32_t effect);
 extern void hs_effect_spawn_on_marker(datum_index object_index, datum_index effect, char *marker_name);
-extern data_array *player_data;
 extern int16_t magic_seat_animation_state_0069fde0;
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
@@ -91,7 +91,7 @@ void ObjectCommands::evaluate_effect_new_on_object_marker(int16_t function_index
  */
 void ObjectCommands::evaluate_magic_melee_attack(int16_t function_index, uint32_t thread_index, char first)
 {
-    uint8_t *player = (uint8_t *)player_data->data;
+    uint8_t *player = (uint8_t *)halo::game::globals().player_data->data;
 
     halo::units::unit_try_ready_weapon(*(uint32_t *)&((struct player *)player)->unit, 0, 0);
     hs_thread_return(0, thread_index);

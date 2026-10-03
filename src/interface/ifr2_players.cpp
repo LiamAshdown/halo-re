@@ -27,8 +27,6 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern int16_t profile_slot_id[];
 extern char player_help_name_a10[];
 extern char player_help_name_a30[];
@@ -56,7 +54,6 @@ extern uint16_t hud_text_unknown[];
 extern network_client_globals *network_client;
 extern network_server_globals *network_server;
 extern uint8_t profile_globals_block[];
-extern game_engine_definition *current_game_engine;
 extern uint8_t port_overridden;
 extern uint32_t network_game_socket_port;
 extern uint32_t game_cport;
@@ -163,11 +160,11 @@ int32_t LocalPlayers::index_for_unit(datum_index unit_index)
     player *record;
 
     for (i = 0; i < 1; i++) {
-        if (local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)0xffffffff) {
             continue;
         }
-        record = (player *)((char *)player_data->data +
-                             (local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+        record = (player *)((char *)halo::game::globals().player_data->data +
+                             (halo::game::globals().local_player_globals->local_players[i] & 0xffff) * sizeof(player));
         if (record->unit == unit_index) {
             return i;
         }
@@ -190,11 +187,11 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
     int16_t slot;
 
     for (i = 0; i < 1; i++) {
-        if (local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)0xffffffff) {
             continue;
         }
-        record = (player *)((char *)player_data->data +
-                             (local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+        record = (player *)((char *)halo::game::globals().player_data->data +
+                             (halo::game::globals().local_player_globals->local_players[i] & 0xffff) * sizeof(player));
         if (record->unit == (datum_index)0xffffffff) {
             continue;
         }
@@ -220,10 +217,10 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     player *p;
     object *unit;
 
-    if (player_index == (datum_index)-1 || index < 0 || index >= player_data->maximum_count) {
+    if (player_index == (datum_index)-1 || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return (datum_index)-1;
     }
-    p = (player *)((uint8_t *)player_data->data + (int32_t)player_data->size * index);
+    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * index);
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
         return (datum_index)-1;
     }
@@ -682,7 +679,7 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     halo::interface::player_profile_apply_video_options(record);
     halo::interface::player_profile_apply_audio_options(record);
 
-    if (current_game_engine == (void *)0 && port_overridden == 0 &&
+    if (halo::game::globals().current_engine == (void *)0 && port_overridden == 0 &&
         (network_game_socket_port != *(uint16_t *)(record + 0x1002) ||
          game_cport != *(uint16_t *)(record + 0x1004))) {
         network_channels_close();
@@ -973,7 +970,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
         return 0;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (controlling_player & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (controlling_player & 0xffff) * sizeof(player));
     local_player = p->local_player_index;
     if (local_player == -1 || local_player != current_local_player_index) {
         return 0;

@@ -8,7 +8,6 @@ extern int32_t *player_control_globals_ptr;
 extern double fabs(double x);
 extern double cos(double x);
 extern double sin(double x);
-extern player_globals *local_player_globals;
 }
 
 namespace halo::effects {
@@ -94,7 +93,7 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
     {
         real blended_b = (1.0f - descriptor[9]) * intensity_falloff + descriptor[9];
         datum_index player_handle = (local_player_index != -1 && local_player_index < 1) ?
-            *(datum_index *)&local_player_globals->local_players[local_player_index] : (datum_index)k_datum_index_none;
+            *(datum_index *)&halo::game::globals().local_player_globals->local_players[local_player_index] : (datum_index)k_datum_index_none;
         real_vector3d forward;
         real_vector3d left;
         real yaw_delta;

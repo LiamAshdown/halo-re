@@ -6,6 +6,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -15,7 +16,6 @@ extern data_array *hs_syntax_data;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int16_t hs_current_thread_index;
 extern uint8_t hs_runtime_active;
-extern game_time_globals *game_time;
 extern int32_t hs_global_get_value(hs_global_reference reference);
 extern int32_t hs_coerce_value(int32_t value, hs_type_t dest_type, hs_type_t source_type);
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
@@ -67,9 +67,9 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
 
     while ((void *)thread->stack != (void *)&thread->stack_data) {
         if (thread->wake_tick < 0 ||
-            (game_time->initialized != 0 &&
-             (game_time->active != 0 || game_time->paused != 0) &&
-             game_time->game_time < thread->wake_tick) ||
+            (halo::game::globals().game_time->initialized != 0 &&
+             (halo::game::globals().game_time->active != 0 || halo::game::globals().game_time->paused != 0) &&
+             halo::game::globals().game_time->game_time < thread->wake_tick) ||
             hs_runtime_active == 0) {
             break;
         }

@@ -29,7 +29,6 @@ extern uint8_t network_statistics_logging_enabled;
 extern FILE *network_summary_log_file;
 extern char network_build_string[];
 extern char network_game_scenario_load_request(network_game_session *session);
-extern data_array *player_data;
 extern uint32_t player_data_iterator_advance(int16_t step_count);
 extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length);
 extern uint16_t network_challenge_packet_block[];
@@ -62,15 +61,12 @@ extern void network_machine_timer_start(network_machine *machine, int32_t durati
 extern char network_server_check_machine_timeout(network_server_globals *server, network_machine *machine);
 extern char network_channel_drain_bitstream(network_server_globals *server, network_machine *machine);
 extern char network_channel_queue_message(network_channel *channel, uint32_t header_value, uint32_t body_value, int32_t header_bit_count, char immediate, char flush_after, int32_t body_bit_count);
-extern player_globals *local_player_globals;
 extern void *variant_defaults_source;
 extern uint8_t game_engine_pending_variant[0x98];
 extern int32_t join_ui_state;
 extern int32_t ui_root_widget;
 extern int32_t ui_widget_history;
 extern uint8_t ui_pause_depth;
-extern int32_t controls_capture_row;
-extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0x280];
 extern void message_delta_parameters_protocol_dump_to_config_file(void);
 extern void network_stats_summary_log_write(void);
@@ -229,7 +225,7 @@ uint32_t ServerView::record_last_sender(int32_t sender, int16_t step_count)
         return 0;
     }
     if (server->session.map_loaded != 0 && resolved != 0 && sender != -1) {
-        *(int32_t *)((uint8_t *)player_data->data + (resolved & 0xffff) * 0x200 + 0xd0) = sender;
+        *(int32_t *)((uint8_t *)halo::game::globals().player_data->data + (resolved & 0xffff) * 0x200 + 0xd0) = sender;
     }
     return 1;
 }
@@ -684,8 +680,8 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
 
     is_host = (host->flags >> 2) & 1;
     if (!is_host) {
-        if (local_player_globals->local_players[0] != (datum_index)-1) {
-            struct player *local_player = (struct player *)halo::memory::datum_get(local_player_globals->local_players[0], player_data);
+        if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
+            struct player *local_player = (struct player *)halo::memory::datum_get(halo::game::globals().local_player_globals->local_players[0], halo::game::globals().player_data);
             if (local_player != 0) {
                 network_client->team_index = *(int32_t *)((uint8_t *)local_player + 0x20);
             }
@@ -750,10 +746,10 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
         halo::interface::widget_pool_list_free_all((widget_history_node **)&ui_widget_history);
     }
     ui_pause_depth = 0;
-    if (controls_capture_row != -1) {
-        controls_input_capture_flags = controls_input_capture_flags & 0xf7;
+    if (halo::interface::globals().controls_capture_row != -1) {
+        halo::interface::globals().controls_input_capture_flags = halo::interface::globals().controls_input_capture_flags & 0xf7;
         memset(controls_input_capture_buffer, 0, sizeof(controls_input_capture_buffer));
-        controls_capture_row = -1;
+        halo::interface::globals().controls_capture_row = -1;
     }
     host->handshake_blocked = 0;
 

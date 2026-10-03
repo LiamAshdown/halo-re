@@ -41,7 +41,6 @@ extern void * actor_mode_default_look_weights;
 extern void * server_browser_join_target;
 extern uint8_t server_browser_join_target_has_password;
 extern uint16_t network_join_target_address[128];
-extern virtual_keyboard_globals virtual_keyboard;
 extern int32_t mouse_device;
 extern int32_t mouse_neutral_state[3];
 extern int32_t live_mouse_state[3];
@@ -60,7 +59,6 @@ extern int32_t master_server_connection_last_tick_ms;
 extern autopatch_download_slot autopatch_download_slots[k_network_autopatch_download_slots];
 extern uint8_t server_browser_require_valid_entry;
 extern int32_t server_browser_total_players;
-extern heap * widget_memory_pool;
 extern char k_empty_string[];
 extern wchar_t empty_string[];
 extern int32_t network_join_request_resolve_host(void);
@@ -74,8 +72,6 @@ extern ticker_text_buffer server_browser_variant_ticker;
 extern void master_server_list_refresh_request(void);
 extern uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
 extern wchar_t string_widen_scratch[0x400];
-extern int32_t map_list_count;
-extern map_list_entry * map_list;
 extern char server_browser_custom_options_text[];
 extern int32_t sprintf(char *buffer, const char *format, ...);
 extern int32_t sscanf(const char *buffer, const char *format, ...);
@@ -306,7 +302,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
                 halo::interface::widget_close_all();
                 return 1;
             }
-        } else if (virtual_keyboard.committed != 0) {
+        } else if (halo::interface::globals().virtual_keyboard.committed != 0) {
             password_panel = browser_widget->parent->first_child->next_sibling->next_sibling->next_sibling;
             password_panel->visible = 1;
             password_panel->hidden = 0;
@@ -466,7 +462,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 
         w_iter = browser_widget->status_root->first_child;
         if (bVar11) {
-            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
+            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, halo::interface::globals().widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 6);
@@ -476,7 +472,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
+            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, halo::interface::globals().widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 7);
@@ -486,7 +482,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
+            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, halo::interface::globals().widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 if (player_count < 1) {
@@ -677,13 +673,13 @@ void ServerBrowser::map_list_matching_substring(uint32_t argument_count, char **
     }
     halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Maps matching substring \"%s\" :", filter);
     i = 0;
-    while (i < map_list_count) {
+    while (i < halo::interface::globals().map_list_count) {
         char line[256];
         int32_t on_line = 0;
 
         line[0] = 0;
-        while (i < map_list_count && on_line < 2) {
-            map_list_entry *entry = &map_list[i];
+        while (i < halo::interface::globals().map_list_count && on_line < 2) {
+            map_list_entry *entry = &halo::interface::globals().map_list[i];
             if (entry->cache_file_exists != 0 && entry->path != 0 &&
                 (filter[0] == 0 || strstr(entry->path, filter) != 0)) {
                 char formatted[64];
@@ -1405,7 +1401,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2 = w1->next_sibling;
     w1->highlight_flag = 1;
     w1->visible = flag2 != 0;
-    text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x80, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x80, halo::interface::globals().widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
         wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, server_name));
@@ -1413,7 +1409,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         *(uint16_t *)((uint8_t *)w2->label_text + 0x7e) = 0;
     }
     w1 = w2->next_sibling;
-    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x40, halo::interface::globals().widget_memory_pool);
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         wcsncpy(text, map_name, 0x1f);
@@ -1423,7 +1419,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2 = w1->next_sibling;
     w1->highlight_flag = 1;
     w1->visible = flag3 != 0;
-    text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x40, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x40, halo::interface::globals().widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
         wchar_t *source = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(string_widen_scratch), 0x800, gametype_name));
@@ -1431,7 +1427,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         *(uint16_t *)((uint8_t *)w2->label_text + 0x3e) = 0;
     }
     w1 = w2->next_sibling;
-    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x40, halo::interface::globals().widget_memory_pool);
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (count_a == -1 || count_b == -1) {
@@ -1442,7 +1438,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         }
     }
     w1 = w1->next_sibling;
-    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x10, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x10, halo::interface::globals().widget_memory_pool);
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (0 < ping && ping < 9999) {

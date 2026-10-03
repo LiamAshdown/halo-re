@@ -34,7 +34,6 @@ extern float render_time_since_tick;
 extern float render_time_since_frame;
 extern int16_t render_window_index;
 extern int16_t screenshot_scale;
-extern game_time_globals *game_time;
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
@@ -42,9 +41,6 @@ extern render_fog render_fog_state;
 extern uint8_t render_clip_warning;
 extern uint32_t rasterizer_device_version;
 extern uint8_t rasterizer_caps_flag_68a;
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
-extern player_globals *local_player_globals;
 extern int16_t unknown_00719aac;
 extern void halo::scenario::scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
     real_point3d *camera_position, render_fog *out);
@@ -74,7 +70,7 @@ void draw(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2
 
     frame_time.unknown_08 = 0;
     frame_time.unknown_0c = 0;
-    frame_time.time = (double)game_time->game_time * (1.0 / 30.0) + (double)time_since_tick;
+    frame_time.time = (double)halo::game::globals().game_time->game_time * (1.0 / 30.0) + (double)time_since_tick;
     halo::render::render_cinematic_screen_effect_update(&frame_time);
 
     if (!halo::rasterizer::rasterizer_reset_device_if_needed()) {
@@ -242,10 +238,10 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
                                           &rasterizer_frustum, 1);
 
     attempt_mirror = 1;
-    if (!(current_game_engine != 0 && game_engine_state_value >= _game_engine_state_ended &&
-          game_engine_state_value <= _game_engine_state_post_game)) {
+    if (!(halo::game::globals().current_engine != 0 && halo::game::globals().state >= _game_engine_state_ended &&
+          halo::game::globals().state <= _game_engine_state_post_game)) {
         if (halo::cutscene::globals().cinematic_globals->in_progress == 0) {
-            int16_t local_player_count = local_player_globals->local_player_count;
+            int16_t local_player_count = halo::game::globals().local_player_globals->local_player_count;
             if (local_player_count == 1 && local_player_count != 1) {
                 attempt_mirror = 0;
             }

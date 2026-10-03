@@ -45,8 +45,6 @@ extern uint8_t shared_hud_text_draw_state;
 extern void *ui_root_widget;
 extern void *ui_widget_history;
 extern uint8_t ui_pause_depth;
-extern int32_t controls_capture_row;
-extern uint8_t controls_input_capture_flags;
 extern uint8_t controls_input_capture_buffer[0xa0 * 4];
 extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -422,13 +420,13 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                 halo::interface::widget_pool_list_free_all((widget_history_node **)&ui_widget_history);
             }
             ui_pause_depth = 0;
-            if (controls_capture_row != -1) {
+            if (halo::interface::globals().controls_capture_row != -1) {
                 int32_t i;
-                controls_input_capture_flags &= 0xf7;
+                halo::interface::globals().controls_input_capture_flags &= 0xf7;
                 for (i = 0; i < 0xa0; i++) {
                     ((uint32_t *)controls_input_capture_buffer)[i] = 0;
                 }
-                controls_capture_row = -1;
+                halo::interface::globals().controls_capture_row = -1;
             }
 
             {

@@ -19,12 +19,12 @@
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
-extern int16_t local_player_count;
 extern char known_campaign_levels_00692acc[];
 extern uint8_t pending_difficulty;
 extern uint8_t split_screen_quit_prompt_armed;
@@ -80,7 +80,7 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
 
     (void)widget;
 
-    if (local_player_count >= 2) {
+    if (halo::game::globals().local_player_count >= 2) {
         i = 0;
         while (halo::input::globals().joystick_slot_devices[i] == -1 || i == requested_index) {
             i = i + 1;
@@ -118,7 +118,7 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
     return 1;
 
 report_error:
-    local_player_count = 1;
+    halo::game::globals().local_player_count = 1;
     halo::interface::display_error(0x13, -1, 1, 0);
     return 0;
 }

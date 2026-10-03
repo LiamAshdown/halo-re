@@ -8,6 +8,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -23,7 +24,6 @@ extern chat_gui_set_focus_fn chat_gui_set_focus;
 extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
-extern data_array *player_data;
 extern wchar_t empty_string;
 extern uint8_t message_delta_decode_compound_field(void *event, chat_incoming_record *out_record);
 extern void message_delta_decode_compound_field_staged(void *event);
@@ -97,7 +97,7 @@ int32_t ChatDialog::default_team_channel(void)
     data_iterator iterator;
     player *entry;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -140,7 +140,7 @@ bool PlayerChatSource::accepts(const chat_incoming_record &record) const
 void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text) const
 {
     wchar_t line[0x200];
-    player *sender = (player *)halo::memory::datum_get((datum_index)record.player_index, player_data);
+    player *sender = (player *)halo::memory::datum_get((datum_index)record.player_index, halo::game::globals().player_data);
 
     if (sender == 0) {
         return;

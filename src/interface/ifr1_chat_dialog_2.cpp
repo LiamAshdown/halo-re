@@ -12,7 +12,6 @@
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
-extern data_array *player_data;
 extern network_server_globals *network_server;
 extern const uint16_t chat_local_prompt_string[];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -49,10 +48,10 @@ typedef struct chat_relay_message {
 
 static void chat_relay_iterator_begin(data_iterator *iterator)
 {
-    iterator->data = player_data;
+    iterator->data = halo::game::globals().player_data;
     iterator->next_index = 0;
     iterator->index = (datum_index)0xffffffff;
-    iterator->signature = (uint32_t)(uintptr_t)player_data ^ k_data_iterator_signature;
+    iterator->signature = (uint32_t)(uintptr_t)halo::game::globals().player_data ^ k_data_iterator_signature;
 }
 
 namespace halo::interface {
@@ -84,7 +83,7 @@ void ChatDialog::queue_team_message(int32_t team_index)
         return;
     }
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -162,7 +161,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
     if (message.scope == 0) {
         network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 1, 3);
     } else if (message.scope == 1) {
-        uint8_t *sender_player = (uint8_t *)halo::memory::datum_get((datum_index)message.sender, player_data);
+        uint8_t *sender_player = (uint8_t *)halo::memory::datum_get((datum_index)message.sender, halo::game::globals().player_data);
 
         if (sender_player == 0) {
             return;

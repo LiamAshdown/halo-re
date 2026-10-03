@@ -9,6 +9,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -29,14 +30,12 @@ extern uint8_t shell_window_maximized;
 extern void *shell_arrow_cursor;
 extern int32_t nowindowskey;
 
-extern int32_t game_time_force_single_tick;
 
 extern void *rasterizer_window_icon_dc;
 extern void *rasterizer_window_icon_bitmap;
 
 extern uint8_t sound_paused;
 
-extern uint8_t chat_dialog_open;
 
 extern void *keystone_module;
 extern void *chat_gui_root_handle;
@@ -252,7 +251,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             return 1;
 
         case 0x1c:
-            if (halo::rasterizer::globals().window_requested == 0 && game_time_force_single_tick == 0 && shell_window != 0) {
+            if (halo::rasterizer::globals().window_requested == 0 && halo::game::globals().time_force_single_tick == 0 && shell_window != 0) {
                 handle_activate_app(wparam == 0);
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
@@ -372,14 +371,14 @@ keystone_dispatch:
         }
         if (message == 0x100) {
             if (wparam == 0xd) {
-                if (chat_dialog_open != 0) {
+                if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::interface::chat_submit_input();
                     halo::input::input_key_block_timer_set(0x38, 200);
                     halo::input::input_key_block_timer_set(0x66, 200);
                     return 0;
                 }
             } else if (wparam == 0x1b) {
-                if (chat_dialog_open != 0) {
+                if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::input::input_key_block_timer_set(0, 0xfa);
                 }
                 halo::interface::chat_close();

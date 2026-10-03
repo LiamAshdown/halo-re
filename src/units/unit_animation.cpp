@@ -30,7 +30,6 @@ extern float unit_speech_repeat_seconds[];
 extern char *unit_base_animation_state_names[6];
 extern data_array *actor_data;
 extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
-extern game_time_globals *game_time;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
@@ -492,11 +491,11 @@ void UnitView::evaluate_flee_reaction()
         unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
         (int8_t)unit->weapon_control_idle_ticks > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
-         (int32_t)(biped->last_falling_reaction_tick + 0xf) < game_time->game_time)) {
+         (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
         real_vector3d direction;
         real_vector3d normal;
 
-        biped->last_falling_reaction_tick = game_time->game_time;
+        biped->last_falling_reaction_tick = halo::game::globals().game_time->game_time;
         if (UnitView(object_index).test_placement_candidate(global_down3d_pointer, 0, 8.0f, 0) == -1) {
             direction.i = parent->velocity.i * 60.0f;
             direction.j = parent->velocity.j * 60.0f;

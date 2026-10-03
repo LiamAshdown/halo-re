@@ -7,6 +7,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -577,7 +578,6 @@ extern "C" void actor_mode_obey_exit(uint32_t actor_index)
 namespace c_actor_mode_obey_process {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback,
     uint32_t callback_extra, uint16_t *caller_record);
 extern void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index,
@@ -615,7 +615,7 @@ uint8_t halo::ai::obey_mode::process()
             }
         }
         if (mark) {
-            ((struct actor *)actor)->command_list_finished_time = game_time->game_time;
+            ((struct actor *)actor)->command_list_finished_time = halo::game::globals().game_time->game_time;
             mode_data[5] = 1;
         }
     }

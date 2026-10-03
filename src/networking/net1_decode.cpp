@@ -51,7 +51,6 @@ extern void gcd_compute_response(void *a, void *request, uint8_t *out);
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern network_server_globals *network_server;
-extern game_time_globals *game_time;
 extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream, const uint32_t *sender);
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
 extern char network_game_message_decode_dispatch(network_client_globals *client, uint16_t *record, int32_t record_length, const uint32_t *sender);
@@ -539,7 +538,7 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
     }
 
     if (*(uint32_t *)record <= (uint32_t)client->last_update_id ||
-        (network_server == 0 && (uint32_t)game_time->game_time == *(uint32_t *)(record + 8) &&
+        (network_server == 0 && (uint32_t)halo::game::globals().game_time->game_time == *(uint32_t *)(record + 8) &&
          *(uint32_t *)(record + 4) != halo::math::globals().random_seed_global)) {
         network_disconnect_notify_dropped_machines(client);
     }

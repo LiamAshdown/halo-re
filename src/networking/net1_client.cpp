@@ -23,7 +23,6 @@ extern network_client_globals *network_session_create(void);
 extern void network_debug_fill_canary_buffer(void);
 extern int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client, const uint32_t *session_info);
 extern datum_index machine_to_player[16];
-extern data_array *player_data;
 extern uint8_t network_stats_enabled_gate;
 extern main_globals main_globals_data;
 extern int32_t network_connect_timeout_ms;
@@ -43,7 +42,6 @@ extern void message_delta_decode_compound_field_staged(void *decode_context);
 extern void *global_white_argb;
 extern int32_t network_channel_service_close_if_disconnected(network_channel *channel);
 extern network_server_globals *network_server;
-extern player_globals *local_player_globals;
 extern void network_client_globals_dispose(void);
 extern void network_client_globals_create(void);
 extern uint8_t network_channel_table_default_flag;
@@ -83,7 +81,6 @@ extern char network_player_entry_validate(network_player_entry *entry);
 extern char network_player_entry_add(network_player_entry *entry, network_game_session *session);
 extern int32_t network_channel_key_open(network_player_entry *entry);
 extern int32_t player_data_iterator_advance(int16_t step_count);
-extern data_array *update_client_queues;
 extern network_client_globals network_client_storage;
 extern void message_delta_protocol_initialize(void);
 extern network_channel *network_channel_new(uint32_t flags);
@@ -200,10 +197,10 @@ uint32_t ClientView::check_connection_quality(uint32_t machine_index, uint8_t un
         return 0;
     }
     player_index = (int16_t)resolved;
-    if (player_index < 0 || player_index >= player_data->maximum_count) {
+    if (player_index < 0 || player_index >= halo::game::globals().player_data->maximum_count) {
         return 0;
     }
-    plr = (player *)((uint8_t *)player_data->data + player_data->size * player_index);
+    plr = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * player_index);
     if (plr->identifier == 0) {
         return 0;
     }
@@ -462,8 +459,8 @@ int32_t ClientView::identity_tick()
         wcsncpy(name, (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
 
         if (network_server == 0) {
-            if (*(int32_t *)local_player_globals->local_players != -1) {
-                void *player = halo::memory::datum_get(*(datum_index *)local_player_globals->local_players, player_data);
+            if (*(int32_t *)halo::game::globals().local_player_globals->local_players != -1) {
+                void *player = halo::memory::datum_get(*(datum_index *)halo::game::globals().local_player_globals->local_players, halo::game::globals().player_data);
                 if (player != 0) {
                     local_player_id = ((struct player *)player)->team;
                 }
@@ -510,7 +507,7 @@ void ClientView::send_local_player_updates()
     uint8_t out_changed;
     int32_t encoded_size;
 
-    iter.data = player_data;
+    iter.data = halo::game::globals().player_data;
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -805,7 +802,7 @@ char ClientView::join_finalize(network_player_entry *entry)
         if ((int32_t)row->machine_index == (int32_t)*(uint16_t *)client) {
             halo::game::game_set_local_player(player_handle, (int16_t)row->machine_player_index);
         }
-        halo::memory::datum_new_at_index_with_salt(player_handle, update_client_queues);
+        halo::memory::datum_new_at_index_with_salt(player_handle, halo::game::globals().update_client_queues);
         if (network_server != 0) {
             halo::game::update_server_queue_create_entry(player_handle);
         }
@@ -1031,7 +1028,7 @@ uint8_t ClientView::player_table_index_apply(int32_t table_index, const uint8_t 
     player_slot = player_data_iterator_advance((int8_t)client->session.players[i].slot_index);
     if (client->session.map_loaded != 0 && player_slot != 0 && (uint32_t)player_slot != 0xffffffff &&
         table_index != -1) {
-        player_base = *(uint8_t **)((uint8_t *)player_data + 0x34);
+        player_base = *(uint8_t **)((uint8_t *)halo::game::globals().player_data + 0x34);
         *(int32_t *)(player_base + ((uint32_t)player_slot & 0xffff) * 0x200 + 0xd0) = table_index;
     }
     return 1;

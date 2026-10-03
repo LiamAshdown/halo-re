@@ -40,12 +40,7 @@ extern void network_banlist_load(void);
 extern uint8_t string_is_numeric(char *string);
 extern uint8_t network_player_entry_validate(network_player_entry *entry);
 extern int32_t sv_friendly_fire_mode;
-extern game_engine_definition * current_game_engine;
-extern int32_t game_variant_history_current;
-extern game_variant game_variant_saved_default;
-extern uint8_t game_variant_saved_default_valid;
 extern char network_game_start_new_server_from_profile(uint32_t param_1);
-extern game_engine_state game_engine_state_value;
 extern int32_t sv_maxplayers_value;
 extern uint16_t network_server_name[64];
 extern uint8_t network_server_name_is_default;
@@ -54,7 +49,6 @@ extern void network_password_field_set(void);
 extern uint16_t network_server_password[9];
 extern uint8_t network_server_password_is_default;
 extern void network_server_password_set(const wchar_t *source, network_server_globals *server);
-extern data_array * player_data;
 extern wchar_t k_empty_string[];
 extern char network_team_color_name_red[];
 extern char network_team_color_name_blue[];
@@ -96,10 +90,10 @@ static player *sv_players_resolve_player(uint32_t handle)
     int16_t salt = (int16_t)(handle >> 16);
     uint8_t *element;
 
-    if (index < 0 || index >= player_data->maximum_count) {
+    if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return 0;
     }
-    element = (uint8_t *)player_data->data + (int32_t)player_data->size * (int32_t)index;
+    element = (uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * (int32_t)index;
     if (*(int16_t *)element == 0) {
         return 0;
     }
@@ -324,7 +318,7 @@ void ServerCommands::friendly_fire(uint32_t argument_count, int32_t *arguments)
     case 0: label = "0 = default"; break;
     }
     halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_friendly_fire: %s"), label);
-    if (changed && current_game_engine != 0) {
+    if (changed && halo::game::globals().current_engine != 0) {
         halo::interface::chimera__console_out((ColorARGB *)0, (char *)("   Game in progress...  Changes will apply to the next game."));
     }
 }
@@ -359,7 +353,7 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
     if (network_game_mode == 2) {
         halo::game::game_engine_free_custom_variant_cache();
         halo::game::game_engine_variant_add_to_history(0, 0, 0);
-        game_variant_history_current = -1;
+        halo::game::globals().variant_history_current = -1;
         halo::interface::widget_close_all();
         halo::game::game_engine_begin_end_game_sequence();
         halo::main::console_deactivate();
@@ -371,8 +365,8 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
 
         halo::main::main_queue_map_change_by_name_or_clear((char *)"");
         halo::game::game_engine_get_variant_by_name(0, &new_variant);
-        memcpy(&game_variant_saved_default, &new_variant, sizeof(game_variant));
-        game_variant_saved_default_valid = 1;
+        memcpy(&halo::game::globals().variant_saved_default, &new_variant, sizeof(game_variant));
+        halo::game::globals().variant_saved_default_valid = 1;
         if (network_game_start_new_server_from_profile(0) == 0) {
             return;
         }
@@ -391,7 +385,7 @@ void ServerCommands::map_reset(void)
     }
     halo::interface::widget_close_all();
     if (network_game_mode == 2) {
-        if (game_engine_state_value == _game_engine_state_not_started) {
+        if (halo::game::globals().state == _game_engine_state_not_started) {
             halo::game::game_engine_reset_round_objects();
             halo::game::game_engine_send_round_reset_message();
             halo::game::game_engine_player_profile_cache_sync_all(0, (void *)0xffffffff);
@@ -537,7 +531,7 @@ void ServerCommands::players(void)
             score_text[0] = 0;
             if (found != 0xffffffff) {
                 void (*resolve_score_text)(uint32_t, uint16_t *) =
-                    *(void (**)(uint32_t, uint16_t *))((uint8_t *)current_game_engine + 0x54);
+                    *(void (**)(uint32_t, uint16_t *))((uint8_t *)halo::game::globals().current_engine + 0x54);
                 resolve_score_text(found, score_text);
             }
 
@@ -573,7 +567,7 @@ uint32_t ServerCommands::players_find_by_team_index_desired(int8_t team_index_de
     data_iterator iterator;
     player *p;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -617,7 +611,7 @@ void ServerCommands::single_flag_force_reset(uint32_t argument_count, char **arg
 
     console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
 
-    if (new_value != old_value && current_game_engine != 0) {
+    if (new_value != old_value && halo::game::globals().current_engine != 0) {
         halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Game in progress...  Changes will apply to the next game.");
     }
     network_single_flag_force_reset_value = new_value;
@@ -630,7 +624,7 @@ void ServerCommands::status(void)
             int32_t player_count_info = halo::game::players_active_count();
             halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Dedicated server is running on map %s (%d / %d players)",
                                   network_build_string, player_count_info);
-            if (game_engine_state_value == _game_engine_state_not_started) {
+            if (halo::game::globals().state == _game_engine_state_not_started) {
                 halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Use the 'sv_end_game' command to stop the game.");
                 return;
             }
@@ -679,7 +673,7 @@ void ServerCommands::timelimit(uint32_t argument_count, int32_t *arguments)
         halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_timelimit: 0 = infinite"));
     }
 done:
-    if (changed && current_game_engine != 0) {
+    if (changed && halo::game::globals().current_engine != 0) {
         halo::interface::chimera__console_out((ColorARGB *)0, (char *)("   Game in progress...  Changes will apply to the next game."));
     }
 }

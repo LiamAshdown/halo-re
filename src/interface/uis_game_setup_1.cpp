@@ -25,7 +25,6 @@
 #include "halo/interface/api.hpp"
 
 extern "C" {
-extern int16_t local_player_count;
 extern char level_select_current_path_00719068[0x106];
 extern level_select_entry level_select_entries[10];
 extern int32_t cached_saved_game_something;
@@ -77,7 +76,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
     int16_t scan_level = 0;
     int32_t i;
 
-    if (local_player_count > 1) {
+    if (halo::game::globals().local_player_count > 1) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
         halo::interface::ui_build_level_select_list_coop(widget, param_2, param_3);
         return 1;

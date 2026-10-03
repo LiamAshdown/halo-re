@@ -15,7 +15,6 @@ namespace actor_update_firing_state_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern player_globals *local_player_globals;
 extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind);
 extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind);
 extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]);
@@ -175,7 +174,7 @@ void ActorView::update_firing_state()
             if (W(p, 0x100) != -1) {
                 int32_t bit = W(p, 0x100);
 
-                a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
+                a[0x624] = (uint8_t)!(*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
             ((actor *)a)->firing_target_point = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;

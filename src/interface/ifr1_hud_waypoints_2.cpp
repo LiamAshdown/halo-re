@@ -6,9 +6,9 @@
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern Globals *global_globals;
 extern char ai_marker_name_a[];
 extern uint8_t render_frustum_global[];
@@ -30,7 +30,7 @@ namespace halo::interface {
  */
 void HudWaypoints::draw_one(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
     object_marker marker;
     real_point3d world_point;
     real_point3d view_point;

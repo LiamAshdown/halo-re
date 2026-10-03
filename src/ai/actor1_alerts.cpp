@@ -458,7 +458,6 @@ namespace c_actor_consider_combat_mode {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration);
 extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point);
@@ -487,7 +486,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
     uint8_t result = 1;
 
     memset(out, 0, 0x38);
-    *(int32_t *)record = game_time->game_time;
+    *(int32_t *)record = halo::game::globals().game_time->game_time;
 
     if (mode == 5 || mode == 4) {
         ((struct actor_combat_consideration *)record)->mode = mode;
@@ -575,7 +574,6 @@ namespace c_actor_escalate_apply {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -624,7 +622,6 @@ namespace c_actor_escalate_check_leader_flag {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -669,7 +666,6 @@ namespace c_actor_escalate_check_shield_damage {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -716,7 +712,6 @@ namespace c_actor_escalate_check_target_close {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -764,7 +759,6 @@ namespace c_actor_escalate_check_weapon_range {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -874,7 +868,6 @@ namespace c_actor_evaluate_combat_state_transition {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
@@ -941,7 +934,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             !(((actor *)a)->mode == 0xa && (*(int16_t *)(a + 0xa0) == 2 || *(int16_t *)(a + 0xa0) == 3)) &&
             !changed && !a[0x6] && ((actor *)a)->active_unit_index == k_datum_index_none &&
             ((struct actor *)a)->firing_state != 2) {
-            int32_t now = game_time->game_time;
+            int32_t now = halo::game::globals().game_time->game_time;
             uint8_t wide = a[0x378];
             float base_delay;
             float delay;
@@ -990,7 +983,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 if (*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time != -1) {
                     uint8_t *vehicle_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(((actor *)a)->active_unit_index));
 
-                    ready = (float)game_time->game_time >
+                    ready = (float)halo::game::globals().game_time->game_time >
                         *(float *)(vehicle_tag + 0x390) * 30.0f + (float)*(int32_t *)&((struct actor *)a)->last_vehicle_charge_time;
                 }
                 if (ready && seat_kind == 4 && distance > *(float *)(definition + 0x160) &&

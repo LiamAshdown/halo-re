@@ -7,22 +7,19 @@
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
 extern director directors[1];
 extern camera_input_axis_definition camera_input_axes[4];
-extern uint8_t controls_input_capture_flags;
-extern player_globals *local_player_globals;
 extern uint8_t director_camera_switching;
 extern director_pov_proc director_last_pov_proc;
 extern observer observers[1];
 extern uint8_t *hs_camera_control_pointer;
 extern camera_script_globals camera_script;
-extern player_control_globals *player_control_globals_ptr;
-extern data_array *player_data;
 extern float observer_dt;
-extern game_engine_definition *current_game_engine;
 }
 
 namespace halo::camera {
@@ -76,10 +73,10 @@ void CameraSystem::update(float dt)
     camera_input input;
     observer_command command;
 
-    director_camera_switching = (controls_input_capture_flags == 1);
+    director_camera_switching = (halo::interface::globals().controls_input_capture_flags == 1);
     camera_director_globals.dt = dt;
 
-    if (local_player_globals->local_players[0] == k_datum_index_none) {
+    if (halo::game::globals().local_player_globals->local_players[0] == k_datum_index_none) {
         return;
     }
 
@@ -119,7 +116,7 @@ void CameraSystem::update(float dt)
 
     if (directors[0].pov_proc != (director_pov_proc)0 &&
         (directors[0].pov_proc != halo::camera::camera_debug_compute_pov ||
-         local_player_globals->local_players[0] != k_datum_index_none)) {
+         halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none)) {
         directors[0].pov_proc(&directors[0].data, &input, &command);
     }
     director_last_pov_proc = directors[0].pov_proc;
@@ -187,7 +184,7 @@ void CameraSystem::control(uint8_t enable)
 
     {
         int16_t third_person = halo::camera::camera_get_seat_camera_state(
-            player_control_globals_ptr->local_players[0].unit, &seat_camera_state);
+            halo::game::globals().player_control->local_players[0].unit, &seat_camera_state);
 
         directors[0].unknown_c0 = 0;
         directors[0].look_scale = 1.0f;
@@ -230,7 +227,7 @@ uint8_t CameraSystem::is_local_player_default_first_person()
 
     local_player_index = 0;
     while (local_player_index == -1 || local_player_index > 0 ||
-           local_player_globals->local_players[local_player_index] == k_datum_index_none) {
+           halo::game::globals().local_player_globals->local_players[local_player_index] == k_datum_index_none) {
         local_player_index++;
         if (local_player_index > 0) {
             return 0;
@@ -368,11 +365,11 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
     datum_index best;
 
     team = require_same_team
-               ? ((player *)((uint8_t *)player_data->data +
+               ? ((player *)((uint8_t *)halo::game::globals().player_data->data +
                               (halo::datum_slot(reference_player)) * sizeof(player)))->team
                : -1;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -411,10 +408,10 @@ uint8_t CameraSystem::dead_player_has_teammate(datum_index reference_player)
     player *p;
     int32_t team;
 
-    team = ((player *)((uint8_t *)player_data->data +
+    team = ((player *)((uint8_t *)halo::game::globals().player_data->data +
                         (halo::datum_slot(reference_player)) * sizeof(player)))->team;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -473,7 +470,7 @@ void CameraSystem::debug_start(int16_t camera_point_index, int16_t ticks, datum_
     halo::camera::camera_update(0.0f); 
     observer_dt = 0.0001f;
 
-    if (local_player_globals->local_players[0] != k_datum_index_none) {
+    if (halo::game::globals().local_player_globals->local_players[0] != k_datum_index_none) {
         observers[0].updated = 1;
         halo::camera::observer_set_command(0);      
         if (observer_dt != 0.0f) {
@@ -592,18 +589,18 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 
     } else {
-        self->retarget_time = (current_game_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
+        self->retarget_time = (halo::game::globals().current_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
     }
 
     if (local_player_index == -1 || local_player_index > 0) {
         local_player = k_datum_index_none; 
     } else {
-        local_player = local_player_globals->local_players[local_player_index];
+        local_player = halo::game::globals().local_player_globals->local_players[local_player_index];
     }
     self->local_player = local_player;
 
     if (unit == k_datum_index_none) {
-        player *p = (player *)((uint8_t *)player_data->data + (halo::datum_slot(local_player)) * sizeof(player));
+        player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (halo::datum_slot(local_player)) * sizeof(player));
         self->target_unit = p->previous_unit; 
     } else {
         self->target_unit = unit;

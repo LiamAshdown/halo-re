@@ -18,13 +18,13 @@
 #include "halo/main/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/game/api.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(game_state_header) == k_game_state_header_size);
 
 extern "C" {
-extern game_time_globals *game_time;
 extern int32_t game_state_revert_time;
 extern uint8_t *game_state_snapshot_source;
 extern uint8_t game_state_write_buffer_allocated;
@@ -38,7 +38,6 @@ extern void *game_state_write_event;
 extern game_state_header *game_state_header_ptr;
 extern uint8_t game_state_header_valid;
 extern uint8_t game_state_revert_available;
-extern int16_t local_player_count;
 extern uint32_t cache_file_current_header_crc32;
 extern uint32_t game_state_crc;
 extern void *game_state_persistent_storage;
@@ -71,10 +70,10 @@ namespace halo::saved_games::game_state {
  */
 void after_load_restore_time(void)
 {
-    game_state_revert_time = game_time->game_time;
-    game_time->paused = 0;
-    if (game_time->initialized != 0) {
-        game_time->active = 1;
+    game_state_revert_time = halo::game::globals().game_time->game_time;
+    halo::game::globals().game_time->paused = 0;
+    if (halo::game::globals().game_time->initialized != 0) {
+        halo::game::globals().game_time->active = 1;
     }
 }
 
@@ -142,7 +141,7 @@ void build_header(void)
     header->build_version[9] = '0'; header->build_version[10] = '6'; header->build_version[11] = '2';
     header->build_version[12] = '1'; header->build_version[13] = '\0';
 
-    header->local_player_count = local_player_count;
+    header->local_player_count = halo::game::globals().local_player_count;
     header->difficulty = halo::main::globals().game_globals->difficulty;
     header->map_checksum = cache_file_current_header_crc32;
     header->allocation_checksum = game_state_crc;

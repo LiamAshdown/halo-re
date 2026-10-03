@@ -7,6 +7,14 @@
 
 #include <stdint.h>
 
+struct HUDGlobals;
+struct first_person_weapon_interface;
+struct heap;
+struct hud_messaging_globals;
+struct hud_unit_meter_globals;
+struct map_list_entry;
+struct virtual_keyboard_globals;
+
 #ifdef interface
 #undef interface
 #endif
@@ -52,6 +60,34 @@ typedef uint32_t datum_index;
 typedef uint8_t (*ui_list_item_format_function)(void *item_buffer, int32_t item_index, void *list_items);
 
 namespace halo::interface {
+
+/**
+ * The engine globals the interface module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    uint8_t &chat_dialog_open;
+    int32_t &controls_capture_row;
+    uint8_t &controls_input_capture_flags;
+    int16_t &current_local_player_index;
+    map_list_entry *&map_list;
+    int32_t &map_list_count;
+    uint8_t &quit_confirm_error_is_error;
+    uint8_t &quit_confirm_error_modal;
+    int16_t &quit_confirm_error_string_index;
+    int16_t &quit_confirm_error_unknown_ae;
+    int32_t &selected_saved_item;
+    uint8_t &split_screen_quit_prompt_armed;
+    heap *&widget_memory_pool;
+    uint8_t &widget_memory_pool_valid;
+    virtual_keyboard_globals &virtual_keyboard;
+    HUDGlobals *&hud_globals_tag_data;
+    hud_messaging_globals *&hud_messaging;
+    hud_unit_meter_globals *&hud_unit_meters;
+    first_person_weapon_interface *&first_person_weapon_interfaces;
+};
+
+Globals &globals();
 
 uint32_t audio_options_apply_from_profile(widget_instance *widget);
 void autopatch_status_widget_update(uint8_t *record);

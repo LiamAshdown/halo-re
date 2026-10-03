@@ -6,22 +6,18 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
 extern uint32_t render_viewport_top;
 extern HUDGlobals *hud_globals_tag_data;
-extern game_time_globals *game_time;
-extern player_globals *local_player_globals;
 extern int32_t __ftol(double x);
-extern game_engine_definition *current_game_engine;
 extern float sinf(float x);
 extern float cosf(float x);
 extern float sqrtf(float x);
 extern float atan2f(float y, float x);
 extern long lrint(double x);
-extern data_array *player_data;
-extern player_control_globals *player_control_globals_ptr;
 extern float hud_multitexture_effector_counter;
 extern Globals *global_globals;
 }
@@ -29,7 +25,7 @@ extern Globals *global_globals;
 static datum_index hud_local_player_index_to_player(int16_t local_player_index)
 {
     if (local_player_index != -1 && local_player_index < 1) {
-        return local_player_globals->local_players[local_player_index];
+        return halo::game::globals().local_player_globals->local_players[local_player_index];
     }
     return (datum_index)-1;
 }
@@ -273,7 +269,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     uv_offset = 0;
     frame = 0;
     if (information->frame_rate != 0) {
-        frame = game_time->game_time / (int32_t)information->frame_rate;
+        frame = halo::game::globals().game_time->game_time / (int32_t)information->frame_rate;
     }
     halo::interface::hud_meter_resolve_bitmap_frame(*(datum_index *)&hud_globals_tag_data->icon_bitmap.tag_id,
                                    (int16_t)information->sequence_index, (uint16_t)frame, (void **)&bitmap,
@@ -284,7 +280,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     uv = (const float *)uv_offset;
 
     scale = 0.75f;
-    if (local_player_globals->local_player_count <= 1) {
+    if (halo::game::globals().local_player_globals->local_player_count <= 1) {
         scale = 1.0f;
     }
     x = (int16_t)__ftol((double)((float)information->offset.x * scale + (float)cursor->left));
@@ -321,7 +317,7 @@ void HudDraw::message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const 
     halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
-    if (allow_button_prompts != 0 && current_game_engine != 0) {
+    if (allow_button_prompts != 0 && halo::game::globals().current_engine != 0) {
         halo::interface::ui_widget_draw_formatted_prompt_string(&bounds, 1, text);
     } else {
         halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
@@ -367,7 +363,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
     cosine = cosf(rotation);
 
     halo::interface::hud_player_weapon_ammo_state(
-        (const player *)((uint8_t *)player_data->data + (hud_local_player_index_to_player(local_player_index) & 0xffff) * 0x200),
+        (const player *)((uint8_t *)halo::game::globals().player_data->data + (hud_local_player_index_to_player(local_player_index) & 0xffff) * 0x200),
         &ammo);
 
     x = 0.0f;
@@ -396,7 +392,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
     state.map_scales[0].y = 1.0f;
     state.map_scales[0].x = 1.0f;
     state.meter_parameters = 0;
-    state.single_local_player = local_player_globals->local_player_count == 1;
+    state.single_local_player = halo::game::globals().local_player_globals->local_player_count == 1;
     state.maps[0] = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->primary.tag_id, 0, 0);
     state.maps[1] = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->secondary.tag_id, 0, 0);
     state.maps[2] = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->tertiary.tag_id, 0, 0);
@@ -456,7 +452,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
             const float *aim;
 
             if (player_index != (datum_index)-1) {
-                unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->unit;
+                unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->unit;
             }
             aim = (const float *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data + 0x23c);
             value = atan2f(aim[2], sqrtf(aim[0] * aim[0] + aim[1] * aim[1]));
@@ -481,7 +477,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
         case 7: {
             int16_t zoom = -1;
             if (local_player_index != -1) {
-                zoom = player_control_globals_ptr->local_players[local_player_index].desired_zoom_level;
+                zoom = halo::game::globals().player_control->local_players[local_player_index].desired_zoom_level;
             }
             value = (float)zoom;
             break;
@@ -702,7 +698,7 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
         }
 
         if ((*(const uint8_t *)&overlay->flags & 1) != 0 && (draw_flags & 1) != 0 && overlay->frame_rate > 0) {
-            frame = ((game_time->game_time - flash_start_time) / overlay->frame_rate) / 30 %
+            frame = ((halo::game::globals().game_time->game_time - flash_start_time) / overlay->frame_rate) / 30 %
                     (int32_t)sequence->sprites.count;
         } else {
             frame = 0;

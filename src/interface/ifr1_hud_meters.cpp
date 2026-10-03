@@ -6,15 +6,13 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern double cos(double x);
 extern double sqrt(double x);
 extern double fmod(double x, double y);
-extern game_time_globals *game_time;
-extern data_array *player_data;
 extern hud_unit_meter_globals *hud_unit_meters;
-extern player_globals *local_player_globals;
 extern hud_globals_flags *hud_flags;
 }
 
@@ -205,7 +203,7 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
         return halo::interface::color_pack_argb_from_real(&default_color);
     }
 
-    cycle_time = (float)fmod((float)(game_time->game_time - start_time) * (1.0f / 30.0f),
+    cycle_time = (float)fmod((float)(halo::game::globals().game_time->game_time - start_time) * (1.0f / 30.0f),
                              flash->flash_period);
     halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
     halo::bitmaps::color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
@@ -308,10 +306,10 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
         return;
     }
     index = (int16_t)player_index;
-    if (index < 0 || index >= player_data->maximum_count) {
+    if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    p = (player *)((uint8_t *)player_data->data + player_data->size * index);
+    p = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index);
     if (p->identifier == 0) {
         return;
     }
@@ -335,11 +333,11 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
  */
 void HudMeters::unit_meters_update(void)
 {
-    int16_t local_player_index = local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
+    int16_t local_player_index = halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 ? 0 : -1;
 
     while (local_player_index != -1) {
         halo::interface::hud_unit_meters_update_for_player(local_player_index);
-        local_player_index = (local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0)
+        local_player_index = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1 && local_player_index < 0)
                                  ? 0 : -1;
     }
 }
@@ -356,9 +354,9 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
     datum_index player_index;
 
     if (local_player_index != -1 && local_player_index < 1) {
-        player_index = local_player_globals->local_players[local_player_index];
+        player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
-            datum_index unit_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->unit;
+            datum_index unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->unit;
 
             if (unit_index != (datum_index)-1) {
                 uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
@@ -375,37 +373,37 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
                     int32_t elapsed;
 
                     if (state->shield_drain_time < 0.0f || state->shield_drain_time > 1.0f) {
-                        state->shield_update_time = game_time->game_time;
+                        state->shield_update_time = halo::game::globals().game_time->game_time;
                     }
-                    elapsed = game_time->game_time - state->shield_update_time;
+                    elapsed = halo::game::globals().game_time->game_time - state->shield_update_time;
                     if (elapsed < 0xf) {
                         state->shield_drain_time = 0.0f;
                     } else {
                         state->displayed_shield = ((unit_object *)unit)->base.shield_vitality;
-                        state->shield_drain_time = (float)(game_time->game_time - state->shield_update_time) *
+                        state->shield_drain_time = (float)(halo::game::globals().game_time->game_time - state->shield_update_time) *
                                                        0.03333333507180214f + state->shield_drain_time;
-                        state->shield_update_time = game_time->game_time;
+                        state->shield_update_time = halo::game::globals().game_time->game_time;
                     }
                 } else if (state->displayed_shield < shield) {
                     state->displayed_shield = shield;
                     state->shield_drain_time = -1.0f;
-                    state->shield_update_time = game_time->game_time;
+                    state->shield_update_time = halo::game::globals().game_time->game_time;
                 } else {
                     state->displayed_shield = shield;
                     if (state->shield_drain_time > 0.0f) {
-                        state->shield_drain_time = (float)(game_time->game_time - state->shield_update_time) *
+                        state->shield_drain_time = (float)(halo::game::globals().game_time->game_time - state->shield_update_time) *
                                                        0.03333333507180214f + state->shield_drain_time;
                     }
-                    state->shield_update_time = game_time->game_time;
+                    state->shield_update_time = halo::game::globals().game_time->game_time;
                 }
             }
         }
     }
 
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
-        player_index = local_player_globals->local_players[local_player_index];
+        player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
-            halo::interface::hud_unit_sounds_update((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200),
+            halo::interface::hud_unit_sounds_update((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200),
                                    hud_flags->hud_enabled);
         }
     }

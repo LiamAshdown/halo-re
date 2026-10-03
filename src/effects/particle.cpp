@@ -18,7 +18,6 @@ extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t cre
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const real_vector3d *global_down3d_pointer;
 extern char *particle_impact_vector_names[2];
-extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -254,7 +253,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     }
     cluster = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + ((uint32_t)leaf & 0x7fffffff) * 0x10 + 8);
 
-    visible = *(uint32_t *)((uint8_t *)local_player_globals + 0x58 + (cluster >> 5) * 4) &
+    visible = *(uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x58 + (cluster >> 5) * 4) &
         (1u << (cluster & 0x1f));
     if (visible == 0) {
         return;
@@ -290,7 +289,7 @@ void particle_ref::create(particle_creation_data *creation_data)
 
             speed = halo::math::random_range_real(tag->lifespan[0], tag->lifespan[1]);
             if (speed > 0.7f) {
-                speed = (speed - 0.7f) / (real)local_player_globals->local_player_count + 0.7f;
+                speed = (speed - 0.7f) / (real)halo::game::globals().local_player_globals->local_player_count + 0.7f;
             }
             self->lifespan = speed;
 

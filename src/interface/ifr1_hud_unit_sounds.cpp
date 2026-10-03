@@ -12,7 +12,6 @@ extern data_array *game_looping_sound_data;
 extern void sound_impulse_fade_out(int32_t sound_handle);
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
-extern player_globals *local_player_globals;
 extern hud_unit_meter_globals *hud_unit_meters;
 }
 
@@ -104,7 +103,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
         return;
     }
     unit_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
-    choice = (int16_t)(local_player_globals->local_player_count > 1);
+    choice = (int16_t)(halo::game::globals().local_player_globals->local_player_count > 1);
     last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
     if (choice > last) {
         choice = last;

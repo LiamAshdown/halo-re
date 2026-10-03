@@ -12,11 +12,11 @@
 #include "halo/saved_games/layout.hpp"
 #include "halo/input/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/interface/api.hpp"
 
 static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 
 extern "C" {
-extern int32_t selected_saved_item;
 extern int16_t control_keyboard_scan_table[k_control_keyboard_key_count];
 extern int16_t control_mouse_button_scan_table[k_control_mouse_button_count];
 extern int16_t control_mouse_axis_scan_table[k_control_mouse_axis_count][2];
@@ -42,7 +42,7 @@ extern variant_write_request variant_write_request_state;
 void halo::saved_games::ControlBinding::clear_binding() const
 {
     const control_binding_descriptor *binding = self;
-    if ((selected_saved_item & 0xf) != 0) {
+    if ((halo::interface::globals().selected_saved_item & 0xf) != 0) {
         return;
     }
 
@@ -137,7 +137,7 @@ uint8_t halo::saved_games::ControlBinding::find_binding_for_action(const char *a
     control_binding_descriptor *binding = self;
     int16_t action_index;
 
-    if ((selected_saved_item & 0xf) != 0) {
+    if ((halo::interface::globals().selected_saved_item & 0xf) != 0) {
         return 0;
     }
 
@@ -373,7 +373,7 @@ uint8_t halo::saved_games::ControlBinding::set_binding(int16_t value) const
     const control_binding_descriptor *binding = self;
     saved_player_profile *profile;
 
-    if ((selected_saved_item & 0xf) != 0) {
+    if ((halo::interface::globals().selected_saved_item & 0xf) != 0) {
         return 1;
     }
     profile = &saved_item_working_copy;

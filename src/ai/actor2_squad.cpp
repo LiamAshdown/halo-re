@@ -9,6 +9,7 @@
 #include "halo/ai/ai_constants.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -118,7 +119,6 @@ extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
 extern data_array *actor_data;
-extern data_array *player_data;
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
                                                    char *seat_name, int16_t seat_flags, int16_t count);
@@ -293,10 +293,10 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                 uint8_t *player;
                 float best = 3.4028235e38f;
 
-                players.data = player_data;
+                players.data = halo::game::globals().player_data;
                 players.next_index = 0;
                 players.index = k_datum_index_none;
-                players.signature = (uint32_t)(uintptr_t)player_data ^ halo::ai::k_iterator_signature_key;
+                players.signature = (uint32_t)(uintptr_t)halo::game::globals().player_data ^ halo::ai::k_iterator_signature_key;
                 for (player = (uint8_t *)halo::memory::data_iterator_next(&players); player != 0; player = (uint8_t *)halo::memory::data_iterator_next(&players)) {
                     datum_index player_unit = ((struct player *)player)->unit;
 

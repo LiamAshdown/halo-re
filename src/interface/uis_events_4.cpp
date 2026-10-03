@@ -49,8 +49,6 @@ extern uint8_t network_game_info_packet_flag;
 extern int32_t quality_selection_00692b04;
 extern uint8_t network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
 extern int16_t network_game_mode;
-extern game_engine_definition *current_game_engine;
-extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t variant_teams_enabled_0071920c;
 extern int32_t variant_team_selection_00692b08;
 extern uint32_t network_game_option_a_00719210;
@@ -475,7 +473,7 @@ uint8_t UiEventHandlers::event_4a3000(widget_instance *widget, int16_t *event, u
 {
     widget_instance *child = widget->first_child->next_sibling;
 
-    if (network_game_mode == 2 || (current_game_engine != 0 && game_engine_teams_enabled_flag != 0)) {
+    if (network_game_mode == 2 || (halo::game::globals().current_engine != 0 && halo::game::globals().teams_enabled != 0)) {
         child->hidden = 0;
         child->scale = 1.0f;
     } else {
@@ -495,7 +493,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
     widget_instance *child = widget->first_child;
     int32_t i;
 
-    if (current_game_engine != 0 && game_engine_teams_enabled_flag != 0) {
+    if (halo::game::globals().current_engine != 0 && halo::game::globals().teams_enabled != 0) {
         child->hidden = 0;
         child->scale = 1.0f;
     } else {

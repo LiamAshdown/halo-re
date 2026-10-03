@@ -12,11 +12,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern int16_t network_game_mode;
-extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern uint8_t unit_updates_suppressed;
@@ -59,7 +58,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -115,11 +114,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -138,10 +137,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }

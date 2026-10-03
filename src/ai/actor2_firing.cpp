@@ -5,6 +5,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -68,7 +69,6 @@ uint8_t ActorView::reject_firing_position_by_perception(actor_firing_position_qu
 namespace actor_reject_firing_position_by_pursuit_local {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 extern uint8_t ai_pursuit_note_object(datum_index object_index, datum_index encounter_index, int16_t type,
     int32_t min_last_tick);
 extern uint8_t ai_pursuit_check_object(datum_index object_index, datum_index encounter_index, int16_t type,
@@ -94,7 +94,7 @@ uint8_t ActorView::reject_firing_position_by_pursuit(actor_firing_position_query
     uint8_t missed;
     float bonus;
 
-    tick = game_time->game_time;
+    tick = halo::game::globals().game_time->game_time;
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     last_tick = -1;
@@ -1014,7 +1014,6 @@ namespace actor_select_move_position_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 extern int32_t ai_weighted_random_index(int16_t weight_offset, void *base, int16_t stride, uint16_t count,
     uint32_t *exclude_mask);
 }
@@ -1123,7 +1122,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
                 store = 0;
             }
         } else if (select_mode == 4) {
-            forward = (uint8_t)(game_time->game_time & 1);
+            forward = (uint8_t)(halo::game::globals().game_time->game_time & 1);
         }
         if (store && direction_flag != 0) {
             *direction_flag = forward;

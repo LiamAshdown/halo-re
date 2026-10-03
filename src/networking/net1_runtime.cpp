@@ -13,6 +13,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
@@ -65,7 +66,6 @@ extern uint8_t network_update_unknown_869bf;
 extern void network_connection_stats_log_tick(void);
 extern void gt2Think(int32_t socket);
 extern void gamespy_think_all(void);
-extern data_array *player_data;
 extern void *machine_table;
 extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
@@ -727,8 +727,8 @@ void EventFeed::flush(int32_t *queue)
             key_slot = key_slot + 2;
             raw_key = *key_slot;
             if (raw_key != -1 && (int16_t)raw_key >= 0 &&
-                (int16_t)raw_key < player_data->maximum_count) {
-                entry = (uint8_t *)player_data->data + (int16_t)raw_key * player_data->size;
+                (int16_t)raw_key < halo::game::globals().player_data->maximum_count) {
+                entry = (uint8_t *)halo::game::globals().player_data->data + (int16_t)raw_key * halo::game::globals().player_data->size;
                 entry_identifier = *(int16_t *)entry;
                 if (entry_identifier != 0) {
                     entry_salt = (int16_t)((uint32_t)raw_key >> 16);

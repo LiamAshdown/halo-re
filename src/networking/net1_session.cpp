@@ -25,7 +25,6 @@ extern void *object_type_definitions[12];
 extern uint8_t network_message_scratch[0x7ff8];
 extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits, int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);
 extern datum_index machine_to_player[16];
-extern data_array *player_data;
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, void *field_bindings, const void *previous, void *destination);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern char network_client_check_connection_quality(void);
@@ -37,7 +36,6 @@ extern network_server_globals *network_server;
 extern uint32_t profile_globals_block[];
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern game_time_globals *game_time;
 extern uint16_t network_challenge_packet_block[];
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
@@ -55,7 +53,6 @@ extern int32_t interface_loading_screen_progress;
 extern int16_t progress_screen_text;
 extern int16_t progress_screen_subtext;
 extern int32_t interface_loading_screen_request_id;
-extern int32_t game_variant_history_current;
 extern int16_t network_game_mode;
 extern uint8_t network_disconnect_timeout_flag;
 extern int32_t sv_maxplayers_value;
@@ -95,7 +92,6 @@ extern void *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
-extern uint8_t game_engine_teams_enabled_flag;
 extern void gcd_authenticate_user(int32_t game_id, int32_t local_id, uint32_t ip, const char *challenge, const char *response, void *callback, void *instance);
 extern const char *gcd_getkeyhash(int32_t game_id, int32_t local_id);
 extern void gcd_disconnect_user(int32_t game_id, int32_t local_id);
@@ -199,7 +195,7 @@ void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet,
     if (player_datum == (datum_index)0xffffffff) {
         return;
     }
-    plr = (player *)halo::memory::datum_get(player_datum, player_data);
+    plr = (player *)halo::memory::datum_get(player_datum, halo::game::globals().player_data);
     if (plr == 0 || plr->unit == (datum_index)0xffffffff) {
         return;
     }
@@ -210,7 +206,7 @@ void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet,
     for (i = 0; i < 8; i = i + 1) {
         delta[8 + i] = delta[i];
     }
-    plr = (player *)halo::memory::datum_get(player_datum, player_data);
+    plr = (player *)halo::memory::datum_get(player_datum, halo::game::globals().player_data);
     if (plr != 0) {
         plr->unknown_11c = delta[8] & 0x4d0;
     }
@@ -407,7 +403,7 @@ uint32_t GameRuntime::settings_broadcast_send(uint32_t round, uint32_t *record)
     for (i = 0; i < 8; i++) {
         payload[i] = record[i];
     }
-    payload[8] = (uint32_t)(game_time->game_time + 0x21);
+    payload[8] = (uint32_t)(halo::game::globals().game_time->game_time + 0x21);
     capacity = 0x600;
     if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &capacity, 0x18, 1) != 0) {
 
@@ -480,7 +476,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
             network_client_globals_dispose();
             return 0;
         }
-        game_variant_history_current = -1;
+        halo::game::globals().variant_history_current = -1;
         halo::game::game_engine_apply_current_custom_variant();
         halo::game::game_engine_sync_variant_defaults();
         network_game_mode = 2;
@@ -654,7 +650,7 @@ char GameSessionView::scenario_load_request()
         }
     }
     halo::game::cache_file_switch_map_by_path(request.map_name, 1);
-    if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0)) {
+    if (halo::game::globals().game_time->initialized != 0 && (halo::game::globals().game_time->active != 0 || halo::game::globals().game_time->paused != 0)) {
         halo::game::game_stop_current_map();
         halo::game::game_unload_map();
     }
@@ -1108,7 +1104,7 @@ int32_t ObjectOwnership::owner_team_index_desired(object *obj)
     slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
     if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)0xffffffff) {
         resolved = machine_to_player[slot];
-        plr = (player *)halo::memory::datum_get(resolved, player_data);
+        plr = (player *)halo::memory::datum_get(resolved, halo::game::globals().player_data);
         if (plr != 0) {
             return (int32_t)plr->team_index_desired;
         }
@@ -1134,10 +1130,10 @@ void ObjectOwnership::release_ownership_claim(uint8_t slot_index)
         return;
     }
     player_index = (int16_t)datum;
-    if (player_index < 0 || player_index >= player_data->maximum_count) {
+    if (player_index < 0 || player_index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    plr = (player *)((uint8_t *)player_data->data + player_data->size * player_index);
+    plr = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * player_index);
     if (plr->identifier == 0) {
         return;
     }
@@ -1314,7 +1310,7 @@ int32_t HostSession::qr2_count(int32_t key_type, void *user_data)
     if (key_type == 1) {
         return halo::game::players_active_count();
     }
-    if (key_type == 2 && game_engine_teams_enabled_flag != 0) {
+    if (key_type == 2 && halo::game::globals().teams_enabled != 0) {
         return 2;
     }
     return 0;

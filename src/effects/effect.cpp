@@ -6,17 +6,15 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
 extern data_array *effect_location_data;
-extern data_array *player_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
-extern game_time_globals *game_time;
 extern void effect_delete(datum_index effect_handle);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
-extern player_globals *local_player_globals;
 }
 
 namespace halo::effects {
@@ -54,7 +52,7 @@ uint32_t effect_ref::check_object_collisions()
             data_iterator player_iterator;
             player *p;
 
-            player_iterator.data = player_data;
+            player_iterator.data = halo::game::globals().player_data;
             player_iterator.next_index = 0;
             player_iterator.index = k_datum_index_none;
             player_iterator.signature = (uint32_t)(uintptr_t)player_iterator.data ^ k_data_iterator_signature;
@@ -181,7 +179,7 @@ uint8_t effect_ref::first_person_screen_timer_active(datum_index object_index)
 
         if (linked != -1) {
             linked = linked + 0x1e;
-            if (linked < game_time->game_time) {
+            if (linked < halo::game::globals().game_time->game_time) {
                 return 1;
             }
         }
@@ -343,7 +341,7 @@ void effect_ref::update(real dt)
         uint8_t visible = 0;
 
         if (cluster != -1) {
-            uint32_t *bits = (uint32_t *)((uint8_t *)local_player_globals + ((tag[0] & 4) ? 0x18 : 0x58));
+            uint32_t *bits = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + ((tag[0] & 4) ? 0x18 : 0x58));
 
             visible = (bits[cluster >> 5] & (1u << (cluster & 0x1f))) != 0;
         }
@@ -431,7 +429,7 @@ void effect_ref::update(real dt)
                 self->particle_counts[particle] = count;
                 if (count > 6) {
                     self->particle_counts[particle] = (uint8_t)(int32_t)(((real)count - 6.0f) /
-                        (real)*(int16_t *)((uint8_t *)local_player_globals + 0xc) + 6.0f);
+                        (real)*(int16_t *)((uint8_t *)halo::game::globals().local_player_globals + 0xc) + 6.0f);
                 }
             }
             if ((self->flags & 0x10) == 0) {

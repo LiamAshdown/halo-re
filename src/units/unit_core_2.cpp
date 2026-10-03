@@ -24,10 +24,8 @@ extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern data_array *player_data;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t *ai_update_stagger;
-extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern Globals *global_globals;
 extern char *s_stand;
@@ -180,7 +178,7 @@ uint8_t UnitView::update()
             if (test_flag(((struct unit_object *)obj)->unit.flags, units::unit_flag::unknown_10)) {
                 float step = 0.008333334f;
 
-                if (current_game_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
+                if (halo::game::globals().current_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
                     datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {
@@ -280,7 +278,7 @@ controls:
                     *(int32_t *)&((struct unit_object *)obj)->unit.integrated_night_vision_power = 0;
                 }
                 if (halo::game::player_index_from_unit_index(unit_index) != k_datum_index_none &&
-                    *(int16_t *)((uint8_t *)player_data->data +
+                    *(int16_t *)((uint8_t *)halo::game::globals().player_data->data +
                         halo::datum_slot(halo::game::player_index_from_unit_index(unit_index)) * 0x200 + 2) != -1) {
                     datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 

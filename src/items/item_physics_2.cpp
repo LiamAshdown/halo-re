@@ -10,8 +10,6 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
-extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern uint8_t *global_structure_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
@@ -125,7 +123,7 @@ uint8_t item_ref::update()
                     ((item_object *)obj)->base.angular_velocity.i = hit.plane.normal.i * spin;
                     ((item_object *)obj)->base.angular_velocity.j = hit.plane.normal.j * spin;
                     ((item_object *)obj)->base.angular_velocity.k = spin * hit.plane.normal.k;
-                    if (current_game_engine == 0 && (datum_index)((item_object *)obj)->base.owner_linkage == k_datum_index_none) {
+                    if (halo::game::globals().current_engine == 0 && (datum_index)((item_object *)obj)->base.owner_linkage == k_datum_index_none) {
                         halo::objects::object_list_membership_set(item_index, 1);
                     }
                     ((item_object *)obj)->base.flags |= 0x20;
@@ -234,7 +232,7 @@ uint8_t item_ref::update()
         }
     }
     if (((item_object *)obj)->item.flags & 1) {
-        ((item_object *)obj)->item.held_game_time = game_time->game_time;
+        ((item_object *)obj)->item.held_game_time = halo::game::globals().game_time->game_time;
     }
     return 1;
 }

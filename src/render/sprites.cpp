@@ -61,9 +61,7 @@ extern void *rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 extern data_array *contrail_data;
 extern uint8_t particle_spawn_debug_mode;
-extern int16_t current_local_player_index;
 extern data_array *particle_data;
-extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
 }
 
@@ -977,7 +975,7 @@ void particles(void)
     if (!halo::effects::globals().particle_spawn_debug_mode) {
         return;
     }
-    viewer = current_local_player_index;
+    viewer = halo::interface::globals().current_local_player_index;
     if (viewer == -1 || !(uint8_t)halo::render::render_local_player_gunner_seat_visible(viewer)) {
         viewer = 1;
     }
@@ -1080,7 +1078,7 @@ void particles(void)
                     real_vector3d dir;
 
                     if ((p->flags & _particle_first_person_bit) != 0) {
-                        m = (real_matrix4x3 *)first_person_weapon_interfaces[
+                        m = (real_matrix4x3 *)halo::interface::globals().first_person_weapon_interfaces[
                                 p->first_person_weapon_index].node_matrices + p->marker_index;
                     } else {
                         int16_t object_slot = (int16_t)p->object_index;

@@ -4,6 +4,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -157,7 +158,6 @@ void ActorView::mode_uncover_update()
 namespace actor_mode_vehicle_enter_local {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
@@ -173,7 +173,7 @@ void ActorView::mode_vehicle_enter()
     uint8_t *act = ACTOR(actor_index);
 
     *(int16_t *)(act + 0xaa) = 0;
-    *(int32_t *)(act + 0xac) = game_time->game_time;
+    *(int32_t *)(act + 0xac) = halo::game::globals().game_time->game_time;
     *(real_point3d *)(act + 0xb0) = *(real_point3d *)&((actor *)act)->body_position.x;
 }
 
@@ -223,7 +223,6 @@ extern data_array *actor_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 extern int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search);
 extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
@@ -251,7 +250,7 @@ uint8_t ActorView::mode_wait_process()
             if (((struct actor *)act)->mode_data.wait.countdown_150 == 0) {
                 ((struct actor *)act)->mode_data.wait.countdown_150 = 150;
             }
-        } else if (game_time->game_time >= ((struct actor *)act)->mode_data.wait.start_game_time + 2700) {
+        } else if (halo::game::globals().game_time->game_time >= ((struct actor *)act)->mode_data.wait.start_game_time + 2700) {
             act[0x9c] = 1;
         }
     } else {

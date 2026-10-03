@@ -95,7 +95,6 @@ extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *ch
 extern int32_t network_rate_override;
 extern int32_t network_rate_table[];
 extern uint8_t network_channel_service_backoff_bypass;
-extern game_time_globals *game_time;
 extern int16_t network_game_mode;
 extern void network_channel_scan_retransmit_timeouts(network_channel *channel);
 extern char network_channel_listen_service(network_channel *channel, network_channel **out_new_child);
@@ -1468,7 +1467,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
             return 0;
         }
     }
@@ -1544,7 +1543,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
             return 0;
         }
     }

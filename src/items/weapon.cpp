@@ -8,15 +8,14 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern real k_weapon_zoom_fov_maximum;
 extern real k_weapon_zoom_fov_minimum;
 extern char k_empty_string[1];
 extern double pow(double x, double y);
-extern game_time_globals *game_time;
 extern int32_t k_weapon_minimum_age_ticks;
-extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern uint8_t weapon_bottomless_clip;
 extern const real_point3d *global_zero_vector3d_pointer;
@@ -314,7 +313,7 @@ uint8_t weapon_ref::is_old_enough()
     if (stamp == -1) {
         return 1;
     }
-    return stamp + k_weapon_minimum_age_ticks <= game_time->game_time;
+    return stamp + k_weapon_minimum_age_ticks <= halo::game::globals().game_time->game_time;
 }
 
 /**
@@ -335,7 +334,7 @@ uint8_t weapon_ref::is_out_of_ammo()
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
 
     if (wd->age < 1.0f) {
-        if (current_game_engine == 0) return 1;
+        if (halo::game::globals().current_engine == 0) return 1;
         if (weapon_tag->magazines.count < 1) return 1;
         {
             WeaponMagazine *magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer;
@@ -433,7 +432,7 @@ void weapon_ref::magazine_reload_tick(int16_t magazine_index)
 
     {
         int skip = 0;
-        if (current_game_engine == 0) {
+        if (halo::game::globals().current_engine == 0) {
             if (weapon_bottomless_clip != 0 || (id->flags & _item_held_by_player_bit) == 0) skip = 1;
         } else if (weapon_bottomless_clip != 0) {
             skip = 1;

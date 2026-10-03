@@ -8,11 +8,11 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
 extern data_array *actor_data;
-extern player_globals *local_player_globals;
 extern const uint8_t actor_control_animation_state_table[];
 
 }
@@ -48,7 +48,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->aiming_vector_snapshot.i;
     control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->looking_vector_snapshot.i;
 
-    if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != halo::k_dword_none && local_player_globals->input_disabled == 0) {
+    if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != halo::k_dword_none && halo::game::globals().local_player_globals->input_disabled == 0) {
         return;
     }
     if (actor[0x07] != 0) {
@@ -77,7 +77,6 @@ namespace c_actor_begin_vocalization {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 extern float actor_vocalization_duration[14];
 extern int16_t actor_vocalization_variant[14][2];
@@ -133,10 +132,10 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
                 (target->dead != 0 && awareness > 2)) {
                 if (urgent != 0 ||
                     (((target->is_parented == 0 || line < 4) && target->last_attention_time != -1) &&
-                     game_time->game_time < target->last_attention_time + 600)) {
+                     halo::game::globals().game_time->game_time < target->last_attention_time + 600)) {
                     return 0;
                 }
-                target->last_attention_time = game_time->game_time;
+                target->last_attention_time = halo::game::globals().game_time->game_time;
                 if (target->interest_satisfied <= target->interest) {
                     target->interest_satisfied = target->interest;
                 }

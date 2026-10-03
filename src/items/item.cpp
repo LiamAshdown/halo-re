@@ -4,10 +4,10 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern game_time_globals *game_time;
 uint32_t halo::items::item_any_detonating();
 void halo::items::item_detonation_timer_start(uint32_t object_index);
 uint8_t halo::items::item_new(uint32_t object_index);
@@ -81,7 +81,7 @@ uint8_t item_ref::create()
     item_data *id = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
     obj->flags |= 0x6000;
-    id->held_game_time = game_time->game_time;
+    id->held_game_time = halo::game::globals().game_time->game_time;
     id->ignore_object_index = (datum_index)k_datum_index_none;
 
     return 1;
@@ -148,7 +148,7 @@ void item_ref::stamp_age_timestamp()
     uint32_t object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
 
-    obj->network_update_tick = game_time->game_time;
+    obj->network_update_tick = halo::game::globals().game_time->game_time;
 }
 
 }

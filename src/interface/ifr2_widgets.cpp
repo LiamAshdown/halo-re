@@ -9,6 +9,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -21,8 +22,6 @@ extern void *ui_event_function_table[0xbe];
 extern int16_t ui_pause_depth;
 extern uint8_t ui_split_screen;
 extern int16_t network_game_mode;
-extern game_time_globals *game_time;
-extern player_control_globals *player_control_globals_ptr;
 extern widget_history_node *ui_widget_history[3];
 extern int32_t controls_capture_row;
 extern uint8_t controls_input_capture_flags;
@@ -31,7 +30,6 @@ extern uint8_t widget_creating_children;
 extern int32_t ui_cursor_x;
 extern int32_t last_controller_index_00879f50;
 extern virtual_keyboard_globals virtual_keyboard;
-extern player_globals *local_player_globals;
 extern int32_t ui_time_milliseconds;
 extern uint8_t ui_restoring_previous_widget;
 extern uint16_t split_screen_quit_prompt_string;
@@ -126,7 +124,7 @@ void WidgetLifecycle::close()
     widget->closing = 1;
 
     if (widget->controller_index != -1 && widget->parent == (widget_instance *)0) {
-        uint8_t *entry = (uint8_t *)player_control_globals_ptr + (int16_t)widget->controller_index * 0x40 + 0x10;
+        uint8_t *entry = (uint8_t *)halo::game::globals().player_control + (int16_t)widget->controller_index * 0x40 + 0x10;
 
         *(uint16_t *)(entry + 8) |= 0xfff;
         *(uint16_t *)(entry + 10) |= 0xfff;
@@ -160,11 +158,11 @@ void WidgetLifecycle::close()
     if (widget->pauses_game_time == 1 && network_game_mode != 2 &&
         ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth - 1;
-        if (ui_pause_depth == 0 && game_time->paused != 0) {
-            if (game_time->initialized != 0) {
-                game_time->active = 1;
+        if (ui_pause_depth == 0 && halo::game::globals().game_time->paused != 0) {
+            if (halo::game::globals().game_time->initialized != 0) {
+                halo::game::globals().game_time->active = 1;
             }
-            game_time->paused = 0;
+            halo::game::globals().game_time->paused = 0;
         }
     }
 
@@ -587,7 +585,7 @@ void WidgetRender::draw_split_screen_region(Rectangle2D *viewport, int16_t contr
             (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest;
-            int32_t byte_offset = 4 * (clamped_controller + 4 * local_player_globals->local_player_count);
+            int32_t byte_offset = 4 * (clamped_controller + 4 * halo::game::globals().local_player_globals->local_player_count);
             int32_t offset_xy = *(int32_t *)(table + byte_offset);
 
             dest.top = 0;
@@ -899,11 +897,11 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
     }
     if (widget->pauses_game_time == 1 && network_game_mode != 2 && ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth + 1;
-        if (game_time->paused == 0) {
-            if (game_time->initialized != 0) {
-                game_time->active = 0;
+        if (halo::game::globals().game_time->paused == 0) {
+            if (halo::game::globals().game_time->initialized != 0) {
+                halo::game::globals().game_time->active = 0;
             }
-            game_time->paused = 1;
+            halo::game::globals().game_time->paused = 1;
         }
     }
 }

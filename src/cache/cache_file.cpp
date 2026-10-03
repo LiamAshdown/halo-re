@@ -16,10 +16,6 @@
 extern "C" {
 extern char map_path_prefix[];
 extern int32_t os_platform;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
 extern char profile_directory[0x105];
 extern int32_t sound_cache_size_megabytes;
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
@@ -494,11 +490,11 @@ uint8_t cache_files::request_map(char *name, uint8_t quit_on_fail)
 
 resolved:
     if (quit_on_fail == 0) {
-        if (quit_confirm_error_string_index == -1) {
-            quit_confirm_error_string_index = 0x23;
-            quit_confirm_error_unknown_ae = 0;
-            quit_confirm_error_modal = 0;
-            quit_confirm_error_is_error = 0;
+        if (halo::interface::globals().quit_confirm_error_string_index == -1) {
+            halo::interface::globals().quit_confirm_error_string_index = 0x23;
+            halo::interface::globals().quit_confirm_error_unknown_ae = 0;
+            halo::interface::globals().quit_confirm_error_modal = 0;
+            halo::interface::globals().quit_confirm_error_is_error = 0;
         }
         return 0;
     }

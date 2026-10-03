@@ -10,6 +10,7 @@
 #include "halo/tags/flags.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -111,7 +112,6 @@ namespace actor_target_data_refresh_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 extern char ai_marker_name_a[];
 extern char ai_marker_name_b[];
 extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
@@ -177,8 +177,8 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     }
 
     if (((target->swarm_owned != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
-        target->swarm_reassign_time + 0x5a <= game_time->game_time) {
-        target->swarm_reassign_time = game_time->game_time;
+        target->swarm_reassign_time + 0x5a <= halo::game::globals().game_time->game_time) {
+        target->swarm_reassign_time = halo::game::globals().game_time->game_time;
         reassigned = object_find_nearest_squad_member(target->owner_actor_index, (void *)&self->aim_origin, object_index, 0);
         if (reassigned != object_index) {
             target->object_index = reassigned;
@@ -634,7 +634,6 @@ uint8_t ActorView::target_is_visible_or_object_count_ok(int16_t kind)
 namespace actor_target_mark_engaged_local {
 extern "C" {
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index);
 extern float actor_rate_potential_target(datum_index actor_index, datum_index target_prop_index);
 }
@@ -660,7 +659,7 @@ void TargetView::target_mark_engaged(datum_index actor_index, uint8_t mark_engag
         if (target->engaged_ticks == 0) {
             target->engaged_ticks = 1;
         }
-        target->last_engaged_time = game_time->game_time;
+        target->last_engaged_time = halo::game::globals().game_time->game_time;
     }
 
     target->engaged = actor_target_update_active_flag(actor_index, target_prop_index);
@@ -1229,7 +1228,6 @@ static float sqrtf_(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *encounter_data;
-extern game_time_globals *game_time;
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index,
     uint8_t mark_engaged);
@@ -1295,7 +1293,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
     p = &((prop *)prop_data->data)[target_prop_index & halo::k_slot_mask];
     unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->object_index & halo::k_slot_mask].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
-    tick = game_time->game_time;
+    tick = halo::game::globals().game_time->game_time;
 
     team_gate = 0;
     if ((enc != (encounter *)0 && enc->blind != 0) || self->awareness_level == 1) {

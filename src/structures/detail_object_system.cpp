@@ -10,10 +10,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
-extern player_globals *local_player_globals;
-extern int16_t current_local_player_index;
 extern real_point3d render_camera_global;
 extern long lrint(double x);
 }
@@ -46,7 +46,7 @@ void detail_object_system::update_render_list(void)
     detail_object_frame *frame = &globals().detail_objects->frames[0];
     int16_t cell_x, cell_y, cell_z;
 
-    if (local_player_globals->local_player_count != 1 || current_local_player_index == -1) {
+    if (halo::game::globals().local_player_globals->local_player_count != 1 || halo::interface::globals().current_local_player_index == -1) {
         return;
     }
 

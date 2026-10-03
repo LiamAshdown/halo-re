@@ -18,7 +18,6 @@
 extern "C" {
 extern network_server_globals *network_server;
 extern uint8_t network_disconnect_timeout_flag;
-extern int32_t game_variant_history_current;
 extern int16_t network_game_mode;
 extern network_client_globals *network_client;
 extern uint8_t network_host_handoff_requested;
@@ -39,12 +38,9 @@ extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern uint8_t local_team_00714dd8;
 extern void network_game_settings_ack_send(void *client, int32_t unknown);
 extern uint8_t network_player_entry_validate(void);
-extern uint8_t game_variant_saved_default_valid;
-extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
 extern player_profile player_profile_cache[16];
 extern game_variant game_engine_active_variant;
-extern game_engine_state game_engine_state_value;
 }
 
 namespace halo::interface {
@@ -75,7 +71,7 @@ uint8_t NetworkSetup::host_session_start()
             raw[0x274] = 0;
             raw[0x275] = 0;
             *((uint8_t *)raw + 0x9d5) = 1;
-            game_variant_history_current = -1;
+            halo::game::globals().variant_history_current = -1;
             halo::game::game_engine_apply_current_custom_variant();
             halo::game::game_engine_sync_variant_defaults();
             network_game_mode = 2;
@@ -363,14 +359,14 @@ void NetworkSetup::clear_player_ready_flags()
  */
 void NetworkSetup::game_setup_teardown()
 {
-    game_variant_saved_default_valid = 0;
+    halo::game::globals().variant_saved_default_valid = 0;
     network_game_mode = 0;
 
-    if (current_game_engine != (game_engine_definition *)0) {
-        if (current_game_engine->dispose != (void *)0) {
-            ((void (*)(void))current_game_engine->dispose)();
+    if (halo::game::globals().current_engine != (game_engine_definition *)0) {
+        if (halo::game::globals().current_engine->dispose != (void *)0) {
+            ((void (*)(void))halo::game::globals().current_engine->dispose)();
         }
-        current_game_engine = (game_engine_definition *)0;
+        halo::game::globals().current_engine = (game_engine_definition *)0;
     }
 
     if (player_profile_cache_initialized == 1) {
@@ -416,7 +412,7 @@ uint32_t MenuListView::choice_handler()
     if (widget == first_choice) {
         halo::interface::widget_close_all();
         if (network_game_mode == 2) {
-            if (game_engine_state_value == 0) {
+            if (halo::game::globals().state == 0) {
                 halo::game::game_engine_reset_round_objects();
                 halo::game::game_engine_send_round_reset_message();
                 halo::game::game_engine_player_profile_cache_sync_all(0, (void *)0xffffffff);

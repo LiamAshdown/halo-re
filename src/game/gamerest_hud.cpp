@@ -21,7 +21,6 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 extern player_control_globals *player_control_globals_ptr;
-extern int16_t current_local_player_index;
 extern uint8_t local_player_hud_status_table[];
 extern float game_engine_nameplate_fade_opacity_array[];
 extern player_globals *local_player_globals;
@@ -242,7 +241,7 @@ uint8_t HudNameplates::nameplate_candidate_filter(uint32_t object_index, void *c
  */
 void HudNameplates::update_teammate_nameplate_fade()
 {
-    int16_t local_player = current_local_player_index;
+    int16_t local_player = halo::interface::globals().current_local_player_index;
     datum_index player_handle;
     float opacity;
 

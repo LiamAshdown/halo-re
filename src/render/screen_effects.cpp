@@ -27,11 +27,11 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
 extern "C" {
-extern game_time_globals *game_time;
 extern GlobalsRasterizerData *rasterizer_globals_data;
 extern ColorRGB *default_axis_b;
 extern ColorRGB *global_real_rgb_green_pointer;
@@ -79,7 +79,7 @@ static float progress(float start_time, float end_time)
     if (end_time == start_time) {
         return 1.0f;
     }
-    t = ((float)game_time->game_time * 0.033333335f - start_time) / (end_time - start_time);
+    t = ((float)halo::game::globals().game_time->game_time * 0.033333335f - start_time) / (end_time - start_time);
     if (t < 0.0f) {
         return 0.0f;
     }
@@ -190,7 +190,7 @@ void set_convolution(int16_t convolution_type, int16_t extra_passes, float radiu
     g->convolution_radius_lower_bound = radius_lower_bound;
     g->convolution_radius_upper_bound = radius_upper_bound;
 
-    start_time = (float)game_time->game_time * 0.033333335f;
+    start_time = (float)halo::game::globals().game_time->game_time * 0.033333335f;
     g->convolution_start_time = start_time;
     g->convolution_end_time = start_time + duration;
 }
@@ -226,7 +226,7 @@ void set_filter(float light_enhancement_lower, float light_enhancement_upper, fl
 
     g->filter_desaturation_is_additive = is_additive;
 
-    start_time = (float)game_time->game_time * 0.033333335f;
+    start_time = (float)halo::game::globals().game_time->game_time * 0.033333335f;
     g->night_vision_masked = 0;
     g->desaturation_masked = 0;
     g->filter_start_time = start_time;

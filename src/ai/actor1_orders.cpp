@@ -7,6 +7,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
 extern "C" {
@@ -598,7 +599,6 @@ extern "C" int32_t actor_build_order_minimal_stop(uint32_t actor_index, uint32_t
 namespace c_actor_build_order_random_wait {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 }
 }
 
@@ -625,7 +625,7 @@ int32_t halo::ai::order_builder::random_wait(uint8_t byte_a, uint32_t *order)
     if (a->order_committed == 0) {
         *((uint8_t *)order + 1) = a->grenade_ally_phase_flag;
         *((uint8_t *)order + 2) = byte_a;
-        order[2] = (uint32_t)game_time->game_time;
+        order[2] = (uint32_t)halo::game::globals().game_time->game_time;
         *(int16_t *)((uint8_t *)order + 0xe) = 0;
         *(int16_t *)((uint8_t *)order + 0xc) = 0x78;
         *((uint8_t *)order + 3) = 1;

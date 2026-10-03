@@ -18,9 +18,9 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern game_time_globals *game_time;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
@@ -32,7 +32,6 @@ extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern int16_t network_game_mode;
-extern game_engine_definition *current_game_engine;
 extern ai_globals *ai_globals_ptr;
 extern char *s_stand;
 extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
@@ -81,7 +80,7 @@ void UnitView::apply_scale_change(unit_scale_request *request)
             unit->flags = unit->flags | _unit_flag_unknown_200;
             obj->animation_frame = (int16_t)((remaining < 0) ? 0 : remaining);
             obj->flags = obj->flags | _object_unknown_20000_bit;
-            unit->death_time = game_time->game_time;
+            unit->death_time = halo::game::globals().game_time->game_time;
             obj->body_vitality = 0.0f;
             obj->shield_vitality = 0.0f;
             halo::objects::object_set_shield_depleted_flag(unit_index);
@@ -420,7 +419,7 @@ uint8_t UnitView::new_()
         }
     }
 
-    if (current_game_engine == 0 && (obj->owner_team == 0 || obj->owner_team == -1)) {
+    if (halo::game::globals().current_engine == 0 && (obj->owner_team == 0 || obj->owner_team == -1)) {
         obj->owner_team = tag->default_team;
     }
 

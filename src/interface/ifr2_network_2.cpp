@@ -11,12 +11,9 @@ extern "C" {
 extern network_server_globals *network_server;
 extern uint8_t network_server_host_valid;
 extern int16_t network_game_mode;
-extern game_variant game_variant_saved_default;
-extern uint8_t game_variant_saved_default_valid;
 extern uint8_t network_disconnect_timeout_flag;
 extern network_client_globals *network_client;
 extern uint8_t network_host_handoff_requested;
-extern int32_t game_variant_history_current;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
@@ -52,8 +49,8 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
     halo::main::main_queue_map_change_by_name_or_clear(map_name);
 
     halo::game::game_engine_get_variant_by_name(variant_name, &variant);
-    game_variant_saved_default = variant;
-    game_variant_saved_default_valid = 1;
+    halo::game::globals().variant_saved_default = variant;
+    halo::game::globals().variant_saved_default_valid = 1;
 
     widget = halo::interface::chimera__load_ui_widget(
         (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
@@ -66,7 +63,7 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
             network_client = (network_client_globals *)(network_session_create());
             if (network_client != (void *)0) {
                 network_host_handoff_requested = 0;
-                game_variant_history_current = -1;
+                halo::game::globals().variant_history_current = -1;
                 halo::game::game_engine_apply_current_custom_variant();
                 halo::game::game_engine_sync_variant_defaults();
                 network_game_mode = 2;

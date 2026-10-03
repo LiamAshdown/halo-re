@@ -9,7 +9,6 @@
 
 extern "C" {
 extern uint8_t *hud_messaging;
-extern data_array *player_data;
 extern int16_t network_game_mode;
 extern int8_t message_delta_decode_compound_field(void *message, hud_item_message *out_payload);
 extern int32_t message_delta_decode_compound_field_staged(void *message);
@@ -53,7 +52,7 @@ void HudMessaging::receive_item_message(void **message)
     if (message_delta_decode_compound_field(message, &payload) == 0) {
         return;
     }
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;

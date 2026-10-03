@@ -25,10 +25,8 @@
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
-extern "C" { extern int32_t game_time_force_single_tick; }
 extern "C" { extern int32_t timedemo_last_frame_index; }
 extern "C" { extern uint8_t local_player_input_frozen[]; }
-extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern uint8_t console_debug_flag_5; }
 extern "C" { extern char timedemo_pixel_shader_version[0x14]; }
 extern "C" { extern int32_t os_platform_refresh_default; }
@@ -85,7 +83,7 @@ void Timedemo::benchmark_update(void)
     const char *shadows;
     const char *specular;
 
-    if (game_time_force_single_tick == 0) {
+    if (halo::game::globals().time_force_single_tick == 0) {
         return;
     }
 
@@ -140,15 +138,15 @@ void Timedemo::benchmark_update(void)
         }
     }
 
-    step = game_time_force_single_tick;
+    step = halo::game::globals().time_force_single_tick;
     local_player_input_frozen[0] = 1;
-    *((uint8_t *)local_player_globals + 0x11) = 1;
+    *((uint8_t *)halo::game::globals().local_player_globals + 0x11) = 1;
     console_debug_flag_5 = 1;
 
     switch (step) {
     case _timedemo_step_load_a30:
         halo::main::main_queue_map_change((char *)"a30");
-        game_time_force_single_tick++;
+        halo::game::globals().time_force_single_tick++;
         return;
     case _timedemo_step_load_b30:
         hs_compile_and_evaluate("map_name b30");
@@ -297,7 +295,7 @@ void Timedemo::benchmark_update(void)
     default:
         break;
     }
-    game_time_force_single_tick++;
+    halo::game::globals().time_force_single_tick++;
 }
 
 }

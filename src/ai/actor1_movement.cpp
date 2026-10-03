@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -442,7 +443,6 @@ extern "C" uint8_t actor_check_step_obstruction(datum_index actor_index, real_ve
 namespace c_actor_check_vehicle_mode_timeout {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 }
 }
 
@@ -464,7 +464,7 @@ uint8_t halo::ai::movement_ops::check_vehicle_mode_timeout()
         *(int16_t *)&self->mode_data.raw[4] == 3 &&
         self->mode_data.raw[0xb] != 0) {
         int32_t deadline = *(int32_t *)&self->mode_data.raw[0x10] + 0x1e;
-        return (int32_t)game_time->game_time <= deadline;
+        return (int32_t)halo::game::globals().game_time->game_time <= deadline;
     }
     return 0;
 }
@@ -966,7 +966,6 @@ extern "C" int16_t actor_find_best_search_node(datum_index actor_index, datum_in
 namespace c_actor_gate_jump_traversal {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 
@@ -1007,7 +1006,7 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
         }
     }
 
-    if (a->last_flee_abort_time == -1 || game_time->game_time > a->last_flee_abort_time + 7) {
+    if (a->last_flee_abort_time == -1 || halo::game::globals().game_time->game_time > a->last_flee_abort_time + 7) {
         if (allow_broadcast != 0 && a->pending_panic_type < broadcast_threshold) {
             ai_communication_broadcast(0x22, a->unit_index, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none, 0);
             a->pending_panic_type = 0;

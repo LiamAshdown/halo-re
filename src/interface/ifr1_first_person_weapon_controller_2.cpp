@@ -14,7 +14,6 @@
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
 extern void *global_zero_vector3d_pointer;
 extern float effect_random_fraction(void);
@@ -206,7 +205,7 @@ void FirstPersonWeaponController::update()
 
         {
             local_player_control *control =
-                &player_control_globals_ptr->local_players[local_player_index];
+                &halo::game::globals().player_control->local_players[local_player_index];
 
             if (control->nameplate_weight == 0.0f &&
                 (local_player_index == -1 || control->desired_zoom_level == -1) &&

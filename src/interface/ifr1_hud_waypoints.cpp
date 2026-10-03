@@ -7,12 +7,11 @@
 #include "halo/render/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
 extern hud_waypoint_state *hud_waypoints;
 extern HUDGlobals *hud_globals_tag_data;
-extern player_globals *local_player_globals;
 extern uint8_t render_frustum_global[];
 extern uint8_t render_camera_global[];
 extern int16_t render_viewport_top;
@@ -46,7 +45,7 @@ void LocalPlayerVisitor::for_each_on_team(int16_t team, LocalPlayerVisitor &visi
     data_iterator iterator;
     player *p;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -65,7 +64,7 @@ bool WaypointSlotSet::for_player(datum_index player_index, WaypointSlotSet *out)
     if (player_index == (datum_index)-1) {
         return false;
     }
-    local_player_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
+    local_player_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
     if (local_player_index < 0 || local_player_index >= 1) {
         return false;
     }
@@ -267,9 +266,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     point = *position;
     unit_index = (datum_index)-1;
     if (local_player_index != -1 && local_player_index < 1 &&
-        local_player_globals->local_players[local_player_index] != (datum_index)-1) {
-        unit_index = ((player *)((uint8_t *)player_data->data +
-                                 (local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+        halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
+        unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data +
+                                 (halo::game::globals().local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
     }
     halo::units::unit_get_camera_position(unit_index, &camera);
     {
@@ -398,14 +397,14 @@ void HudWaypoints::draw_all_for_player(void)
     if (current_local_player_index == -1 || current_local_player_index >= 1) {
         local_player = (datum_index)-1;
     } else {
-        local_player = local_player_globals->local_players[current_local_player_index];
+        local_player = halo::game::globals().local_player_globals->local_players[current_local_player_index];
     }
-    team = ((player *)((uint8_t *)player_data->data + (local_player & 0xffff) * sizeof(player)))->team;
+    team = ((player *)((uint8_t *)halo::game::globals().player_data->data + (local_player & 0xffff) * sizeof(player)))->team;
     if (local_player == (datum_index)-1) {
         return;
     }
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;

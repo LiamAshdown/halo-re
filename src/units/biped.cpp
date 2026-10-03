@@ -24,7 +24,6 @@ extern uint8_t *cinematic_globals_ptr;
 extern uint8_t unit_updates_suppressed;
 extern double fcos(double x);
 extern double fsin(double x);
-extern game_time_globals *game_time;
 extern Globals *global_globals;
 extern real_vector3d *global_down3d_pointer;
 extern int16_t network_game_mode;
@@ -34,7 +33,6 @@ extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeomet
 extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern int32_t k_biped_minimum_age_ticks;
-extern data_array *player_data;
 extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern real_point3d *global_origin3d_pointer;
@@ -157,12 +155,12 @@ void BipedView::check_evade_reaction()
         !test_flag(unit->flags, units::unit_flag::unknown_1000) && unit->actor_index != k_datum_index_none &&
         unit->animation_state != 0x1d && (int8_t)biped->airborne_ticks > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
-         (int32_t)(biped->last_falling_reaction_tick + 0xf) < game_time->game_time)) {
+         (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
         void *table = (void *)global_globals->falling_damage.pointer;
         real_point3d ground;
         real_point3d position;
 
-        biped->last_falling_reaction_tick = game_time->game_time;
+        biped->last_falling_reaction_tick = halo::game::globals().game_time->game_time;
         if (UnitView(object_index).test_placement_candidate(global_down3d_pointer, 0, 6.0f, &ground) == -1) {
             UnitView((int32_t)object_index).dispatch_reaction_animation(0);
         } else {
@@ -264,13 +262,13 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
     if (test_flag(tag->biped_flags, tags::biped_tag_flag::flying) && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
         biped->cached_ground_surface_index = k_datum_index_none;
         halo::objects::object_get_position(out_position, object_index);
-    } else if (biped->cached_ground_surface_index == k_datum_index_none && game_time->game_time > (int32_t)biped->cached_ground_point_tick) {
+    } else if (biped->cached_ground_surface_index == k_datum_index_none && halo::game::globals().game_time->game_time > (int32_t)biped->cached_ground_point_tick) {
         ModelCollisionGeometryBSP *bsp = halo::physics::globals().structure_collision_bsp;
         int32_t surface = (int32_t)biped->ground_surface_index;
         real_point3d point = biped->cached_ground_point;
         real_point2d closest;
 
-        biped->cached_ground_point_tick = game_time->game_time;
+        biped->cached_ground_point_tick = halo::game::globals().game_time->game_time;
         if (surface != -1) {
             ModelCollisionGeometryBSPSurface *surfaces =
                 (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer;
@@ -337,7 +335,7 @@ uint8_t BipedView::is_old_enough()
     if (stamp == -1) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= stamp + k_biped_minimum_age_ticks);
+    return (uint8_t)(halo::game::globals().game_time->game_time >= stamp + k_biped_minimum_age_ticks);
 }
 
 /**
@@ -412,7 +410,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         halo::units::UnitView(((unit_object *)self)->base.parent_object).try_set_animation_state(0x25);
     }
     ((unit_object *)self)->unit.last_parent_object_index = vehicle_index;
-    ((unit_object *)self)->unit.last_seat_change_tick = game_time->game_time;
+    ((unit_object *)self)->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
     if (((unit_object *)self)->unit.driver_unit_index == object_index) {
         ((unit_object *)self)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -468,11 +466,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *empty = (uint8_t *)halo::objects::object_try_and_get(vehicle_index, 2);
 
         if (empty != 0) {
-            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+            *(int32_t *)(empty + 0x5ac) = halo::game::globals().game_time->game_time;
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -491,10 +489,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= player_data->maximum_count) {
+        index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + player_data->size * index;
+    player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }

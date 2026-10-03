@@ -12,12 +12,10 @@
 #include "halo/interface/api.hpp"
 
 extern "C" {
-extern player_globals *local_player_globals;
 extern HUDGlobals *hud_messaging_parameters;
 extern HUDGlobals *hud_globals_tag_data;
 extern hud_messaging_globals *hud_messaging;
 extern hud_globals_flags *hud_flags;
-extern game_time_globals *game_time;
 extern int16_t current_local_player_index;
 extern int32_t hud_splitscreen_message_raise;
 extern Rectangle2D screen_safe_area_right;
@@ -105,16 +103,16 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 || local_player_index == -1) {
         return;
     }
-    player_index = local_player_index < 1 ? local_player_globals->local_players[local_player_index]
+    player_index = local_player_index < 1 ? halo::game::globals().local_player_globals->local_players[local_player_index]
                                           : (datum_index)-1;
     if (halo::game::game_engine_local_player_score_is_nonpositive(player_index) == 0) {
         return;
     }
 
     parameters = hud_messaging_parameters;
-    split_screen = local_player_globals->local_player_count > 1;
+    split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
     font = *(datum_index *)&parameters->fullscreen_font.tag_id;
-    if (local_player_globals->local_player_count > 1 &&
+    if (halo::game::globals().local_player_globals->local_player_count > 1 &&
         *(datum_index *)&parameters->splitscreen_font.tag_id != (datum_index)-1) {
         font = *(datum_index *)&parameters->splitscreen_font.tag_id;
     }
@@ -130,7 +128,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     }
 
     record = &hud_messaging->players[current_local_player_index];
-    max_lines = (int16_t)(4 - (local_player_globals->local_player_count > 1));
+    max_lines = (int16_t)(4 - (halo::game::globals().local_player_globals->local_player_count > 1));
     objective_shown = hud_messaging->objective_text != 0 && hud_messaging->objective_text_ticks != 0;
     help_shown = hud_flags->help_text_shown != 0 && hud_messaging->help_text != 0;
     action_shown = record->message_shown != 0 && (record->message != 0 || record->action_text[0] != 0);
@@ -145,7 +143,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             HUDGlobals *globals = hud_globals_tag_data;
             float fraction;
 
-            now = game_time->game_time;
+            now = halo::game::globals().game_time->game_time;
             packed_color = halo::interface::hud_meter_flash_color_blend(
                 (const hud_flash_parameters *)&globals->objective_default_color,
                 hud_messaging->objective_text_ticks - globals->objective_uptime_ticks - globals->objective_fade_ticks + now);
@@ -180,7 +178,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         hud_messaging_set_text_state(font, &color);
 
         if (objective_shown) {
-            int32_t remaining = hud_messaging->objective_text_ticks - game_time->ticks_this_frame;
+            int32_t remaining = hud_messaging->objective_text_ticks - halo::game::globals().game_time->ticks_this_frame;
             messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & 0xffff].data;
             message = hud_messaging->objective_text;
             hud_messaging->objective_text_ticks = (int16_t)(remaining > 0 ? remaining : 0);
@@ -271,7 +269,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         if (slot->active == 0) {
             return;
         }
-        now = game_time->game_time;
+        now = halo::game::globals().game_time->game_time;
         color = parameters->text_color;
         elapsed = (float)(now - slot->timestamp);
         up_ticks = parameters->up_time * 30.0f;

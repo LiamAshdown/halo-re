@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::input {
 
@@ -723,8 +724,6 @@ float GameActions::sensitivity_to_turn_rate(float sensitivity)
 
 }
 
-extern "C" { extern player_globals *local_player_globals; }
-extern "C" { extern data_array *player_data; }
 namespace halo::input {
 
 /**
@@ -749,11 +748,11 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
     if (local_player_index == -1 || local_player_index >= 1) {
         return 0;
     }
-    player_handle = local_player_globals->local_players[local_player_index];
+    player_handle = halo::game::globals().local_player_globals->local_players[local_player_index];
     if (player_handle == (datum_index)0xffffffff) {
         return 0;
     }
-    player_record = halo::memory::datum_get(player_handle, player_data);
+    player_record = halo::memory::datum_get(player_handle, halo::game::globals().player_data);
     if (player_record == (void *)0) {
         return 0;
     }

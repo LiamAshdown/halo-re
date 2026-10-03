@@ -28,6 +28,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 
 namespace halo::main {
@@ -180,7 +181,6 @@ void Console::autocomplete_command(void)
 
 }
 
-extern "C" { extern game_engine_definition *current_game_engine; }
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; }
 namespace halo::main {
@@ -201,7 +201,7 @@ uint32_t Console::command_context_mask(uint32_t context_flags)
 {
     uint32_t mask;
 
-    if (current_game_engine == 0) {
+    if (halo::game::globals().current_engine == 0) {
         mask = _console_context_default_bit;
         if ((profile_globals_block[0].profile.flags & _saved_player_profile_end_credits_reached_bit) == 0) {
             mask = _console_context_default_bit | k_console_context_exec_file;
@@ -528,7 +528,6 @@ char Console::process_command(char *command_line, uint32_t context_flags)
 
 }
 
-extern "C" { extern uint8_t chat_dialog_open; }
 namespace halo::main {
 
 /**
@@ -546,7 +545,7 @@ uint8_t Console::process_key_events(void)
     int16_t browse_index;
     int16_t history_index;
 
-    if (console_globals_data.enabled != 0 && chat_dialog_open == 0) {
+    if (console_globals_data.enabled != 0 && halo::interface::globals().chat_dialog_open == 0) {
         if (input_globals.system_key_states[0] == 1) {
             halo::main::console_toggle();
             return console_globals_data.active;

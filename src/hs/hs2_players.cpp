@@ -9,12 +9,10 @@
 extern "C" {
 #endif
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern player_control_globals *player_control_globals_ptr;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern uint8_t *player_effect_globals_pointer;
-extern player_globals *local_player_globals;
 extern datum_index hs_object_list_collect_player_units(void);
 #ifdef __cplusplus
 }
@@ -30,9 +28,9 @@ namespace halo::hs {
  */
 void PlayerCommands::evaluate_player_action_test_accept(int16_t function_index, uint32_t thread_index, char first)
 {
-    player_control_globals_ptr->action_flags_latched |= 4;
-    player_control_globals_ptr->action_flags_edge |= 4;
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 2) & 1), thread_index);
+    halo::game::globals().player_control->action_flags_latched |= 4;
+    halo::game::globals().player_control->action_flags_edge |= 4;
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 2) & 1), thread_index);
 }
 
 /**
@@ -43,9 +41,9 @@ void PlayerCommands::evaluate_player_action_test_accept(int16_t function_index, 
  */
 void PlayerCommands::evaluate_player_action_test_back(int16_t function_index, uint32_t thread_index, char first)
 {
-    player_control_globals_ptr->action_flags_latched |= 8;
-    player_control_globals_ptr->action_flags_edge |= 8;
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 3) & 1), thread_index);
+    halo::game::globals().player_control->action_flags_latched |= 8;
+    halo::game::globals().player_control->action_flags_edge |= 8;
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 3) & 1), thread_index);
 }
 
 /**
@@ -56,7 +54,7 @@ void PlayerCommands::evaluate_player_action_test_back(int16_t function_index, ui
  */
 void PlayerCommands::evaluate_player_action_test_grenade_trigger(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 5) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 5) & 1), thread_index);
 }
 
 /**
@@ -69,7 +67,7 @@ void PlayerCommands::evaluate_player_action_test_jump(int16_t function_index, ui
 {
     (void)function_index;
     (void)first;
-    uint8_t jumped = (uint8_t)((*(uint32_t *)player_control_globals_ptr >> 1) & 1);
+    uint8_t jumped = (uint8_t)((*(uint32_t *)halo::game::globals().player_control >> 1) & 1);
     hs_thread_return((int32_t)jumped, thread_index);
 }
 
@@ -81,7 +79,7 @@ void PlayerCommands::evaluate_player_action_test_jump(int16_t function_index, ui
  */
 void PlayerCommands::evaluate_player_action_test_look_relative_all_directions(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((~*(uint32_t *)player_control_globals_ptr & 0x780) == 0), thread_index);
+    hs_thread_return((int32_t)((~*(uint32_t *)halo::game::globals().player_control & 0x780) == 0), thread_index);
 }
 
 /**
@@ -92,7 +90,7 @@ void PlayerCommands::evaluate_player_action_test_look_relative_all_directions(in
  */
 void PlayerCommands::evaluate_player_action_test_look_relative_down(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 8) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 8) & 1), thread_index);
 }
 
 /**
@@ -103,7 +101,7 @@ void PlayerCommands::evaluate_player_action_test_look_relative_down(int16_t func
  */
 void PlayerCommands::evaluate_player_action_test_look_relative_left(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 9) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 9) & 1), thread_index);
 }
 
 /**
@@ -114,7 +112,7 @@ void PlayerCommands::evaluate_player_action_test_look_relative_left(int16_t func
  */
 void PlayerCommands::evaluate_player_action_test_look_relative_right(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 10) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 10) & 1), thread_index);
 }
 
 /**
@@ -125,7 +123,7 @@ void PlayerCommands::evaluate_player_action_test_look_relative_right(int16_t fun
  */
 void PlayerCommands::evaluate_player_action_test_look_relative_up(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 7) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 7) & 1), thread_index);
 }
 
 /**
@@ -136,7 +134,7 @@ void PlayerCommands::evaluate_player_action_test_look_relative_up(int16_t functi
  */
 void PlayerCommands::evaluate_player_action_test_move_relative_all_directions(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((~*(uint32_t *)player_control_globals_ptr & 0x7800) == 0), thread_index);
+    hs_thread_return((int32_t)((~*(uint32_t *)halo::game::globals().player_control & 0x7800) == 0), thread_index);
 }
 
 /**
@@ -147,7 +145,7 @@ void PlayerCommands::evaluate_player_action_test_move_relative_all_directions(in
  */
 void PlayerCommands::evaluate_player_action_test_primary_trigger(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 4) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 4) & 1), thread_index);
 }
 
 /**
@@ -158,8 +156,8 @@ void PlayerCommands::evaluate_player_action_test_primary_trigger(int16_t functio
  */
 void PlayerCommands::evaluate_player_action_test_reset(int16_t function_index, uint32_t thread_index, char first)
 {
-    *(uint32_t *)player_control_globals_ptr = 0;
-    player_control_globals_ptr->action_flags_latched = 0;
+    *(uint32_t *)halo::game::globals().player_control = 0;
+    halo::game::globals().player_control->action_flags_latched = 0;
     hs_thread_return(0, thread_index);
 }
 
@@ -171,7 +169,7 @@ void PlayerCommands::evaluate_player_action_test_reset(int16_t function_index, u
  */
 void PlayerCommands::evaluate_player_action_test_zoom(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread_return((int32_t)((*(uint32_t *)player_control_globals_ptr >> 6) & 1), thread_index);
+    hs_thread_return((int32_t)((*(uint32_t *)halo::game::globals().player_control >> 6) & 1), thread_index);
 }
 
 /**
@@ -208,9 +206,9 @@ void PlayerCommands::evaluate_player_camera_control(int16_t function_index, uint
     uint8_t enable = *(uint8_t *)&arguments[0];
 
     if (enable) {
-        player_control_globals_ptr->flags &= 0xfffffffe;
+        halo::game::globals().player_control->flags &= 0xfffffffe;
     } else {
-        player_control_globals_ptr->flags |= 1;
+        halo::game::globals().player_control->flags |= 1;
     }
     hs_thread_return((int32_t)enable, thread_index);
     }
@@ -269,7 +267,7 @@ void PlayerCommands::evaluate_player_enable_input(int16_t function_index, uint32
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    local_player_globals->input_disabled = (uint8_t)(*(uint8_t *)&arguments[0] == 0);
+    halo::game::globals().local_player_globals->input_disabled = (uint8_t)(*(uint8_t *)&arguments[0] == 0);
     hs_thread_return(0, thread_index);
     }
 }

@@ -50,8 +50,6 @@ extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, ui
     uint16_t *capacity_and_count);
 extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out);
 extern game_engine_definition *current_game_engine;
-extern int32_t map_list_count;
-extern map_list_entry *map_list;
 extern uint32_t game_engine_unknown_aa00;
 extern int32_t game_engine_auto_team_counter;
 extern float game_engine_end_game_timer;
@@ -399,8 +397,8 @@ uint32_t Variants::is_map_and_variant_valid(const char *map_path, const char *va
     map_name = map_name != (const char *)0 ? map_name + 1 : map_path;
     map_index = halo::interface::map_list_find_known_map_index((char *)map_name);
 
-    if (map_index != -1 && -1 < map_index && map_index < map_list_count &&
-        map_list[map_index].cache_file_exists != 0) {
+    if (map_index != -1 && -1 < map_index && map_index < halo::interface::globals().map_list_count &&
+        halo::interface::globals().map_list[map_index].cache_file_exists != 0) {
         if (variant_name != 0) {
             return (uint32_t)halo::game::game_engine_get_variant_by_name(variant_name, 0);
 

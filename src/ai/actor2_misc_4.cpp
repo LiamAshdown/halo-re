@@ -4,6 +4,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -11,7 +12,6 @@ namespace actor_seek_vehicle_to_board_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
@@ -33,7 +33,7 @@ uint8_t ActorView::seek_vehicle_to_board()
     using namespace actor_seek_vehicle_to_board_local;
     uint8_t *act = ACTOR(actor_index);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
-    int32_t now = game_time->game_time;
+    int32_t now = halo::game::globals().game_time->game_time;
     int16_t mode = ((actor *)act)->mode;
     float best_distance = 3.4028235e38f;
     float radius_a = 3.4028235e38f;

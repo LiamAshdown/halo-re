@@ -9,10 +9,8 @@
 extern "C" {
 extern uint8_t weapon_infinite_ammo;
 extern int16_t network_game_mode;
-extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern uint8_t weapon_client_side_projectiles;
-extern game_time_globals *game_time;
 extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
 uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
@@ -188,7 +186,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         goto tail;
     }
 
-    if ((id->flags & _item_held_by_player_bit) != 0 && current_game_engine != 0) {
+    if ((id->flags & _item_held_by_player_bit) != 0 && halo::game::globals().current_engine != 0) {
         datum_index player = halo::game::player_index_from_unit_index(holder_index);
 
         if (player != (datum_index)0xffffffff) {
@@ -196,7 +194,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         }
     }
 
-    wd->last_fire_game_time = game_time->game_time;
+    wd->last_fire_game_time = halo::game::globals().game_time->game_time;
 
     {
         int8_t action = is_misfire ? (int8_t)((trigger_index != 0) + 2) : (int8_t)(trigger_index != 0);

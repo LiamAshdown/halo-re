@@ -15,13 +15,13 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data;
 extern encounter_squad_state *encounter_squad_states;
 extern double fabs(double x);
-extern game_engine_definition *current_game_engine;
 extern void ai_recompute_all_relationship_flags(void);
 extern data_array *actor_data;
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
@@ -38,7 +38,6 @@ extern void encounter_add_actor(int16_t squad_index, datum_index actor_index, da
 extern void encounters_recompute_dirty(void);
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index, int16_t squad_index);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern game_time_globals *game_time;
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
 extern void actor_create_swarm(datum_index actor_index);
 extern encounter_platoon_state *encounter_platoon_states;
@@ -67,7 +66,6 @@ extern void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t 
 extern team_pair_globals *team_pair_data;
 extern void encounter_release_stale_props(datum_index encounter_index);
 extern void encounter_choose_vocalizations(datum_index encounter_index);
-extern data_array *player_data;
 extern void *ai_actor_mode_dispatch_table;
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
@@ -95,7 +93,6 @@ extern void encounter_decay_squad_spawn_delays(datum_index encounter_index);
 extern void encounter_update_platoon_defending_flag(datum_index encounter_index);
 extern void encounter_redistribute_squads_toward_targets(datum_index encounter_index);
 extern void encounter_propagate_platoon_state_to_actors(datum_index encounter_index);
-extern player_globals *local_player_globals;
 extern data_array *swarm_data;
 extern void encounter_gather_occupied_clusters(datum_index encounter_index, uint32_t *out_clusters, uint8_t record_per_actor, uint32_t *other_clusters);
 extern void encounter_deactivate(datum_index encounter_index);
@@ -171,7 +168,7 @@ void EncounterView::stamp_team_from_unit(datum_index unit_index)
     datum_index encounter_index = handle;
     encounter *enc = &((encounter *)encounter_data->data)[encounter_index & halo::k_slot_mask];
 
-    if (current_game_engine == 0 && enc->team == 0) {
+    if (halo::game::globals().current_engine == 0 && enc->team == 0) {
         object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
         enc->team = *(int16_t *)((uint8_t *)header->data + 0xb8);
         if (enc->activation_tick != (datum_index)k_datum_index_none) {
@@ -695,7 +692,7 @@ uint8_t EncounterView::activate()
         }
     }
 
-    enc->activation_tick = game_time->game_time;
+    enc->activation_tick = halo::game::globals().game_time->game_time;
     enc->units_active = 1;
     return enc->units_active;
 }
@@ -1207,7 +1204,7 @@ void EncounterView::deactivate()
             actor_delete_swarm(current);
             actor_set_units_active(current, 1);
             a->active = 0;
-            a->deactivation_time = (datum_index)game_time->game_time;
+            a->deactivation_time = (datum_index)halo::game::globals().game_time->game_time;
         }
     }
 }
@@ -2164,7 +2161,7 @@ tally_vocalization:
         } else {
             enc->post_combat = 0;
             enc->pre_combat_living_count = enc->living_count;
-            enc->last_idle_time = game_time->game_time;
+            enc->last_idle_time = halo::game::globals().game_time->game_time;
             enc->enemy_death_count = 0;
             if (enc->ever_had_target == 0) {
                 enc->ticks_since_engaged = (datum_index)k_datum_index_none;
@@ -2250,7 +2247,7 @@ void EncounterView::redistribute_squads_toward_targets()
         data_iterator player_iter;
         void *player_record;
 
-        player_iter.data = player_data;
+        player_iter.data = halo::game::globals().player_data;
         player_iter.next_index = 0;
         player_iter.index = (datum_index)k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
@@ -3101,7 +3098,7 @@ void Encounters::note_hostile_object(datum_index object_index)
 
         object_team = ((object *)obj)->owner_team;
         encounter_team = enc->team;
-        if (current_game_engine == 0) {
+        if (halo::game::globals().current_engine == 0) {
             hostile = 0;
             if (0 <= encounter_team && encounter_team < 10 &&
                 0 <= object_team && object_team < 10) {
@@ -3262,7 +3259,7 @@ void Encounters::update()
     encounter_iterator iterator;
     encounter *enc;
 
-    tick = game_time->game_time;
+    tick = halo::game::globals().game_time->game_time;
     if (tick % 0x1e == 0) {
         encounters_recompute_dirty();
         encounters_update_activation();
@@ -3333,7 +3330,7 @@ void Encounters::update_activation()
     int16_t i;
     uint16_t *dependents;
 
-    visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x18);
+    visible_clusters = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x18);
 
     actor_index = ai_globals_ptr->first_encounterless_actor;
     while (actor_index != (datum_index)k_datum_index_none) {
@@ -3430,7 +3427,7 @@ void Encounters::update_activation()
                 actor_delete_swarm(current);
                 actor_set_units_active(current, 1);
                 a->active = 0;
-                a->deactivation_time = (datum_index)game_time->game_time;
+                a->deactivation_time = (datum_index)halo::game::globals().game_time->game_time;
             }
         } else {
             *(int16_t *)&a->activation_delay[0] = (int16_t)(*(int16_t *)&a->activation_delay[0] - 0x1e);

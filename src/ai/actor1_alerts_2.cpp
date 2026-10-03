@@ -4,11 +4,11 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace c_actor_investigate_disturbance_update {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 
 extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index);
 extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
@@ -54,8 +54,8 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
             uint8_t close;
             uint8_t in_front;
 
-            if (game_time->game_time >= *(int32_t *)(act + 0xac) + 150) {
-                *(int32_t *)(act + 0xac) = game_time->game_time;
+            if (halo::game::globals().game_time->game_time >= *(int32_t *)(act + 0xac) + 150) {
+                *(int32_t *)(act + 0xac) = halo::game::globals().game_time->game_time;
                 if (halo::math::vector3d_distance_squared(((struct actor *)act)->body_position, *(real_point3d *)(act + 0xb0)) <= 25.0f) {
                     *(int16_t *)(act + 0xaa) += 1;
                 } else {

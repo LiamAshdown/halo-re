@@ -13,7 +13,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
 extern int32_t object_cluster_stamp;
-extern game_time_globals *game_time;
 extern double sqrt(double x);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index,
@@ -85,7 +84,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, uint8_t *self, datum
         int32_t fired = ((struct unit_object *)unit)->unit.death_time;
 
         firing = 1;
-        since_fired = fired == -1 ? 0x7fff : (int16_t)((int16_t)game_time->game_time - (int16_t)fired);
+        since_fired = fired == -1 ? 0x7fff : (int16_t)((int16_t)halo::game::globals().game_time->game_time - (int16_t)fired);
     } else {
         firing = 0;
         since_fired = 0;

@@ -9,6 +9,7 @@
 #include "halo/render/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
@@ -21,11 +22,9 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern real_point3d *global_zero_vector3d_pointer;
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern int16_t current_local_player_index;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_vector3d *global_origin3d_pointer;
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-extern player_globals *local_player_globals;
 }
 
 namespace halo::effects {
@@ -724,11 +723,11 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     locality = (int16_t)halo::effects::player_weapon_locality_for_object(object_index);
     if (locality != 0) {
         if (type_flags & 0x20000) {
-            if (locality == -1 || !halo::render::render_local_player_gunner_seat_visible(current_local_player_index)) {
+            if (locality == -1 || !halo::render::render_local_player_gunner_seat_visible(halo::interface::globals().current_local_player_index)) {
                 return;
             }
         }
-        if ((type_flags & 0x10000) && locality == 1 && halo::render::render_local_player_gunner_seat_visible(current_local_player_index)) {
+        if ((type_flags & 0x10000) && locality == 1 && halo::render::render_local_player_gunner_seat_visible(halo::interface::globals().current_local_player_index)) {
             return;
         }
     }
@@ -766,7 +765,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
         marker_count = (int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, markers, 8);
         halo::objects::object_get_root_location((int32_t *)(system + 0x18), object_index);
         if (marker_count == 0) {
-            datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + current_local_player_index * 0x1ea0 + 8);
+            datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + halo::interface::globals().current_local_player_index * 0x1ea0 + 8);
 
             if (weapon != k_datum_index_none) {
                 marker_count = (int16_t)halo::interface::first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
@@ -903,7 +902,7 @@ void particle_system_ref::render_all()
 
         if (system->location.cluster_index != -1) {
             int16_t cluster = system->location.cluster_index;
-            uint32_t *visible_clusters = (uint32_t *)((uint8_t *)local_player_globals + 0x58);
+            uint32_t *visible_clusters = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + 0x58);
 
             if ((visible_clusters[cluster >> 5] & (1u << (cluster & 0x1f))) != 0) {
                 halo::effects::particle_system_render(system_index);

@@ -13,16 +13,12 @@
 extern "C" {
 extern float cinematic_saved_music_gain;
 extern cinematic_globals *cinematic_globals_ptr;
-extern player_globals *local_player_globals;
 extern ai_globals *ai_globals_ptr;
-extern game_time_globals *game_time;
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
 extern ui_pending_error ui_pending_errors[4];
 extern int32_t ROUND(float x);
 extern float fabsf(float x);
-extern HUDGlobals *hud_globals_tag_data;
-extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
 extern Rectangle2D render_viewport_top;
 extern uint32_t text_shadow_color_argb;
@@ -55,11 +51,11 @@ void CutsceneDirector::start()
     }
     halo::sound::sound_set_music_gain(1.0f);
 
-    local_player_globals->input_disabled = 1;
+    halo::game::globals().local_player_globals->input_disabled = 1;
     ai_globals_ptr->dialogue_triggers_enabled = 0;
 
     cinematic_globals_ptr->show_letterbox = 1;
-    cinematic_globals_ptr->letterbox_last_tick = game_time->game_time;
+    cinematic_globals_ptr->letterbox_last_tick = halo::game::globals().game_time->game_time;
     cinematic_globals_ptr->in_progress = 1;
 
     halo::game::game_engine_cleanup_stray_projectiles();
@@ -86,7 +82,7 @@ void CutsceneDirector::stop()
     }
 
     cinematic_globals_ptr->show_letterbox = 0;
-    local_player_globals->input_disabled = 0;
+    halo::game::globals().local_player_globals->input_disabled = 0;
     ai_globals_ptr->dialogue_triggers_enabled = 1;
 
     effects = cinematic_screen_effect_state;
@@ -165,12 +161,12 @@ void CutsceneDirector::letterbox()
     if (cinematic_globals_ptr->show_letterbox != 0 || cinematic_globals_ptr->letterbox_scale > 0.0f) {
         
         
-        uint8_t widget_open = widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0;
+        uint8_t widget_open = halo::interface::globals().widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0;
 
         if (!widget_open) {
             int32_t old_tick = cinematic_globals_ptr->letterbox_last_tick;
-            float delta = (float)(game_time->game_time - old_tick) * (1.0f / k_cinematic_ticks_per_second);
-            cinematic_globals_ptr->letterbox_last_tick = game_time->game_time;
+            float delta = (float)(halo::game::globals().game_time->game_time - old_tick) * (1.0f / k_cinematic_ticks_per_second);
+            cinematic_globals_ptr->letterbox_last_tick = halo::game::globals().game_time->game_time;
 
             if (cinematic_globals_ptr->show_letterbox == 0) {
                 float scale = cinematic_globals_ptr->letterbox_scale - delta;
@@ -213,7 +209,7 @@ void CutsceneDirector::letterbox()
         cinematic_title_slot *slot = &cinematic_globals_ptr->titles[i];
         
         
-        datum_index fullscreen_font = *(datum_index *)&hud_globals_tag_data->fullscreen_font.tag_id;
+        datum_index fullscreen_font = *(datum_index *)&halo::interface::globals().hud_globals_tag_data->fullscreen_font.tag_id;
 
         if (slot->title_index == k_cinematic_title_none || fullscreen_font == (datum_index)k_datum_index_none) {
             continue;
@@ -285,13 +281,13 @@ void CutsceneDirector::letterbox()
                 help_text = halo::text::text_string_list_get_string(help_text_list, (int16_t)title->string_index);
                 dest_rect = (title->text_bounds.right == title->text_bounds.left ||
                              title->text_bounds.bottom == title->text_bounds.top)
-                    ? &hud_globals_tag_data->default_chapter_title_bounds
+                    ? &halo::interface::globals().hud_globals_tag_data->default_chapter_title_bounds
                     : &title->text_bounds;
                 halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)dest_rect, 0, 0,
                     (const int16_t *)help_text);
                 text_shadow_color_argb = 0;
 
-                new_ticks = slot->ticks + (game_time->paused == 0 ? game_time->ticks_this_frame : 0);
+                new_ticks = slot->ticks + (halo::game::globals().game_time->paused == 0 ? halo::game::globals().game_time->ticks_this_frame : 0);
                 slot->ticks = new_ticks;
                 if (title->up_time + title->fade_out_time <= (float)new_ticks) {
                     slot->title_index = k_cinematic_title_none;

@@ -12,12 +12,9 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern data_array *player_data;
-extern player_globals *local_player_globals;
 extern double sqrt(double x);
 extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
 extern player_effect_globals *player_effect_globals_pointer;
-extern game_time_globals *game_time;
 extern const ColorARGB *global_white_argb;
 extern int16_t screen_flash_pass[8];
 extern int32_t player_effect_reentry_count;
@@ -44,10 +41,10 @@ namespace halo::effects {
  */
 void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_player_index, real_point3d *origin)
 {
-    datum_index player_index = local_player_globals->local_players[0];
+    datum_index player_index = halo::game::globals().local_player_globals->local_players[0];
 
     if (player_index != (datum_index)0xffffffff) {
-        player *record = &((player *)player_data->data)[player_index & 0xffff];
+        player *record = &((player *)halo::game::globals().player_data->data)[player_index & 0xffff];
 
         if (record->unit != (datum_index)0xffffffff) {
             real_point3d position;
@@ -82,7 +79,7 @@ void player_effect_ref::apply_continuous_damage(uint32_t tag_reference, int16_t 
         fraction = (fraction < 0.0f) ? 0.0f : (1.0f < fraction ? 1.0f : fraction);
 
         wobble = (float)halo::math::periodic_function_evaluate(_periodic_function_cosine,
-            (double)((float)game_time->game_time / effect->camera_shaking_wobble_period));
+            (double)((float)halo::game::globals().game_time->game_time / effect->camera_shaking_wobble_period));
         weighted = ((1.0f - effect->camera_shaking_wobble_weight) +
                     wobble * effect->camera_shaking_wobble_weight) * fraction;
 
@@ -124,7 +121,7 @@ void player_effect_ref::apply_generic_damage_feedback(float fraction)
     memset(&flash_descriptor, 0, sizeof(flash_descriptor));
     memset(&shake_descriptor, 0, sizeof(shake_descriptor));
 
-    local_player_index = ((player *)player_data->data)[player_index & 0xffff].local_player_index;
+    local_player_index = ((player *)halo::game::globals().player_data->data)[player_index & 0xffff].local_player_index;
     if (local_player_index != -1) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
 
@@ -160,7 +157,7 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
 
     if (globals->scripted_flash_ticks != -1 &&
         (globals->scripted_flash_fade_in != 0 ||
-         game_time->game_time - globals->scripted_flash_start_tick <= (int32_t)globals->scripted_flash_ticks)) {
+         halo::game::globals().game_time->game_time - globals->scripted_flash_start_tick <= (int32_t)globals->scripted_flash_ticks)) {
         float fraction;
 
         *(uint16_t *)out = 1;
@@ -169,7 +166,7 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
         if (globals->scripted_flash_ticks < 1) {
             fraction = 1.0f;
         } else {
-            float t = (float)(game_time->game_time - globals->scripted_flash_start_tick) /
+            float t = (float)(halo::game::globals().game_time->game_time - globals->scripted_flash_start_tick) /
                       (float)(int32_t)globals->scripted_flash_ticks;
 
             if (!(t >= 0.0f)) {
@@ -206,7 +203,7 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
             } else {
                 *(float *)&out[1] = self->flash.intensity;
             }
-            self->flash_ticks = (int16_t)(self->flash_ticks - game_time->ticks_this_frame);
+            self->flash_ticks = (int16_t)(self->flash_ticks - halo::game::globals().game_time->ticks_this_frame);
         }
     }
 }
@@ -221,11 +218,11 @@ void player_effect_ref::clear_dead_players()
     int32_t i;
 
     for (i = 0; i < k_maximum_local_player_effects; i++) {
-        datum_index player_index = local_player_globals->local_players[i];
+        datum_index player_index = halo::game::globals().local_player_globals->local_players[i];
         uint8_t dead = 1;
 
         if (player_index != (datum_index)0xffffffff) {
-            player *record = &((player *)player_data->data)[player_index & 0xffff];
+            player *record = &((player *)halo::game::globals().player_data->data)[player_index & 0xffff];
             if (record->unit != (datum_index)0xffffffff) {
                 dead = 0;
             }
@@ -247,7 +244,7 @@ void player_effect_ref::fade_damage_indicators(int16_t local_player_index, uint3
 {
     player_effect *self = &player_effect_globals_pointer->players[local_player_index];
     uint8_t *indicators = self->damage_indicator_alpha;
-    int16_t delta = game_time->ticks_this_frame;
+    int16_t delta = halo::game::globals().game_time->ticks_this_frame;
     int i;
 
     *out_previous_indicators = *(uint32_t *)indicators;
@@ -271,7 +268,7 @@ void player_effect_ref::fade_damage_indicators(int16_t local_player_index, uint3
 void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount)
 {
     datum_index player_index = datum;
-    int16_t local_player_index = ((player *)player_data->data)[player_index & 0xffff].local_player_index;
+    int16_t local_player_index = ((player *)halo::game::globals().player_data->data)[player_index & 0xffff].local_player_index;
     player_effect *self;
     uint8_t *tag;
 
@@ -313,7 +310,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         }
         controlling_player = halo::game::local_player_to_player_index(local_player_index);
         unit_index = (controlling_player == k_datum_index_none) ? k_datum_index_none :
-            ((player *)player_data->data)[controlling_player & 0xffff].unit;
+            ((player *)halo::game::globals().player_data->data)[controlling_player & 0xffff].unit;
         if (halo::objects::object_try_and_get(unit_index, 3) == 0 ||
             halo::objects::object_try_and_get(dd->responsible_object, 0xffffffff) == 0) {
             player_effect_reentry_count--;
@@ -377,7 +374,7 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
     if (!message_delta_decode_compound_field(context, fields)) {
         return;
     }
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
@@ -448,10 +445,10 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     void *items[2];
     int32_t encoded_bits;
 
-    if (player_handle == (datum_index)0xffffffff || index < 0 || index >= player_data->maximum_count) {
+    if (player_handle == (datum_index)0xffffffff || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    record = (player *)((uint8_t *)player_data->data + index * player_data->size);
+    record = (player *)((uint8_t *)halo::game::globals().player_data->data + index * halo::game::globals().player_data->size);
     if (record->identifier == 0 || (salt != 0 && record->identifier != salt) || record->marked_for_deletion != 0) {
         return;
     }
@@ -557,7 +554,7 @@ void player_effect_ref::set_screen_flash_for_player(player_screen_flash *descrip
 {
     datum_index player_index = datum;
     if (player_index != (datum_index)0xffffffff) {
-        player *record = &((player *)player_data->data)[player_index & 0xffff];
+        player *record = &((player *)halo::game::globals().player_data->data)[player_index & 0xffff];
 
         if (record->local_player_index != -1) {
             halo::effects::player_effect_set_screen_flash(
@@ -579,7 +576,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
     data_iterator iterator;
     player *record;
 
-    iterator.data = player_data;
+    iterator.data = halo::game::globals().player_data;
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;

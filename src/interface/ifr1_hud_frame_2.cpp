@@ -9,16 +9,12 @@
 #include "halo/interface/api.hpp"
 
 extern "C" {
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 extern int16_t current_local_player_index;
 extern hud_messaging_globals *hud_messaging;
 extern hud_globals_flags *hud_flags;
 extern uint8_t current_game_engine;
 extern uint8_t motion_sensor_override_value;
-extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t *cinematic_globals_ptr;
-extern game_time_globals *game_time;
 }
 
 static uint8_t *object_get(datum_index object_index)
@@ -55,13 +51,13 @@ namespace halo::interface {
  */
 void HudFrame::update_interaction_prompt(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
     int16_t local = current_local_player_index;
     int16_t target_message;
 
-    if (local_player_globals->mode != 0 && p->unit == (datum_index)-1) {
+    if (halo::game::globals().local_player_globals->mode != 0 && p->unit == (datum_index)-1) {
         static const int16_t mode_message[4] = { 0xb, 0xa, 0x9, 0xc };
-        halo::interface::hud_set_player_message(mode_message[local_player_globals->mode - 1], (uint16_t)local);
+        halo::interface::hud_set_player_message(mode_message[halo::game::globals().local_player_globals->mode - 1], (uint16_t)local);
         return;
     }
 
@@ -242,7 +238,7 @@ void HudFrame::update_player(void)
     if (local_player_index == -1 || local_player_index > 0) {
         player_index = (datum_index)-1;
     } else {
-        player_index = local_player_globals->local_players[local_player_index];
+        player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
     }
     camera_type = halo::camera::camera_get_type_for_player(local_player_index);
 
@@ -251,15 +247,15 @@ void HudFrame::update_player(void)
     }
 
     {
-        player *local_player = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+        player *local_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
 
-        if ((current_game_engine == 0 || ((motion_sensor_override_value & 2) != 0 && game_engine_teams_enabled_flag != 0)) &&
+        if ((current_game_engine == 0 || ((motion_sensor_override_value & 2) != 0 && halo::game::globals().teams_enabled != 0)) &&
             cinematic_globals_ptr[9] == 0) {
             halo::interface::hud_waypoint_draw_all_for_player();
         }
 
-        if (game_time->paused == 0) {
-            int16_t expected = (local_player_globals->local_players[0] != (datum_index)-1) ? 0 : -1;
+        if (halo::game::globals().game_time->paused == 0) {
+            int16_t expected = (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) ? 0 : -1;
             if (current_local_player_index == expected) {
                 halo::interface::chimera__motion_sensor_update();
             }

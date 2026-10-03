@@ -1057,7 +1057,6 @@ namespace c_actor_init_prop_from_object {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 
 }
 }
@@ -1123,7 +1122,7 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
         } else {
             p->swarm_owned = 1;
             p->owner_actor_index = *(datum_index *)(object + 0x1f8);
-            p->swarm_reassign_time = game_time->game_time;
+            p->swarm_reassign_time = halo::game::globals().game_time->game_time;
         }
 
         if (p->is_parented != 0) {

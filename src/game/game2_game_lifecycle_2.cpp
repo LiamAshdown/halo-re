@@ -434,7 +434,7 @@ void GameLifecycle::unload_map(void)
         global_structure_bsp = (void *)0;
         global_structure_collision_bsp = (void *)0;
         global_collision_bsp = (void *)0;
-        global_globals = (Globals *)0;
+        global_globals = (::Globals *)0;
         halo::main::globals().game_globals->map_loaded = 0;
     }
 }

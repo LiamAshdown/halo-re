@@ -43,7 +43,6 @@ extern uint32_t player_data;
 extern void * message_delta_definition_table;
 extern uint8_t update_server_pending_flush;
 extern uint8_t update_server_history_index;
-extern game_time_globals * game_time;
 extern network_server_globals * network_server;
 extern int32_t update_server_last_log_ms;
 extern int32_t update_server_last_tick_ms;
@@ -425,7 +424,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
             result = flush_ok;
             if (flush_ok != 0) {
                 player_update_history_log_write(1, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
-                    game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
+                    halo::game::globals().game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
 
             }
         } else {

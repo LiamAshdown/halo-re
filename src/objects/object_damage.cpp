@@ -28,16 +28,11 @@
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
-extern game_engine_definition *current_game_engine;
 extern ModelCollisionGeometryMaterial default_collision_material;
 extern uint8_t g_006f1cf4;
-extern game_engine_state game_engine_state_value;
-extern uint8_t game_engine_teams_enabled_flag;
-extern game_time_globals *game_time;
 extern real_vector3d *global_down3d_pointer;
 extern Globals *global_globals;
 extern real_vector3d *global_origin3d_pointer;
-extern player_globals *local_player_globals;
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
@@ -48,7 +43,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern int32_t object_sound_event_last_tick;
-extern data_array *player_data;
 extern uint8_t *team_pair_data;
 }
 
@@ -174,7 +168,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
                         *shield = 3.0f;
                         *vitality_flags = (uint16_t)(current & 0xffef);
                     }
-                } else if (*shield > 1.0f && current_game_engine != 0) {
+                } else if (*shield > 1.0f && halo::game::globals().current_engine != 0) {
                     datum_index player_index = halo::game::player_index_from_unit_index(object_index);
                     float excess = *shield - 1.0f;
 
@@ -577,9 +571,9 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
  */
 void halo::objects::DamageSystem::throttled_multiplayer_sound_event()
 {
-    if (halo::hs::fields::should_play_multiplayer_hit_sound == 1 && (uint32_t)(object_sound_event_last_tick + 2) < (uint32_t)game_time->game_time) {
+    if (halo::hs::fields::should_play_multiplayer_hit_sound == 1 && (uint32_t)(object_sound_event_last_tick + 2) < (uint32_t)halo::game::globals().game_time->game_time) {
         halo::game::game_engine_queue_multiplayer_sound(0x2b, k_datum_index_none, 0);
-        object_sound_event_last_tick = game_time->game_time;
+        object_sound_event_last_tick = halo::game::globals().game_time->game_time;
     }
 }
 
@@ -659,10 +653,10 @@ static player *player_try_get(datum_index player_index)
     int16_t identifier;
     uint8_t *record;
 
-    if (player_index == k_datum_index_none || index < 0 || index >= player_data->maximum_count) {
+    if (player_index == k_datum_index_none || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return 0;
     }
-    record = (uint8_t *)player_data->data + player_data->size * index;
+    record = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index;
     identifier = *(int16_t *)record;
     if (identifier == 0 || (salt != 0 && identifier != salt)) {
         return 0;
@@ -728,7 +722,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             }
         }
     }
-    if (current_game_engine != 0) {
+    if (halo::game::globals().current_engine != 0) {
         int32_t target_player = halo::objects::object_get_controlling_player_index(target_index);
         int32_t responsible_player = halo::objects::object_get_controlling_player_index(dd->responsible_object);
 
@@ -767,7 +761,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         datum_index child;
 
         dd->multiplier = rider_fraction;
-        if (current_game_engine != 0 && ((struct object *)target)->first_child_object != k_datum_index_none) {
+        if (halo::game::globals().current_engine != 0 && ((struct object *)target)->first_child_object != k_datum_index_none) {
             int32_t players = 0;
 
             for (child = ((struct object *)target)->first_child_object; child != k_datum_index_none;
@@ -852,7 +846,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                     break;
                 }
             } else if (halo::hs::fields::reflexive_damage_effects) {
-                datum_index first_local = local_player_globals->local_players[0];
+                datum_index first_local = halo::game::globals().local_player_globals->local_players[0];
 
                 if (network_game_mode == 0) {
                     halo::effects::player_effect_mark_damage_direction(first_local, dd, &dd->direction, dd->random_blend, amount);
@@ -910,7 +904,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
 
             apply_state = (responsible != 0 && responsible->local_player_index != -1) ? 0 : 1;
         }
-        if (current_game_engine != 0 && game_engine_teams_enabled_flag) {
+        if (halo::game::globals().current_engine != 0 && halo::game::globals().teams_enabled) {
             datum_index owner = halo::game::player_index_from_unit_index(id);
 
             if (owner != k_datum_index_none && owner != dd->responsible_player) {
@@ -949,7 +943,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         if (dd->team_index != -1) {
             int16_t team = ((object *)obj)->owner_team;
 
-            if (current_game_engine != 0) {
+            if (halo::game::globals().current_engine != 0) {
                 if (team == dd->team_index) {
                     notify_flags |= 0x10;
                 }
@@ -1060,7 +1054,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     if ((*geometry & 0x40) && ((object *)obj)->type == 1 && *(datum_index *)(obj + 0x324) == k_datum_index_none) {
         body = 0.0f;
     }
-    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
+    if (halo::game::globals().current_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
         unscaled = 1;
     }
     maximum = ((object *)obj)->maximum_body_vitality;
@@ -1089,17 +1083,17 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
 
             if (effect_flags & 2) {
-                if (!(current_game_engine == 0 && ((object *)obj)->type == 0 &&
+                if (!(halo::game::globals().current_engine == 0 && ((object *)obj)->type == 0 &&
                       *(datum_index *)(obj + 0x218) != k_datum_index_none)) {
                     if (is_local == 1) {
                         *vitality = 0.0f;
                     }
                     *notify_flags |= 0x40;
-                    if (current_game_engine != 0) {
+                    if (halo::game::globals().current_engine != 0) {
                         *notify_flags |= 0x80;
                     }
                 }
-            } else if ((effect_flags & 0x800) && current_game_engine != 0) {
+            } else if ((effect_flags & 0x800) && halo::game::globals().current_engine != 0) {
                 taken = taken + taken;
                 if (taken > *vitality) {
                     *notify_flags |= 0x80;
@@ -1222,7 +1216,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(uint8_t *geometry, uint8_t
 
     record->shield_damage_dealt = 0.0f;
     record->depleted_this_call = 0;
-    if (current_game_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
+    if (halo::game::globals().current_engine == 0 && *(int16_t *)(effect_block + 0x2) == 1 && ((object *)obj)->owner_team == 1) {
         unscaled = 1;
     }
     if (!(*shield > 0.0f)) {
@@ -1472,7 +1466,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
             break;
         }
     }
-    if ((uint8_t)is_local == 1 && (current_game_engine == 0 || game_engine_state_value == 0)) {
+    if ((uint8_t)is_local == 1 && (halo::game::globals().current_engine == 0 || halo::game::globals().state == 0)) {
         if ((dd->flags & 0x80) == 0) {
             if (notify_flags & 1) {
                 halo::game::game_engine_attribute_player_death(target_index, dd->responsible_player, dd->responsible_object,

@@ -6,10 +6,10 @@
 #include "halo/objects/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern char *weapon_blur_permutation_names[2];
-extern game_time_globals *game_time;
 int32_t halo::items::weapon_update(datum_index item_index);
 void halo::items::weapon_update_function_values(uint32_t object_index);
 }
@@ -537,7 +537,7 @@ void weapon_ref::update_function_values()
                     idx = (int16_t)(source - weaponfunctionin_primary_firing);
                     if (idx < (int32_t)tag->triggers.count) {
                         value = wd->triggers[idx].firing_rate;
-                        if (game_time->game_time - wd->last_fire_game_time > 1) {
+                        if (halo::game::globals().game_time->game_time - wd->last_fire_game_time > 1) {
                             value = 0.0f;
                         }
                     }

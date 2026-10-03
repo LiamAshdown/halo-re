@@ -76,7 +76,6 @@ extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *encounter_data;
 extern encounter_squad_state *encounter_squad_states;
-extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
@@ -248,7 +247,7 @@ void ActorView::refresh_combat_context()
             int16_t child_team = ((struct object *)child_object)->owner_team;
             uint8_t enemy;
 
-            if (current_game_engine != 0) {
+            if (halo::game::globals().current_engine != 0) {
                 enemy = actor_team != child_team;
             } else if (actor_team < 0 || actor_team >= 10 || child_team < 0 || child_team >= 10) {
                 enemy = 1;

@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::ai {
 
@@ -206,7 +207,6 @@ void ActorView::schedule_grenade_throw()
 namespace actor_should_throw_grenade_local {
 extern "C" {
 extern data_array *actor_data;
-extern game_time_globals *game_time;
 }
 }
 
@@ -228,7 +228,7 @@ uint8_t ActorView::should_throw_grenade(char force)
             if (a->combat_status < 7) {
                 if (a->target_last_seen_time != (datum_index)k_datum_index_none) {
                     int16_t delay = (int16_t)(actor_def->hide_target_not_visible_time * 30.0f);
-                    if (game_time->game_time < delay + (int32_t)a->target_last_seen_time) {
+                    if (halo::game::globals().game_time->game_time < delay + (int32_t)a->target_last_seen_time) {
                         eligible = 0;
                     }
                 }
@@ -345,7 +345,6 @@ namespace actor_try_grenade_evasion_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
@@ -377,7 +376,7 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
     if (act[0x378] || (grade != 4 && grade != 3) || ((struct actor *)act)->combat_status < 2) {
         return 0;
     }
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
     if (*(int32_t *)&((struct actor *)act)->last_cover_attempt_time != -1 && now < *(int32_t *)&((struct actor *)act)->last_cover_attempt_time + 30) {
         return 0;
     }
@@ -403,7 +402,6 @@ namespace actor_update_grenade_and_morale_reactions_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 extern uint8_t actor_should_throw_grenade(uint32_t actor_index, char force);
 extern uint8_t actor_consider_grenade_throw(datum_index actor_index);
 extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
@@ -428,7 +426,7 @@ char ActorView::update_grenade_and_morale_reactions()
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *variant = TAG_DATA(((actor *)act)->actor_variant_tag);
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
-    int32_t now = game_time->game_time;
+    int32_t now = halo::game::globals().game_time->game_time;
     char result = 0;
     float threshold;
     uint8_t may_evade;
@@ -573,7 +571,6 @@ namespace actor_update_grenade_throw_decision_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)

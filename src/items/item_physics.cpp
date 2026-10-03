@@ -8,14 +8,12 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern void item_detonation_timer_start(uint32_t object_index);
 extern void item_compute_rotation(uint32_t object_index);
 extern double sqrt(double x);
 extern double fsin(double x);
 extern double fcos(double x);
-extern data_array *player_data;
 void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);
@@ -43,7 +41,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         return;
     }
 
-    if (apply_detonation_timer != 0 && current_game_engine == 0) {
+    if (apply_detonation_timer != 0 && halo::game::globals().current_engine == 0) {
         Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
         if ((tag->item_flags & 0x02) != 0) {
             halo::items::item_detonation_timer_start(item_index);
@@ -248,7 +246,7 @@ uint8_t item_ref::get_effective_position(real_point3d *out_position)
             return 0;
         }
         {
-            uint8_t *player = (uint8_t *)halo::memory::datum_get(owner_linkage, player_data);
+            uint8_t *player = (uint8_t *)halo::memory::datum_get(owner_linkage, halo::game::globals().player_data);
             if (player == 0) {
                 return 0;
             }

@@ -8,10 +8,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
-extern data_array *player_data;
 extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
@@ -81,7 +81,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
     }
     unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, halo::game::globals().player_data);
 
         if (player != 0) {
             *(uint32_t *)&((struct player *)player)->respawn_timer = message.player_2c;

@@ -13,6 +13,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -37,7 +38,6 @@ extern uint8_t virtual_keyboard;
 extern widget_instance *ui_root_widget[1];
 extern widget_history_node *ui_widget_history[3];
 extern ui_pending_error ui_pending_error_alternate;
-extern game_time_globals *game_time;
 extern uint8_t ui_cursor_changed;
 extern uint8_t ui_widget_opened;
 extern int32_t ui_cursor_x;
@@ -197,7 +197,7 @@ void InterfaceMain::tick()
                 int16_t error_string_index = quit_confirm_error_string_index;
 
                 if (ui_split_screen != 0 || network_game_is_active() != 0 ||
-                    game_time->game_time > 0x1d) {
+                    halo::game::globals().game_time->game_time > 0x1d) {
                     halo::interface::display_error(error_string_index, (int32_t)(uint16_t)quit_confirm_error_unknown_ae,
                                   quit_confirm_error_modal, quit_confirm_error_is_error);
                     quit_confirm_error_string_index = -1;

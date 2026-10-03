@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -30,13 +31,11 @@ extern uint32_t network_game_message_handle_join_finalize_ack_role2(network_serv
 extern uint32_t profile_globals_block[0x7ff];
 extern void network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern data_array *player_data;
 extern int16_t network_game_mode;
 extern network_server_globals *network_server;
 extern int32_t message_delta_encode_message(uint32_t unknown_0, uint32_t message_type, uint32_t unknown_2, void **fields, uint32_t unknown_4, uint32_t unknown_5, uint8_t unknown_6);
 extern network_client_globals *network_client;
 extern void network_channel_reliable_pool_store(network_channel *channel, void *message, uint8_t *out_flag, int32_t priority);
-extern game_engine_definition *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
@@ -127,14 +126,14 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
     new_value = 0;
     if (ok == 1) {
         team_index = -1;
-        if (player_index != 0xff && (int16_t)(uint16_t)player_index < player_data->maximum_count) {
-            uint8_t *player = (uint8_t *)player_data->data + player_data->size * (int16_t)(uint16_t)player_index;
+        if (player_index != 0xff && (int16_t)(uint16_t)player_index < halo::game::globals().player_data->maximum_count) {
+            uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * (int16_t)(uint16_t)player_index;
             if (*(int16_t *)player != 0) {
                 ((struct player *)player)->ping = new_value;
             }
         }
 
-        iter.data = player_data;
+        iter.data = halo::game::globals().player_data;
         iter.next_index = 0;
         iter.index = k_datum_index_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
@@ -189,20 +188,20 @@ void HostSession::qr2_key_list(int32_t key_type, void *keybuffer, void *user_dat
         for (i = 0; i < 8; i++) {
             qr2_keybuffer_add(keybuffer, always[i]);
         }
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             for (i = 0; i < 8; i++) {
                 qr2_keybuffer_add(keybuffer, in_game[i]);
             }
         }
     } else if (key_type == 1) {
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             qr2_keybuffer_add(keybuffer, 0x15);
             qr2_keybuffer_add(keybuffer, 0x16);
             qr2_keybuffer_add(keybuffer, 0x18);
             qr2_keybuffer_add(keybuffer, 0x19);
         }
     } else if (key_type == 2) {
-        if (current_game_engine != 0) {
+        if (halo::game::globals().current_engine != 0) {
             qr2_keybuffer_add(keybuffer, 0x1c);
             qr2_keybuffer_add(keybuffer, 0x1d);
         }

@@ -23,15 +23,12 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
 extern uint16_t missing_string_text[];
 extern uint8_t savegame_index_dirty;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
 extern saved_player_profile default_profile_data;
 extern int32_t cached_saved_game_something;
 extern int32_t saved_player_profile_slots_handle;
@@ -59,7 +56,6 @@ extern network_thread_record *variant_write_thread;
 extern int16_t savegame_index_write_count;
 extern uint8_t saved_game_index_file_open;
 extern uint32_t game_state_crc;
-extern int16_t local_player_count;
 extern uint32_t cache_file_current_header_crc32;
 extern char *rasterizer_shader_file_name;
 extern int32_t strcmp(const char *a, const char *b);
@@ -322,17 +318,17 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
     }
     storage_status = halo::saved_games::saved_game_check_storage_availability();
     if (storage_status == 1) {
-        if (quit_confirm_error_string_index == -1) {
-            quit_confirm_error_string_index = k_quit_error_low_disk_space;
-            quit_confirm_error_unknown_ae = -1;
-            quit_confirm_error_modal = 1;
-            quit_confirm_error_is_error = 0;
+        if (halo::interface::globals().quit_confirm_error_string_index == -1) {
+            halo::interface::globals().quit_confirm_error_string_index = k_quit_error_low_disk_space;
+            halo::interface::globals().quit_confirm_error_unknown_ae = -1;
+            halo::interface::globals().quit_confirm_error_modal = 1;
+            halo::interface::globals().quit_confirm_error_is_error = 0;
         }
-    } else if (storage_status == 2 && quit_confirm_error_string_index == -1) {
-        quit_confirm_error_string_index = k_quit_error_too_many_saves;
-        quit_confirm_error_unknown_ae = -1;
-        quit_confirm_error_modal = 1;
-        quit_confirm_error_is_error = 0;
+    } else if (storage_status == 2 && halo::interface::globals().quit_confirm_error_string_index == -1) {
+        halo::interface::globals().quit_confirm_error_string_index = k_quit_error_too_many_saves;
+        halo::interface::globals().quit_confirm_error_unknown_ae = -1;
+        halo::interface::globals().quit_confirm_error_modal = 1;
+        halo::interface::globals().quit_confirm_error_is_error = 0;
     }
     if (storage_status != 0) {
         return k_datum_index_none;
@@ -340,13 +336,13 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
 
     entry_count = halo::game::savegame_index_get_slot_count();
     if (k_maximum_saved_game_entries < entry_count) {
-        if (quit_confirm_error_string_index != -1) {
+        if (halo::interface::globals().quit_confirm_error_string_index != -1) {
             return k_datum_index_none;
         }
-        quit_confirm_error_string_index = k_quit_error_index_full;
-        quit_confirm_error_unknown_ae = -1;
-        quit_confirm_error_modal = 1;
-        quit_confirm_error_is_error = 0;
+        halo::interface::globals().quit_confirm_error_string_index = k_quit_error_index_full;
+        halo::interface::globals().quit_confirm_error_unknown_ae = -1;
+        halo::interface::globals().quit_confirm_error_modal = 1;
+        halo::interface::globals().quit_confirm_error_is_error = 0;
         return k_datum_index_none;
     }
 
@@ -1630,7 +1626,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
     tag_path = halo::cache::globals().tag_instances[(int16_t)halo::scenario::globals().scenario_index].path;
     if (strcmp(header->scenario_name, tag_path) == 0 &&
         header->allocation_checksum == game_state_crc &&
-        header->local_player_count == local_player_count &&
+        header->local_player_count == halo::game::globals().local_player_count &&
         header->map_checksum == cache_file_current_header_crc32) {
         return 1;
     }

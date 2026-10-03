@@ -130,7 +130,6 @@ namespace c_actor_can_throw_grenade_at_target {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
-extern game_time_globals *game_time;
 
 
 extern uint8_t actor_find_grenade_landing_spot(datum_index actor_index, real_point3d *out_point, datum_index *out_target_handle, int32_t *out_relationship);
@@ -163,7 +162,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
 
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
 
     if (self->active_unit_index != (datum_index)k_datum_index_none) {
         return 0;
@@ -206,7 +205,6 @@ namespace c_actor_check_grenade_facing_and_commit {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *encounter_data;
-extern game_time_globals *game_time;
 
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 }
@@ -265,7 +263,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
                     encounter *enc = (encounter *)((uint8_t *)encounter_data->data +
                                                     (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
-                    enc->last_grenade_time = game_time->game_time;
+                    enc->last_grenade_time = halo::game::globals().game_time->game_time;
                 }
                 return 1;
             }
@@ -414,7 +412,6 @@ namespace c_actor_consider_grenade_throw {
 extern "C" {
 extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
-extern game_time_globals *game_time;
 
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
@@ -448,7 +445,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
         return 0;
     }
 
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
 
     if (self->last_grenade_check_time != (uint32_t)-1 &&
         (variant->grenade_check_time * 30.0f + (float)(int32_t)self->last_grenade_check_time) > (float)now) {

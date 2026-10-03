@@ -23,6 +23,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -57,7 +58,6 @@ extern int32_t video_resolution_count;
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_gamma_setting;
 extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
-extern int32_t game_time_force_single_tick;
 extern d3d_display_mode rasterizer_desktop_display_mode;
 extern float sound_master_gain;
 }
@@ -632,7 +632,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
     }
     ui_flag_007196d2 = 0;
     if (changed == 1) {
-        if (game_time_force_single_tick != 0) {
+        if (halo::game::globals().time_force_single_tick != 0) {
             halo::interface::state::frame_rate_limiter_enabled = 0;
         } else {
             halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(saved_item_working_copy[0xa6f] == 2);
@@ -673,7 +673,7 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
     if (ui_video_requested_display_mode_006b7010.vsync != 0) {
         profile[0xa6f] = (uint8_t)((halo::interface::state::frame_rate_limiter_enabled != 0) + 1);
     }
-    if (game_time_force_single_tick != 0) {
+    if (halo::game::globals().time_force_single_tick != 0) {
         halo::interface::state::frame_rate_limiter_enabled = 0;
     } else {
         halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(profile[0xa6f] == 2);

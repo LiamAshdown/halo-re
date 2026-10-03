@@ -5,10 +5,10 @@
  */
 
 #include "halo/shaders/shaders.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t numeric_countdown_timer_remaining_ms;
-extern game_time_globals *game_time;
 extern uint8_t numeric_countdown_timer_running;
 extern int32_t numeric_countdown_timer_last_update_ms;
 }
@@ -51,7 +51,7 @@ void numeric_countdown_timer::update(void)
         return;
     }
 
-    new_time = (game_time->game_time * k_numeric_countdown_timer_milliseconds_per_second) /
+    new_time = (halo::game::globals().game_time->game_time * k_numeric_countdown_timer_milliseconds_per_second) /
                k_numeric_countdown_timer_ticks_per_second;
 
     if (numeric_countdown_timer_last_update_ms <= new_time) {

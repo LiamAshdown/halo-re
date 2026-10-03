@@ -9,6 +9,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -22,7 +23,6 @@ extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remov
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
 extern void encounters_recompute_dirty(void);
-extern game_time_globals *game_time;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference);
@@ -506,7 +506,7 @@ int16_t ObjectListView::max_flee_grade()
     int16_t component_index;
     int32_t command_index;
 
-    tick = game_time->game_time;
+    tick = halo::game::globals().game_time->game_time;
     object_index = (datum_index)k_datum_index_none;
     node_index = (datum_index)k_datum_index_none;
     best = 0;
@@ -1193,7 +1193,7 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
         added = 1;
 
     stamp:
-        pursuit->last_tick = game_time->game_time;
+        pursuit->last_tick = halo::game::globals().game_time->game_time;
     }
 
     return added;
@@ -1214,7 +1214,7 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
         return;
     }
     obj = OBJECT_DATA(object_index);
-    now = game_time->game_time;
+    now = halo::game::globals().game_time->game_time;
     if (!(stimulus_value > *(int16_t *)(obj + 0x21c)) && !(now > *(int32_t *)(obj + 0x220) + 0x1e)) {
         return;
     }

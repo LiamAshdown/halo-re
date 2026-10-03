@@ -11,8 +11,6 @@ extern void *network_summary_log_file;
 extern char network_build_string[];
 extern int16_t network_game_mode;
 extern char network_game_scenario_load_request(network_game_session *session);
-extern data_array *player_data;
-extern player_globals *local_player_globals;
 extern int32_t player_data_iterator_advance(int16_t step_count);
 extern char network_player_entry_validate(void);
 extern uint16_t network_challenge_packet_block;
@@ -79,7 +77,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     do {
         if ((int32_t)(int8_t)*puVar7 == (uint32_t)*connection) {
             puVar7 = connection + iVar6 * 0x10;
-            iVar6 = (int32_t)(uint32_t)player_data;
+            iVar6 = (int32_t)(uint32_t)halo::game::globals().player_data;
             if ((int32_t)(int8_t)puVar7[0x669] == (uint32_t)*connection) {
                 goto have_machine;
             }
@@ -94,15 +92,15 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
         uVar8 = (uint32_t)player_data_iterator_advance((int8_t)*((uint8_t *)puVar7 + 0xcd5));
         sVar9 = (int16_t)(int8_t)*((uint8_t *)puVar7 + 0xcd3);
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
-            puVar2 = (uint32_t *)&local_player_globals->local_players[sVar9];
+            puVar2 = (uint32_t *)&halo::game::globals().local_player_globals->local_players[sVar9];
             uVar3 = *puVar2;
             if (uVar3 != 0xffffffff) {
-                *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)player_data + 0x34)) = 0xffff;
-                iVar6 = (int32_t)(uint32_t)player_data;
+                *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = 0xffff;
+                iVar6 = (int32_t)(uint32_t)halo::game::globals().player_data;
             }
             *puVar2 = uVar8;
             if (uVar8 != 0xffffffff) {
-                *(int16_t *)((uVar8 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)player_data + 0x34)) = sVar9;
+                *(int16_t *)((uVar8 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = sVar9;
             }
         }
         puVar1 = puVar7 + 0x679;

@@ -13,6 +13,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t saved_player_profile_slots_handle;
@@ -21,7 +22,6 @@ extern char *campaign_level_paths[k_campaign_level_count];
 extern ColorARGB *actor_mode_default_look_weights;
 extern char network_ban_file_read_mode_string[];
 extern uint8_t game_state_write_in_progress;
-extern game_time_globals *game_time;
 extern char network_summary_log_mode_string[];
 extern int16_t pending_difficulty;
 }
@@ -289,7 +289,7 @@ void write_stats_file(char *scenario_name, int32_t difficulty)
     if (file != 0) {
         GetLocalTime((LPSYSTEMTIME)&now);
         level = halo::main::campaign_level_find_index_for_path(scenario_name);
-        fprintf((FILE *)file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
+        fprintf((FILE *)file, "%d,%d,%d\n", (int32_t)level, difficulty, halo::game::globals().game_time->game_time);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.month, now.day, now.year);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.hour, now.minute, now.second);
         fclose((FILE *)file);

@@ -13,13 +13,13 @@
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
-extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *glow_data;
 extern data_array *glow_particle_data;
@@ -330,7 +330,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
     }
 
     *(int16_t *)((uint8_t *)entry + 600) = (int16_t)(*(int16_t *)((uint8_t *)entry + 600) +
-        game_time->ticks_this_frame);
+        halo::game::globals().game_time->ticks_this_frame);
 
     if (entry->marker_count > 1) {
         glow_particle *p;
@@ -352,7 +352,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 int16_t *age = (int16_t *)&p->age;
                 int16_t *lifetime = (int16_t *)&p->lifetime;
 
-                *age = (int16_t)(*age + game_time->ticks_this_frame);
+                *age = (int16_t)(*age + halo::game::globals().game_time->ticks_this_frame);
                 halo::objects::glow_particle_compute_fade(entry, p);
 
                 if (test_flag(((struct Glow *)glow_tag_data)->glow_flags, tags::glow_tag_flag::trailing_particles_shrink_over_time)) {
@@ -387,7 +387,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
     }
 
     if (((struct Glow *)glow_tag_data)->particle_generation_freq > 0.01f &&
-        game_time->ticks_this_frame != 0) {
+        halo::game::globals().game_time->ticks_this_frame != 0) {
         float threshold = 30.0f / ((struct Glow *)glow_tag_data)->particle_generation_freq;
         int16_t timer;
 

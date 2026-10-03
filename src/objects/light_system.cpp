@@ -18,14 +18,12 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern game_engine_definition *current_game_engine;
-extern int16_t current_local_player_index;
 extern int32_t fistp_round(float x);
 extern uint8_t game_engine_unknown_aa00;
-extern game_time_globals *game_time;
 extern float *global_white_color;
 extern datum_index light_active_list[0x80];
 extern int16_t light_active_list_count;
@@ -183,7 +181,7 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
         uint8_t *raw = (uint8_t *)entry;
 
         entry->flags = 0;
-        entry->marker_link = game_time->game_time;
+        entry->marker_link = halo::game::globals().game_time->game_time;
         entry->definition_tag = light_tag;
         *(int32_t *)&((struct light *)raw)->owner_object = marker_index;
         entry->transient_color_scale = param_5;
@@ -242,7 +240,7 @@ static const char *light_owner_marker_name(uint8_t *light)
  */
 void halo::objects::LightSystem::update_all()
 {
-    int32_t tick = game_time->game_time;
+    int32_t tick = halo::game::globals().game_time->game_time;
     datum_index handle;
     int16_t i;
 
@@ -404,7 +402,7 @@ void halo::objects::LightSystem::update_all()
                 int16_t j;
 
                 if (*(int16_t *)(owner + 0xb4) == 2 && *(datum_index *)(owner + 0x11c) != k_datum_index_none &&
-                    (int16_t)halo::interface::local_player_index_for_weapon(owner_handle) == current_local_player_index) {
+                    (int16_t)halo::interface::local_player_index_for_weapon(owner_handle) == halo::interface::globals().current_local_player_index) {
                     count = (int16_t)halo::interface::first_person_weapon_get_marker_data(owner_handle, marker_name, markers, 8);
                     if (count > 0) {
                         flare.window_flags |= 0x80;
@@ -525,7 +523,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
     halo::rasterizer::rasterizer_light_cone_set_texture_stage_states();
 
     if (*lights_enabled != 0 &&
-        (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
+        (halo::game::globals().current_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
         int16_t i;
 
         for (i = 0; i < light_active_list_count; i++) {
@@ -585,7 +583,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
     halo::rasterizer::rasterizer_shader_environment_technique_ps2_set_states();
 
     if (*lights_enabled != 0 &&
-        (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
+        (halo::game::globals().current_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
         int16_t i;
 
         for (i = 0; i < light_active_list_count; i++) {
