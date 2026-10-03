@@ -163,7 +163,7 @@ void FirstPersonWeaponController::update()
         } else if (fp->state == 4) {
             ModelAnimationsAnimation *animation =
                 &((ModelAnimationsAnimation *)animations->animations.pointer)[fp->overcharged_animation];
-            float charged_fraction = *(float *)((uint8_t *)weapon_obj + 0x244);
+            float charged_fraction = ((struct weapon_object *)weapon_obj)->weapon.charged_fraction;
             FP_FLOAT(fp, 0x24) = (float)fmod((charged_fraction + 1.0f) + (charged_fraction + 1.0f) +
                                              FP_FLOAT(fp, 0x24),
                                              (double)(int16_t)animation->frame_count);
@@ -173,9 +173,9 @@ void FirstPersonWeaponController::update()
 
         if (fp->unknown_30[0x20] != 0) {
             halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x38), FP_FLOAT(fp, 0x30),
-                                     *(float *)((uint8_t *)unit_obj + 0x278), 0.08f, 0.5f, -1.0f, 1.0f);
+                                     ((struct unit_object *)unit_obj)->unit.throttle.i, 0.08f, 0.5f, -1.0f, 1.0f);
             halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x3c), FP_FLOAT(fp, 0x34),
-                                     *(float *)((uint8_t *)unit_obj + 0x27c), 0.08f, 0.5f, -1.0f, 1.0f);
+                                     ((struct unit_object *)unit_obj)->unit.throttle.j, 0.08f, 0.5f, -1.0f, 1.0f);
             target_yaw = halo::game::angle_delta_wrapped(FP_FLOAT(fp, 0x68), FP_FLOAT(fp, 0x60)) * 30.0f;
             target_pitch = halo::game::angle_delta_wrapped(FP_FLOAT(fp, 0x6c), FP_FLOAT(fp, 0x64)) * -30.0f;
             if (target_yaw < -1.0f) {
@@ -337,7 +337,7 @@ void FirstPersonWeaponController::update_animation_controls()
             }
             if (fp->overcharged_animation != -1) {
                 halo::models::animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->overcharged_animation], FP_FLOAT(fp, 0x24),
-                             *(float *)((uint8_t *)weapon_obj + 0x244) + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
+                             ((struct weapon_object *)weapon_obj)->weapon.charged_fraction + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
             }
 
             if ((int32_t)list->animations.count > 4 && (index = list_entries[4]) != -1 &&

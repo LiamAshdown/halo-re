@@ -273,7 +273,7 @@ void HudFrame::draw_weapon_interface(player *p)
             uint8_t *seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
 
             if ((seats[seat * 0x11c] & 8) != 0) {
-                weapon = halo::units::unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
+                weapon = halo::units::unit_get_weapon_object_index(parent, ((struct unit_object *)parent_object)->unit.current_weapon_index);
                 if (weapon == (datum_index)-1) {
                     no_weapon = 1;
                 }
@@ -344,7 +344,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
         }
         parent = ((unit_object *)unit)->base.parent_object;
         parent_object = halo::interface::object_record(parent);
-        weapon = halo::units::unit_get_weapon_object_index(parent, *(int16_t *)(parent_object + 0x2f2));
+        weapon = halo::units::unit_get_weapon_object_index(parent, ((struct unit_object *)parent_object)->unit.current_weapon_index);
         if (weapon == (datum_index)-1) {
             return 0;
         }
@@ -419,15 +419,15 @@ void HudFrame::render_unit_interface(player *p)
         }
         state->last_unit = p->unit;
 
-        parent = *(datum_index *)(unit_object + 0x11c);
-        if (parent != (datum_index)-1 && *(int16_t *)(unit_object + 0x2f0) != -1) {
+        parent = ((struct unit_object *)unit_object)->base.parent_object;
+        if (parent != (datum_index)-1 && ((struct unit_object *)unit_object)->unit.vehicle_seat_index != -1) {
             uint8_t *parent_object = halo::interface::object_record(parent);
             Unit *parent_tag = halo::interface::tag_data<Unit>(*(datum_index *)parent_object);
             uint8_t split = halo::game::globals().local_player_globals->local_player_count > 1;
             TagID parent_hud = halo::units::unit_get_hud_interface_tag_id(parent_tag, split);
             uint8_t *seats = *(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer;
 
-            if ((seats[*(int16_t *)(unit_object + 0x2f0) * 0x11c] & 4) != 0) {
+            if ((seats[((struct unit_object *)unit_object)->unit.vehicle_seat_index * 0x11c] & 4) != 0) {
                 datum_index child;
 
                 if (*(datum_index *)&parent_hud != (datum_index)-1) {
@@ -440,8 +440,8 @@ void HudFrame::render_unit_interface(player *p)
                     uint8_t *child_object = (uint8_t *)halo::objects::object_try_and_get(child, 3);
 
                     if (child_object != 0 && ((struct object *)child_object)->parent_object == parent &&
-                        *(int16_t *)(child_object + 0x2f0) != -1) {
-                        TagID seat_hud = halo::units::unit_get_seat_hud_interface_tag_id(parent_tag, *(int16_t *)(child_object + 0x2f0),
+                        ((struct unit_object *)child_object)->unit.vehicle_seat_index != -1) {
+                        TagID seat_hud = halo::units::unit_get_seat_hud_interface_tag_id(parent_tag, ((struct unit_object *)child_object)->unit.vehicle_seat_index,
                                                                             split);
                         objects[count] = child;
                         hud_tags[count] = *(datum_index *)&seat_hud;
@@ -452,13 +452,13 @@ void HudFrame::render_unit_interface(player *p)
             }
         }
 
-        enabled_meters = (valid_team_player != 0 && *(float *)(unit_object + 0x340) == 1.0f) ? 1 : 0;
+        enabled_meters = (valid_team_player != 0 && ((struct unit_object *)unit_object)->unit.integrated_light_power == 1.0f) ? 1 : 0;
         blinking_meters = 0;
-        if ((*(uint32_t *)(unit_object + 0x204) & 0x80000) == 0 && *(float *)(unit_object + 0x344) < 0.2f &&
+        if ((((struct unit_object *)unit_object)->unit.flags & 0x80000) == 0 && ((struct unit_object *)unit_object)->unit.integrated_light_energy < 0.2f &&
             (*(uint8_t *)(unit_object + 0x208) & 0x10) != 0) {
             blinking_meters = 1;
         }
-        meter_values[0] = *(float *)(unit_object + 0x344);
+        meter_values[0] = ((struct unit_object *)unit_object)->unit.integrated_light_energy;
     }
 
     split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
@@ -492,7 +492,7 @@ void HudFrame::render_unit_interface(player *p)
         if ((halo::game::globals().current_engine == 0 || player_index == (datum_index)-1 ||
              ((halo::game::globals().variant.flags >> 3) & 1) == 0) &&
             (hud_unit_meters->flags & 4) == 0) {
-            float shield = *(float *)(object + 0xe4);
+            float shield = ((struct object *)object)->shield_vitality;
             flags = (shield < 0.25f || (hud_unit_meters->flags & 8) != 0) ? 1 : 0;
             if ((*(uint8_t *)(object + 0x106) & 4) != 0) {
                 flags |= 2;
@@ -521,7 +521,7 @@ void HudFrame::render_unit_interface(player *p)
                 }
                 memcpy(&layer_placement, &hud->shield_panel_meter_anchor_offset, 0x68);
                 for (layer = 0; layer <= hud_overshield_layer_count; layer++) {
-                    float actual = hud_fraction_clamp(*(float *)(object + 0xe4) - (float)layer);
+                    float actual = hud_fraction_clamp(((struct object *)object)->shield_vitality - (float)layer);
                     float displayed = hud_fraction_clamp(value - (float)layer);
                     float shown;
                     uint8_t dropping;
@@ -558,7 +558,7 @@ void HudFrame::render_unit_interface(player *p)
         }
 
         if ((hud_unit_meters->flags & 1) == 0) {
-            uint16_t object_flags = *(uint16_t *)(object + 0x106);
+            uint16_t object_flags = ((struct object *)object)->vitality_flags;
 
             flags = ((object_flags & 8) != 0 || (hud_unit_meters->flags & 2) != 0) ? 1 : 0;
             if ((object_flags & 4) != 0) {
@@ -578,7 +578,7 @@ void HudFrame::render_unit_interface(player *p)
             }
             if (*(datum_index *)&hud->health_panel_meter_meter_bitmap.tag_id != (datum_index)-1) {
                 hud_meter_placement health_placement;
-                float health = *(float *)(object + 0xe0);
+                float health = ((struct object *)object)->body_vitality;
                 int32_t value_scale = (uint16_t)hud->health_panel_meter_value_scale;
                 int32_t alpha_a;
                 int32_t alpha_b;
@@ -604,7 +604,7 @@ void HudFrame::render_unit_interface(player *p)
                                         (const hud_static_element_placement *)&hud->health_panel_background_anchor_offset,
                                         flags, state->health_flash_start_time);
             }
-            state->displayed_health = *(float *)(object + 0xe0);
+            state->displayed_health = ((struct object *)object)->body_vitality;
         }
 
         if (index == 0 && (hud_unit_meters->flags & 0x10) == 0 && halo::game::game_engine_scores_tracked_individually() != 0) {

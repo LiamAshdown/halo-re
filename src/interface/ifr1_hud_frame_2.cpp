@@ -81,7 +81,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         uint8_t *unit_object = object_get(p->unit);
         halo::interface::hud_set_player_message(7, (uint16_t)local);
         halo::interface::hud_set_message_string_argument(local, 0,
-            halo::interface::object_get_hud_text_message_index(*(datum_index *)(unit_object + 0x11c)), 0);
+            halo::interface::object_get_hud_text_message_index(((struct unit_object *)unit_object)->base.parent_object), 0);
         return;
     }
 
@@ -89,7 +89,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         uint8_t *unit_object = object_get(p->unit);
         halo::interface::hud_set_player_message(1, (uint16_t)local);
         halo::interface::hud_set_message_string_argument(local, 0,
-            halo::interface::object_get_hud_text_message_index(*(datum_index *)(unit_object + 0x318)), 0);
+            halo::interface::object_get_hud_text_message_index(((struct unit_object *)unit_object)->unit.equipment_object_index), 0);
         halo::interface::hud_set_message_string_argument(local, 1, target_message, 0);
         return;
     }
@@ -169,7 +169,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         uint8_t *unit_object = object_get(unit_index);
         unit_data *unit = (unit_data *)(unit_object + k_unit_data_offset);
         datum_index current_weapon = halo::units::unit_get_weapon_object_index(unit_index, unit->current_weapon_index);
-        datum_index parent = *(datum_index *)(unit_object + 0x11c);
+        datum_index parent = ((struct unit_object *)unit_object)->base.parent_object;
         uint8_t can_switch = 1;
         weapon_hud_ammo_state ammo;
 

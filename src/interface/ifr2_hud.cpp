@@ -689,16 +689,16 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
     player_record = (uint8_t *)halo::game::globals().player_data->data + ((uint32_t)player_index & halo::k_slot_mask) * 0x200;
     chain[0] = player_record;
 
-    if (halo::objects::object_try_and_get(*(datum_index *)(player_record + 0x34), 3) == 0) {
+    if (halo::objects::object_try_and_get(((struct player *)player_record)->unit, 3) == 0) {
         return;
     }
     {
-        datum_index unit_idx = *(datum_index *)(player_record + 0x34);
+        datum_index unit_idx = ((struct player *)player_record)->unit;
         object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_idx & halo::k_slot_mask].data;
         unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     }
 
-    out_array = (int32_t *)((uint8_t *)hud_weapon_state + *(int16_t *)(player_record + 2) * 0x50 + 0x28);
+    out_array = (int32_t *)((uint8_t *)hud_weapon_state + ((struct player *)player_record)->local_player_index * 0x50 + 0x28);
     tag_data = halo::interface::tag_data<uint8_t>(hud_interface_tag_id);
     chain[1] = tag_data;
     {
@@ -743,7 +743,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
             switch (case_index) {
             case 0:
                 active = weapon_or_vehicle_index != -1 &&
-                         halo::game::globals().player_control->local_players[*(int16_t *)(player_record + 2)].nameplate_weight == 1.0f;
+                         halo::game::globals().player_control->local_players[((struct player *)player_record)->local_player_index].nameplate_weight == 1.0f;
                 value = active;
                 break;
             case 16: value = state[0xd];  goto shared_byte_test;
@@ -755,7 +755,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
                 break;
 
             case 1: {
-                int16_t lp = *(int16_t *)(player_record + 2);
+                int16_t lp = ((struct player *)player_record)->local_player_index;
                 int32_t r1 = halo::game::local_player_get_zoom_level(lp);
                 if ((int16_t)r1 == -1) {
                     edx = tag_data;
@@ -950,7 +950,7 @@ void WeaponHud::state_update()
                         uint8_t *seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
 
                         if ((seats[seat * 0x11c] & 8) != 0) {
-                            int16_t parent_slot = *(int16_t *)(parent_object + 0x2f2);
+                            int16_t parent_slot = ((struct unit_object *)parent_object)->unit.current_weapon_index;
                             weapon = parent_slot != -1 ? *(datum_index *)(parent_object + 0x2f8 + parent_slot * 4)
                                                        : (datum_index)-1;
                             if (weapon == (datum_index)-1) {
@@ -1073,11 +1073,11 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
             datum_index unit_handle = player_record->unit;
             object *unit_obj = object_get(unit_handle);
             datum_index weapon_handle = halo::units::unit_get_weapon_object_index(
-                unit_handle, *(int16_t *)((uint8_t *)unit_obj + 0x2f2));
+                unit_handle, ((struct unit_object *)unit_obj)->unit.current_weapon_index);
 
             if (weapon_handle == (datum_index)-1) {
                 datum_index parent_handle = unit_obj->parent_object;
-                int16_t seat_index = *(int16_t *)((uint8_t *)unit_obj + 0x2f0);
+                int16_t seat_index = ((struct unit_object *)unit_obj)->unit.vehicle_seat_index;
                 object *parent_obj;
                 uint8_t *seats;
 
@@ -1091,9 +1091,9 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
                     goto done;
                 }
                 weapon_handle = halo::units::unit_get_weapon_object_index(
-                    unit_obj->parent_object, *(int16_t *)((uint8_t *)parent_obj + 0x2f2));
+                    unit_obj->parent_object, ((struct unit_object *)parent_obj)->unit.current_weapon_index);
             } else {
-                intensity = *(float *)((uint8_t *)unit_obj + 0x348);
+                intensity = ((struct unit_object *)unit_obj)->unit.integrated_night_vision_power;
             }
 
             if (weapon_handle != (datum_index)-1) {

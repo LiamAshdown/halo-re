@@ -504,7 +504,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
     item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                    (*(uint32_t *)weapon_obj & halo::k_slot_mask) * 0x20 + 0x14);
     if (*(int16_t *)(item_tag_data + 0x4e2) == 3 && new_state == 3 &&
-        (*(uint32_t *)(weapon_obj + 0x22c) & 1) == 0) {
+        (((struct weapon_object *)weapon_obj)->weapon.flags & 1) == 0) {
         new_state = 0;
     }
 
@@ -713,9 +713,9 @@ void FirstPersonWeaponController::update_lighting(void)
     light_params.modifier_shader = 0;
 
     if ((*(uint8_t *)((char *)unit_obj + 0x204) & 0x10) != 0 ||
-        *(float *)((char *)unit_obj + 0x37c) > 0.0f) {
-        light_params.unit_37c = *(float *)((char *)unit_obj + 0x37c);
-        light_params.unit_380 = *(float *)((char *)unit_obj + 0x380);
+        ((struct unit_object *)unit_obj)->unit.active_camouflage_power > 0.0f) {
+        light_params.unit_37c = ((struct unit_object *)unit_obj)->unit.active_camouflage_power;
+        light_params.unit_380 = ((struct unit_object *)unit_obj)->unit.super_active_camouflage_power;
         light_params.type = 1;
         light_params.centroid[0] = render_camera_global;
         light_params.centroid[1] = camera_position_y;
