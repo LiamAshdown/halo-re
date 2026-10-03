@@ -225,7 +225,6 @@ extern "C" { extern char network_banlist_full_path[0x104]; }
 extern "C" { extern char profile_directory[0x105]; }
 extern "C" { extern growable_array ban_list; }
 extern "C" { extern growable_array network_buffer_pair_pool; }
-extern "C" { extern int32_t shell_nosound; }
 extern "C" { extern int32_t novideo_or_connect; }
 extern "C" { extern int32_t safe_mode; }
 extern "C" { extern int32_t checkfpu; }
@@ -354,7 +353,7 @@ void MainLoop::loop(void)
     halo::main::game_start_new_single_player_map();
     halo::main::game_timer_reset();
     network_autojoin_from_command_line();
-    halo::sound::globals().disabled = (uint8_t)shell_nosound;
+    halo::sound::globals().disabled = (uint8_t)halo::shell::globals().nosound;
     if (game_time_force_single_tick == 0 && novideo_or_connect == 0 && safe_mode == 0 &&
         halo::rasterizer::globals().window_requested == 0) {
         halo::main::movie_play_bink("bungie.bik");

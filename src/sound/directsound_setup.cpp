@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/shell/api.hpp"
 
 #define k_probe_pool_capacity 77
 #define VTABLE_SLOT(object, offset) ((*(void ***)(object))[(offset) / 4])
@@ -178,9 +179,9 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
     directsound_paused = 0;
     directsound_fade = 1.0f;
 
-    if (shell_nosound != 0 ||
+    if (halo::shell::globals().nosound != 0 ||
         ((direct_sound_create8_proc)direct_sound_create8)((void *)0, &directsound, (void *)0) < 0 ||
-        ((directsound_set_cooperative_level_proc)VTABLE_SLOT(directsound, 0x18))(directsound, shell_window, 2) < 0) {
+        ((directsound_set_cooperative_level_proc)VTABLE_SLOT(directsound, 0x18))(directsound, halo::shell::globals().window, 2) < 0) {
         goto failed;
     }
 

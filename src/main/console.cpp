@@ -307,8 +307,6 @@ uint8_t Console::exec_file_run(const char *file_name)
 }
 
 extern "C" { extern ColorARGB console_default_color; }
-extern "C" { extern char **shell_argv; }
-extern "C" { extern int32_t shell_argc; }
 namespace halo::main {
 
 /**
@@ -331,8 +329,8 @@ void Console::initialize(void)
     console_globals_data.terminal.input[0] = 0;
     console_globals_data.history_count = 0;
 
-    for (i = 0; i < shell_argc; i++) {
-        char *argument = shell_argv[i];
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        char *argument = halo::shell::globals().argv[i];
         if (argument[0] == '-' && _stricmp("-console", argument) == 0) {
             console_globals_data.enabled = 1;
             return;

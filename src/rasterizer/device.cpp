@@ -225,7 +225,7 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
     dest->back_buffer_format = 0x16;
     dest->back_buffer_count = 1;
     dest->auto_depth_stencil_format = 0x4b;
-    dest->device_window = (uint32_t)shell_window;
+    dest->device_window = (uint32_t)halo::shell::globals().window;
 
     if (rasterizer_fullscreen == 0) {
         dest->windowed = 1;
@@ -373,9 +373,9 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
     wc.style = 0x40;
     wc.class_extra = 0;
     wc.window_extra = 0;
-    wc.instance = (uint32_t)shell_instance;
-    wc.icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)0x66);
-    wc.small_icon = (uint32_t)LoadIconA((HINSTANCE)shell_instance, (const char *)0x66);
+    wc.instance = (uint32_t)halo::shell::globals().instance;
+    wc.icon = (uint32_t)LoadIconA((HINSTANCE)halo::shell::globals().instance, (const char *)0x66);
+    wc.small_icon = (uint32_t)LoadIconA((HINSTANCE)halo::shell::globals().instance, (const char *)0x66);
     wc.cursor = (uint32_t)LoadCursorA((HINSTANCE)((void *)0), (const char *)0x7f00);
     wc.background_brush = 0;
     wc.menu_name = 0;
@@ -397,12 +397,12 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
         uint32_t message_id = GetLastError();
         FormatMessageA(0x1300, (const void *)0, message_id, 0x400, (LPSTR)&message_buffer, 0, (va_list *)((void *)0));
         MessageBoxA((HWND)((void *)0), message_buffer, "ERROR - failed to create window", 0x40);
-        UnregisterClassA(shell_window_class_name, (HINSTANCE)shell_instance);
+        UnregisterClassA(shell_window_class_name, (HINSTANCE)halo::shell::globals().instance);
         LocalFree(message_buffer);
         return 0;
     }
 
-    shell_window = hwnd;
+    halo::shell::globals().window = hwnd;
     rasterizer_window_icon_bitmap = LoadBitmapA((HINSTANCE)((void *)halo::shell::globals().module_handle), (const char *)0x86);
     if (rasterizer_window_icon_bitmap != (void *)0) {
         void *hdc = GetDC((HWND)hwnd);
@@ -759,8 +759,8 @@ static int command_line_has_switch(const char *name)
 {
     int32_t i;
 
-    for (i = 0; i < shell_argc; i++) {
-        const char *argument = shell_argv[i];
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        const char *argument = halo::shell::globals().argv[i];
 
         if (argument[0] == '-' && _stricmp(name, argument) == 0) {
             return 1;
@@ -822,7 +822,7 @@ uint8_t rasterizer_initialize_direct3d(void)
     if (!rasterizer_create_game_window(mode.height, mode.width)) {
         return 0;
     }
-    hwnd = shell_window;
+    hwnd = halo::shell::globals().window;
     if (shell_direct3d != 0) {
         rasterizer_direct3d = shell_direct3d;
     } else {
@@ -1248,7 +1248,7 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
     win32_rect current;
     win32_rect target;
 
-    GetWindowRect((HWND)shell_window, &current);
+    GetWindowRect((HWND)halo::shell::globals().window, &current);
     GetWindowRect(GetDesktopWindow(), &target);
 
     target.left = (uint32_t)((target.right - target.left) - width) >> 1;
@@ -1259,9 +1259,9 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
 
     if (current.top != target.top || current.bottom != target.bottom ||
         current.left != target.left || current.right != target.right) {
-        MoveWindow((HWND)shell_window, target.left, target.top, target.right - target.left,
+        MoveWindow((HWND)halo::shell::globals().window, target.left, target.top, target.right - target.left,
                    target.bottom - target.top, 1);
-        ShowWindow((HWND)shell_window, 5);
+        ShowWindow((HWND)halo::shell::globals().window, 5);
     }
 
     game_window_bottom_right = (uint16_t)(int16_t)height | ((uint32_t)(uint16_t)(int16_t)width << 16);
@@ -1491,16 +1491,16 @@ void rasterizer_shutdown(void)
     chimera__registry_check_3();
 
     if (rasterizer_window_icon_dc != (void *)0) {
-        ReleaseDC((HWND)shell_window, (HDC)rasterizer_window_icon_dc);
+        ReleaseDC((HWND)halo::shell::globals().window, (HDC)rasterizer_window_icon_dc);
         rasterizer_window_icon_dc = (void *)0;
     }
     if (rasterizer_window_icon_bitmap != (void *)0) {
         DeleteObject(rasterizer_window_icon_bitmap);
         rasterizer_window_icon_bitmap = (void *)0;
     }
-    ShowWindow((HWND)shell_window, 0);
-    DestroyWindow((HWND)shell_window);
-    shell_window = (void *)0;
+    ShowWindow((HWND)halo::shell::globals().window, 0);
+    DestroyWindow((HWND)halo::shell::globals().window);
+    halo::shell::globals().window = (void *)0;
 
     for (i = 0; i < 4; i++) {
         if (rasterizer_capture_surfaces[i] != (void *)0) {

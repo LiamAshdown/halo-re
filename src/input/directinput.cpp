@@ -19,6 +19,7 @@
 #include "halo/input/directinput.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" { extern int32_t input_device_count; }
 extern "C" { extern input_device input_devices[8]; }
@@ -322,7 +323,6 @@ void DirectInput::directinput_acquire_devices(void)
 
 }
 
-extern "C" { extern void *shell_instance; }
 extern "C" { extern void *direct_input8_create; }
 extern "C" { extern input_guid iid_directinput8a; }
 extern "C" { extern void *direct_input; }
@@ -339,7 +339,7 @@ uint8_t DirectInput::directinput_initialize(void)
 {
     int32_t hr;
 
-    hr = ((directinput8create_proc)direct_input8_create)(shell_instance, 0x800,
+    hr = ((directinput8create_proc)direct_input8_create)(halo::shell::globals().instance, 0x800,
         &iid_directinput8a, &direct_input, (void *)0);
     if (hr < 0) {
         input_error_log_once(hr, (char *)"DirectInputCreate");
@@ -1022,7 +1022,6 @@ void DirectInput::key_block_timers_expire(void)
 extern "C" { extern ui_key_event key_events[k_input_key_event_capacity]; }
 extern "C" { extern input_guid guid_sys_keyboard; }
 extern "C" { extern di_data_format c_dfDIKeyboard; }
-extern "C" { extern void *shell_window; }
 namespace halo::input {
 
 /**
@@ -1058,7 +1057,7 @@ uint8_t DirectInput::keyboard_device_create(void)
         description = (char *)"CreateDevice (keyboard)";
     } else {
         vtable = *(void ***)keyboard_device;
-        hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(keyboard_device, shell_window, 0x16);
+        hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(keyboard_device, halo::shell::globals().window, 0x16);
         if (hr < 0) {
             description = (char *)"SetCooperativeLevel (keyboard)";
         } else {
@@ -1156,7 +1155,7 @@ uint8_t DirectInput::mouse_device_create(void)
         description = (char *)"CreateDevice (mouse)";
     } else {
         vtable = *(void ***)mouse_device;
-        hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(mouse_device, shell_window, 5);
+        hr = ((idirectinputdevice8_setcooplevel_proc)vtable[13])(mouse_device, halo::shell::globals().window, 5);
         if (hr < 0) {
             description = (char *)"SetCooperativeLevel (mouse)";
         } else {

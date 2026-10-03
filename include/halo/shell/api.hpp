@@ -24,6 +24,12 @@ namespace halo::shell {
  * other modules reach them through globals().
  */
 struct Globals {
+    int32_t &argc;
+    char **&argv;
+    char *&command_line;
+    void *&window;
+    void *&instance;
+    int32_t &nosound;
     void *&module_handle;
     int32_t &disable_alpha_render_targets;
     int32_t &disable_buffering;

@@ -43,7 +43,6 @@ extern int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post,
 extern char autopatch_proxy_server[0x100];
 extern char autopatch_update_url[0x100];
 extern char autopatch_update_version[0x100];
-extern char * shell_command_line;
 extern uint8_t autopatch_proxy_ready;
 extern void ghttpSetProxy(void *proxy_settings);
 extern uint8_t ai_update_stagger[11];
@@ -601,7 +600,7 @@ uint8_t AutopatchUpdater::launch_updater(void)
     if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
-    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, shell_command_line);
+    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, halo::shell::globals().command_line);
     line[0x400] = 0;
     if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;

@@ -10,8 +10,6 @@
 extern "C" {
 extern d3d9_interface *rasterizer_direct3d;
 extern uint32_t d3d_adapter;
-extern int32_t shell_argc;
-extern char **shell_argv;
 extern uint32_t video_memory;
 extern int _stricmp(const char *a, const char *b);
 extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate);
@@ -26,8 +24,8 @@ uint8_t VideoOptions::video_mode_memory_limit_applies(void)
     if (halo::shell::globals().maximum_resolution == 0x1000) {
         return 1;
     }
-    for (i = 0; i < shell_argc; i++) {
-        const char *argument = shell_argv[i];
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        const char *argument = halo::shell::globals().argv[i];
 
         if (argument[0] == '-' && _stricmp("-vidmode", argument) == 0) {
             return 1;

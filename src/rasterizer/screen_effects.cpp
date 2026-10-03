@@ -145,9 +145,9 @@ void chimera__registry_check_4(void)
     int32_t gamma_flag;
     HDC dc;
 
-    if (0 < shell_argc) {
-        for (i = 0; i < shell_argc; i++) {
-            char *arg = shell_argv[i];
+    if (0 < halo::shell::globals().argc) {
+        for (i = 0; i < halo::shell::globals().argc; i++) {
+            char *arg = halo::shell::globals().argv[i];
             if (*arg == '-' && _stricmp("-nogamma", arg) == 0) {
                 rasterizer_gamma_disabled = 1;
                 goto set_bit;

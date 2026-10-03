@@ -36,9 +36,7 @@ extern "C" { extern uint16_t graphics_driver_version[4]; }
 extern "C" { extern uint32_t physical_memory; }
 extern "C" { extern uint32_t cpu_speed; }
 extern "C" { extern uint32_t video_memory; }
-extern "C" { extern char *shell_command_line; }
 extern "C" { extern uint32_t shell_startup_tick_count; }
-extern "C" { extern int32_t shell_nosound; }
 extern "C" { extern int16_t sound_permutation_limit; }
 extern "C" { extern uint8_t directsound_eax_enabled; }
 extern "C" { extern int32_t directsound_quality; }
@@ -188,7 +186,7 @@ void Timedemo::benchmark_update(void)
             fprintf(file, "%dMHz, %dMB\n", cpu_speed, physical_memory);
         }
 
-        fprintf(file, "%s %s", module_path, shell_command_line);
+        fprintf(file, "%s %s", module_path, halo::shell::globals().command_line);
         version_size = GetFileVersionInfoSizeA(module_path, (LPDWORD)(&version_handle));
         version_data = GlobalAlloc(0, version_size);
         GetFileVersionInfoA(module_path, 0, version_size, version_data);
@@ -238,7 +236,7 @@ void Timedemo::benchmark_update(void)
             timedemo_globals_data.buckets[0].time_ms * 100 / timedemo_globals_data.total_time_ms,
             timedemo_globals_data.buckets[0].frames * 100 / timedemo_globals_data.frame_count);
 
-        if (shell_nosound != 0) {
+        if (halo::shell::globals().nosound != 0) {
             fprintf(file, "###Sound Options###\nSound Disabled\n");
         } else {
             if (sound_permutation_limit == 2) {

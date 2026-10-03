@@ -6,6 +6,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -36,7 +37,6 @@ extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, .
 extern void chat_close(void);
 extern void NNCancel(datum_index tag);
 extern uint8_t main_menu_reload_pending;
-extern char *shell_command_line;
 extern uint8_t ui_input_batch_mode;
 extern uint8_t loading_thread_result;
 extern loading_thread_record *loading_thread;
@@ -229,8 +229,8 @@ void ChimeraBridge::load_main_menu(void)
 {
     ui_input_batch_mode = 0;
     if (main_menu_reload_pending == 1) {
-        if (shell_command_line != (char *)0) {
-            _stricmp(shell_command_line, "xdemo");
+        if (halo::shell::globals().command_line != (char *)0) {
+            _stricmp(halo::shell::globals().command_line, "xdemo");
         }
         ui_input_batch_mode = 1;
         loading_thread_result = 0;

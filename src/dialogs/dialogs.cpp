@@ -1,5 +1,6 @@
 #include "halo/dialogs/dialogs.hpp"
 #include "halo/dialogs/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern int32_t dialog_hyperlink_hovered;
@@ -15,7 +16,6 @@ extern uint32_t graphics_device_id;
 extern uint32_t cpu_speed;
 extern uint32_t physical_memory;
 extern uint32_t video_memory;
-extern void *shell_window;
 extern int32_t fatal_error_remember_choice;
 extern char fatal_error_system_specs[halo::dialogs::k_system_specs_capacity];
 }
@@ -248,8 +248,8 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
 
     if (message < message_id(dialog_message::command)) {
         if (message == message_id(dialog_message::close)) {
-            if (shell_window != 0) {
-                DestroyWindow((HWND)shell_window);
+            if (halo::shell::globals().window != 0) {
+                DestroyWindow((HWND)halo::shell::globals().window);
             }
             EndDialog((HWND)dialog, k_dialog_button_cancel);
             return 1;
@@ -298,8 +298,8 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
                 return 1;
             }
             if (control_id == k_dialog_button_cancel) {
-                if (shell_window != 0) {
-                    DestroyWindow((HWND)shell_window);
+                if (halo::shell::globals().window != 0) {
+                    DestroyWindow((HWND)halo::shell::globals().window);
                 }
                 EndDialog((HWND)dialog, k_dialog_button_cancel);
                 return 1;
@@ -312,8 +312,8 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
             }
         } else {
             if (control_id == id_of(fatal_error_control::quit_button)) {
-                if (shell_window != 0) {
-                    DestroyWindow((HWND)shell_window);
+                if (halo::shell::globals().window != 0) {
+                    DestroyWindow((HWND)halo::shell::globals().window);
                 }
                 EndDialog((HWND)dialog, k_dialog_button_cancel);
                 return 1;
@@ -327,8 +327,8 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
     }
 
     if (message > message_id(dialog_message::command) && message == (uint32_t)id_of(fatal_error_control::quit_button)) {
-        if (shell_window != 0) {
-            DestroyWindow((HWND)shell_window);
+        if (halo::shell::globals().window != 0) {
+            DestroyWindow((HWND)halo::shell::globals().window);
         }
         EndDialog((HWND)dialog, k_dialog_button_cancel);
         return 1;

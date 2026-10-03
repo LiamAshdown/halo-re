@@ -12,8 +12,6 @@
 #include "halo/shell/api.hpp"
 
 extern "C" {
-extern int32_t shell_argc;
-extern char **shell_argv;
 extern int32_t safe_mode;
 }
 
@@ -28,8 +26,8 @@ void math_initialize()
 
     globals().matrix4x3_multiply_procedure = matrix4x3_multiply;
 
-    for (i = 0; i < shell_argc; i++) {
-        char *arg = shell_argv[i];
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        char *arg = halo::shell::globals().argv[i];
         if (*arg == '-' && stricmp("-noSSE", arg) == 0) {
             return;
         }

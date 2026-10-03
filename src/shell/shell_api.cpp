@@ -14,6 +14,12 @@
 #include "halo/shell/api.hpp"
 
 extern "C" {
+extern int32_t shell_argc;
+extern char **shell_argv;
+extern char *shell_command_line;
+extern void *shell_window;
+extern void *shell_instance;
+extern int32_t shell_nosound;
 extern void *shell_module_handle;
 extern int32_t config_force_shader;
 extern int32_t config_maximum_resolution;
@@ -52,7 +58,7 @@ namespace halo::shell {
 
 Globals &globals()
 {
-    static Globals instance{::shell_module_handle, ::config_disable_alpha_render_targets, ::config_disable_buffering, ::config_disable_driver_management, ::config_disable_render_targets, ::config_disable_specular, ::config_enable_stop_start, ::config_head_relative_speech, ::config_invalid_driver, ::config_invalid_sound_driver, ::config_linear_texture_addressing, ::config_linear_texture_addressing_sun, ::config_linear_texture_addressing_zoom, ::config_min_max_blend_op_is_broken, ::config_old_driver, ::config_old_sound_driver, ::config_prototype_card, ::config_safe_mode, ::config_unsupported_card, ::config_use_alternate_convolve_mask, ::config_use_anisotropic_filter, ::config_use_fixed_function, ::config_force_shader, ::config_maximum_resolution, ::config_decal_z_bias, ::config_decal_slope_z_bias, ::config_transparent_decal_z_bias, ::config_transparent_decal_slope_z_bias};
+    static Globals instance{::shell_argc, ::shell_argv, ::shell_command_line, ::shell_window, ::shell_instance, ::shell_nosound, ::shell_module_handle, ::config_disable_alpha_render_targets, ::config_disable_buffering, ::config_disable_driver_management, ::config_disable_render_targets, ::config_disable_specular, ::config_enable_stop_start, ::config_head_relative_speech, ::config_invalid_driver, ::config_invalid_sound_driver, ::config_linear_texture_addressing, ::config_linear_texture_addressing_sun, ::config_linear_texture_addressing_zoom, ::config_min_max_blend_op_is_broken, ::config_old_driver, ::config_old_sound_driver, ::config_prototype_card, ::config_safe_mode, ::config_unsupported_card, ::config_use_alternate_convolve_mask, ::config_use_anisotropic_filter, ::config_use_fixed_function, ::config_force_shader, ::config_maximum_resolution, ::config_decal_z_bias, ::config_decal_slope_z_bias, ::config_transparent_decal_z_bias, ::config_transparent_decal_slope_z_bias};
     return instance;
 }
 

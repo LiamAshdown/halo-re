@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 
@@ -447,7 +448,7 @@ void rasterizer_editbox_log_dump(void)
         if (unknown_00721ea0 == (void *)0) {
             return;
         }
-        chat_gui_root_handle = unknown_00721ea0(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
+        chat_gui_root_handle = unknown_00721ea0(halo::shell::globals().window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
         if (chat_gui_root_handle == (void *)0) {
             return;
         }
