@@ -423,7 +423,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
                             machine->player_joined = 1;
                             player_datum = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index) ;
                             halo::game::game_engine_player_new_life(player_datum);
-                            if (halo::game::game_engine_player_profile_cache_find() != -1) {
+                            if (halo::game::game_engine_player_profile_cache_find((datum_index)player_datum) != -1) {
                                 handled = 1;
                             } else {
 
@@ -565,10 +565,11 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                         if (salt == 0 || plr->identifier == salt) {
                             team = plr->team;
                             unit = plr->unit;
-                            halo::game::game_engine_notify_object_value_event(team);
+                            halo::game::game_engine_notify_object_value_event((uint8_t)entry->slot_index, (int32_t)datum, machine_id, (void *)(uintptr_t)team);
                             halo::networking::build_player_full_resync_update(machine_id);
-                            if (halo::game::game_engine_player_profile_cache_find() != -1) {
-                                halo::game::game_engine_capture_player_profile(0);
+                            int32_t profile_slot = halo::game::game_engine_player_profile_cache_find((datum_index)datum);
+                            if (profile_slot != -1) {
+                                halo::game::game_engine_capture_player_profile(profile_slot, 0);
                             }
                             if ((uint32_t)unit != 0xffffffff) {
                                 hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff];

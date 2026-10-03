@@ -14,6 +14,7 @@
 #include "halo/game/game1_king.hpp"
 #include "halo/game/game1_oddball.hpp"
 #include "halo/game/game1_engine_behavior.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::game::engine1 {
 

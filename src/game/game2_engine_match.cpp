@@ -154,7 +154,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     }
 
     if (halo::networking::globals().game_mode == 2) {
-        halo::game::game_engine_player_profile_cache_sync_all((datum_index)0xffffffff);
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
     }
 
     if (v->marked_for_deletion != 0) {
@@ -230,7 +230,7 @@ void EngineMatch::tick(void)
         halo::game::game_engine_update_netgame_equipment(0);
     }
     if (halo::networking::globals().game_mode == 2) {
-        halo::game::game_engine_player_profile_cache_sync_all((datum_index)0xffffffff);
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
     }
 
     {

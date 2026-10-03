@@ -1316,7 +1316,7 @@ void ServerBrowser::list_row_gather(network_ui_widget *row, uint8_t flag, void *
             }
         }
 
-        halo::interface::map_list_get_friendly_level_name(mapname, friendly_map);
+        halo::interface::map_list_get_friendly_level_name(friendly_map, (char *)mapname, 0x20);
         halo::networking::server_browser_list_row_populate(row, (uint8_t)is_password, (uint8_t)is_dedicated,
                                           hostname, friendly_map, gametype,
                                           (uint8_t)(is_classic == 1), count_a, count_b, ping);

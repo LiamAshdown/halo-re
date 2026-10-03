@@ -45,7 +45,7 @@ void EngineMatch::update_lead_change_state(void **envelope, uint8_t *message)
 
     if (color > 0xf ||
         (int16_t)*(int8_t *)((uint8_t *)halo::networking::globals().server + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
-        halo::interface::chat_queue_team_message(color, 0x91);
+        halo::interface::chat_queue_team_message(color);
         return;
     }
 

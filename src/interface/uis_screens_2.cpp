@@ -54,7 +54,7 @@ uint32_t UiScreens::check_for_pause_game(void)
         (halo::game::globals().game_time->active == 0 && halo::game::globals().game_time->paused == 0) ||
         halo::cutscene::globals().cinematic_globals->in_progress != 0 ||
         halo::networking::globals().game_mode == 3 || ui_split_screen != 0 || ui_pause_pending_count_00718fa0 != 0 ||
-        (player_control_globals_ptr->action_flags_latched >> 3 & 1) != 0 || chat_dialog_open != 0 ||
+        (halo::game::globals().player_control->action_flags_latched >> 3 & 1) != 0 || chat_dialog_open != 0 ||
         halo::interface::state::escape_key_state != 1) {
         goto decrement_and_return;
     }

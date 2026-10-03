@@ -10,6 +10,7 @@
 
 #include "halo/game/game1_scoreboard.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;

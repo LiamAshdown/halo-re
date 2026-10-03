@@ -13,6 +13,7 @@
 #include "halo/game/game1_notifications.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern uint8_t shared_hud_text_draw_state;

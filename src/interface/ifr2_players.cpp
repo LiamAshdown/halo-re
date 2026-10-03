@@ -678,7 +678,7 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
     halo::interface::player_profile_apply_video_options(record);
     halo::interface::player_profile_apply_audio_options(record);
 
-    if (current_game_engine == (void *)0 && port_overridden == 0 &&
+    if (halo::game::globals().current_engine == (void *)0 && port_overridden == 0 &&
         (halo::networking::globals().game_socket_port != *(uint16_t *)(record + 0x1002) ||
          game_cport != *(uint16_t *)(record + 0x1004))) {
         halo::networking::network_channels_close();

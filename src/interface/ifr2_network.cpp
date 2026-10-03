@@ -32,8 +32,6 @@ extern uint8_t command_line_check_flag(const char *flag, const char **out_value)
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern uint8_t local_team_00714dd8;
-extern uint8_t game_variant_saved_default_valid;
-extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
 extern player_profile player_profile_cache[16];
 extern game_variant game_engine_active_variant;
@@ -355,7 +353,7 @@ void NetworkSetup::clear_player_ready_flags()
  */
 void NetworkSetup::game_setup_teardown()
 {
-    game_variant_saved_default_valid = 0;
+    halo::game::globals().variant_saved_default_valid = 0;
     halo::networking::globals().game_mode = 0;
 
     if (halo::game::globals().current_engine != (game_engine_definition *)0) {
@@ -408,10 +406,10 @@ uint32_t MenuListView::choice_handler()
     if (widget == first_choice) {
         halo::interface::widget_close_all();
         if (halo::networking::globals().game_mode == 2) {
-            if (game_engine_state_value == 0) {
+            if (halo::game::globals().state == 0) {
                 halo::game::game_engine_reset_round_objects();
                 halo::game::game_engine_send_round_reset_message();
-                halo::game::game_engine_player_profile_cache_sync_all(-1);
+                halo::game::game_engine_player_profile_cache_sync_all(0, (void *)0xffffffff);
             } else {
                 halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
             }

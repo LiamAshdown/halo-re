@@ -43,7 +43,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         return;
     }
 
-    if (apply_detonation_timer != 0 && current_game_engine == 0) {
+    if (apply_detonation_timer != 0 && halo::game::globals().current_engine == 0) {
         Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
         if ((tag->item_flags & 0x02) != 0) {
             halo::items::item_detonation_timer_start(item_index);

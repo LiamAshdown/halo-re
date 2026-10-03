@@ -561,7 +561,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
         halo::saved_games::saved_game_last_mp_variant_clear(directory);
     }
     memcpy(game_variant_saved_default, variant, sizeof(variant));
-    game_variant_saved_default_valid = 1;
+    halo::game::globals().variant_saved_default_valid = 1;
     if (halo::networking::globals().game_mode != 2) {
         return 1;
     }

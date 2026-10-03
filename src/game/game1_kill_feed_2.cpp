@@ -11,6 +11,7 @@
 #include "halo/game/game1_kill_feed.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/game/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
