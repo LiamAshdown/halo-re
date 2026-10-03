@@ -271,8 +271,8 @@ uint8_t ConversationView::current_line_is_ready()
                         continue;
                     }
                     a = halo::ai::actor_at(actor_index);
-                    if (a->mode == 0xc && *(datum_index *)((uint8_t *)a + 0xa8) != k_datum_index_none &&
-                        !((uint8_t *)a)[0xa1] && !((uint8_t *)a)[0xa0]) {
+                    if (a->mode == 0xc && a->mode_data.converse.partner_unit != k_datum_index_none &&
+                        !a->mode_data.converse.arrived && !a->mode_data.converse.finished) {
                         blocked = 1;
                     }
                 }
