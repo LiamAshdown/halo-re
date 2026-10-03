@@ -59,7 +59,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     (void)aim;
     (void)callback_extra;
     if (list[0x20] & 0x10) {
-        uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
+        unit_object *unit = (unit_object *)halo::ai::object_at(unit_index);
 
         ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::unknown_1000);
     }
@@ -76,7 +76,7 @@ namespace actor_obey_member_exit_local {
 void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
     using namespace actor_obey_member_exit_local;
-    uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
+    unit_object *unit = (unit_object *)halo::ai::object_at(unit_index);
 
     (void)callback_extra;
     if ((action->flags & 2) == 0) {
@@ -631,7 +631,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         halo::units::unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
         if (facing_point >= 0 && facing_point < point_count) {
             real_point3d *facing = (real_point3d *)&points[facing_point].position;
-            uint8_t *biped = (uint8_t *)halo::objects::object_try_and_get(check_object_index, 1);
+            unit_object *biped = (unit_object *)halo::objects::object_try_and_get(check_object_index, 1);
             Biped *biped_tag = biped != 0 ? halo::ai::tag_data<Biped>(((object *)biped)->definition_tag) : 0;
             float length;
 

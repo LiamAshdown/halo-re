@@ -136,7 +136,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         }
         cluster = ((struct object *)object)->location_cluster_index;
         if (((struct object *)object)->parent_object != halo::k_dword_none) {
-            uint8_t *root = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index));
+            unit_object *root = (unit_object *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index));
 
             cluster = ((struct object *)root)->location_cluster_index;
         }

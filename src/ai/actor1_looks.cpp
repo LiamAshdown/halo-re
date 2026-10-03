@@ -36,7 +36,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint32_t unit_index = actor->unit_index;
-    uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
+    unit_object *unit = (unit_object *)halo::ai::object_at(unit_index);
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[actor->control_animation_mode * 2];

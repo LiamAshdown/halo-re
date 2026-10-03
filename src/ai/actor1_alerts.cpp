@@ -48,7 +48,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
         return 0;
     }
     if (actor->unit_index != halo::k_dword_none) {
-        uint8_t *unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
+        unit_object *unit = (unit_object *)halo::ai::object_at(actor->unit_index);
         datum_index attacker = static_cast<datum_index>(((struct unit_object *)unit)->unit.flaming_responsible_object);
 
         if (attacker != k_datum_index_none) {

@@ -2349,7 +2349,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                     continue;
                 }
                 {
-                    uint8_t *new_obj = (uint8_t *)halo::ai::object_at(new_object);
+                    unit_object *new_obj = (unit_object *)halo::ai::object_at(new_object);
                     char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
                     datum_index new_actor;
 

@@ -769,7 +769,7 @@ uint8_t halo::ai::flee_mode::process()
 
     kind = mode_data->panic;
     if (kind >= 9 && kind <= 12 && act->unit_index != k_datum_index_none) {
-        uint8_t *unit = (uint8_t *)halo::ai::object_at(act->unit_index);
+        unit_object *unit = (unit_object *)halo::ai::object_at(act->unit_index);
 
         if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
             mode_data->announced = 0;

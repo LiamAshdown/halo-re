@@ -693,7 +693,7 @@ static int actor_prop_still_admitted(datum_index actor_index, actor *self, prop 
 
         if (encounter_index != k_datum_index_none) {
             struct encounter *encounter = halo::ai::encounter_at(encounter_index);
-            uint8_t *unit = (uint8_t *)halo::ai::object_at(p->object_index);
+            unit_object *unit = (unit_object *)halo::ai::object_at(p->object_index);
             int32_t reference = encounter->last_idle_time;
             uint8_t counts = 1;
             uint8_t calm;
