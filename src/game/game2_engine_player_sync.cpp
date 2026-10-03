@@ -764,16 +764,16 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
     if (camera.seat_index != -1) {
         uint8_t *unit_object = (uint8_t *)halo::game::object_at(camera.unit);
         uint8_t *unit_tag = (uint8_t *)halo::game::tag_data_at(*(datum_index *)unit_object);
-        uint8_t *seat = *(uint8_t **)(unit_tag + 0x2e8) + (int32_t)camera.seat_index * 0x11c;
-        real yaw_min = *(real *)(seat + 0xf0);
-        real yaw_max = *(real *)(seat + 0xf4);
+        UnitSeat *seat = (UnitSeat *)((Unit *)unit_tag)->seats.pointer + (int32_t)camera.seat_index;
+        real yaw_min = seat->yaw_minimum;
+        real yaw_max = seat->yaw_maximum;
 
         if (yaw_min != 0.0f || yaw_max != 0.0f) {
             object_marker marker;
             real base, a, b, span, forward_delta, back_delta;
 
-            halo::objects::object_get_node_local_transform(camera.unit, (char *)(seat + 0x24), &marker, 1);
-            base = (real)halo::libm::atan2((double)*(real *)((uint8_t *)&marker + 0x40), (double)*(real *)((uint8_t *)&marker + 0x3c));
+            halo::objects::object_get_node_local_transform(camera.unit, seat->marker_name.string, &marker, 1);
+            base = (real)halo::libm::atan2((double)marker.node_transform.forward.j, (double)marker.node_transform.forward.i);
             a = base + yaw_min;
             b = base + yaw_max;
             span = look_wrap_angle(b - a);
@@ -822,7 +822,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
                 heading.i = (real)halo::libm::cos((double)look->yaw) * 1.0f;
                 heading.j = (real)halo::libm::sin((double)look->yaw) * 1.0f;
                 heading.k = 0.0f;
-                adjust = 1.5707964f - halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)(unit + 0x80), heading);
+                adjust = 1.5707964f - halo::math::vector3d_angle_between_4cd4f0(((unit_object *)unit)->base.up, heading);
                 pitch_min = pitch_min - adjust;
                 pitch_max = pitch_max - adjust;
                 target_pitch = target_pitch - adjust;
@@ -840,7 +840,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
         }
         if (target_pitch != 0.0f || look->autolevelling_active) {
             real error = (real)(halo::libm::fabs((double)(look->pitch - target_pitch)) * 0.6366197466850281);
-            real_vector3d *velocity = (real_vector3d *)(unit + 0x68);
+            real_vector3d *velocity = &((unit_object *)unit)->base.velocity;
             real speed = (real)halo::libm::sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
                 velocity->k * velocity->k));
             real step;

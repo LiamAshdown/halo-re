@@ -388,7 +388,7 @@ void Players::rebind_local_player_after_load()
     int16_t slot;
     datum_index handle = k_datum_index_none;
     player *entry;
-    uint8_t *control;
+    local_player_control *control;
 
     if (local == -1) {
         local = 0;
@@ -421,18 +421,18 @@ void Players::rebind_local_player_after_load()
         local_player_globals->local_players[slot] = k_datum_index_none;
     }
 
-    control = player_control_globals_ptr + 0x10 + slot * 0x40;
-    memset(control, 0, 0x40);
-    *(int32_t *)(control + 0x00) = -1;
-    *(int16_t *)(control + 0x20) = -1;
-    *(int16_t *)(control + 0x22) = -1;
-    *(int16_t *)(control + 0x24) = -1;
-    *(int32_t *)(control + 0x28) = -1;
-    control[0x26] = 0;
-    *(uint32_t *)(control + 0x3c) = 0x3fbf0243;
-    *(uint32_t *)(control + 0x38) = 0xbfbf0243;
-    *(int16_t *)(control + 0x08) = 0;
-    *(int16_t *)(control + 0x0a) = 0;
+    control = ((player_control_globals *)player_control_globals_ptr)->local_players + slot;
+    memset(control, 0, sizeof(*control));
+    control->unit = k_datum_index_none;
+    control->desired_weapon_index = -1;
+    control->desired_grenade_index = -1;
+    control->desired_zoom_level = -1;
+    control->nameplate_target = k_datum_index_none;
+    control->autolevelling_active = 0;
+    *(uint32_t *)&control->pitch_maximum = 0x3fbf0243;
+    *(uint32_t *)&control->pitch_minimum = 0xbfbf0243;
+    control->suppressed_buttons = 0;
+    control->suppressed_until_released = 0;
 
     halo::game::game_set_local_player(handle, local);
     halo::game::game_engine_init_player_look_state_from_object(entry->unit, local);
