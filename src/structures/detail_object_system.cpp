@@ -4,12 +4,14 @@
  * The original author notes and decompiles are in docs/original/structures/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/structures/structures.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+<<<<<<< HEAD
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 
@@ -17,6 +19,10 @@ extern "C" {
 extern real_point3d render_camera_global;
 extern long lrint(double x);
 }
+=======
+#include "halo/structures/globals.hpp"
+
+>>>>>>> worktree-agent-abfcb6ae2d2dd8d16
 
 namespace halo::structures {
 
@@ -46,7 +52,11 @@ void detail_object_system::update_render_list(void)
     detail_object_frame *frame = &globals().detail_objects->frames[0];
     int16_t cell_x, cell_y, cell_z;
 
+<<<<<<< HEAD
     if (halo::game::globals().local_player_globals->local_player_count != 1 || halo::interface::globals().current_local_player_index == -1) {
+=======
+    if (globals().local_player_globals->local_player_count != 1 || globals().current_local_player_index == -1) {
+>>>>>>> worktree-agent-abfcb6ae2d2dd8d16
         return;
     }
 
@@ -54,9 +64,9 @@ void detail_object_system::update_render_list(void)
         ? (ScenarioStructureBSPDetailObjectData *)0
         : (ScenarioStructureBSPDetailObjectData *)halo::scenario::globals().structure_bsp->detail_objects.pointer;
 
-    cell_x = (int16_t)(int32_t)lrint((double)(render_camera_global.x * 0.125f - 0.5f));
-    cell_y = (int16_t)(int32_t)lrint((double)(render_camera_global.y * 0.125f - 0.5f));
-    cell_z = (int16_t)(int32_t)lrint((double)(render_camera_global.z * 0.125f - 0.5f));
+    cell_x = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.x * 0.125f - 0.5f));
+    cell_y = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.y * 0.125f - 0.5f));
+    cell_z = (int16_t)(int32_t)lrint((double)(globals().render_camera_global.z * 0.125f - 0.5f));
 
     if (detail_data->bullshit != 0) {
         halo::rasterizer::rasterizer_detail_objects_begin();

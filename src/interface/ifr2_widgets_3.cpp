@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/text/text.hpp"
 
 #ifdef interface
 #undef interface

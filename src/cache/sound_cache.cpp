@@ -12,13 +12,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
 
-extern "C" {
-extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source, int32_t source_size);
-extern int32_t sound_cache_size_megabytes;
-extern char file_open_mode_w[];
-}
 
 namespace halo::cache {
 
@@ -141,7 +138,7 @@ void sound_cache_manager::dump_to_file()
     sound_count = 0;
 
     bitmap = (uint8_t *)GlobalAlloc(0, globals().sound_cache_page_count);
-    file = fopen("sound_cache_dump.txt", file_open_mode_w);
+    file = fopen("sound_cache_dump.txt", globals().file_open_mode_w);
 
     for (scan = line, bit = 0x100; bit != 0; bit--) {
         scan[0] = 0; scan[1] = 0; scan[2] = 0; scan[3] = 0;
@@ -178,7 +175,7 @@ void sound_cache_manager::dump_to_file()
         }
 
         {
-            float mb_total = (float)sound_cache_size_megabytes;
+            float mb_total = (float)globals().sound_cache_size_megabytes;
             float page_count_f = (float)saved_page_count;
             if (saved_page_count < 0) {
                 page_count_f = page_count_f + 4.2949673e+09f;
@@ -187,7 +184,7 @@ void sound_cache_manager::dump_to_file()
 
             sprintf(line,
                 "%d / 512 sounds in cache\n%.2f MB / %.2f MB used %.2f percent free\n%d / %d pages allocated\n%d / %d pages used this frame\n%d / %d pages old\n%d / %d pages locked\n\n",
-                sound_count, (double)(mb_total - free_pages), (double)(int32_t)sound_cache_size_megabytes,
+                sound_count, (double)(mb_total - free_pages), (double)(int32_t)globals().sound_cache_size_megabytes,
                 (double)((free_pages / mb_total) * 100.0f),
                 allocated_pages, saved_page_count, current_pages, saved_page_count,
                 old_pages, saved_page_count, locked_pages, saved_page_count);
@@ -271,7 +268,7 @@ void sound_cache_manager::initialize()
 
     globals().sound_cache_entries = halo::memory::data_array_view::create(sizeof(sound_cache_entry), (char *)"pc sound", k_sound_cache_maximum_entries);
 
-    scaled_megabytes = (int32_t)*(int16_t *)&sound_cache_size_megabytes * 0x100000;
+    scaled_megabytes = (int32_t)*(int16_t *)&globals().sound_cache_size_megabytes * 0x100000;
     globals().sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);
@@ -323,7 +320,7 @@ void sound_cache_manager::page_allocate(SoundPermutation *permutation, uint8_t p
     }
 
     page_datum = halo::memory::view(globals().sound_cache)->allocate_block((uint32_t)requested_bytes);
-    if (page_datum != 0xffffffff) {
+    if (page_datum != halo::k_dword_none) {
         page_address = (((cache_entry *)((uint8_t *)globals().sound_cache->entries->data +
             (page_datum & 0xffff) * sizeof(cache_entry)))->offset << (globals().sound_cache->block_shift & 0x1f)) +
             (int32_t)globals().sound_cache_base;
@@ -388,12 +385,12 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
     int32_t elapsed_ms;
     uint32_t stall_ms;
 
-    if (permutation->samples_pointer == 0xffffffff) {
+    if (permutation->samples_pointer == halo::k_dword_none) {
         if (allocate_if_missing != 0) {
 
             halo::cache::sound_cache_manager::page_allocate(permutation, wait_until_loaded);
         }
-        if (permutation->samples_pointer == 0xffffffff) {
+        if (permutation->samples_pointer == halo::k_dword_none) {
             return 0;
         }
     }
@@ -445,7 +442,7 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
  */
 void sound_cache_manager::release_page(SoundPermutation *permutation)
 {
-    if (permutation->samples_pointer != 0xffffffff) {
+    if (permutation->samples_pointer != halo::k_dword_none) {
         halo::memory::view(globals().sound_cache)->evict_entry((datum_index)permutation->samples_pointer);
     }
     permutation->samples_pointer = 0xffffffff;

@@ -8,6 +8,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern int16_t weather_particle_system_count;
@@ -71,7 +72,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
 
     if (cluster != -1) {
         uint32_t skip_non_water = filter_flags & 4;
-        int16_t region = halo::scenario::scenario_location_fog_region(location, skip_non_water ? (real_point3d *)0 : position);
+        int16_t region = halo::scenario::location_view(location).fog_region(skip_non_water ? (real_point3d *)0 : position);
 
         weather_row = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster * 0x68 + 8);
         if (region != -1) {

@@ -4,12 +4,14 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
 
 #include "tags.h"
 #include "halo/physics/api.hpp"
 #include "halo/game/api.hpp"
+#include "link/calls.hpp"
 
 extern "C" {
 extern double sqrt(double x);

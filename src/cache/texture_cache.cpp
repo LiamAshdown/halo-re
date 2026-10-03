@@ -12,12 +12,10 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
-extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
-extern uint8_t debug_texture_cache_prints;
-extern void *texture_cache_base;
-}
 
 namespace halo::cache {
 
@@ -87,11 +85,11 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
     int16_t bitmap_type;
 
     if ((bitmap->flags & 0x80) != 0) {
-        if (bitmap->pointer == 0xffffffff && allocate_if_missing != 0) {
+        if (bitmap->pointer == halo::k_dword_none && allocate_if_missing != 0) {
             halo::cache::texture_cache_manager::page_allocate(bitmap, wait);
         }
 
-        if (bitmap->pointer != 0xffffffff) {
+        if (bitmap->pointer != halo::k_dword_none) {
             entry = (texture_cache_entry *)((uint8_t *)globals().texture_cache_entries->data +
                 (bitmap->pointer & 0xffff) * sizeof(texture_cache_entry));
 
@@ -99,7 +97,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                 (bitmap->pointer & 0xffff) * sizeof(cache_entry)))->age = globals().texture_cache->age;
 
             if (wait != 0 && entry->loaded == 0) {
-                if (debug_texture_cache_prints != 0) {
+                if (globals().debug_texture_cache_prints != 0) {
 
                     halo::main::console_print_va("%s",
                         globals().tag_instances[(int16_t)bitmap->bitmap_tag_id.index].path);
@@ -172,7 +170,7 @@ void texture_cache_manager::initialize()
         halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
     }
     globals().texture_cache = (struct cache *)cache_memory;
-    texture_cache_base = globals().texture_cache_memory;
+    globals().texture_cache_base = globals().texture_cache_memory;
     return;
 }
 
@@ -195,7 +193,7 @@ uint32_t texture_cache_manager::page_allocate(BitmapData *bitmap, uint8_t priori
 
     computed_size = halo::rasterizer::bitmap_compute_texture_data_size(bitmap);
     cache_slot = halo::memory::view(globals().texture_cache)->allocate_block(4);
-    if (cache_slot == (datum_index)0xffffffff) {
+    if (cache_slot == halo::k_dword_none) {
         return 0;
     }
 

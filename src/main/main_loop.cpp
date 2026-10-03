@@ -42,6 +42,13 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/scenario/scenario.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -466,7 +473,7 @@ void MainLoop::loop(void)
             input_event_queue_active.start_time = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
             if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
                 memset(&idle_event, 0, sizeof(idle_event));
-                halo::input::input_queue_push_event(0, &idle_event);
+                halo::input::UiEvents::queue_push_event(0, &idle_event);
             }
         }
         if (connection == _game_connection_network_server) {

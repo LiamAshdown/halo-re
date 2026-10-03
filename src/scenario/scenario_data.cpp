@@ -8,15 +8,8 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/scenario/api.hpp"
 
-extern "C" {
-extern datum_index global_scenario_index;
-extern Scenario *global_scenario;
-extern Globals *global_globals;
-extern char k_empty_string[1];
-extern uint8_t material_table_warning_issued;
-extern GlobalsMaterial material_table_fallback;
-}
 
 namespace halo::scenario {
 
@@ -27,10 +20,10 @@ uint8_t scenario_loader::load(char *path)
     int32_t i;
     uint8_t result;
 
-    global_scenario_index = halo::cache::cache_file_load(path);
-    if (global_scenario_index == (datum_index)k_datum_index_none) {
+    globals().scenario_index = halo::cache::cache_file_load(path);
+    if (globals().scenario_index == (datum_index)k_datum_index_none) {
         result = 0;
-        scan = k_empty_string;
+        scan = globals().k_empty_string;
         do {
             next_newline = strchr(scan, '\n');
             result = 0;
@@ -44,22 +37,22 @@ uint8_t scenario_loader::load(char *path)
         return result;
     }
 
-    global_scenario = (Scenario *)halo::cache::globals().tag_instances[halo::datum_slot(global_scenario_index)].data;
-    if ((int32_t)global_scenario->structure_bsps.count <= 0) {
+    globals().scenario = (Scenario *)halo::cache::globals().tag_instances[halo::datum_slot(globals().scenario_index)].data;
+    if ((int32_t)globals().scenario->structure_bsps.count <= 0) {
         return 0;
     }
 
-    global_globals = (Globals *)halo::cache::globals().tag_instances[
+    globals().global_globals = (::Globals *)halo::cache::globals().tag_instances[
         halo::datum_slot(halo::cache::tag_lookup(halo::groups::globals, (char *)"globals\\globals"))].data;
 
     if (structure_bsp_switcher::switch_to(0) == 0) {
         return 0;
     }
 
-    if (0 < (int32_t)global_scenario->netgame_equipment.count) {
+    if (0 < (int32_t)globals().scenario->netgame_equipment.count) {
         ScenarioNetgameEquipment *equipment =
-            (ScenarioNetgameEquipment *)global_scenario->netgame_equipment.pointer;
-        for (i = 0; i < (int32_t)global_scenario->netgame_equipment.count; i++) {
+            (ScenarioNetgameEquipment *)globals().scenario->netgame_equipment.pointer;
+        for (i = 0; i < (int32_t)globals().scenario->netgame_equipment.count; i++) {
             equipment[i].spawned_item = halo::k_dword_none;
         }
     }
@@ -83,16 +76,16 @@ GlobalsMaterial * scenario_loader::globals_material_get(int16_t material_index)
 {
     GlobalsMaterial *materials;
 
-    if (0 <= material_index && (int32_t)material_index < (int32_t)global_globals->materials.count) {
-        materials = (GlobalsMaterial *)global_globals->materials.pointer;
+    if (0 <= material_index && (int32_t)material_index < (int32_t)globals().global_globals->materials.count) {
+        materials = (GlobalsMaterial *)globals().global_globals->materials.pointer;
         return &materials[material_index];
     }
 
-    if (material_table_warning_issued == 0) {
-        *(uint32_t *)&material_table_fallback.melee_hit_sound.tag_id = halo::k_dword_none;
-        material_table_warning_issued = 1;
+    if (globals().material_table_warning_issued == 0) {
+        *(uint32_t *)&globals().material_table_fallback.melee_hit_sound.tag_id = halo::k_dword_none;
+        globals().material_table_warning_issued = 1;
     }
-    return &material_table_fallback;
+    return &globals().material_table_fallback;
 }
 
 }  // namespace halo::scenario

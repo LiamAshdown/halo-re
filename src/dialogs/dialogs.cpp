@@ -1,24 +1,9 @@
+#include "halo/core/crt.hpp"
 #include "halo/dialogs/dialogs.hpp"
 #include "halo/dialogs/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/dialogs/globals.hpp"
 
-extern "C" {
-extern int32_t dialog_hyperlink_hovered;
-extern uint32_t shell_language_id;
-extern int32_t sprintf(char *buffer, const char *format, ...);
-extern char fatal_error_text[k_shell_fatal_error_text_length];
-extern char fatal_error_help_file[k_shell_fatal_error_readme_length];
-extern char fatal_error_title[k_shell_fatal_error_title_length];
-extern int32_t fatal_error_is_fatal;
-extern char *graphics_vendor_name;
-extern char *graphics_device_name;
-extern uint32_t graphics_device_id;
-extern uint32_t cpu_speed;
-extern uint32_t physical_memory;
-extern uint32_t video_memory;
-extern int32_t fatal_error_remember_choice;
-extern char fatal_error_system_specs[halo::dialogs::k_system_specs_capacity];
-}
 
 namespace halo::dialogs {
 
@@ -98,7 +83,7 @@ int32_t __stdcall StaticHyperlink::parent_proc(void *hwnd, uint32_t message, uin
         static_marker = GetPropA((HWND)((void *)lparam), "Static");
         if (static_marker != (void *)0) {
             forwarded_result = CallWindowProcA((WNDPROC)old_wnd_proc, (HWND)hwnd, message, wparam, lparam);
-            if (dialog_hyperlink_hovered != 0) {
+            if (globals().dialog_hyperlink_hovered != 0) {
                 SetTextColor((HDC)((void *)wparam), k_dialog_hyperlink_color_hover);
             } else {
                 SetTextColor((HDC)((void *)wparam), k_dialog_hyperlink_color_normal);
@@ -158,12 +143,12 @@ int32_t __stdcall StaticHyperlink::subclass_proc(void *hwnd, uint32_t message, u
             cursor_point.y = (int32_t)((uint32_t)lparam >> k_high_word_shift);
             ClientToScreen((HWND)hwnd, &cursor_point);
             if (!PtInRect(&window_rect, cursor_point)) {
-                dialog_hyperlink_hovered = 0;
+                globals().dialog_hyperlink_hovered = 0;
                 InvalidateRect((HWND)hwnd, (win32_rect *)0, 0);
                 ReleaseCapture();
             }
         } else {
-            dialog_hyperlink_hovered = 1;
+            globals().dialog_hyperlink_hovered = 1;
             InvalidateRect((HWND)hwnd, (win32_rect *)0, 0);
             SetCapture((HWND)hwnd);
         }
@@ -190,7 +175,7 @@ int32_t DialogLoader::show_localized(dialog_window_proc_fn dialog_proc, void *mo
     int32_t result;
 
     resource_info = FindResourceExA((HMODULE)module, (const char *)k_dialog_resource_type_dialog, template_name,
-                                     (uint16_t)shell_language_id);
+                                     (uint16_t)globals().shell_language_id);
     if (resource_info != 0) {
         resource_data = LoadResource((HMODULE)module, (HRSRC)resource_info);
         if (resource_data != 0) {
@@ -204,7 +189,7 @@ int32_t DialogLoader::show_localized(dialog_window_proc_fn dialog_proc, void *mo
         }
     }
 
-    if (shell_language_id != k_dialog_language_english) {
+    if (globals().shell_language_id != k_dialog_language_english) {
         resource_info = FindResourceExA((HMODULE)module, (const char *)k_dialog_resource_type_dialog, template_name,
                                          k_dialog_language_english);
         if (resource_info != 0) {
@@ -262,26 +247,26 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
                        (desktop_rect.right - desktop_rect.left) / 2 - (dialog_rect.right - dialog_rect.left) / 2,
                        (desktop_rect.bottom - desktop_rect.top) / 2 - (dialog_rect.bottom - dialog_rect.top) / 2,
                        dialog_rect.right - dialog_rect.left, dialog_rect.bottom - dialog_rect.top, 1);
-            SetWindowTextA((HWND)dialog, fatal_error_title);
-            SetDlgItemTextA((HWND)dialog, id_of(fatal_error_control::message_text), fatal_error_text);
-            if (fatal_error_is_fatal != 0) {
+            SetWindowTextA((HWND)dialog, globals().fatal_error_title);
+            SetDlgItemTextA((HWND)dialog, id_of(fatal_error_control::message_text), globals().fatal_error_text);
+            if (globals().fatal_error_is_fatal != 0) {
                 EnableWindow(GetDlgItem((HWND)dialog, id_of(fatal_error_control::remember_choice_checkbox)), 0);
                 EnableWindow(GetDlgItem((HWND)dialog, id_of(fatal_error_control::ignore_button)), 0);
                 EnableWindow(GetDlgItem((HWND)dialog, k_dialog_button_abort), 0);
             }
             hyperlink_control = GetDlgItem((HWND)dialog, id_of(fatal_error_control::help_link));
             halo::dialogs::dialog_static_hyperlink_install(hyperlink_control);
-            if (graphics_device_id == 0) {
-                if (cpu_speed == 0 || physical_memory == 0) {
-                    fatal_error_system_specs[0] = 0;
+            if (globals().graphics_device_id == 0) {
+                if (globals().cpu_speed == 0 || globals().physical_memory == 0) {
+                    globals().fatal_error_system_specs[0] = 0;
                 } else {
-                    sprintf(fatal_error_system_specs, "%dMHz, %dMB", cpu_speed, physical_memory);
+                    sprintf(globals().fatal_error_system_specs, "%dMHz, %dMB", globals().cpu_speed, globals().physical_memory);
                 }
             } else {
-                sprintf(fatal_error_system_specs, "%dMHz, %dMB, %dM %s %s (0x%04x)", cpu_speed, physical_memory,
-                        video_memory >> k_megabyte_shift, graphics_vendor_name, graphics_device_name, graphics_device_id);
+                sprintf(globals().fatal_error_system_specs, "%dMHz, %dMB, %dM %s %s (0x%04x)", globals().cpu_speed, globals().physical_memory,
+                        globals().video_memory >> k_megabyte_shift, globals().graphics_vendor_name, globals().graphics_device_name, globals().graphics_device_id);
             }
-            SetDlgItemTextA((HWND)dialog, id_of(fatal_error_control::system_specs_text), fatal_error_system_specs);
+            SetDlgItemTextA((HWND)dialog, id_of(fatal_error_control::system_specs_text), globals().fatal_error_system_specs);
             return 1;
         }
         return 0;
@@ -293,7 +278,7 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
         if (control_id <= id_of(fatal_error_control::ignore_button)) {
             if (control_id == id_of(fatal_error_control::ignore_button)) {
                 checked = IsDlgButtonChecked((HWND)dialog, id_of(fatal_error_control::remember_choice_checkbox));
-                fatal_error_remember_choice = (checked != 0);
+                globals().fatal_error_remember_choice = (checked != 0);
                 EndDialog((HWND)dialog, 0);
                 return 1;
             }
@@ -306,7 +291,7 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
             }
             if (control_id == k_dialog_button_abort) {
                 checked = IsDlgButtonChecked((HWND)dialog, id_of(fatal_error_control::remember_choice_checkbox));
-                fatal_error_remember_choice = (checked != 0);
+                globals().fatal_error_remember_choice = (checked != 0);
                 EndDialog((HWND)dialog, 1);
                 return 1;
             }
@@ -319,7 +304,7 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
                 return 1;
             }
             if (control_id == id_of(fatal_error_control::help_link)) {
-                ShellExecuteA((HWND)dialog, "open", fatal_error_help_file, (const char *)0, (const char *)0, 1);
+                ShellExecuteA((HWND)dialog, "open", globals().fatal_error_help_file, (const char *)0, (const char *)0, 1);
                 return 1;
             }
         }

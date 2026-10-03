@@ -4,6 +4,8 @@
 
 #include "crt.h"
 #include "halo/cache/globals.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
 
 namespace halo::cache {
@@ -20,7 +22,7 @@ datum_index tag_iterator_view::next()
     tag_instance *entry;
 
     if (this->next_index >= globals().tag_header->tag_count) {
-        return (datum_index)0xffffffff;
+        return halo::k_dword_none;
     }
 
     for (;;) {
@@ -35,7 +37,7 @@ datum_index tag_iterator_view::next()
             break;
         }
         if (this->next_index >= globals().tag_header->tag_count) {
-            return (datum_index)0xffffffff;
+            return halo::k_dword_none;
         }
     }
     return entry->tag_id;
@@ -52,7 +54,7 @@ datum_index tag_table::lookup(tag_group group, char *path)
     int16_t index;
 
     if (!globals().cache_file_loaded) {
-        return (datum_index)0xffffffff;
+        return halo::k_dword_none;
     }
 
     for (index = 0; index < globals().tag_header->tag_count; index++) {
@@ -62,7 +64,7 @@ datum_index tag_table::lookup(tag_group group, char *path)
             }
         }
     }
-    return (datum_index)0xffffffff;
+    return halo::k_dword_none;
 }
 
 } // namespace halo::cache

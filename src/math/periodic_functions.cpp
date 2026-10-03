@@ -4,22 +4,17 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
 
 #include "win32.h"
 #include "tags.h"
 
-extern "C" {
-extern double fmod(double x, double y);
-extern long lrint(double x);
-extern double cos(double x);
-extern double sin(double x);
-extern double pow(double base, double exponent);
-extern int __ftol(double value);
-}
-
 namespace halo::math {
+
+/** Seed of the random stream the periodic function tables are generated from. */
+inline constexpr uint32_t k_periodic_function_noise_seed = 0x20f3f660;
 
 namespace {
 
@@ -186,7 +181,7 @@ void periodic_function_tables_init()
     uint8_t *table;
 
     globals().periodic_functions_initialized = 1;
-    globals().random_seed_global = 0x20f3f660;
+    globals().random_seed_global = k_periodic_function_noise_seed;
 
     for (i = 0; i < k_periodic_function_count; i++) {
         table = (uint8_t *)GlobalAlloc(0, k_periodic_function_table_size);
@@ -289,11 +284,11 @@ real transition_function_evaluate(transition_function_type type, real phase)
     x = (double)(clamped * 1023.0f);
     frac_part = (real)fmod(x, 1.0);
     index = (int16_t)(int32_t)lrint(x - 0.5);
-    if (index != 0x3ff) {
+    if (index != k_periodic_function_table_mask) {
         return (real)table->samples[index + 1] * 0.003921569f * frac_part +
                (1.0f - frac_part) * (real)table->samples[index] * 0.003921569f;
     }
-    return (real)table->samples[0x3ff] * 0.003921569f;
+    return (real)table->samples[k_periodic_function_table_mask] * 0.003921569f;
 }
 
 void periodic_function_build_noise_table(real *table)
@@ -336,7 +331,7 @@ void periodic_function_build_transition_table(transition_function_type type, uin
             value = curve->value(t);
         }
 
-        scaled = __ftol((double)(255.0f * value));
+        scaled = static_cast<int>((double)(255.0f * value));
         if (scaled < 0) {
             scaled = 0;
         } else if (0xff < scaled) {
@@ -392,7 +387,7 @@ void periodic_function_build_table(periodic_function_type type, uint8_t *out)
         if (range != 0.0f) {
             value = (value - minimum) / range;
         }
-        scaled = __ftol((double)(value * 255.0f));
+        scaled = static_cast<int>((double)(value * 255.0f));
         if (scaled < 0) {
             scaled = 0;
         } else if (0xff < scaled) {

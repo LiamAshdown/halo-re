@@ -12,6 +12,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -130,8 +131,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
 
     if (fp->weapon_hud_valid != 0 && *(int32_t *)(item_tag_data + 0x468) != -1 &&
         *(int32_t *)(item_tag_data + 0x478) != -1) {
-        return (uint32_t)halo::models::model_markers_get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name,
-            (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
+        return (uint32_t)halo::models::model_markers::get_by_name(*(datum_index *)(item_tag_data + 0x468), marker_name, (uint8_t *)0, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
     }
     return 0;
 }

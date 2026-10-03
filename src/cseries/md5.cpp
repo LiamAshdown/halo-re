@@ -1,3 +1,4 @@
+#include "halo/core/crt.hpp"
 #include "halo/cseries/cseries.hpp"
 
 #include "tags.h"
@@ -44,11 +45,6 @@ inline void md5_step(uint32_t (*f)(uint32_t, uint32_t, uint32_t), uint32_t &a, u
 
 }
 
-extern "C" {
-extern const uint8_t md5_padding[64];
-extern int32_t sprintf(char *buffer, const char *format, ...);
-extern const char md5_hex_byte_format[];
-}
 
 namespace halo::cseries {
 
@@ -105,7 +101,7 @@ void md5_context::finish(uint8_t *digest)
         bits[i] = (uint8_t)(this->count[i / 4] >> ((i % 4) * 8));
     }
     index = (this->count[0] >> 3) & 0x3f;
-    this->update(md5_padding, index < 56 ? 56 - index : 120 - index);
+    this->update(globals().md5_padding, index < 56 ? 56 - index : 120 - index);
     this->update(bits, 8);
     for (i = 0; i < 16; i++) {
         digest[i] = (uint8_t)(this->state[i / 4] >> ((i % 4) * 8));
@@ -187,7 +183,7 @@ void md5_context::to_hex(const uint8_t *digest, char *out)
     uint32_t i;
 
     for (i = 0; i < 0x10; i++) {
-        sprintf(out, md5_hex_byte_format, digest[i]);
+        sprintf(out, globals().md5_hex_byte_format, digest[i]);
         out += 2;
     }
 }

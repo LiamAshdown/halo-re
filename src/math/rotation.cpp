@@ -4,18 +4,11 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
 
 #include "tags.h"
-
-extern "C" {
-extern double acos(double x);
-extern double cos(double x);
-extern double sin(double x);
-extern double sqrt(double x);
-extern double atan2(double y, double x);
-}
 
 namespace halo::math {
 

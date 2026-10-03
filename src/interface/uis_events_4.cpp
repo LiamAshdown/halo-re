@@ -25,11 +25,16 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
 extern uint8_t input_event_queue_active;
-extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern int32_t selected_saved_item;
@@ -116,7 +121,7 @@ static void row_clicked(widget_instance *list, int32_t row, int32_t old_committe
 
         memset(&queued, 0, sizeof(queued));
         queued.kind = 5;
-        halo::input::input_queue_push_event(0, &queued);
+        halo::input::UiEvents::queue_push_event(0, &queued);
     }
 }
 
@@ -158,7 +163,7 @@ uint8_t UiEventHandlers::event_4a1d30(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0xb;
         queued.pressed = 1;
-        halo::input::input_queue_push_event(0, &queued);
+        halo::input::UiEvents::queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -177,7 +182,7 @@ uint8_t UiEventHandlers::event_4a1d60(widget_instance *widget, int16_t *event, u
         queued.kind = 3;
         queued.code = 0x2;
         queued.pressed = 1;
-        halo::input::input_queue_push_event(0, &queued);
+        halo::input::UiEvents::queue_push_event(0, &queued);
     }
     return 1;
 }
@@ -193,7 +198,7 @@ uint8_t UiEventHandlers::event_4a1d90(widget_instance *widget, int16_t *event, u
 
     memset(&queued, 0, sizeof(queued));
     queued.kind = 5;
-    halo::input::input_queue_push_event(0, &queued);
+    halo::input::UiEvents::queue_push_event(0, &queued);
     return 1;
 }
 
@@ -257,7 +262,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
                 queued.kind = 3;
                 queued.code = 0;
                 queued.pressed = 1;
-                halo::input::input_queue_push_event(0, &queued);
+                halo::input::UiEvents::queue_push_event(0, &queued);
             }
             return 1;
         }

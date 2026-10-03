@@ -7,11 +7,10 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
-extern "C" {
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
-extern int32_t os_platform;
-}
 
 namespace halo::cache {
 
@@ -192,7 +191,7 @@ uint32_t cache_io::thread_proc_async(void *parameter)
     read_function = (void *)ReadFileEx;
     for (;;) {
         do {
-            wait_result = WaitForSingleObjectEx(globals().cache_io_event, 0xffffffff, 1);
+            wait_result = WaitForSingleObjectEx(globals().cache_io_event, halo::win32::k_infinite, 1);
         } while (wait_result == 0xc0);
 
         for (;;) {
@@ -245,7 +244,7 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
     uint32_t bytes_read;
 
     for (;;) {
-        WaitForSingleObject(globals().cache_io_event, 0xffffffff);
+        WaitForSingleObject(globals().cache_io_event, halo::win32::k_infinite);
 
         for (;;) {
             best = (cache_io_request *)0;
@@ -274,7 +273,7 @@ uint32_t cache_io::thread_proc_sync(void *parameter)
                 file_handle = source->file;
             }
 
-            if (SetFilePointer(file_handle, (int32_t)best->offset, (PLONG)((void *)0), 0) != 0xffffffff) {
+            if (SetFilePointer(file_handle, (int32_t)best->offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
                 ReadFile(file_handle, best->destination, best->size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0));
             }
 
@@ -297,11 +296,11 @@ void cache_io::thread_start()
 
     globals().cache_io_event = CreateEventA((LPSECURITY_ATTRIBUTES)((void *)0), 0, 0, (char *)0);
 
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
 
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         globals().cache_io_thread = CreateThread((LPSECURITY_ATTRIBUTES)((void *)0), 0x4000, (LPTHREAD_START_ROUTINE)((void *)&cache_io::thread_proc_sync), (void *)0, 0, (LPDWORD)(&thread_id));
         return;
     }

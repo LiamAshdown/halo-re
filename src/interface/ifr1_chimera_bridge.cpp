@@ -11,6 +11,13 @@
 #include "halo/shell/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -140,7 +147,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)0,
                             packed_color);
     }
-    halo::text::text_set_render_context(font, &text_color, -1, 2, 0);
+    halo::text::text_context::set_render_context(font, &text_color, -1, 2, 0);
 
     bounds.left = 0;
     bounds.top = 0x19a;
@@ -219,7 +226,7 @@ void ChimeraBridge::load_main_menu(void)
         loading_thread = (loading_thread_record *)0;
         halo::interface::player_profile_check_storage_and_defaults();
         ui_input_batch_mode = 0;
-        halo::input::input_time_base_resync();
+        halo::input::InputSystem::time_base_resync();
     }
     halo::input::input_queue_sample_time_update();
     halo::interface::widget_close_all();

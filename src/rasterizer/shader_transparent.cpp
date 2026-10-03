@@ -11,6 +11,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/shaders/shaders.hpp"
 
 extern "C" {
 
@@ -741,7 +742,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     float map_constants[8][4];
     float fade_constants[3][4];
 
-    permutation = halo::shaders::chimera__shader_get_vertex_shader_permutation(const_cast<Shader *>((const Shader *)shader));
+    permutation = halo::shaders::shader_view(const_cast<Shader *>((const Shader *)shader)).vertex_shader_permutation();
     vertex_type = -1;
     if (group->vertex_buffer != 0) {
         vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
@@ -786,7 +787,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         int16_t base = *(int16_t *)(bitmap + 0x60);
 
         if (shader[0x60] & 2) {
-            frame = halo::shaders::numeric_countdown_timer_get_digit((int16_t)group->shader_permutation);
+            frame = halo::shaders::numeric_countdown_timer::get_digit((int16_t)group->shader_permutation);
         } else {
             const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
             int32_t limit = (int16_t)shader[0x28];
@@ -1071,7 +1072,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     float map_constants[8][4];
     float fade_constants[3][4];
 
-    permutation = halo::shaders::chimera__shader_get_vertex_shader_permutation(const_cast<Shader *>((const Shader *)shader));
+    permutation = halo::shaders::shader_view(const_cast<Shader *>((const Shader *)shader)).vertex_shader_permutation();
     vertex_type = -1;
     if (group->vertex_buffer != 0) {
         vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
@@ -1121,7 +1122,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         int16_t base = *(int16_t *)(bitmap + 0x60);
 
         if (shader[0x6c] & 2) {
-            frame = halo::shaders::numeric_countdown_timer_get_digit((int16_t)group->shader_permutation);
+            frame = halo::shaders::numeric_countdown_timer::get_digit((int16_t)group->shader_permutation);
         } else {
             const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
             int32_t limit = (int16_t)shader[0x28];
@@ -2161,7 +2162,7 @@ void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const
     if (render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[vertex_buffer->type].declaration) < 0) {
         succeeded = 0;
     }
-    permutation = halo::shaders::chimera__shader_get_vertex_shader_permutation(const_cast<Shader *>(shader));
+    permutation = halo::shaders::shader_view(const_cast<Shader *>(shader)).vertex_shader_permutation();
     if (render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[11 + permutation].shader) < 0 ||
         !succeeded) {
         return;

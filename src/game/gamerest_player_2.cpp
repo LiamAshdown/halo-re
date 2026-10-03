@@ -15,6 +15,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -632,8 +633,7 @@ void StructureBsp::switch_structure_bsp()
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
                     if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != (datum_index)-1 &&
-                        halo::scenario::scenario_trigger_volume_contains_point((int16_t)entry->trigger_volume,
-                            (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
+                        halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)entry->trigger_volume, (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
 
                         int16_t destination = (int16_t)entry->destination;
 

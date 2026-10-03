@@ -1,0 +1,90 @@
+/**
+ * @file standalone/data/link/input.hpp
+ * Link names of the engine variables the input module binds in halo::input::Globals (src/input/globals.cpp). The variables are
+ * defined in standalone/data under these C names; this header is included by that one file only.
+ */
+#pragma once
+
+extern "C" {
+extern uint16_t missing_string_text[];
+extern char input_action_names[k_input_action_count][0x10];
+extern char pov_direction_names[8][10];
+extern char joystick_button_prefix[0x18];
+extern char decimal_suffixes[0x20][3];
+extern char joystick_pov_prefix[0x18];
+extern char joystick_axis_prefix[0x18];
+extern input_device input_devices[8];
+extern int32_t joystick_slot_devices[4];
+extern int16_t keyboard_bindings[k_control_keyboard_key_count];
+extern int16_t mouse_button_bindings[k_control_mouse_button_count];
+extern int16_t mouse_axis_bindings[k_control_mouse_axis_count][2];
+extern int16_t gamepad_button_bindings[k_control_gamepad_count][k_control_gamepad_button_count];
+extern int16_t gamepad_axis_bindings[k_control_gamepad_count][k_control_gamepad_axis_count][2];
+extern int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count];
+extern uint8_t game_engine_teams_enabled_flag;
+extern uint8_t g_control_binding_state;
+extern uint8_t g_control_binding_secondary_active;
+extern Globals *global_globals;
+extern uint32_t current_game_engine;
+extern uint8_t g_control_binding_region_e4[0xa0];
+extern uint8_t g_control_binding_region_ec[0x3c0];
+extern uint8_t g_control_binding_region_e0[0x3c0];
+extern uint32_t control_word_primary;
+extern uint32_t control_binding_device_type;
+extern uint32_t control_word_secondary;
+extern input_abstraction_globals input_globals;
+extern uint8_t input_suppressed;
+extern joystick_state joystick_states[4];
+extern joystick_state joystick_neutral_state;
+extern int32_t last_input_device;
+extern int16_t gamepad_action_buttons[k_control_gamepad_count][2];
+extern void *mouse_device;
+extern mouse_state live_mouse_state;
+extern mouse_state mouse_neutral_state;
+extern int32_t g_control_binding_id[];
+extern int16_t g_control_binding_value[];
+extern int32_t input_device_count;
+extern void *joystick_devices[8];
+extern uint8_t input_acquired;
+extern void *keyboard_device;
+extern int32_t mouse_wheel_granularity;
+extern void *direct_input8_create;
+extern input_guid iid_directinput8a;
+extern void *direct_input;
+extern int16_t key_event_read_index;
+extern int16_t key_event_count;
+extern uint8_t key_frames[0x6d];
+extern uint8_t key_release_pending[0x6d];
+extern int16_t scan_code_to_key[0x100];
+extern int32_t game_time_force_single_tick;
+extern di_data_format joystick_data_format;
+extern int32_t input_last_error;
+extern key_block_timer key_block_timers[k_input_key_block_timer_count];
+extern int16_t system_keys[k_input_system_key_count];
+extern ui_key_event key_events[k_input_key_event_capacity];
+extern input_guid guid_sys_keyboard;
+extern di_data_format c_dfDIKeyboard;
+extern int16_t mouse_button_map[k_input_mouse_button_count];
+extern input_guid guid_sys_mouse;
+extern di_data_format c_dfDIMouse2;
+extern int16_t virtual_key_to_key[0x100];
+extern int16_t character_to_key[0x80];
+extern uint8_t mouse_axis_frames[k_input_mouse_axis_count][2];
+extern uint8_t joystick_axis_frames[4][0x20][2];
+extern uint8_t joystick_pov_frames[4][0x10][8];
+extern real look_yaw_rate_setting[k_maximum_local_players];
+extern real look_pitch_rate_setting[k_maximum_local_players];
+extern float mouse_acceleration;
+extern float mouse_acceleration_cached;
+extern mouse_acceleration_point mouse_acceleration_defaults[k_input_mouse_acceleration_point_count];
+extern mouse_acceleration_point mouse_acceleration_points[k_input_mouse_acceleration_point_count];
+extern player_globals *local_player_globals;
+extern data_array *player_data;
+extern di_object_data_format joystick_objects[k_input_joystick_object_count];
+extern int32_t nojoystick;
+extern uint32_t input_menu_exit_deadline;
+extern input_event_queue input_event_queue_active;
+extern menu_repeat_state menu_repeat_states[4];
+extern uint32_t mouse_double_click_time;
+extern uint32_t input_queue_sample_time;
+}

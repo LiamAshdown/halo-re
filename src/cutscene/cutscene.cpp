@@ -10,6 +10,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 extern float cinematic_saved_music_gain;
@@ -258,7 +260,7 @@ void CutsceneDirector::letterbox()
                     fade = 1.0f;
                 }
 
-                halo::bitmaps::color_argb_int_to_real(&tint, *(uint32_t *)&title->text_color);
+                halo::bitmaps::color_codec::argb_int_to_real(&tint, *(uint32_t *)&title->text_color);
                 tint.alpha *= fade;
 
                 if (fabsf(tint.red - 1.0f) < 0.0001f && fabsf(tint.green - 1.0f) < 0.0001f &&
@@ -269,8 +271,7 @@ void CutsceneDirector::letterbox()
                     if (tint.blue > 0.8f) tint.blue = 0.8f;
                 }
 
-                halo::text::text_set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1),
-                    title->justification, title->text_flags);
+                halo::text::text_context::set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1), title->justification, title->text_flags);
 
                 shadow_alpha = ROUND((float)title->shadow_color.alpha * fade);
                 if (shadow_alpha < 0) {

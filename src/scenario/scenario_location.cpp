@@ -4,12 +4,14 @@
  * The original author notes and decompiles are in docs/original/scenario/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/scenario/scenario.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
+<<<<<<< HEAD
 #include "halo/game/api.hpp"
 
 extern "C" {
@@ -18,6 +20,11 @@ extern Scenario *global_scenario;
 extern float sqrtf(float x);
 extern scenario_game_globals *global_scenario_game_globals;
 }
+=======
+#include "halo/scenario/api.hpp"
+#include "link/calls.hpp"
+
+>>>>>>> worktree-agent-abfcb6ae2d2dd8d16
 
 namespace halo::scenario {
 
@@ -31,7 +38,7 @@ void location_view::from_point(real_point3d *point)
         return;
     }
 
-    leaves = (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
+    leaves = (ScenarioStructureBSPLeaf *)globals().structure_bsp->leaves.pointer;
     self->cluster_index = (int16_t)leaves[self->leaf_index & halo::k_leaf_index_mask].cluster;
 }
 
@@ -48,7 +55,7 @@ int16_t location_view::fog_region(real_point3d *point)
         return -1;
     }
 
-    cluster = &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)
+    cluster = &((ScenarioStructureBSPCluster *)globals().structure_bsp->clusters.pointer)
                   [self->cluster_index];
     fog = (int16_t)cluster->fog;
     if (fog == -1) {
@@ -58,7 +65,7 @@ int16_t location_view::fog_region(real_point3d *point)
         return fog & k_cluster_fog_index_mask;
     }
 
-    plane = &((ScenarioStructureBSPFogPlane *)global_structure_bsp->fog_planes.pointer)
+    plane = &((ScenarioStructureBSPFogPlane *)globals().structure_bsp->fog_planes.pointer)
                 [fog & k_cluster_fog_index_mask];
     region = (int16_t)plane->front_region;
 
@@ -94,7 +101,7 @@ float location_view::water_surface_distance(real_point3d *point)
         return -3.4028235e+38f;
     }
 
-    cluster = &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)
+    cluster = &((ScenarioStructureBSPCluster *)globals().structure_bsp->clusters.pointer)
                   [self->cluster_index];
     fog = (int16_t)cluster->fog;
     if (fog == -1) {
@@ -103,7 +110,7 @@ float location_view::water_surface_distance(real_point3d *point)
 
     plane = 0;
     if (fog < 0) {
-        plane = &((ScenarioStructureBSPFogPlane *)global_structure_bsp->fog_planes.pointer)
+        plane = &((ScenarioStructureBSPFogPlane *)globals().structure_bsp->fog_planes.pointer)
                     [fog & k_cluster_fog_index_mask];
         region = (int16_t)plane->front_region;
     } else {
@@ -136,13 +143,13 @@ uint8_t location_view::background_sound_is_deafening_to_ais()
     uint32_t sound_tag;
     SoundLooping *sound;
 
-    clusters = (ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer;
+    clusters = (ScenarioStructureBSPCluster *)globals().structure_bsp->clusters.pointer;
     background_sound_index = (int16_t)clusters[self->cluster_index].background_sound;
 
     if (background_sound_index != -1 &&
-        (int32_t)background_sound_index < (int32_t)global_structure_bsp->background_sound_palette.count) {
+        (int32_t)background_sound_index < (int32_t)globals().structure_bsp->background_sound_palette.count) {
         palette = (ScenarioStructureBSPBackgroundSoundPalette *)
-            global_structure_bsp->background_sound_palette.pointer;
+            globals().structure_bsp->background_sound_palette.pointer;
         sound_tag = *(uint32_t *)&palette[background_sound_index].background_sound.tag_id;
         if (sound_tag != halo::k_dword_none) {
             sound = (SoundLooping *)halo::cache::globals().tag_instances[halo::datum_slot(sound_tag)].data;
@@ -164,7 +171,7 @@ uint8_t scenario_query::location_get_water_and_weather(real_point3d *point, bsp_
         is_water = 0;
     } else {
         ScenarioStructureBSPFogRegion *region =
-            &((ScenarioStructureBSPFogRegion *)global_structure_bsp->fog_regions.pointer)
+            &((ScenarioStructureBSPFogRegion *)globals().structure_bsp->fog_regions.pointer)
                 [fog_region];
         uint32_t fog_tag = scenario_query::fog_region_resolve_tag(fog_region);
 
@@ -183,7 +190,7 @@ uint8_t scenario_query::location_get_water_and_weather(real_point3d *point, bsp_
 
     if (leaf->cluster_index != -1) {
         ScenarioStructureBSPCluster *cluster =
-            &((ScenarioStructureBSPCluster *)global_structure_bsp->clusters.pointer)
+            &((ScenarioStructureBSPCluster *)globals().structure_bsp->clusters.pointer)
                 [leaf->cluster_index];
         weather = (int16_t)cluster->weather;
     }
@@ -204,13 +211,13 @@ uint32_t scenario_query::fog_region_resolve_tag(int16_t fog_region)
     if (fog_region == -1) {
         return halo::k_dword_none;
     }
-    region = &((ScenarioStructureBSPFogRegion *)global_structure_bsp->fog_regions.pointer)
+    region = &((ScenarioStructureBSPFogRegion *)globals().structure_bsp->fog_regions.pointer)
                  [fog_region];
     palette_index = (int16_t)region->fog;
     if (palette_index == -1) {
         return halo::k_dword_none;
     }
-    palette = &((ScenarioStructureBSPFogPalette *)global_structure_bsp->fog_palette.pointer)
+    palette = &((ScenarioStructureBSPFogPalette *)globals().structure_bsp->fog_palette.pointer)
                   [palette_index];
     if (*(uint32_t *)&palette->fog.tag_id == halo::k_dword_none) {
         return halo::k_dword_none;
@@ -220,8 +227,8 @@ uint32_t scenario_query::fog_region_resolve_tag(int16_t fog_region)
 
 uint8_t scenario_query::cluster_visibility_test(int16_t row_cluster, int16_t column_cluster)
 {
-    int32_t row_words = ((int32_t)global_structure_bsp->clusters.count + 0x1f) >> 5;
-    uint32_t *pvs = (uint32_t *)global_structure_bsp->cluster_data.pointer;
+    int32_t row_words = ((int32_t)globals().structure_bsp->clusters.count + 0x1f) >> 5;
+    uint32_t *pvs = (uint32_t *)globals().structure_bsp->cluster_data.pointer;
     int32_t word_index = row_words * (int32_t)row_cluster + (column_cluster >> 5);
 
     return (pvs[word_index] & (1u << (column_cluster & 0x1f))) != 0;
@@ -233,7 +240,7 @@ uint8_t scenario_query::trigger_volume_contains_point(int16_t trigger_volume_ind
     scenario_trigger_volume_box *box;
     float local_z;
 
-    volume = &((ScenarioTriggerVolume *)global_scenario->trigger_volumes.pointer)
+    volume = &((ScenarioTriggerVolume *)globals().scenario->trigger_volumes.pointer)
                  [trigger_volume_index];
     box = (scenario_trigger_volume_box *)&volume->starting_corner;
 
@@ -285,11 +292,11 @@ void scenario_query::sky_fog_state_update(int16_t sky_index, int16_t local_playe
 
     sky_tag = halo::k_dword_none;
     if (sky_index == -1) {
-        if (0 < (int32_t)global_scenario->skies.count) {
-            sky_tag = *(uint32_t *)&((ScenarioSky *)global_scenario->skies.pointer)[0].sky.tag_id;
+        if (0 < (int32_t)globals().scenario->skies.count) {
+            sky_tag = *(uint32_t *)&((ScenarioSky *)globals().scenario->skies.pointer)[0].sky.tag_id;
         }
-    } else if (0 <= sky_index && (int32_t)sky_index < (int32_t)global_scenario->skies.count) {
-        sky_tag = *(uint32_t *)&((ScenarioSky *)global_scenario->skies.pointer)[sky_index].sky.tag_id;
+    } else if (0 <= sky_index && (int32_t)sky_index < (int32_t)globals().scenario->skies.count) {
+        sky_tag = *(uint32_t *)&((ScenarioSky *)globals().scenario->skies.pointer)[sky_index].sky.tag_id;
     }
 
     sky_data = (Sky *)0;
@@ -300,7 +307,7 @@ void scenario_query::sky_fog_state_update(int16_t sky_index, int16_t local_playe
     if (local_player_index == -1) {
         state = &local_scratch;
     } else {
-        state = &global_scenario_game_globals->sky_fog[local_player_index];
+        state = &globals().game_globals->sky_fog[local_player_index];
     }
 
     if (sky_data != (Sky *)0) {
@@ -308,8 +315,8 @@ void scenario_query::sky_fog_state_update(int16_t sky_index, int16_t local_playe
             fog = (sky_fog_block *)&sky_data->indoor_fog_color;
 
             sky_tag = halo::k_dword_none;
-            if (0 < (int32_t)global_scenario->skies.count) {
-                sky_tag = *(uint32_t *)&((ScenarioSky *)global_scenario->skies.pointer)[0].sky.tag_id;
+            if (0 < (int32_t)globals().scenario->skies.count) {
+                sky_tag = *(uint32_t *)&((ScenarioSky *)globals().scenario->skies.pointer)[0].sky.tag_id;
             }
             sky_data = (Sky *)0;
             if (sky_tag != halo::k_dword_none) {

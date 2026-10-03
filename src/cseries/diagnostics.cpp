@@ -8,6 +8,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/networking/api.hpp"
+#include "link/calls.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -24,8 +25,6 @@ extern char error_file_timestamp_format[];
 extern char error_file_no_timestamp[];
 extern char profile_directory[k_profile_directory_storage_size];
 typedef int32_t (__stdcall *sh_get_folder_path_proc)(void *owner, int32_t csidl, void *token, uint32_t flags, char *out_path);
-extern void *sh_get_folder_path;
-}
 
 namespace halo::cseries {
 
@@ -51,17 +50,17 @@ void error_log::write(char *message, uint8_t with_timestamp)
     __time32_t time_value;
     struct tm *local_time;
 
-    if (debug_log_level < k_error_file_minimum_level) {
+    if (globals().debug_log_level < k_error_file_minimum_level) {
         return;
     }
 
-    if (error_file_needs_header != 0) {
-        error_file_needs_header = 0;
-        halo::cseries::error_log::write(error_file_spacer, 0);
-        halo::cseries::error_log::write(error_file_banner, 1);
-        sprintf(formatted, error_file_function_format, error_file_function_name);
+    if (globals().error_file_needs_header != 0) {
+        globals().error_file_needs_header = 0;
+        halo::cseries::error_log::write(globals().error_file_spacer, 0);
+        halo::cseries::error_log::write(globals().error_file_banner, 1);
+        sprintf(formatted, globals().error_file_function_format, globals().error_file_function_name);
         halo::cseries::error_log::write(formatted, 1);
-        sprintf(formatted, error_file_address_format, (uint32_t)(size_t)halo::cseries::write_to_error_file);
+        sprintf(formatted, globals().error_file_address_format, (uint32_t)(size_t)halo::cseries::write_to_error_file);
         halo::cseries::error_log::write(formatted, 1);
     }
 
@@ -73,9 +72,9 @@ void error_log::write(char *message, uint8_t with_timestamp)
                 _time32(&time_value);
                 local_time = _localtime32(&time_value);
                 if (local_time == 0) {
-                    fprintf((FILE *)file, error_file_no_timestamp);
+                    fprintf((FILE *)file, globals().error_file_no_timestamp);
                 } else {
-                    fprintf((FILE *)file, error_file_timestamp_format, local_time->tm_mon + 1,
+                    fprintf((FILE *)file, globals().error_file_timestamp_format, local_time->tm_mon + 1,
                              local_time->tm_mday, local_time->tm_year % 100,
                              local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
                 }
@@ -100,20 +99,20 @@ void profile_path::initialize()
     int32_t result;
 
     if (halo::shell::command_line_check_flag("-path", &path_argument) != 0 && path_argument != 0) {
-        strncpy(profile_directory, path_argument, k_cseries_path_length);
+        strncpy(globals().profile_directory, path_argument, k_cseries_path_length);
         return;
     }
 
-    printf("Using profile path %s.\n", profile_directory);
-    result = ((sh_get_folder_path_proc)sh_get_folder_path)(0, k_csidl_personal, 0, 0,
+    printf("Using profile path %s.\n", globals().profile_directory);
+    result = ((sh_get_folder_path_proc)globals().sh_get_folder_path)(0, k_csidl_personal, 0, 0,
                                                              documents_path);
     if (result >= 0) {
-        _snprintf(profile_directory, k_cseries_path_length, "%s\\My Games\\Halo",
+        _snprintf(globals().profile_directory, k_cseries_path_length, "%s\\My Games\\Halo",
                    documents_path);
         return;
     }
 
-    strncpy(profile_directory, ".", k_cseries_path_length);
+    strncpy(globals().profile_directory, ".", k_cseries_path_length);
     halo::shell::shell_display_fatal_error_dialog(k_profile_path_error_title, (uint32_t)((const char *)k_profile_path_error_message), 1);
 }
 

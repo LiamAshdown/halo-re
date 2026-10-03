@@ -8,6 +8,10 @@
 
 namespace halo::memory {
 
+/** Ranged integers are stored in the smallest of 1, 2 or 4 bytes that holds the range: byte below 256, word below 65536. */
+inline constexpr int32_t k_byte_range = 0x100;
+inline constexpr int32_t k_word_range = 0x10000;
+
 /**
  * Reads a single bit from a bounds-checked bit stream into *out_bit and advances the stream's one-bit
  * cursor. Returns 1 on success, 0 if the stream has no room left.
@@ -333,7 +337,7 @@ uint32_t byte_stream_view::read_ranged_integer(int32_t maximum)
     uint8_t *byte_ptr;
     uint16_t *word_ptr;
 
-    if (maximum < 0x100) {
+    if (maximum < k_byte_range) {
         next_cursor = this->cursor + 1;
         if (this->size < next_cursor || this->overflow != 0) {
             this->overflow = 1;
@@ -346,7 +350,7 @@ uint32_t byte_stream_view::read_ranged_integer(int32_t maximum)
         }
         return 0;
     }
-    if (0xffff < maximum) {
+    if (k_word_range - 1 < maximum) {
         return this->read_long();
     }
     if (this->cursor + 2 <= this->size && this->overflow == 0) {
@@ -400,13 +404,13 @@ uint32_t byte_stream_view::write_ranged_integer(int32_t maximum, uint32_t value)
     uint8_t *dst;
     uint16_t native16;
 
-    if (maximum < 0x100) {
+    if (maximum < k_byte_range) {
         if (this->cursor + 1 <= this->size && this->overflow == 0) {
             *(this->data + this->cursor) = (uint8_t)value;
             this->cursor = this->cursor + 1;
             return this->overflow == 0;
         }
-    } else if (maximum < 0x10000) {
+    } else if (maximum < k_word_range) {
         if (this->cursor + 2 <= this->size && this->overflow == 0) {
             dst = this->data + this->cursor;
             native16 = (uint16_t)value;

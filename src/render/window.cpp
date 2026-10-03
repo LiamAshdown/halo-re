@@ -30,6 +30,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern float sky_animation_times[9];
@@ -183,7 +184,7 @@ void sky(void)
         sky = (Sky *)halo::cache::globals().tag_instances[(uint16_t)sky_tag].data;
     }
     model = (GBXModel *)halo::cache::globals().tag_instances[sky->model.tag_id.index].data;
-    halo::models::model_nodes_get_default_transforms(model, reinterpret_cast<real_orientation *>(nodes));
+    halo::models::model_view(model).get_default_transforms(reinterpret_cast<real_orientation *>(nodes));
 
     if (tag_id_of(sky->animation_graph.tag_id) != k_dword_none) {
         ModelAnimations *graph =
@@ -203,14 +204,13 @@ void sky(void)
                                              sky_animation_times[i], 1.0);
 
                     sky_animation_times[i] = time;
-                    halo::models::animation_overlay_interpolated_frame_orientations(animation,
-                        (float)(int32_t)(int16_t)animation->frame_count * time, reinterpret_cast<real_orientation *>(nodes));
+                    halo::models::animation_view(animation).overlay_interpolated_frame_orientations((float)(int32_t)(int16_t)animation->frame_count * time, reinterpret_cast<real_orientation *>(nodes));
                 }
             }
         }
     }
 
-    halo::models::model_nodes_build_matrices(global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer, model, matrices, reinterpret_cast<real_orientation *>(nodes), halo::math::globals().global_up3d_pointer);
+    halo::models::model_skeleton::build_matrices(global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer, model, matrices, reinterpret_cast<real_orientation *>(nodes), halo::math::globals().global_up3d_pointer);
 
     for (i = 0; (int32_t)i < (int32_t)sky->shader_functions.count; i++) {
         function_values[i] = 1.0f;
@@ -236,8 +236,7 @@ void sky(void)
         } else {
             object_marker marker;
 
-            if (halo::models::model_markers_get_by_name(tag_id_of(sky->model.tag_id), light->lens_flare_marker_name.string, 0, 0,
-                                          matrices, 0, &marker, 1) == 0) {
+            if (halo::models::model_markers::get_by_name(tag_id_of(sky->model.tag_id), light->lens_flare_marker_name.string, 0, 0, matrices, 0, &marker, 1) == 0) {
                 continue;
             }
             direction.i = marker.node_transform.position.x - render_camera_global.position.x;

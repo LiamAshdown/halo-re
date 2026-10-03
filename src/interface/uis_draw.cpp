@@ -21,6 +21,14 @@
 #include "halo/cseries/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -57,7 +65,7 @@ static void draw_span_inline(Rectangle2D *origin, Rectangle2D *cursor, const uin
 
     halo::text::globals().ui_prompt_clip_y = 0;
     halo::text::globals().ui_prompt_clip_x = (delta < 0) ? 0 : delta;
-    halo::text::text_measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
+    halo::text::text_context::measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     out.left = origin->left;
     halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)&out, 0, 0, (const int16_t *)text);
@@ -482,7 +490,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 ColorARGB text_color;
                 uint32_t packed_color;
 
-                halo::bitmaps::color_argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
+                halo::bitmaps::color_codec::argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
                 icon->flags = (HUDInterfaceMessagingFlags)(saved_flags & 0xfd);
                 if (prompt_icon_override_table[token] != 0) {
                     icon->flags = (HUDInterfaceMessagingFlags)(icon->flags & 0xfb);
@@ -535,7 +543,7 @@ void UiDraw::widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, 
 
     halo::text::globals().ui_prompt_clip_y = 0;
     halo::text::globals().ui_prompt_clip_x = (delta < 0) ? 0 : delta;
-    halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
+    halo::text::text_context::measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
     halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);

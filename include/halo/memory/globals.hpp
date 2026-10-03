@@ -26,9 +26,15 @@ struct Globals {
     uint8_t (&bit_mask_clear)[8];
 };
 
-extern const Globals memory_globals;
+/**
+ * The memory service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static const Globals &instance();
+};
 
-/** The memory service object (single instance, constant-initialised). */
-inline const Globals &globals() { return memory_globals; }
+inline const Globals &globals() { return Service::instance(); }
 
 }  // namespace halo::memory

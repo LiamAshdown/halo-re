@@ -19,6 +19,15 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/interface/api.hpp"
+#include "link/calls.hpp"
+#include "halo/input/state.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" { extern input_device input_devices[8]; }
 extern "C" { extern int32_t joystick_slot_devices[4]; }
@@ -43,10 +52,10 @@ static uint16_t *lookup_named_string(const char *tag_path, int32_t index)
     UnicodeStringListString *entry;
     uint16_t *source;
 
-    source = missing_string_text;
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    source = halo::input::input_state().missing_string_text;
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)tag_path);
-    if (tag_id != (datum_index)0xffffffff) {
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (index >= 0 && index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[index];
@@ -75,7 +84,7 @@ static void narrow_copy(char *out, const uint16_t *wide, uint32_t max_len)
 
 static void action_name_copy(char *action_name, int16_t action_index)
 {
-    const char *name = (action_index == (int16_t)k_input_unbound) ? "none" : input_action_names[action_index];
+    const char *name = (action_index == (int16_t)k_input_unbound) ? "none" : halo::input::input_state().input_action_names[action_index];
     strncpy(action_name, name, 0x10);
 }
 
@@ -106,17 +115,17 @@ void BindingNames::print_bound_controls(void)
     char ascii[0x21];
 
     for (key_index = 0; key_index < (int16_t)k_control_keyboard_key_count; key_index++) {
-        if (keyboard_bindings[key_index] != k_input_unbound) {
-            action_name_copy(action_name, keyboard_bindings[key_index]);
-            halo::input::input_get_keyboard_key_name(key_index, wide_name);
+        if (input_state().keyboard_bindings[key_index] != k_input_unbound) {
+            action_name_copy(action_name, input_state().keyboard_bindings[key_index]);
+            halo::input::BindingNames::get_keyboard_key_name(key_index, wide_name);
             narrow_copy(ascii, wide_name, 0x18);
             halo::interface::console_printf_verbose(0, (char *)"%s key bound to %s", ascii, action_name);
         }
     }
 
     for (button_index = 0; button_index < k_control_mouse_button_count; button_index++) {
-        if (mouse_button_bindings[button_index] != k_input_unbound) {
-            action_name_copy(action_name, mouse_button_bindings[button_index]);
+        if (input_state().mouse_button_bindings[button_index] != k_input_unbound) {
+            action_name_copy(action_name, input_state().mouse_button_bindings[button_index]);
 
             wcsncpy((wchar_t *)wide_name, (const wchar_t *)lookup_named_string(k_mouse_button_names_tag_path, button_index), 0x18);
             wide_name[0x17] = 0;
@@ -126,34 +135,34 @@ void BindingNames::print_bound_controls(void)
     }
 
     for (axis_index = 0; axis_index < k_control_mouse_axis_count; axis_index++) {
-        if (mouse_axis_bindings[axis_index][0] != k_input_unbound) {
-            action_name_copy(action_name, mouse_axis_bindings[axis_index][0]);
-            halo::input::input_get_mouse_axis_name(axis_index, 1, wide_name);
+        if (input_state().mouse_axis_bindings[axis_index][0] != k_input_unbound) {
+            action_name_copy(action_name, input_state().mouse_axis_bindings[axis_index][0]);
+            halo::input::BindingNames::get_mouse_axis_name(axis_index, 1, wide_name);
             narrow_copy(ascii, wide_name, 0x21);
             halo::interface::console_printf_verbose(0, (char *)"%s mouse axis bound to %s", ascii, action_name);
         }
-        if (mouse_axis_bindings[axis_index][1] != k_input_unbound) {
-            action_name_copy(action_name, mouse_axis_bindings[axis_index][1]);
-            halo::input::input_get_mouse_axis_name(axis_index, 0, wide_name);
+        if (input_state().mouse_axis_bindings[axis_index][1] != k_input_unbound) {
+            action_name_copy(action_name, input_state().mouse_axis_bindings[axis_index][1]);
+            halo::input::BindingNames::get_mouse_axis_name(axis_index, 0, wide_name);
             narrow_copy(ascii, wide_name, 0x21);
             halo::interface::console_printf_verbose(0, (char *)"%s mouse axis bound to %s", ascii, action_name);
         }
     }
 
     for (slot = 0; slot < k_control_gamepad_count; slot++) {
-        device = joystick_slot_devices[slot];
+        device = globals().joystick_slot_devices[slot];
         button_count = 0;
         axis_count = 0;
         pov_count = 0;
         if (device != -1) {
-            button_count = input_devices[device].button_count;
-            axis_count = input_devices[device].axis_count;
-            pov_count = input_devices[device].pov_count;
+            button_count = input_state().input_devices[device].button_count;
+            axis_count = input_state().input_devices[device].axis_count;
+            pov_count = input_state().input_devices[device].pov_count;
         }
 
         for (i = 0; i < button_count; i++) {
-            if (gamepad_button_bindings[slot][i] != k_input_unbound) {
-                action_name_copy(action_name, gamepad_button_bindings[slot][i]);
+            if (input_state().gamepad_button_bindings[slot][i] != k_input_unbound) {
+                action_name_copy(action_name, input_state().gamepad_button_bindings[slot][i]);
                 halo::text::string_format_wide_va_bounded(0x17, wide_name, reinterpret_cast<const uint16_t *>(L"%s%d"),
                                                lookup_named_string(k_gamepad_names_tag_path, 0), i + 1);
                 wide_name[0x17] = 0;
@@ -163,8 +172,8 @@ void BindingNames::print_bound_controls(void)
         }
 
         for (i = 0; i < axis_count; i++) {
-            if (gamepad_axis_bindings[slot][i][0] != k_input_unbound) {
-                action_name_copy(action_name, gamepad_axis_bindings[slot][i][0]);
+            if (input_state().gamepad_axis_bindings[slot][i][0] != k_input_unbound) {
+                action_name_copy(action_name, input_state().gamepad_axis_bindings[slot][i][0]);
                 wcsncpy((wchar_t *)wide_name2, (const wchar_t *)lookup_named_string(k_axis_direction_names_tag_path, 0), 9);
                 wide_name2[8] = 0;
                 halo::text::string_format_wide_va_bounded(0x18, reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>(L"%s%d %s"),
@@ -173,8 +182,8 @@ void BindingNames::print_bound_controls(void)
                 narrow_copy(ascii, (const uint16_t *)formatted, 0x19);
                 halo::interface::console_printf_verbose(0, (char *)"%s on gamepad %d bound to %s", ascii, slot, action_name);
             }
-            if (gamepad_axis_bindings[slot][i][1] != k_input_unbound) {
-                action_name_copy(action_name, gamepad_axis_bindings[slot][i][1]);
+            if (input_state().gamepad_axis_bindings[slot][i][1] != k_input_unbound) {
+                action_name_copy(action_name, input_state().gamepad_axis_bindings[slot][i][1]);
                 wcsncpy((wchar_t *)wide_name2, (const wchar_t *)lookup_named_string(k_axis_direction_names_tag_path, 1), 9);
                 wide_name2[8] = 0;
                 halo::text::string_format_wide_va_bounded(0x18, reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>(L"%s%d %s"),
@@ -187,8 +196,8 @@ void BindingNames::print_bound_controls(void)
 
         for (i = 0; i < pov_count; i++) {
             for (octant = 0; octant < k_control_gamepad_pov_direction_count; octant++) {
-                if (gamepad_pov_bindings[slot][i][octant] != k_input_unbound) {
-                    action_name_copy(action_name, gamepad_pov_bindings[slot][i][octant]);
+                if (input_state().gamepad_pov_bindings[slot][i][octant] != k_input_unbound) {
+                    action_name_copy(action_name, input_state().gamepad_pov_bindings[slot][i][octant]);
                     halo::input::chimera__pov_text((int16_t)i, (int16_t)octant, wide_name);
                     narrow_copy(ascii, wide_name, 0xe);
                     halo::interface::console_printf_verbose(0, (char *)"%s on gamepad %d bound to %s", ascii, slot, action_name);

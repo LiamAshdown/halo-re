@@ -4,10 +4,14 @@
 #include "tags.h"
 #include "halo/memory/api.hpp"
 
-#define CRC32_POLYNOMIAL 0xedb88320u
+
 
 
 namespace halo::memory {
+
+/** Reversed CRC-32 polynomial and the number of table entries (one per byte value). */
+inline constexpr uint32_t k_crc32_polynomial = 0xedb88320u;
+inline constexpr int32_t k_crc32_table_entry_count = 0x100;
 
 /**
  * Generates the standard 256 entry reversed CRC-32 table (polynomial 0xedb88320) into this table.
@@ -22,7 +26,7 @@ void crc32_table_view::build()
     int32_t index;
 
     seed = 0;
-    index = 0x100;
+    index = k_crc32_table_entry_count;
     while (index != 0) {
         bit = 8;
         value = seed;
@@ -30,7 +34,7 @@ void crc32_table_view::build()
             if ((value & 1) == 0) {
                 value = value >> 1;
             } else {
-                value = (value >> 1) ^ CRC32_POLYNOMIAL;
+                value = (value >> 1) ^ k_crc32_polynomial;
             }
             bit = bit - 1;
         }

@@ -22,6 +22,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/shaders/shaders.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -70,7 +71,7 @@ void SimulationClock::effects_update(real delta_time)
     halo::sound::game_sound_update();
     halo::effects::weather_update();
     chimera_contrail_scale = delta_time;
-    halo::shaders::numeric_countdown_timer_update();
+    halo::shaders::numeric_countdown_timer::update();
 }
 
 /**

@@ -10,6 +10,7 @@
 #include "halo/math/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/shaders/shaders.hpp"
 
 extern "C" {
 
@@ -71,7 +72,7 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
     context = rasterizer_active_model_context;
     flags = context->flags;
     if (test_immediate) {
-        if (halo::shaders::shader_is_decal(const_cast<Shader *>((const Shader *)shader))) {
+        if (halo::shaders::shader_view(const_cast<Shader *>((const Shader *)shader)).is_decal()) {
             flags |= 3;
         }
         if (flags & 2) {
@@ -638,7 +639,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
                 group->sort_key != transparent_geometry_group_last_drawn_key) {
                 rasterizer_render_target_capture_frame();
             }
-        } else if (shader == NULL || (shader_type_of(shader) != 8 && !halo::shaders::shader_draw_before_water(reinterpret_cast<Shader *>(shader)))) {
+        } else if (shader == NULL || (shader_type_of(shader) != 8 && !halo::shaders::shader_view(reinterpret_cast<Shader *>(shader)).draw_before_water())) {
             rasterizer_render_target_capture_frame();
         }
     }
@@ -686,7 +687,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         set_render_state(0x07, 1);
         set_render_state(0x0e, 0);
         set_render_state(0x17, 4);
-        if (halo::shaders::shader_is_decal(const_cast<Shader *>((const Shader *)((void *)(uintptr_t)group->shader)))) {
+        if (halo::shaders::shader_view(const_cast<Shader *>((const Shader *)((void *)(uintptr_t)group->shader))).is_decal()) {
             chimera__transparent_decal_zbias();
         } else {
             rasterizer_clear_decal_zbias();
@@ -1066,7 +1067,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     if (tint != 0) {
         flags = flags | 1;
     }
-    if (halo::shaders::shader_is_decal(shader) != 0) {
+    if (halo::shaders::shader_view(shader).is_decal() != 0) {
         flags = flags | 7;
     }
 

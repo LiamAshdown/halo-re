@@ -23,6 +23,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -402,8 +403,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
         mp->velocity_k = velocity.k;
 
         halo::physics::object_physics_mass_point_resolve_ground_contact(context->object_index, mp, mp_def);
-        mp->water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
-            (real_point3d *)&mp->position_x);
+        mp->water_depth = halo::scenario::location_view((bsp_leaf_reference *)((uint8_t *)mp + 0x34)).water_surface_distance((real_point3d *)&mp->position_x);
 
         if (0.0f < mp->ground_depth) {
             GlobalsMaterial *material;

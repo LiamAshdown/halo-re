@@ -4,11 +4,8 @@
  * The original author notes and decompiles are in docs/original/bitmaps/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
-
-extern "C" {
-extern float fabsf(float x);
-}
 
 namespace halo::bitmaps {
 
@@ -134,7 +131,7 @@ ColorRGB * color_codec::interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB
         color_codec::rgb_to_hsv(color0, &hsv0);
         color_codec::rgb_to_hsv(color1, &hsv1);
 
-        hue_far_apart = fabsf(hsv0.hue - hsv1.hue) > 0.5f;
+        hue_far_apart = std::fabs((double)(hsv0.hue - hsv1.hue)) > 0.5f;
         take_long_path = (uint8_t)((flags >> 1) & 1);
 
         if (hue_far_apart != take_long_path) {

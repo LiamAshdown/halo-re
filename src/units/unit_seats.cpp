@@ -21,6 +21,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -584,7 +585,7 @@ void UnitView::detach_reposition_and_nudge()
     push.k = push.k * 0.02f;
     halo::objects::object_snap_to_parent_marker_and_detach(unit_index);
     position = *(real_point3d *)&((unit_object *)self)->base.position.x;
-    halo::scenario::scenario_structure_bsp_locate_point_nudge_up(&position);
+    halo::scenario::structure_bsp_switcher::locate_point_nudge_up(&position);
     object = OBJECT_DATA(unit_index);
     halo::objects::object_unlink_cluster_or_notify_parent(unit_index);
     ((struct object *)object)->position = position;

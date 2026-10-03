@@ -1,3 +1,4 @@
+#include "halo/core/crt.hpp"
 #include "tags.h"
 
 #include "halo/cache/cache.hpp"
@@ -7,11 +8,9 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
-extern "C" {
-extern int32_t printf(const char *format, ...);
-extern int32_t os_platform;
-}
 
 namespace halo::cache {
 
@@ -27,7 +26,7 @@ uint8_t data_file_view::read_data_block()
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(this->file, this->data_offset, (PLONG)((void *)0), 0) != 0xffffffff) {
+    if (SetFilePointer(this->file, this->data_offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
         block_size = this->table_offset - this->data_offset;
         buffer = GlobalAlloc(0, block_size);
         this->data = buffer;
@@ -78,7 +77,7 @@ uint8_t data_file_view::read_offset_table()
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(this->file, this->table_offset, (PLONG)((void *)0), 0) != 0xffffffff) {
+    if (SetFilePointer(this->file, this->table_offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
         table_size = this->entry_count * 0xc;
         buffer = GlobalAlloc(0, table_size);
         this->references = (data_file_reference *)buffer;
@@ -110,14 +109,14 @@ void data_files::open()
     sprintf(path, "maps\\%s.map", "bitmaps");
 
     flags = 0x48000080;
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         flags = 0x8000080;
     }
-    globals().bitmaps_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
-    if (globals().bitmaps_data_file.file == (void *)0xffffffff) {
+    globals().bitmaps_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags, (void *)0);
+    if (globals().bitmaps_data_file.file == halo::win32::invalid_handle()) {
         printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
     } else {
 
@@ -144,14 +143,14 @@ void data_files::open()
     sprintf(path, "maps\\%s.map", "sounds");
 
     flags = 0x48000080;
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         flags = 0x8000080;
     }
-    globals().sounds_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
-    if (globals().sounds_data_file.file != (void *)0xffffffff) {
+    globals().sounds_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags, (void *)0);
+    if (globals().sounds_data_file.file != halo::win32::invalid_handle()) {
         if (halo::cache::view(&globals().sounds_data_file)->read_header(2) != 0 &&
             halo::cache::view(&globals().sounds_data_file)->read_data_block() != 0 &&
             halo::cache::view(&globals().sounds_data_file)->read_offset_table() != 0) {

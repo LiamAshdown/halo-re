@@ -4,17 +4,11 @@
  * The original author notes and decompiles are in docs/original/models/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/models/models.hpp"
 #include "halo/math/api.hpp"
+#include "halo/models/globals.hpp"
 
-extern "C" {
-extern uint8_t animation_compressed_data_enabled;
-extern double floor(double x);
-extern real_quaternion *global_identity_quaternion_pointer;
-extern double fabs(double x);
-extern double fmod(double x, double y);
-extern int __ftol(double value);
-}
 
 namespace halo::models {
 
@@ -22,7 +16,7 @@ void * animation_view::get_frame_data(int16_t frame)
 {
     int use_compressed;
 
-    use_compressed = ((self->flags & 1) != 0) && (animation_compressed_data_enabled != 0);
+    use_compressed = ((self->flags & 1) != 0) && (globals().animation_compressed_data_enabled != 0);
     if (use_compressed) {
         return (uint8_t *)self->frame_data.pointer + self->offset_to_compressed_data;
     }
@@ -96,8 +90,8 @@ void animation_view::get_frame_orientations(GBXModel *model, int16_t frame, real
     }
 
     use_compressed_codec = ((self->flags & 1) != 0) &&
-                           !((animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
-    use_compressed_frame_base = ((self->flags & 1) != 0) && (animation_compressed_data_enabled != 0);
+                           !((globals().animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
+    use_compressed_frame_base = ((self->flags & 1) != 0) && (globals().animation_compressed_data_enabled != 0);
 
     if (use_compressed_frame_base) {
         frame_cursor = (uint8_t *)self->frame_data.pointer + self->offset_to_compressed_data;
@@ -394,7 +388,7 @@ void animation_view::overlay_frame_orientations(int16_t frame, real_orientation 
     }
 
     use_compressed_codec = ((self->flags & 1) != 0) &&
-                           !((animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
+                           !((globals().animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
 
     frame_cursor = (uint8_t *)animation_view(self).get_frame_data(frame);
 
@@ -484,7 +478,7 @@ void animation_view::overlay_frame_orientations_weighted(int16_t frame, float we
     }
 
     use_compressed_codec = ((self->flags & 1) != 0) &&
-                           !((animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
+                           !((globals().animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
 
     frame_cursor = (uint8_t *)animation_view(self).get_frame_data(frame);
 
@@ -514,7 +508,7 @@ void animation_view::overlay_frame_orientations_weighted(int16_t frame, float we
                 animation_graph::quaternion16_decode((int16_t *)frame_cursor, &new_rotation);
                 frame_cursor += 8;
             }
-            halo::math::quaternion_lerp(new_rotation, *global_identity_quaternion_pointer, new_rotation, weight);
+            halo::math::quaternion_lerp(new_rotation, *globals().global_identity_quaternion_pointer, new_rotation, weight);
             halo::math::quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
         }
         rotation_mask = rotation_mask >> 1;
@@ -586,7 +580,7 @@ void animation_view::overlay_interpolated_frame_orientations(float frame, real_o
     }
 
     use_compressed_codec = ((self->flags & 1) != 0) &&
-                           !((animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
+                           !((globals().animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
 
     next_frame = (base_frame == frame_count - 1) ? 0 : (int16_t)(base_frame + 1);
 
@@ -707,7 +701,7 @@ void animation_view::overlay_interpolated_frame_orientations_weighted(float fram
     }
 
     use_compressed_codec = ((self->flags & 1) != 0) &&
-                           !((animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
+                           !((globals().animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
 
     next_frame = (base_frame == frame_count - 1) ? 0 : (int16_t)(base_frame + 1);
 
@@ -746,7 +740,7 @@ void animation_view::overlay_interpolated_frame_orientations_weighted(float fram
                 halo::math::quaternion_lerp(corner_next, corner_base, new_rotation, frame_weight);
                 halo::math::quaternion_normalize(new_rotation);
             }
-            halo::math::quaternion_lerp(new_rotation, *global_identity_quaternion_pointer, new_rotation, weight);
+            halo::math::quaternion_lerp(new_rotation, *globals().global_identity_quaternion_pointer, new_rotation, weight);
             halo::math::quaternion_normalize(new_rotation);
             halo::math::quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
         }
@@ -810,7 +804,7 @@ void animation_view::replace_frame_orientations(int16_t frame, real_orientation 
     }
 
     use_compressed_codec = ((self->flags & 1) != 0) &&
-                           !((animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
+                           !((globals().animation_compressed_data_enabled == 0) && (self->offset_to_compressed_data != 0));
 
     frame_cursor = (uint8_t *)animation_view(self).get_frame_data(frame);
 
@@ -874,7 +868,7 @@ static void aiming_screen_frame_split(real value, real divisor, int32_t *out_fra
     real frac;
 
     quotient = (divisor == 0.0f) ? 0.0f : value / divisor;
-    frame = __ftol((double)quotient);
+    frame = static_cast<int>((double)quotient);
     frac = (real)fmod((double)quotient, 1.0);
     if (frac < 0.0f) {
         frame = frame - 1;
@@ -906,7 +900,7 @@ void animation_view::aiming_screen_blend(animation_aiming_screen *screen, real y
         real yaw_frac, pitch_frac;
 
         use_interpolated = ((self->flags & 1) != 0) &&
-                            !((animation_compressed_data_enabled == 0) &&
+                            !((globals().animation_compressed_data_enabled == 0) &&
                               (self->offset_to_compressed_data != 0));
 
         aiming_screen_frame_split(yaw, (0.0f < yaw) ? screen->left_yaw_per_frame : screen->right_yaw_per_frame,

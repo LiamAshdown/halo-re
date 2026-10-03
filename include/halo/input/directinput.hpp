@@ -36,4 +36,7 @@ struct DirectInput {
     static void record_windows_key_message(uint32_t wparam, int32_t message);
 };
 
+/** Logs a DirectInput error once per distinct error code (printf-style description). @address 0x492150 */
+void input_error_log_once(int32_t error_code, char *description, ...);
+
 }

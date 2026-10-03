@@ -1,3 +1,4 @@
+#pragma once
 // Blam items module (halo.exe 1.0.10 retail, 0x4bbb50..0x4c6340, 101 functions).
 // The item branch of the object hierarchy: the item_data extension every weapon / equipment /
 // garbage object carries on top of the common object record, the resting-on-ground and

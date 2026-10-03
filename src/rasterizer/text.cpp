@@ -11,6 +11,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
+#include "halo/text/text.hpp"
 
 extern "C" {
 
@@ -82,8 +84,7 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     ((float *)glyph_state)[17] = 1.0f / (float)(int32_t)*(int16_t *)((uint8_t *)atlas + 6);
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state);
-    halo::text::text_wrap_and_draw_wide(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect),
-                 position_or_color2, reinterpret_cast<void *>(const_cast<int16_t *>(text)));
+    halo::text::wide_text_strategy::instance().wrap_and_draw(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect), position_or_color2, reinterpret_cast<void *>(const_cast<int16_t *>(text)));
     rasterizer_draw_text_end();
 }
 
@@ -149,8 +150,7 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
     ((float *)glyph_state)[17] = 1.0f / (float)(int32_t)*(int16_t *)((uint8_t *)atlas + 6);
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state);
-    halo::text::text_wrap_and_draw_narrow(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect),
-                 position_or_color2, reinterpret_cast<void *>(const_cast<char *>(text)));
+    halo::text::narrow_text_strategy::instance().wrap_and_draw(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect), position_or_color2, reinterpret_cast<void *>(const_cast<char *>(text)));
     rasterizer_draw_text_end();
 }
 
@@ -256,7 +256,7 @@ void font_glyph_cache_allocate_and_upload(Font *font, FontCharacter *character)
     pixels = (uint8_t *)(font->pixels.pointer + character->pixels_offset);
     for (row = 0; row < character->bitmap_height + 2; row++) {
         atlas = (BitmapData *)g_font_glyph_cache.atlas;
-        texel = static_cast<uint16_t *>(halo::bitmaps::bitmap_data_get_row_address(atlas, 0, (uint16_t)entry->x, (uint16_t)(entry->y + row)));
+        texel = static_cast<uint16_t *>(halo::bitmaps::bitmap_data_view(atlas).get_row_address(0, (uint16_t)entry->x, (uint16_t)(entry->y + row)));
         for (column = 0; column < character->bitmap_width + 2; column++) {
             if (row < 1 || row > character->bitmap_height ||
                 column < 1 || column > character->bitmap_width) {
@@ -566,7 +566,7 @@ int32_t text_font_system_initialize(void)
         *(uint16_t *)(atlas + 0x14) = 0;
         *(uint16_t *)(atlas + 0x0e) = 0x41;
 
-        pixel_data_size = halo::bitmaps::bitmap_data_calculate_pixel_data_size((BitmapData *)atlas);
+        pixel_data_size = halo::bitmaps::bitmap_data_view((BitmapData *)atlas).calculate_pixel_data_size();
         pixels = GlobalAlloc(0, pixel_data_size);
         *(uint32_t *)(atlas + 0x2c) = (uint32_t)pixels;
 

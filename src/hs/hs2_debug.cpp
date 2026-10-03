@@ -9,6 +9,12 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 
 #ifdef __cplusplus
@@ -200,7 +206,7 @@ void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index
  */
 void DebugCommands::evaluate_print_binds(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::input::input_print_bound_controls();
+    halo::input::BindingNames::print_bound_controls();
     halo::hs::hs_thread_return(0, thread_index);
 }
 

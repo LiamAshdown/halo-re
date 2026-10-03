@@ -19,6 +19,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -311,7 +312,7 @@ void halo::objects::LightSystem::update_all()
 
             t = function_index == -1 ? 1.0f : *(float *)(object_data_get(owner_handle) + 0x134 + function_index * 4);
             tint = color_index == -1 ? (void *)global_white_color : (void *)(owner + 0x1b8 + color_index * 12);
-            halo::bitmaps::color_interpolate_argb_with_tint(static_cast<color_interpolation_flags>(*(uint32_t *)(tag + 0x34)), reinterpret_cast<ColorARGB *>(tag + 0x48), reinterpret_cast<ColorRGB *>(color), reinterpret_cast<ColorRGB *>(tint), reinterpret_cast<ColorARGB *>(tag + 0x38), t);
+            halo::bitmaps::color_codec::interpolate_argb_with_tint(static_cast<color_interpolation_flags>(*(uint32_t *)(tag + 0x34)), reinterpret_cast<ColorARGB *>(tag + 0x48), reinterpret_cast<ColorRGB *>(color), reinterpret_cast<ColorRGB *>(tint), reinterpret_cast<ColorARGB *>(tag + 0x38), t);
             blend = t;
         } else {
             int32_t age_ticks = tick - ((struct light *)light)->marker_link;

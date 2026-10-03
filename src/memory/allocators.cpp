@@ -6,8 +6,12 @@
 #include "math.h"
 #include <stdint.h>
 #include "halo/memory/api.hpp"
+#include "halo/core/datum.hpp"
 
 namespace halo::memory {
+
+/** High bit of a heap block size word: set while the block is allocated. */
+inline constexpr uint32_t k_heap_block_in_use_bit = 0x80000000u;
 
 /**
  * Carves a block of requested_size payload bytes out of the pool's free space and links it at the end
@@ -209,7 +213,7 @@ void *heap_view::allocate(uint32_t size)
     }
 
     payload = (uint8_t *)block + 0x10;
-    block->size = block->size | 0x80000000;
+    block->size = block->size | k_heap_block_in_use_bit;
     allocation_count = (uint32_t)this->allocation_count + 1;
     this->bytes_allocated += (int32_t)(block->size & k_heap_block_size_mask);
     this->allocation_count = (int32_t)allocation_count;
@@ -245,7 +249,7 @@ uint32_t heap_view::allocate_raw(uint32_t size)
     heap_block *block;
     uint32_t block_addr;
 
-    if (size == 0 || 0x80000000u <= size || (uint32_t)this->size <= size) {
+    if (size == 0 || k_heap_block_in_use_bit <= size || (uint32_t)this->size <= size) {
         return 0;
     }
 
@@ -374,7 +378,7 @@ void heap_view::compact()
  */
 uint32_t heap_view::find_first_free_slot()
 {
-    uint32_t slot = 0xffffffff;
+    uint32_t slot = halo::k_dword_none;
 
     if (this->maximum_blocks != 0) {
         heap_block **entry = &this->blocks[0];
@@ -383,7 +387,7 @@ uint32_t heap_view::find_first_free_slot()
             slot = slot + 1;
             entry = entry + 1;
             if ((uint32_t)this->maximum_blocks <= slot) {
-                return 0xffffffff;
+                return halo::k_dword_none;
             }
         }
     }
@@ -468,7 +472,7 @@ void *heap_view::reallocate(void *old_payload, uint32_t new_size)
 
     if (0 <= (int32_t)block->size) {
 
-        block->size = block->size | 0x80000000;
+        block->size = block->size | k_heap_block_in_use_bit;
     }
     bytes_allocated = this->bytes_allocated + (int32_t)((block->size & k_heap_block_size_mask) - old_size);
     this->bytes_allocated = bytes_allocated;
@@ -579,8 +583,8 @@ void cache_view::initialize(char *name, int32_t block_count, int32_t block_shift
     this->block_count = block_count;
     this->block_shift = block_shift;
     this->signature = k_cache_signature;
-    this->first = (datum_index)0xffffffff;
-    this->last = (datum_index)0xffffffff;
+    this->first = halo::k_dword_none;
+    this->last = halo::k_dword_none;
     this->age = 1;
 }
 
@@ -778,7 +782,7 @@ void cache_view::build_status_bitmap(uint8_t *bitmap)
         uint8_t status = _cache_block_allocated_bit;
 
         if (this->in_use_procedure != 0 &&
-            ((int32_t (*)(datum_index))this->in_use_procedure)((datum_index)0xffffffff) != 0) {
+            ((int32_t (*)(datum_index))this->in_use_procedure)(halo::k_dword_none) != 0) {
             status = 9;
         }
         if ((uint32_t)entry->age == (uint32_t)this->age) {
@@ -809,7 +813,7 @@ void cache_view::evict_entry(datum_index handle)
         ((void (*)(datum_index))this->release_procedure)(handle);
     }
 
-    if (entry->previous == (datum_index)0xffffffff) {
+    if (entry->previous == halo::k_dword_none) {
         this->first = entry->next;
     } else {
         cache_entry *previous = (cache_entry *)((uint8_t *)this->entries->data +
@@ -817,7 +821,7 @@ void cache_view::evict_entry(datum_index handle)
         previous->next = entry->next;
     }
 
-    if (entry->next != (datum_index)0xffffffff) {
+    if (entry->next != halo::k_dword_none) {
         cache_entry *next = (cache_entry *)((uint8_t *)this->entries->data +
             (uint32_t)(uint16_t)entry->next * sizeof(cache_entry));
         next->previous = entry->previous;

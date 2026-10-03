@@ -18,6 +18,7 @@ inline constexpr uint32_t font = fourcc('f', 'o', 'n', 't');
 inline constexpr uint32_t contrail = fourcc('c', 'o', 'n', 't');
 inline constexpr uint32_t effect = fourcc('e', 'f', 'f', 'e');
 inline constexpr uint32_t sound = fourcc('s', 'n', 'd', '!');
+inline constexpr uint32_t input_device_defaults = fourcc('d', 'e', 'v', 'c');
 }  // namespace groups
 
 }  // namespace halo

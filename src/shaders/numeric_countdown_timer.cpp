@@ -5,6 +5,7 @@
  */
 
 #include "halo/shaders/shaders.hpp"
+<<<<<<< HEAD
 #include "halo/game/api.hpp"
 
 extern "C" {
@@ -12,6 +13,10 @@ extern int32_t numeric_countdown_timer_remaining_ms;
 extern uint8_t numeric_countdown_timer_running;
 extern int32_t numeric_countdown_timer_last_update_ms;
 }
+=======
+#include "halo/shaders/api.hpp"
+
+>>>>>>> worktree-agent-abfcb6ae2d2dd8d16
 
 namespace halo::shaders {
 
@@ -19,25 +24,25 @@ int16_t numeric_countdown_timer::get_digit(int16_t digit_index)
 {
     switch (digit_index) {
     case _numeric_countdown_timer_raw:
-        return (int16_t)numeric_countdown_timer_remaining_ms;
+        return (int16_t)globals().numeric_countdown_timer_remaining_ms;
     case _numeric_countdown_timer_millisecond_ones:
-        return (int16_t)(numeric_countdown_timer_remaining_ms % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms % 10);
     case _numeric_countdown_timer_millisecond_tens:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 10 % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 10 % 10);
     case _numeric_countdown_timer_millisecond_hundreds:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 100 % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 100 % 10);
     case _numeric_countdown_timer_second_ones:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 1000 % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 1000 % 10);
     case _numeric_countdown_timer_second_tens:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 10000 % 6);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 10000 % 6);
     case _numeric_countdown_timer_minute_ones:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 60000 % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 60000 % 10);
     case _numeric_countdown_timer_minute_tens:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 600000 % 6);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 600000 % 6);
     case _numeric_countdown_timer_hour_ones:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 3600000 % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 3600000 % 10);
     case _numeric_countdown_timer_hour_tens:
-        return (int16_t)(numeric_countdown_timer_remaining_ms / 36000000 % 10);
+        return (int16_t)(globals().numeric_countdown_timer_remaining_ms / 36000000 % 10);
     default:
         return 0;
     }
@@ -47,22 +52,26 @@ void numeric_countdown_timer::update(void)
 {
     int32_t new_time;
 
-    if (!numeric_countdown_timer_running) {
+    if (!globals().numeric_countdown_timer_running) {
         return;
     }
 
+<<<<<<< HEAD
     new_time = (halo::game::globals().game_time->game_time * k_numeric_countdown_timer_milliseconds_per_second) /
+=======
+    new_time = (globals().game_time->game_time * k_numeric_countdown_timer_milliseconds_per_second) /
+>>>>>>> worktree-agent-abfcb6ae2d2dd8d16
                k_numeric_countdown_timer_ticks_per_second;
 
-    if (numeric_countdown_timer_last_update_ms <= new_time) {
-        numeric_countdown_timer_remaining_ms +=
-            (numeric_countdown_timer_last_update_ms - new_time);
-        if (numeric_countdown_timer_remaining_ms < 0) {
-            numeric_countdown_timer_remaining_ms = 0;
+    if (globals().numeric_countdown_timer_last_update_ms <= new_time) {
+        globals().numeric_countdown_timer_remaining_ms +=
+            (globals().numeric_countdown_timer_last_update_ms - new_time);
+        if (globals().numeric_countdown_timer_remaining_ms < 0) {
+            globals().numeric_countdown_timer_remaining_ms = 0;
         }
     }
 
-    numeric_countdown_timer_last_update_ms = new_time;
+    globals().numeric_countdown_timer_last_update_ms = new_time;
 }
 
 }  // namespace halo::shaders

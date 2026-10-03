@@ -9,6 +9,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -768,9 +769,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
     if (local_player_globals->bsp_switch_trigger_volume_index == -1 ||
         (unit_handle != (datum_index)-1 &&
-         halo::scenario::scenario_trigger_volume_contains_point(
-             *(int16_t *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8),
-             (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_handle & 0xffff) * 0xc + 8) + 0xa0))
+         halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8), (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_handle & 0xffff) * 0xc + 8) + 0xa0))
              != 0)) {
         skip_trigger_check = 0;
     } else {

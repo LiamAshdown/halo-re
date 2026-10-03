@@ -11,6 +11,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -114,8 +115,7 @@ uint8_t ProjectileHandle::construct()
 
     
     in_water = 0;
-    fog_region = halo::scenario::scenario_location_fog_region((bsp_leaf_reference *)&obj->location_leaf_index,
-                                               &obj->bounding_center);
+    fog_region = halo::scenario::location_view((bsp_leaf_reference *)&obj->location_leaf_index).fog_region(&obj->bounding_center);
     if (fog_region != -1) {
         ScenarioStructureBSPFogRegion *region =
             &((ScenarioStructureBSPFogRegion *)halo::scenario::globals().structure_bsp->fog_regions.pointer)[fog_region];

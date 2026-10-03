@@ -30,6 +30,13 @@
 #include "halo/main/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
+#include "halo/scenario/scenario.hpp"
 
 
 extern "C" { extern main_globals main_globals_data; }
@@ -624,7 +631,7 @@ void LevelControl::switch_structure_bsp_and_notify(void)
     uint8_t *entry;
     int32_t i;
 
-    halo::scenario::scenario_structure_bsp_switch(main_globals_data.switch_structure_bsp_index);
+    halo::scenario::structure_bsp_switcher::switch_to(main_globals_data.switch_structure_bsp_index);
     main_globals_data.switch_structure_bsp_index = -1;
 
     message_id = (int16_t)halo::interface::globals().hud_globals_tag_data->loading_end_text;

@@ -4,16 +4,11 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
 
 #include "tags.h"
-
-extern "C" {
-extern double fabs(double x);
-extern double sqrt(double x);
-extern int __ftol(double value);
-}
 
 namespace halo::math {
 
@@ -119,7 +114,7 @@ uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold)
     real value;
 
     span = hi - lo;
-    b = (uint8_t)__ftol((double)((threshold - lo) / span * 255.0f));
+    b = (uint8_t)static_cast<int>((double)((threshold - lo) / span * 255.0f));
 
     while (1) {
         if (b == 0) {

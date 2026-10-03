@@ -4,16 +4,11 @@
  * The original author notes and decompiles are in docs/original/structures/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
-
-extern "C" {
-extern uint8_t render_frustum_global[];
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern double sqrt(double x);
-}
 
 namespace halo::structures {
 
@@ -27,7 +22,7 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
         ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
         void *frustum_or_camera;
         if (globals().debug_render_cluster_pvs != 0 || globals().render_cluster_index == -1) {
-            frustum_or_camera = (void *)render_frustum_global;
+            frustum_or_camera = (void *)globals().render_frustum_global;
         } else {
             frustum_or_camera = &globals().visible_clusters[i].frustum;
         }
@@ -49,7 +44,7 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
                     material->compressed_vertices.pointer;
 
             int32_t run_end = consumed + surface_count;
-            while (consumed < run_end && globals().visible_surface_count < 0x4000) {
+            while (consumed < run_end && globals().visible_surface_count < k_maximum_visible_surfaces) {
                 int32_t surface_index = *cursor;
                 int32_t word = surface_index >> 5;
                 uint32_t mask = 1u << (surface_index & 0x1f);
@@ -86,19 +81,19 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
     ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)self->clusters.pointer;
 
     for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
-        if (globals().visible_surface_count > 0x3fff) {
+        if (globals().visible_surface_count >= k_maximum_visible_surfaces) {
             return;
         }
         ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
         void *frustum_or_camera;
         if (globals().debug_render_cluster_pvs != 0 || globals().render_cluster_index == -1) {
-            frustum_or_camera = (void *)render_frustum_global;
+            frustum_or_camera = (void *)globals().render_frustum_global;
         } else {
             frustum_or_camera = &globals().visible_clusters[i].frustum;
         }
 
         for (int32_t j = 0; j < (int32_t)cluster->subclusters.count; j++) {
-            if (globals().visible_surface_count > 0x3fff) {
+            if (globals().visible_surface_count >= k_maximum_visible_surfaces) {
                 break;
             }
             ScenarioStructureBSPSubcluster *subcluster =
@@ -114,7 +109,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
                 if ((globals().surface_visible_bits[word] & mask) != 0) {
                     continue;
                 }
-                if (globals().visible_surface_count > 0x3fff) {
+                if (globals().visible_surface_count >= k_maximum_visible_surfaces) {
                     break;
                 }
                 globals().surface_visible_bits[word] |= mask;

@@ -10,6 +10,12 @@
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -65,8 +71,8 @@ void GameWindow::suspend_focus()
         } else {
             halo::sound::sound_pause();
         }
-        halo::input::input_directinput_unacquire_devices();
-        halo::input::input_reset_state_and_axis_configs();
+        halo::input::DirectInput::directinput_unacquire_devices();
+        halo::input::GameActions::reset_state_and_axis_configs();
         if (shell_window != 0 && halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
             ShowWindow((HWND)shell_window, 6);
         }
@@ -122,8 +128,8 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             if (wparam == 2) {
                 if (shell_window_minimized != 0 && shell_application_inactive != 0) {
                     shell_application_inactive = 0;
-                    halo::input::input_directinput_acquire_devices();
-                    halo::input::input_reset_state_and_axis_configs();
+                    halo::input::DirectInput::directinput_acquire_devices();
+                    halo::input::GameActions::reset_state_and_axis_configs();
                     if (shell_window != 0) {
                         ShowWindow((HWND)shell_window, 9);
                     }
@@ -156,8 +162,8 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             if (shell_window_minimized != 0) {
                 if (shell_application_inactive != 0) {
                     shell_application_inactive = 0;
-                    halo::input::input_directinput_acquire_devices();
-                    halo::input::input_reset_state_and_axis_configs();
+                    halo::input::DirectInput::directinput_acquire_devices();
+                    halo::input::GameActions::reset_state_and_axis_configs();
                     if (shell_window != 0) {
                         ShowWindow((HWND)shell_window, 9);
                     }
@@ -191,8 +197,8 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
         restore_from_suspend:
             if (shell_application_inactive != 0) {
                 shell_application_inactive = 0;
-                halo::input::input_directinput_acquire_devices();
-                halo::input::input_reset_state_and_axis_configs();
+                halo::input::DirectInput::directinput_acquire_devices();
+                halo::input::GameActions::reset_state_and_axis_configs();
                 if (shell_window != 0) {
                     ShowWindow((HWND)shell_window, 9);
                 }
@@ -371,6 +377,7 @@ keystone_dispatch:
         }
         if (message == 0x100) {
             if (wparam == 0xd) {
+<<<<<<< HEAD
                 if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::interface::chat_submit_input();
                     halo::input::input_key_block_timer_set(0x38, 200);
@@ -380,16 +387,27 @@ keystone_dispatch:
             } else if (wparam == 0x1b) {
                 if (halo::interface::globals().chat_dialog_open != 0) {
                     halo::input::input_key_block_timer_set(0, 0xfa);
+=======
+                if (chat_dialog_open != 0) {
+                    chat_submit_input();
+                    halo::input::DirectInput::key_block_timer_set(0x38, 200);
+                    halo::input::DirectInput::key_block_timer_set(0x66, 200);
+                    return 0;
+                }
+            } else if (wparam == 0x1b) {
+                if (chat_dialog_open != 0) {
+                    halo::input::DirectInput::key_block_timer_set(0, 0xfa);
+>>>>>>> worktree-agent-abfcb6ae2d2dd8d16
                 }
                 halo::interface::chat_close();
             }
         }
         if (handled == 0) {
-            halo::input::input_record_windows_key_message(wparam, message);
+            halo::input::DirectInput::record_windows_key_message(wparam, message);
             return 0;
         }
     }
-    halo::input::input_record_windows_key_message(wparam, message);
+    halo::input::DirectInput::record_windows_key_message(wparam, message);
     return DefWindowProcA(hwnd, message, wparam, lparam);
 }
 
@@ -409,7 +427,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
     shell_application_inactive = inactive;
 
     if (inactive == 0) {
-        halo::input::input_directinput_acquire_devices();
+        halo::input::DirectInput::directinput_acquire_devices();
     } else {
         if (shell_window_proc_bypass == 0) {
             if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
@@ -421,9 +439,9 @@ void GameWindow::handle_activate_app(uint8_t inactive)
                 }
             }
         }
-        halo::input::input_directinput_unacquire_devices();
+        halo::input::DirectInput::directinput_unacquire_devices();
     }
-    halo::input::input_reset_state_and_axis_configs();
+    halo::input::GameActions::reset_state_and_axis_configs();
 
     if (shell_window != 0) {
         fullscreen_device = halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0;

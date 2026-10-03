@@ -2,6 +2,7 @@
  * Binding display names and the name to index parsers used by the bind console commands and the controls menu.
  */
 
+#include <cstring>
 #include "tags.h"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -19,8 +20,15 @@
 #include "halo/input/binding_names.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/input/state.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
-extern "C" { extern uint16_t missing_string_text[]; }
 namespace halo::input {
 
 /**
@@ -38,12 +46,12 @@ void BindingNames::chimera__axis_text(int16_t axis_index, uint8_t direction, uin
     uint16_t *source;
     uint16_t direction_name[9];
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
-    halo::input::input_get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
+    halo::input::BindingNames::get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
 
-    source = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    source = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if ((int32_t)list->strings.count > 1) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[1];
@@ -77,10 +85,10 @@ void BindingNames::chimera__button_text(int16_t button_index, uint16_t *out_text
     UnicodeStringListString *entry;
     uint16_t *source;
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
-    source = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    source = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if ((int32_t)list->strings.count > 0) {
             entry = (UnicodeStringListString *)list->strings.pointer;
@@ -114,11 +122,11 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
     uint16_t *direction_name;
     int16_t direction_entry_index;
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
 
-    pov_name = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    pov_name = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if ((int32_t)list->strings.count > 2) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[2];
@@ -130,8 +138,8 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
     }
 
     direction_entry_index = direction_index + 3;
-    direction_name = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    direction_name = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (direction_entry_index >= 0 && direction_entry_index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[direction_entry_index];
@@ -148,8 +156,6 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
 
 }
 
-extern "C" { extern char input_action_names[k_input_action_count][0x10]; }
-extern "C" { extern int32_t _stricmp(const char *a, const char *b); }
 namespace halo::input {
 
 /**
@@ -166,7 +172,7 @@ int16_t BindingNames::action_name_to_index(char *name)
     int16_t index;
 
     index = 0;
-    entry = input_action_names[0];
+    entry = input_state().input_action_names[0];
     do {
         if (_stricmp(name, entry) == 0) {
             return index;
@@ -197,7 +203,7 @@ int16_t BindingNames::axis_direction_name_to_index(char *name)
 
     direction_index = 0;
     for (;;) {
-        halo::input::input_get_axis_direction_name((int16_t)direction_index, wide);
+        halo::input::BindingNames::get_axis_direction_name((int16_t)direction_index, wide);
         length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 9) {
             for (i = 0; i < length; i++) {
@@ -236,10 +242,10 @@ void BindingNames::get_axis_direction_name(int16_t direction_index, uint16_t *ou
     UnicodeStringListString *entry;
     uint16_t *source;
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_axis_direction_names");
-    source = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    source = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (direction_index >= 0 && direction_index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[direction_index];
@@ -270,15 +276,15 @@ void BindingNames::get_binding_display_name(control_binding_descriptor *binding,
     switch (binding->device_type) {
     case _control_device_keyboard:
         if (binding->input_kind == _control_input_button) {
-            halo::input::input_get_keyboard_key_name(binding->input_index, out_text);
+            halo::input::BindingNames::get_keyboard_key_name(binding->input_index, out_text);
         }
         break;
 
     case _control_device_mouse:
         if (binding->input_kind == _control_input_button) {
-            halo::input::input_get_mouse_button_name(binding->input_index, out_text);
+            halo::input::BindingNames::get_mouse_button_name(binding->input_index, out_text);
         } else if (binding->input_kind == _control_input_axis) {
-            halo::input::input_get_mouse_axis_name(binding->input_index, binding->direction == 1, out_text);
+            halo::input::BindingNames::get_mouse_axis_name(binding->input_index, binding->direction == 1, out_text);
         }
         break;
 
@@ -322,10 +328,10 @@ void BindingNames::get_keyboard_key_name(int16_t key_index, uint16_t *out_name)
     UnicodeStringListString *entry;
     uint16_t *source;
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_keyboard_button_names");
-    source = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    source = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (key_index >= 0 && key_index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[key_index];
@@ -361,11 +367,11 @@ void BindingNames::get_mouse_axis_name(int16_t axis_index, uint8_t direction, ui
     int16_t lookup_index;
     uint16_t direction_name[9];
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
     lookup_index = axis_index + 8;
-    source = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    source = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (lookup_index >= 0 && lookup_index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[lookup_index];
@@ -376,7 +382,7 @@ void BindingNames::get_mouse_axis_name(int16_t axis_index, uint8_t direction, ui
         }
     }
     wcsncpy((wchar_t *)out_name, (const wchar_t *)source, 0x21);
-    halo::input::input_get_axis_direction_name(direction != 0, direction_name);
+    halo::input::BindingNames::get_axis_direction_name(direction != 0, direction_name);
     wcscat((wchar_t *)out_name, L" ");
     wcscat((wchar_t *)out_name, (const wchar_t *)direction_name);
     out_name[0x20] = 0;
@@ -403,10 +409,10 @@ void BindingNames::get_mouse_button_name(int16_t button_index, uint16_t *out_nam
     UnicodeStringListString *entry;
     uint16_t *source;
 
-    tag_id = halo::cache::tag_lookup(0x75737472,
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
-    source = missing_string_text;
-    if (tag_id != (datum_index)0xffffffff) {
+    source = input_state().missing_string_text;
+    if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (button_index >= 0 && button_index < (int32_t)list->strings.count) {
             entry = &((UnicodeStringListString *)list->strings.pointer)[button_index];
@@ -422,7 +428,6 @@ void BindingNames::get_mouse_button_name(int16_t button_index, uint16_t *out_nam
 
 }
 
-extern "C" { extern char pov_direction_names[8][10]; }
 namespace halo::input {
 
 /**
@@ -439,7 +444,7 @@ int16_t BindingNames::joystick_pov_direction_name_to_index(char *name)
     int16_t index;
 
     index = 0;
-    entry = pov_direction_names[0];
+    entry = input_state().pov_direction_names[0];
     while (index < 8) {
         if (_stricmp(name, entry) == 0) {
             return index;
@@ -470,7 +475,7 @@ uint32_t BindingNames::keyboard_key_name_to_index(char *name)
 
     key_index = 0;
     for (;;) {
-        halo::input::input_get_keyboard_key_name((int16_t)key_index, wide);
+        halo::input::BindingNames::get_keyboard_key_name((int16_t)key_index, wide);
         length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 0x18) {
             for (i = 0; i < length; i++) {
@@ -483,7 +488,7 @@ uint32_t BindingNames::keyboard_key_name_to_index(char *name)
         }
         key_index = key_index + 1;
         if ((int32_t)key_index > (int32_t)k_control_keyboard_key_count - 1) {
-            return 0xffff;
+            return halo::k_word_none;
         }
     }
     return key_index & 0xffff;
@@ -512,7 +517,7 @@ uint32_t BindingNames::mouse_axis_name_to_index(char *name, uint8_t *out_directi
 
     for (axis_index = 0; axis_index <= (uint32_t)k_control_mouse_axis_count - 1; axis_index++) {
         for (dir = 0; dir < 2; dir++) {
-            halo::input::input_get_mouse_axis_name((int16_t)axis_index, k_directions[dir], wide);
+            halo::input::BindingNames::get_mouse_axis_name((int16_t)axis_index, k_directions[dir], wide);
             length = (uint32_t)wcslen((const wchar_t *)wide);
             if (length < 0x21) {
                 for (i = 0; i < length; i++) {
@@ -526,7 +531,7 @@ uint32_t BindingNames::mouse_axis_name_to_index(char *name, uint8_t *out_directi
             }
         }
     }
-    return 0xffff;
+    return halo::k_word_none;
 }
 
 }
@@ -549,7 +554,7 @@ uint32_t BindingNames::mouse_button_name_to_index(char *name)
 
     button_index = 0;
     for (;;) {
-        halo::input::input_get_mouse_button_name((int16_t)button_index, wide);
+        halo::input::BindingNames::get_mouse_button_name((int16_t)button_index, wide);
         length = (uint32_t)wcslen((const wchar_t *)wide);
         if (length < 0x18) {
             for (i = 0; i < length; i++) {
@@ -562,7 +567,7 @@ uint32_t BindingNames::mouse_button_name_to_index(char *name)
         }
         button_index = button_index + 1;
         if ((int32_t)button_index > (int32_t)k_control_mouse_button_count - 1) {
-            return 0xffff;
+            return halo::k_word_none;
         }
     }
     return button_index & 0xffff;

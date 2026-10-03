@@ -11,6 +11,9 @@
 #include "math.h"
 #include "structures.h"
 
+struct player_globals;
+struct render_lighting;
+
 namespace halo::structures {
 
 /**
@@ -52,11 +55,33 @@ struct Globals {
     uint8_t *&runtime_decals_suppressed;
     float &k_cluster_query_radius_threshold;
     real_bounds *&k_default_screen_bounds;
+    player_globals *&local_player_globals;
+    int16_t &current_local_player_index;
+    real_vector3d &camera_forward_x;
+    float &k_surface_resolve_step;
+    float &portal_visibility_tolerance;
+    real_plane3d &near_clip_plane;
+    double &k_plane_side_epsilon;
+    float &k_projection_numerator;
+    uint8_t &decals_enabled;
+    const real_point3d *&global_origin3d_pointer;
+    void *&unknown_007c048c;
+    render_lighting &object_lighting_default;
+    real_vector3d (&object_lightmap_probe_direction)[1];
+    real_vector3d (&object_lighting_probe_sideways)[4];
+    real_point3d &render_camera_global;
+    uint8_t (&render_frustum_global)[];
 };
 
-extern const Globals structures_globals;
+/**
+ * The structures service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static const Globals &instance();
+};
 
-/** The structures service object (single instance, constant-initialised). */
-inline const Globals &globals() { return structures_globals; }
+inline const Globals &globals() { return Service::instance(); }
 
 }  // namespace halo::structures

@@ -9,17 +9,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/saved_games/api.hpp"
-
-extern "C" {
-extern float portal_visibility_tolerance;
-extern real_plane3d near_clip_plane;
-extern double k_plane_side_epsilon;
-extern float k_projection_numerator;
-extern real_point3d render_camera_global;
-extern uint8_t render_frustum_global;
-}
+#include "halo/structures/globals.hpp"
 
 namespace halo::structures {
+
+/** Bytes of game state reserved for each of the two object/cluster reference pools. */
+inline constexpr int32_t k_cluster_reference_pool_bytes = 0x800;
 
 void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon2d *view_polygon)
 {
@@ -78,7 +73,7 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
             if (project_result != 0 ||
                 (globals().render_cluster_has_sky == 0 &&
 
-                 structure_bsp_query::points_within_band((real_point3d *)portal->vertices.pointer, (int16_t)portal->vertices.count, portal_visibility_tolerance) == 0)) {
+                 structure_bsp_query::points_within_band((real_point3d *)portal->vertices.pointer, (int16_t)portal->vertices.count, globals().portal_visibility_tolerance) == 0)) {
                 continue;
             }
 
@@ -224,7 +219,7 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
     if (*((int8_t *)camera_ref + 0x24) != 0) {
         winding = -winding;
     }
-    if ((side < 0.0f ? -side : side) < k_plane_side_epsilon) {
+    if ((side < 0.0f ? -side : side) < globals().k_plane_side_epsilon) {
         return 2;
     }
     if (side <= 0.0f) {
@@ -236,7 +231,7 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
                                   *(real_matrix4x3 *)((uint8_t *)camera + 0x10));
     }
 
-    clipped_count = halo::math::polygon3d_clip_to_plane(vertex_count, clipped, near_clip_plane, 0x100,
+    clipped_count = halo::math::polygon3d_clip_to_plane(vertex_count, clipped, globals().near_clip_plane, 0x100,
                                             clipped, 0, 9.99999975e-05f, 1);
     out->point_count = clipped_count;
 
@@ -247,7 +242,7 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
     }
     written = 0;
     while (i != stop) {
-        float inverse_z = k_projection_numerator / clipped[i].z;
+        float inverse_z = globals().k_projection_numerator / clipped[i].z;
         out->points[written].x = inverse_z * clipped[i].x;
         out->points[written].y = inverse_z * clipped[i].y;
         i = (int16_t)(i + step);
@@ -265,7 +260,7 @@ uint8_t cluster_flood::portal_test_and_project(char same_side, int16_t portal_in
         (ModelCollisionGeometryBSP *)halo::scenario::globals().structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSPPlane *plane =
         &((ModelCollisionGeometryBSPPlane *)collision_bsp->planes.pointer)[portal->plane_index];
-    return cluster_flood::portal_project((real_plane3d *)&plane->plane, &render_camera_global, (real_point3d *)portal->vertices.pointer, &render_frustum_global, portal->vertices.count, (int16_t)((same_side == 0) * 2 - 1), out);
+    return cluster_flood::portal_project((real_plane3d *)&plane->plane, &globals().render_camera_global, (real_point3d *)portal->vertices.pointer, globals().render_frustum_global, portal->vertices.count, (int16_t)((same_side == 0) * 2 - 1), out);
 }
 
 int16_t cluster_flood::weather_polyhedra_find_within_radius(int16_t *out, float radius)
@@ -277,9 +272,9 @@ int16_t cluster_flood::weather_polyhedra_find_within_radius(int16_t *out, float 
     for (index = 0; index < (int32_t)bsp->weather_polyhedra.count; index++) {
         ScenarioStructureBSPWeatherPolyhedron *polyhedron =
             (ScenarioStructureBSPWeatherPolyhedron *)(uintptr_t)bsp->weather_polyhedra.pointer + index;
-        float dx = polyhedron->bounding_sphere_center.x - render_camera_global.x;
-        float dy = polyhedron->bounding_sphere_center.y - render_camera_global.y;
-        float dz = polyhedron->bounding_sphere_center.z - render_camera_global.z;
+        float dx = polyhedron->bounding_sphere_center.x - globals().render_camera_global.x;
+        float dy = polyhedron->bounding_sphere_center.y - globals().render_camera_global.y;
+        float dz = polyhedron->bounding_sphere_center.z - globals().render_camera_global.z;
         float reach = radius + polyhedron->bounding_sphere_radius;
 
         if (dx * dx + dz * dz + dy * dy < reach * reach && found < 8) {
@@ -298,18 +293,18 @@ void cluster_references::partition_new(cluster_reference_group *out, char *name)
     uint8_t *region;
 
     region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x800;
-    size = 0x800;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_cluster_reference_pool_bytes;
+    size = k_cluster_reference_pool_bytes;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     out->cluster_first = (datum_index *)region;
 
     sprintf(format_buffer, "cluster %s", name);
     sprintf(pool_name, "%s reference", format_buffer);
-    out->cluster_object_references = halo::saved_games::game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
+    out->cluster_object_references = halo::saved_games::game_state_new(pool_name, k_cluster_reference_pool_bytes, sizeof(object_cluster_reference));
 
     sprintf(format_buffer, "%s cluster", name);
     sprintf(pool_name, "%s reference", format_buffer);
-    out->object_cluster_references = halo::saved_games::game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
+    out->object_cluster_references = halo::saved_games::game_state_new(pool_name, k_cluster_reference_pool_bytes, sizeof(object_cluster_reference));
 }
 
 void cluster_references::add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position, float radius, bsp_leaf_reference *leaf_and_cluster, cluster_reference_group *cluster_list)

@@ -12,17 +12,9 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/structures/globals.hpp"
+#include "halo/bitmaps/bitmaps.hpp"
 
-extern "C" {
-extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
-extern render_lighting object_lighting_default;
-extern real_vector3d object_lightmap_probe_direction[1];
-extern real_vector3d object_lighting_probe_sideways[4];
-extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedRenderedVertex *vertex,
-    real_vector3d *out);
-extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
-    real_vector3d *out);
-}
 
 namespace halo::structures {
 
@@ -69,7 +61,7 @@ void bsp_lighting::lightmap_sample_vertex_color(BitmapData *bitmap, float weight
     uv[1] = (v1 - v0) * weight_1 + (v2 - v0) * weight_2 + v0;
 
     packed = halo::rasterizer::rasterizer_bitmap_sample_texel(bitmap, uv, 1.0f);
-    halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
+    halo::bitmaps::color_codec::rgb_int_to_real(out, (uint32_t)packed);
 }
 
 void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weight_1, float weight_2, ColorRGB *out, ScenarioStructureBSPMaterial *material, uint16_t *triangle_vertex_indices)
@@ -107,7 +99,7 @@ void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weig
     uv[1] = (v2 - v0) * weight_2 + (v1 - v0) * weight_1 + v0;
 
     packed = halo::rasterizer::rasterizer_bitmap_sample_texel(bitmap, uv, 0.3f);
-    halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
+    halo::bitmaps::color_codec::rgb_int_to_real(out, (uint32_t)packed);
 }
 
 uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *point, render_lighting *lighting)
@@ -139,17 +131,17 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     int32_t i;
 
     if (bsp->default_ambient_color.red == 0.0f) {
-        *lighting = object_lighting_default;
+        *lighting = globals().object_lighting_default;
     } else {
         *lighting = *(render_lighting *)&bsp->default_ambient_color;
         lighting->distant_light_count = 2;
     }
 
     if (flags & 1) {
-        directions = object_lighting_probe_sideways;
+        directions = globals().object_lighting_probe_sideways;
         direction_count = 4;
     } else {
-        directions = object_lightmap_probe_direction;
+        directions = globals().object_lightmap_probe_direction;
         direction_count = 1;
     }
 

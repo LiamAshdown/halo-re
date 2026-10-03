@@ -2,6 +2,7 @@
  * Control binding table, last-used-binding cache, bind/unbind commands, rebind capture and device default profiles.
  */
 
+#include <cstring>
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -22,6 +23,15 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "link/calls.hpp"
+#include "halo/input/state.hpp"
+#include "halo/core/tag_groups.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" { extern uint8_t g_control_binding_state; }
 extern "C" { extern uint8_t g_control_binding_secondary_active; }
@@ -45,7 +55,7 @@ void Bindings::control_binding_table_initialize(void)
     g_control_binding_secondary_active = (halo::game::globals().teams_enabled != 0);
     g_control_binding_state = 0;
 
-    row = g_control_binding_region_e4;
+    row = input_state().g_control_binding_region_e4;
     do {
         uint8_t *cell = row;
         offset = 0;
@@ -67,10 +77,10 @@ void Bindings::control_binding_table_initialize(void)
                 } while (count != 0);
             }
 
-            if (current_game_engine == 0) {
+            if (input_state().current_game_engine == 0) {
                 ((control_binding_half *)(cell - 4))->profile_default = -1;
             } else {
-                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)((uint8_t *)global_globals->multiplayer_information.pointer + 0x24) + 0xc + offset);
+                ((control_binding_half *)(cell - 4))->profile_default = *(int32_t *)(*(int32_t *)((uint8_t *)input_state().global_globals->multiplayer_information.pointer + 0x24) + 0xc + offset);
             }
 
             offset += 0x10;
@@ -79,13 +89,11 @@ void Bindings::control_binding_table_initialize(void)
 
         row += 0x50;
         outer_row++;
-    } while (row < g_control_binding_region_e4 + 0xa0);
+    } while (row < input_state().g_control_binding_region_e4 + 0xa0);
 }
 
 }
 
-extern "C" { extern uint8_t g_control_binding_region_ec[0x3c0]; }
-extern "C" { extern uint8_t g_control_binding_region_e0[0x3c0]; }
 namespace halo::input {
 
 /**
@@ -101,12 +109,12 @@ uint8_t Bindings::control_binding_table_query(int32_t target, int32_t raw_id)
     int32_t row;
     int32_t row_index;
 
-    if (current_game_engine == 0) {
+    if (input_state().current_game_engine == 0) {
         return result;
     }
 
-    cursor = g_control_binding_region_ec;
-    region_end = g_control_binding_region_ec + sizeof(g_control_binding_region_ec);
+    cursor = input_state().g_control_binding_region_ec;
+    region_end = input_state().g_control_binding_region_ec + sizeof(input_state().g_control_binding_region_ec);
     row_index = -1;
     row = 0;
     while (cursor < region_end) {
@@ -127,13 +135,13 @@ uint8_t Bindings::control_binding_table_query(int32_t target, int32_t raw_id)
         int32_t pair;
         for (pair = 0; pair <= 2; pair++) {
             int32_t idx = pair + row_index * 2;
-            int32_t count = *(int32_t *)(g_control_binding_region_e0 + idx * 0x50);
+            int32_t count = *(int32_t *)(input_state().g_control_binding_region_e0 + idx * 0x50);
             if (count != 0) {
-                uint8_t *id_cursor = g_control_binding_region_e0 + 0x10 + idx * 0x50;
+                uint8_t *id_cursor = input_state().g_control_binding_region_e0 + 0x10 + idx * 0x50;
                 uint32_t slot;
                 for (slot = 0; slot < (uint32_t)count; slot++) {
                     if (*(int32_t *)id_cursor == raw_id) {
-                        result = *(uint8_t *)(g_control_binding_region_e0 + 0x14 + (slot + idx * 10) * 8);
+                        result = *(uint8_t *)(input_state().g_control_binding_region_e0 + 0x14 + (slot + idx * 10) * 8);
                         return result;
                     }
                     id_cursor += 8;
@@ -147,8 +155,6 @@ uint8_t Bindings::control_binding_table_query(int32_t target, int32_t raw_id)
 
 }
 
-extern "C" { extern uint32_t control_word_primary; }
-extern "C" { extern uint32_t control_binding_device_type; }
 namespace halo::input {
 
 /**
@@ -158,7 +164,7 @@ namespace halo::input {
  */
 void Bindings::control_binding_table_update_a(void)
 {
-    uint32_t low_nibble = control_word_primary & 0xf;
+    uint32_t low_nibble = input_state().control_word_primary & 0xf;
     int32_t row_offset = 0;
     int32_t pair_index = 0;
 
@@ -166,7 +172,7 @@ void Bindings::control_binding_table_update_a(void)
         if (low_nibble == 0) {
             int32_t sub;
             for (sub = 0; sub < 2; sub++) {
-                uint8_t *cell = g_control_binding_region_e0 + row_offset + sub * 0x50;
+                uint8_t *cell = input_state().g_control_binding_region_e0 + row_offset + sub * 0x50;
                 int32_t count = ((control_binding_half *)cell)->entry_count;
                 int32_t i;
 
@@ -174,7 +180,7 @@ void Bindings::control_binding_table_update_a(void)
                     uint8_t value = ((control_binding_half *)cell)->entries[i].device_mask;
                     uint8_t bit;
 
-                    switch (control_binding_device_type) {
+                    switch (input_state().control_binding_device_type) {
                     case 1: bit = (uint8_t)((value >> 1) & 1); break;
                     case 2: bit = (uint8_t)(value & 1); break;
                     case 3: bit = (uint8_t)((value >> 3) & 1); break;
@@ -187,19 +193,19 @@ void Bindings::control_binding_table_update_a(void)
                 }
             }
         } else {
-            uint8_t *base = g_control_binding_region_e0 + row_offset;
+            uint8_t *base = input_state().g_control_binding_region_e0 + row_offset;
             int32_t remaining = ((control_binding_half *)base)->limit;
             int32_t settled = 0;
 
             while (remaining > 0 && !settled) {
                 uint32_t a = (uint32_t)((control_binding_half *)base)->selected_count;
-                uint32_t b = (uint32_t)((control_binding_half *)(g_control_binding_region_e0 + 0x50 + row_offset))->selected_count;
+                uint32_t b = (uint32_t)((control_binding_half *)(input_state().g_control_binding_region_e0 + 0x50 + row_offset))->selected_count;
                 int32_t pick;
                 int32_t has_pick = 0;
 
                 settled = 1;
                 if (b < a) {
-                    if (b < (uint32_t)((control_binding_half *)(g_control_binding_region_e0 + 0x50 + row_offset))->entry_count) {
+                    if (b < (uint32_t)((control_binding_half *)(input_state().g_control_binding_region_e0 + 0x50 + row_offset))->entry_count) {
                         pick = 1; has_pick = 1;
                     } else if (a < (uint32_t)((control_binding_half *)base)->entry_count) {
                         pick = 0; has_pick = 1;
@@ -207,7 +213,7 @@ void Bindings::control_binding_table_update_a(void)
                 } else {
                     if (a < (uint32_t)((control_binding_half *)base)->entry_count) {
                         pick = 0; has_pick = 1;
-                    } else if (b < (uint32_t)((control_binding_half *)(g_control_binding_region_e0 + 0x50 + row_offset))->entry_count) {
+                    } else if (b < (uint32_t)((control_binding_half *)(input_state().g_control_binding_region_e0 + 0x50 + row_offset))->entry_count) {
                         pick = 1; has_pick = 1;
                     }
                 }
@@ -215,11 +221,11 @@ void Bindings::control_binding_table_update_a(void)
                 if (has_pick) {
                     int32_t idx = pick + pair_index;
 
-                    int32_t *count_cell = (int32_t *)(g_control_binding_region_e0 + 4 + idx * 0x50);
+                    int32_t *count_cell = (int32_t *)(input_state().g_control_binding_region_e0 + 4 + idx * 0x50);
                     int32_t slot = *count_cell + idx * 10;
                     *count_cell = *count_cell + 1;
                     settled = 0;
-                    *(uint8_t *)(g_control_binding_region_e0 + 0x14 + slot * 8) = 1;
+                    *(uint8_t *)(input_state().g_control_binding_region_e0 + 0x14 + slot * 8) = 1;
                     remaining--;
                 }
             }
@@ -232,7 +238,6 @@ void Bindings::control_binding_table_update_a(void)
 
 }
 
-extern "C" { extern uint32_t control_word_secondary; }
 namespace halo::input {
 
 /**
@@ -249,18 +254,18 @@ void Bindings::control_binding_table_update_b(void)
         int32_t row_offset = word_selector * 0x50;
 
         do {
-            int32_t count = *(int32_t *)(g_control_binding_region_e0 + row_offset);
-            uint32_t word = (word_selector != 1) ? control_word_primary : control_word_secondary;
+            int32_t count = *(int32_t *)(input_state().g_control_binding_region_e0 + row_offset);
+            uint32_t word = (word_selector != 1) ? input_state().control_word_primary : input_state().control_word_secondary;
 
             if ((word & 0xf) == 0) {
-                uint8_t *entries = g_control_binding_region_e0 + row_offset + 0x14;
+                uint8_t *entries = input_state().g_control_binding_region_e0 + row_offset + 0x14;
                 int32_t i;
 
                 for (i = 0; i < count; i++) {
                     uint8_t value = entries[i * 8 + 2];
                     uint8_t bit;
 
-                    switch (control_binding_device_type) {
+                    switch (input_state().control_binding_device_type) {
                     case 1: bit = (uint8_t)((value >> 1) & 1); break;
                     case 2: bit = (uint8_t)(value & 1); break;
                     case 3: bit = (uint8_t)((value >> 3) & 1); break;
@@ -272,18 +277,18 @@ void Bindings::control_binding_table_update_b(void)
                     }
                 }
             } else {
-                int32_t remaining = *(int32_t *)(g_control_binding_region_e0 + row_offset + 8);
+                int32_t remaining = *(int32_t *)(input_state().g_control_binding_region_e0 + row_offset + 8);
                 int32_t i = 0;
                 if (count > 0) {
                     do {
                         if (remaining < 1) break;
-                        *(int32_t *)(g_control_binding_region_e0 + row_offset + 4) =
-                            *(int32_t *)(g_control_binding_region_e0 + row_offset + 4) + 1;
+                        *(int32_t *)(input_state().g_control_binding_region_e0 + row_offset + 4) =
+                            *(int32_t *)(input_state().g_control_binding_region_e0 + row_offset + 4) + 1;
                         {
                             int32_t slot = i + count_offset;
                             remaining--;
                             i++;
-                            *(uint8_t *)(g_control_binding_region_e0 + 0x14 + slot * 8) = 1;
+                            *(uint8_t *)(input_state().g_control_binding_region_e0 + 0x14 + slot * 8) = 1;
                         }
                     } while (i < count);
                 }
@@ -309,7 +314,7 @@ namespace halo::input {
  */
 uint32_t Bindings::control_word_extract_field(uint32_t which_word, uint32_t field_index)
 {
-    uint32_t word = (which_word == 1) ? control_word_secondary : control_word_primary;
+    uint32_t word = (which_word == 1) ? input_state().control_word_secondary : input_state().control_word_primary;
 
     if ((word & 0xf) != 8) {
         word = halo::game::game_variant_option_default_by_index(word & 0xf);
@@ -328,14 +333,6 @@ uint32_t Bindings::control_word_extract_field(uint32_t which_word, uint32_t fiel
 
 }
 
-extern "C" { extern input_device input_devices[8]; }
-extern "C" { extern int32_t joystick_slot_devices[4]; }
-extern "C" { extern int16_t keyboard_bindings[k_control_keyboard_key_count]; }
-extern "C" { extern int16_t mouse_button_bindings[k_control_mouse_button_count]; }
-extern "C" { extern int16_t mouse_axis_bindings[k_control_mouse_axis_count][2]; }
-extern "C" { extern int16_t gamepad_button_bindings[k_control_gamepad_count][k_control_gamepad_button_count]; }
-extern "C" { extern int16_t gamepad_axis_bindings[k_control_gamepad_count][k_control_gamepad_axis_count][2]; }
-extern "C" { extern int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count]; }
 namespace halo::input {
 
 /**
@@ -355,52 +352,52 @@ uint8_t Bindings::apply_control_binding(control_binding_descriptor *binding, int
 
     switch (binding->device_type) {
     case _control_device_keyboard:
-        keyboard_bindings[binding->input_index] = (int16_t)action_index;
+        input_state().keyboard_bindings[binding->input_index] = (int16_t)action_index;
         return 1;
 
     case _control_device_mouse:
         if (binding->input_kind != _control_input_axis) {
-            mouse_button_bindings[binding->input_index] = (int16_t)action_index;
+            input_state().mouse_button_bindings[binding->input_index] = (int16_t)action_index;
         } else if (binding->direction == 1) {
-            mouse_axis_bindings[binding->input_index][0] = (int16_t)action_index;
+            input_state().mouse_axis_bindings[binding->input_index][0] = (int16_t)action_index;
         } else {
-            mouse_axis_bindings[binding->input_index][1] = (int16_t)action_index;
+            input_state().mouse_axis_bindings[binding->input_index][1] = (int16_t)action_index;
         }
         return 1;
 
     case _control_device_gamepad:
         if (binding->input_kind == _control_input_axis) {
             count = 0;
-            device = joystick_slot_devices[binding->device_index];
+            device = globals().joystick_slot_devices[binding->device_index];
             if (device != -1) {
-                count = input_devices[device].axis_count;
+                count = input_state().input_devices[device].axis_count;
             }
             if (binding->input_index < count) {
                 if (binding->direction == 1) {
-                    gamepad_axis_bindings[binding->device_index][binding->input_index][0] = (int16_t)action_index;
+                    input_state().gamepad_axis_bindings[binding->device_index][binding->input_index][0] = (int16_t)action_index;
                 } else {
-                    gamepad_axis_bindings[binding->device_index][binding->input_index][1] = (int16_t)action_index;
+                    input_state().gamepad_axis_bindings[binding->device_index][binding->input_index][1] = (int16_t)action_index;
                 }
                 return 1;
             }
         } else if (binding->input_kind == _control_input_pov) {
-            device = joystick_slot_devices[binding->device_index];
+            device = globals().joystick_slot_devices[binding->device_index];
             count = 0;
             if (device != -1) {
-                count = input_devices[device].pov_count;
+                count = input_state().input_devices[device].pov_count;
             }
             if (binding->input_index < count) {
-                gamepad_pov_bindings[binding->device_index][binding->input_index][binding->direction] = (int16_t)action_index;
+                input_state().gamepad_pov_bindings[binding->device_index][binding->input_index][binding->direction] = (int16_t)action_index;
                 return 1;
             }
         } else {
-            device = joystick_slot_devices[binding->device_index];
+            device = globals().joystick_slot_devices[binding->device_index];
             count = 0;
             if (device != -1) {
-                count = input_devices[device].button_count;
+                count = input_state().input_devices[device].button_count;
             }
             if (binding->input_index < count) {
-                gamepad_button_bindings[binding->device_index][binding->input_index] = (int16_t)action_index;
+                input_state().gamepad_button_bindings[binding->device_index][binding->input_index] = (int16_t)action_index;
                 return 1;
             }
         }
@@ -433,10 +430,10 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
     saved_player_profile profile;
 
     iterator.next_index = -1;
-    iterator.group_tag = (tag_group)0x64657663;
+    iterator.group_tag = (tag_group)halo::groups::input_device_defaults;
 
     tag_id = halo::cache::tag_iterator_next(&iterator);
-    if (tag_id == (datum_index)0xffffffff) {
+    if (tag_id == halo::k_dword_none) {
         return;
     }
 
@@ -448,16 +445,15 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
             break;
         }
         tag_id = halo::cache::tag_iterator_next(&iterator);
-        if (tag_id == (datum_index)0xffffffff) {
+        if (tag_id == halo::k_dword_none) {
             return;
         }
     }
 
     profile_handle = halo::saved_games::saved_game_create_default_profile(tag_profile_name);
-    if (profile_handle != 0xffffffff) {
+    if (profile_handle != halo::k_dword_none) {
         if (halo::saved_games::player_profile_get((int32_t)profile_handle, &profile) != 0) {
-            if (halo::input::input_profile_copy_bindings_by_device(2, &profile,
-                    (saved_player_profile *)defaults->profile.pointer) != 0) {
+            if (halo::input::Bindings::profile_copy_bindings_by_device(2, &profile, (saved_player_profile *)defaults->profile.pointer) != 0) {
                 profile.flags |= 0x0006;
                 halo::saved_games::player_profile_save_539bf0((int32_t)profile_handle, &profile);
             }
@@ -467,7 +463,6 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
 
 }
 
-extern "C" { extern input_abstraction_globals input_globals; }
 namespace halo::input {
 
 /**
@@ -479,21 +474,18 @@ namespace halo::input {
  */
 void Bindings::bind_capture_reset(void)
 {
-    memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
+    memset(&input_state().input_globals.states[0], 0, sizeof(input_state().input_globals.states[0]));
 
-    input_globals.system_key_states[0] = 0;
-    input_globals.system_key_states[1] = 0;
-    input_globals.system_key_states[2] = 0;
-    input_globals.pad_24ab = 0;
+    input_state().input_globals.system_key_states[0] = 0;
+    input_state().input_globals.system_key_states[1] = 0;
+    input_state().input_globals.system_key_states[2] = 0;
+    input_state().input_globals.pad_24ab = 0;
 
-    input_globals.idle = 1;
+    input_state().input_globals.idle = 1;
 }
 
 }
 
-extern "C" { extern uint8_t input_suppressed; }
-extern "C" { extern joystick_state joystick_states[4]; }
-extern "C" { extern joystick_state joystick_neutral_state; }
 namespace halo::input {
 
 /**
@@ -510,23 +502,23 @@ void Bindings::bind_scan_set_active(uint8_t enable_scan)
     uint8_t suppressed;
     int32_t slot;
 
-    suppressed = input_suppressed;
+    suppressed = globals().suppressed;
 
     if (enable_scan == 0) {
-        input_globals.mode_flags = input_globals.mode_flags & ~_input_mode_bind_scan_bit;
-        memset(input_globals.scan_baselines, 0, sizeof(input_globals.scan_baselines));
+        input_state().input_globals.mode_flags = input_state().input_globals.mode_flags & ~_input_mode_bind_scan_bit;
+        memset(input_state().input_globals.scan_baselines, 0, sizeof(input_state().input_globals.scan_baselines));
         return;
     }
 
-    input_globals.mode_flags = input_globals.mode_flags | _input_mode_bind_scan_bit;
+    input_state().input_globals.mode_flags = input_state().input_globals.mode_flags | _input_mode_bind_scan_bit;
 
     for (slot = 0; slot < 4; slot++) {
-        if (joystick_slot_devices[slot] == -1) {
-            memset(&input_globals.scan_baselines[slot], 0, sizeof(joystick_state));
+        if (globals().joystick_slot_devices[slot] == -1) {
+            memset(&input_state().input_globals.scan_baselines[slot], 0, sizeof(joystick_state));
         } else if (suppressed == 0) {
-            input_globals.scan_baselines[slot] = joystick_states[slot];
+            input_state().input_globals.scan_baselines[slot] = input_state().joystick_states[slot];
         } else {
-            input_globals.scan_baselines[slot] = joystick_neutral_state;
+            input_state().input_globals.scan_baselines[slot] = input_state().joystick_neutral_state;
         }
     }
 }
@@ -551,44 +543,44 @@ void Bindings::clear_control_binding(control_binding_descriptor *binding)
 
     switch (binding->device_type) {
     case _control_device_keyboard:
-        keyboard_bindings[binding->input_index] = k_input_unbound;
+        input_state().keyboard_bindings[binding->input_index] = k_input_unbound;
         return;
 
     case _control_device_mouse:
         if (binding->input_kind != _control_input_axis) {
-            mouse_button_bindings[binding->input_index] = k_input_unbound;
+            input_state().mouse_button_bindings[binding->input_index] = k_input_unbound;
         } else if (binding->direction == 1) {
-            mouse_axis_bindings[binding->input_index][0] = k_input_unbound;
+            input_state().mouse_axis_bindings[binding->input_index][0] = k_input_unbound;
         } else {
-            mouse_axis_bindings[binding->input_index][1] = k_input_unbound;
+            input_state().mouse_axis_bindings[binding->input_index][1] = k_input_unbound;
         }
         return;
 
     case _control_device_gamepad:
         if (binding->input_kind == _control_input_axis) {
             count = 0;
-            device = joystick_slot_devices[binding->device_index];
+            device = globals().joystick_slot_devices[binding->device_index];
             if (device != -1) {
-                count = input_devices[device].axis_count;
+                count = input_state().input_devices[device].axis_count;
             }
             if (binding->input_index < count) {
                 if (binding->direction == 1) {
-                    gamepad_axis_bindings[binding->device_index][binding->input_index][0] = k_input_unbound;
+                    input_state().gamepad_axis_bindings[binding->device_index][binding->input_index][0] = k_input_unbound;
                 } else {
-                    gamepad_axis_bindings[binding->device_index][binding->input_index][1] = k_input_unbound;
+                    input_state().gamepad_axis_bindings[binding->device_index][binding->input_index][1] = k_input_unbound;
                 }
             }
         } else if (binding->input_kind == _control_input_pov) {
-            device = joystick_slot_devices[binding->device_index];
+            device = globals().joystick_slot_devices[binding->device_index];
             count = 0;
             if (device != -1) {
-                count = input_devices[device].pov_count;
+                count = input_state().input_devices[device].pov_count;
             }
             if (binding->input_index < count) {
-                gamepad_pov_bindings[binding->device_index][binding->input_index][binding->direction] = k_input_unbound;
+                input_state().gamepad_pov_bindings[binding->device_index][binding->input_index][binding->direction] = k_input_unbound;
             }
         } else {
-            gamepad_button_bindings[binding->device_index][binding->input_index] = k_input_unbound;
+            input_state().gamepad_button_bindings[binding->device_index][binding->input_index] = k_input_unbound;
         }
         return;
 
@@ -615,10 +607,10 @@ uint32_t Bindings::device_default_profile_tag_find(input_guid device_guid, void 
     InputDeviceDefaults *defaults;
 
     iterator.next_index = -1;
-    iterator.group_tag = (tag_group)0x64657663;
+    iterator.group_tag = (tag_group)halo::groups::input_device_defaults;
 
     tag_id = halo::cache::tag_iterator_next(&iterator);
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != halo::k_dword_none) {
         defaults = (InputDeviceDefaults *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
         if (defaults->device_type == inputdevicedefaultsdevicetype_mouse_and_keyboard ||
             defaults->device_type == inputdevicedefaultsdevicetype_joysticks_gamepads_etc) {
@@ -634,7 +626,6 @@ uint32_t Bindings::device_default_profile_tag_find(input_guid device_guid, void 
 
 }
 
-extern "C" { extern int32_t last_input_device; }
 namespace halo::input {
 
 /**
@@ -652,14 +643,14 @@ uint8_t Bindings::get_last_used_binding(int16_t action, control_binding_descript
     uint8_t found;
     int32_t device_class;
 
-    cached = &input_globals.last_used_bindings[action];
+    cached = &input_state().input_globals.last_used_bindings[action];
     found = (cached->device_type != 0);
 
     if (!found) {
-        found = halo::input::input_refresh_last_used_binding(last_input_device, action);
+        found = halo::input::Bindings::refresh_last_used_binding(input_state().last_input_device, action);
         if (!found) {
             for (device_class = 0; device_class < 5; device_class++) {
-                found = halo::input::input_refresh_last_used_binding(device_class, action);
+                found = halo::input::Bindings::refresh_last_used_binding(device_class, action);
                 if (found) {
                     break;
                 }
@@ -688,13 +679,13 @@ void Bindings::last_used_binding_copy(int16_t action, control_binding_descriptor
 {
     if (action >= 0 && action < k_input_action_count) {
         if (source == 0) {
-            input_globals.last_used_bindings[action].device_type = 0;
-            input_globals.last_used_bindings[action].device_index = 0;
-            input_globals.last_used_bindings[action].input_kind = 0;
-            input_globals.last_used_bindings[action].input_index = 0;
-            input_globals.last_used_bindings[action].direction = 0;
+            input_state().input_globals.last_used_bindings[action].device_type = 0;
+            input_state().input_globals.last_used_bindings[action].device_index = 0;
+            input_state().input_globals.last_used_bindings[action].input_kind = 0;
+            input_state().input_globals.last_used_bindings[action].input_index = 0;
+            input_state().input_globals.last_used_bindings[action].direction = 0;
         } else {
-            input_globals.last_used_bindings[action] = *source;
+            input_state().input_globals.last_used_bindings[action] = *source;
         }
     }
 }
@@ -717,7 +708,7 @@ void Bindings::last_used_binding_set(int16_t action, int16_t device_type, int16_
     control_binding_descriptor *binding;
 
     if (action >= 0 && action < k_input_action_count) {
-        binding = &input_globals.last_used_bindings[action];
+        binding = &input_state().input_globals.last_used_bindings[action];
         binding->device_type = device_type;
         binding->device_index = device_index;
         binding->input_kind = input_kind;
@@ -728,7 +719,6 @@ void Bindings::last_used_binding_set(int16_t action, int16_t device_type, int16_
 
 }
 
-extern "C" { extern int32_t _stricmp(const char *a, const char *b); }
 namespace halo::input {
 
 /**
@@ -748,8 +738,8 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     int16_t pov_direction;
 
     if (_stricmp(device_class_name, "keyboard") == 0 || _stricmp(device_class_name, "key") == 0) {
-        index = halo::input::input_keyboard_key_name_to_index(name);
-        if (index == 0xffff) {
+        index = halo::input::BindingNames::keyboard_key_name_to_index(name);
+        if (index == halo::k_word_none) {
             return 0;
         }
         out_binding->device_type = _control_device_keyboard;
@@ -761,8 +751,8 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "mouse") == 0) {
-        index = halo::input::input_mouse_button_name_to_index(name);
-        if (index == 0xffff) {
+        index = halo::input::BindingNames::mouse_button_name_to_index(name);
+        if (index == halo::k_word_none) {
             return 0;
         }
         out_binding->device_type = _control_device_mouse;
@@ -774,8 +764,8 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "mouseaxis") == 0) {
-        index = halo::input::input_mouse_axis_name_to_index(name, &byte_direction);
-        if (index == 0xffff) {
+        index = halo::input::BindingNames::mouse_axis_name_to_index(name, &byte_direction);
+        if (index == halo::k_word_none) {
             return 0;
         }
         out_binding->device_type = _control_device_mouse;
@@ -787,7 +777,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystick") == 0) {
-        joystick_index = halo::input::input_joystick_button_name_to_index(name);
+        joystick_index = halo::input::BindingNames::joystick_button_name_to_index(name);
         if (joystick_index == -1) {
             return 0;
         }
@@ -800,7 +790,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystickaxis") == 0) {
-        joystick_index = halo::input::input_joystick_axis_name_to_index(name, &byte_direction);
+        joystick_index = halo::input::BindingNames::joystick_axis_name_to_index(name, &byte_direction);
         if (joystick_index == -1) {
             return 0;
         }
@@ -813,7 +803,7 @@ uint8_t Bindings::parse_device_binding_string(char *device_class_name, char *nam
     }
 
     if (_stricmp(device_class_name, "joystickpov") == 0) {
-        joystick_index = halo::input::input_joystick_pov_name_to_index(name, &pov_direction);
+        joystick_index = halo::input::BindingNames::joystick_pov_name_to_index(name, &pov_direction);
         if (joystick_index == -1) {
             return 0;
         }
@@ -910,7 +900,6 @@ uint8_t Bindings::profile_copy_bindings_by_device(int32_t category, saved_player
 
 }
 
-extern "C" { extern int16_t gamepad_action_buttons[k_control_gamepad_count][2]; }
 namespace halo::input {
 
 /**
@@ -941,49 +930,49 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
 
     if (device_class == 0) {
         for (i = 0; i < (int16_t)k_control_keyboard_key_count; i++) {
-            if (keyboard_bindings[i] == action) {
+            if (input_state().keyboard_bindings[i] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_keyboard;
-                    input_globals.last_used_bindings[action].device_index = 0;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_button;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 0;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_keyboard;
+                    input_state().input_globals.last_used_bindings[action].device_index = 0;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_button;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 0;
                 }
                 return 1;
             }
         }
 
         for (i = 0; i < k_control_mouse_button_count; i++) {
-            if (mouse_button_bindings[i] == action) {
+            if (input_state().mouse_button_bindings[i] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_mouse;
-                    input_globals.last_used_bindings[action].device_index = 0;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_button;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 0;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_mouse;
+                    input_state().input_globals.last_used_bindings[action].device_index = 0;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_button;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 0;
                 }
                 return 1;
             }
         }
 
         for (i = 0; i < k_control_mouse_axis_count; i++) {
-            if (mouse_axis_bindings[i][1] == action) {
+            if (input_state().mouse_axis_bindings[i][1] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_mouse;
-                    input_globals.last_used_bindings[action].device_index = 0;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_axis;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 2;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_mouse;
+                    input_state().input_globals.last_used_bindings[action].device_index = 0;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_axis;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 2;
                 }
                 return 1;
             }
-            if (mouse_axis_bindings[i][0] == action) {
+            if (input_state().mouse_axis_bindings[i][0] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_mouse;
-                    input_globals.last_used_bindings[action].device_index = 0;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_axis;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 1;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_mouse;
+                    input_state().input_globals.last_used_bindings[action].device_index = 0;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_axis;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 1;
                 }
                 return 1;
             }
@@ -993,33 +982,32 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
 
     slot = device_class - 1;
     count = 0;
-    device = joystick_slot_devices[slot];
+    device = globals().joystick_slot_devices[slot];
     if (device != -1) {
-        count = input_devices[device].button_count;
+        count = input_state().input_devices[device].button_count;
     }
 
     found = 0;
     special_button = -1;
     if (action == _input_action_accept) {
-        special_button = gamepad_action_buttons[slot][0];
+        special_button = input_state().gamepad_action_buttons[slot][0];
     } else if (action == _input_action_back) {
-        special_button = gamepad_action_buttons[slot][1];
+        special_button = input_state().gamepad_action_buttons[slot][1];
     }
     if ((action == _input_action_accept || action == _input_action_back) && special_button != -1) {
-        halo::input::input_last_used_binding_set(action, _control_device_gamepad, (int16_t)slot,
-                                     _control_input_button, special_button, 0);
+        halo::input::Bindings::last_used_binding_set(action, _control_device_gamepad, (int16_t)slot, _control_input_button, special_button, 0);
         found = 1;
     }
 
     if (!found) {
         for (i = 0; i < count; i++) {
-            if (gamepad_button_bindings[slot][i] == action) {
+            if (input_state().gamepad_button_bindings[slot][i] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
-                    input_globals.last_used_bindings[action].device_index = (int16_t)slot;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_button;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 0;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
+                    input_state().input_globals.last_used_bindings[action].device_index = (int16_t)slot;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_button;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 0;
                 }
                 found = 1;
                 break;
@@ -1029,24 +1017,24 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
 
     if (!found) {
         for (i = 0; i < count; i++) {
-            if (gamepad_axis_bindings[slot][i][1] == action) {
+            if (input_state().gamepad_axis_bindings[slot][i][1] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
-                    input_globals.last_used_bindings[action].device_index = (int16_t)slot;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_axis;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 2;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
+                    input_state().input_globals.last_used_bindings[action].device_index = (int16_t)slot;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_axis;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 2;
                 }
                 found = 1;
                 break;
             }
-            if (gamepad_axis_bindings[slot][i][0] == action) {
+            if (input_state().gamepad_axis_bindings[slot][i][0] == action) {
                 if (action >= 0 && action < k_input_action_count) {
-                    input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
-                    input_globals.last_used_bindings[action].device_index = (int16_t)slot;
-                    input_globals.last_used_bindings[action].input_kind = _control_input_axis;
-                    input_globals.last_used_bindings[action].input_index = i;
-                    input_globals.last_used_bindings[action].direction = 1;
+                    input_state().input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
+                    input_state().input_globals.last_used_bindings[action].device_index = (int16_t)slot;
+                    input_state().input_globals.last_used_bindings[action].input_kind = _control_input_axis;
+                    input_state().input_globals.last_used_bindings[action].input_index = i;
+                    input_state().input_globals.last_used_bindings[action].direction = 1;
                 }
                 found = 1;
                 break;
@@ -1056,13 +1044,13 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
         if (!found) {
             for (i = 0; i < count; i++) {
                 for (octant = 0; octant < k_control_gamepad_pov_direction_count; octant++) {
-                    if (gamepad_pov_bindings[slot][i][octant] == action) {
+                    if (input_state().gamepad_pov_bindings[slot][i][octant] == action) {
                         if (action >= 0 && action < k_input_action_count) {
-                            input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
-                            input_globals.last_used_bindings[action].device_index = (int16_t)slot;
-                            input_globals.last_used_bindings[action].input_kind = _control_input_pov;
-                            input_globals.last_used_bindings[action].input_index = i;
-                            input_globals.last_used_bindings[action].direction = octant;
+                            input_state().input_globals.last_used_bindings[action].device_type = _control_device_gamepad;
+                            input_state().input_globals.last_used_bindings[action].device_index = (int16_t)slot;
+                            input_state().input_globals.last_used_bindings[action].input_kind = _control_input_pov;
+                            input_state().input_globals.last_used_bindings[action].input_index = i;
+                            input_state().input_globals.last_used_bindings[action].direction = octant;
                         }
                         return 1;
                     }
@@ -1076,9 +1064,6 @@ uint8_t Bindings::refresh_last_used_binding(int32_t device_class, int16_t action
 
 }
 
-extern "C" { extern void *mouse_device; }
-extern "C" { extern mouse_state live_mouse_state; }
-extern "C" { extern mouse_state mouse_neutral_state; }
 namespace halo::input {
 
 /**
@@ -1100,10 +1085,10 @@ void Bindings::scan_any_bound_input(void)
     mouse_state *mouse;
     int32_t delta;
 
-    result = &input_globals.scan_result;
+    result = &input_state().input_globals.scan_result;
 
     for (i = 0; i < k_input_mouse_button_count; i++) {
-        if (mouse_device != 0 && input_suppressed == 0 && live_mouse_state.button_frames[i] == 1) {
+        if (input_state().mouse_device != 0 && globals().suppressed == 0 && input_state().live_mouse_state.button_frames[i] == 1) {
             result->device_type = _control_device_mouse;
             result->device_index = 0;
             result->input_kind = _control_input_button;
@@ -1125,9 +1110,9 @@ void Bindings::scan_any_bound_input(void)
     }
 
     for (slot = 0; slot < 4; slot++) {
-        if (joystick_slot_devices[slot] != -1) {
-            source = (input_suppressed == 0) ? &joystick_states[slot] : &joystick_neutral_state;
-            for (i = 0; i < input_devices[joystick_slot_devices[slot]].button_count; i++) {
+        if (globals().joystick_slot_devices[slot] != -1) {
+            source = (globals().suppressed == 0) ? &input_state().joystick_states[slot] : &input_state().joystick_neutral_state;
+            for (i = 0; i < input_state().input_devices[globals().joystick_slot_devices[slot]].button_count; i++) {
                 if (source->button_frames[i] != 0) {
                     result->device_type = _control_device_gamepad;
                     result->device_index = (int16_t)slot;
@@ -1140,8 +1125,8 @@ void Bindings::scan_any_bound_input(void)
         }
     }
 
-    mouse = (mouse_device == 0) ? (mouse_state *)0
-            : (input_suppressed != 0) ? &mouse_neutral_state : &live_mouse_state;
+    mouse = (input_state().mouse_device == 0) ? (mouse_state *)0
+            : (globals().suppressed != 0) ? &input_state().mouse_neutral_state : &input_state().live_mouse_state;
 
     if (mouse->x > k_input_scan_mouse_threshold) {
         result->device_type = _control_device_mouse;
@@ -1195,10 +1180,10 @@ void Bindings::scan_any_bound_input(void)
     }
 
     for (slot = 0; slot < 4; slot++) {
-        if (joystick_slot_devices[slot] != -1) {
-            source = (input_suppressed == 0) ? &joystick_states[slot] : &joystick_neutral_state;
-            for (i = 0; i < input_devices[joystick_slot_devices[slot]].axis_count; i++) {
-                delta = (int32_t)source->axes[i] - (int32_t)input_globals.scan_baselines[slot].axes[i];
+        if (globals().joystick_slot_devices[slot] != -1) {
+            source = (globals().suppressed == 0) ? &input_state().joystick_states[slot] : &input_state().joystick_neutral_state;
+            for (i = 0; i < input_state().input_devices[globals().joystick_slot_devices[slot]].axis_count; i++) {
+                delta = (int32_t)source->axes[i] - (int32_t)input_state().input_globals.scan_baselines[slot].axes[i];
                 if (delta > k_input_scan_axis_threshold) {
                     result->device_type = _control_device_gamepad;
                     result->device_index = (int16_t)slot;
@@ -1220,9 +1205,9 @@ void Bindings::scan_any_bound_input(void)
     }
 
     for (slot = 0; slot < 4; slot++) {
-        if (joystick_slot_devices[slot] != -1) {
-            source = (input_suppressed == 0) ? &joystick_states[slot] : &joystick_neutral_state;
-            for (i = 0; i < input_devices[joystick_slot_devices[slot]].pov_count; i++) {
+        if (globals().joystick_slot_devices[slot] != -1) {
+            source = (globals().suppressed == 0) ? &input_state().joystick_states[slot] : &input_state().joystick_neutral_state;
+            for (i = 0; i < input_state().input_devices[globals().joystick_slot_devices[slot]].pov_count; i++) {
                 if (source->povs[i] != -1) {
                     result->device_type = _control_device_gamepad;
                     result->device_index = (int16_t)slot;
@@ -1261,7 +1246,7 @@ void Bindings::test_input_device_defaults_find(char *device_id_ansi)
     uint8_t saved_profile[k_saved_player_profile_size];
     int32_t tag_id;
 
-    halo::input::input_guid_parse_ansi(&guid, device_id_ansi);
+    halo::input::DirectInput::guid_parse_ansi(&guid, device_id_ansi);
     tag_id = (int32_t)halo::input::input_device_default_profile_tag_find(guid, saved_profile);
     if (tag_id == -1) {
         halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"deviceid %s has no default", device_id_ansi);

@@ -3,10 +3,14 @@
 #include "win32.h"
 #include "tags.h"
 #include "crt.h"
+#include "halo/core/datum.hpp"
 
-#define GMEM_MOVEABLE 0x0002
+
 
 namespace halo::memory {
+
+/** GlobalReAlloc flag GMEM_MOVEABLE. */
+inline constexpr uint32_t k_gmem_moveable = 0x0002;
 
 /**
  * Appends one zero-initialized element, growing the GlobalAlloc-backed storage as needed. Returns the
@@ -33,9 +37,9 @@ uint32_t growable_array_view::add_element()
         } else {
             if (bytes == 0) {
                 GlobalFree(new_data);
-                return 0xffffffff;
+                return halo::k_dword_none;
             }
-            new_data = GlobalReAlloc(new_data, bytes, GMEM_MOVEABLE);
+            new_data = GlobalReAlloc(new_data, bytes, k_gmem_moveable);
         }
         if (new_data != 0) {
             element_size = (uint32_t)this->element_size;
@@ -50,7 +54,7 @@ uint32_t growable_array_view::add_element()
             return old_count;
         }
     }
-    return 0xffffffff;
+    return halo::k_dword_none;
 }
 
 /**
@@ -78,7 +82,7 @@ void growable_array_view::remove_element(uint32_t index)
     bytes = (uint32_t)this->element_size * (uint32_t)this->count;
     if (data != 0) {
         if (bytes != 0) {
-            this->data = GlobalReAlloc(data, bytes, GMEM_MOVEABLE);
+            this->data = GlobalReAlloc(data, bytes, k_gmem_moveable);
             return;
         }
         GlobalFree(data);

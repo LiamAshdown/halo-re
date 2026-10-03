@@ -13,6 +13,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/text/text.hpp"
 
 #ifdef interface
 #undef interface

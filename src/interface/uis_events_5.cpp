@@ -25,6 +25,12 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
+#include "halo/input/ui_events.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -419,7 +425,7 @@ uint8_t UiEventHandlers::event_4b52f0(widget_instance *widget, int16_t *event, u
         child = child->next_sibling;
     }
     controls_capture_row = i;
-    halo::input::input_bind_scan_set_active(1);
+    halo::input::Bindings::bind_scan_set_active(1);
     second = child->first_child->next_sibling;
     third = second->next_sibling;
     *((uint8_t *)second + 0x54) = 1;

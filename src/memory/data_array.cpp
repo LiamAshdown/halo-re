@@ -3,6 +3,7 @@
 #include "crt.h"
 #include "tags.h"
 #include "win32.h"
+#include "halo/core/datum.hpp"
 
 namespace halo::memory {
 
@@ -154,7 +155,7 @@ void *data_array_view::get(datum_index handle)
     int16_t salt;
 
     result = 0;
-    if (handle != 0xffffffff) {
+    if (handle != halo::k_dword_none) {
         index = (int16_t)handle;
         if (-1 < index && index < this->maximum_count) {
             element = (int16_t *)((int32_t)this->size * (int32_t)index + (int32_t)this->data);
@@ -190,7 +191,7 @@ datum_index data_array_view::new_datum()
 
     element_size = this->size;
     index = this->next_index;
-    result = 0xffffffff;
+    result = halo::k_dword_none;
     element = (int16_t *)((int32_t)index * (int32_t)element_size + (int32_t)this->data);
     if (index < this->maximum_count) {
         while (*element != 0) {
@@ -245,9 +246,9 @@ datum_index data_array_view::new_at_index(int16_t index)
             this->initialize_element(element);
             return (uint32_t)((int32_t)*element << 0x10) | (uint16_t)index;
         }
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
-    return 0xffffffff;
+    return halo::k_dword_none;
 }
 
 /**
@@ -280,11 +281,11 @@ datum_index data_array_view::new_at_index_with_salt(datum_index requested_handle
                 *element = salt;
                 return (uint32_t)((int32_t)salt << 0x10) | (uint16_t)index;
             }
-            return 0xffffffff;
+            return halo::k_dword_none;
         }
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
-    return 0xffffffff;
+    return halo::k_dword_none;
 }
 
 /**
@@ -299,7 +300,7 @@ datum_index data_array_view::next_datum(int16_t after_index)
     int16_t index;
     int16_t *element;
 
-    result = 0xffffffff;
+    result = halo::k_dword_none;
     index = after_index + 1;
     if (-1 < index && index < this->last_index) {
         element = (int16_t *)((int32_t)index * (int32_t)this->size + (int32_t)this->data);

@@ -22,6 +22,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
@@ -278,7 +279,7 @@ uint32_t halo::units::unit_find_placement_position(uint32_t anchor_object, uint3
                 continue;
             }
         }
-        halo::scenario::scenario_location_from_point(&location, &point);
+        halo::scenario::location_view(&location).from_point(&point);
         if (!(*(uint32_t *)(tag + 0x2f4) & 0x8)) {
             point.z = point.z - *(float *)(tag + 0x42c);
         }

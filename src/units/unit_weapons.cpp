@@ -22,6 +22,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/models/models.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -725,7 +726,7 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     }
     animation = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + enter_animation * 0xb4);
     halo::objects::object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &seat_marker, 1);
-    halo::models::animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
+    halo::models::animation_view(animation).get_frame_orientations((GBXModel *)model, 0, orientations);
     halo::math::matrix4x3_from_quaternion(orientations[0].rotation, root);
     root.position = orientations[0].translation;
     halo::math::matrix4x3_multiply(&seat_marker.node_transform, &root, &entry);
@@ -855,7 +856,7 @@ uint8_t UnitView::get_weapon_marker_indices(uint8_t use_alternate, uint32_t out_
     uint8_t *animations = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer;
     ModelAnimationsAnimation *anim = (ModelAnimationsAnimation *)(animations + animation_index * 0xb4);
 
-    halo::models::animation_get_frame_info_distance(anim, (float *)out_dx_to_key_frame, (float *)out_dx_total);
+    halo::models::animation_view(anim).get_frame_info_distance((float *)out_dx_to_key_frame, (float *)out_dx_total);
 
     if (out_key_frame_index != 0) {
         *out_key_frame_index = anim->key_frame_index;

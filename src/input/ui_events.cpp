@@ -17,25 +17,13 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/input/state.hpp"
+#include "halo/input/binding_names.hpp"
+#include "halo/input/bindings.hpp"
+#include "halo/input/directinput.hpp"
+#include "halo/input/game_actions.hpp"
+#include "halo/input/system.hpp"
 
-extern "C" { uint8_t halo::input::input_queue_pop_event(ui_input_event *out_event, int16_t queue_index); }
-
-extern "C" { extern input_abstraction_globals input_globals; }
-extern "C" { extern input_event_queue input_event_queue_active; }
-extern "C" { extern int16_t keyboard_bindings[k_control_keyboard_key_count]; }
-extern "C" { extern int16_t gamepad_action_buttons[k_control_gamepad_count][2]; }
-extern "C" { extern int16_t gamepad_button_bindings[k_control_gamepad_count][k_control_gamepad_button_count]; }
-extern "C" { extern int16_t gamepad_axis_bindings[k_control_gamepad_count][k_control_gamepad_axis_count][2]; }
-extern "C" { extern int16_t gamepad_pov_bindings[k_control_gamepad_count][k_control_gamepad_pov_count][k_control_gamepad_pov_direction_count]; }
-extern "C" { extern int32_t joystick_slot_devices[4]; }
-extern "C" { extern input_device input_devices[8]; }
-extern "C" { extern uint8_t input_suppressed; }
-extern "C" { extern joystick_state joystick_states[4]; }
-extern "C" { extern joystick_state joystick_neutral_state; }
-extern "C" { extern menu_repeat_state menu_repeat_states[4]; }
-extern "C" { extern void *mouse_device; }
-extern "C" { extern mouse_state live_mouse_state; }
-extern "C" { extern uint32_t mouse_double_click_time; }
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
                                    int32_t virtual_key_id, uint8_t *fired)
 {
@@ -60,19 +48,19 @@ static void menu_direction_dispatch(int16_t action, uint8_t active, int32_t now_
     switch (action) {
     case _input_action_forward:
     case _input_action_look_up:
-        menu_direction_update(&menu_repeat_states[0], active, now_ms, virtual_key_id, &fired[0]);
+        menu_direction_update(&halo::input::input_state().menu_repeat_states[0], active, now_ms, virtual_key_id, &fired[0]);
         break;
     case _input_action_backward:
     case _input_action_look_down:
-        menu_direction_update(&menu_repeat_states[1], active, now_ms, virtual_key_id, &fired[1]);
+        menu_direction_update(&halo::input::input_state().menu_repeat_states[1], active, now_ms, virtual_key_id, &fired[1]);
         break;
     case _input_action_left:
     case _input_action_look_left:
-        menu_direction_update(&menu_repeat_states[2], active, now_ms, virtual_key_id, &fired[2]);
+        menu_direction_update(&halo::input::input_state().menu_repeat_states[2], active, now_ms, virtual_key_id, &fired[2]);
         break;
     case _input_action_right:
     case _input_action_look_right:
-        menu_direction_update(&menu_repeat_states[3], active, now_ms, virtual_key_id, &fired[3]);
+        menu_direction_update(&halo::input::input_state().menu_repeat_states[3], active, now_ms, virtual_key_id, &fired[3]);
         break;
     default:
         break;
@@ -87,7 +75,7 @@ static void push_menu_event(int16_t kind, uint8_t code, uint8_t pressed)
     event.kind = kind;
     event.code = code;
     event.pressed = pressed;
-    halo::input::input_queue_push_event(0, &event);
+    halo::input::UiEvents::queue_push_event(0, &event);
 }
 
 namespace halo::input {
@@ -126,7 +114,7 @@ void UiEvents::menu_generate_events(void)
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
-    memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
+    memset(&input_state().input_globals.states[0], 0, sizeof(input_state().input_globals.states[0]));
 
     virtual_id = 0;
     for (key_index = 0; key_index < k_control_keyboard_key_count; key_index++) {
@@ -146,26 +134,26 @@ void UiEvents::menu_generate_events(void)
             break;
         case _input_key_up:
         case _input_key_numpad_8:
-            menu_direction_update(&menu_repeat_states[0], held != 0, now_ms, virtual_id, &fired[0]);
+            menu_direction_update(&input_state().menu_repeat_states[0], held != 0, now_ms, virtual_id, &fired[0]);
             break;
         case _input_key_down:
         case _input_key_numpad_2:
-            menu_direction_update(&menu_repeat_states[1], held != 0, now_ms, virtual_id, &fired[1]);
+            menu_direction_update(&input_state().menu_repeat_states[1], held != 0, now_ms, virtual_id, &fired[1]);
             break;
         case _input_key_left:
         case _input_key_numpad_4:
-            menu_direction_update(&menu_repeat_states[2], held != 0, now_ms, virtual_id, &fired[2]);
+            menu_direction_update(&input_state().menu_repeat_states[2], held != 0, now_ms, virtual_id, &fired[2]);
             break;
         case _input_key_right:
         case _input_key_numpad_6:
-            menu_direction_update(&menu_repeat_states[3], held != 0, now_ms, virtual_id, &fired[3]);
+            menu_direction_update(&input_state().menu_repeat_states[3], held != 0, now_ms, virtual_id, &fired[3]);
             break;
         default:
-            if (keyboard_bindings[key_index] == _input_action_accept) {
+            if (input_state().keyboard_bindings[key_index] == _input_action_accept) {
                 if (held == 1) {
                     accept_fired = 1;
                 }
-            } else if (keyboard_bindings[key_index] == _input_action_back) {
+            } else if (input_state().keyboard_bindings[key_index] == _input_action_back) {
                 if (held == 1) {
                     back_fired = 1;
                 }
@@ -175,33 +163,33 @@ void UiEvents::menu_generate_events(void)
     }
 
     for (slot = 0; slot < 4; slot++) {
-        dev = joystick_slot_devices[slot];
+        dev = globals().joystick_slot_devices[slot];
         source = (dev == -1) ? (joystick_state *)0
-                 : ((input_suppressed == 0) ? &joystick_states[slot] : &joystick_neutral_state);
+                 : ((globals().suppressed == 0) ? &input_state().joystick_states[slot] : &input_state().joystick_neutral_state);
 
-        if (dev != -1 && gamepad_action_buttons[slot][0] != -1 &&
-            source->button_frames[gamepad_action_buttons[slot][0]] == 1) {
+        if (dev != -1 && input_state().gamepad_action_buttons[slot][0] != -1 &&
+            source->button_frames[input_state().gamepad_action_buttons[slot][0]] == 1) {
             accept_fired = 1;
         }
-        if (dev != -1 && gamepad_action_buttons[slot][1] != -1 &&
-            source->button_frames[gamepad_action_buttons[slot][1]] == 1) {
+        if (dev != -1 && input_state().gamepad_action_buttons[slot][1] != -1 &&
+            source->button_frames[input_state().gamepad_action_buttons[slot][1]] == 1) {
             back_fired = 1;
         }
 
-        for (i = 0; dev != -1 && i < input_devices[dev].button_count; i++) {
+        for (i = 0; dev != -1 && i < input_state().input_devices[dev].button_count; i++) {
             held = source->button_frames[i];
             virtual_id++;
-            menu_direction_dispatch(gamepad_button_bindings[slot][i], held != 0, now_ms, virtual_id, fired);
+            menu_direction_dispatch(input_state().gamepad_button_bindings[slot][i], held != 0, now_ms, virtual_id, fired);
         }
 
-        for (i = 0; dev != -1 && i < input_devices[dev].axis_count; i++) {
+        for (i = 0; dev != -1 && i < input_state().input_devices[dev].axis_count; i++) {
             axis_value = source->axes[i];
             virtual_id++;
             if (axis_value < 0) {
-                axis_action = gamepad_axis_bindings[slot][i][1];
+                axis_action = input_state().gamepad_axis_bindings[slot][i][1];
                 axis_active = axis_value < -k_input_menu_axis_threshold;
             } else if (axis_value > 0) {
-                axis_action = gamepad_axis_bindings[slot][i][0];
+                axis_action = input_state().gamepad_axis_bindings[slot][i][0];
                 axis_active = axis_value > k_input_menu_axis_threshold;
             } else {
                 continue;
@@ -211,10 +199,10 @@ void UiEvents::menu_generate_events(void)
             }
         }
 
-        for (i = 0; dev != -1 && i < input_devices[dev].pov_count; i++) {
+        for (i = 0; dev != -1 && i < input_state().input_devices[dev].pov_count; i++) {
             virtual_id++;
             for (octant = 0; octant < 8; octant++) {
-                int16_t pov_action = gamepad_pov_bindings[slot][i][octant];
+                int16_t pov_action = input_state().gamepad_pov_bindings[slot][i][octant];
                 if (pov_action != k_control_binding_unbound) {
                     menu_direction_dispatch(pov_action, octant == source->povs[i], now_ms, virtual_id, fired);
                 }
@@ -222,40 +210,40 @@ void UiEvents::menu_generate_events(void)
         }
     }
 
-    if (fired[0] && input_event_queue_active.enabled) {
+    if (fired[0] && input_state().input_event_queue_active.enabled) {
         push_menu_event(3, 8, 1);
     }
-    if (fired[1] && input_event_queue_active.enabled) {
+    if (fired[1] && input_state().input_event_queue_active.enabled) {
         push_menu_event(3, 9, 1);
     }
-    if (fired[2] && input_event_queue_active.enabled) {
+    if (fired[2] && input_state().input_event_queue_active.enabled) {
         push_menu_event(3, 0xa, 1);
     }
-    if (fired[3] && input_event_queue_active.enabled) {
+    if (fired[3] && input_state().input_event_queue_active.enabled) {
         push_menu_event(3, 0xb, 1);
     }
-    if (accept_fired && input_event_queue_active.enabled) {
+    if (accept_fired && input_state().input_event_queue_active.enabled) {
         push_menu_event(3, 0, 1);
     }
-    if (back_fired && input_event_queue_active.enabled) {
+    if (back_fired && input_state().input_event_queue_active.enabled) {
         push_menu_event(3, 0xd, 1);
     }
 
     held = halo::input::input_get_key_state(_input_key_insert);
-    if (held != 0 && input_event_queue_active.enabled) {
+    if (held != 0 && input_state().input_event_queue_active.enabled) {
         held = halo::input::input_get_key_state(_input_key_insert);
         push_menu_event(3, 3, held);
     }
 
     held = halo::input::input_get_key_state(_input_key_delete);
-    if (held != 0 && input_event_queue_active.enabled) {
+    if (held != 0 && input_state().input_event_queue_active.enabled) {
         held = halo::input::input_get_key_state(_input_key_delete);
         push_menu_event(3, 2, held);
     }
 
-    if (mouse_device != 0 && input_suppressed == 0 && live_mouse_state.button_frames[0] != 0 &&
-        input_event_queue_active.enabled) {
-        push_menu_event(4, 0, live_mouse_state.button_frames[0]);
+    if (input_state().mouse_device != 0 && globals().suppressed == 0 && input_state().live_mouse_state.button_frames[0] != 0 &&
+        input_state().input_event_queue_active.enabled) {
+        push_menu_event(4, 0, input_state().live_mouse_state.button_frames[0]);
     }
 
     {
@@ -263,25 +251,25 @@ void UiEvents::menu_generate_events(void)
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
-        if (mouse_double_click_time == 0) {
-            if (live_mouse_state.button_pressed[0] != 0) {
-                mouse_double_click_time = now_ms;
+        if (input_state().mouse_double_click_time == 0) {
+            if (input_state().live_mouse_state.button_pressed[0] != 0) {
+                input_state().mouse_double_click_time = now_ms;
             }
-        } else if (live_mouse_state.button_pressed[0] == 0) {
-            if ((uint32_t)(now_ms - mouse_double_click_time) >= double_click_ms) {
-                mouse_double_click_time = 0;
+        } else if (input_state().live_mouse_state.button_pressed[0] == 0) {
+            if ((uint32_t)(now_ms - input_state().mouse_double_click_time) >= double_click_ms) {
+                input_state().mouse_double_click_time = 0;
             }
         } else {
-            if (input_event_queue_active.enabled) {
+            if (input_state().input_event_queue_active.enabled) {
                 push_menu_event(4, 3, 1);
             }
-            mouse_double_click_time = 0;
+            input_state().mouse_double_click_time = 0;
         }
     }
 
-    if (mouse_device != 0 && input_suppressed == 0 && live_mouse_state.button_frames[2] != 0 &&
-        input_event_queue_active.enabled) {
-        push_menu_event(4, 2, live_mouse_state.button_frames[2]);
+    if (input_state().mouse_device != 0 && globals().suppressed == 0 && input_state().live_mouse_state.button_frames[2] != 0 &&
+        input_state().input_event_queue_active.enabled) {
+        push_menu_event(4, 2, input_state().live_mouse_state.button_frames[2]);
     }
 }
 
@@ -301,16 +289,16 @@ void UiEvents::queue_initialize(void)
     uint32_t *cursor;
     int32_t count;
 
-    cursor = (uint32_t *)&input_event_queue_active;
+    cursor = (uint32_t *)&input_state().input_event_queue_active;
     for (count = 0x43; count != 0; count--) {
         *cursor = 0;
         cursor = cursor + 1;
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    input_event_queue_active.last_event_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-    input_event_queue_active.start_time = input_event_queue_active.last_event_time;
-    input_event_queue_active.enabled = 1;
+    input_state().input_event_queue_active.last_event_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
+    input_state().input_event_queue_active.start_time = input_state().input_event_queue_active.last_event_time;
+    input_state().input_event_queue_active.enabled = 1;
 }
 
 }
@@ -329,12 +317,12 @@ uint8_t UiEvents::queue_pop_event(ui_input_event *out_event, int16_t queue_index
     int32_t slot;
     ui_input_event *record;
 
-    if (input_event_queue_active.enabled == 0) {
+    if (input_state().input_event_queue_active.enabled == 0) {
         return 0;
     }
     if (queue_index != -1) {
         for (slot = 7; slot >= 0; slot--) {
-            record = &input_event_queue_active.events[queue_index][slot];
+            record = &input_state().input_event_queue_active.events[queue_index][slot];
             if (record->kind != 0) {
                 *out_event = *record;
                 record->kind = 0;
@@ -344,7 +332,7 @@ uint8_t UiEvents::queue_pop_event(ui_input_event *out_event, int16_t queue_index
         return 0;
     }
     for (queue_index = 0; queue_index < 4; queue_index++) {
-        if (halo::input::input_queue_pop_event(out_event, queue_index) != 0) {
+        if (halo::input::UiEvents::queue_pop_event(out_event, queue_index) != 0) {
             return 1;
         }
     }
@@ -371,23 +359,22 @@ void UiEvents::queue_push_event(int16_t queue_index, ui_input_event *record)
     uint32_t now;
     ui_input_event *slots;
 
-    if (input_event_queue_active.push_disabled == 0) {
+    if (input_state().input_event_queue_active.push_disabled == 0) {
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         record->controller_index = queue_index;
-        slots = input_event_queue_active.events[queue_index];
+        slots = input_state().input_event_queue_active.events[queue_index];
         memmove(&slots[0], &slots[1], sizeof(ui_input_event) * 7);
         slots[0] = *record;
         if (record->kind != 0) {
-            input_event_queue_active.last_event_time = now;
+            input_state().input_event_queue_active.last_event_time = now;
         }
     }
 }
 
 }
 
-extern "C" { extern uint32_t input_queue_sample_time; }
 namespace halo::input {
 
 /**
@@ -401,7 +388,7 @@ void UiEvents::queue_sample_time_update(void)
     large_integer counter;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    input_queue_sample_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
+    input_state().input_queue_sample_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 }

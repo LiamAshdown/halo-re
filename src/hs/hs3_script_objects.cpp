@@ -14,6 +14,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern char ai_marker_name_a[];
@@ -571,7 +572,7 @@ char ScriptObjects::object_list_test_trigger_volume(int32_t trigger_volume_index
     while (object_index != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
 
-        if (halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
+        if (halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
             if (!all_mode) {
                 return 1;
             }

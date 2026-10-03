@@ -7,6 +7,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/shaders/shaders.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -359,7 +360,7 @@ void HudCommands::evaluate_numeric_countdown_timer_get(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return((int32_t)(uint16_t)(halo::shaders::numeric_countdown_timer_get_digit((int16_t)arguments[0])), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint16_t)(halo::shaders::numeric_countdown_timer::get_digit((int16_t)arguments[0])), thread_index);
     }
 }
 

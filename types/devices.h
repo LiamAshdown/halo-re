@@ -1,3 +1,4 @@
+#pragma once
 // Blam devices module (halo.exe 1.0.10 retail, 0x44a930..0x44c220, 19 functions).
 // The device layer of the object hierarchy: the shared device_group value table every
 // machine / control / light_fixture reads and writes, the device extension those three

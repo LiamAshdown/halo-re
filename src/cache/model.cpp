@@ -9,11 +9,9 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/core/win32_constants.hpp"
+#include "halo/core/datum.hpp"
 
-extern "C" {
-extern uint32_t rasterizer_device_version;
-extern int16_t rasterizer_vertex_sizes[];
-}
 
 namespace halo::cache {
 
@@ -39,7 +37,7 @@ void model_vertex_buffers::dispose()
     iterator.group_tag = _tag_group_gbxmodel;
 
     tag_id = halo::cache::view(&iterator)->next();
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != halo::k_dword_none) {
         model = (GBXModel *)globals().tag_instances[(uint16_t)tag_id].data;
 
         for (geometry_index = 0; geometry_index < (int32_t)model->geometries.count;
@@ -117,7 +115,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
     iterator.group_tag = _tag_group_gbxmodel;
 
     tag_id = halo::cache::view(&iterator)->next();
-    while (tag_id != (datum_index)0xffffffff) {
+    while (tag_id != halo::k_dword_none) {
         model = (GBXModel *)globals().tag_instances[(uint16_t)tag_id].data;
 
         for (geometry_index = 0; geometry_index < (int32_t)model->geometries.count;
@@ -136,7 +134,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
                 shared_normals_model_shader = (model->flags & 4) != 0 &&
                     shader->shader.tag_fourcc == _tag_group_shader_model;
 
-                if (rasterizer_device_version < 0xffff0101 &&
+                if (halo::rasterizer::globals().device_version < 0xffff0101 &&
                     (shared_normals_model_shader ||
                      shader->shader.tag_fourcc == _tag_group_shader_transparent_water)) {
                     success = halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&part->base.vertex_type), 0xe,
@@ -144,7 +142,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
                 } else {
                     success = halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&part->base.vertex_type),
                         part->base.vertex_type, vertex_count, (uint32_t *)vertex_data, 0,
-                        rasterizer_vertex_sizes[part->base.vertex_type] * vertex_count);
+                        globals().rasterizer_vertex_sizes[part->base.vertex_type] * vertex_count);
                 }
 
                 if (success != 0) {

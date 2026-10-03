@@ -12,17 +12,6 @@
 #include "halo/scenario/api.hpp"
 #include "halo/render/api.hpp"
 
-extern "C" {
-extern uint8_t render_frustum_global[];
-extern uint8_t render_camera_global[];
-extern void render_frustum_compute_screen_clip_bounds(float *out, void *camera);
-extern uint32_t render_camera_compute_frustum_bounds(void *camera, float bounds_out[4], float bounds_in[4]);
-extern void chimera__render_camera_build_frustum(float *frustum_bounds, void *camera, void *frustum,
-    uint8_t build_projection);
-extern int16_t render_frustum_test_sphere(void *frustum, real_point3d *center, float radius);
-extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point);
-}
-
 namespace halo::structures {
 
 void structure_visibility::camera_visibility_pass(void)
@@ -32,7 +21,7 @@ void structure_visibility::camera_visibility_pass(void)
     }
 
     float screen_bounds[4];
-    halo::render::render_frustum_compute_screen_clip_bounds(screen_bounds, (render_frustum *)((void *)render_frustum_global));
+    halo::render::render_frustum_compute_screen_clip_bounds(screen_bounds, (render_frustum *)((void *)globals().render_frustum_global));
 
     polygon2d clip_polygon;
     clip_polygon.point_count = 4;
@@ -52,8 +41,8 @@ void structure_visibility::camera_visibility_pass(void)
 
     for (int16_t i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
         uint8_t *cluster = (uint8_t *)&halo::structures::globals().visible_clusters[i];
-        halo::render::render_camera_compute_frustum_bounds((render_camera *)((void *)render_camera_global), screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
-        halo::render::chimera__render_camera_build_frustum(screen_bounds, (render_camera *)((void *)render_camera_global), (render_frustum *)(cluster + k_visible_cluster_frustum_offset), 0);
+        halo::render::render_camera_compute_frustum_bounds((render_camera *)((void *)&globals().render_camera_global), screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
+        halo::render::chimera__render_camera_build_frustum(screen_bounds, (render_camera *)((void *)&globals().render_camera_global), (render_frustum *)(cluster + k_visible_cluster_frustum_offset), 0);
     }
 }
 
@@ -93,7 +82,7 @@ void structure_visibility::cluster_visibility_update(void)
                 globals().cluster_visible_index[cluster_index] = visible_index;
                 globals().visible_clusters[visible_index].cluster_index = cluster_index;
                 halo::render::render_frustum_compute_screen_clip_bounds((float *)&globals().visible_clusters[visible_index].screen_bounds_x,
-                             (render_frustum *)((void *)render_frustum_global));
+                             (render_frustum *)((void *)globals().render_frustum_global));
             }
         }
     }

@@ -21,6 +21,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/models/models.hpp"
+#include "halo/scenario/scenario.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -365,7 +367,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
             location = &local_location;
             if (local_location.cluster_index == -1) {
 
-                halo::scenario::scenario_location_from_point(&local_location, (real_point3d *)&((struct object *)obj)->position);
+                halo::scenario::location_view(&local_location).from_point((real_point3d *)&((struct object *)obj)->position);
             }
         }
 
@@ -544,10 +546,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
 
-    int32_t result = halo::models::model_markers_get_by_name(
-        *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data + 0x34), marker_name,
-        (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1),
-        marker, (int16_t)maximum_markers);
+    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data + 0x34), marker_name, (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
 
     if ((int16_t)result == 0) {
         marker->node_index = 0;
@@ -1075,10 +1074,7 @@ void halo::objects::ObjectRef::solve_two_bone_ik_to_marker(char *marker_a_name, 
                 halo::math::matrix4x3_inverse(&inverse, marker_a.transform);
                 halo::math::globals().matrix4x3_multiply_procedure(&marker_b.node_transform, &inverse, &inverse);
 
-                halo::models::model_ik_solve_two_bone(&inverse,
-                    reinterpret_cast<real_matrix4x3 *>(node_base + node_c * 0x34),
-                    reinterpret_cast<real_matrix4x3 *>(node_base + node_b * 0x34),
-                    reinterpret_cast<real_matrix4x3 *>(node_base + marker_a.node_index * 0x34));
+                halo::models::model_skeleton::ik_solve_two_bone(&inverse, reinterpret_cast<real_matrix4x3 *>(node_base + node_c * 0x34), reinterpret_cast<real_matrix4x3 *>(node_base + node_b * 0x34), reinterpret_cast<real_matrix4x3 *>(node_base + marker_a.node_index * 0x34));
             }
         }
     }
@@ -1488,7 +1484,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
         void *graph = halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)].data;
 
-        int16_t animation_index = halo::models::animation_graph_find_animation_by_name(graph_tag, name);
+        int16_t animation_index = halo::models::animation_graph::find_animation_by_name(graph_tag, name);
 
         if (animation_index != -1) {
             uint8_t *nodes = *(uint8_t **)((uint8_t *)graph + 0x78);
