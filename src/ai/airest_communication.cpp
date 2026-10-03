@@ -1,0 +1,2317 @@
+#include "halo/ai/airest_communication.hpp"
+
+#include <stdint.h>
+#include <string.h>
+
+extern "C" {
+extern ai_globals *ai_globals_ptr;
+extern data_array *encounter_data;
+extern ModelCollisionGeometryBSP *global_collision_bsp;
+extern uint8_t *global_structure_bsp;
+extern actor *actor_iterator_next(actor_iterator_state *iterator);
+extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
+extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
+extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position);
+extern void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index);
+extern void actor_react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index);
+extern void actor_react_to_flee_point(datum_index actor_index, int32_t flee_source_object, const real_point3d *point);
+extern game_time_globals *game_time;
+extern data_array *object_data;
+extern data_array *actor_data;
+extern uint8_t *actor_type_procs[];
+extern uint8_t *team_pair_data;
+extern int16_t conversation_index_lookup[];
+extern uint8_t ai_communication_lines[];
+extern float ai_communication_direction_table[];
+extern int16_t ai_communication_class_priority[];
+extern float ai_communication_class_tail_seconds[];
+extern int16_t ai_communication_class_follow_up[];
+extern int16_t ai_communication_class_look_marker[];
+extern int16_t ai_communication_class_no_actor_class[];
+extern float ai_communication_selector_delay_seconds[];
+extern uint8_t *communication_line_base;
+extern uint32_t random_seed_global;
+extern int32_t ai_communication_quiet_until_tick;
+extern actor_mode_definition actor_mode_definitions[16];
+extern char ai_marker_name_a[];
+extern double sqrt(double x);
+extern double fabs(double x);
+extern datum_index ai_communication_select_speaker_by_team(int16_t match_mode, datum_index object_a, datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team);
+extern datum_index ai_communication_select_speaker_in_reference(float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, uint32_t reference, datum_index object_a, datum_index object_b);
+extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector, uint8_t *out_flag);
+extern void ai_mark_recognized_objects_for_reaction(int16_t team_a, int16_t team_b, uint8_t status);
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
+extern int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight);
+extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index, float *out_distance, datum_index object_index);
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
+extern uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command);
+extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
+extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);
+extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
+extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
+extern uint8_t unit_try_start_scripted_action_animation(uint32_t unit_index, int16_t command, const real_vector2d *direction);
+extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index, datum_index vehicle_object_index, int16_t line, int16_t variant);
+extern int16_t communication_line_count;
+extern int16_t conversation_line_count;
+extern int32_t conversation_line_base;
+extern data_array *ai_conversation_data;
+extern ai_communication_event_definition ai_communication_event_definitions[];
+extern uint8_t *game_state_base;
+extern int32_t game_state_cursor;
+extern uint32_t game_state_crc;
+extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
+extern float ai_communication_class_repeat_delay[];
+extern real random_real(void);
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
+extern data_array *player_data;
+extern void * data_iterator_next(data_iterator *iterator);
+extern int8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
+extern data_array *prop_data;
+extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
+extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
+extern int16_t ai_communication_line_fade_multiplier(uint32_t unit_index, int16_t priority, int16_t extra_delay, uint8_t follow_fallback, uint8_t apply_fade, float *volume, int32_t *chain_value, int16_t *dialogue_index, int16_t line_class);
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
+extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
+extern real DAT_00655ab4[];
+extern real DAT_00656b24[];
+extern void actor_recompute_grenade_eligibility(datum_index actor_index);
+extern int32_t actor_classify_communication_object_type(datum_index actor_index);
+extern game_engine_definition *current_game_engine;
+extern float ai_communication_rate_speaker(datum_index actor_index, datum_index object_b, real_point3d *position_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, real_point3d *position_a, datum_index object_a);
+extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_actor_iterator *iterator);
+extern void *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
+extern uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index);
+extern void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant, datum_index vehicle_object_index);
+extern uint32_t object_get_root_object_index(uint32_t object_index);
+extern void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order, datum_index actor_index);
+extern void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index);
+}
+
+namespace halo::ai {
+
+/**
+ * Behaviour of ai broadcast communication event, moved unchanged from the original free function.
+ *
+ * @address 0x429fc0
+ */
+void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused)
+{
+    bsp_leaf_reference location;
+    actor_iterator_state iterator;
+    actor *a;
+    int32_t leaf;
+
+    (void)unused;
+    leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, point);
+    location.leaf_index = leaf;
+    location.cluster_index = leaf == -1 ? -1 :
+        *(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8);
+    if (ai_globals_ptr->actors_valid) {
+        iterator.filter_array = encounter_data;
+        iterator.next_index = 0;
+        iterator.cursor = -1;
+        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.encounterless_done = 0;
+        iterator.active = 1;
+        iterator.actor_index = k_datum_index_none;
+        iterator.next_actor_index = -1;
+    }
+    for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
+        datum_index actor_index = iterator.actor_index;
+        uint32_t block[14];
+
+        if (((struct actor *)a)->combat_status >= 7) {
+            continue;
+        }
+        actor_get_firing_positions(actor_index, block, point);
+        if ((int16_t)actor_target_hearing_check(&location, 0, actor_index, block, gate, point) < 2) {
+            continue;
+        }
+        if (event_type == 0) {
+            actor_queue_point_reaction_dialogue(point, actor_index);
+        } else if (event_type == 1) {
+            actor_react_to_registered_danger(point, actor_index, source_object);
+        } else if (event_type == 2) {
+            actor_react_to_flee_point(actor_index, source_object, point);
+        }
+    }
+}
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define ACTOR_DATA(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
+namespace {
+
+typedef struct broadcast_candidate {
+    float score;                // +0x00
+    uint8_t broadcast;          // +0x04 line flag 2
+    uint8_t no_actor_speaker;   // +0x05
+    int16_t dialogue_index;     // +0x06
+    int16_t priority;           // +0x08 class priority (0x6558c4)
+    int16_t animation;          // +0x0a line +0x6
+    int16_t check_result;       // +0x0c unit_animation_change_priority_check
+    int16_t delay_ticks;        // +0x0e
+    int16_t lipsync_ticks;      // +0x10
+    datum_index speaker_unit;   // +0x14
+    datum_index speaker_actor;  // +0x18
+    datum_index other_object;   // +0x1c
+    datum_index target;         // +0x20 ai_select_communication_target
+    int16_t follow_up;          // +0x24
+    int16_t look_marker;        // +0x26
+    int16_t look_kind;          // +0x28
+    datum_index look_object;    // +0x2c
+    int32_t chain;              // +0x30
+    int16_t row;                // +0x34
+} broadcast_candidate;
+
+static uint8_t broadcast_line_flags(uint8_t line_flags)
+{
+    uint8_t flags = (uint8_t)((line_flags & 1) | 2);
+
+    if (line_flags & 0x10) {
+        flags |= 4;
+    }
+    if (line_flags & 0x20) {
+        flags |= 8;
+    }
+    return flags;
+}
+
+static uint32_t broadcast_team_class(int16_t team)
+{
+    switch (team) {
+    case 1: return 1;
+    case 2: return 2;
+    case 3: return 4;
+    case 4: return 0x38;
+    case 5: return 0x40;
+    default: return 0;
+    }
+}
+
+}
+
+/**
+ * Behaviour of ai communication broadcast, moved unchanged from the original free function.
+ *
+ * @address 0x42d340
+ */
+void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data)
+{
+    int32_t now = game_time->game_time;
+    int16_t event = (int16_t)event_code;
+    uint8_t *unit = 0;
+    uint8_t *other = 0;
+    uint8_t *unit_actor = 0;
+    uint8_t *other_actor = 0;
+    uint8_t *unit_encounter = 0;
+    datum_index unit_actor_index = k_datum_index_none;
+    datum_index other_actor_index = k_datum_index_none;
+    datum_index unit_encounter_index = k_datum_index_none;
+    datum_index cached_speaker = k_datum_index_none;
+    datum_index cached_team_speaker = k_datum_index_none;
+    uint32_t unit_team = 0xffffffff;
+    uint32_t other_team_or_class = 0xffffffff;
+    uint32_t unit_class = 0;
+    uint32_t other_class = 0;
+    uint8_t may_search = 1;
+    uint8_t may_search_team = 1;
+    uint8_t unit_capability[2] = {0, 0};
+    uint8_t other_capability[2] = {0, 0};
+    uint8_t gates[6];
+    uint8_t buckets[16];
+    uint8_t recent[2][16];
+    int16_t recent_ticks[2][16];
+    broadcast_candidate candidates[16];
+    int16_t count = 0;
+    float total = 0.0f;
+    uint8_t any_broadcast = 0;
+    datum_index look_object = 4;
+    int32_t side;
+    int32_t row_index;
+    uint8_t *row;
+
+    if ((int16_t)reason == -1) {
+        reason = 0;
+    }
+    if ((int16_t)object_b == -1) {
+        object_b = 0;
+    }
+
+    if (unit_index != k_datum_index_none) {
+        unit = OBJECT_DATA(unit_index);
+        unit_team = (unit_team & 0xffff0000u) | *(uint16_t *)&((unit_object *)unit)->base.owner_team;
+        unit_actor_index = ((unit_object *)unit)->unit.actor_index;
+        unit_class = broadcast_team_class((int16_t)unit_team);
+        if (unit_actor_index != k_datum_index_none) {
+            unit_actor = ACTOR_DATA(unit_actor_index);
+            unit_class = (unit_class & 0xffff0000u) |
+                         *(uint16_t *)(actor_type_procs[*(int16_t *)(unit_actor + 0x4)] + 0x4);
+            unit_encounter_index = *(datum_index *)(unit_actor + 0x34);
+            if (*(int8_t *)(unit_actor + 0x245) > 0) {
+                unit_capability[1] = 1;
+                unit_capability[0] = 1;
+            } else if (*(int8_t *)(unit_actor + 0x200) > 0) {
+                unit_capability[1] = 0;
+                unit_capability[0] = 1;
+            }
+            if (unit_encounter_index != k_datum_index_none) {
+                unit_encounter = (uint8_t *)encounter_data->data + (unit_encounter_index & 0xffff) * 0x6c;
+            }
+        } else if (((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
+            unit_class = 1;
+        }
+    }
+    if (object_a != k_datum_index_none) {
+        other = OBJECT_DATA(object_a);
+        other_actor_index = *(datum_index *)(other + 0x1f4);
+        other_team_or_class = *(uint16_t *)(other + 0xb8);
+        other_class = broadcast_team_class((int16_t)other_team_or_class);
+        if (other_actor_index != k_datum_index_none) {
+            other_actor = ACTOR_DATA(other_actor_index);
+            other_class = (other_class & 0xffff0000u) |
+                          *(uint16_t *)(actor_type_procs[*(int16_t *)(other_actor + 0x4)] + 0x4);
+            if (*(int8_t *)(other_actor + 0x245) > 0) {
+                other_capability[0] = 1;
+                other_capability[1] = 1;
+            } else if (*(int8_t *)(other_actor + 0x200) > 0) {
+                other_capability[0] = 1;
+                other_capability[1] = 0;
+            }
+        } else if (*(datum_index *)(other + 0x218) != k_datum_index_none) {
+            other_class = 1;
+        }
+    }
+
+    if (unit != 0 && other != 0) {
+        int16_t team_u = (int16_t)unit_team;
+        int16_t team_o = (int16_t)other_team_or_class;
+
+        if (team_u != team_o && team_u >= 0 && team_u < 10 && team_o >= 0 && team_o < 10) {
+            int32_t bit = team_u * 10 + team_o;
+
+            if (*(uint32_t *)(team_pair_data + 0x94 + (bit >> 5) * 4) & (1u << (bit & 0x1f))) {
+                uint8_t react = 0;
+                uint8_t hostile = 0;
+
+                if (event == 0) {
+                    if ((int16_t)reason == 3) {
+                        hostile = 1;
+                        react = 1;
+                        reason = 4;
+                    } else {
+                        if (unit_encounter != 0) {
+                            int32_t since = *(int32_t *)(unit_encounter + 0x50);
+
+                            hostile = (uint8_t)!(unit_encounter[0x46] == 0 && since != -1 && since < 0x10e);
+                        }
+                        cached_speaker = ai_communication_select_speaker_by_team(0, unit_index, object_a, 18.0f, 0, 6,
+                                                                                 0xffffffff, 0xffffffff, -1, 0,
+                                                                                 (int16_t)unit_team);
+                        if (cached_speaker != k_datum_index_none) {
+                            may_search = 0;
+                            react = 1;
+                        }
+                        {
+                            int32_t kind = (int16_t)object_b;
+
+                            if (kind >= 3 && (kind <= 4 || kind == 9) && !hostile) {
+                                react = 0;
+                            }
+                            if (kind == 3) {
+                                hostile = 0;
+                            } else if (hostile) {
+                                reason = 4;
+                            }
+                        }
+                    }
+                    if (react) {
+                        uint8_t mark = 0;
+                        uint8_t status = (uint8_t)team_pair_override_adjust_counter(team_o, team_u, hostile != 0,
+                                                                                    &mark);
+
+                        if (mark) {
+                            ai_mark_recognized_objects_for_reaction(team_o, team_u, status);
+                        }
+                    }
+                }
+                if (teams_are_enemies(team_o, team_u)) {
+                    reason = 4;
+                }
+            }
+        }
+    }
+
+    if (unit_actor == 0) {
+        memset(gates, 1, sizeof(gates));
+    } else if (unit_encounter == 0) {
+        uint8_t alerted = unit_actor[0x27c];
+        int32_t since = *(int32_t *)(unit_actor + 0x278);
+        int16_t grade = *(int16_t *)(unit_actor + 0x6e);
+
+        gates[0] = (uint8_t)(unit_actor[0x274] == 0);
+        gates[1] = (uint8_t)(alerted == 0 && since != -1);
+        gates[2] = (uint8_t)!(*(datum_index *)(unit_actor + 0x270) != k_datum_index_none && since != -1 && since < 0xb4);
+        gates[3] = (uint8_t)(grade < 3 && !(since != -1 && since < 0x4b) && (alerted != 0 || grade > 0));
+        gates[4] = (uint8_t)(grade < 6);
+        gates[5] = (uint8_t)(*(int16_t *)(unit_actor + 0x268) >= 10 && alerted != 0);
+    } else {
+        int32_t since = *(int32_t *)(unit_encounter + 0x50);
+        uint8_t engaged = unit_encounter[0x44];
+        int16_t grade = *(int16_t *)(unit_actor + 0x6e);
+
+        gates[0] = (uint8_t)(unit_actor[0x274] == 0);
+        gates[1] = (uint8_t)(since != -1 && engaged == 0);
+        gates[2] = (uint8_t)(!(since != -1 && since < 0xb4) && engaged != 0);
+        gates[3] = (uint8_t)(grade < 3 && !(since != -1 && since < 0x4b) && (engaged != 0 || grade > 0));
+        gates[4] = (uint8_t)(grade < 6 && !(since != -1 && since < 0x4b));
+        gates[5] = (uint8_t)(unit_encounter[0x45] != 0 && engaged != 0);
+    }
+
+    memset(buckets, 0, sizeof(buckets));
+    if ((int16_t)reason != -1 && (uint16_t)reason < 16) {
+        buckets[(int16_t)reason] = 1;
+        if ((int16_t)reason == 4) {
+            buckets[3] = 1;
+        }
+    }
+
+    memset(recent, 0, sizeof(recent));
+    memset(recent_ticks, 0, sizeof(recent_ticks));
+    for (side = 0; side < 2; side++) {
+        int32_t *ticks = (int32_t *)(ai_globals_ptr + 0x1c) + side;
+        int32_t gap_far = now - ticks[2];
+        int32_t gap_mid = now - ticks[0];
+        int32_t gap_near = now - ticks[-2];
+        int32_t r;
+
+        if (gap_far < 0) gap_far = 0;
+        if (gap_mid < 0) gap_mid = 0;
+        if (gap_near < 0) gap_near = 0;
+        recent[side][0] = 1;
+        recent[side][1] = 1;
+        for (r = 0; r < 10; r++) {
+            float *columns = ai_communication_direction_table + r * 5;
+            uint8_t flag = 0;
+            int16_t value = 0;
+
+            if (columns[0] > 0.0f) {
+                int16_t v = (int16_t)(int32_t)(columns[0] * 30.0f - (float)(int16_t)gap_near);
+
+                if (v > 0) {
+                    flag = 1;
+                    value = v;
+                }
+            }
+            if (columns[1] > 0.0f) {
+                int16_t v = (int16_t)(int32_t)(columns[1] * 30.0f - (float)(int16_t)gap_mid);
+
+                if (v > 0) {
+                    flag = 1;
+                    if (!(value > v)) {
+                        value = v;
+                    }
+                }
+            }
+            {
+                uint8_t check_last = 0;
+
+                if (columns[3] > 0.0f) {
+                    int16_t v = (int16_t)(int32_t)(columns[3] * 30.0f - (float)(int16_t)gap_far);
+
+                    if (v > 0) {
+                        flag = 1;
+                        if (!(value > v)) {
+                            value = v;
+                        }
+                        check_last = 1;
+                    }
+                }
+                if ((check_last || flag) && columns[4] > 0.0f &&
+                    columns[4] * 30.0f > (float)recent_ticks[side][2 + r]) {
+                    flag = 0;
+                }
+            }
+            recent_ticks[side][2 + r] = value;
+            recent[side][2 + r] = flag;
+        }
+    }
+
+    if (ai_globals_ptr[0x10] == 0) {
+        return;
+    }
+    row_index = conversation_index_lookup[event];
+    if ((int16_t)row_index == -1) {
+        return;
+    }
+    row = ai_communication_lines + (int16_t)row_index * 0x28;
+    if (*(int16_t *)row != event) {
+        return;
+    }
+
+    for (; *(int16_t *)row == event; row += 0x28, row_index++) {
+        int16_t line_class = *(int16_t *)(row + 0x2);
+        uint32_t class_word;
+        uint32_t class_priority;
+        int16_t selector = *(int16_t *)(row + 0x8);
+        datum_index speaker_unit = k_datum_index_none;
+        datum_index speaker_actor = k_datum_index_none;
+        uint8_t *speaker = 0;
+        uint8_t *capability = 0;
+        datum_index addressed = k_datum_index_none;
+        datum_index target = k_datum_index_none;
+        uint8_t no_actor_speaker = 0;
+        int16_t look_kind = 0;
+        int16_t look_marker = 0;
+        int32_t delay = 0;
+        uint32_t recent_value = 0;
+        float recency = 1.0f;
+        float weight = 1.0f;
+        float proximity;
+        float check_factor = 1.0f;
+        float animation_factor = 1.0f;
+        int32_t chain = -1;
+        int16_t dialogue_index;
+        int32_t check_result = 0;
+        int16_t follow_up;
+        uint32_t lipsync;
+        uint8_t reject;
+        float score;
+
+        other_team_or_class = (other_team_or_class & 0xffff0000u) | (uint16_t)line_class;
+        class_word = other_team_or_class;
+        if (*(int16_t *)(row + 0x1c) != -1 && !buckets[*(int16_t *)(row + 0x1c)]) {
+            continue;
+        }
+        if (game_time->game_time < ai_communication_quiet_until_tick && line_class < 6 && !(row[0x18] & 0x40)) {
+            continue;
+        }
+        if (*(int16_t *)(row + 0x1e) != -1 && !gates[*(int16_t *)(row + 0x1e)]) {
+            continue;
+        }
+        if (*(uint16_t *)(row + 0x20) != 0xffff &&
+            (unit_index == k_datum_index_none || !(uint16_t)(*(uint16_t *)(row + 0x20) & unit_class))) {
+            continue;
+        }
+        if (*(uint16_t *)(row + 0x22) != 0xffff &&
+            (object_a == k_datum_index_none || !(uint16_t)(*(uint16_t *)(row + 0x22) & other_class))) {
+            continue;
+        }
+        if (*(int16_t *)(row + 0x24) != -1 && *(int16_t *)(row + 0x24) != (int16_t)object_b) {
+            continue;
+        }
+        class_priority = *(uint16_t *)((uint8_t *)ai_communication_class_priority + line_class * 2);
+
+        switch (selector) {
+        case 0:
+            speaker_actor = unit_actor_index;
+            addressed = object_a;
+            speaker_unit = unit_index;
+            speaker = unit_actor;
+            capability = unit_capability;
+            break;
+        case 1:
+            speaker_actor = other_actor_index;
+            addressed = unit_index;
+            speaker_unit = object_a;
+            speaker = other_actor;
+            capability = other_capability;
+            break;
+        case 2:
+        case 4: {
+            datum_index found;
+
+            addressed = object_a;
+            if (selector == 2) {
+                if (may_search) {
+                    uint8_t flags = (uint8_t)(broadcast_line_flags(row[0x18]) | 0x10);
+
+                    if (unit_encounter_index != k_datum_index_none) {
+                        cached_speaker = ai_communication_select_speaker_in_reference(10.0f, event, class_word,
+                            class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6), flags,
+                            unit_encounter_index & 0xffff, unit_index, object_a);
+                    } else {
+                        cached_speaker = ai_communication_select_speaker_by_team(1, unit_index, object_a, 10.0f, event,
+                            class_word, class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6), flags,
+                            (int16_t)unit_team);
+                    }
+                    may_search = 0;
+                }
+                found = cached_speaker;
+            } else {
+                if (may_search_team) {
+                    cached_team_speaker = ai_communication_select_speaker_by_team(2, unit_index, object_a, 12.0f, event,
+                        class_word, class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6),
+                        broadcast_line_flags(row[0x18]), (int16_t)unit_team);
+                    may_search_team = 0;
+                }
+                found = cached_team_speaker;
+            }
+            speaker_actor = found;
+            if (found != k_datum_index_none) {
+                speaker = ACTOR_DATA(found);
+                speaker_unit = *(datum_index *)(speaker + 0x18);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        reject = 0;
+        if (speaker_unit == k_datum_index_none) {
+            reject = 1;
+        } else {
+            uint8_t *object = OBJECT_DATA(speaker_unit);
+
+            if ((object[0x106] & 4) || ((struct object *)object)->type == 1) {
+                reject = 1;
+            } else if (*(datum_index *)(object + 0x218) == k_datum_index_none &&
+                       *(datum_index *)(object + 0x1f4) == k_datum_index_none) {
+                if (row[0x18] & 8) {
+                    no_actor_speaker = 1;
+                } else {
+                    reject = 1;
+                }
+            }
+        }
+        if (speaker != 0) {
+            if (*(int16_t *)(speaker + 0x6a) == 0) {
+                continue;
+            }
+            if (*(int16_t *)(speaker + 0x6c) == 0xb && speaker[0xa0] == 0) {
+                continue;
+            }
+        }
+        if (reject) {
+            continue;
+        }
+        if (no_actor_speaker) {
+            target = ai_select_communication_target(speaker_unit, addressed, *(int16_t *)(row + 0x4),
+                                                    (int16_t)object_b, &weight);
+            if (speaker_unit == unit_index) {
+                may_search = 0;
+                cached_speaker = target;
+            }
+            if (target == -1) {
+                continue;
+            }
+        }
+        if (*(int16_t *)(row + 0x1a) != -1 && capability != 0 && !capability[*(int16_t *)(row + 0x1a)]) {
+            continue;
+        }
+
+        if (no_actor_speaker) {
+            class_word = (class_word & 0xffff0000u) |
+                         (uint16_t)ai_communication_class_no_actor_class[(int16_t)line_class];
+            proximity = 2.0f;
+        } else {
+            uint8_t near;
+
+            proximity = ai_communication_rate_player_proximity(1, 0, 0, speaker_unit);
+            if (proximity == 0.0f) {
+                continue;
+            }
+            near = (uint8_t)!(proximity >= 2.0f);
+            if (speaker_actor != k_datum_index_none) {
+                uint16_t type_flags = *(uint16_t *)(actor_type_procs[*(int16_t *)(ACTOR_DATA(speaker_actor) + 0x4)] + 0x4);
+                int16_t type_side = (type_flags & 2) ? 0 : ((type_flags & 4) ? 1 : -1);
+
+                if (type_side != -1) {
+                    int32_t index = (line_class + type_side * 8) * 2 + near;
+
+                    if (((uint8_t *)recent)[index]) {
+                        continue;
+                    }
+                    recent_value = (uint16_t)((int16_t *)recent_ticks)[index];
+                    if ((int16_t)class_word < 7) {
+                        int32_t *history = (int32_t *)(communication_line_base +
+                                                       ((int16_t)row_index * 2 + type_side) * 8);
+
+                        if (history[0] != -1) {
+                            recency = (float)(now - history[0]) * 0.0011111111f;
+                            if (!(recency >= 0.0f)) {
+                                recency = 0.0f;
+                            } else if (!(recency <= 1.0f)) {
+                                recency = 1.0f;
+                            }
+                        }
+                        if (history[1] != -1) {
+                            int32_t wait = history[1] - now;
+
+                            if (near) {
+                                wait += 30;
+                            }
+                            if (wait > 0) {
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        delay = (int32_t)(ai_communication_selector_delay_seconds[selector] * 30.0f);
+        if ((uint16_t)unit_class == 1 && !no_actor_speaker) {
+            delay += 30;
+        }
+        {
+            float tail = (row[0x18] & 4) ? 0.0f
+                                         : ai_communication_class_tail_seconds[(int16_t)class_word] * 30.0f;
+
+            delay += recent_value;
+            lipsync = (uint16_t)(int32_t)tail + recent_value;
+        }
+
+        switch (*(int16_t *)(row + 0xc)) {
+        case 1:
+        case 2:
+        case 3: {
+            datum_index looked = *(int16_t *)(row + 0xc) == 1 ? unit_index
+                               : (*(int16_t *)(row + 0xc) == 2 ? speaker_unit : addressed);
+
+            if (looked != k_datum_index_none) {
+                look_kind = 1;
+                look_object = looked;
+                goto look_marker_default;
+            }
+            break;
+        }
+        case 4:
+            if (unit_actor_index != k_datum_index_none) {
+                uint8_t *a = ACTOR_DATA(unit_actor_index);
+
+                if (((actor *)a)->danger_type > 0) {
+                    look_kind = 2;
+                    look_object = ((actor *)a)->danger_object_index;
+                    goto look_marker_default;
+                }
+            }
+            break;
+        default:
+            break;
+        look_marker_default:
+            look_marker = *(int16_t *)(row + 0xe);
+            if (look_marker == -1 || look_marker == 1) {
+                look_marker = ai_communication_class_look_marker[(int16_t)class_word];
+            }
+            break;
+        }
+        follow_up = *(int16_t *)(row + 0xa);
+        if (follow_up == -1 || follow_up == 1) {
+            follow_up = ai_communication_class_follow_up[(int16_t)class_word];
+        }
+
+        dialogue_index = *(int16_t *)(row + 0x4);
+        if (!no_actor_speaker) {
+            uint32_t unused = 0;
+
+            check_result = unit_animation_change_priority_check(speaker_unit, (uint8_t)(row[0x18] & 1),
+                                                                (int16_t)class_priority, 1, &unused,
+                                                                &dialogue_index, &chain);
+            if ((int16_t)check_result == 1) {
+                check_factor = 0.3f;
+            }
+            if ((int16_t)check_result == 0) {
+                continue;
+            }
+            if (*(int16_t *)(row + 0x6) != -1 &&
+                unit_scripted_action_animation_exists(speaker_unit, *(int16_t *)(row + 0x6))) {
+                if (speaker_actor == k_datum_index_none) {
+                    animation_factor = 2.0f;
+                } else {
+                    int16_t mode = *(int16_t *)(ACTOR_DATA(speaker_actor) + 0x6c);
+
+                    if (actor_mode_definitions[mode].combat_grade != 2 /* 0x42e3cb */ &&
+                        *(int16_t *)(speaker + 0x6a) != 1) {
+                        animation_factor = 2.0f;
+                    }
+                }
+            }
+        }
+
+        score = animation_factor * *(float *)(row + 0x10) * check_factor * proximity * weight * recency;
+        if (!(score > 0.0f)) {
+            continue;
+        }
+        if (count >= 16) {
+            break;
+        }
+        {
+            broadcast_candidate *c = &candidates[count];
+
+            c->row = (int16_t)row_index;
+            c->no_actor_speaker = no_actor_speaker;
+            c->score = score;
+            c->speaker_unit = speaker_unit;
+            c->speaker_actor = speaker_actor;
+            c->animation = *(int16_t *)(row + 0x6);
+            c->other_object = addressed;
+            c->target = target;
+            c->priority = (int16_t)class_priority;
+            c->delay_ticks = (int16_t)delay;
+            c->check_result = (int16_t)check_result;
+            c->dialogue_index = dialogue_index;
+            c->chain = chain;
+            c->look_marker = look_marker;
+            c->look_kind = look_kind;
+            c->look_object = look_object;
+            c->lipsync_ticks = (int16_t)lipsync;
+            c->follow_up = follow_up;
+            c->broadcast = (uint8_t)((row[0x18] >> 1) & 1);
+            if (c->broadcast) {
+                any_broadcast = 1;
+            }
+            total += score;
+            count++;
+        }
+    }
+
+    if (count <= 0) {
+        return;
+    }
+    if (any_broadcast) {
+        int16_t i;
+
+        total = 0.0f;
+        for (i = 0; i < count; i++) {
+            if (!candidates[i].broadcast) {
+                candidates[i].score = 0.0f;
+            }
+            total += candidates[i].score;
+        }
+    }
+    {
+        broadcast_candidate *chosen = &candidates[0];
+        uint8_t header[0x20];
+        int16_t tag_value;
+
+        if (count > 1) {
+            float pick;
+            float sum = 0.0f;
+            int16_t i = 0;
+
+            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            pick = (float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f * total;
+            while (i < count - 1) {
+                sum += candidates[i].score;
+                if (!(sum < pick)) {
+                    break;
+                }
+                i++;
+            }
+            chosen = &candidates[i];
+        }
+
+        memset(header, 0, sizeof(header));
+        *(datum_index *)(header + 0x00) = chosen->other_object;
+        *(int16_t *)(header + 0x04) = event;
+        *(int16_t *)(header + 0x06) = chosen->row;
+        *(int16_t *)(header + 0x08) = (int16_t)object_b;
+        header[0x0a] = 1;
+        *(int16_t *)(header + 0x0c) = chosen->look_marker;
+        *(int16_t *)(header + 0x0e) = chosen->look_kind;
+        *(datum_index *)(header + 0x10) = chosen->look_object;
+        tag_value = (int16_t)object_c;
+        *(int16_t *)(header + 0x14) = tag_value == -1 ? 0 : tag_value;
+        if (extra_data != 0) {
+            *(uint32_t *)(header + 0x18) = extra_data[0];
+            *(uint32_t *)(header + 0x1c) = extra_data[1];
+        }
+
+        if (chosen->no_actor_speaker) {
+            ai_propagate_communication_reaction(chosen->speaker_unit, (ai_communication_order *)header);
+            ai_communication_play_event_line(chosen->speaker_unit, chosen->dialogue_index, 1, chosen->target,
+                                             (uint32_t *)header);
+            return;
+        }
+
+        {
+            uint8_t speech[0x30];
+            datum_index speaker_unit = chosen->speaker_unit;
+            datum_index other_object = chosen->other_object;
+
+            memset(speech, 0, sizeof(speech));
+            *(int16_t *)(speech + 0x00) = chosen->priority;
+            *(int16_t *)(speech + 0x02) = chosen->dialogue_index;
+            *(int32_t *)(speech + 0x04) = chosen->chain;
+            *(int16_t *)(speech + 0x08) = chosen->delay_ticks;
+            *(int16_t *)(speech + 0x0a) = chosen->lipsync_ticks;
+            *(int16_t *)(speech + 0x0c) = 0x18;
+            memcpy(speech + 0x10, header, 0x20);
+            unit_commit_speech(speaker_unit, (unit_speech *)speech, chosen->check_result);
+
+            if ((uint16_t)chosen->animation != 0xffff) {
+                uint8_t *object = OBJECT_DATA(speaker_unit);
+                real_vector2d direction;
+
+                direction.i = ((struct object *)object)->forward.i;
+                direction.j = ((struct object *)object)->forward.j;
+                if (other_object != k_datum_index_none) {
+                    object_marker marker;
+                    real_point3d from;
+                    real_point3d to;
+                    float dx;
+                    float dy;
+                    float length;
+
+                    object_get_node_local_transform(speaker_unit, ai_marker_name_a, &marker, 1);
+                    from = marker.node_transform.position;
+                    object_get_node_local_transform(other_object, ai_marker_name_a, &marker, 1);
+                    to = marker.node_transform.position;
+                    dx = to.x - from.x;
+                    dy = to.y - from.y;
+                    length = (float)sqrt(dy * dy + dx * dx);
+                    if (fabs(length) >= 9.999999747378752e-05) {
+                        float inverse = 1.0f / length;
+
+                        direction.i = inverse * dx;
+                        direction.j = dy * inverse;
+                    }
+                }
+                unit_try_start_scripted_action_animation(speaker_unit, (int16_t)(uint16_t)chosen->animation,
+                                                         &direction);
+            }
+            if (chosen->speaker_actor != k_datum_index_none) {
+                actor_issue_order_or_vocalize(k_datum_index_none, chosen->speaker_actor, other_object, 9,
+                                              (int16_t)(uint16_t)chosen->follow_up);
+            }
+            ai_communication_record_line_played(speaker_unit, chosen->priority, chosen->row, -1);
+        }
+    }
+}
+
+#undef OBJECT_DATA
+#undef ACTOR_DATA
+#undef ai_globals_ptr
+
+/**
+ * Behaviour of ai communication gate line played, moved unchanged from the original free function.
+ *
+ * @address 0x42e970
+ */
+void AiCommunication::gate_line_played(int16_t event_id, ai_communication_record *record, datum_index object_index)
+{
+    switch (event_id) {
+        case 0: case 1: case 2: case 7: case 10:
+            break;
+        default:
+            if (record->silenced == 0) {
+                ai_communication_record_line_played(object_index, event_id,
+                    *(int16_t *)((uint8_t *)record + 0x6), -1);
+            }
+            break;
+    }
+}
+
+#define communication_line_base (*reinterpret_cast<int32_t *>(&communication_line_base))
+/**
+ * Behaviour of ai communication initialize, moved unchanged from the original free function.
+ *
+ * @address 0x42cf20
+ */
+void AiCommunication::initialize()
+{
+    uint8_t *entry;
+    int16_t conversation_index;
+    int16_t position;
+    int16_t next_conversation_index;
+    uint8_t *dest;
+    uint8_t *header;
+    int32_t i;
+
+    communication_line_count = 0;
+    entry = ai_communication_lines;
+    do {
+        entry = entry + 0x28;
+        communication_line_count = communication_line_count + 1;
+    } while (*(int16_t *)entry != -1);
+
+    if (communication_line_base == 0) {
+        int32_t allocation_size = (int32_t)communication_line_count * 0x10;
+        communication_line_base = (int32_t)(game_state_base + game_state_cursor);
+        game_state_cursor = game_state_cursor + allocation_size;
+        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+    }
+
+    conversation_line_count = 0;
+    entry = (uint8_t *)ai_communication_event_definitions;
+    do {
+        entry = entry + 0x24;
+        conversation_line_count = conversation_line_count + 1;
+    } while (*(int16_t *)entry != -1);
+
+    if (conversation_line_base == 0) {
+        int32_t allocation_size = (int32_t)conversation_line_count * 0x10;
+        conversation_line_base = (int32_t)(game_state_base + game_state_cursor);
+        game_state_cursor = game_state_cursor + allocation_size;
+        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+    }
+
+    conversation_index = 0;
+    for (;;) {
+        conversation_index_lookup[conversation_index] = -1;
+        entry = ai_communication_lines;
+        position = 0;
+        next_conversation_index = 0;
+        for (;;) {
+            if (next_conversation_index == conversation_index) {
+                conversation_index_lookup[conversation_index] = position;
+                break;
+            }
+            next_conversation_index = *(int16_t *)(entry + 0x28);
+            entry = entry + 0x28;
+            position = position + 1;
+            if (next_conversation_index == -1) {
+                break;
+            }
+        }
+        conversation_index = conversation_index + 1;
+        if (0x38 < conversation_index) {
+            break;
+        }
+    }
+
+    dest = game_state_base + game_state_cursor;
+    game_state_cursor = game_state_cursor + 0x358;
+    {
+        int32_t allocation_size = 0x358; // matches this allocation's own byte count exactly
+        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+    }
+
+    header = dest;
+    for (i = 0; i < 0x38; i++) {
+        header[i] = 0;
+    }
+    strncpy((char *)dest, "ai conversation", 0x1f);
+    ai_conversation_data = (data_array *)dest;
+    ai_conversation_data->maximum_count = 8;
+    ai_conversation_data->size = 0x64;
+    ai_conversation_data->valid = 0;
+    ai_conversation_data->signature = k_data_array_signature;
+    ai_conversation_data->data = dest + 0x38;
+}
+
+#undef communication_line_base
+
+/**
+ * Behaviour of ai communication line fade multiplier, moved unchanged from the original free function.
+ *
+ * @address 0x42f8c0
+ */
+int16_t AiCommunication::line_fade_multiplier(uint32_t unit_index, int16_t priority, int16_t extra_delay, uint8_t follow_fallback, uint8_t apply_fade, float *volume, int32_t *chain_value, int16_t *dialogue_index, int16_t line_class)
+{
+    uint32_t last_spoke = (uint32_t)dialogue_index;
+    int16_t status;
+
+    status = (int16_t)unit_animation_change_priority_check(unit_index, follow_fallback, priority, 1, &last_spoke,
+        dialogue_index, chain_value);
+    if (status == 1) {
+        *volume = *volume * 0.3f;
+    }
+    if (apply_fade && line_class < 5 && last_spoke != 0xffffffff) {
+        int32_t elapsed = game_time->game_time - (int32_t)last_spoke;
+        int16_t limit;
+
+        if (elapsed < 0) {
+            elapsed = 0;
+        }
+        limit = (int16_t)(int32_t)(ai_communication_class_repeat_delay[line_class * 10] * 30.0f + (float)(int32_t)extra_delay);
+        if ((int16_t)elapsed <= limit) {
+            *volume = 0.0f;
+            return 0;
+        }
+        if ((int32_t)(int16_t)elapsed < (int32_t)limit + 0x3c) {
+            *volume = (float)((int32_t)(int16_t)elapsed - (int32_t)limit) * *volume * (1.0f / 60.0f);
+        }
+    }
+    return status;
+}
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define ai_communication_event_definitions (reinterpret_cast<uint8_t *>(ai_communication_event_definitions))
+namespace {
+
+typedef uint8_t (*ai_communication_line_predicate)(datum_index object_index, uint32_t *event_record,
+                                                   datum_index actor_index);
+
+}
+
+/**
+ * Behaviour of ai communication play event line, moved unchanged from the original free function.
+ *
+ * @address 0x42eee0
+ */
+void AiCommunication::play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record)
+{
+    uint8_t *row = ai_communication_event_definitions;
+    int32_t row_index = 0;
+
+    if (!ai_globals_ptr->dialogue_triggers_enabled || event_id == -1) {
+        return;
+    }
+    for (; *(int16_t *)row != -1; row += 0x24, row_index++) {
+        uint8_t *object;
+        datum_index object_actor;
+        int16_t class_index;
+        int16_t priority;
+        datum_index speaker_unit;
+        uint8_t *speaker;
+        int16_t dialogue_index;
+        int32_t chain = -1;
+        int16_t delay;
+        uint32_t unused_out = 0;
+        int32_t status;
+
+        if (*(int16_t *)row != event_id) {
+            continue;
+        }
+        object = OBJECT_DATA(object_index);
+        object_actor = *(datum_index *)(object + 0x1f4);
+        class_index = *(int16_t *)(row + 0xa);
+        priority = ai_communication_class_priority[class_index];
+        if (*(int16_t *)(row + 0x2) != -1 && *(int16_t *)(row + 0x2) != *(int16_t *)((uint8_t *)event_record + 0x8)) {
+            continue;
+        }
+        if (game_time->game_time < ai_communication_quiet_until_tick && !(row[0xc] & 1)) {
+            continue;
+        }
+        if (explicit_speaker_actor_index != k_datum_index_none) {
+            speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (explicit_speaker_actor_index & 0xffff) * 0x724 + 0x18);
+        } else {
+            int16_t mode = *(int16_t *)(row + 0x4);
+            datum_index found;
+
+            if (mode == 3) {
+                speaker_unit = event_record[0];
+                if (object_try_and_get(speaker_unit, 3) == 0) {
+                    continue;
+                }
+            } else if (mode == 2 || mode == 4) {
+                uint8_t *actor = object_actor != k_datum_index_none
+                    ? (uint8_t *)actor_data->data + (object_actor & 0xffff) * 0x724 : 0;
+
+                if (mode == 2 && actor != 0 && ((struct actor *)actor)->encounter_index != k_datum_index_none) {
+                    found = ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
+                        (uint16_t)priority, *(uint16_t *)(row + 0x6), *(int16_t *)(row + 0x8), 0,
+                        ((struct actor *)actor)->encounter_index & 0xffff, object_index, k_datum_index_none);
+                } else {
+                    found = ai_communication_select_speaker_by_team(mode == 2 ? 1 : 2, object_index, k_datum_index_none,
+                        9.0f, -1, (uint16_t)class_index, (uint16_t)priority, *(uint16_t *)(row + 0x6),
+                        *(int16_t *)(row + 0x8), 0, ((struct object *)object)->owner_team);
+                }
+                if (found == k_datum_index_none) {
+                    continue;
+                }
+                speaker_unit = *(datum_index *)((uint8_t *)actor_data->data + (found & 0xffff) * 0x724 + 0x18);
+            } else {
+                continue;
+            }
+        }
+        if (speaker_unit == k_datum_index_none) {
+            continue;
+        }
+        speaker = OBJECT_DATA(speaker_unit);
+        if (*(datum_index *)(speaker + 0x218) != k_datum_index_none) {
+            continue;
+        }
+        if (!force) {
+            float probability = *(float *)(row + 0x10);
+
+            if (!(probability > 0.0f) || !(random_real() < probability)) {
+                continue;
+            }
+        }
+        if (*(ai_communication_line_predicate *)(row + 0x20) != 0 &&
+            !(*(ai_communication_line_predicate *)(row + 0x20))(object_index, event_record,
+                                                                 *(datum_index *)(speaker + 0x1f4))) {
+            continue;
+        }
+        dialogue_index = (int16_t)*(uint16_t *)(row + 0x6);
+        delay = (int16_t)(int32_t)(*(float *)(row + 0x18) * 30.0f);
+        status = unit_animation_change_priority_check(speaker_unit, 0, priority, 1, &unused_out, &dialogue_index, &chain);
+        if ((int16_t)status <= 0) {
+            continue;
+        }
+
+        {
+            uint8_t speech[0x30];
+
+            memset(speech, 0, sizeof(speech));
+            *(int16_t *)(speech + 0x00) = priority;
+            *(int16_t *)(speech + 0x02) = dialogue_index;
+            *(int32_t *)(speech + 0x04) = chain;
+            *(int16_t *)(speech + 0x08) = delay;
+            *(int16_t *)(speech + 0x0a) = (int16_t)(int32_t)(ai_communication_class_tail_seconds[class_index] * 30.0f);
+            *(int16_t *)(speech + 0x0c) = 0x18;
+            *(datum_index *)(speech + 0x10) = object_index;
+            *(int16_t *)(speech + 0x14) = -1;
+            *(int16_t *)(speech + 0x16) = -1;
+            *(int16_t *)(speech + 0x18) = -1;
+            speech[0x1a] = 1;
+            unit_commit_speech(speaker_unit, (unit_speech *)speech, (int16_t)status);
+            ai_communication_record_line_played(speaker_unit, priority, -1, (int16_t)row_index);
+            actor_issue_order_or_vocalize(k_datum_index_none, *(datum_index *)(speaker + 0x1f4), object_index, 8,
+                                          (int16_t)(uint16_t)ai_communication_class_follow_up[class_index]);
+        }
+        return;
+    }
+}
+
+#undef OBJECT_DATA
+#undef ai_communication_event_definitions
+
+#define global_structure_bsp (*reinterpret_cast<ScenarioStructureBSP * *>(&global_structure_bsp))
+/**
+ * Optionally reports the winning player's unit object index and its distance.
+ *
+ * @address 0x4303f0
+ */
+float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datum_index *out_player_object_index, float *out_distance, datum_index object_index)
+{
+    object_marker self_marker;
+    object_marker player_marker;
+    real_point3d self_position;
+    real_point3d player_position;
+    real_vector3d to_self;
+    data_iterator iterator;
+    void *player;
+    datum_index best_object_index;
+    float best_score;
+    float best_distance;
+    uint8_t saw_any_player;
+    uint8_t line_of_sight_clear;
+    float dx, dy, dz, distance_squared, distance, score, facing;
+    uint32_t walk, previous;
+    int16_t self_cluster, player_cluster;
+    int32_t bitmap_row_dwords;
+    object *player_object;
+    uint8_t trace_scratch[96];
+
+    best_object_index = (datum_index)k_datum_index_none;
+    best_score = 0.0f;
+    best_distance = 3.4028235e+38f;
+    saw_any_player = 0;
+
+    object_get_node_local_transform(object_index, ai_marker_name_a, &self_marker, 1);
+    self_position = self_marker.node_transform.position;
+
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = (datum_index)k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+
+    player = data_iterator_next(&iterator);
+    if (player != 0) {
+        do {
+            if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
+                datum_index player_unit = ((struct player *)player)->unit;
+
+                saw_any_player = 1;
+                object_get_node_local_transform(player_unit, ai_marker_name_a, &player_marker, 1);
+                player_position = player_marker.node_transform.position;
+                dx = self_position.x - player_position.x;
+                dy = self_position.y - player_position.y;
+                dz = self_position.z - player_position.z;
+                distance_squared = dz * dz + dy * dy + dx * dx;
+                if (distance_squared < 900.0f) {
+                    line_of_sight_clear = 0;
+                    if (require_line_of_sight != 0) {
+                        previous = (uint32_t)k_datum_index_none;
+                        if (object_index != (datum_index)k_datum_index_none) {
+                            walk = (uint32_t)object_index;
+                            do {
+                                previous = walk;
+                                walk = (uint32_t)((object_header *)object_data->data)
+                                           [previous & 0xffff].data->parent_object;
+                            } while (walk != (uint32_t)k_datum_index_none);
+                        }
+                        self_cluster = *(int16_t *)((uint8_t *)((object_header *)object_data->data)
+                                                        [previous & 0xffff].data + 0x9c);
+                        walk = (uint32_t)player_unit;
+                        previous = (uint32_t)k_datum_index_none;
+                        while (walk != (uint32_t)k_datum_index_none) {
+                            previous = walk;
+                            walk = (uint32_t)((object_header *)object_data->data)
+                                       [previous & 0xffff].data->parent_object;
+                        }
+                        player_cluster = *(int16_t *)((uint8_t *)((object_header *)object_data->data)
+                                                          [previous & 0xffff].data + 0x9c);
+                        if (self_cluster != -1 && player_cluster != -1) {
+                        bitmap_row_dwords = (int32_t)(global_structure_bsp->clusters.count + 0x1f) >> 5;
+                        if ((((uint32_t *)(uintptr_t)global_structure_bsp->cluster_data.pointer)
+                                 [bitmap_row_dwords * (int32_t)self_cluster +
+                                  ((int32_t)player_cluster >> 5)] &
+                             (1u << ((uint8_t)player_cluster & 0x1f))) == 0) {
+                            goto advance;
+                        }
+                        }
+                        to_self.i = dx;
+                        to_self.j = dy;
+                        to_self.k = dz;
+                        line_of_sight_clear =
+                            (distance_squared < 9.0f ||
+                             collision_test_movement_segment(0x27, &player_position, &to_self,
+                                                   (uint32_t)k_datum_index_none, trace_scratch) == 0)
+                                ? 1 : 0;
+                    }
+
+                    distance = (float)sqrt((double)distance_squared);
+                    score = 1.0f;
+                    if (distance < 15.0f) {
+                        if (3.0f <= distance) {
+                            score = (15.0f - distance) * 0.083333336f + 1.0f;
+                        } else {
+                            score = 2.0f;
+                        }
+                        if (line_of_sight_clear) {
+                            score = score + 0.5f;
+                        }
+                        if (0.0001f < distance) {
+                            player_object = ((object_header *)object_data->data)
+                                                [player_unit & 0xffff].data;
+                            facing = (((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.k * dz +
+                                      ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.j * dy +
+                                      ((unit_data *)((uint8_t *)player_object + k_unit_data_offset))->aiming_vector.i * dx) / distance;
+                            if (0.70710677f < facing) {
+                                score = (0.7f - (1.0f - facing) * 3.4142134f * 0.35f) + score;
+                            }
+                        }
+                    }
+                    if (best_score < score) {
+                        best_object_index = player_unit;
+                        best_score = score;
+                        best_distance = distance;
+                    }
+                }
+            }
+advance:
+            player = data_iterator_next(&iterator);
+        } while (player != 0);
+        if (saw_any_player) {
+            goto done;
+        }
+    }
+    best_score = 1.0f;
+done:
+    if (out_distance != 0) {
+        *out_distance = best_distance;
+    }
+    if (out_player_object_index != 0) {
+        *out_player_object_index = best_object_index;
+    }
+    return best_score;
+}
+
+#undef global_structure_bsp
+
+/**
+ * The actor is rejected outright when it is not at least "alerted" (awareness_level < 2), when it controls
+ * no unit, when neither subject object is inside `radius` of its aim origin, when a player-proximity gate
+ * (flags bit 1) scores zero, when flags bit 2 demands object_a share this actor's active_unit_index, or
+ * when the line has been spoken too recently. The score is then raised by how close each subject is
+ * (through that subject's prop record) and by 5.0 when the seat filter matches.
+ *
+ * @address 0x42fb90
+ */
+float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_b, real_point3d *position_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, real_point3d *position_a, datum_index object_a)
+{
+    actor *a;
+    struct { float score; int32_t out_a; int32_t line_id; } scratch;
+    uint8_t have_subject;
+    uint8_t accept;
+    uint8_t matched_a;
+    uint8_t matched_b;
+    float dx, dy, dz;
+    float proximity;
+    datum_index prop_index;
+    prop *p;
+    int16_t reach;
+    int32_t reach_mode;
+
+    a = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * k_actor_size);
+
+    have_subject = (object_a != (datum_index)k_datum_index_none ||
+                    object_b != (datum_index)k_datum_index_none) ? 1 : 0;
+    accept = (a->unit_index != (datum_index)k_datum_index_none) ? 1 : 0;
+    scratch.score = 10.0f;
+    scratch.out_a = -1;
+    scratch.line_id = (int32_t)line_id;
+
+    if (a->awareness_level < 2 || !accept) {
+        return 0.0f;
+    }
+
+    if (have_subject) {
+        if (object_a == (datum_index)k_datum_index_none ||
+            ((dx = position_a->x - a->aim_origin.x,
+              dy = position_a->y - a->aim_origin.y,
+              dz = position_a->z - a->aim_origin.z),
+             radius * radius <= dz * dz + dx * dx + dy * dy)) {
+            if (object_b == (datum_index)k_datum_index_none ||
+                ((dx = position_b->x - a->aim_origin.x,
+                  dy = position_b->y - a->aim_origin.y,
+                  dz = position_b->z - a->aim_origin.z),
+                 radius * radius <= dx * dx + dy * dy + dz * dz)) {
+                return 0.0f;
+            }
+        }
+        accept = 1;
+    }
+
+    if ((flags & 2) != 0) {
+        proximity = ai_communication_rate_player_proximity(0, 0, 0, a->unit_index);
+        if (proximity == 0.0f) {
+            return 0.0f;
+        }
+        scratch.score = proximity * 5.0f + 10.0f;
+    }
+
+    if ((flags & 4) != 0 && object_a != (datum_index)k_datum_index_none &&
+        ((object_header *)object_data->data)[object_a & 0xffff].data->parent_object !=
+            a->active_unit_index) {
+        return 0.0f;
+    }
+
+    if (seat_filter != -1 && unit_scripted_action_animation_exists(a->unit_index, (int16_t)seat_filter) != 0 /* 0x42fd1d */) {
+        scratch.score = scratch.score + 5.0f;
+    }
+
+    if ((int16_t)line_id != -1) {
+        int32_t chain_value = -1;
+        int16_t dialogue_index = (int16_t)line_id;
+
+        if (ai_communication_line_fade_multiplier(a->unit_index, (int16_t)line_class, 0, (uint8_t)(flags & 1u), 1,
+                &scratch.score, &chain_value, &dialogue_index, (int16_t)fade_limit) == 0) {
+            return 0.0f;
+        }
+    }
+
+    if (have_subject) {
+        matched_a = 0;
+        matched_b = 0;
+        if (object_a != (datum_index)k_datum_index_none) {
+            if (a->unit_index == object_a) {
+                if ((flags & 8) == 0) {
+                    accept = 0;
+                } else {
+                    matched_a = 1;
+                }
+            } else {
+                prop_index = actor_find_or_create_shared_prop(object_a, actor_index, 1, 0);
+                if (prop_index != (datum_index)k_datum_index_none) {
+                    p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * k_prop_size);
+                    if (p->distance <= radius) {
+                        reach_mode = 2;
+                        if (p->state < 2 || 3 < p->state) {
+                            if (p->enemy != 0) {
+                                goto check_b;
+                            }
+                            if (allow_unreachable == 0 &&
+                                *(int16_t *)&((struct prop *)p)->auditory_perception < 2 &&
+                                *(int16_t *)((uint8_t *)p + 0x36) < 2) {
+                                if (((struct prop *)p)->flashlight_on == 0) {
+                                    reach_mode = (int32_t)*(int8_t *)&p->perception_range_class;
+                                }
+                                reach = actor_dispatch_look_handler_by_posture(((struct prop *)p)->obstruction,
+                                                     actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
+                                                     (uint8_t)reach_mode, 1,
+                                                     actor_target_get_priority_class(actor_index, prop_index));
+                                if (reach < 2) {
+                                    goto check_b;
+                                }
+                            }
+                        }
+                        scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
+                        matched_a = 1;
+                    } else {
+                        matched_a = 0;
+                    }
+                }
+            }
+        }
+check_b:
+        if (object_b != (datum_index)k_datum_index_none) {
+            if (a->unit_index == object_b) {
+                if ((flags & 0x10) == 0) {
+                    return 0.0f;
+                }
+                matched_b = 1;
+            } else {
+                prop_index = actor_find_prop_for_object(object_b, actor_index);
+                if (prop_index != (datum_index)k_datum_index_none) {
+                    p = (prop *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * k_prop_size);
+                    if (p->distance <= radius) {
+                        if ((1 < p->state && p->state < 4) || p->enemy == 0) {
+                            scratch.score = (1.0f - p->distance / radius) * 10.0f + scratch.score;
+                            matched_b = 1;
+                        }
+                    } else {
+                        matched_b = 0;
+                    }
+                }
+            }
+        }
+        if (!accept) {
+            return 0.0f;
+        }
+        accept = (uint8_t)(matched_b | matched_a);
+    }
+
+    if (accept) {
+        return scratch.score;
+    }
+    return 0.0f;
+}
+
+#define communication_line_base (*reinterpret_cast<int32_t *>(&communication_line_base))
+/**
+ * Behaviour of ai communication record line played, moved unchanged from the original free function.
+ *
+ * @address 0x42f9e0
+ */
+void AiCommunication::record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id)
+{
+    uint8_t *obj;
+    datum_index actor_index;
+    int32_t current_tick;
+    int32_t decay;
+    int32_t stamp;
+    int32_t category;
+    int32_t *entry;
+    int32_t *slot;
+
+    obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    actor_index = *(datum_index *)(obj + 0x1f4);
+
+    current_tick = game_time->game_time;
+    decay = *(int16_t *)(obj + 0x3fa) - 0x2d;
+    if (decay < 0) {
+        decay = 0;
+    }
+    stamp = decay + current_tick;
+    *(int32_t *)(obj + 0x3f0) = stamp;
+
+    if (actor_index == (datum_index)k_datum_index_none) {
+        return;
+    }
+
+    actor_recompute_grenade_eligibility(actor_index);
+    category = actor_classify_communication_object_type(actor_index);
+    if (category == -1) {
+        return;
+    }
+
+    if (tier <= 5) {
+        slot = &ai_globals_ptr->loudest_line_tick[0][category];
+        if (*slot <= stamp) {
+            *slot = stamp;
+        }
+        if (tier >= 3) {
+            slot = &ai_globals_ptr->loudest_line_tick[1][category];
+            if (*slot <= stamp) {
+                *slot = stamp;
+            }
+        }
+        if (tier >= 5) {
+            slot = &ai_globals_ptr->loudest_line_tick[2][category];
+            if (*slot <= stamp) {
+                *slot = stamp;
+            }
+        }
+    }
+
+    if (communication_line_id != -1) {
+        float delay = DAT_00655ab4[communication_line_id * 0x28 / 4];
+
+        entry = (int32_t *)(communication_line_base + (category + communication_line_id * 2) * 8);
+        entry[0] = current_tick;
+        if (delay > 0.0f) {
+            entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
+        }
+    }
+    if (conversation_line_id != -1) {
+        float delay = DAT_00656b24[conversation_line_id * 0x24 / 4];
+
+        entry = (int32_t *)(conversation_line_base + (category + conversation_line_id * 2) * 8);
+        entry[0] = current_tick;
+        if (delay > 0.0f) {
+            entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
+        }
+    }
+}
+
+#undef communication_line_base
+
+#define communication_line_base (*reinterpret_cast<int32_t *>(&communication_line_base))
+/**
+ * Behaviour of ai communication reset, moved unchanged from the original free function.
+ *
+ * @address 0x42d230
+ */
+void AiCommunication::reset()
+{
+    int32_t i;
+    int32_t entry_count;
+    int32_t *entries;
+    uint8_t *element;
+
+    ai_globals_ptr->dialogue_triggers_enabled = 1;
+    for (i = 0; i < 3; i++) {
+        ai_globals_ptr->loudest_line_tick[i][0] = 0;
+        ai_globals_ptr->loudest_line_tick[i][1] = 0;
+    }
+
+    entries = (int32_t *)communication_line_base;
+    entry_count = communication_line_count * 2;
+    for (i = 0; i < entry_count; i++) {
+        entries[i * 2] = -1;
+        entries[i * 2 + 1] = -1;
+    }
+
+    entries = (int32_t *)conversation_line_base;
+    entry_count = conversation_line_count * 2;
+    for (i = 0; i < entry_count; i++) {
+        entries[i * 2] = -1;
+        entries[i * 2 + 1] = -1;
+    }
+
+    ai_globals_ptr->conversation_event_count = 0;
+    ai_globals_ptr->conversation_event_cursor = 0;
+    {
+        uint8_t *ring = (uint8_t *)ai_globals_ptr->conversation_events;
+        for (i = 0; i < 0x100; i++) {
+            ring[i] = 0;
+        }
+    }
+
+    ai_conversation_data->next_index = 0;
+    ai_conversation_data->last_index = 0;
+    ai_conversation_data->actual_count = 0;
+    strncpy((char *)&ai_conversation_data->next_identifier, ai_conversation_data->name, 2);
+    ai_conversation_data->next_identifier |= 0x8000;
+    ai_conversation_data->valid = 1;
+
+    for (i = 0; i < ai_conversation_data->maximum_count; i++) {
+        element = (uint8_t *)ai_conversation_data->data + (int32_t)ai_conversation_data->size * i;
+        *(int16_t *)element = 0;
+    }
+}
+
+#undef communication_line_base
+
+/**
+ * Behaviour of ai communication select speaker by team, moved unchanged from the original free function.
+ *
+ * @address 0x4300d0
+ */
+datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_index object_a, datum_index object_b, float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, int16_t team)
+{
+    object_marker marker_a;
+    object_marker marker_b;
+    real_point3d position;
+    actor_iterator_state iterator;
+    actor *a;
+    datum_index best;
+    float best_score;
+    datum_index actor_index;
+    int16_t other_team;
+    uint8_t accept;
+    int32_t pair;
+    float score;
+
+    best = (datum_index)k_datum_index_none;
+    best_score = 0.0f;
+
+    if (object_a != (datum_index)k_datum_index_none) {
+        object_get_node_local_transform(object_a, ai_marker_name_a, &marker_a, 1);
+        position = marker_a.node_transform.position;
+    }
+    if (object_b != (datum_index)k_datum_index_none) {
+        object_get_node_local_transform(object_a, ai_marker_name_a, &marker_b, 1);
+        position = marker_b.node_transform.position;
+    }
+
+    if (ai_globals_ptr->actors_valid) {
+        iterator.filter_array = encounter_data;
+        iterator.next_index = 0;
+        iterator.cursor = -1;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.encounterless_done = 0;
+        iterator.active = 1;
+        iterator.actor_index = -1;
+        iterator.next_actor_index = -1;
+    }
+
+    a = actor_iterator_next(&iterator);
+    if (a == 0) {
+        return (datum_index)k_datum_index_none;
+    }
+    do {
+        actor_index = (datum_index)iterator.actor_index;
+        accept = 1;
+        if (team != -1) {
+            other_team = a->team;
+            if (current_game_engine != 0) {
+                accept = (uint8_t)(team != other_team);
+            } else if (team >= 0 && team < 10 && other_team >= 0 && other_team < 10) {
+                pair = (int32_t)other_team + (int32_t)team * 10;
+                accept = (uint8_t)(((*(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4)) &
+                                    (1u << ((uint8_t)pair & 0x1f))) == 0);
+            }
+            if (match_mode == 0) {
+                accept = (uint8_t)(other_team == team);
+            } else if (match_mode == 1) {
+                accept = (uint8_t)(accept == 0);
+            }
+        }
+        if (accept) {
+            score = ai_communication_rate_speaker(actor_index, object_b, &position, radius,
+                                                  allow_unreachable, fade_limit, line_class,
+                                                  line_id, seat_filter, flags, &position,
+                                                  object_a);
+            if (best_score < score) {
+                best_score = score;
+                best = actor_index;
+            }
+        }
+        a = actor_iterator_next(&iterator);
+    } while (a != 0);
+
+    return best;
+}
+
+/**
+ * Behaviour of ai communication select speaker in reference, moved unchanged from the original free
+ * function.
+ *
+ * @address 0x42ff80
+ */
+datum_index AiCommunication::select_speaker_in_reference(float radius, int16_t allow_unreachable, uint32_t fade_limit, uint32_t line_class, uint32_t line_id, int16_t seat_filter, uint8_t flags, uint32_t reference, datum_index object_a, datum_index object_b)
+{
+    object_marker marker;
+    real_point3d position_a;
+    real_point3d position_b;
+    ai_reference_actor_iterator iterator;
+    datum_index best;
+    float best_score;
+    datum_index actor_index;
+    float score;
+
+    best = (datum_index)k_datum_index_none;
+    best_score = 0.0f;
+
+    if (reference == (uint32_t)k_datum_index_none) {
+        return (datum_index)k_datum_index_none;
+    }
+
+    if (object_a != (datum_index)k_datum_index_none) {
+        object_get_node_local_transform(object_a, ai_marker_name_a, &marker, 1);
+        position_a = marker.node_transform.position;
+    }
+    if (object_b != (datum_index)k_datum_index_none) {
+        object_get_node_local_transform(object_b, ai_marker_name_a, &marker, 1);
+        position_b = marker.node_transform.position;
+    }
+
+    ai_reference_actor_iterator_new(reference, &iterator);
+    if (ai_reference_actor_iterator_next(&iterator) == 0) {
+        return (datum_index)k_datum_index_none;
+    }
+    do {
+        actor_index = iterator.actor_index;
+        score = ai_communication_rate_speaker(actor_index, object_b, &position_b, radius,
+                                              allow_unreachable, fade_limit, line_class, line_id,
+                                              seat_filter, flags, &position_a, object_a);
+        if (best_score < score) {
+            best_score = score;
+            best = actor_index;
+        }
+    } while (ai_reference_actor_iterator_next(&iterator) != 0);
+
+    return best;
+}
+
+/**
+ * Behaviour of ai communication target result reset, moved unchanged from the original free function.
+ *
+ * @address 0x42d310
+ */
+void AiCommunication::target_result_reset(ai_communication_target_result *record)
+{
+    uint8_t *bytes = (uint8_t *)record;
+    int32_t i;
+    for (i = 0; i < 0x20; i++) {
+        bytes[i] = 0;
+    }
+    record->target = (datum_index)k_datum_index_none;
+    record->unknown_04 = -1;
+    record->unknown_06 = -1;
+    record->unknown_08 = -1;
+}
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f4f0 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f4f0, moved unchanged from the original free function.
+ *
+ * @address 0x42f4f0
+ */
+uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    datum_index prop_index;
+    uint8_t *p;
+
+    if (actor_index == k_datum_index_none) {
+        return 0;
+    }
+    prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
+    if (prop_index == k_datum_index_none) {
+        return 0;
+    }
+    p = PROP(prop_index);
+    if (*(float *)(p + 0x11c) > 5.0f) {
+        return 1;
+    }
+    return (uint8_t)(*(int16_t *)(p + 0x38) != 0 && *(int16_t *)(p + 0x38) != 1);
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f560 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f560, moved unchanged from the original free function.
+ *
+ * @address 0x42f560
+ */
+uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    uint8_t *actor;
+
+    if (actor_index == k_datum_index_none) {
+        return 0;
+    }
+    actor = ACTOR(actor_index);
+    if (((struct actor *)actor)->mode == 5) {
+        return (uint8_t)(*(int16_t *)(actor + 0xa4) == 1);
+    }
+    return (uint8_t)(((struct actor *)actor)->mode == 7);
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f5b0 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f5b0, moved unchanged from the original free function.
+ *
+ * @address 0x42f5b0
+ */
+uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    datum_index own_actor;
+    uint8_t *a;
+    uint8_t *b;
+
+    if (!actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+        return 0;
+    }
+    own_actor = *(datum_index *)(OBJECT(object_index) + 0x1f4);
+    if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
+        return 0;
+    }
+    a = ACTOR(own_actor);
+    b = ACTOR(actor_index);
+    return (uint8_t)(((actor *)a)->encounter_index != k_datum_index_none &&
+        ((actor *)a)->encounter_index == *(datum_index *)(b + 0x34) &&
+        ((actor *)a)->platoon_index == *(int16_t *)(b + 0x3c));
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f650 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f650, moved unchanged from the original free function.
+ *
+ * @address 0x42f650
+ */
+uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    uint8_t *actor = ACTOR(actor_index);
+    uint8_t result = (uint8_t)(((struct actor *)actor)->combat_status >= 7);
+
+    if (result && ((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
+        result = 0;
+    }
+    return result;
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f690 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f690, moved unchanged from the original free function.
+ *
+ * @address 0x42f690
+ */
+uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    uint8_t *actor;
+
+    if (!actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+        return 0;
+    }
+    actor = ACTOR(actor_index);
+    if (((struct actor *)actor)->combat_status < 7) {
+        return 0;
+    }
+    if (((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
+        return 0;
+    }
+    return 1;
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f6f0 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f6f0, moved unchanged from the original free function.
+ *
+ * @address 0x42f6f0
+ */
+uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    datum_index own_actor;
+    datum_index a_target;
+    datum_index b_target;
+
+    if (!actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
+        return 0;
+    }
+    own_actor = *(datum_index *)(OBJECT(object_index) + 0x1f4);
+    if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
+        return 0;
+    }
+    a_target = *(datum_index *)(ACTOR(own_actor) + 0x270);
+    if (a_target == k_datum_index_none) {
+        return 0;
+    }
+    b_target = *(datum_index *)(ACTOR(actor_index) + 0x270);
+    if (b_target == k_datum_index_none) {
+        return 0;
+    }
+    return (uint8_t)(*(datum_index *)(PROP(a_target) + 0x18) == *(datum_index *)(PROP(b_target) + 0x18));
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f7b0 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f7b0, moved unchanged from the original free function.
+ *
+ * @address 0x42f7b0
+ */
+uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    uint8_t *actor;
+
+    if (actor_index == k_datum_index_none) {
+        return 0;
+    }
+    actor = ACTOR(actor_index);
+    return (uint8_t)(((struct actor *)actor)->awareness_level == 3 && ((struct actor *)actor)->combat_status < 4);
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+
+class DialogueCondition_42f7f0 final : public DialogueCondition {
+public:
+    uint8_t test(datum_index object_index, uint32_t param_2, datum_index actor_index) const override;
+};
+
+/**
+ * Behaviour of ai dialogue condition 42f7f0, moved unchanged from the original free function.
+ *
+ * @address 0x42f7f0
+ */
+uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
+{
+    uint8_t *actor = ACTOR(actor_index);
+
+    if (((struct actor *)actor)->combat_status < 7) {
+        return 0;
+    }
+    if (((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
+        return 0;
+    }
+    return (uint8_t)(((struct actor *)actor)->type == 0);
+}
+
+}
+
+#undef ACTOR
+#undef PROP
+#undef OBJECT
+
+/**
+ * Behaviour of ai dispatch queued order, moved unchanged from the original free function.
+ *
+ * @address 0x42f840
+ */
+void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index)
+{
+    uint8_t *o = (uint8_t *)order;
+    int16_t count = ((struct ai_queued_order *)o)->target_count;
+    datum_index target = ((struct ai_queued_order *)o)->object_a;
+    int16_t variant = (int16_t)*(uint16_t *)&((struct ai_queued_order *)o)->single_target;
+    int16_t line = 9;
+
+    if (count <= 0) {
+        return;
+    }
+    if (count == 1) {
+        prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
+
+        if (target == p->object_index) {
+            line = 8;
+        }
+        actor_issue_order_or_vocalize(k_datum_index_none, actor_index, target, line, variant);
+    } else if (count == 2) {
+        actor_issue_multi_target_vocalization(line, actor_index, variant, target);
+    }
+}
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+/**
+ * Behaviour of ai propagate communication reaction, moved unchanged from the original free function.
+ *
+ * @address 0x42e9c0
+ */
+void AiCommunication::propagate_communication_reaction(datum_index object_index, ai_communication_order *order)
+{
+    uint8_t *o = (uint8_t *)order;
+    uint8_t *obj;
+    int16_t object_team;
+    object_marker marker;
+    real_point3d position;
+    uint8_t *location;
+    int16_t gate = 1;
+    int16_t row = *(int16_t *)(o + 0x6);
+    actor_iterator_state iterator;
+    actor *a;
+
+    if (((struct actor_squad_order_header *)o)->type == 1) {
+        ai_mark_recognized_objects_for_reaction((int16_t)*(uint16_t *)(o + 0x18), (int16_t)*(uint16_t *)(o + 0x1a),
+                                                o[0x1c]);
+    }
+    if (((struct actor_squad_order_header *)o)->type == 0 && *(int16_t *)(o + 0xc) <= 0) {
+        return;
+    }
+    obj = OBJECT_DATA(object_index);
+    object_team = ((object *)obj)->owner_team;
+    location = obj + 0x98;
+    object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
+    position = marker.node_transform.position;
+    if (row != -1 && *(int16_t *)(ai_communication_lines + row * 0x28 + 0x2) >= 4) {
+        gate = 3;
+    }
+    if (((object *)obj)->parent_object != k_datum_index_none) {
+        location = OBJECT_DATA(object_get_root_object_index(object_index)) + 0x98;
+    }
+    if (!ai_globals_ptr->actors_valid) {
+        return;
+    }
+    memset(&iterator, 0, sizeof(iterator));
+    iterator.filter_array = encounter_data;
+    iterator.next_index = 0;
+    iterator.cursor = -1;
+    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+    iterator.encounterless_done = 0;
+    iterator.active = 1;
+    iterator.actor_index = k_datum_index_none;
+    iterator.next_actor_index = -1;
+
+    for (a = actor_iterator_next(&iterator); a != 0; a = actor_iterator_next(&iterator)) {
+        uint8_t *ap = (uint8_t *)a;
+        int16_t team = ((struct actor *)ap)->team;
+        datum_index actor_index;
+        datum_index prop_index;
+
+        if (((struct actor *)ap)->unit_index == object_index) {
+            continue;
+        }
+        if (current_game_engine != 0) {
+            if (team != object_team) {
+                continue;
+            }
+        } else {
+            int32_t bit;
+
+            if (team < 0 || team >= 10 || object_team < 0 || object_team >= 10) {
+                continue;
+            }
+            bit = team * 10 + object_team;
+            if (!(*(uint32_t *)(team_pair_data + 0xa4 + (bit >> 5) * 4) & (1u << (bit & 0x1f)))) {
+                continue;
+            }
+        }
+        {
+            float dx = position.x - ((struct actor *)ap)->aim_origin.x;
+            float dy = position.y - ((struct actor *)ap)->aim_origin.y;
+            float dz = position.z - ((struct actor *)ap)->aim_origin.z;
+
+            if (!(dz * dz + dy * dy + dx * dx <= 900.0f)) {
+                continue;
+            }
+        }
+        actor_index = iterator.actor_index;
+        prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
+        if (prop_index != k_datum_index_none) {
+            prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
+            uint32_t firing[0x18];
+
+            actor_get_firing_positions(actor_index, firing, &position);
+            if ((int16_t)actor_target_hearing_check(location, (int16_t)*(uint16_t *)&((struct prop *)p)->obstruction, actor_index,
+                                           firing, gate, &position) >= 2) {
+                actor_dispatch_squad_order(prop_index, (const actor_squad_order_header *)order, actor_index);
+                ai_dispatch_queued_order((ai_queued_order *)order, prop_index, actor_index);
+            }
+        }
+    }
+}
+
+#undef OBJECT_DATA
+
+static inline void * object_try_and_get__ai_select_communication_target(datum_index object_index, int32_t kind)
+{
+    return reinterpret_cast<void * (*)(datum_index, int32_t)>(&::object_try_and_get)(object_index, kind);
+}
+#define object_try_and_get object_try_and_get__ai_select_communication_target
+/**
+ * Reports a recency-based weight (0..1) through out_weight when given.
+ *
+ * @address 0x42ec90
+ */
+int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight)
+{
+    uint16_t *entry;
+    uint16_t *terminator;
+    int32_t result;
+    float weight;
+    int32_t index;
+    int16_t target_kind;
+    int16_t candidate_a;
+    int16_t candidate_b;
+    uint32_t search_kind;
+    void *vehicle_obj;
+    int16_t comm_kind;
+    int32_t *timestamp_pair;
+    int32_t now;
+
+    result = -1;
+    weight = 1.0f;
+
+    if (ai_globals_ptr->dialogue_triggers_enabled && line_id != -1) {
+        index = 0;
+        entry = (uint16_t *)&ai_communication_event_definitions[0].required_kind;
+        do {
+            if (*(int16_t *)(entry - 1) == line_id &&
+                (*(int16_t *)entry == -1 || *(int16_t *)entry == sub_id)) {
+                comm_kind = *(int16_t *)(entry + 4);
+                if ((ai_communication_quiet_until_tick <= game_time->game_time ||
+                     (*(uint8_t *)(entry + 5) & 1) != 0) &&
+                    0.0f < *(float *)(entry + 9)) {
+                    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                    if ((float)((uint32_t)random_seed_global >> 0x10) * 1.5259022e-05f <
+                        *(float *)(entry + 9)) {
+                        target_kind = *(int16_t *)(entry + 1);
+                        if (target_kind == 2 || target_kind == 4) {
+                            candidate_a = *(int16_t *)(entry + 2);
+                            candidate_b = *(int16_t *)(entry + 3);
+                            search_kind = (target_kind == 2) ? 1u : 2u;
+                            result = ai_communication_select_speaker_by_team((int16_t)search_kind, param_a,
+                                                   0xffffffff, 9.0f, -1,
+                                                   (uint32_t)(uint16_t)comm_kind,
+                                                   (uint32_t)(uint16_t)ai_communication_class_priority[comm_kind],
+                                                   (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
+                                                   *(int16_t *)((uint8_t *)((object_header *)object_data->data)[param_a & 0xffff].data + 0xb8));
+                        } else if (target_kind == 3) {
+                            vehicle_obj = object_try_and_get(param_b, 3);
+                            result = -1;
+                            if (vehicle_obj != 0) {
+                                result = *(int32_t *)((uint8_t *)vehicle_obj + 0x1f4);
+                            }
+                        }
+
+                        if (result != -1) {
+                            int16_t comm_index = (int16_t)actor_classify_communication_object_type((datum_index)result);
+                            if (comm_index != -1) {
+                                now = game_time->game_time;
+                                timestamp_pair = (int32_t *)(conversation_line_base +
+                                    (comm_index + index * 2) * 8);
+                                if (timestamp_pair[0] != -1) {
+                                    weight = (float)(now - timestamp_pair[0]) * 0.0011111111f;
+                                    if (0.0f <= weight) {
+                                        if (1.0f < weight) {
+                                            weight = 1.0f;
+                                        }
+                                    } else {
+                                        weight = 0.0f;
+                                    }
+                                }
+                                if (timestamp_pair[1] != -1 && timestamp_pair[1] != now &&
+                                    -1 < timestamp_pair[1] - now) {
+                                    result = -1;
+                                    goto next_entry;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (result != -1) {
+                    break;
+                }
+            }
+next_entry:
+            index = index + 1;
+            terminator = entry + 0x11;
+            entry = entry + 0x12;
+        } while (*terminator != (uint16_t)-1);
+    }
+
+    if (out_weight != 0) {
+        *out_weight = weight;
+    }
+    return result;
+}
+
+#undef object_try_and_get
+
+namespace {
+
+constexpr DialogueCondition_42f4f0 dialogue_condition_42f4f0;
+constexpr DialogueCondition_42f560 dialogue_condition_42f560;
+constexpr DialogueCondition_42f5b0 dialogue_condition_42f5b0;
+constexpr DialogueCondition_42f650 dialogue_condition_42f650;
+constexpr DialogueCondition_42f690 dialogue_condition_42f690;
+constexpr DialogueCondition_42f6f0 dialogue_condition_42f6f0;
+constexpr DialogueCondition_42f7b0 dialogue_condition_42f7b0;
+constexpr DialogueCondition_42f7f0 dialogue_condition_42f7f0;
+
+constexpr const DialogueCondition *k_dialogue_conditions[] = {
+    &dialogue_condition_42f4f0,
+    &dialogue_condition_42f560,
+    &dialogue_condition_42f5b0,
+    &dialogue_condition_42f650,
+    &dialogue_condition_42f690,
+    &dialogue_condition_42f6f0,
+    &dialogue_condition_42f7b0,
+    &dialogue_condition_42f7f0,
+};
+
+}
+
+/**
+ * Returns the dialogue condition registered at a table position.
+ */
+const DialogueCondition &dialogue_condition(int index)
+{
+    return *k_dialogue_conditions[index];
+}
+
+}
