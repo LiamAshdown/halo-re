@@ -10,7 +10,7 @@
 #endif
 
 extern "C" {
-extern uint8_t profile_globals_block[0x60a4];
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern int16_t profile_slot_id[];
 extern int32_t selected_saved_item;
 extern uint8_t default_profile_data[k_saved_player_profile_size];

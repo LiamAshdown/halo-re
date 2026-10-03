@@ -281,17 +281,17 @@ void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed)
     halo::ui::UiControlsMenu::controls_populate_bind_rows(widget, packed);
 }
 
-void ui_controls_populate_input_row(widget_instance *widget, const uint8_t *profile_record)
+void ui_controls_populate_input_row(widget_instance *widget, const saved_player_profile *profile_record)
 {
     halo::ui::UiControlsMenu::controls_populate_input_row(widget, profile_record);
 }
 
-void ui_controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record)
+void ui_controls_populate_sensitivity_row(widget_instance *widget, const saved_player_profile *profile_record)
 {
     halo::ui::UiControlsMenu::controls_populate_sensitivity_row(widget, profile_record);
 }
 
-uint32_t ui_controls_sensitivity_row_refresh(widget_instance *widget, const uint8_t *profile_record)
+uint32_t ui_controls_sensitivity_row_refresh(widget_instance *widget, const saved_player_profile *profile_record)
 {
     return halo::ui::UiControlsMenu::controls_sensitivity_row_refresh(widget, profile_record);
 }
@@ -1123,12 +1123,12 @@ uint8_t ui_network_client_connect_and_save(void)
     return halo::ui::UiNetworkMenu::network_client_connect_and_save();
 }
 
-uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record)
+uint8_t ui_network_game_options_populate(widget_instance *widget, const saved_player_profile *options_record)
 {
     return halo::ui::UiNetworkMenu::network_game_options_populate(widget, options_record);
 }
 
-void ui_network_game_options_refresh(widget_instance *widget, const uint8_t *options_record)
+void ui_network_game_options_refresh(widget_instance *widget, const saved_player_profile *options_record)
 {
     halo::ui::UiNetworkMenu::network_game_options_refresh(widget, options_record);
 }

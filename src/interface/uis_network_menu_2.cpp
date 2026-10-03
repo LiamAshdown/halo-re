@@ -42,7 +42,7 @@ namespace halo::ui {
  */
 void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     widget_instance *target1;
     widget_instance *target2;
     widget_instance *target3;
@@ -50,8 +50,8 @@ void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_item_format_name_and_cache_flag));
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
     target1 = widget->extended_description->first_child->next_sibling->first_child;
     target2 = target1->next_sibling;
@@ -71,7 +71,7 @@ void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
  */
 uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
 {
-    uint8_t profile[k_saved_player_profile_size];
+    saved_player_profile profile;
     int32_t choice;
     int32_t last_row;
     int32_t index;
@@ -84,23 +84,23 @@ uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
         resolution_selection_00719204 = 0;
     }
     if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-        memcpy(profile, &profile_globals_block[0].profile, sizeof(profile));
+        profile = profile_globals_block[0].profile;
     } else {
-        halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile);
+        halo::saved_games::player_profile_set_default_server_options(&profile);
     }
 
-    wcslen((const wchar_t *)((const uint16_t *)(profile + 0xd8c)));
-    wcscpy((wchar_t *)network_host_name_00719170, (const wchar_t *)((const uint16_t *)(profile + 0xd8c)));
-    wcslen((const wchar_t *)((const uint16_t *)(profile + 0xeac)));
-    wcscpy((wchar_t *)network_host_subname_007191f0, (const wchar_t *)((const uint16_t *)(profile + 0xeac)));
+    wcslen((const wchar_t *)profile.server_name);
+    wcscpy((wchar_t *)network_host_name_00719170, (const wchar_t *)profile.server_name);
+    wcslen((const wchar_t *)profile.server_password);
+    wcscpy((wchar_t *)network_host_subname_007191f0, (const wchar_t *)profile.server_password);
 
-    choice = (profile[0xfc0] > 4) ? 4 : profile[0xfc0];
+    choice = (profile.connection_type > 4) ? 4 : profile.connection_type;
     last_row = resolution_row_count_table_0065bfb4[choice] - 1;
-    if ((int32_t)profile[0xebf] > last_row) {
-        profile[0xebf] = (uint8_t)last_row;
+    if ((int32_t)profile.server_maximum_players_index > last_row) {
+        profile.server_maximum_players_index = (uint8_t)last_row;
     }
     quality_selection_00692b04 = choice;
-    index = profile[0xebf];
+    index = profile.server_maximum_players_index;
     if (index < 0) {
         index = 0;
     } else if (index > last_row) {

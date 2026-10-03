@@ -577,12 +577,12 @@ tail_no_decrement:
  */
 void UiLists::selection_list_mirror_value_build(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int16_t selected_value;
     widget_instance *target;
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
     selected_value = *(int16_t *)&((struct widget_instance *)widget)->text;
     target = widget->extended_description->first_child->next_sibling->first_child;

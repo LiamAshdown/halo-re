@@ -2,6 +2,8 @@
 
 /* Include after the engine type headers (types/*.h carry no include guards). */
 
+struct saved_player_profile;
+
 namespace halo::ui {
 
 /**
@@ -14,9 +16,9 @@ struct UiControlsMenu {
     static uint32_t controls_options_populate_from_profile(widget_instance *widget);
     static uint8_t controls_options_reload_profile(void);
     static void controls_populate_bind_rows(widget_instance *widget, uint32_t packed);
-    static void controls_populate_input_row(widget_instance *widget, const uint8_t *profile_record);
-    static void controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record);
-    static uint32_t controls_sensitivity_row_refresh(widget_instance *widget, const uint8_t *profile_record);
+    static void controls_populate_input_row(widget_instance *widget, const saved_player_profile *profile_record);
+    static void controls_populate_sensitivity_row(widget_instance *widget, const saved_player_profile *profile_record);
+    static uint32_t controls_sensitivity_row_refresh(widget_instance *widget, const saved_player_profile *profile_record);
 };
 
 }

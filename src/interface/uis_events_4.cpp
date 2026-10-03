@@ -282,7 +282,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2190(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    const saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? (const saved_player_profile *)saved_item_working_copy : nullptr;
 
     if (profile == 0) {
         return 0;
@@ -320,7 +320,7 @@ uint8_t UiEventHandlers::event_4a21c0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2490(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    const saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? (const saved_player_profile *)saved_item_working_copy : nullptr;
 
     if (profile == 0) {
         return 0;
@@ -368,13 +368,13 @@ uint8_t UiEventHandlers::event_4a24c0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[k_saved_player_profile_size];
+    saved_player_profile profile;
     uint8_t ok;
 
-    memset(profile, 0, sizeof(profile));
-    ok = halo::saved_games::player_profile_set_default_audio_options((saved_player_profile *)profile);
+    memset(&profile, 0, sizeof(profile));
+    ok = halo::saved_games::player_profile_set_default_audio_options(&profile);
     if (ok != 0) {
-        halo::interface::ui_controls_populate_input_row(widget->parent->parent, profile);
+        halo::interface::ui_controls_populate_input_row(widget->parent->parent, &profile);
         halo::interface::widget_play_sound_effect(2);
     }
     return ok;
@@ -387,7 +387,7 @@ uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[k_saved_player_profile_size];
+    saved_player_profile profile;
     int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
     int32_t item;
 
@@ -397,10 +397,10 @@ uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, u
         return 0;
     }
     if (item < 0) {
-        if (halo::saved_games::player_profile_get(item, (saved_player_profile *)profile) == 0) {
+        if (halo::saved_games::player_profile_get(item, &profile) == 0) {
             return 0;
         }
-        halo::interface::player_profile_load(0, profile, item);
+        halo::interface::player_profile_load(0, &profile, item);
         return 1;
     }
     if (quit_confirm_error_string_index == -1) {
@@ -742,7 +742,7 @@ uint8_t UiEventHandlers::event_4a3870(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a39c0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    const saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? (const saved_player_profile *)saved_item_working_copy : nullptr;
 
     return halo::interface::ui_network_game_options_populate(widget, profile);
 }

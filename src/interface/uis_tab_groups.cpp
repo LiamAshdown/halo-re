@@ -8,6 +8,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "saved_games.h"
 #include <string.h>
 
 #include "halo/interface/uis_tab_groups.hpp"
@@ -16,7 +17,7 @@
 extern "C" {
 extern uint8_t ui_split_screen;
 extern int32_t input_device_count;
-extern uint8_t profile_globals_block[0x60a4];
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 }
 
 namespace halo::ui {
@@ -194,10 +195,10 @@ sync_visibility:
     }
 
     {
-        uint8_t profile_copy[0x2000];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        profile_copy = profile_globals_block[0].profile;
+        halo::interface::set_profile_name(widget, profile_copy.name);
     }
 }
 

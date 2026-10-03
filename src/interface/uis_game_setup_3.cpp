@@ -23,7 +23,7 @@
 extern "C" {
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
-extern uint8_t profile_globals_block[0x60a4];
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
 extern campaign_level_entry known_campaign_levels_00692acc[10];
@@ -40,13 +40,13 @@ namespace {
 /** Local helper shared by the handlers of this file. */
 static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
 {
-    uint8_t profile_copy[k_saved_player_profile_size];
+    saved_player_profile profile_copy;
     int16_t type;
     int16_t last_level;
 
-    memcpy(profile_copy, profile_globals_block + player * 0x2004, sizeof(profile_copy));
-    halo::saved_games::player_profile_scan_campaign_progress(&type, (saved_player_profile *)profile_copy, &last_level);
-    return profile_copy[0x11e + level_id] != 0 || level_id == last_level + 1 || level_id == 0;
+    profile_copy = profile_globals_block[player].profile;
+    halo::saved_games::player_profile_scan_campaign_progress(&type, &profile_copy, &last_level);
+    return profile_copy.campaign_progress[level_id] != 0 || level_id == last_level + 1 || level_id == 0;
 }
 
 }

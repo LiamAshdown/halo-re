@@ -658,6 +658,29 @@ typedef enum network_client_state {
 } network_client_state;
 
 // ---------------------------------------------------------------------------
+// network_game_search_entry  (0x4da7d0 add-or-update, 0x4da770 freshness test,
+// 0x4db9a0 beacon decode)
+// The LAN browse list. Nine fixed slots; an entry older than six seconds is wiped
+// before the incoming announcement is matched against the list.
+// ---------------------------------------------------------------------------
+typedef struct network_game_search_entry {
+    uint32_t identity[6];      // 0x000 copied verbatim from the announcement header
+    int32_t received_ms;       // 0x018 QPC milliseconds, the freshness stamp
+    uint16_t name[64];         // 0x01c UTF-16, wcsncpy of 0x3f then a forced NUL
+    uint32_t info[33];         // 0x09c 0x21 dwords lifted from announcement+0xd0
+    int16_t game_engine_index; // 0x120
+    int16_t player_count;      // 0x122 from announcement+0x156
+    int16_t unknown_124;       // 0x124
+    int16_t unknown_126;       // 0x126 from announcement+0x15a
+    int16_t unknown_128;       // 0x128
+    int16_t unknown_12a;       // 0x12a
+    uint8_t joinable;          // 0x12c needs announcement flag bit1 and under 16 players
+    uint8_t in_use;            // 0x12d
+    uint8_t stats_logging;     // 0x12e announcement flag bit2
+    uint8_t unknown_12f;       // 0x12f set when engine 3 and announcement flag bit3
+} network_game_search_entry;   // size 0x130
+
+// ---------------------------------------------------------------------------
 // network_client_globals  (0x4d8a80 network_session_create, 0x4d8b70 destroy)
 // The client and shared-game side block. create writes the storage at 0x00872de0
 // directly, so every offset below is that global minus 0x00872de0.
@@ -666,7 +689,8 @@ typedef struct network_client_globals {
     uint16_t machine_index;    // 0x000 0x4d94c0 stores join-accept +0xc; network_client_rejoin_check and ui
                                //    0x49dca0/0x4a5740 compare *(int16*)network_client to player.machine_index; 0xffff
                                //    at create
-    uint8_t unknown_002[0xab2];// 0x002
+    uint8_t pad_002[2];        // 0x002
+    network_game_search_entry search_entries[9]; // 0x004 the LAN browse list, 0x130 bytes each (the server list menu reads it)
     network_connection_endpoint connection; // 0xab4 the server this client is talking to
     network_channel *channel;  // 0xadc network_channel_new(2), deleted by destroy
     network_connection_attempt_state connect_attempt; // 0xae0
@@ -711,29 +735,6 @@ typedef struct network_client_globals {
 // global 0x0071c2c8: uint8_t bypasses the channel service back-off in 0x4dd110
 // global 0x0071c2dc: uint8_t shortens the disconnect timeout when clear (0x4ddd20)
 // global 0x0071c2de: uint8_t host-handoff request flag (0x4de390, 0x4dded0)
-
-// ---------------------------------------------------------------------------
-// network_game_search_entry  (0x4da7d0 add-or-update, 0x4da770 freshness test,
-// 0x4db9a0 beacon decode)
-// The LAN browse list. Nine fixed slots; an entry older than six seconds is wiped
-// before the incoming announcement is matched against the list.
-// ---------------------------------------------------------------------------
-typedef struct network_game_search_entry {
-    uint32_t identity[6];      // 0x000 copied verbatim from the announcement header
-    int32_t received_ms;       // 0x018 QPC milliseconds, the freshness stamp
-    uint16_t name[64];         // 0x01c UTF-16, wcsncpy of 0x3f then a forced NUL
-    uint32_t info[33];         // 0x09c 0x21 dwords lifted from announcement+0xd0
-    int16_t game_engine_index; // 0x120
-    int16_t player_count;      // 0x122 from announcement+0x156
-    int16_t unknown_124;       // 0x124
-    int16_t unknown_126;       // 0x126 from announcement+0x15a
-    int16_t unknown_128;       // 0x128
-    int16_t unknown_12a;       // 0x12a
-    uint8_t joinable;          // 0x12c needs announcement flag bit1 and under 16 players
-    uint8_t in_use;            // 0x12d
-    uint8_t stats_logging;     // 0x12e announcement flag bit2
-    uint8_t unknown_12f;       // 0x12f set when engine 3 and announcement flag bit3
-} network_game_search_entry;   // size 0x130
 
 // ---------------------------------------------------------------------------
 // player update history  (0x4e6b50 add, 0x4e6f20 free all, 0x4e6f60 find and

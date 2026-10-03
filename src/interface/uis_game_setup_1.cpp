@@ -37,7 +37,7 @@ extern int32_t cached_saved_game_something;
 extern uint8_t level_select_flags_0071916a;
 extern uint8_t level_select_flags_0071916b;
 extern uint8_t level_select_flags_0071916c;
-extern uint8_t profile_globals_block[0x60a4];
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern int16_t known_solo_level_index_00712f00;
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
@@ -50,7 +50,7 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
+extern saved_player_profile coop_profile_globals_block_00714ddc;
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern uint8_t save_in_progress_00719010;
@@ -76,7 +76,7 @@ namespace halo::ui {
 uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *param_2, void *param_3)
 {
     datum_index string_list_tag;
-    uint8_t profile_copy[0x2000];
+    saved_player_profile profile_copy;
     int16_t scan_type = 0;
     int16_t scan_level = 0;
     int32_t i;
@@ -97,10 +97,8 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         cached_saved_game_something = halo::saved_games::globals().player_profile_slots_handle;
     }
 
-    memcpy(profile_copy, profile_globals_block, sizeof(profile_copy) < sizeof(profile_globals_block)
-                                                     ? sizeof(profile_copy)
-                                                     : sizeof(profile_globals_block));
-    halo::saved_games::player_profile_scan_campaign_progress(&scan_type, (saved_player_profile *)profile_copy, &scan_level);
+    profile_copy = profile_globals_block[0].profile;
+    halo::saved_games::player_profile_scan_campaign_progress(&scan_type, &profile_copy, &scan_level);
 
     ui_lists[0].element_size = 0x10;
     ui_lists[1].element_size = 0x10;
@@ -132,8 +130,8 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
 
-        if (profile_copy[0x11e + i] != 0 || i == scan_level + 1 || i == 0) {
-            uint32_t flags = (uint32_t)(uint8_t)profile_copy[0x11e + i];
+        if (profile_copy.campaign_progress[i] != 0 || i == scan_level + 1 || i == 0) {
+            uint32_t flags = (uint32_t)(uint8_t)profile_copy.campaign_progress[i];
 
             level_select_entries[i].flag_bit1 = (uint8_t)((flags >> 1) & 1);
             level_select_entries[i].valid = 1;
@@ -227,8 +225,8 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
  */
 void UiGameSetup::build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3)
 {
-    uint8_t profile_copy_a[0x2000];
-    uint8_t profile_copy_b[0x2000];
+    saved_player_profile profile_copy_a;
+    saved_player_profile profile_copy_b;
     int16_t level_a = 0, type_a = 0;
     int16_t level_b = 0, type_b = 0;
     int32_t i;
@@ -238,19 +236,14 @@ void UiGameSetup::build_level_select_list_coop(widget_instance *widget, void *pa
 
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
-    memcpy(profile_copy_a, profile_globals_block,
-           sizeof(profile_copy_a) < sizeof(profile_globals_block) ? sizeof(profile_copy_a)
-                                                                    : sizeof(profile_globals_block));
-    halo::saved_games::player_profile_scan_campaign_progress(&type_a, (saved_player_profile *)profile_copy_a, &level_a);
-    memcpy(profile_copy_b, coop_profile_globals_block_00714ddc,
-           sizeof(profile_copy_b) < sizeof(coop_profile_globals_block_00714ddc)
-               ? sizeof(profile_copy_b)
-               : sizeof(coop_profile_globals_block_00714ddc));
-    halo::saved_games::player_profile_scan_campaign_progress(&type_b, (saved_player_profile *)profile_copy_b, &level_b);
+    profile_copy_a = profile_globals_block[0].profile;
+    halo::saved_games::player_profile_scan_campaign_progress(&type_a, &profile_copy_a, &level_a);
+    profile_copy_b = coop_profile_globals_block_00714ddc;
+    halo::saved_games::player_profile_scan_campaign_progress(&type_b, &profile_copy_b, &level_b);
 
     for (i = 0; i < 10; i++) {
-        uint8_t flag_a = profile_copy_a[0x11e + i];
-        uint8_t flag_b = profile_copy_b[0x11e + i];
+        uint8_t flag_a = profile_copy_a.campaign_progress[i];
+        uint8_t flag_b = profile_copy_b.campaign_progress[i];
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
         if (flag_a != 0 || i == level_a + 1 || flag_b != 0 || i == level_b + 1 || i == 0) {

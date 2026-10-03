@@ -268,7 +268,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     const char *password = 0;
     uint16_t wide_name[0x40];
     int32_t slots[100];
-    uint8_t profile[k_saved_player_profile_size];
+    saved_player_profile profile;
 
     if (!halo::shell::command_line_check_flag("-connect", &address) || address == 0) {
         return 0;
@@ -283,10 +283,10 @@ uint8_t NetworkSetup::autojoin_from_command_line()
             int32_t slot = slots[count - 1];
 
             if (slot == -1) {
-                memcpy(profile, default_profile_data, sizeof(profile));
-            } else if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile) != 0 &&
-                       wcscmp((const wchar_t *)wide_name, (const wchar_t *)((const uint16_t *)(profile + 2))) == 0) {
-                halo::interface::player_profile_load(0, profile, slot);
+                memcpy(&profile, default_profile_data, sizeof(profile));
+            } else if (halo::saved_games::player_profile_get(slot, &profile) != 0 &&
+                       wcscmp((const wchar_t *)wide_name, (const wchar_t *)profile.name) == 0) {
+                halo::interface::player_profile_load(0, &profile, slot);
                 break;
             }
             count--;

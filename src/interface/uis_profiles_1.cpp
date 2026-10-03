@@ -215,15 +215,15 @@ fail:
  */
 void UiProfiles::profile_carousel_fetch_name(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     uint16_t *dest;
 
-    memcpy(profile_record, &profile_globals_block[widget->controller_index].profile, sizeof(profile_record));
+    profile_record = profile_globals_block[widget->controller_index].profile;
 
     dest = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x18, widget_memory_pool);
     widget->text = dest;
     if (dest != 0) {
-        wcsncpy((wchar_t *)dest, (const wchar_t *)(profile_record + 2), 0x0b);
+        wcsncpy((wchar_t *)dest, (const wchar_t *)profile_record.name, 0x0b);
         dest[0x0b] = 0;
     }
 }
@@ -236,11 +236,11 @@ void UiProfiles::profile_carousel_fetch_name(widget_instance *widget)
  */
 void UiProfiles::profile_carousel_fetch_sensitivity(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int16_t raw_value;
 
-    memcpy(profile_record, &profile_globals_block[widget->controller_index].profile, sizeof(profile_record));
-    raw_value = *(int16_t *)(profile_record + 0x11a);
+    profile_record = profile_globals_block[widget->controller_index].profile;
+    raw_value = profile_record.player_color;
 
     if (raw_value < 0) {
         widget->background_bitmap_frame = 0;
@@ -308,12 +308,12 @@ void UiProfiles::profile_carousel_slot_cache_populate(int32_t count, const int32
  */
 void UiProfiles::profile_details_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
     widget->extended_description->first_child->next_sibling->background_bitmap_frame = 0;
     halo::interface::ui_level_carousel_row_refresh(widget->extended_description->first_child->next_sibling,

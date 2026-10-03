@@ -47,6 +47,9 @@ inline constexpr int32_t k_chat_property_remove_item = 0x182;
 inline constexpr int32_t k_chat_property_scroll = 0x115;
 inline constexpr int32_t k_chat_property_select_range = 0x201;
 
+/** Age in milliseconds after which a LAN server list entry no longer counts as live. */
+inline constexpr int32_t k_server_entry_stale_ms = 6000;
+
 /** Alpha byte of a fully opaque packed ARGB colour. */
 inline constexpr uint32_t k_argb_alpha_opaque = 0xff000000;
 

@@ -48,14 +48,14 @@ namespace halo::ui {
  */
 void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int16_t combo_index;
     const uint16_t *variant_description = 0;
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
     combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {

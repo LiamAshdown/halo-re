@@ -52,11 +52,11 @@ int32_t UiCarousels::carousel_slot_compare_valid_first(const int32_t *a, const i
 void UiCarousels::level_carousel_refresh(widget_instance *widget)
 {
     int32_t visible[3];
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int32_t i;
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description, profile_record.name);
     halo::interface::widget_list_scroll_window(visible, widget);
 
     for (i = 0; i < 3; i++) {
@@ -125,12 +125,12 @@ void UiCarousels::level_carousel_row_refresh(widget_instance *widget, int32_t le
  */
 void UiCarousels::map_list_carousel_refresh_window(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int32_t window[3];
     int32_t slot;
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description, profile_record.name);
 
     halo::interface::widget_list_scroll_window(window, widget);
 
