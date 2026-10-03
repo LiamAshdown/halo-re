@@ -739,7 +739,8 @@ typedef struct network_client_globals {
                                      //    failure
     uint8_t connection_stalled; // 0xee1 network_game_client_update: channel flags bit 5, also starts
                                 //    ui_network_wait_timeout; zeroed at create/finalize_join
-    uint16_t pad_ee2;          // 0xee2
+    uint8_t settings_ack_sent; // 0xee2 the game-settings ack goes out once; cleared when the challenge reply is built
+    uint8_t pad_ee3;           // 0xee3
     network_client_timer_record timer; // 0xee4 the first five dwords of the zeroed run
     network_resolved_address server_address; // 0xef8 filled by 0x4dd390 from
                                //       client->channel; 0x4d9f23 is `lea ecx,[esi+0xef8]`
