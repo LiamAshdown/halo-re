@@ -355,8 +355,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
 
         owner = claims[i];
         if (owner != halo::k_dword_none) {
-            actor *owner_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data +
-                                           (owner & halo::k_slot_mask) * sizeof(actor));
+            actor *owner_actor = halo::ai::actor_at(owner);
             if (query->goal_kind == 4 && query->danger_sphere_count < 0x20) {
                 query->danger_spheres[query->danger_sphere_count].position =
                     *(real_point3d *)fp;
@@ -1019,8 +1018,7 @@ void halo::ai::firing_position_ops::get_firing_positions(actor_firing_positions 
 
     if (0 < component_count) {
         for (i = 0; i < component_count; i++) {
-            component = (swarm_component *)((uint8_t *)halo::ai::globals().swarm_component_data->data +
-                                            (group->component_index[i] & halo::k_slot_mask) * sizeof(swarm_component));
+            component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[group->component_index[i] & halo::k_slot_mask];
             dx = query_point->x - component->position.x;
             dy = query_point->y - component->position.y;
             dz = query_point->z - component->position.z;

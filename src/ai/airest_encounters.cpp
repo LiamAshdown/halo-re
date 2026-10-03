@@ -3489,8 +3489,7 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, const
     group = halo::ai::swarm_at(swarm_index);
     if (0 < group->component_count) {
         for (i = 0; i < group->component_count; i++) {
-            component = (swarm_component *)((uint8_t *)halo::ai::globals().swarm_component_data->data +
-                                            (group->component_index[i] & halo::k_slot_mask) * sizeof(swarm_component));
+            component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[group->component_index[i] & halo::k_slot_mask];
             dx = rx - component->position.x;
             dy = ry - component->position.y;
             dz = rz - component->position.z;

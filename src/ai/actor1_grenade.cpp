@@ -160,8 +160,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
-                                        (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
+        encounter *enc = halo::ai::encounter_at(self->encounter_index);
         int32_t squad_deadline = enc->last_grenade_time;
 
         random_wait = variant->encounter_grenade_timeout *
@@ -248,8 +247,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
                 self->throw_grenade = 1;
                 self->grenade_throw_pending = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
-                    encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
-                                                    (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
+                    encounter *enc = halo::ai::encounter_at(self->encounter_index);
                     enc->last_grenade_time = halo::game::globals().game_time->game_time;
                 }
                 return 1;

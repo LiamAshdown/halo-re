@@ -1747,8 +1747,7 @@ uint8_t ActorView::score_blast_area_clear(float blast_radius, float safety_radiu
                         if (p->swarm_owned == 0) {
                             score++;
                         } else {
-                            actor *owner_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data +
-                                                            (owner & halo::k_slot_mask) * sizeof(actor));
+                            actor *owner_actor = halo::ai::actor_at(owner);
                             score += owner_actor->cluster_count;
                         }
                     }

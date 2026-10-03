@@ -298,8 +298,7 @@ void halo::ai::combat_ops::choose_best_target()
                 owning_actor_index = halo::units::unit_data_of(tracked_object)->actor_index;
                 target_actor = (actor *)0;
                 if (owning_actor_index != (datum_index)k_datum_index_none) {
-                    target_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data +
-                                             (owning_actor_index & halo::k_slot_mask) * sizeof(actor));
+                    target_actor = halo::ai::actor_at(owning_actor_index);
                 }
 
                 if ((int32_t)halo::units::unit_data_of(tracked_object)->controlling_player != -1) {

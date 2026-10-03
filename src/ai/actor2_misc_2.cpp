@@ -188,10 +188,10 @@ void ActorView::refresh_combat_context()
 
                     if (encounter_record->follow_target_type > 0) {
                         int16_t first = encounter_record->first_squad;
-                        uint8_t *states = (uint8_t *)halo::ai::globals().squad_states;
+                        encounter_squad_state *states = halo::ai::globals().squad_states;
 
-                        if (states[(int16_t)(first + self->squad_index) * 0x20 + 0x10] != 0 &&
-                            states[(int16_t)(first + wanted_squad) * 0x20 + 0x10] != 0) {
+                        if (states[(int16_t)(first + self->squad_index)].automatic_migration != 0 &&
+                            states[(int16_t)(first + wanted_squad)].automatic_migration != 0) {
                             move = 0;
                         }
                     }
@@ -203,7 +203,7 @@ void ActorView::refresh_combat_context()
                     self->saved_squad_index = self->squad_index;
                     self->squad_link_saved = 1;
                     if (encounter != k_datum_index_none) {
-                        *((uint8_t *)halo::ai::globals().encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
+                        halo::ai::encounter_at(encounter)->squads_carried_over = 1;
                     }
                 }
                 halo::ai::actor_reset_squad_link_for_type_change(actor_index, wanted_encounter, wanted_squad);

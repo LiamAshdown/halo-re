@@ -1506,8 +1506,7 @@ uint8_t ActorView::update_melee_combat_action()
     actor *a = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
     datum_index encounter_index = a->encounter_index;
-    struct encounter *encounter = (struct encounter *)(encounter_index != k_datum_index_none
-        ? (uint8_t *)halo::ai::globals().encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size : 0);
+    struct encounter *encounter = encounter_index != k_datum_index_none ? halo::ai::encounter_at(encounter_index) : 0;
     uint8_t result = 0;
     uint8_t regroup = 0;
     uint8_t searching = 0;
@@ -1560,8 +1559,7 @@ uint8_t ActorView::update_melee_combat_action()
     }
 
     {
-        prop *target = (prop *)(a->target_unit_index != k_datum_index_none
-            ? (uint8_t *)halo::ai::globals().prop_data->data + (a->target_unit_index & halo::k_slot_mask) * k_prop_size : 0);
+        prop *target = a->target_unit_index != k_datum_index_none ? halo::ai::prop_at(a->target_unit_index) : 0;
         uint8_t hold = 0;
         uint8_t advance = 0;
         uint8_t pressed = 0;
