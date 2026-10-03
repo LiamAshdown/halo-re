@@ -33,4 +33,16 @@ inline uint32_t pack_opaque_color(float red, float green, float blue) noexcept
     return color;
 }
 
+/** Language id (LCID) the shader compiler runs under. */
+inline constexpr uint32_t k_locale_english_us = 1033;
+
+/** Values of the force_shader setting with a special meaning. */
+inline constexpr uint32_t k_force_shader_fallback = 9997;
+inline constexpr uint32_t k_force_shader_ps_2_a = 9998;
+
+/** Size of the loading screen surface and the id of its bitmap resource. */
+inline constexpr uint32_t k_loading_screen_width = 640;
+inline constexpr uint32_t k_loading_screen_height = 480;
+inline constexpr uint32_t k_loading_screen_resource_id = 134;
+
 }  // namespace halo::rasterizer

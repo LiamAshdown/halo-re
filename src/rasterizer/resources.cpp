@@ -13,12 +13,10 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/rasterizer/d3dx.hpp"
 #include "halo/core/win32_constants.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include <cstring>
 
 namespace {
-
-/** Value of the force_shader setting that selects the fallback technique instead of a pixel shader version. */
-constexpr uint32_t k_force_shader_fallback = 0x270d;
 
 /** Size of the miscellaneous vertex buffer and of the prefix of it that is cleared on creation. */
 constexpr uint32_t k_misc_vertex_buffer_bytes = 0x10000;
@@ -259,7 +257,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
     technique = 0;
     found = 0;
 
-    if (halo::shell::globals().safe_mode == 0 && halo::shell::globals().force_shader != k_force_shader_fallback) {
+    if (halo::shell::globals().safe_mode == 0 && halo::shell::globals().force_shader != halo::rasterizer::k_force_shader_fallback) {
         major = (rasterizer_caps.pixel_shader_version >> 8) & 0xff;
         minor = rasterizer_caps.pixel_shader_version & 0xff;
         for (; !found && major >= 0; major--, minor = 9) {

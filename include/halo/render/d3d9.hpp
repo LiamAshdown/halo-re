@@ -422,7 +422,23 @@ inline constexpr uint32_t k_format_a8r8g8b8 = 21;
 inline constexpr uint32_t k_format_d24s8 = 75;
 
 /** D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1. */
-inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = 0x144;
+inline constexpr uint32_t k_fvf_xyzrhw = 0x4;
+inline constexpr uint32_t k_fvf_diffuse = 0x40;
+inline constexpr uint32_t k_fvf_specular = 0x80;
+inline constexpr uint32_t k_fvf_tex1 = 0x100;
+inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = k_fvf_xyzrhw | k_fvf_diffuse | k_fvf_tex1;
+inline constexpr uint32_t k_fvf_xyzrhw_diffuse_specular_tex1 = k_fvf_xyzrhw | k_fvf_diffuse | k_fvf_specular | k_fvf_tex1;
+
+/** D3DCLEAR_TARGET, D3DCLEAR_ZBUFFER and D3DCLEAR_STENCIL. */
+inline constexpr uint32_t k_clear_target = 1;
+inline constexpr uint32_t k_clear_zbuffer = 2;
+inline constexpr uint32_t k_clear_stencil = 4;
+
+/** D3DCOLOR_ARGB: one 8 bit channel per byte. */
+constexpr uint32_t color_argb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue) noexcept
+{
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
+}
 
 /** D3DERR_DEVICELOST and D3DERR_DRIVERINTERNALERROR. */
 inline constexpr int32_t k_error_device_lost = static_cast<int32_t>(0x88760868);
