@@ -839,7 +839,7 @@ void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, 
 
         do {
             root = cursor;
-            cursor = *(datum_index *)(object_get(cursor) + 0x11c);
+            cursor = ((object *)object_get(cursor))->parent_object;
         } while (cursor != k_datum_index_none);
     }
     root_object = object_get(root);
@@ -868,8 +868,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
 {
     using namespace c_actor_find_best_search_node;
     datum_index actor_index = datum;
-    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((object_header *)halo::objects::globals().object_data->data)
-                                                        [vehicle_index & halo::k_slot_mask].data & halo::k_slot_mask].data;
+    Unit *vehicle_tag = halo::ai::tag_data<Unit>(((object_header *)halo::objects::globals().object_data->data)[vehicle_index & halo::k_slot_mask].data->definition_tag);
     int16_t best_seat = -1;
     float best_score = 0.0f;
     real_point3d best_entry = {0.0f, 0.0f, 0.0f};
@@ -877,7 +876,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
     real_point3d best_hint = {0.0f, 0.0f, 0.0f};
     int16_t i;
 
-    for (i = 0; i < *(int32_t *)(vehicle_tag + 0x2e4); i++) {
+    for (i = 0; i < (int32_t)vehicle_tag->seats.count; i++) {
         real_point3d entry;
         real_vector3d direction;
         real_point3d hint;

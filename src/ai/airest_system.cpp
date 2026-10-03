@@ -647,11 +647,11 @@ void AiSystem::process_vehicle_entry_queue()
 
     for (queue_index = 0; queue_index < halo::ai::globals().state->vehicle_entry_count; queue_index++) {
         datum_index vehicle_index = halo::ai::globals().state->vehicle_entry_queue[queue_index];
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)halo::ai::object_bytes(vehicle_index) & halo::k_slot_mask].data;
+        Unit *vehicle_tag = halo::ai::tag_data<Unit>(halo::ai::object_at(vehicle_index)->definition_tag);
         int16_t seat_index;
 
-        for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
-            datum_index gunner_tag = *(datum_index *)(*(uint8_t **)(vehicle_tag + 0x2e8) + seat_index * 0x11c + 0x104);
+        for (seat_index = 0; seat_index < (int32_t)vehicle_tag->seats.count; seat_index++) {
+            datum_index gunner_tag = halo::ai::tag_handle(halo::ai::reflexive_data<UnitSeat>(vehicle_tag->seats)[seat_index].built_in_gunner);
             actor_placement_request request;
             object *vehicle;
             datum_index actor_index;
@@ -660,7 +660,8 @@ void AiSystem::process_vehicle_entry_queue()
                 continue;
             }
             memset(&request, 0, 0x1c);
-            *(int16_t *)((uint8_t *)&request + 0x1a) = -1;
+            request.unknown_1a[0] = 0xff;
+            request.unknown_1a[1] = 0xff;
             vehicle = (object *)halo::ai::object_bytes(vehicle_index);
             if (((vehicle_object *)vehicle)->base.parent_object == k_datum_index_none) {
                 request.position = *(real_point3d *)&((vehicle_object *)vehicle)->base.position.x;
@@ -842,8 +843,8 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         datum_index root = unit_index;
         int16_t cluster;
 
-        while (*(datum_index *)(halo::ai::object_bytes(root) + 0x11c) != k_datum_index_none) {
-            root = *(datum_index *)(halo::ai::object_bytes(root) + 0x11c);
+        while (halo::ai::object_at(root)->parent_object != k_datum_index_none) {
+            root = halo::ai::object_at(root)->parent_object;
         }
         cluster = *(int16_t *)(halo::ai::object_bytes(root) + 0x9c);
         if (cluster == -1 ||
