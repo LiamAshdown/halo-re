@@ -272,8 +272,8 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     variant = halo::ai::tag_data<ActorVariant>(self->actor_variant_tag);
 
     entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)variant->grenade_type * 0x44;
-    projectile_definition = (void *)0;
-    if (entry != (uint8_t *)0) {
+    projectile_definition = nullptr;
+    if (entry != nullptr) {
         projectile_tag = *(uint32_t *)(entry + 0x40);
         if (projectile_tag != halo::k_dword_none) {
             projectile_definition = halo::cache::globals().tag_instances[projectile_tag & halo::k_slot_mask].data;

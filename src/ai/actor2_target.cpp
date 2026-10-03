@@ -304,7 +304,7 @@ uint32_t TargetView::target_data_release(uint32_t actor_index, uint8_t *out_conf
         result = 1;
     }
 
-    if (out_conflict_flag != (uint8_t *)0) {
+    if (out_conflict_flag != nullptr) {
         *out_conflict_flag = conflict;
     }
     return result;
@@ -410,7 +410,7 @@ void TargetView::target_get_relationship_object()
             return;
         }
         resolved = target->object_index;
-        if (halo::objects::object_try_and_get(resolved, 1) != (void *)0) {
+        if (halo::objects::object_try_and_get(resolved, 1) != nullptr) {
             resolved = halo::units::biped_get_cached_look_at_position(resolved, &target->pathfinding_point);
             *cache = (int32_t)resolved;
         }
@@ -1611,10 +1611,10 @@ uint8_t ActorOps::targets_share_descriptor(datum_index actor_a, datum_index acto
     self_a = halo::ai::actor_at(actor_a);
     self_b = halo::ai::actor_at(actor_b);
 
-    desc_a = (self_a->mode == halo::ai::actor_mode::search || self_a->mode == halo::ai::actor_mode::uncover) ? &self_a->mode_data.search.stage : (int16_t *)0;
-    desc_b = (self_b->mode == halo::ai::actor_mode::search || self_b->mode == halo::ai::actor_mode::uncover) ? &self_b->mode_data.search.stage : (int16_t *)0;
+    desc_a = (self_a->mode == halo::ai::actor_mode::search || self_a->mode == halo::ai::actor_mode::uncover) ? &self_a->mode_data.search.stage : nullptr;
+    desc_b = (self_b->mode == halo::ai::actor_mode::search || self_b->mode == halo::ai::actor_mode::uncover) ? &self_b->mode_data.search.stage : nullptr;
 
-    if (desc_a == (int16_t *)0 || desc_b == (int16_t *)0) {
+    if (desc_a == nullptr || desc_b == nullptr) {
         return 0;
     }
 

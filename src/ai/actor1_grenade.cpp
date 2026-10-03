@@ -769,7 +769,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
     uint8_t used_straight_line;
 
     entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)grenade_type * 0x44;
-    if (entry == (uint8_t *)0) {
+    if (entry == nullptr) {
         return 0;
     }
     projectile_tag = *(uint32_t *)(entry + 0x40);
@@ -778,7 +778,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
     }
 
     projectile_definition = halo::cache::globals().tag_instances[projectile_tag & halo::k_slot_mask].data;
-    if (projectile_definition == (void *)0) {
+    if (projectile_definition == nullptr) {
         return 0;
     }
 
@@ -795,7 +795,7 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
         out_velocity->j = scale * direction->j;
         out_velocity->k = scale * direction->k;
     }
-    if (out_gravity != (float *)0) {
+    if (out_gravity != nullptr) {
 
         if (used_straight_line) {
             *out_gravity = 0.0f;

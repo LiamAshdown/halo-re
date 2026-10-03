@@ -446,7 +446,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                     actor_firing_position_candidate *c = &candidates[i];
 
                     halo::ai::path_find_compute_heuristic(&target_context, halo::ai::candidate_firing_position(*c)->surface_index,
-                                 halo::ai::candidate_point(*c), &c->distance_from_target, (float *)0,
+                                 halo::ai::candidate_point(*c), &c->distance_from_target, nullptr,
                                  (query->want_direction_from_target != 0) ? &c->direction_from_target : 0);
                 }
             }
@@ -622,7 +622,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         *out_candidate = candidates[(int16_t)best_index];
     }
     i = candidates[(int16_t)best_index].firing_position_index;
-    if (out_previous_owner != (uint32_t *)0) {
+    if (out_previous_owner != nullptr) {
         *out_previous_owner = claims[i];
     }
     return (uint32_t)(uint16_t)(int16_t)i;

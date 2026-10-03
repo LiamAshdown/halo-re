@@ -944,7 +944,7 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
         }
     }
 
-    if (out_avoidance_distance != (float *)0) {
+    if (out_avoidance_distance != nullptr) {
         *out_avoidance_distance = avoidance_distance;
     }
     return needs_steering;
@@ -1007,10 +1007,10 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
         acceleration = deceleration;
     }
 
-    if (out_stop_distance != (float *)0) {
+    if (out_stop_distance != nullptr) {
         *out_stop_distance = (speed * speed) / (deceleration + deceleration);
     }
-    if (out_accelerate_stop_distance != (float *)0) {
+    if (out_accelerate_stop_distance != nullptr) {
         if (top_speed < speed) {
             top_speed = speed;
         }
@@ -1266,7 +1266,7 @@ int16_t ActorOps::movement_test_obstacle_ray(real_vector3d *out_elevation, const
         }
     }
 
-    if (out_clear_counter != (uint8_t *)0) {
+    if (out_clear_counter != nullptr) {
         if (result > 0) {
             *out_clear_counter = 0;
             return result;

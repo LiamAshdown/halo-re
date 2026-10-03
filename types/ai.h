@@ -2546,17 +2546,18 @@ typedef struct actor_unit_position_context {
 
 // The spawn request actor_place_new_unit @0x421ea0 reads out of EAX.
 typedef struct actor_placement_request {
-    real_point3d position;  // 0x00
-    float yaw;              // 0x0c
-    uint8_t unknown_10[2];  // 0x10 UNSURE
-    uint8_t unknown_12;     // 0x12 read as a signed byte
-    uint8_t unknown_13[3];  // 0x13 FIXED: was [2], which put unknown_16.. one byte low (pack(1) header)
-    int16_t initial_state_override; // 0x16 0x16 when positive replaces the squad initial_state passed to
+    real_point3d position;  // 0x00 ScenarioActorStartingLocation.position
+    float yaw;              // 0x0c ScenarioActorStartingLocation.facing
+    uint16_t cluster_index; // 0x10 the starting location's cluster
+    int8_t sequence_id;     // 0x12 read as a signed byte and passed to actor_new_and_attach_to_unit
+    uint8_t flags;          // 0x13 ScenarioActorStartingLocationFlags
+    int16_t return_state_override;  // 0x14 when positive replaces the squad return_state
+    int16_t initial_state_override; // 0x16 when positive replaces the squad initial_state passed to
                                     //    actor_new_and_attach_to_unit in actor_place_new_unit
-    uint8_t unknown_18[2];  // 0x18
-    uint8_t unknown_1a[2];  // 0x1a UNSURE
+    uint16_t actor_type;    // 0x18 the starting location's palette entry override
+    uint16_t command_list;  // 0x1a passed through as actor_new_and_attach_to_unit's command list word (-1 for none)
     int16_t unknown_1c;     // 0x1c UNSURE, actor.unknown_62 default
-} actor_placement_request; // size 0x1e, only verified up to 0x1d
+} actor_placement_request; // size 0x1e, the layout of ScenarioActorStartingLocation (0x1c) plus a trailing word
 
 // The block actor_reset_perception_scratch @0x41d3b0 zeroes.
 typedef struct actor_perception_request {

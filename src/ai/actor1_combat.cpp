@@ -1467,7 +1467,7 @@ void * halo::ai::combat_ops::get_threat_weapon_definition()
         object *obj = hdr->data;
         return halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
     }
-    return (void *)0;
+    return nullptr;
 }
 
 namespace halo::ai {

@@ -660,8 +660,7 @@ void AiSystem::process_vehicle_entry_queue()
                 continue;
             }
             memset(&request, 0, 0x1c);
-            request.unknown_1a[0] = 0xff;
-            request.unknown_1a[1] = 0xff;
+            request.command_list = halo::k_word_none;
             vehicle = (object *)halo::ai::object_bytes(vehicle_index);
             if (((vehicle_object *)vehicle)->base.parent_object == k_datum_index_none) {
                 request.position = *(real_point3d *)&((vehicle_object *)vehicle)->base.position.x;
@@ -1256,7 +1255,7 @@ uint8_t ProjectileAim::get_aiming_vector(real_point3d *target, real *speed_in, P
         solver = &k_ballistic_arc_solver;
     }
     solved = solver->solve(request);
-    if (out_used_straight_line != (uint8_t *)0) {
+    if (out_used_straight_line != nullptr) {
         *out_used_straight_line = solver->is_straight_line();
     }
     return solved;

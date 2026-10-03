@@ -287,7 +287,7 @@ static auto &object_type_definitions = halo::link::ref<object_type_definition *[
 datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, datum_index encounter_index, int16_t squad_index, uint8_t use_palette_entry, uint16_t unit_type_index, const actor_placement_request *placement_request)
 {
     using namespace actor_place_new_unit_local;
-    const uint8_t *request = (const uint8_t *)placement_request;
+    const actor_placement_request *request = placement_request;
     datum_index variant_tag = actor_variant_or_palette_tag;
     ActorVariant *variant;
     Actor *actor_definition;
@@ -309,8 +309,8 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     }
     actor_definition = halo::ai::tag_data<Actor>(halo::ai::tag_handle(variant->actor_definition));
     halo::objects::object_placement_data_initialize(&placement, *(datum_index *)&((ActorVariant *)variant)->unit.tag_id, k_datum_index_none);
-    yaw = ((struct actor_placement_request *)request)->yaw;
-    placement.position = *(const real_point3d *)request;
+    yaw = request->yaw;
+    placement.position = request->position;
     placement.permutation_group = (int16_t)unit_type_index;
     placement.forward.i = (float)halo::libm::cos((double)yaw);
     placement.forward.j = (float)halo::libm::sin((double)yaw);
@@ -338,15 +338,15 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
         return_state = static_cast<uint16_t>(squad->return_state);
         start_active = (char)((encounter->flags >> 4) & 1);
     }
-    if (((struct actor_placement_request *)request)->initial_state_override > 0) {
-        initial_state = static_cast<uint16_t>(((struct actor_placement_request *)request)->initial_state_override);
+    if (request->initial_state_override > 0) {
+        initial_state = static_cast<uint16_t>(request->initial_state_override);
     }
-    if (*(const int16_t *)(request + 0x14) > 0) {
-        return_state = *(const uint16_t *)(request + 0x14);
+    if (request->return_state_override > 0) {
+        return_state = static_cast<uint16_t>(request->return_state_override);
     }
     result = halo::ai::actor_new_and_attach_to_unit(swarm, unit_index, variant_tag, encounter_index, squad_index, 0,
-        k_datum_index_none, start_active, initial_state, (int16_t)return_state, *(const uint16_t *)(request + 0x1a),
-        (uint8_t)static_cast<int8_t>(((struct actor_placement_request *)request)->unknown_12));
+        k_datum_index_none, start_active, initial_state, (int16_t)return_state, request->command_list,
+        (uint8_t)request->sequence_id);
     if (result == k_datum_index_none) {
         int32_t kind = halo::ai::object_at(unit_index)->network_role;
 
@@ -1818,7 +1818,7 @@ uint8_t ActorView::score_blast_area_clear(float blast_radius, float safety_radiu
         }
     }
 
-    if (out_count != (int16_t *)0) {
+    if (out_count != nullptr) {
         *out_count = score;
     }
     return clear;

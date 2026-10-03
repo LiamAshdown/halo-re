@@ -297,7 +297,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
         return;
     }
 
-    offset = (void *)0;
+    offset = nullptr;
     direction = (real_vector3d *)0;
 
     if (query->goal_kind == 1 || query->goal_kind == 2) {
@@ -476,7 +476,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
                                                            : variant->desired_combat_range[1];
                 weapon_definition = (Weapon *)halo::ai::actor_get_threat_weapon_definition(actor_index);
                 minimum_range = 0.0f;
-                if (weapon_definition != (void *)0 &&
+                if (weapon_definition != nullptr &&
                     weapon_definition->minimum_target_range > 0.0f &&
                     minimum_range <= weapon_definition->minimum_target_range) {
                     minimum_range = weapon_definition->minimum_target_range;
