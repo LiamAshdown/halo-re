@@ -1,0 +1,66 @@
+#include "halo/items/items.hpp"
+
+extern "C" {
+extern data_array *object_data;
+extern int8_t weapon_has_active_state(datum_index item_index);
+extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
+extern void weapon_reset_triggers(datum_index item_index);
+extern void effect_delete(datum_index handle);
+extern uint32_t local_player_index_for_weapon(datum_index item_index);
+extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
+extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
+}
+
+namespace halo::items {
+
+/**
+ * Puts a weapon away: refuses (returns 0) if it has active trigger/reload state and the request
+ * isn't forced, otherwise clears control_flags, resets every trigger, deletes any overheat
+ * particle system and plays the put-away first-person action.
+ *
+ * @address 0x4c28f0
+ */
+int32_t weapon_ref::put_away(int8_t force)
+{
+    datum_index item_index = datum;
+    object *item_obj;
+    weapon_data *wd;
+    uint32_t action_handle;
+
+    item_obj = ((object_header *)object_data->data)[(uint16_t)item_index].data;
+    wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
+
+    if (force == 0 && weapon_has_active_state(item_index) != 0) {
+        return 0;
+    }
+    if (weapon_set_state(item_index, _weapon_state_put_away, 0) == 0) {
+        return 0;
+    }
+
+    wd->control_flags = 0;
+    weapon_reset_triggers(item_index);
+
+    if (wd->overheat_effect_handle != (datum_index)0xffffffff) {
+        effect_delete(wd->overheat_effect_handle);
+        wd->overheat_effect_handle = (datum_index)0xffffffff;
+    }
+
+    action_handle = local_player_index_for_weapon(item_index);
+    first_person_weapon_process_action(action_handle, 0x0b);
+    if ((int16_t)action_handle == -1) {
+        hud_play_pickup_notification(item_index, 0xb);
+    }
+
+    return 1;
+}
+
+}
+
+extern "C" {
+
+int32_t weapon_put_away(datum_index item_index, int8_t force)
+{
+    return halo::items::weapon_ref(item_index).put_away(force);
+}
+
+}
