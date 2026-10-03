@@ -268,6 +268,7 @@ inline constexpr uint32_t k_pixel_shader_version_1_0 = 0xffff0100;
 inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101;
 inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
 inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
+inline constexpr uint32_t k_pixel_shader_version_2_0 = 0xffff0200;
 
 /** D3DLIGHTTYPE values. */
 inline constexpr uint32_t k_light_point = 1;
@@ -305,6 +306,32 @@ inline constexpr uint32_t k_format_x8r8g8b8 = 22;
 
 /** D3DERR_DEVICENOTRESET. */
 inline constexpr int32_t k_error_device_not_reset = static_cast<int32_t>(0x88760869);
+
+/** D3DFMT_A8R8G8B8 and D3DFMT_D24S8. */
+inline constexpr uint32_t k_format_a8r8g8b8 = 21;
+inline constexpr uint32_t k_format_d24s8 = 75;
+
+/** D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1. */
+inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = 0x144;
+
+/** D3DERR_DEVICELOST and D3DERR_DRIVERINTERNALERROR. */
+inline constexpr int32_t k_error_device_lost = static_cast<int32_t>(0x88760868);
+inline constexpr int32_t k_error_driver_internal_error = static_cast<int32_t>(0x88760827);
+
+/** D3DPRESENT_INTERVAL_ONE and D3DPRESENT_INTERVAL_IMMEDIATE. */
+inline constexpr uint32_t k_present_interval_one = 1;
+inline constexpr uint32_t k_present_interval_immediate = 0x80000000u;
+
+/** D3D_SDK_VERSION passed to Direct3DCreate9. */
+inline constexpr uint32_t k_sdk_version = 0x1f;
+
+/** D3DCREATE_* behaviour flags. */
+inline constexpr uint32_t k_create_fpu_preserve = 0x02;
+inline constexpr uint32_t k_create_multithreaded = 0x04;
+inline constexpr uint32_t k_create_software_vertex_processing = 0x20;
+inline constexpr uint32_t k_create_hardware_vertex_processing = 0x40;
+inline constexpr uint32_t k_create_mixed_vertex_processing = 0x80;
+inline constexpr uint32_t k_create_disable_driver_management = 0x100;
 
 /** The method table (first dword of a COM object) as an array of function pointers. */
 inline void **method_table(void *com_object) noexcept { return *reinterpret_cast<void ***>(com_object); }
