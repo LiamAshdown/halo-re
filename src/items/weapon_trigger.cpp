@@ -567,19 +567,19 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
         ready = 0;
     }
 
-    if (halo::scenario::scenario_location_get_water_and_weather((real_point3d *)((uint8_t *)item_obj + 0x5c),
-            (bsp_leaf_reference *)((uint8_t *)item_obj + 0x98), 0) == 0 && ready) {
+    if (halo::scenario::scenario_location_get_water_and_weather(&item_obj->position,
+            (bsp_leaf_reference *)&item_obj->location_leaf_index, 0) == 0 && ready) {
         if (force == 0) {
             if (tag_trigger->charging_time > 0.0f) {
-                if ((weapon_tag->weapon_flags & 0x800) != 0 && wd->age >= 1.0f) {
+                if (weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::cannot_fire_at_maximum_age) && wd->age >= 1.0f) {
                     halo::items::weapon_fire_trigger(item_index, trigger_index);
                     return;
                 }
                 if (weapon_tag->triggers.count < 2) {
                     if (wd->triggers[trigger_index].firing_rate <= 0.0f) {
-                        wd->triggers[trigger_index].flags &= ~0x20;
+                        wd->triggers[trigger_index].flags &= ~(uint32_t)_weapon_trigger_charge_effect_bit;
                     } else {
-                        wd->triggers[trigger_index].flags |= 0x20;
+                        wd->triggers[trigger_index].flags |= _weapon_trigger_charge_effect_bit;
                         halo::items::weapon_fire_trigger(item_index, trigger_index);
                     }
                 } else {
@@ -778,7 +778,7 @@ int32_t weapon_trigger_ref::ready_to_fire(int16_t trigger_index)
     trigger = &wd->triggers[trigger_index];
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
 
-    rate = (tag_trigger->flags & 0x200) == 0 ? trigger->firing_rate : wd->primary_trigger;
+    rate = !trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::analog_rate_of_fire) ? trigger->firing_rate : wd->primary_trigger;
     rate = (tag_trigger->maximum_rate_of_fire[1] - tag_trigger->maximum_rate_of_fire[0]) * rate +
            tag_trigger->maximum_rate_of_fire[0];
 
@@ -790,7 +790,7 @@ int32_t weapon_trigger_ref::ready_to_fire(int16_t trigger_index)
     idle_plus_one = (real)trigger->idle_ticks + 1.0f;
     ready = idle_plus_one >= ticks_per_shot;
 
-    if ((tag_trigger->flags & 8) != 0 && (id->flags & _item_held_by_player_bit) != 0 &&
+    if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::does_not_repeat_automatically) && (id->flags & _item_held_by_player_bit) != 0 &&
         (trigger->flags & _weapon_trigger_not_pulled_bit) == 0) {
         ready = 0;
     }

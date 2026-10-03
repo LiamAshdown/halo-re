@@ -1,4 +1,5 @@
 #include "halo/core/lcg.hpp"
+#include "halo/items/tag_flags.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -81,8 +82,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         if (!is_alternate_shot || wd->alternate_shots_loaded < weapon_tag->maximum_alternate_shots_loaded) {
             int16_t rounds_loaded = magazine->rounds_loaded;
 
-            if ((tag_trigger->rounds_per_shot <= rounds_loaded || (tag_trigger->flags & 4) != 0) &&
-                ((weapon_tag->weapon_flags & 0x800) == 0 || wd->age < 1.0f) &&
+            if ((tag_trigger->rounds_per_shot <= rounds_loaded || trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::can_fire_with_partial_ammo)) &&
+                (!weapon_has(weapon_tag->weapon_flags, weapon_tag_flag::cannot_fire_at_maximum_age) || wd->age < 1.0f) &&
                 (tag_trigger->minimum_rounds_loaded <= rounds_loaded || (trigger->flags & _weapon_trigger_not_pulled_bit) == 0)) {
                 uint8_t emptied = 0;
 
@@ -117,7 +118,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             uint16_t start_index = trigger->firing_effect_index;
             uint16_t chosen_index = start_index;
 
-            if (tag_trigger->flags & 2) {
+            if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::random_firing_effects)) {
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 chosen_index = (uint16_t)((halo::math::globals().random_seed_global >> 0x10) % (uint32_t)tag_trigger->firing_effects.count);
             }
@@ -204,7 +205,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             }
         }
 
-        if (tag_trigger->ejection_port_recovery_time > 0.0f && (*(uint8_t *)&tag_trigger->flags & 0x80) == 0) {
+        if (tag_trigger->ejection_port_recovery_time > 0.0f && !trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::ejects_during_chamber)) {
             trigger->ejection_port_recovery = 1.0f;
         }
         if (tag_trigger->illumination_recovery_time > 0.0f) {
@@ -241,13 +242,13 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
                 int32_t create_locally = 1;
 
                 if (halo::networking::globals().game_mode == 1) {
-                    if ((tag_trigger->flags & 0x2000) != 0 && weapon_client_side_projectiles == 1) {
+                    if (trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::projectile_is_client_side_only) && weapon_client_side_projectiles == 1) {
                         role = 3;
                     } else {
                         create_locally = 0;
                         role = 0;
                     }
-                } else if (halo::networking::globals().game_mode == 2 && ((tag_trigger->flags & 0x2000) == 0 || weapon_client_side_projectiles != 1)) {
+                } else if (halo::networking::globals().game_mode == 2 && (!trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::projectile_is_client_side_only) || weapon_client_side_projectiles != 1)) {
                     role = 0;
                 } else {
                     role = 3;
@@ -301,7 +302,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
     if (has_ammo) {
         if (trigger->effect_state != _weapon_trigger_effect_spewing || is_misfire) {
-            if ((tag_trigger->flags & 1) == 0) {
+            if (!trigger_has(tag_trigger->flags, weapon_trigger_tag_flag::tracks_fired_projectile)) {
                 halo::items::weapon_trigger_finish_shot(item_index, trigger_index);
             } else {
                 trigger->effect_state = _weapon_trigger_effect_tracking;
