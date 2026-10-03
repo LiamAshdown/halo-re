@@ -186,9 +186,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 scale = 1.0f / halo::units::unit_get_active_weapon_scale(plr->unit, control->desired_zoom_level);
             }
             if (plr->unit != (datum_index)-1) {
-                unit_data *unit = (unit_data *)((uint8_t *)
-                    halo::game::object_at(plr->unit) +
-                    k_unit_data_offset);
+                unit_data *unit = halo::game::unit_data_of(halo::game::object_at(plr->unit));
 
                 scale = (1.0f - unit->stun * player_information->stun_turning_penalty) * scale;
             }
@@ -227,9 +225,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 pitch_delta = inverse_scale * pitch_delta;
             }
             if (plr->unit != (datum_index)-1) {
-                unit_data *unit = (unit_data *)((uint8_t *)
-                    halo::game::object_at(plr->unit) +
-                    k_unit_data_offset);
+                unit_data *unit = halo::game::unit_data_of(halo::game::object_at(plr->unit));
                 real stun_scale =
                     1.0f - unit->stun * player_information->stun_turning_penalty;
 
@@ -348,8 +344,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
-        unit_data *unit = (unit_data *)((uint8_t *)
-            halo::game::object_at(plr->unit) + k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(halo::game::object_at(plr->unit));
 
         if (unit->current_weapon_index != -1) {
             object *weapon_object = ((object_header *)halo::objects::globals().object_data->data)
