@@ -1727,7 +1727,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
 
     render_device().set_texture(0, rasterizer_render_targets[1].texture);
     render_device().set_sampler_state(0, halo::d3d9::ss::mip_filter, 1);
-    chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0x6c), 1, 0);
+    chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->glow.tag_id, 1, 0);
     set_render_state(halo::d3d9::rs::cull_mode, 3);
     set_render_state(halo::d3d9::rs::color_write_enable, 0xf);
     set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
@@ -2029,7 +2029,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
     draw_quad();
 
-    chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0x6c), 0, 0);
+    chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->glow.tag_id, 0, 0);
     set_render_state(halo::d3d9::rs::cull_mode, 3);
     set_render_state(halo::d3d9::rs::color_write_enable, 8);
     set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);

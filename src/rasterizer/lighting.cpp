@@ -551,7 +551,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     rasterizer_projected_light.cone_axis.k = 0.0f;
     rasterizer_projected_light.cone_offset = 1.0f;
 
-    rasterizer_projected_light_cube_map = *(int32_t *)((uint8_t *)rasterizer_globals_data + 0xc);
+    rasterizer_projected_light_cube_map = *(int32_t *)&rasterizer_globals_data->distance_attenuation.tag_id;
 }
 
 /**

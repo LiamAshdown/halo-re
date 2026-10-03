@@ -1611,7 +1611,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
         }
     }
     if (bitmap == 0) {
-        datum_index fallback = *(datum_index *)((uint8_t *)rasterizer_globals_data + 0xb8);
+        datum_index fallback = *(datum_index *)&rasterizer_globals_data->default_2d.tag_id;
 
         if (fallback != k_datum_index_none) {
             uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
@@ -1703,7 +1703,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
         }
     }
     if (bitmap == 0) {
-        datum_index fallback = *(datum_index *)((uint8_t *)rasterizer_globals_data + 0xb8);
+        datum_index fallback = *(datum_index *)&rasterizer_globals_data->default_2d.tag_id;
 
         if (fallback != k_datum_index_none) {
             uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;

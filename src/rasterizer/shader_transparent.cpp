@@ -16,6 +16,7 @@
 #include <cstddef>
 #include "halo/core/libm.hpp"
 #include "halo/tags/flags.hpp"
+#include "halo/core/datum.hpp"
 
 namespace {
 
@@ -23,6 +24,8 @@ constexpr uint32_t k_extra_flag_dont_fade_active_camouflage =
     static_cast<uint32_t>(halo::tags::shader_transparent_chicago_extra_tag_flag::don_t_fade_active_camouflage);
 constexpr uint32_t k_extra_flag_numeric_countdown_timer =
     static_cast<uint32_t>(halo::tags::shader_transparent_chicago_extra_tag_flag::numeric_countdown_timer);
+constexpr uint16_t k_glass_bump_map_is_specular_mask =
+    static_cast<uint16_t>(halo::tags::shader_transparent_glass_tag_flag::bump_map_is_specular_mask);
 constexpr uint16_t k_map_unfiltered = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::unfiltered);
 constexpr uint16_t k_map_u_clamped = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::u_clamped);
 constexpr uint16_t k_map_v_clamped = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::v_clamped);
@@ -32,6 +35,12 @@ constexpr uint16_t k_map_v_clamped = static_cast<uint16_t>(halo::tags::shader_tr
 static_assert(offsetof(ShaderTransparentChicagoMap, map) + offsetof(TagDependency, tag_id) == 0x78, "chicago map bitmap id");
 static_assert(offsetof(ShaderTransparentChicagoMap, map_u_scale) == 0x54, "chicago map scale");
 static_assert(offsetof(ShaderTransparentChicagoMap, u_animation_source) == 0xa4, "chicago map animation");
+static_assert(offsetof(ShaderTransparentGlass, perpendicular_brightness) == 0x8c, "glass brightness");
+static_assert(offsetof(ShaderTransparentGlass, bump_map_scale) == 0xbc, "glass bump scale");
+static_assert(offsetof(ShaderTransparentGlass, bump_map) + offsetof(TagDependency, tag_id) == 0xcc, "glass bump id");
+static_assert(offsetof(ShaderTransparentGlass, reflection_map) + offsetof(TagDependency, tag_id) == 0xb8, "glass reflection id");
+static_assert(offsetof(ShaderTransparentGlass, diffuse_map) + offsetof(TagDependency, tag_id) == 0x164, "glass diffuse id");
+static_assert(offsetof(ShaderTransparentGlass, diffuse_detail_map) + offsetof(TagDependency, tag_id) == 0x178, "glass detail id");
 static_assert(sizeof(ShaderTransparentChicagoMap) == 0xdc, "chicago map size");
 static_assert(offsetof(ShaderTransparentChicago, extra_flags) == 0x60, "chicago extra flags");
 static_assert(offsetof(ShaderTransparentChicagoExtended, extra_flags) == 0x6c, "chicago extended extra flags");
@@ -93,8 +102,8 @@ void rasterizer_glass_diffuse_draw(transparent_geometry_group *group)
 
     render_device().set_vertex_shader_constant_f(10, &group->position, 3);
 
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)group->shader + 0x164), 0, 0, 1, (int16_t)group->shader_permutation);
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)group->shader + 0x178), 1, 0, 2, (int16_t)group->shader_permutation);
+    chimera__rasterizer_set_texture(*(const uint32_t *)&((const ShaderTransparentGlass *)(uintptr_t)group->shader)->diffuse_map.tag_id, 0, 0, 1, (int16_t)group->shader_permutation);
+    chimera__rasterizer_set_texture(*(const uint32_t *)&((const ShaderTransparentGlass *)(uintptr_t)group->shader)->diffuse_detail_map.tag_id, 1, 0, 2, (int16_t)group->shader_permutation);
 
     render_device().set_sampler_state(1, halo::d3d9::ss::address_u, 1);
     render_device().set_sampler_state(1, halo::d3d9::ss::address_v, 1);
@@ -142,21 +151,23 @@ void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *gr
     uint32_t pass_count;
     uint32_t pass;
 
+    bool has_vertex_type = true;
+
     if (group->vertex_buffer == 0) {
         if (group->dynamic_vertex_slot == -1) {
-            goto fallback;
+            has_vertex_type = false;
+        } else {
+            vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
         }
-        vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     } else {
         vertex_type = *(int16_t *)(void *)group->vertex_buffer;
     }
 
-    if (vertex_type == 4) {
+    if (has_vertex_type && vertex_type == 4) {
         rasterizer_glass_diffuse_draw(group);
         return;
     }
 
-fallback:
     if (rasterizer_effects[109].effect == 0) {
         return;
     }
@@ -170,7 +181,7 @@ fallback:
 
     render_device().set_vertex_shader(0);
 
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)group->shader + 0x164), 0, 0, 1, (int16_t)group->shader_permutation);
+    chimera__rasterizer_set_texture(*(const uint32_t *)&((const ShaderTransparentGlass *)(uintptr_t)group->shader)->diffuse_map.tag_id, 0, 0, 1, (int16_t)group->shader_permutation);
 
     if (group->lightmap_bitmap != 0) {
         rasterizer_bind_texture_d3d9(1, (BitmapData *)group->lightmap_bitmap);
@@ -262,7 +273,7 @@ static float real_negate_pinned(float x)
  */
 void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t reflection_kind)
 {
-    const uint8_t *raw = (const uint8_t *)group->shader;
+    const ShaderTransparentGlass *glass = (const ShaderTransparentGlass *)group->shader;
     int16_t vertex_type = -1;
     int16_t shader_variant = 0;
 
@@ -285,19 +296,19 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     vectors[1] = real_negate_pinned(rasterizer_window.camera.forward.j);
     vectors[2] = real_negate_pinned(rasterizer_window.camera.forward.k);
     vectors[3] = 1.0f;
-    vectors[4] = *(const float *)(raw + 0x90);
-    vectors[5] = *(const float *)(raw + 0x94);
-    vectors[6] = *(const float *)(raw + 0x98);
-    vectors[7] = *(const float *)(raw + 0x8c);
-    vectors[8] = *(const float *)(raw + 0xa0);
-    vectors[9] = *(const float *)(raw + 0xa4);
-    vectors[10] = *(const float *)(raw + 0xa8);
-    vectors[11] = *(const float *)(raw + 0x9c);
+    vectors[4] = glass->perpendicular_tint_color.red;
+    vectors[5] = glass->perpendicular_tint_color.green;
+    vectors[6] = glass->perpendicular_tint_color.blue;
+    vectors[7] = glass->perpendicular_brightness;
+    vectors[8] = glass->parallel_tint_color.red;
+    vectors[9] = glass->parallel_tint_color.green;
+    vectors[10] = glass->parallel_tint_color.blue;
+    vectors[11] = glass->parallel_brightness;
     for (i = 12; i < 16; i++) {
         vectors[i] = group->parameters.mode == 1 ? 1.0f - group->parameters.blend_factor : 1.0f;
     }
 
-    if (reflection_kind == 0 && ((raw[0x28] & 8) != 0 || *(const uint32_t *)(raw + 0xcc) == 0xffffffff)) {
+    if (reflection_kind == 0 && ((glass->shader_transparent_glass_flags & k_glass_bump_map_is_specular_mask) != 0 || *(const uint32_t *)&glass->bump_map.tag_id == halo::k_dword_none)) {
         reflection_kind = 1;
     }
     switch (vertex_type) {
@@ -348,7 +359,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         break;
     }
 
-    specular_mask_pass = (raw[0x28] >> 3) & 1;
+    specular_mask_pass = (glass->shader_transparent_glass_flags >> 3) & 1;
     render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[vertex_type].declaration);
     render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[shader_variant + shader_base].shader);
     if (effect_slot->effect == 0) {
@@ -399,8 +410,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
 
     {
         void *effect = (void *)effect_slot->effect;
-        float bump_scale = *(const float *)(raw + 0xbc);
-        uint32_t bump_map_tag = *(const uint32_t *)(raw + 0xcc);
+        float bump_scale = glass->bump_map_scale;
+        uint32_t bump_map_tag = *(const uint32_t *)&glass->bump_map.tag_id;
         uint32_t normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
         BitmapData *bump_bitmap = 0;
         uint32_t pass_count;
@@ -461,7 +472,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
             rasterizer_set_sampler_state(3, halo::d3d9::ss::min_filter, 2);
             rasterizer_set_sampler_state(3, halo::d3d9::ss::mip_filter, 1);
         } else {
-            rasterizer_resolve_and_cache_submap_b(*(const uint32_t *)(raw + 0xb8), 2, 3, 0, (int16_t)group->shader_permutation,
+            rasterizer_resolve_and_cache_submap_b(*(const uint32_t *)&glass->reflection_map.tag_id, 2, 3, 0, (int16_t)group->shader_permutation,
                                                   effect_slot);
             rasterizer_set_sampler_state(3, halo::d3d9::ss::address_u, 3);
             rasterizer_set_sampler_state(3, halo::d3d9::ss::address_v, 3);
@@ -483,6 +494,15 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
 
 }  // namespace rasterizer_glass_reflection_draw_impl
 
+static bool group_vertex_type_is_model(const transparent_geometry_group *group)
+{
+    if (group->vertex_buffer == 0) {
+        return group->dynamic_vertex_slot != -1 &&
+               rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type == 4;
+    }
+    return *(int16_t *)(void *)group->vertex_buffer == 4;
+}
+
 namespace rasterizer_glass_reflection_draw_fixed_function_impl {
 
 
@@ -497,24 +517,12 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, uint32_t reflection_kind)
 {
-    int16_t vertex_type;
-
-    if (group->vertex_buffer == 0) {
-        if (group->dynamic_vertex_slot == -1) {
-            goto fallback;
-        }
-        vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
-    } else {
-        vertex_type = *(int16_t *)(void *)group->vertex_buffer;
-    }
-
-    if (vertex_type == 4) {
+    if (group_vertex_type_is_model(group)) {
         rasterizer_glass_reflection_draw(group, (int16_t)reflection_kind);
         return;
     }
 
-fallback:
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0xf8), 0, 0, 1, (int16_t)group->shader_permutation);
+    chimera__rasterizer_set_texture(*(uint32_t *)&rasterizer_globals_data->test_1.tag_id, 0, 0, 1, (int16_t)group->shader_permutation);
 
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[12].declaration);
 
@@ -577,7 +585,7 @@ void rasterizer_glass_tint_draw(transparent_geometry_group *group)
         shader_index = (int16_t)(uint32_t)group;
     }
 
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)group->shader + 0x70), 0, 0, 1, (int16_t)group->shader_permutation);
+    chimera__rasterizer_set_texture(*(const uint32_t *)&((const ShaderTransparentGlass *)(uintptr_t)group->shader)->background_tint_map.tag_id, 0, 0, 1, (int16_t)group->shader_permutation);
 
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[vertex_type].declaration);
 
@@ -640,26 +648,15 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_glass_tint_draw_fixed_function(transparent_geometry_group *group)
 {
-    int16_t vertex_type;
     uint32_t decal_color;
     uint32_t stage4_arg, stage5_arg;
 
-    if (group->vertex_buffer == 0) {
-        if (group->dynamic_vertex_slot == -1) {
-            goto fallback;
-        }
-        vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
-    } else {
-        vertex_type = *(int16_t *)(void *)group->vertex_buffer;
-    }
-
-    if (vertex_type == 4) {
+    if (group_vertex_type_is_model(group)) {
         rasterizer_glass_tint_draw(group);
         return;
     }
 
-fallback:
-    chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)group->shader + 0x70), 0, 0, 1, (int16_t)group->shader_permutation);
+    chimera__rasterizer_set_texture(*(const uint32_t *)&((const ShaderTransparentGlass *)(uintptr_t)group->shader)->background_tint_map.tag_id, 0, 0, 1, (int16_t)group->shader_permutation);
 
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[12].declaration);
 
@@ -1599,9 +1596,9 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         vertex_constants[4][1] = 0.4f;
         vertex_constants[5][2] = secondary_scale;
         render_device().set_vertex_shader_constant_f(0xd, &vertex_constants[0][0], 6);
-        chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0x6c), 0, 0, 0,
+        chimera__rasterizer_set_texture(*(uint32_t *)&rasterizer_globals_data->glow.tag_id, 0, 0, 0,
                                         (int16_t)group->shader_permutation);
-        chimera__rasterizer_set_texture(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0x138), 1, 0, 0,
+        chimera__rasterizer_set_texture(*(uint32_t *)&rasterizer_globals_data->video_noise_map.tag_id, 1, 0, 0,
                                         (int16_t)group->shader_permutation);
     } else {
         vertex_constants[0][2] = offset;
@@ -1808,7 +1805,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         set_render_state(halo::d3d9::rs::fog_enable, (water[0x28] >> 2) & 1);
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(0);
-        chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0xe8), 0, 0);
+        chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->test_0.tag_id, 0, 0);
         set_stage0_samplers(1);
         effect_draw(effect, -1, group);
     }
@@ -1954,7 +1951,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
             set_render_state(halo::d3d9::rs::fog_enable, 0);
             chimera__rasterizer_set_texture(*(uint32_t *)(water + 0x58), 0, 0, 1, (int16_t)frame);
             set_stage_samplers(0, 3, 0);
-            chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0x1c), 1, 0);
+            chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 1, 0);
             set_stage_samplers(1, 3, 1);
             render_device().set_pixel_shader_constant_f(0, constants, 2);
             effect_draw_pass(effect, 0, group);
@@ -2003,7 +2000,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         render_device().set_vertex_shader_constant_f(10, vertex_constants, 3);
 
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-            chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0xe8), 0, 0);
+            chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->test_0.tag_id, 0, 0);
             set_stage_samplers(0, 1, 0);
             effect_draw_all_passes(effect, group);
             return;
@@ -2398,7 +2395,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                     }
                 }
                 if (!bound) {
-                    datum_index fallback = *(datum_index *)((uint8_t *)rasterizer_globals_data + 0xb8);
+                    datum_index fallback = *(datum_index *)&rasterizer_globals_data->default_2d.tag_id;
 
                     if (fallback != k_datum_index_none) {
                         uint8_t *bitmap_tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
