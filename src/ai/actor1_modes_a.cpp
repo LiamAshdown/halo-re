@@ -25,7 +25,7 @@ void halo::ai::alert_mode::movement_cancelled()
 {
     using namespace c_actor_mode_alert_movement_cancelled;
     datum_index actor_index = datum;
-    actor *mode_data = (actor *)(ACTOR(actor_index) + 0x9c);
+    actor_mode_data *mode_data = &halo::ai::actor_at(actor_index)->mode_data;
 
     *(int16_t *)((uint8_t *)mode_data + 0x6) = -1;
     *(int16_t *)((uint8_t *)mode_data + 0x8) = -1;
@@ -142,7 +142,7 @@ void halo::ai::alert_mode::target_cleared()
 {
     using namespace c_actor_mode_alert_target_cleared;
     datum_index actor_index = datum;
-    actor *mode_data = (actor *)(ACTOR(actor_index) + 0x9c);
+    actor_mode_data *mode_data = &halo::ai::actor_at(actor_index)->mode_data;
 
     *(int16_t *)((uint8_t *)mode_data + 0x34) = -1;
     *(int32_t *)((uint8_t *)mode_data + 0x58) = -1;
@@ -183,8 +183,8 @@ void halo::ai::alert_mode::tick()
     }
     if (actor->movement_action_complete != 0 && actor->movement_completed == 0) {
         float dx = F(0xa8) - F(0x12c);
-        float dy = F(0xac) - F(0x130);
-        float dz = F(0xb0) - F(0x134);
+        float dy = F(0xac) - actor->body_position.y;
+        float dz = F(0xb0) - actor->body_position.z;
 
         if (!(dz * dz + dy * dy + dx * dx < 0.25f)) {
             return;
@@ -244,8 +244,8 @@ void halo::ai::alert_mode::update()
 
     actor->look_posture = 1;
     if (*(uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x40) {
-        B(0x426) = 1;
-        B(0x427) = 1;
+        actor->unknown_41a[12] = 1;
+        actor->unknown_41a[13] = 1;
     }
 }
 
@@ -287,11 +287,11 @@ void halo::ai::avoid_mode::update()
         act->flee_source.code = act->danger_type > 0 ? 5 : 2;
     }
     act->look_posture = 4;
-    ((uint8_t *)act)[0x426] = act->crouch_active;
-    ((uint8_t *)act)[0x427] = 0;
-    ((uint8_t *)act)[0x428] = 0;
-    ((uint8_t *)act)[0x424] = 0;
-    ((uint8_t *)act)[0x425] = 0;
+    act->unknown_41a[12] = act->crouch_active;
+    act->unknown_41a[13] = 0;
+    act->unknown_41a[14] = 0;
+    act->unknown_41a[10] = 0;
+    act->unknown_41a[11] = 0;
 }
 
 namespace halo::ai {
@@ -407,7 +407,7 @@ void halo::ai::converse_mode::replace_reference(datum_index old_reference, datum
 {
     using namespace c_actor_mode_converse_replace_reference;
     datum_index actor_index = datum;
-    actor *mode_data = (actor *)(ACTOR(actor_index) + 0x9c);
+    actor_mode_data *mode_data = &halo::ai::actor_at(actor_index)->mode_data;
 
     if (((actor_mode_converse_data *)mode_data)->partner_prop == old_reference) {
         ((actor_mode_converse_data *)mode_data)->partner_prop = new_reference;
@@ -630,7 +630,7 @@ void halo::ai::obey_mode::update()
 
     if (B(0xfe) != 0) {
         actor->flee_reason = 7;
-        W(0x3ec) = 2;
+        actor->flee_source.code = 2;
         actor->look_posture = 4;
         actor->wants_to_fire = 1;
         actor->force_fire = 1;
@@ -639,18 +639,18 @@ void halo::ai::obey_mode::update()
         D(0x458) = D(0x10c);
     } else if (B(0xe0) != 0 && (actor->movement_action_complete == 0 || actor->movement_completed != 0)) {
         actor->flee_reason = 4;
-        W(0x3ec) = 3;
+        actor->flee_source.code = 3;
         copy12(actor, 0x3f0, 0xe4);
         if (actor->flying == 0) {
             D(0x3f8) = D(0x128);
         }
         actor->look_posture = (int16_t)(actor->awareness_level < 3 ? 1 : 4);
     } else if (W(0xca) == 3 || W(0xca) == 1) {
-        W(0x3ec) = 0;
+        actor->flee_source.code = 0;
         actor->look_posture = 0;
         actor->flee_reason = 7;
     } else if (actor->combat_status >= 5 && (B(0xa8) & 1)) {
-        W(0x3ec) = 2;
+        actor->flee_source.code = 2;
         actor->look_posture = 4;
         actor->wants_to_fire = 1;
         actor->flee_reason = 7;
@@ -667,8 +667,8 @@ void halo::ai::obey_mode::update()
         actor->throw_grenade = 1;
         B(0x110) = 0;
     }
-    B(0x426) = B(0xc8);
-    B(0x427) = B(0xc8);
+    actor->unknown_41a[12] = B(0xc8);
+    actor->unknown_41a[13] = B(0xc8);
     actor->movement_style_override = W(0xca);
 
     if (B(0xf8) != 0 && actor->secondary_action == -1 &&
@@ -715,7 +715,7 @@ void halo::ai::obey_mode::update()
         actor->jump_requested = 1;
         actor->jump_is_leap = (uint8_t)(F(0xb0) * 0.7f > F(0xb4));
         actor->jump_parameters_valid = (uint8_t)((B(0xa9) >> 4) & 1);
-        F(0x448) = y;
+        actor->jump_facing.j = y;
         F(0x444) = x;
         D(0x44c) = D(0xb0);
         D(0x450) = D(0xb4);
@@ -803,7 +803,7 @@ void halo::ai::search_mode::movement_cancelled()
 {
     using namespace c_actor_mode_search_movement_cancelled;
     datum_index actor_index = datum;
-    actor *mode_data = (actor *)(ACTOR(actor_index) + 0x9c);
+    actor_mode_data *mode_data = &halo::ai::actor_at(actor_index)->mode_data;
 
     if (((actor_mode_search_data *)mode_data)->stage == 1) {
         ((actor_mode_search_data *)mode_data)->firing_position = -1;
@@ -849,7 +849,7 @@ uint8_t halo::ai::search_mode::process()
     if (kind == 0 && act->target_unit_index != k_datum_index_none) {
         prop *target = halo::ai::prop_at(act->target_unit_index);
         float radius = ((struct actor *)target)->original_squad_index == 0 ? 1.7f : 0.7f;
-        float distance_squared = halo::math::vector3d_distance_squared(act->body_position, *(real_point3d *)((uint8_t *)target + 0xbc));
+        float distance_squared = halo::math::vector3d_distance_squared(act->body_position, target->last_known_position);
 
         act->mode_data.search.reachable = (uint8_t)(radius * radius > distance_squared);
     } else if (kind == 1 && act->mode_data.search.firing_position != -1) {
@@ -1059,11 +1059,11 @@ void halo::ai::search_mode::update()
     if (act->mode_data.search.stage == 0) {
         act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
     }
-    ((uint8_t *)act)[0x426] = ((uint8_t *)act)[0x9f];
-    ((uint8_t *)act)[0x427] = ((uint8_t *)act)[0x9f];
-    ((uint8_t *)act)[0x428] = 0;
-    ((uint8_t *)act)[0x424] = 0;
-    ((uint8_t *)act)[0x425] = 1;
+    act->unknown_41a[12] = ((uint8_t *)act)[0x9f];
+    act->unknown_41a[13] = ((uint8_t *)act)[0x9f];
+    act->unknown_41a[14] = 0;
+    act->unknown_41a[10] = 0;
+    act->unknown_41a[11] = 1;
 }
 
 namespace halo::ai {
