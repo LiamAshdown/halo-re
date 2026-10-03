@@ -322,7 +322,6 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
             particle_system *system =
                 &((particle_system *)particle_system_data->data)[handle & halo::k_slot_mask];
             object_marker marker;
-            float function_value;
 
             system->definition_index = definition_index;
             system->object_index = object_index;
@@ -350,7 +349,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
             system->ambient_color = *global_white_color;
 
             if (halo::objects::object_function_get_value(object_index, system->scale_function_index,
-                                           &function_value)) {
+                                           &system->scale)) {
                 system->flags |= _particle_system_emitting_bit;
             } else {
                 system->flags &= ~(uint32_t)_particle_system_emitting_bit;

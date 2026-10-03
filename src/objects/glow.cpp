@@ -309,7 +309,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 driver = ok ? driver : 0.0f;
                 rotation_rate = ((glow_tag_data->effect_rot_vel_mul_high -
                                   glow_tag_data->effect_rot_vel_mul_low) * driver +
-                                 glow_tag_data->effect_rot_vel_mul_low);
+                                 glow_tag_data->effect_rot_vel_mul_low) * rotation_rate;
             }
             translation_rate = glow_tag_data->effect_translational_velocity;
             if (glow_tag_data->attachment_2 != -1) {

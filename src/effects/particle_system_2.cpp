@@ -32,11 +32,10 @@ void particle_system_ref::update(float delta_time)
 
     if (self->object_index != k_datum_index_none) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & halo::k_slot_mask].data;
-        float function_value;
 
         if ((obj->flags & _object_needs_cluster_update_bit) != 0 &&
             halo::objects::object_function_get_value(self->object_index, self->scale_function_index,
-                                       &function_value)) {
+                                       &self->scale)) {
             self->flags |= _particle_system_emitting_bit;
         } else {
             self->flags &= ~(uint32_t)_particle_system_emitting_bit;
