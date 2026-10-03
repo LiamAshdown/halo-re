@@ -63,7 +63,7 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
     char *cursor;
     char c;
     char *name;
-    const char *resolve_result;
+    HwreqCondition resolve_result = false;
     int32_t parsed_number;
     char number_text[40];
     char override_text[16];
@@ -174,13 +174,13 @@ uint8_t HwreqParser::parse_block(hwreq_property_set *target)
                 return 0;
             }
 
-            if (resolve_result == (const char *)1) {
+            if (resolve_result.matched) {
                 if (if_state != 2) {
                     if_state = 1;
                 }
             } else {
-                if (resolve_result != 0) {
-                    report_error(resolve_result);
+                if (resolve_result.error != nullptr) {
+                    report_error(resolve_result.error);
                     return 0;
                 }
                 if_state = 2;

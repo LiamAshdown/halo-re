@@ -67,7 +67,7 @@ constexpr size_t k_d3dcaps_field_count = sizeof(k_d3dcaps_fields) / sizeof(k_d3d
  *
  * @address 0x579690
  */
-const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
+HwreqCondition HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
 {
     uint16_t op_word;
     int32_t op;
@@ -151,8 +151,7 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
             if (lhs[i] != rhs[i]) { equal = 0; break; }
         }
 
-        return (op == k_hwreq_operator_equal) ? (const char *)(uint32_t)equal
-                                               : (const char *)(uint32_t)(!equal);
+        return HwreqCondition((op == k_hwreq_operator_equal) == (equal != 0));
     }
 
     if (kind == k_hwreq_condition_driver) {
@@ -182,30 +181,30 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
 
         switch (op) {
         case k_hwreq_operator_equal:
-            if (actual_low == (uint32_t)parsed_low && actual_high == parsed_high) return (const char *)1;
+            if (actual_low == (uint32_t)parsed_low && actual_high == parsed_high) return HwreqCondition(true);
             break;
         case k_hwreq_operator_not_equal:
-            if (actual_low != (uint32_t)parsed_low || actual_high != parsed_high) return (const char *)1;
+            if (actual_low != (uint32_t)parsed_low || actual_high != parsed_high) return HwreqCondition(true);
             break;
         case k_hwreq_operator_greater:
-            if (parsed_high <= actual_high && (parsed_high < actual_high || (uint32_t)parsed_low < actual_low)) return (const char *)1;
+            if (parsed_high <= actual_high && (parsed_high < actual_high || (uint32_t)parsed_low < actual_low)) return HwreqCondition(true);
             break;
         case k_hwreq_operator_less:
-            if (actual_high <= parsed_high && (actual_high < parsed_high || actual_low < (uint32_t)parsed_low)) return (const char *)1;
+            if (actual_high <= parsed_high && (actual_high < parsed_high || actual_low < (uint32_t)parsed_low)) return HwreqCondition(true);
             break;
         case k_hwreq_operator_greater_equal:
-            if (parsed_high <= actual_high && (parsed_high < actual_high || (uint32_t)parsed_low <= actual_low)) return (const char *)1;
+            if (parsed_high <= actual_high && (parsed_high < actual_high || (uint32_t)parsed_low <= actual_low)) return HwreqCondition(true);
             break;
         case k_hwreq_operator_less_equal:
             if (actual_high <= parsed_high) {
-                if (actual_high < parsed_high) return (const char *)1;
-                if (actual_low <= (uint32_t)parsed_low) return (const char *)1;
+                if (actual_high < parsed_high) return HwreqCondition(true);
+                if (actual_low <= (uint32_t)parsed_low) return HwreqCondition(true);
             }
             break;
         default:
             return "Invalid";
         }
-        return (const char *)0;
+        return HwreqCondition(false);
     }
 
     {
@@ -226,13 +225,13 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
         }
 
         switch (op) {
-        case k_hwreq_operator_equal: return (const char *)(uint32_t)(value == rhs);
-        case k_hwreq_operator_not_equal: return (const char *)(uint32_t)(value != rhs);
-        case k_hwreq_operator_greater: return (const char *)(uint32_t)(rhs < value);
-        case k_hwreq_operator_less: return (const char *)(uint32_t)(value < rhs);
-        case k_hwreq_operator_greater_equal: return (const char *)(uint32_t)(rhs <= value);
-        case k_hwreq_operator_less_equal: return (const char *)(uint32_t)(value <= rhs);
-        case k_hwreq_operator_and: return (const char *)(uint32_t)((rhs & value) != 0);
+        case k_hwreq_operator_equal: return HwreqCondition(value == rhs);
+        case k_hwreq_operator_not_equal: return HwreqCondition(value != rhs);
+        case k_hwreq_operator_greater: return HwreqCondition(rhs < value);
+        case k_hwreq_operator_less: return HwreqCondition(value < rhs);
+        case k_hwreq_operator_greater_equal: return HwreqCondition(rhs <= value);
+        case k_hwreq_operator_less_equal: return HwreqCondition(value <= rhs);
+        case k_hwreq_operator_and: return HwreqCondition((rhs & value) != 0);
         default: return "Invalid";
         }
     }
@@ -241,11 +240,11 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
 /**
  * Matches the keyword at the cursor (cpuspeed, ram, a D3DCAPS9 field, videoram, subsysid, revision,
  * guid, driver or os), fetches the left hand value and evaluates the comparison that follows.
- * Returns 1 or 0 for a result, or an error message string.
+ * Returns the condition result or an error message.
  *
  * @address 0x578ff0
  */
-const char *HwreqParser::resolve_field()
+HwreqCondition HwreqParser::resolve_field()
 {
     uint32_t i;
     int32_t kind;

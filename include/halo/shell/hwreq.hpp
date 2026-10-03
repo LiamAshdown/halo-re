@@ -5,6 +5,17 @@
 namespace halo::shell {
 
 /**
+ * Result of evaluating one hwreq condition term: a truth value, or an error message when the term could not be parsed.
+ */
+struct HwreqCondition {
+    bool matched;
+    const char *error;
+
+    HwreqCondition(bool value) : matched(value), error(nullptr) {}
+    HwreqCondition(const char *message) : matched(false), error(message) {}
+};
+
+/**
  * View over the hardware requirements (config.txt) parser object.
  */
 class HwreqParser {
@@ -72,8 +83,8 @@ public:
     uint8_t parse_audiovendor_block();
     uint8_t scan_for_applytoall();
     uint8_t scan_for_applytoall_or_vendor();
-    const char *evaluate_condition(int32_t kind, uint32_t value);
-    const char *resolve_field();
+    HwreqCondition evaluate_condition(int32_t kind, uint32_t value);
+    HwreqCondition resolve_field();
 
     hwreq_parser *self;
 };
