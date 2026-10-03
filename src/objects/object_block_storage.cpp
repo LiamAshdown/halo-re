@@ -1,6 +1,7 @@
 #include "halo/objects/object_block_storage.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;

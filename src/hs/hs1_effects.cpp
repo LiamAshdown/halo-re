@@ -48,11 +48,11 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
     request.sound_impulse = impulse;
     if (impulse == -1) {
         request.sound_index = halo::k_word_none;
-        halo::objects::damage_apply_area_effect(&request, halo::k_dword_none);
+        halo::objects::damage_apply_area_effect((damage_data *)&request);
         return;
     }
     request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
-    halo::objects::damage_apply_area_effect(&request, halo::k_dword_none);
+    halo::objects::damage_apply_area_effect((damage_data *)&request);
 }
 
 /**

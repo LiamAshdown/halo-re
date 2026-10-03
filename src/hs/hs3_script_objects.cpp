@@ -665,7 +665,7 @@ void ScriptObjects::object_runtime_cleanup() const
     object_iter.type_filter = -1;
     object_iter.next_index = 0;
     object_iter.index = (datum_index)halo::k_dword_none;
-    object_element = halo::objects::object_iterator_next(&object_iter);
+    object_element = halo::objects::object_iterator_next((object_iterator *)(&object_iter));
     for (;;) {
         if (object_element == 0) {
             return;
@@ -771,7 +771,7 @@ void ScriptObjects::objects_delete_by_type(uint32_t tag_id) const
     iter.type_filter = -1;
     iter.next_index = 0;
     iter.index = (datum_index)halo::k_dword_none;
-    element = (hs_object_record *)halo::objects::object_iterator_next(&iter);
+    element = (hs_object_record *)halo::objects::object_iterator_next((object_iterator *)(&iter));
     for (;;) {
         object_index = iter.index;
         if (element == 0) {

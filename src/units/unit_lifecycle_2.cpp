@@ -12,6 +12,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/units/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
