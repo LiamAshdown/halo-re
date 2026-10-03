@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/network_constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "game.h"
@@ -17,7 +18,7 @@ extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern int32_t hash_table_get(hash_table *table, int32_t key);
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
@@ -191,7 +192,7 @@ void unit_broadcast_state_change_event(unit_state_change_record record)
     record.unit = (datum_index)resolved;
     items[0] = &record;
     items[1] = 0;
-    sent = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xc, 0, items, 0, 1, 0);
+    sent = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0xc, 0, items, 0, 1, 0);
     if (sent > 0) {
         network_session_broadcast_to_flagged(sent, network_server, 1, network_message_scratch, 1, 0, 0, 3);
     }

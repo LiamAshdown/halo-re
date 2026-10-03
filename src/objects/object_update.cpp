@@ -135,7 +135,7 @@ void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t r
 uint8_t halo::objects::ObjectUpdater::update()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
     Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
@@ -405,24 +405,24 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 {
     uint32_t object_index = handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *def = TAG_DATA(OFS(obj, 0x0, uint32_t));
-    real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + OFS(obj, 0x1f2, int16_t));
+    uint8_t *def = TAG_DATA(((struct object *)obj)->definition_tag);
+    real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + ((struct object *)obj)->nodes.offset);
     real_orientation local_orientations[k_maximum_nodes_per_model];
     real_orientation *orientations;
 
-    if (((1u << (OFS(obj, 0xb4, uint8_t) & 0x1f)) & 0xfe0u) != 0) {
+    if (((1u << ((uint8_t)((struct object *)obj)->type & 0x1f)) & 0xfe0u) != 0) {
         orientations = local_orientations;
     } else {
-        orientations = (real_orientation *)(obj + OFS(obj, 0x1ee, int16_t));
+        orientations = (real_orientation *)(obj + ((struct object *)obj)->node_function_defaults.offset);
     }
 
     if (OFS(def, 0x34, int32_t) == -1) {
 
         nodes[0].scale = 1.0f;
-        nodes[0].forward = OFS(obj, 0x74, real_vector3d);
-        nodes[0].up = OFS(obj, 0x80, real_vector3d);
+        nodes[0].forward = ((struct object *)obj)->forward;
+        nodes[0].up = ((struct object *)obj)->up;
         vector3d_cross_product(&nodes[0].left, &nodes[0].forward, &nodes[0].up);
-        nodes[0].position = OFS(obj, 0x5c, real_point3d);
+        nodes[0].position = ((struct object *)obj)->position;
     } else {
         uint8_t *model = TAG_DATA(OFS(def, 0x34, uint32_t));
         real_matrix4x3 *parent_matrix = 0;
@@ -430,23 +430,23 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         int16_t queue[k_maximum_nodes_per_model];
         int16_t head, tail;
 
-        if (OFS(obj, 0x11c, int32_t) != -1) {
-            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(OFS(obj, 0x11c, uint32_t))].data;
-            parent_matrix = (real_matrix4x3 *)(parent + OFS(parent, 0x1f2, int16_t)) + OFS(obj, 0x120, int8_t);
+        if ((int32_t)((struct object *)obj)->parent_object != -1) {
+            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(((struct object *)obj)->parent_object)].data;
+            parent_matrix = (real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset) + (int8_t)((struct object *)obj)->parent_marker_index;
         }
 
-        if (OFS(obj, 0xcc, int32_t) != -1 && OFS(obj, 0xd0, int16_t) != -1) {
-            ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(OFS(TAG_DATA(OFS(obj, 0xcc, uint32_t)), 0x78, uint8_t *) +
-                (int32_t)OFS(obj, 0xd0, int16_t) * 0xb4);
-            int16_t frame_count = OFS(animation, 0x22, int16_t);
+        if ((int32_t)((struct object *)obj)->animation_graph != -1 && ((struct object *)obj)->animation_index != -1) {
+            ModelAnimationsAnimation *animation = (ModelAnimationsAnimation *)(OFS(TAG_DATA(((struct object *)obj)->animation_graph), 0x78, uint8_t *) +
+                (int32_t)((struct object *)obj)->animation_index * 0xb4);
+            int16_t frame_count = (int16_t)animation->frame_count;
             uint32_t frame;
             if (OFS(obj, 0x10, int8_t) < 0 && frame_count > 0) {
-                frame = (OFS(game_time, 0xc, uint32_t) + object_index) % (uint32_t)(int32_t)frame_count;
+                frame = ((uint32_t)game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
             } else {
-                frame = OFS(obj, 0xd2, uint16_t);
+                frame = (uint16_t)((struct object *)obj)->animation_frame;
             }
             animation_get_frame_orientations(animation, (GBXModel *)model, (int16_t)frame, orientations);
-            absolute_root = (uint8_t)((OFS(animation, 0x3a, uint8_t) >> 1) & 1);
+            absolute_root = (uint8_t)(((uint8_t)animation->flags >> 1) & 1);
         } else {
             model_nodes_get_default_transforms((GBXModel *)model, orientations);
         }
@@ -464,22 +464,22 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         (ModelAnimationsAnimation *)(OFS(graph, 0x78, uint8_t *) + (int32_t)entry[0] * 0xb4);
                     float value = OFS(obj, 0x134 + (int32_t)entry[1] * 4, float);
                     if (entry[2] == 0) {
-                        int32_t frames = (int32_t)OFS(animation, 0x22, int16_t);
+                        int32_t frames = (int32_t)(int16_t)animation->frame_count;
                         if ((OFS(OFS(def, 0x15c, uint8_t *), (int32_t)entry[1] * 0x168, uint8_t) & 2) == 0) {
                             frames -= 1;
                         }
                         animation_overlay_interpolated_frame_orientations(animation, (float)frames * value, orientations);
                     } else if (entry[2] == 1) {
-                        uint32_t frame = (OFS(game_time, 0xc, uint32_t) + object_index) %
-                            (uint32_t)(int32_t)OFS(animation, 0x22, int16_t);
+                        uint32_t frame = ((uint32_t)game_time->game_time + object_index) %
+                            (uint32_t)(int32_t)(int16_t)animation->frame_count;
                         animation_overlay_frame_orientations_weighted(animation, (int16_t)frame, value, orientations);
                     }
                 }
             }
         }
 
-        if (OFS(obj, 0xb0, float) > 0.0f) {
-            float scale = OFS(obj, 0xb0, float);
+        if (((struct object *)obj)->scale > 0.0f) {
+            float scale = ((struct object *)obj)->scale;
             orientations[0].scale *= scale;
             orientations[0].translation.x *= scale;
             orientations[0].translation.y *= scale;
@@ -488,11 +488,11 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         if (OFS(def, 0x44, int32_t) != -1) {
             object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
         }
-        if (OFS(obj, 0xd6, int16_t) > 0) {
+        if (((struct object *)obj)->node_function_count > 0) {
 
             model_nodes_blend_transforms(orientations, OFS(model, 0xb8, int16_t),
-                (real_orientation *)(obj + OFS(obj, 0x1ea, int16_t)), (int16_t)OFS(obj, 0xd4, uint16_t),
-                (int16_t)OFS(obj, 0xd6, uint16_t));
+                (real_orientation *)(obj + ((struct object *)obj)->node_function_values.offset), (int16_t)(uint16_t)((struct object *)obj)->interpolation_frame_index,
+                (int16_t)(uint16_t)((struct object *)obj)->node_function_count);
         }
 
         queue[0] = 0;
@@ -517,9 +517,9 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                     real_matrix4x3 parent_copy;
                     real_matrix4x3 *base = parent_matrix;
 
-                    matrix4x3_set_translation_only(&world, &OFS(obj, 0x5c, real_point3d));
-                    matrix4x3_from_forward_up(&OFS(obj, 0x80, real_vector3d), &OFS(obj, 0x74, real_vector3d), &orientation);
-                    if ((OFS(obj, 0x10, uint32_t) & 0x1000) != 0) {
+                    matrix4x3_set_translation_only(&world, &((struct object *)obj)->position);
+                    matrix4x3_from_forward_up(&((struct object *)obj)->up, &((struct object *)obj)->forward, &orientation);
+                    if ((((struct object *)obj)->flags & 0x1000) != 0) {
                         orientation.left.i = -orientation.left.i;
                         orientation.left.j = -orientation.left.j;
                         orientation.left.k = -orientation.left.k;
@@ -527,9 +527,9 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                     if (OFS(def, 0x8c, int32_t) != -1) {
                         uint8_t *tag = TAG_DATA(OFS(def, 0x8c, uint32_t));
                         real_point3d negated;
-                        negated.x = -OFS(tag, 0xc, float);
-                        negated.y = -OFS(tag, 0x10, float);
-                        negated.z = -OFS(tag, 0x14, float);
+                        negated.x = -((struct Unit *)tag)->base.bounding_offset.y;
+                        negated.y = -((struct Unit *)tag)->base.bounding_offset.z;
+                        negated.z = -((struct Unit *)tag)->base.origin_offset.x;
                         matrix4x3_set_translation_only(&offset, &negated);
                         matrix4x3_multiply_procedure(&orientation, &offset, &orientation);
                     }
@@ -547,7 +547,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         }
                         {
                             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)
-                                [halo::datum_slot(OFS(obj, 0x11c, uint32_t))].data;
+                                [halo::datum_slot(((struct object *)obj)->parent_object)].data;
                             if ((OFS(parent_object, 0x10, uint32_t) & 0x1000) != 0) {
                                 if (base != &parent_copy) {
                                     parent_copy = *base;
@@ -583,10 +583,10 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         } while (head != tail);
     }
 
-    matrix4x3_transform_point(&OFS(obj, 0xa0, real_point3d), &OFS(def, 0x8, real_point3d), &nodes[0]);
-    OFS(obj, 0xac, float) = OFS(def, 0x4, float);
-    if (OFS(obj, 0xb0, float) > 0.0f) {
-        OFS(obj, 0xac, float) = OFS(def, 0x4, float) * OFS(obj, 0xb0, float);
+    matrix4x3_transform_point(&((struct object *)obj)->bounding_center, &OFS(def, 0x8, real_point3d), &nodes[0]);
+    ((struct object *)obj)->bounding_radius = OFS(def, 0x4, float);
+    if (((struct object *)obj)->scale > 0.0f) {
+        ((struct object *)obj)->bounding_radius = OFS(def, 0x4, float) * ((struct object *)obj)->scale;
     }
 }
 #undef OFS

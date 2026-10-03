@@ -1,4 +1,5 @@
 #include "halo/objects/object_ref.hpp"
+#include "halo/core/network_constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/core/collision_flags.hpp"
@@ -37,7 +38,7 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
 extern void model_ik_solve_two_bone(real_matrix4x3 *target, uint8_t *bone_c, uint8_t *bone_b, uint8_t *bone_a);
 extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations, int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum);
 extern int32_t network_index_cache_get(hash_table *table, int32_t key);
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void *network_object_index_cache;
 extern network_server_globals *network_server;
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
@@ -257,7 +258,7 @@ void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player
                 encoded_value = network_index_cache_get((hash_table *)&network_object_index_cache, (int32_t)object_index);
                 field_list[0] = &encoded_value;
                 field_list[1] = 0;
-                encoded = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x32, 0, field_list, 0, 1, 0);
+                encoded = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x32, 0, field_list, 0, 1, 0);
                 network_session_send_to_machine((int8_t)record[0x64], network_server, 1, network_message_scratch,
                     (uint32_t)encoded, 0, 0, 0, 9);
                 return;
@@ -385,7 +386,7 @@ void halo::objects::ObjectRef::set_position_and_relink(real_point3d *position, b
 void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *location)
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
 
     if (obj->parent_object == k_datum_index_none) {
@@ -398,7 +399,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
             } else {
 
                 local_location.cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
-                                                            (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                                                            (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             }
             local_location.leaf_index = leaf;
             location = &local_location;
@@ -438,7 +439,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
         }
     } else {
         object_header *parent_header =
-            (object_header *)object_data->data + (obj->parent_object & 0xffff);
+            (object_header *)object_data->data + halo::datum_slot(obj->parent_object);
         object *parent = parent_header->data;
 
         obj->next_object = parent->first_child_object;
@@ -461,7 +462,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
 void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
 
     if (obj->parent_object == k_datum_index_none) {
@@ -470,7 +471,7 @@ void halo::objects::ObjectRef::unlink_cluster_or_notify_parent()
                      test_flag(obj->flags, objects::object_flag::has_collision_model) ? (void *)&collideable_cluster_first
                                                    : (void *)&noncollideable_cluster_first);
         if ((header->flags & _object_header_in_pvs_pass_bit) != 0) {
-            header = (object_header *)object_data->data + (object_index & 0xffff);
+            header = (object_header *)object_data->data + halo::datum_slot(object_index);
             if ((header->flags & _object_header_active_bit) != 0) {
                 header->flags &= (uint8_t)~_object_header_active_bit;
             }
@@ -507,12 +508,12 @@ int16_t halo::objects::ObjectRef::get_root_parent_placement(object_placement_cur
         if (object_index != k_datum_index_none) {
             do {
                 root = object_index;
-                header = (object_header *)object_data->data + (root & 0xffff);
+                header = (object_header *)object_data->data + halo::datum_slot(root);
                 obj = header->data;
                 object_index = obj->parent_object;
             } while (object_index != k_datum_index_none);
         }
-        header = (object_header *)object_data->data + (root & 0xffff);
+        header = (object_header *)object_data->data + halo::datum_slot(root);
         obj = header->data;
     }
 
@@ -529,7 +530,7 @@ int16_t halo::objects::ObjectRef::get_root_parent_placement(object_placement_cur
     out_cursor->next_reference = placement_id;
     if (placement_id != k_datum_index_none) {
         object_cluster_reference *ref =
-            (object_cluster_reference *)reference_table->data + (placement_id & 0xffff);
+            (object_cluster_reference *)reference_table->data + halo::datum_slot(placement_id);
         out_cursor->next_reference = ref->next_reference;
         return (int16_t)ref->object_index;
     }
@@ -727,7 +728,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
     }
 
     {
-        object_header *child_header = (object_header *)object_data->data + (child_index & 0xffff);
+        object_header *child_header = (object_header *)object_data->data + halo::datum_slot(child_index);
         object *child = child_header->data;
         int needs_cluster_update = (child->flags >> 0xb) & 1;
         object *parent;
@@ -761,7 +762,7 @@ void halo::objects::ObjectRef::attach_to_object(uint32_t child_index, int16_t ma
 
         if (needs_cluster_update) {
             object_set_cluster_and_parent(child_index, 0);
-            child_header = (object_header *)object_data->data + (child_index & 0xffff);
+            child_header = (object_header *)object_data->data + halo::datum_slot(child_index);
         }
 
         if ((child_header->flags & _object_header_active_bit) != 0) {
@@ -825,7 +826,7 @@ void halo::objects::ObjectRef::snap_to_parent_marker_and_detach()
     object_set_cluster_and_parent(object_index, 0);
 
     {
-        object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+        object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
         object *obj = header->data;
         if (((header->flags & _object_header_active_bit) == 0) &&
             ((obj->flags & _object_do_not_delete_bit) == 0) &&
@@ -847,7 +848,7 @@ void halo::objects::ObjectRef::snap_to_parent_marker_and_detach()
 void halo::objects::ObjectRef::set_in_pvs_pass_flag(uint8_t in_pvs)
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
 
     if (in_pvs != 0) {
@@ -874,7 +875,7 @@ void halo::objects::ObjectRef::set_in_pvs_pass_flag(uint8_t in_pvs)
 void halo::objects::ObjectRef::set_collision_enabled(uint8_t enable)
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
     Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int has_model = (definition->model.tag_id.index != halo::k_word_none);
@@ -1213,7 +1214,7 @@ static uint8_t * &local_player_globals__as_object_test_in_atmosphere_zone = rein
 uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
     uint8_t result = 0;
 
@@ -1233,11 +1234,11 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
             while ((*(uint32_t *)(local_player_globals__as_object_test_in_atmosphere_zone + 0x18 + ((int16_t)ref >> 5) * 4) &
                     (1u << ((uint8_t)ref & 0x1f))) == 0) {
                 if (ref_index == k_datum_index_none) {
-                    ref = 0xffffffff;
+                    ref = k_datum_index_none;
                 } else {
 
                     object_cluster_reference *node =
-                        (object_cluster_reference *)references->data + (ref_index & 0xffff);
+                        (object_cluster_reference *)references->data + halo::datum_slot(ref_index);
                     ref_index = node->next_reference;
                     ref = node->object_index;
                 }

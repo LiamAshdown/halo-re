@@ -122,7 +122,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
 
         light_frame_counter++;
         light_render_unknown_7c0 = 1;
-        object_lights_gather_nearest(location->cluster_index, 0xffffffff, point, 0.0f, indices, scores,
+        object_lights_gather_nearest(location->cluster_index, k_datum_index_none, point, 0.0f, indices, scores,
             (uint32_t)(uintptr_t)weights, &count, 2);
         light_render_unknown_7c0 = 0;
 

@@ -182,7 +182,7 @@ void UnitView::update_autoaim_interaction()
     if (tracked != 0) {
         datum_index damage_effect = *(datum_index *)(tracked + 0x78);
         if (damage_effect != k_datum_index_none) {
-            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, 0xffffffff);
+            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, k_datum_index_none);
             damage_data dd;
 
             memset(&dd, 0, sizeof(dd));

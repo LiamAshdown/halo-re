@@ -167,7 +167,7 @@ void halo::objects::ObjectManager::reset()
     datum_index *slot;
     int32_t i;
 
-    object_unknown_006b8c60 = 0xffffffff;
+    object_unknown_006b8c60 = k_datum_index_none;
     object_sound_event_last_tick = 0;
     widgets_dispose();
     object_visibility_computed_mask = 0;
@@ -460,7 +460,7 @@ void halo::objects::ObjectManager::sweep_refresh_cluster_membership()
     object_iterator iterator;
     object *obj;
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
@@ -489,7 +489,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     object_iterator iterator;
     object *obj;
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
@@ -498,7 +498,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     while (obj != (object *)0) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
-            object_header *header = (object_header *)object_data->data + (iterator.handle & 0xffff);
+            object_header *header = (object_header *)object_data->data + halo::datum_slot(iterator.handle);
             int32_t leaf;
             int16_t cluster;
             bsp_leaf_reference location;
@@ -510,7 +510,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
 
             leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->bounding_center);
             cluster = (leaf == -1) ? -1 :
-                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             if (leaf == -1 || cluster == -1) {
                 collision_bsp_query_sphere_init((ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
                     &sphere, 0, &obj->bounding_center, obj->bounding_radius);
@@ -520,7 +520,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
                     leaf = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, &obj->position);
                 }
                 cluster = (leaf == -1) ? -1 :
-                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                    *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer + (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             }
 
             location.leaf_index = leaf;
@@ -585,7 +585,7 @@ void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_pl
         if (leaf != -1) {
 
             int16_t cluster = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
-                                           (uint32_t)(leaf & 0x7fffffff) * 0x10 + 8);
+                                           (uint32_t)(leaf & halo::k_leaf_index_mask) * 0x10 + 8);
             if (cluster != -1) {
                 object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_override;
                 object_globals_pointer->ambient_cluster_index = cluster;
@@ -609,7 +609,7 @@ int16_t halo::objects::ObjectManager::get_ambient_cluster()
 {
     if (object_globals_pointer->ambient_cluster_mode == _object_ambient_cluster_from_tracked_object) {
         datum_index handle = (uint16_t)object_globals_pointer->ambient_cluster_index;
-        if (object_try_and_get(handle, 0xffffffff) == 0) {
+        if (object_try_and_get(handle, k_datum_index_none) == 0) {
             object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_none;
         } else {
             uint32_t root_index = object_get_root_object_index(handle);
@@ -706,7 +706,7 @@ void halo::objects::ObjectManager::garbage_collection()
         }
         count--;
         handle = list[count];
-        header = (object_header *)object_data->data + (handle & 0xffff);
+        header = (object_header *)object_data->data + halo::datum_slot(handle);
         eligible = (mode == 1) ? (uint8_t)(header->flags & _object_header_active_bit) : 1;
         if (object_test_in_atmosphere_zone(handle) != 0 || eligible == 0) {
             continue;
@@ -847,7 +847,7 @@ int halo::objects::ObjectMemoryDumpRecordView::compare_by_total_size(const objec
 void halo::objects::ObjectMemoryDumpRecordView::accumulate_stats(uint32_t object_index)
 {
     object_memory_dump_record *record = self;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
 
     if (record->maximum_size < header->block_size) {
@@ -942,7 +942,7 @@ void halo::objects::ObjectManager::dump_memory()
         by_type[i].at_rest_count = 0;
     }
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;

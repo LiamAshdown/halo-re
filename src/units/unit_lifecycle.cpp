@@ -143,7 +143,7 @@ void UnitView::find_nearest_valid_surface_plane()
     for (i = 0; (int32_t)i < result.surface_count; i++) {
         int32_t surface = result.surfaces[i];
         int32_t plane_reference = *(int32_t *)(surfaces + surface * 0xc);
-        float *plane = (float *)(planes + (plane_reference & 0x7fffffff) * 0x10);
+        float *plane = (float *)(planes + (plane_reference & halo::k_leaf_index_mask) * 0x10);
         real_plane3d candidate;
         float distance;
 
@@ -269,7 +269,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         if (leaf == -1) {
             continue;
         }
-        if (*(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & 0x7fffffff) * 0x10 + 0x8) == -1) {
+        if (*(int16_t *)(*(uint8_t **)(global_structure_bsp + 0xe4) + (leaf & halo::k_leaf_index_mask) * 0x10 + 0x8) == -1) {
             continue;
         }
         if (!physics_point_find_clear_position(flags, &point, pill_radius + pill_radius, pill_height, pill_radius,

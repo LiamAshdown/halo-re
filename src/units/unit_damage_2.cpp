@@ -36,13 +36,13 @@ void UnitView::melee_attack_scan()
     real_point3d origin;
     real_vector3d perp;
     real_vector3d side;
-    uint32_t best_object = 0xffffffff;
+    uint32_t best_object = k_datum_index_none;
     int32_t material = -1;
     int16_t best_type = 0;
     float best_fraction = 0.0f;
-    uint32_t breakable_index = 0xffffffff;
+    uint32_t breakable_index = k_datum_index_none;
     int32_t breakable_surface = 0;
-    datum_index secondary_effect = 0xffffffff;
+    datum_index secondary_effect = k_datum_index_none;
     datum_index damage_effect;
     int32_t row;
     int32_t col;
@@ -103,7 +103,7 @@ void UnitView::melee_attack_scan()
         }
     }
 
-    damage_effect = 0xffffffff;
+    damage_effect = k_datum_index_none;
     {
         int16_t weapon_slot = ((unit_object *)obj)->unit.current_weapon_index;
 

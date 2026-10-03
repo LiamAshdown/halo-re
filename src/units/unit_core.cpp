@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/core/network_constants.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/tags/flags.hpp"
@@ -26,7 +27,7 @@ extern void object_delete(uint32_t object_index);
 extern uint8_t event9_target;
 extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern network_id_table *object_network_id_table;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
@@ -115,7 +116,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
     Unit *tag = (Unit *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    uint32_t best_object = 0xffffffff;
+    uint32_t best_object = k_datum_index_none;
     int32_t best_object_distance = -1;
     int32_t best_decal = -1;
     int32_t best_decal_extra = 0;
@@ -307,7 +308,7 @@ void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index)
     item.weapon_hash = weapon_hash;
     item.event_byte = event_byte;
     items[0] = &item;
-    encoded_len = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1b, 0, items, 0, 1, 0);
+    encoded_len = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x1b, 0, items, 0, 1, 0);
     if (0 < encoded_len) {
         network_session_broadcast_to_flagged(encoded_len, network_server, 1, network_message_scratch, 1, 0, 0, 3);
     }

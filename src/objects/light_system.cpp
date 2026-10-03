@@ -293,7 +293,7 @@ void halo::objects::LightSystem::update_all()
             if (!(age <= *(float *)(tag_data(((struct light *)light)->definition_tag) + 0xf4))) {
                 cluster_reference_remove_all__as_object_lights_update_all(handle, (datum_index *)(light + 0x10), &light_cluster_first__as_object_lights_update_all);
                 datum_delete(light_data, handle);
-            } else if (object_try_and_get(((struct light *)light)->owner_object, 0xffffffff) != 0) {
+            } else if (object_try_and_get(((struct light *)light)->owner_object, k_datum_index_none) != 0) {
                 light = (uint8_t *)light_data->data + halo::datum_slot(handle) * 0x7c;
                 if ((light[2] & 2) != 0) {
                     cluster_reference_remove_all__as_object_lights_update_all(handle, (datum_index *)(light + 0x10), &light_cluster_first__as_object_lights_update_all);
@@ -517,8 +517,8 @@ int16_t halo::objects::LightSystem::collect_object_references(uint32_t light_han
     int16_t count = 0;
 
     if (node == k_datum_index_none) {
-        next_node = 0xffffffff;
-        node = 0xffffffff;
+        next_node = k_datum_index_none;
+        node = k_datum_index_none;
     } else {
         uint8_t *ref = (uint8_t *)light_object_references->data + halo::datum_slot(node) * 0xc;
         next_node = *(uint32_t *)(ref + 8);
@@ -534,7 +534,7 @@ int16_t halo::objects::LightSystem::collect_object_references(uint32_t light_han
             count = count + 1;
 
             if (next_node == k_datum_index_none) {
-                node = 0xffffffff;
+                node = k_datum_index_none;
             } else {
                 uint8_t *ref = (uint8_t *)light_object_references->data + halo::datum_slot(next_node) * 0xc;
                 next_node = *(uint32_t *)(ref + 8);
@@ -681,7 +681,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
  */
 void halo::objects::LightSystem::clear_dirty_flag(uint32_t light_index)
 {
-    light *entry = (light *)light_data->data + (light_index & 0xffff);
+    light *entry = (light *)light_data->data + halo::datum_slot(light_index);
 
     if ((entry->flags & _light_attached_bit) != 0) {
         cluster_reference_remove_all(light_index, &entry->next_light, &light_cluster_first);
@@ -768,7 +768,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
             } else {
                 uint8_t *leaves = (uint8_t *)global_structure_bsp->leaves.pointer;
                 leaf_reference.cluster_index =
-                    *(int16_t *)(leaves + (leaf_reference.leaf_index & 0x7fffffff) * 0x10 + 8);
+                    *(int16_t *)(leaves + (leaf_reference.leaf_index & halo::k_leaf_index_mask) * 0x10 + 8);
             }
         } else {
 
@@ -823,7 +823,7 @@ void halo::objects::LightSystem::refresh_transforms()
     datum_index index = datum_next(-1, light_data);
 
     while (index != k_datum_index_none) {
-        light *entry = (light *)light_data->data + (index & 0xffff);
+        light *entry = (light *)light_data->data + halo::datum_slot(index);
         if ((entry->flags & _light_transform_dirty_bit) != 0) {
             entry->flags &= (uint16_t)~_light_transform_dirty_bit;
             object_light_recompute_transform(index);
@@ -851,13 +851,13 @@ void halo::objects::LightSystem::gather_nearest(int16_t cluster_index, uint32_t 
         chain_index = k_datum_index_none;
     } else {
         object_cluster_reference *ref =
-            (object_cluster_reference *)light_cluster_references->data + (next_ref & 0xffff);
+            (object_cluster_reference *)light_cluster_references->data + halo::datum_slot(next_ref);
         chain_index = ref->object_index;
         next_ref = ref->next_reference;
     }
 
     while (chain_index != k_datum_index_none) {
-        light *entry = (light *)light_data->data + (chain_index & 0xffff);
+        light *entry = (light *)light_data->data + halo::datum_slot(chain_index);
 
         if (entry->creation_tick != light_frame_counter) {
             if (*(int32_t *)&((struct light *)entry)->queue_slot != -1) {
@@ -923,7 +923,7 @@ void halo::objects::LightSystem::gather_nearest(int16_t cluster_index, uint32_t 
             chain_index = k_datum_index_none;
         } else {
             object_cluster_reference *ref =
-                (object_cluster_reference *)light_cluster_references->data + (next_ref & 0xffff);
+                (object_cluster_reference *)light_cluster_references->data + halo::datum_slot(next_ref);
             chain_index = ref->object_index;
             next_ref = ref->next_reference;
         }

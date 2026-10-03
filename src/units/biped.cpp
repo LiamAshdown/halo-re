@@ -287,7 +287,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
             ModelCollisionGeometryBSPSurface *surfaces =
                 (ModelCollisionGeometryBSPSurface *)bsp->surfaces.pointer;
             const real_plane3d *plane = (const real_plane3d *)((uint8_t *)bsp->planes.pointer +
-                (surfaces[surface].plane & 0x7fffffff) * 0x10);
+                (surfaces[surface].plane & halo::k_leaf_index_mask) * 0x10);
 
             collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
                 (real_point2d *)&biped->cached_ground_point, &closest);

@@ -1106,7 +1106,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             set_flag(solve->result_flags, units::biped_movement_result_flag::unknown_8);
         }
     }
-    solve->snapped_ground_surface_index = 0xffffffff;
+    solve->snapped_ground_surface_index = k_datum_index_none;
     if (contact_count == 0 && solve->ground_surface_index != k_datum_index_none) {
         ModelCollisionGeometryBSP *bsp = global_structure_collision_bsp;
         int32_t surface_index = (int32_t)solve->ground_surface_index;
@@ -1207,7 +1207,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
                     contact->plane_j = best_plane.normal.j;
                     contact->plane_k = best_plane.normal.k;
                     contact->plane_d = best_plane.d;
-                    contact->object_index = 0xffffffff;
+                    contact->object_index = k_datum_index_none;
                     contact->surface_index = best_surface;
                     contact->surface_flags = 0;
                     contact->breakable_surface_index = 0;
@@ -1320,13 +1320,13 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             solve->ground_normal.j = k_default_resting_plane[1];
             solve->ground_normal.k = k_default_resting_plane[2];
             *(float *)&solve->ground_plane = k_default_resting_plane[3];
-            solve->result_ground_surface_index = 0xffffffff;
+            solve->result_ground_surface_index = k_datum_index_none;
             solve->result_impact_speed = 0.0f;
         }
     }
 
     {
-        uint32_t best_object = 0xffffffff;
+        uint32_t best_object = k_datum_index_none;
         int16_t best_type = 0;
         float best_relative_speed_squared = 0.0f;
         int16_t i;
@@ -1359,7 +1359,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             }
         }
         solve->fastest_contact_object = best_object;
-        solve->result_surface_index = 0xffffffff;
+        solve->result_surface_index = k_datum_index_none;
 
         for (i = 0; i < contact_count; i++) {
             uint32_t object_index = contacts[i].object_index;

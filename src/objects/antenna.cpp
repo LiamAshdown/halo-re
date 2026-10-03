@@ -105,7 +105,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
         handle = datum_new(antenna_data);
 
         if (handle != k_datum_index_none) {
-            antenna *ant = (antenna *)antenna_data->data + (handle & 0xffff);
+            antenna *ant = (antenna *)antenna_data->data + halo::datum_slot(handle);
             int32_t tag_vertex_count = tag->vertices.count;
             AntennaVertex *tag_vertices = (AntennaVertex *)tag->vertices.pointer;
             real_point3d position = { 0.0f, 0.0f, 0.0f };
@@ -218,7 +218,7 @@ void halo::objects::AntennaSystem::update(float dt)
     datum_index handle = datum_next(-1, antenna_data);
 
     while (handle != k_datum_index_none) {
-        antenna *ant = (antenna *)antenna_data->data + (handle & 0xffff);
+        antenna *ant = (antenna *)antenna_data->data + halo::datum_slot(handle);
 
         if (ant->degenerate == 0) {
             ant->update_counter = ant->update_counter + 1;
@@ -284,7 +284,7 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
 
                     point_physics_tick(&vertex->velocity, 0,
                         tag_instances[antenna_tag->physics.tag_id.index].data,
-                        &node_ref, 0xffffffff, &new_position, 0, 0, 0, 0.02f, dt);
+                        &node_ref, k_datum_index_none, &new_position, 0, 0, 0, 0.02f, dt);
 
                     {
                         float dx = new_position.x - anchor.x;
@@ -384,7 +384,7 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
             node_ref->cluster_index = -1;
         } else {
             node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
-                                                 (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
+                                                 (uint32_t)(node_index & halo::k_leaf_index_mask) * 0x10 + 8);
         }
     }
 

@@ -558,7 +558,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
             node_ref->cluster_index = -1;
         } else {
             node_ref->cluster_index = *(int16_t *)((uint8_t *)global_structure_bsp->leaves.pointer +
-                                                 (uint32_t)(node_index & 0x7fffffff) * 0x10 + 8);
+                                                 (uint32_t)(node_index & halo::k_leaf_index_mask) * 0x10 + 8);
         }
     }
 

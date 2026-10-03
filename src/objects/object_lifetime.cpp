@@ -1,4 +1,6 @@
 #include "halo/objects/object_lifetime.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "game.h"
@@ -22,7 +24,7 @@ extern uint8_t message_delta_decode_compound_field(void *decode_context, void *d
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern void network_index_cache_remove(void *globals, uint32_t object_index);
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern void *network_object_index_cache;
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
@@ -121,7 +123,7 @@ uint8_t halo::objects::ObjectLifetime::datum_consume_pending_flag()
 void halo::objects::ObjectLifetime::mark_pending_delete()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
 
     if ((header->flags & _object_header_active_bit) == 0 &&
@@ -141,7 +143,7 @@ void halo::objects::ObjectLifetime::mark_pending_delete()
 void halo::objects::ObjectLifetime::clear_pending_delete_flag()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
 
     if ((header->flags & _object_header_active_bit) != 0) {
         header->flags &= (uint8_t)~_object_header_active_bit;
@@ -160,7 +162,7 @@ namespace {
 void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
     Object *object_tag;
 
@@ -173,7 +175,7 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
 
     header->flags |= _object_header_delete_pending_bit;
 
-    header = (object_header *)object_data->data + (object_index & 0xffff);
+    header = (object_header *)object_data->data + halo::datum_slot(object_index);
     obj = header->data;
     object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none &&
@@ -182,7 +184,7 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
         object_for_each_light_attachment(object_index, 1, 0);
     }
 
-    header = (object_header *)object_data->data + (object_index & 0xffff);
+    header = (object_header *)object_data->data + halo::datum_slot(object_index);
     obj->flags |= _object_no_collision_bit;
     header->flags &= (uint8_t)~_object_header_unknown_02_bit;
 
@@ -217,11 +219,11 @@ void halo::objects::ObjectLifetime::delete_unparented()
     scratch_pointer = &looked_up;
     scratch_tail = 0;
 
-    encoded_length = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0, 0,
+    encoded_length = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0, 0,
                                                   (void **)&scratch_pointer, 0, 1, 0);
     (void)scratch_tail;
 
-    header = (object_header *)object_data->data + (object_index & 0xffff);
+    header = (object_header *)object_data->data + halo::datum_slot(object_index);
     if ((header->flags & _object_header_delete_pending_bit) == 0) {
         network_index_cache_remove(&network_object_index_cache, object_index);
     }
@@ -258,7 +260,7 @@ void halo::objects::ObjectLifetime::delete_by_pooled_node_id(int32_t **record)
         node_table = (int32_t)object_network_id_table->handles;
         object_index = *(uint32_t *)(node_table + pooled_node_id * 4);
         if (object_index != k_datum_index_none) {
-            header = (object_header *)object_data->data + (object_index & 0xffff);
+            header = (object_header *)object_data->data + halo::datum_slot(object_index);
             if ((header->flags & _object_header_delete_pending_bit) == 0) {
                 network_index_cache_remove(&network_object_index_cache, object_index);
             }
@@ -278,7 +280,7 @@ void halo::objects::ObjectLifetime::delete_by_pooled_node_id(int32_t **record)
 void halo::objects::ObjectLifetime::destroy()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data + (object_index & 0xffff))->data;
+    object *obj = ((object_header *)object_data->data + halo::datum_slot(object_index))->data;
 
     if (obj->network_role == 0) {
         object_delete_unparented(object_index);
@@ -298,7 +300,7 @@ void halo::objects::ObjectLifetime::destroy()
 uint8_t halo::objects::ObjectLifetime::is_delete_pending()
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     return (header->flags & _object_header_delete_pending_bit) != 0;
 }
 
@@ -316,7 +318,7 @@ void halo::objects::ObjectLifetime::clear_references_to_object()
     object_iterator iterator;
     object *obj;
 
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::to_bits(halo::objects::object_mask::all);
     iterator.flags_mask = 0;
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
@@ -342,7 +344,7 @@ void halo::objects::ObjectLifetime::clear_references_to_object()
 void halo::objects::ObjectLifetime::delete_4f9030(char recurse_siblings)
 {
     uint32_t object_index = handle;
-    object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
+    object_header *header = (object_header *)object_data->data + halo::datum_slot(object_index);
     object *obj = header->data;
     int i;
 
@@ -402,11 +404,11 @@ void halo::objects::ObjectLifetime::create_attachments()
 
         if (tag != k_datum_index_none) {
             switch (*(uint32_t *)attachment) {
-            case 0x6c696768: type = 0; break;
-            case 0x6c736e64: type = 1; break;
-            case 0x65666665: type = 2; break;
-            case 0x636f6e74: type = 3; break;
-            case 0x7063746c: type = 4; break;
+            case halo::fourcc('l', 'i', 'g', 'h'): type = 0; break;
+            case halo::fourcc('l', 's', 'n', 'd'): type = 1; break;
+            case halo::fourcc('e', 'f', 'f', 'e'): type = 2; break;
+            case halo::fourcc('c', 'o', 'n', 't'): type = 3; break;
+            case halo::fourcc('p', 'c', 't', 'l'): type = 4; break;
             }
         }
         switch (type) {

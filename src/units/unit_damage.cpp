@@ -551,7 +551,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         delta.j = target_pos.y - origin_pos.y;
         delta.k = target_pos.z - origin_pos.z;
 
-        if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin_pos, &delta, 0xffffffff, scratch) != 0) {
+        if (collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::unstick), &origin_pos, &delta, k_datum_index_none, scratch) != 0) {
             target_pos = origin_pos;
         }
     } else {
@@ -587,7 +587,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         dd.material_type = -1;
 
         if (target_object_index == k_datum_index_none) {
-            damage_apply_area_effect(&dd, 0xffffffff);
+            damage_apply_area_effect(&dd, k_datum_index_none);
         } else {
             object_apply_damage(&dd, target_object_index, damage_param4, damage_param5, damage_param6, damage_param7);
         }
@@ -853,7 +853,7 @@ void UnitView::record_recent_damage_and_react(float damage_amount, int16_t respo
 broadcast_check:
     {
         uint8_t *attacker = 0;
-        uint32_t attacker_handle = 0xffffffff;
+        uint32_t attacker_handle = k_datum_index_none;
 
         if (responsible_player != k_datum_index_none) {
             uint32_t controlled_unit = *(uint32_t *)((uint8_t *)player_data->data +
@@ -908,8 +908,8 @@ broadcast_check:
             *(int32_t *)(attacker + 0x42c) = tick;
             threshold = (*(uint32_t *)(attacker + 0x218) != k_datum_index_none) ? 5 : 3;
             if (*(int16_t *)(attacker + 0x42a) >= threshold) {
-                ai_communication_broadcast(1, (datum_index)attacker_handle, 0xffffffff, -1, 0xffffffff,
-                                           0xffffffff, 0);
+                ai_communication_broadcast(1, (datum_index)attacker_handle, k_datum_index_none, -1, k_datum_index_none,
+                                           k_datum_index_none, 0);
                 *(int16_t *)(attacker + 0x42a) = 0;
             }
         }

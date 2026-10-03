@@ -1319,7 +1319,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
         if (advance == 1) {
             switch ((int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state) {
             case 0x1e: case 0x1f: case 0x29:
-                UnitView(unit_index).cause_melee_damage(0, 0xffffffff, -1, -1, -1, 0);
+                UnitView(unit_index).cause_melee_damage(0, k_datum_index_none, -1, -1, -1, 0);
                 break;
             case 0x21:
                 UnitView(unit_index).release_thrown_grenade(0);

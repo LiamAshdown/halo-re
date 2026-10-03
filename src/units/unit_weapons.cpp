@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/core/network_constants.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -60,7 +61,7 @@ extern char *weapon_get_label(datum_index item_index);
 extern void weapon_ready(datum_index item_index);
 extern void object_mark_pending_delete(uint32_t object_index);
 extern real_vector3d *global_up3d_pointer;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_server_globals *network_server;
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);

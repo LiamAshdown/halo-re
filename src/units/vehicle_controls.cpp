@@ -803,7 +803,7 @@ void VehicleView::create_hover_thruster_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             scale = 1.0f - result.t;
-            effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, 0xffffffff, 0, 3, names, points, vectors,
+            effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, k_datum_index_none, 0, 3, names, points, vectors,
                 scale, scale, 0, 0, 1);
         }
     }
@@ -875,7 +875,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             vectors[3] = vectors[2];
-            effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, 0xffffffff, 0, 4, names, points, vectors, v, v,
+            effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, k_datum_index_none, 0, 4, names, points, vectors, v, v,
                 0, 0, 1);
         }
     }

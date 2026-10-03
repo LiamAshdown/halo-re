@@ -1,4 +1,5 @@
 #include "halo/objects/object_factory.hpp"
+#include "halo/core/network_constants.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -38,7 +39,7 @@ extern uint8_t network_action_apply_active;
 extern int32_t network_client;
 extern int16_t network_game_mode;
 extern char network_log_path_format[];
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern void object_block_data_free(data_array *array, datum_index object_index);
@@ -295,8 +296,8 @@ void halo::objects::ObjectPlacementDataView::initialize(datum_index definition_t
 
     current = object_try_and_get(role, _object_mask_all);
     if (current == 0) {
-        placement->role = 0xffffffff;
-        placement->owner_linkage = 0xffffffff;
+        placement->role = k_datum_index_none;
+        placement->owner_linkage = k_datum_index_none;
         placement->owner_team = -1;
     } else {
         placement->role = role;
@@ -378,7 +379,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         goto out_of_objects;
     }
 
-    header = (object_header *)object_data->data + (new_index & 0xffff);
+    header = (object_header *)object_data->data + halo::datum_slot(new_index);
     header->flags |= _object_header_in_pvs_pass_bit | _object_header_needs_update_bit;
     header->type = (uint8_t)object_tag->object_type;
     obj = header->data;
@@ -459,7 +460,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         }
     }
 
-    header = (object_header *)object_data->data + (new_index & 0xffff);
+    header = (object_header *)object_data->data + halo::datum_slot(new_index);
     obj = header->data;
 
     if (active && object_type_definitions_query_0x28(new_index) != 0) {

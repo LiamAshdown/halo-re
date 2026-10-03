@@ -211,7 +211,7 @@ datum_index UnitView::build_seat_occupant_zone_list()
     if (result != k_datum_index_none) {
         uint8_t *node = (uint8_t *)object_list_header_data->data + halo::datum_slot(result) * 0xc;
         *(int16_t *)(node + 6) = 0;
-        *(uint32_t *)(node + 8) = 0xffffffff;
+        *(uint32_t *)(node + 8) = k_datum_index_none;
 
         datum_index child = unit_obj->first_child_object;
         while (child != k_datum_index_none) {
@@ -825,7 +825,7 @@ void unit_exit_vehicle_seat(uint32_t player_index)
         if ((salt != 0) && ((requested_salt == 0) || (salt == requested_salt))) {
             uint32_t unit_index = *(uint32_t *)((uint8_t *)player_data->data + record_offset + 0x34);
 
-            uint32_t record[8] = { 0, 0, 0xffffffff, 0, 0, 0, 0, 0 };
+            uint32_t record[8] = { 0, 0, k_datum_index_none, 0, 0, 0, 0, 0 };
 
             UnitView(unit_index).update_stance_and_jump(1, 0, 0, 0, 0, 0.0f, -1, 0, 0);
             UnitView(unit_index).release_transient_state(0);
@@ -1139,14 +1139,14 @@ uint8_t unit_is_seat_occupied(int32_t parent_index, int16_t seat_index)
  */
 void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_bit)
 {
-    uint32_t object_index = 0xffffffff;
-    uint32_t next_link = 0xffffffff;
+    uint32_t object_index = k_datum_index_none;
+    uint32_t next_link = k_datum_index_none;
 
     if (zone_list_index != k_datum_index_none) {
         uint32_t link = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
         if (link == k_datum_index_none) {
-            object_index = 0xffffffff;
-            next_link = 0xffffffff;
+            object_index = k_datum_index_none;
+            next_link = k_datum_index_none;
         } else {
             uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
@@ -1174,8 +1174,8 @@ void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_b
         }
 
         if (next_link == k_datum_index_none) {
-            object_index = 0xffffffff;
-            next_link = 0xffffffff;
+            object_index = k_datum_index_none;
+            next_link = k_datum_index_none;
         } else {
             uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
@@ -1195,14 +1195,14 @@ void unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t use_second_b
  */
 void unit_mark_zone_occupants_flag(uint32_t zone_list_index)
 {
-    uint32_t object_index = 0xffffffff;
-    uint32_t next_link = 0xffffffff;
+    uint32_t object_index = k_datum_index_none;
+    uint32_t next_link = k_datum_index_none;
 
     if (zone_list_index != k_datum_index_none) {
         uint32_t link = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
         if (link == k_datum_index_none) {
-            object_index = 0xffffffff;
-            next_link = 0xffffffff;
+            object_index = k_datum_index_none;
+            next_link = k_datum_index_none;
         } else {
             uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
@@ -1226,8 +1226,8 @@ void unit_mark_zone_occupants_flag(uint32_t zone_list_index)
         }
 
         if (next_link == k_datum_index_none) {
-            object_index = 0xffffffff;
-            next_link = 0xffffffff;
+            object_index = k_datum_index_none;
+            next_link = k_datum_index_none;
         } else {
             uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
             next_link = *(uint32_t *)(node + 8);
@@ -1264,7 +1264,7 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
 
         object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
         object *occupant = object_iterator_next(&iter);
-        uint32_t occupant_index = 0xffffffff;
+        uint32_t occupant_index = k_datum_index_none;
         while (occupant != (object *)0) {
             if ((occupant->parent_object == unit_index) &&
                 (((unit_data *)((uint8_t *)occupant + k_unit_data_offset))->vehicle_seat_index == seat_index)) {
@@ -1280,13 +1280,13 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
         uint32_t zone_object;
         uint32_t next_link;
         if (zone_list_index == k_datum_index_none) {
-            zone_object = 0xffffffff;
-            next_link = 0xffffffff;
+            zone_object = k_datum_index_none;
+            next_link = k_datum_index_none;
         } else {
             uint32_t first_link = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(zone_list_index) * 0xc + 8);
             if (first_link == k_datum_index_none) {
-                zone_object = 0xffffffff;
-                next_link = 0xffffffff;
+                zone_object = k_datum_index_none;
+                next_link = k_datum_index_none;
             } else {
                 uint32_t link_slot = first_link & 0xffff;
                 uint8_t *node = (uint8_t *)object_list_reference_data->data + link_slot * 0xc;
@@ -1300,8 +1300,8 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
                 break;
             }
             if (next_link == k_datum_index_none) {
-                zone_object = 0xffffffff;
-                next_link = 0xffffffff;
+                zone_object = k_datum_index_none;
+                next_link = k_datum_index_none;
             } else {
                 uint8_t *node = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_link) * 0xc;
                 next_link = *(uint32_t *)(node + 8);
@@ -1411,7 +1411,7 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
     unit->control_flags = 0;
     if (unit->current_weapon_index != -1) {
         int16_t slot = ((struct unit_object *)self_obj)->unit.current_weapon_index;
-        uint32_t weapon_object_index = 0xffffffff;
+        uint32_t weapon_object_index = k_datum_index_none;
         if (slot != -1) {
             weapon_object_index = unit->weapons[slot];
         }

@@ -1,4 +1,5 @@
 #include "halo/objects/object_damage.hpp"
+#include "halo/core/network_constants.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -52,7 +53,7 @@ extern int8_t message_delta_decode_compound_field(void *globals, void *out_value
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern int16_t network_game_mode;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane, uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags, float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local);
@@ -631,7 +632,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
 void halo::objects::DamageSystem::throttled_multiplayer_sound_event()
 {
     if (g_00689481 == 1 && (uint32_t)(object_sound_event_last_tick + 2) < (uint32_t)game_time->game_time) {
-        game_engine_queue_multiplayer_sound(0x2b, 0xffffffff, 0);
+        game_engine_queue_multiplayer_sound(0x2b, k_datum_index_none, 0);
         object_sound_event_last_tick = game_time->game_time;
     }
 }
@@ -681,7 +682,7 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
                 if (notify == 1) {
                     object_set_shield_depleted_flag(0);
                 }
-                unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, 0xffffffff, 0, 0);
+                unit_update_stance_and_jump(effect, 0, 0, 0, 0, 0, 0, k_datum_index_none, 0, 0);
             }
         }
     }
@@ -1413,7 +1414,7 @@ void halo::objects::DamageSystem::queue_pickup_denied_event(void *param_1, int32
     {
         void *items[1];
         items[0] = &block;
-        network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x31, 0,
+        network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x31, 0,
                                              items, 0, 1, 0), network_server, 1, network_message_scratch, 0, 0, 0, 3);
     }
 }
@@ -1708,7 +1709,7 @@ void halo::objects::DamageSystem::breakable_surfaces_reset()
 
     for (group = 0; group < 16; group++) {
         for (i = 0; i < 8; i++) {
-            table->active[group][i] = 0xffffffff;
+            table->active[group][i] = k_datum_index_none;
         }
     }
     for (group = 0; group < 16; group++) {
