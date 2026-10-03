@@ -213,7 +213,7 @@ void Eax1Backend::shutdown(sound_effect_object * this_object)
     void *property_set = this_object->property_set;
 
     if (property_set != 0) {
-        ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[halo::sound::dsound_slot::release])(property_set);
+        ((uint32_t (__stdcall *)(void *))halo::sound::com_methods(property_set)[halo::sound::dsound_slot::release])(property_set);
         this_object->property_set = 0;
     }
 }
@@ -233,14 +233,14 @@ int32_t Eax1Backend::initialize(sound_effect_object * this_object, directsound_c
         return 0;
     }
 
-    vtable = *(void ***)channel->buffer_3d;
+    vtable = halo::sound::com_methods(channel->buffer_3d);
     if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))vtable[0])(channel->buffer_3d, sound_eax_property_set_guid,
             &this_object->property_set) < 0) {
         this_object->property_set = 0;
     } else {
         void *property_set = this_object->property_set;
         sound_query_support_fn query_support =
-            (sound_query_support_fn)(*(void ***)property_set)[halo::sound::dsound_slot::ks_query_support];
+            halo::sound::com_method<sound_query_support_fn>(property_set, halo::sound::dsound_slot::ks_query_support);
 
         type_support = 0;
         if (query_support(property_set, sound_eax_listener_property_guid, 2, &type_support) >= 0 &&
@@ -267,18 +267,18 @@ void Eax1Backend::apply_listener(sound_effect_object * this_object, const SoundE
 
     if ((this_object->supported_properties & 0x08) != 0) {
         value = environment->decay_time;
-        ((sound_property_set_fn)(*(void ***)this_object->property_set)[halo::sound::dsound_slot::ks_set])(this_object->property_set,
+        halo::sound::com_method<sound_property_set_fn>(this_object->property_set, halo::sound::dsound_slot::ks_set)(this_object->property_set,
             sound_eax_listener_property_guid, 3, 0, 0, &value, 4);
     }
     if ((this_object->supported_properties & 0x10) != 0) {
         value = environment->decay_hf_ratio * 0.4761905f;
         value = value + value;
-        ((sound_property_set_fn)(*(void ***)this_object->property_set)[halo::sound::dsound_slot::ks_set])(this_object->property_set,
+        halo::sound::com_method<sound_property_set_fn>(this_object->property_set, halo::sound::dsound_slot::ks_set)(this_object->property_set,
             sound_eax_listener_property_guid, 4, 0, 0, &value, 4);
     }
     if ((this_object->supported_properties & 0x04) != 0) {
         value = environment->reverb_intensity;
-        ((sound_property_set_fn)(*(void ***)this_object->property_set)[halo::sound::dsound_slot::ks_set])(this_object->property_set,
+        halo::sound::com_method<sound_property_set_fn>(this_object->property_set, halo::sound::dsound_slot::ks_set)(this_object->property_set,
             sound_eax_listener_property_guid, 2, 0, 0, &value, 4);
     }
     directsound_deferred_dirty = 1;
@@ -286,21 +286,21 @@ void Eax1Backend::apply_listener(sound_effect_object * this_object, const SoundE
 
 void Eax1Backend::set_environment_index(sound_effect_object * this_object, int32_t environment)
 {
-    sound_property_set_fn set = (sound_property_set_fn)(*(void ***)this_object->property_set)[halo::sound::dsound_slot::ks_set];
+    sound_property_set_fn set = halo::sound::com_method<sound_property_set_fn>(this_object->property_set, halo::sound::dsound_slot::ks_set);
     int32_t result = set(this_object->property_set, sound_eax_listener_property_guid, 1, 0, 0, &environment, 4);
 
     if (result >= 0) {
-        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+        halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
     }
 }
 
 void Eax1Backend::set_room_gain(sound_effect_object * this_object, float gain)
 {
-    sound_property_set_fn set = (sound_property_set_fn)(*(void ***)this_object->property_set)[halo::sound::dsound_slot::ks_set];
+    sound_property_set_fn set = halo::sound::com_method<sound_property_set_fn>(this_object->property_set, halo::sound::dsound_slot::ks_set);
     int32_t result = set(this_object->property_set, sound_eax_listener_property_guid, 2, 0, 0, &gain, 4);
 
     if (result >= 0) {
-        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+        halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
     }
 }
 
@@ -326,7 +326,7 @@ void Eax2Backend::shutdown(sound_effect_object * this_object_base)
     if (property_set != 0) {
         void *listener_set = this_object->channel_property_sets[0];
 
-        set = (sound_property_set_fn)(*(void ***)listener_set)[4];
+        set = halo::sound::com_method<sound_property_set_fn>(listener_set, 4);
         for (i = 0; i < 11; i++) {
             if (this_object->base.supported_properties & k_listener_defaults[i].bit) {
                 default_bits = k_listener_defaults[i].default_bits;
@@ -334,7 +334,7 @@ void Eax2Backend::shutdown(sound_effect_object * this_object_base)
                     &default_bits, 4);
             }
         }
-        ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[halo::sound::dsound_slot::release])(property_set);
+        ((uint32_t (__stdcall *)(void *))halo::sound::com_methods(property_set)[halo::sound::dsound_slot::release])(property_set);
         this_object->base.property_set = 0;
     }
 
@@ -342,7 +342,7 @@ void Eax2Backend::shutdown(sound_effect_object * this_object_base)
         property_set = this_object->channel_property_sets[i];
         if (property_set != 0) {
             int32_t j;
-            set = (sound_property_set_fn)(*(void ***)property_set)[4];
+            set = halo::sound::com_method<sound_property_set_fn>(property_set, 4);
             for (j = 0; j < 9; j++) {
                 if (this_object->base.supported_properties & k_channel_defaults[j].bit) {
                     default_bits = k_channel_defaults[j].default_bits;
@@ -350,7 +350,7 @@ void Eax2Backend::shutdown(sound_effect_object * this_object_base)
                         &default_bits, 4);
                 }
             }
-            ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[halo::sound::dsound_slot::release])(property_set);
+            ((uint32_t (__stdcall *)(void *))halo::sound::com_methods(property_set)[halo::sound::dsound_slot::release])(property_set);
         }
         this_object->channel_property_sets[i] = 0;
     }
@@ -379,10 +379,10 @@ int32_t Eax2Backend::initialize(sound_effect_object * this_object_base, directso
         this_object->channel_property_sets[i] = 0;
     }
 
-    if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))(*(void ***)listener->buffer_3d)[halo::sound::dsound_slot::query_interface])(listener->buffer_3d,
+    if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))halo::sound::com_methods(listener->buffer_3d)[halo::sound::dsound_slot::query_interface])(listener->buffer_3d,
             sound_eax_property_set_guid, &this_object->base.property_set) >= 0) {
         property_set = this_object->base.property_set;
-        query = (sound_query_support_fn)(*(void ***)property_set)[5];
+        query = halo::sound::com_method<sound_query_support_fn>(property_set, 5);
 
         for (i = 0; i < 14; i++) {
             if (query(property_set, sound_eax20_listener_property_guid, k_listener_queries[i].id, &out_value) >= 0 &&
@@ -412,7 +412,7 @@ int32_t EaxBackend::initialize_channel(sound_effect_object * this_object_base, i
     sound_eax_effect_object *this_object = reinterpret_cast<sound_eax_effect_object *>(this_object_base);
     directsound_channel *channel = &directsound_channels[channel_index];
     void **property_set_out = &this_object->channel_property_sets[channel_index];
-    void **vtable = *(void ***)channel->buffer_3d;
+    void **vtable = halo::sound::com_methods(channel->buffer_3d);
     int32_t (__stdcall *query_interface)(void *, const uint8_t *, void **) =
         (int32_t (__stdcall *)(void *, const uint8_t *, void **))vtable[0];
     int32_t result = query_interface(channel->buffer_3d, sound_eax_property_set_guid, property_set_out);
@@ -459,7 +459,7 @@ void Eax2Backend::apply_channel(sound_effect_object * this_object_base, int32_t 
     supported = this_object->base.supported_properties;
     deferred = (supported & 1) != 0;
     property_set = this_object->channel_property_sets[channel_index];
-    set = (sound_property_set_fn)(*(void ***)property_set)[4];
+    set = halo::sound::com_method<sound_property_set_fn>(property_set, 4);
 
     {
         struct { uint32_t bit; uint32_t id; int32_t *value; } fields[9] = {
@@ -497,7 +497,7 @@ void Eax2Backend::apply_listener(sound_effect_object * this_object_base, const S
     uint8_t deferred;
 
     property_set = this_object->channel_property_sets[0];
-    set = (sound_property_set_fn)(*(void ***)property_set)[4];
+    set = halo::sound::com_method<sound_property_set_fn>(property_set, 4);
     deferred = (this_object->base.supported_properties & 1) != 0;
 
     for (i = 0; i < 11; i++) {
@@ -515,10 +515,10 @@ void Eax2Backend::set_environment_index(sound_effect_object * this_object_base, 
 {
     sound_eax_effect_object *this_object = reinterpret_cast<sound_eax_effect_object *>(this_object_base);
     void *property_set = this_object->channel_property_sets[0];
-    sound_property_set_fn set = (sound_property_set_fn)(*(void ***)property_set)[halo::sound::dsound_slot::ks_set];
+    sound_property_set_fn set = halo::sound::com_method<sound_property_set_fn>(property_set, halo::sound::dsound_slot::ks_set);
 
     set(property_set, sound_eax20_listener_property_guid, 0xb, 0, 0, &environment, 4);
-    ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+    halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
 }
 
 void Eax2Backend::set_room_gain(sound_effect_object * this_object_base, float gain)
@@ -534,9 +534,9 @@ void Eax2Backend::set_room_gain(sound_effect_object * this_object_base, float ga
         value = k_sound_minimum_volume;
     }
 
-    set = (sound_property_set_fn)(*(void ***)property_set)[halo::sound::dsound_slot::ks_set];
+    set = halo::sound::com_method<sound_property_set_fn>(property_set, halo::sound::dsound_slot::ks_set);
     set(property_set, sound_eax20_listener_property_guid, 9, 0, 0, &value, 4);
-    ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+    halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
 }
 
 void Eax3Backend::shutdown(sound_effect_object * this_object_base)
@@ -551,7 +551,7 @@ void Eax3Backend::shutdown(sound_effect_object * this_object_base)
     if (property_set != 0) {
         void *listener_set = this_object->channel_property_sets[0];
 
-        set = (sound_property_set_fn)(*(void ***)listener_set)[4];
+        set = halo::sound::com_method<sound_property_set_fn>(listener_set, 4);
         for (i = 0; i < 12; i++) {
             if (this_object->base.supported_properties & k_listener_defaults_sound_eax30_effect_shutdown[i].bit) {
                 default_bits = k_listener_defaults_sound_eax30_effect_shutdown[i].default_bits;
@@ -559,7 +559,7 @@ void Eax3Backend::shutdown(sound_effect_object * this_object_base)
                     &default_bits, 4);
             }
         }
-        ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[halo::sound::dsound_slot::release])(property_set);
+        ((uint32_t (__stdcall *)(void *))halo::sound::com_methods(property_set)[halo::sound::dsound_slot::release])(property_set);
         this_object->base.property_set = 0;
     }
 
@@ -567,7 +567,7 @@ void Eax3Backend::shutdown(sound_effect_object * this_object_base)
         property_set = this_object->channel_property_sets[i];
         if (property_set != 0) {
             int32_t j;
-            set = (sound_property_set_fn)(*(void ***)property_set)[4];
+            set = halo::sound::com_method<sound_property_set_fn>(property_set, 4);
             for (j = 0; j < 9; j++) {
                 if (this_object->base.supported_properties & k_channel_defaults_sound_eax30_effect_shutdown[j].bit) {
                     default_bits = k_channel_defaults_sound_eax30_effect_shutdown[j].default_bits;
@@ -575,7 +575,7 @@ void Eax3Backend::shutdown(sound_effect_object * this_object_base)
                         &default_bits, 4);
                 }
             }
-            ((uint32_t (__stdcall *)(void *))(*(void ***)property_set)[halo::sound::dsound_slot::release])(property_set);
+            ((uint32_t (__stdcall *)(void *))halo::sound::com_methods(property_set)[halo::sound::dsound_slot::release])(property_set);
         }
         this_object->channel_property_sets[i] = 0;
     }
@@ -604,10 +604,10 @@ int32_t Eax3Backend::initialize(sound_effect_object * this_object_base, directso
         this_object->channel_property_sets[i] = 0;
     }
 
-    if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))(*(void ***)listener->buffer_3d)[halo::sound::dsound_slot::query_interface])(listener->buffer_3d,
+    if (((int32_t (__stdcall *)(void *, const uint8_t *, void **))halo::sound::com_methods(listener->buffer_3d)[halo::sound::dsound_slot::query_interface])(listener->buffer_3d,
             sound_eax_property_set_guid, &this_object->base.property_set) >= 0) {
         property_set = this_object->base.property_set;
-        query = (sound_query_support_fn)(*(void ***)property_set)[5];
+        query = halo::sound::com_method<sound_query_support_fn>(property_set, 5);
 
         for (i = 0; i < 13; i++) {
             if (query(property_set, sound_eax30_listener_property_guid, k_listener_queries_sound_eax30_effect_initialize[i].id, &out_value) >= 0 &&
@@ -673,7 +673,7 @@ void Eax3Backend::apply_channel(sound_effect_object * this_object_base, int32_t 
 
     supported = this_object->base.supported_properties;
     deferred = (supported & 1) != 0;
-    set = (sound_property_set_fn)(*(void ***)property_set)[4];
+    set = halo::sound::com_method<sound_property_set_fn>(property_set, 4);
 
     {
         struct { uint32_t bit; uint32_t id; int32_t *value; } fields[9] = {
@@ -710,7 +710,7 @@ void Eax3Backend::apply_listener(sound_effect_object * this_object_base, const S
     uint8_t deferred;
 
     property_set = this_object->channel_property_sets[0];
-    set = (sound_property_set_fn)(*(void ***)property_set)[4];
+    set = halo::sound::com_method<sound_property_set_fn>(property_set, 4);
     deferred = (this_object->base.supported_properties & 1) != 0;
 
     for (i = 0; i < 12; i++) {
@@ -728,10 +728,10 @@ void Eax3Backend::set_environment_index(sound_effect_object * this_object_base, 
 {
     sound_eax_effect_object *this_object = reinterpret_cast<sound_eax_effect_object *>(this_object_base);
     void *property_set = this_object->channel_property_sets[0];
-    sound_property_set_fn set = (sound_property_set_fn)(*(void ***)property_set)[halo::sound::dsound_slot::ks_set];
+    sound_property_set_fn set = halo::sound::com_method<sound_property_set_fn>(property_set, halo::sound::dsound_slot::ks_set);
 
     set(property_set, sound_eax30_listener_property_guid, 2, 0, 0, &environment, 4);
-    ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+    halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
 }
 
 void Eax3Backend::set_room_gain(sound_effect_object * this_object_base, float gain)
@@ -747,9 +747,9 @@ void Eax3Backend::set_room_gain(sound_effect_object * this_object_base, float ga
         value = k_sound_minimum_volume;
     }
 
-    set = (sound_property_set_fn)(*(void ***)property_set)[halo::sound::dsound_slot::ks_set];
+    set = halo::sound::com_method<sound_property_set_fn>(property_set, halo::sound::dsound_slot::ks_set);
     set(property_set, sound_eax30_listener_property_guid, 0xe, 0, 0, &value, 4);
-    ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+    halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
 }
 
 int32_t Eax1Backend::initialize_channel(sound_effect_object * this_object, int32_t channel_index)

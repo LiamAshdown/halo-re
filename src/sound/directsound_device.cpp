@@ -26,12 +26,12 @@ void DirectSoundDevice::dispose(void)
         void *buffer_3d = directsound_channels[i].buffer_3d;
 
         if (buffer_3d != 0) {
-            void **vtable = *(void ***)buffer_3d;
+            void **vtable = halo::sound::com_methods(buffer_3d);
             void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
             release(buffer_3d);
         }
         if (buffer != 0) {
-            void **vtable = *(void ***)buffer;
+            void **vtable = halo::sound::com_methods(buffer);
             void (__stdcall *stop)(void *) = (void (__stdcall *)(void *))vtable[halo::sound::dsound_slot::sb_stop];
             void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
             stop(buffer);
@@ -41,7 +41,7 @@ void DirectSoundDevice::dispose(void)
     directsound_channel_count = 0;
 
     if (global_sound_effect_object != 0) {
-        void **vtable = *(void ***)global_sound_effect_object;
+        void **vtable = halo::sound::com_methods(global_sound_effect_object);
         void (__stdcall *shutdown)(void *) = (void (__stdcall *)(void *))vtable[0];
         shutdown(global_sound_effect_object);
         free(global_sound_effect_object);
@@ -50,21 +50,21 @@ void DirectSoundDevice::dispose(void)
     }
 
     if (directsound_listener != 0) {
-        void **vtable = *(void ***)directsound_listener;
+        void **vtable = halo::sound::com_methods(directsound_listener);
         void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
         release(directsound_listener);
         directsound_listener = 0;
     }
 
     if (directsound_primary_buffer != 0) {
-        void **vtable = *(void ***)directsound_primary_buffer;
+        void **vtable = halo::sound::com_methods(directsound_primary_buffer);
         void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
         release(directsound_primary_buffer);
         directsound_primary_buffer = 0;
     }
 
     if (directsound != 0) {
-        void **vtable = *(void ***)directsound;
+        void **vtable = halo::sound::com_methods(directsound);
         int32_t (__stdcall *set_cooperative_level)(void *, void *, uint32_t) =
             (int32_t (__stdcall *)(void *, void *, uint32_t))vtable[halo::sound::dsound_slot::ds_set_cooperative_level];
         void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
@@ -84,7 +84,7 @@ void DirectSoundDevice::end_frame(void)
     int16_t i;
 
     if (directsound_deferred_dirty != 0) {
-        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
+        halo::sound::com_method<directsound_listener_commit_proc>(directsound_listener, halo::sound::dsound_slot::lst_commit_deferred_settings)(directsound_listener);
         directsound_deferred_dirty = 0;
     }
 
@@ -114,7 +114,7 @@ void DirectSoundDevice::end_frame(void)
                         volume = 0;
                     }
                 }
-                ((directsound_buffer_set_volume_proc)(*(void ***)channel->buffer)[halo::sound::dsound_slot::sb_set_volume])(channel->buffer, volume);
+                halo::sound::com_method<directsound_buffer_set_volume_proc>(channel->buffer, halo::sound::dsound_slot::sb_set_volume)(channel->buffer, volume);
             }
         }
 
@@ -123,7 +123,7 @@ void DirectSoundDevice::end_frame(void)
                 directsound_channel *channel = &directsound_channels[i];
 
                 if (channel->state != _directsound_channel_idle || channel->streaming != 0) {
-                    ((directsound_buffer_stop_proc)(*(void ***)channel->buffer)[halo::sound::dsound_slot::sb_stop])(channel->buffer);
+                    halo::sound::com_method<directsound_buffer_stop_proc>(channel->buffer, halo::sound::dsound_slot::sb_stop)(channel->buffer);
                 }
             }
         }
@@ -210,7 +210,7 @@ void DirectSoundDevice::set_paused(uint8_t paused)
                 if (channel->state != _directsound_channel_idle) {
                     channel->gain = 0.0f;
                     if (channel->buffer != 0) {
-                        ((directsound_buffer_play_proc)(*(void ***)channel->buffer)[halo::sound::dsound_slot::sb_play])(channel->buffer, 0, 0, 1);
+                        halo::sound::com_method<directsound_buffer_play_proc>(channel->buffer, halo::sound::dsound_slot::sb_play)(channel->buffer, 0, 0, 1);
                     }
                     stream_update(i, channel->source_crosslap);
                 }
@@ -222,7 +222,7 @@ void DirectSoundDevice::set_paused(uint8_t paused)
 
 void DirectSoundDevice::set_listener(sound_listener_parameters *parameters)
 {
-    void **vtable = *(void ***)directsound_listener;
+    void **vtable = halo::sound::com_methods(directsound_listener);
 
     if (sound_listener_update_fabsf(parameters->position.x - directsound_listener_cached.position.x) >= 0.05f ||
         sound_listener_update_fabsf(parameters->position.y - directsound_listener_cached.position.y) >= 0.05f ||

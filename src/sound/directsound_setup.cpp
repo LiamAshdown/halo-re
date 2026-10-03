@@ -12,7 +12,7 @@
 
 constexpr int k_probe_pool_capacity = 77;
 template <typename T>
-inline void *&vtable_slot(T object, int offset) { return (*(void ***)(object))[offset / 4]; }
+inline void *&vtable_slot(T object, uint32_t slot) { return halo::sound::com_methods(object)[slot]; }
 constexpr int k_probe_all_pools = 0x116;
 constexpr int k_channel_budget_iteration_limit = 0x200;
 
@@ -67,7 +67,7 @@ void sound_directsound_probe_pool(int32_t *out_count, int32_t requested, uint32_
     desc.algorithm_3d[3] = 0;
 
     for (i = 0; i < requested; i++) {
-        void **directsound_vtable = *(void ***)directsound;
+        void **directsound_vtable = halo::sound::com_methods(directsound);
         int32_t (__stdcall *create_sound_buffer)(void *, sound_buffer_description *, com_object **, void *) =
             (int32_t (__stdcall *)(void *, sound_buffer_description *, com_object **, void *))directsound_vtable[3];
         int32_t hr = create_sound_buffer(directsound, &desc, &buffers[i], (void *)0);
@@ -479,7 +479,7 @@ uint8_t DirectSoundDevice::create_channel(int16_t channel_index, uint16_t type_f
             desc.algorithm_3d[3] = ds3dalg_hrtf_full[3];
         }
 
-        vtable = *(void ***)directsound;
+        vtable = halo::sound::com_methods(directsound);
         if (((directsound_create_sound_buffer_proc)vtable[3])(directsound, &desc, &channel->buffer, (void *)0) < 0) {
             return 0;
         }
@@ -489,7 +489,7 @@ uint8_t DirectSoundDevice::create_channel(int16_t channel_index, uint16_t type_f
         caps.buffer_bytes = 0;
         caps.unlock_transfer_rate = 0;
         caps.play_cpu_overhead = 0;
-        vtable = *(void ***)channel->buffer;
+        vtable = halo::sound::com_methods(channel->buffer);
         hr = ((directsound_buffer_get_caps_proc)vtable[3])(channel->buffer, &caps);
         if (hr < 0) {
             return 0;
@@ -498,7 +498,7 @@ uint8_t DirectSoundDevice::create_channel(int16_t channel_index, uint16_t type_f
             directsound_hardware_3d_channel_count += 1;
         }
     } else {
-        vtable = *(void ***)directsound;
+        vtable = halo::sound::com_methods(directsound);
         hr = ((directsound_create_sound_buffer_proc)vtable[3])(directsound, &desc, &channel->buffer, (void *)0);
     }
 
@@ -509,7 +509,7 @@ uint8_t DirectSoundDevice::create_channel(int16_t channel_index, uint16_t type_f
     if ((type_flags & _sound_channel_3d_bit) == 0) {
         channel->buffer_3d = (void *)0;
     } else {
-        vtable = *(void ***)channel->buffer;
+        vtable = halo::sound::com_methods(channel->buffer);
         if (((directsound_query_interface_proc)vtable[0])(channel->buffer, iid_directsound_3d_buffer,
                 &channel->buffer_3d) < 0) {
             channel->buffer_3d = (void *)0;
