@@ -592,7 +592,7 @@ void StructureBsp::switch_structure_bsp()
 
         {
 
-            int32_t *fade_ticks = (int32_t *)((uint8_t *)plr + 0xcc);
+            int32_t *fade_ticks = &plr->telefrag_ticks;
 
             if (plr->telefrag_danger == 0) {
                 if (*fade_ticks > 0) {

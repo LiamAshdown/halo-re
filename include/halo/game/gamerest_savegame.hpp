@@ -36,6 +36,10 @@ class SaveGameIndex {
 public:
     SaveGameIndex() = delete;
 
+    static constexpr uint32_t k_index_entry_size = 0x206;
+    static constexpr uint32_t k_index_slot_limit = 999;
+
+    static void bind_index_file(file_reference_record &reference);
     static uint8_t append_slot(const void *entry, uint32_t *out_slot_count);
     static uint8_t file_exists();
     static uint32_t get_slot_count();

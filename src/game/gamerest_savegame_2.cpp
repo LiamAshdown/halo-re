@@ -11,7 +11,7 @@ static auto &savegame_index_mutex = halo::link::ref<network_mutex_record *>(halo
 namespace halo::game {
 
 /**
- * Removes save-slot `slot` from the index file: every 0x206-byte record after it is read and written back one record
+ * Removes save-slot `slot` from the index file: every k_index_entry_size-byte record after it is read and written back one record
  * earlier, then the file is truncated by one record. Returns 1 on success, 0 otherwise.
  *
  * @address 0x53e4a0
@@ -19,7 +19,7 @@ namespace halo::game {
 uint8_t SaveGameIndex::remove_slot(uint16_t slot)
 {
     file_reference_record *ref = &savegame_index_file;
-    uint8_t record[0x206];
+    uint8_t record[k_index_entry_size];
     uint32_t size;
     uint32_t read_offset, write_offset;
     uint8_t result = 0;
@@ -29,44 +29,31 @@ uint8_t SaveGameIndex::remove_slot(uint16_t slot)
         return 0;
     }
 
-    {
-        uint32_t *raw = (uint32_t *)ref;
-        int32_t i;
-        for (i = 0; i < 0x43; i++) {
-            raw[i] = 0;
-        }
-        raw[0] = 0x66696c6f;
-        *(uint16_t *)((uint8_t *)ref + 6) = 2;
-        if ((*((uint8_t *)ref + 4) & 1) != 0) {
-            halo::saved_games::path_remove_last_component((char *)ref + 8);
-        }
-        halo::saved_games::path_append_component((char *)ref + 8, saved_game_root_path);
-        *((uint8_t *)ref + 4) |= 1;
-    }
+    bind_index_file(*ref);
 
     if (halo::saved_games::file_reference_get_size_by_path(ref, &size) != 0) {
-        write_offset = (uint32_t)slot * 0x206;
-        read_offset = write_offset + 0x206;
+        write_offset = (uint32_t)slot * k_index_entry_size;
+        read_offset = write_offset + k_index_entry_size;
         if (read_offset <= size && halo::saved_games::file_reference_open(ref, 3) != 0) {
             result = halo::saved_games::file_reference_seek((int32_t)write_offset, ref);
             if (result == 1) {
                 bool failed = false;
 
-                for (; read_offset < size; read_offset += 0x206, write_offset += 0x206) {
+                for (; read_offset < size; read_offset += k_index_entry_size, write_offset += k_index_entry_size) {
                     if (halo::saved_games::file_reference_seek((int32_t)read_offset, ref) == 0 ||
-                        halo::saved_games::file_reference_read(ref, record, 0x206) == 0 ||
+                        halo::saved_games::file_reference_read(ref, record, k_index_entry_size) == 0 ||
                         halo::saved_games::file_reference_seek((int32_t)write_offset, ref) == 0 ||
-                        halo::saved_games::file_reference_write(ref, record, 0x206) == 0) {
+                        halo::saved_games::file_reference_write(ref, record, k_index_entry_size) == 0) {
                         result = 0;
                         failed = true;
                         break;
                     }
                 }
                 if (!failed) {
-                    result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
+                    result = halo::saved_games::file_reference_set_length((int32_t)(size - k_index_entry_size), ref);
                 }
             } else if (result != 0) {
-                result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
+                result = halo::saved_games::file_reference_set_length((int32_t)(size - k_index_entry_size), ref);
             }
             if (halo::saved_games::file_reference_close(ref) == 0) {
                 result = 0;
