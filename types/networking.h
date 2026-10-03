@@ -548,8 +548,7 @@ typedef struct network_machine {
                                  //    clears via 0x4e0b90; timeout 0x4e0ef0 frees the slot only when 0
     uint8_t players_removed_broadcast; // 0x51 0x4e0ef0: on a timed-out machine that still has players, broadcasts
                                        //    each player's removal once, then sets 1 and returns early thereafter
-    int32_t unknown_52;          // 0x52 unaligned in the original
-    int32_t unknown_56;          // 0x56 unaligned in the original
+    char short_name[8];          // 0x52 the autopatch temp name (7 characters and a NUL); cleared as two dwords in the original
     int16_t unknown_5a;          // 0x5a
     int32_t gcd_user_id;         // 0x5c 0x4e0ef0 gcd_disconnect_user(network_console_connection_id, it) (-1 ->
                                  //    gcd_disconnect_all); sv_ban/autoban pass it to network_banlist_add_ban; -1 at

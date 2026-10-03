@@ -295,10 +295,10 @@ char ServerView::build_game_info_packet(network_machine *machine)
     char encoded;
 
     source_name = halo::networking::autopatch_temp_name_generate();
-    strncpy((char *)machine + 0x52, source_name, 7);
-    *((char *)machine + 0x59) = 0;
+    strncpy(machine->short_name, source_name, 7);
+    machine->short_name[7] = 0;
 
-    strncpy(record.short_name, (char *)machine + 0x52, 7);
+    strncpy(record.short_name, machine->short_name, 7);
     record.nul = 0;
     memcpy(record.snapshot, (uint8_t *)server + 0x88, sizeof(record.snapshot));
     record.flag = network_game_info_packet_flag;
@@ -391,8 +391,7 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
 
                     machine->flags = 0;
                     machine->unknown_0f = 0;
-                    machine->unknown_52 = 0;
-                    machine->unknown_56 = 0;
+                    memset(machine->short_name, 0, sizeof(machine->short_name));
                     if (machine->gcd_user_id == -1) {
                         gcd_disconnect_all(network_console_connection_id);
                     } else {

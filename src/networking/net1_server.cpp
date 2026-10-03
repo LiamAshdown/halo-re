@@ -699,8 +699,7 @@ void * ServerView::host_new()
             machine->machine_id = -1;
             machine->flags = 0;
             machine->unknown_0f = 0;
-            machine->unknown_52 = 0;
-            machine->unknown_56 = 0;
+            memset(machine->short_name, 0, sizeof(machine->short_name));
             machine->gcd_user_id = -1;
             machine->player_joined = 0;
             machine->players_removed_broadcast = 0;
@@ -1016,8 +1015,7 @@ uint8_t ServerView::count_machines_and_resolve_address(network_channel *channel)
     machine->disconnect_timer_active = 0;
     machine->player_joined = 0;
     machine->players_removed_broadcast = 0;
-    machine->unknown_52 = 0;
-    machine->unknown_56 = 0;
+    memset(machine->short_name, 0, sizeof(machine->short_name));
     connection_id = next_connection_id;
     next_connection_id = next_connection_id + 1;
     if (connection_id == -1) {
@@ -1741,7 +1739,7 @@ uint8_t MachineView::reset_state(const char *response)
     if (ip == 0x7f000001) {
         ip = network_local_address;
     }
-    return halo::networking::network_session_host_reject_or_cleanup_client(response, (const char *)machine + 0x52, ip,
+    return halo::networking::network_session_host_reject_or_cleanup_client(response, machine->short_name, ip,
         machine->gcd_user_id);
 }
 

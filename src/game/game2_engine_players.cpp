@@ -870,7 +870,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 if (halo::units::unit_all_seats_unoccupied(unit_handle) == 1) {
                     object *local_obj = halo::objects::object_try_and_get((datum_index)-1, _object_mask_vehicle);
                     if (local_obj != (object *)0) {
-                        *(int32_t *)((uint8_t *)local_obj + 0x5ac) = game_time->game_time;
+                        ((vehicle_object *)local_obj)->vehicle.network_update_tick = game_time->game_time;
                     }
                 }
 

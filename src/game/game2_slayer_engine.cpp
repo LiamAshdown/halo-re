@@ -183,7 +183,7 @@ void SlayerEngine::player_killed(datum_index killer, datum_index death_object, d
     player *killer_player;
 
     (void)death_object;
-    if (*((uint8_t *)halo::game::player_at(victim) + 0xd5) != 0 || killer == halo::k_dword_none) {
+    if (halo::game::player_at(victim)->marked_for_deletion != 0 || killer == halo::k_dword_none) {
         return;
     }
     killer_player = halo::game::player_at(killer);

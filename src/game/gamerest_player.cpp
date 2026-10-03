@@ -2498,7 +2498,7 @@ void Players::client_catchup_on_server_updates()
                         object *unit_obj = header->data;
                         uint8_t seated = PlayerView(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player).unit_has_parent();
 
-                        *(uint32_t *)((uint8_t *)unit_obj + 0x4bc) = record.field0;
+                        halo::game::unit_data_of(unit_obj)->control_update_id = record.field0;
                         if (seated == 0) {
                             halo::game::apply_remote_player_position_update(plr, unit_obj);
                         } else {

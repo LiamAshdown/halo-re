@@ -607,7 +607,7 @@ void StructureBsp::switch_structure_bsp()
 
                         halo::game::chimera__kill_feed(player_handle, 0x1f, (uint32_t)halo::k_dword_none, 1, 0);
                     }
-                    *((uint8_t *)unit_obj + 0x106) = *((uint8_t *)unit_obj + 0x106) | 0x20;
+                    unit_obj->vitality_flags = unit_obj->vitality_flags | 0x20;
                 }
             }
         }
@@ -634,7 +634,7 @@ void StructureBsp::switch_structure_bsp()
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
                     if (entry->source == (uint16_t)halo::scenario::globals().structure_bsp_index && plr->unit != (datum_index)-1 &&
-                        halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)entry->trigger_volume, (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (plr->unit & halo::k_datum_slot_mask) * 0xc + 8) + 0xa0)) != 0) {
+                        halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)entry->trigger_volume, &halo::game::object_at(plr->unit)->bounding_center) != 0) {
 
                         int16_t destination = (int16_t)entry->destination;
 

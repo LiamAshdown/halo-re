@@ -47,7 +47,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
         obj = halo::game::object_at(object_index);
         type_bit = 1u << (obj->type & 0x1f);
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
-            *(real *)((uint8_t *)obj + 0x37c) < 1.0f) {
+            halo::game::unit_data_of(obj)->active_camouflage_power < 1.0f) {
 
             if (halo::math::vector3d_projection_band_test(*facing, *observer_position, obj->bounding_center,
                                                obj->bounding_radius, max_distance,
