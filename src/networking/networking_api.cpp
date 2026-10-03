@@ -696,9 +696,9 @@ uint8_t network_channel_key_resolve_target(network_player_entry *entry)
  *
  * @address 0x4de950
  */
-int32_t network_channel_key_send_state(network_client_globals *client, int32_t **entry)
+int32_t network_channel_key_send_state(network_client_globals *client, message_delta_context *context)
 {
-    return halo::networking::ChannelKeys::send_state(client, entry);
+    return halo::networking::ChannelKeys::send_state(client, context);
 }
 
 /**

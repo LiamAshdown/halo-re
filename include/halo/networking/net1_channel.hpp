@@ -94,7 +94,7 @@ public:
     static int32_t close(network_player_entry *entry, datum_index requested_handle);
     static int32_t open(network_player_entry *entry);
     static uint8_t resolve_target(network_player_entry *entry);
-    static int32_t send_state(network_client_globals *client, int32_t **entry);
+    static int32_t send_state(network_client_globals *client, message_delta_context *context);
 };
 
 /**

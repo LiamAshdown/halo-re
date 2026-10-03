@@ -298,7 +298,7 @@ int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *de
 int32_t network_channel_key_close(network_player_entry *entry, datum_index requested_handle);
 int32_t network_channel_key_open(network_player_entry *entry);
 uint8_t network_channel_key_resolve_target(network_player_entry *entry);
-int32_t network_channel_key_send_state(network_client_globals *client, int32_t **entry);
+int32_t network_channel_key_send_state(network_client_globals *client, message_delta_context *context);
 int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list);
 int32_t network_channel_list_mark_readable(network_channel_list *list);
 network_channel_list * network_channel_list_new(int16_t requested_capacity);

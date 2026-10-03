@@ -66,7 +66,7 @@ static void network_game_action_apply_shared(void **context, network_client_glob
     case halo::networking::delta_message::player_damage_direction: halo::effects::player_effect_mark_damage_direction_dispatch(context); break;
     case halo::networking::delta_message::chat: halo::interface::chat_dispatch_incoming(context); break;
     case halo::networking::delta_message::team_allegiance: halo::game::game_engine_client_apply_team_assignment(context); break;
-    case halo::networking::delta_message::player_set_changed: halo::networking::network_channel_key_send_state(client, (int32_t **)context); break;
+    case halo::networking::delta_message::player_set_changed: halo::networking::network_channel_key_send_state(client, halo::networking::delta_context(context)); break;
     case halo::networking::delta_message::parameters_update:
         halo::networking::message_delta_parameters_protocol_receive_update(context);
         halo::networking::message_delta_definitions_invoke_field_bindings();
