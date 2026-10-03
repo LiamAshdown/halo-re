@@ -53,14 +53,14 @@ public:
      *
      * @address 0x004f20b0
      */
-    void sample_ambient_lighting(float *sample);
+    void sample_ambient_lighting(render_lighting *sample);
 
     /**
      * Collects the lights that affect an object into the output list.
      *
      * @address 0x004f2430
      */
-    void gather_light_list(uint8_t *out);
+    void gather_light_list(render_lighting *out);
 
     /**
      * Fills a render_lighting record from a lightmap sample, shading normal and base map colour.
