@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
@@ -7,17 +8,14 @@ extern int16_t contrail_points_due(datum_index contrail_handle, real elapsed_tim
 extern void contrail_generate_points(datum_index contrail_handle, int16_t point_count, uint8_t force);
 extern data_array *contrail_point_data;
 extern tag_instance *tag_instances;
-extern void datum_delete(data_array *array, datum_index handle);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern data_array *object_data;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern datum_index datum_new(data_array *array);
 extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void contrail_next_sequence(contrail *self);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void contrail_age_points(datum_index contrail_handle, real delta_time);
 extern void contrail_delete(datum_index contrail_index);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
@@ -177,14 +175,14 @@ render:
 
             before_tail->next_point = k_datum_index_none;
             self->point_count[list] = self->point_count[list] - 1;
-            datum_delete(contrail_point_data, visited[visited_count - 1]);
+            halo::memory::datum_delete(contrail_point_data, visited[visited_count - 1]);
             visited_count = visited_count - 1;
         }
 
         if (self->point_count[list] == 1 &&
             (((contrail_point *)contrail_point_data->data)[(uint16_t)self->first_point[list]].flags &
                 _contrail_point_expired_bit) != 0) {
-            datum_delete(contrail_point_data, self->first_point[list]);
+            halo::memory::datum_delete(contrail_point_data, self->first_point[list]);
             self->first_point[list] = k_datum_index_none;
             self->point_count[list] = 0;
         }
@@ -209,12 +207,12 @@ void contrail_ref::destroy()
         while (point != k_datum_index_none) {
             datum_index next = ((contrail_point *)contrail_point_data->data)[(uint16_t)point].next_point;
 
-            datum_delete(contrail_point_data, point);
+            halo::memory::datum_delete(contrail_point_data, point);
             point = next;
         }
     }
 
-    datum_delete(contrail_data, contrail_index);
+    halo::memory::datum_delete(contrail_data, contrail_index);
 }
 
 /**
@@ -282,7 +280,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
                 {
                     int i;
                     for (i = 1; i <= count; i++) {
-                        datum_index new_handle = datum_new(contrail_point_data);
+                        datum_index new_handle = halo::memory::datum_new(contrail_point_data);
 
                         if (new_handle != k_datum_index_none) {
                             contrail_point *point =
@@ -363,7 +361,7 @@ datum_index contrail_ref::create(int16_t attachment_index, datum_index object_in
     datum_index handle = k_datum_index_none;
 
     if (definition_index != k_datum_index_none) {
-        handle = datum_new(contrail_data);
+        handle = halo::memory::datum_new(contrail_data);
         if (handle != k_datum_index_none) {
             contrail *self = &((contrail *)contrail_data->data)[(uint16_t)handle];
             object *owner = ((object_header *)object_data->data)[(uint16_t)object_index].data;
@@ -487,7 +485,7 @@ int16_t contrail_ref::points_due(real elapsed_time)
  */
 void contrail_ref::update(real delta_time)
 {
-    datum_index contrail_index = datum_next(-1, contrail_data);
+    datum_index contrail_index = halo::memory::datum_next(-1, contrail_data);
 
     while (contrail_index != k_datum_index_none) {
         contrail *self = &((contrail *)contrail_data->data)[(uint16_t)contrail_index];
@@ -570,7 +568,7 @@ void contrail_ref::update(real delta_time)
             }
         }
 
-        contrail_index = datum_next((int16_t)contrail_index, contrail_data);
+        contrail_index = halo::memory::datum_next((int16_t)contrail_index, contrail_data);
     }
 }
 

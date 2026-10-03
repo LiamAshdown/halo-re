@@ -2,6 +2,7 @@
 #include <wchar.h>
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -29,12 +30,10 @@ extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t u
                             int32_t unknown_2, int32_t unknown_3, int32_t unknown_4);
 extern uint16_t *hud_get_message_string(int32_t message_index);
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern data_array *object_data;
 extern void *global_zero_vector3d_pointer;
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t sound_start_at_object_marker(datum_index object_index, void *position, void *forward,
                             datum_index sound, int32_t marker, float gain, uint8_t flag);
@@ -247,12 +246,12 @@ void HudMessaging::message_broadcast_to_local_players(const uint16_t *text)
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    record = (player *)data_iterator_next(&iterator);
+    record = (player *)halo::memory::data_iterator_next(&iterator);
     while (record != (player *)0) {
         if (record->local_player_index != -1) {
             chimera__hud_message(record->local_player_index, text);
         }
-        record = (player *)data_iterator_next(&iterator);
+        record = (player *)halo::memory::data_iterator_next(&iterator);
     }
 }
 
@@ -402,7 +401,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     carried_object = *(datum_index *)(object_base + 0xc0);
     has_carried_object = 0;
     if (carried_object != (datum_index)0xffffffff) {
-        carried_record = datum_get(carried_object, player_data);
+        carried_record = halo::memory::datum_get(carried_object, player_data);
         if (carried_record != 0 && *(int16_t *)((uint8_t *)carried_record + 2) != -1) {
             has_carried_object = 1;
         }

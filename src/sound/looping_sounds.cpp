@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 #define TRACK_TAG(track, field) (*(uint32_t *)&(track)->field.tag_id)
 
@@ -28,7 +29,7 @@ void sound_looping_evict_sound_samples(Sound *tag)
 
             if (cache_index != (datum_index)0xffffffff &&
                 ((sound_cache_entry *)sound_cache_entries->data)[cache_index & 0xffff].lock_count == 0) {
-                cache_evict_entry(cache_index, sound_cache);
+                halo::memory::cache_evict_entry(cache_index, sound_cache);
                 permutation->samples_pointer = 0xffffffff;
                 *(uint32_t *)&((struct SoundPermutation *)permutation)->cache_page = 0;
             }
@@ -83,7 +84,7 @@ uint8_t sound_release_unused_pages_if_music(TagID tag_id)
                 entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
                     (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                 if (entry->lock_count == 0) {
-                    cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
+                    halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
                     permutation->samples_pointer = 0xffffffff;
                     permutation->cache_page = 0;
                 }
@@ -293,7 +294,7 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
                 sound_looping_evict_samples(TRACK_TAG(track, alternate_loop));
             }
         }
-        datum_delete(looping_sound_data, handle);
+        halo::memory::datum_delete(looping_sound_data, handle);
         return 1;
     }
 
@@ -413,7 +414,7 @@ uint8_t set_state(int32_t owner, datum_index definition_index, sound_location *l
                 break;
             }
         }
-        datum_delete(looping_sound_data, handle);
+        halo::memory::datum_delete(looping_sound_data, handle);
     }
 
     self->state = state;
@@ -432,7 +433,7 @@ datum_index state_new(datum_index definition_index, int32_t owner, sound_locatio
         return 0xffffffff;
     }
 
-    handle = datum_new(looping_sound_data);
+    handle = halo::memory::datum_new(looping_sound_data);
     if (handle == 0xffffffff) {
         return handle;
     }
@@ -472,7 +473,7 @@ void update_states(void)
     int32_t track_index;
     SoundLoopingTrack *track;
 
-    handle = datum_next(-1, looping_sound_data);
+    handle = halo::memory::datum_next(-1, looping_sound_data);
     while (handle != 0xffffffff) {
         state = (looping_sound *)((uint8_t *)looping_sound_data->data + (handle & 0xffff) * sizeof(looping_sound));
         definition = (SoundLooping *)tag_instances[state->definition_index & 0xffff].data;
@@ -530,10 +531,10 @@ void update_states(void)
                     break;
                 }
             }
-            datum_delete(looping_sound_data, handle);
+            halo::memory::datum_delete(looping_sound_data, handle);
         }
 
-        handle = datum_next((int16_t)handle, looping_sound_data);
+        handle = halo::memory::datum_next((int16_t)handle, looping_sound_data);
     }
 }
 
@@ -570,7 +571,7 @@ datum_index create_detail_sound(datum_index owner, datum_index definition_index,
         return 0xffffffff;
     }
 
-    handle = datum_new(sound_data);
+    handle = halo::memory::datum_new(sound_data);
     if (handle == 0xffffffff) {
         return handle;
     }
@@ -629,7 +630,7 @@ uint8_t detail_location_proc(datum_index owner, void *callback_data, sound_locat
     looping_sound *owner_sound;
     float *offset = (float *)callback_data;
 
-    owner_sound = (looping_sound *)datum_get(owner, looping_sound_data);
+    owner_sound = (looping_sound *)halo::memory::datum_get(owner, looping_sound_data);
     if (owner_sound == 0) {
         return 0;
     }
@@ -810,13 +811,13 @@ datum_index find_by_owner(int32_t owner)
     datum_index handle;
     looping_sound *state;
 
-    handle = datum_next(-1, looping_sound_data);
+    handle = halo::memory::datum_next(-1, looping_sound_data);
     while (handle != 0xffffffff) {
         state = (looping_sound *)((uint8_t *)looping_sound_data->data + (handle & 0xffff) * sizeof(looping_sound));
         if (state->owner == owner) {
             return handle;
         }
-        handle = datum_next((int16_t)handle, looping_sound_data);
+        handle = halo::memory::datum_next((int16_t)handle, looping_sound_data);
     }
     return 0xffffffff;
 }

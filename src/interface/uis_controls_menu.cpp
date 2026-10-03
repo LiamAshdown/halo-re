@@ -13,12 +13,12 @@
 #include "units.h"
 
 #include "halo/interface/uis_controls_menu.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern heap *widget_memory_pool;
-extern void heap_unlink_block(heap_block *block, heap *self);
 extern void ui_list_free_all(void);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
@@ -103,7 +103,7 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
         heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
         uint32_t size = block->size;
 
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated =
             widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;

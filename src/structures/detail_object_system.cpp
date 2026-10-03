@@ -5,13 +5,13 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern detail_object_globals *detail_objects;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern player_globals *local_player_globals;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t current_local_player_index;
@@ -30,7 +30,7 @@ void detail_object_system::globals_allocate(void)
     int32_t size = sizeof(detail_object_globals);
 
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     detail_objects = (detail_object_globals *)region;
 
     detail_objects->default_z_reference.z_reference_i = 0.0f;

@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_system_commands.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -11,7 +12,6 @@ extern uint8_t terminal_initialized;
 extern data_array *terminal_messages;
 extern int32_t console_message_head;
 extern int32_t console_message_tail;
-extern void data_delete_all(data_array *array);
 extern void console_clear_screen(void);
 extern uint8_t network_game_client_connect_to_address_async(char *address, char *password);
 extern uint8_t main_globals_byte_00719752;
@@ -81,7 +81,7 @@ void SystemCommands::cls(int16_t function_index, uint32_t thread_index, char fir
     if (terminal_initialized != 0) {
         console_message_head = -1;
         console_message_tail = -1;
-        data_delete_all(terminal_messages);
+        halo::memory::data_delete_all(terminal_messages);
         console_clear_screen();
     }
     hs_thread_return(0, thread_index);

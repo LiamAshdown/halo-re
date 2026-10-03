@@ -1,5 +1,6 @@
 #include "halo/camera/pov.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -31,7 +32,6 @@ extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
 extern double cos(double x);
 extern double sin(double x);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t camera_dead_player_has_teammate(datum_index reference_player);
 extern datum_index camera_dead_find_next_teammate(datum_index reference_player, datum_index current_target, uint8_t require_same_team);
 extern camera_script_globals camera_script;
@@ -625,7 +625,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
         dead->target_player = new_target;
         if (new_target != k_datum_index_none) {
-            player *p = (player *)datum_get(new_target, player_data);
+            player *p = (player *)halo::memory::datum_get(new_target, player_data);
             if (p == (player *)0) {
                 dead->target_player = dead->local_player;
             }

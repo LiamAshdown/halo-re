@@ -3,11 +3,11 @@
 #include "units.h"
 #include "effects.h"
 #include "networking.h"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
 extern datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);
-extern void datum_delete(data_array *array, datum_index handle);
 extern void effect_delete(datum_index handle);
 extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
@@ -462,7 +462,7 @@ void halo::objects::ObjectLifetime::delete_attachments()
                     light_delete(handle);
                     break;
                 case _object_attachment_type_looping_sound:
-                    datum_delete(game_looping_sound_data, handle);
+                    halo::memory::datum_delete(game_looping_sound_data, handle);
                     break;
                 case _object_attachment_type_effect:
                     effect_delete(handle);

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
@@ -16,7 +17,6 @@ extern int32_t object_type_override_get_0x64(uint8_t *out_buffer, int32_t out_bu
 extern uint32_t network_session_send_to_machine(int32_t machine_id, uint8_t *data, int32_t bits, int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);
 extern datum_index machine_to_player[16];
 extern data_array *player_data;
-extern void *datum_get(datum_index handle, data_array *array);
 extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source, uint32_t extra);
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, void *field_bindings, const void *previous, void *destination);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
@@ -32,9 +32,7 @@ extern network_server_globals *network_server;
 extern uint32_t profile_globals_block[];
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern game_time_globals *game_time;
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
 extern uint16_t network_challenge_packet_block[];
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
@@ -66,7 +64,6 @@ extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
 extern void network_host_round_reset(void);
 extern void widget_close_all(void);
-extern void *data_iterator_next(data_iterator *iterator);
 extern int32_t message_delta_encode_message(int32_t a, int32_t type, int32_t b, void **entries, int32_t c, int32_t count, char d);
 extern int16_t network_join_error_code;
 extern void chat_close(void);
@@ -144,6 +141,17 @@ extern void qr2_send_statechanged(void *object);
 extern void qr2_think(void *object);
 }
 
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version)
+{
+    using call_t = int32_t (*)(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
+}
+
 namespace halo::networking {
 
 /**
@@ -219,7 +227,7 @@ void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet,
     if (player_datum == (datum_index)0xffffffff) {
         return;
     }
-    plr = (player *)datum_get(player_datum, player_data);
+    plr = (player *)halo::memory::datum_get(player_datum, player_data);
     if (plr == 0 || plr->unit == (datum_index)0xffffffff) {
         return;
     }
@@ -230,7 +238,7 @@ void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet,
     for (i = 0; i < 8; i = i + 1) {
         delta[8 + i] = delta[i];
     }
-    plr = (player *)datum_get(player_datum, player_data);
+    plr = (player *)halo::memory::datum_get(player_datum, player_data);
     if (plr != 0) {
         plr->unknown_11c = delta[8] & 0x4d0;
     }
@@ -399,9 +407,9 @@ char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
     if (total_bits <= free_bits || (result = network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), result != 0)) {
 
         ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
-        { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+        { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
         ((network_channel *)channel)->outgoing.empty = 0;
-        bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
+        halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
         ((network_channel *)channel)->outgoing.empty = 0;
     }
     return result;
@@ -432,7 +440,7 @@ uint32_t GameRuntime::settings_broadcast_send(uint32_t round, uint32_t *record)
     tick_plus_offset = game_time->game_time + 0x21;
     (void)tick_plus_offset;
     capacity = 0x600;
-    if (data_packet_group_encode_packet(buffer, &capacity, 0x18, 1) != 0) {
+    if (data_packet_group_encode_packet_unresolved(buffer, &capacity, 0x18, 1) != 0) {
 
         send_result = (int32_t)network_message_block_build(network_challenge_packet_block,
                                                            (uint32_t *)buffer, 3, (uint32_t)capacity);
@@ -572,14 +580,14 @@ void GameRuntime::map_cycle_list_broadcast()
     iterator.next_index = 0;
     iterator.index = 0;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    item = data_iterator_next(&iterator);
+    item = halo::memory::data_iterator_next(&iterator);
     if (item != 0) {
         do {
             scratch[count].unknown_00 = *(uint8_t *)((uint8_t *)item + 0x67);
             scratch[count].unknown_04 = *(uint32_t *)&((struct item_object *)item)->base.maximum_shield_vitality;
             entries[count] = &scratch[count];
             count = count + 1;
-            item = data_iterator_next(&iterator);
+            item = halo::memory::data_iterator_next(&iterator);
         } while (item != 0 && count < 16);
         if (count > 0) {
             message_delta_encode_message(0, 0x35, 0, entries, 0, count, 0);
@@ -1131,7 +1139,7 @@ int32_t ObjectOwnership::owner_team_index_desired(object *obj)
     slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
     if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)0xffffffff) {
         resolved = machine_to_player[slot];
-        plr = (player *)datum_get(resolved, player_data);
+        plr = (player *)halo::memory::datum_get(resolved, player_data);
         if (plr != 0) {
             return (int32_t)plr->team_index_desired;
         }

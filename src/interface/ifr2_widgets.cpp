@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include "sound.h"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -9,8 +10,6 @@
 
 extern "C" {
 extern heap *widget_memory_pool;
-extern void heap_unlink_block(heap_block *block, heap *self);
-extern void *heap_allocate(uint32_t size, heap *self);
 extern tag_instance *tag_instances;
 extern widget_instance *ui_root_widget[1];
 extern void *ui_event_function_table[0xbe];
@@ -122,7 +121,7 @@ void WidgetLifecycle::pop(widget_history_node *out, widget_history_node **head)
 
     block = (heap_block *)((uint8_t *)node - 0x10);
     size = block->size;
-    heap_unlink_block(block, widget_memory_pool);
+    halo::memory::heap_unlink_block(block, widget_memory_pool);
     widget_memory_pool->bytes_allocated = widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
     widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
 }
@@ -137,7 +136,7 @@ void WidgetLifecycle::pop(widget_history_node *out, widget_history_node **head)
 void WidgetLifecycle::prepend(widget_history_node *template_record, widget_history_node **head)
 {
     widget_history_node *node =
-        (widget_history_node *)heap_allocate(sizeof(widget_history_node), widget_memory_pool);
+        (widget_history_node *)halo::memory::heap_allocate(sizeof(widget_history_node), widget_memory_pool);
 
     if (node != (widget_history_node *)0) {
         node->definition = template_record->definition;
@@ -241,14 +240,14 @@ void WidgetLifecycle::close()
             if (widget->text != (void *)0) {
                 heap_block *block = (heap_block *)((uint8_t *)widget->text - 0x10);
 
-                heap_unlink_block(block, widget_memory_pool);
+                halo::memory::heap_unlink_block(block, widget_memory_pool);
                 pool = widget_memory_pool;
             }
         } else if (widget->widget_type > 1 && widget->widget_type < 4) {
             if (widget->list_render_data != (void *)0) {
                 heap_block *block = (heap_block *)((uint8_t *)widget->list_render_data - 0x10);
 
-                heap_unlink_block(block, widget_memory_pool);
+                halo::memory::heap_unlink_block(block, widget_memory_pool);
                 pool = widget_memory_pool;
             }
             if (widget->extended_description != (widget_instance *)0) {

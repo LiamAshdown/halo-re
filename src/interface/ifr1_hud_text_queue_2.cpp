@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
 #include <wchar.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -16,7 +17,6 @@ extern int32_t hud_text_draw_unknown_4730;
 extern uint16_t missing_string_text[];
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern int32_t hud_text_message_queue_add(uint16_t *text, int32_t start_time, int32_t tag);
-extern void growable_array_remove_element(growable_array *array, uint32_t index);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
     uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
@@ -59,7 +59,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 entry->end_time = entry->end_time - elapsed;
                 bottom = entry->end_time;
                 if (bottom < 0x32) {
-                    growable_array_remove_element(&hud_text_message_queue, (uint32_t)i);
+                    halo::memory::growable_array_remove_element(&hud_text_message_queue, (uint32_t)i);
                     i--;
                 }
             }

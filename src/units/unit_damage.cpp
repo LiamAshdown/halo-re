@@ -5,6 +5,7 @@
 #include "networking.h"
 #include "physics.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern uint8_t network_object_index_cache[];
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_index self_object_index, int32_t seat_selector);
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
@@ -143,7 +143,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)datum_get(((unit_object *)self)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -348,7 +348,7 @@ record_check:
         }
         record.player_value = 0;
         if (((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
-            uint8_t *player = (uint8_t *)datum_get(((unit_object *)obj)->unit.controlling_player, player_data);
+            uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)obj)->unit.controlling_player, player_data);
 
             if (player != 0) {
                 record.player_value = *(uint32_t *)&((struct player *)player)->respawn_timer;

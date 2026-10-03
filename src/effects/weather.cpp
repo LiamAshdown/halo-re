@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
@@ -7,7 +8,6 @@ extern int32_t weather_instance_count;
 extern tag_instance *tag_instances;
 extern data_array *weather_particle_data;
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
-extern void datum_delete(data_array *array, datum_index handle);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern float render_camera_global;
 extern float camera_position_y;
@@ -23,7 +23,6 @@ extern float render_time_since_frame;
 extern void weather_instance_adjust_count(int16_t instance_index, int16_t type_index, real target_value);
 extern void weather_particle_update(datum_index weather_particle_handle, int16_t type_index, int16_t instance_index);
 extern double fmod(double x, double y);
-extern datum_index datum_new(data_array *array);
 extern void effect_random_direction_from_table(real_point3d *out);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
@@ -116,7 +115,7 @@ void weather_instance_ref::adjust_count(int16_t type_index, real target_value)
             &((weather_particle *)weather_particle_data->data)[(uint16_t)slot->first_particle];
         datum_index next = p->next_particle;
 
-        datum_delete(weather_particle_data, slot->first_particle);
+        halo::memory::datum_delete(weather_particle_data, slot->first_particle);
         slot->particle_count -= 1;
         slot->first_particle = next;
     }
@@ -177,7 +176,7 @@ void weather_instance_ref::deactivate()
                 &((weather_particle *)weather_particle_data->data)[(uint16_t)slot->first_particle];
             datum_index next = p->next_particle;
 
-            datum_delete(weather_particle_data, slot->first_particle);
+            halo::memory::datum_delete(weather_particle_data, slot->first_particle);
             slot->particle_count -= 1;
             slot->first_particle = next;
         }
@@ -251,7 +250,7 @@ void weather_instance_ref::update()
  */
 datum_index weather_particle_ref::create(int16_t instance_index, int16_t type_index)
 {
-    datum_index handle = datum_new(weather_particle_data);
+    datum_index handle = halo::memory::datum_new(weather_particle_data);
 
     if (handle != (datum_index)0xffffffff) {
         weather_instance *instance = &weather_instances[instance_index];

@@ -1,12 +1,9 @@
+#include "halo/memory/globals.hpp"
 #include "halo/memory/memory.hpp"
 
 #include "tags.h"
 #include <string.h>
 
-extern "C" {
-extern char *data_packet_group_error;
-extern byte_swap_definition packet_header_byte_swap_definition;
-}
 
 namespace halo::memory {
 
@@ -600,12 +597,12 @@ int32_t data_packet_group_view::append_packet_header(uint8_t *buffer, int16_t *c
 
     if ((uint32_t)(*cursor + 1) < (uint32_t)this->maximum_encoded_size) {
         *dest = header_byte;
-        halo::memory::view(&packet_header_byte_swap_definition)->swap((int32_t)dest, packet_header_byte_swap_definition.codes, 0, 0);
+        halo::memory::view(&globals().packet_header_byte_swap_definition)->swap((int32_t)dest, globals().packet_header_byte_swap_definition.codes, 0, 0);
         *cursor = *cursor + 1;
-        data_packet_group_error = 0;
+        globals().data_packet_group_error = 0;
         return 1;
     }
-    data_packet_group_error = (char *)"couldn't append header to encoded packet";
+    globals().data_packet_group_error = (char *)"couldn't append header to encoded packet";
     return 0;
 }
 
@@ -624,34 +621,34 @@ int32_t data_packet_group_view::decode_packet(int16_t *remaining_length, void *d
     int8_t type;
 
     if ((uint16_t)*remaining_length < 1) {
-        data_packet_group_error = (char *)"got packet with no header";
+        globals().data_packet_group_error = (char *)"got packet with no header";
         return 0;
     }
 
     header_byte = buffer + (*remaining_length - 1);
     if (header_byte != 0) {
-        halo::memory::view(&packet_header_byte_swap_definition)->swap((int32_t)header_byte, packet_header_byte_swap_definition.codes, 0, 0);
+        halo::memory::view(&globals().packet_header_byte_swap_definition)->swap((int32_t)header_byte, globals().packet_header_byte_swap_definition.codes, 0, 0);
     }
     type = (int8_t)*header_byte;
 
     if (type < 0 || type >= this->type_count) {
-        data_packet_group_error = (char *)"got packet with bad type";
+        globals().data_packet_group_error = (char *)"got packet with bad type";
         return 0;
     }
     {
         data_packet_type *entry = &this->types[(int)type];
         if (entry->packet_class != expected_class) {
-            data_packet_group_error = (char *)"got packet with mismatched class";
+            globals().data_packet_group_error = (char *)"got packet with mismatched class";
             return 0;
         }
         *remaining_length = *remaining_length - 1;
         if (entry->definition != 0 &&
             halo::memory::view(entry->definition)->decode_packet_body(buffer, *remaining_length, decoded_body, out_version_used, 0) == 0) {
-            data_packet_group_error = (char *)"got packet which wouldn't decode";
+            globals().data_packet_group_error = (char *)"got packet which wouldn't decode";
             return 0;
         }
         *out_type = (int16_t)(int8_t)*header_byte;
-        data_packet_group_error = 0;
+        globals().data_packet_group_error = 0;
         return 1;
     }
 }
@@ -674,10 +671,10 @@ int32_t data_packet_group_view::encode_packet(int16_t version, struct_definition
     } else {
         ok = this->append_packet_header(buffer, cursor, packet_type);
         if (ok == 0) {
-            return data_packet_group_error == 0;
+            return globals().data_packet_group_error == 0;
         }
     }
-    data_packet_group_error = error;
+    globals().data_packet_group_error = error;
     return error == 0;
 }
 

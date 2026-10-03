@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::sound {
 
@@ -39,7 +40,7 @@ void sound_release_unused_pages(TagID tag_id)
                 entry = (sound_cache_entry *)((uint8_t *)sound_cache_entries->data +
                     (permutation->samples_pointer & 0xffff) * sizeof(sound_cache_entry));
                 if (entry->lock_count == 0) {
-                    cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
+                    halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
                     permutation->samples_pointer = 0xffffffff;
                     permutation->cache_page = 0;
                 }
@@ -220,11 +221,11 @@ void fade_out_and_stop_all(void)
         }
 
         deadline = (float)time_query_performance_counter_ms();
-        index = datum_next(-1, sound_data);
+        index = halo::memory::datum_next(-1, sound_data);
         if (index != k_datum_index_none) {
             do {
                 instances::schedule_gain_fade(k_datum_index_none, _sound_fade_linear, 0.3f, index);
-                index = datum_next((int16_t)index, sound_data);
+                index = halo::memory::datum_next((int16_t)index, sound_data);
             } while (index != k_datum_index_none);
 
             deadline += 300.0f;
@@ -256,7 +257,7 @@ void fade_out_and_stop_all(void)
 stop:
     instances::stop_all();
     if (looping_sound_data != 0 && looping_sound_data->valid != 0) {
-        data_delete_all(looping_sound_data);
+        halo::memory::data_delete_all(looping_sound_data);
     }
 }
 
@@ -308,7 +309,7 @@ datum_index play_new(datum_index definition_index, sound_location *location, dat
                                 owner_index, location_proc, callback_data, callback_data_size, first_person_hint);
                         }
 
-                        handle = datum_new(sound_data);
+                        handle = halo::memory::datum_new(sound_data);
                         if (handle != k_datum_index_none) {
                             sound *self = &((sound *)sound_data->data)[(uint16_t)handle];
                             int32_t delay = (int32_t)(spatial::location_distance(bucket, location) * sound_delay_per_world_unit);
@@ -405,12 +406,12 @@ void stop_all(void)
 
     if (sound_initialized) {
         sound_stopping_all = 1;
-        sound_handle = datum_next(-1, sound_data);
+        sound_handle = halo::memory::datum_next(-1, sound_data);
         while (sound_handle != k_datum_index_none) {
             instances::stop(sound_handle);
-            sound_handle = datum_next((int16_t)sound_handle, sound_data);
+            sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data);
         }
-        data_delete_all(looping_sound_data);
+        halo::memory::data_delete_all(looping_sound_data);
         audio_device().stop_all();
     }
     ai_communication_quiet_until_tick = 0;
@@ -549,7 +550,7 @@ void stop(datum_index sound_handle)
 skip_release:
 
     if (instance->play_state != 0 && instance->owner_index != 0xffffffff) {
-        owner = (looping_sound *)datum_get(instance->owner_index, looping_sound_data);
+        owner = (looping_sound *)halo::memory::datum_get(instance->owner_index, looping_sound_data);
         if (owner != 0) {
             owner->active_sound_count -= 1;
             if (owner->track_sounds[instance->track_index] == sound_handle) {
@@ -573,14 +574,14 @@ skip_release:
                 if (entry->lock_count != 0) {
                     goto delete_datum;
                 }
-                cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
+                halo::memory::cache_evict_entry((datum_index)permutation->samples_pointer, sound_cache);
             }
             permutation->samples_pointer = 0xffffffff;
             permutation->cache_page = 0;
         }
     }
 delete_datum:
-    datum_delete(sound_data, sound_handle);
+    halo::memory::datum_delete(sound_data, sound_handle);
 }
 
 uint32_t invoke_location_proc(datum_index sound_handle)

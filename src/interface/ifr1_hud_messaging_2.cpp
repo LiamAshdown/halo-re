@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -8,7 +9,6 @@ extern data_array *player_data;
 extern int16_t network_game_mode;
 extern int8_t message_delta_decode_compound_field(void *message, hud_item_message *out_payload);
 extern int32_t message_delta_decode_compound_field_staged(void *message);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count);
 extern void player_trigger_shield_recharge_effect(uint32_t player_index);
@@ -60,8 +60,8 @@ void HudMessaging::receive_item_message(void **message)
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (p = (player *)data_iterator_next(&iterator); p != 0;
-         p = (player *)data_iterator_next(&iterator)) {
+    for (p = (player *)halo::memory::data_iterator_next(&iterator); p != 0;
+         p = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (p->local_player_index != -1) {
             break;
         }

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <wchar.h>
 #include "units.h"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -34,7 +35,6 @@ extern int32_t network_join_error_reason;
 extern uint8_t split_screen_quit_prompt_string[4];
 extern data_packet_group network_game_messages_group;
 extern int16_t network_initialize(void);
-extern void struct_definition_table_compute_sizes(data_packet_group *group);
 extern uint8_t network_hostname_ready;
 extern uint8_t network_winsock_initialized;
 extern uint32_t network_local_address;
@@ -51,7 +51,6 @@ extern void *tag_lookup(const char *tag_path);
 extern int32_t text_get_character_metrics(uint8_t ch);
 extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
 extern uint8_t ui_wide_string_has_non_whitespace(void);
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
 extern uint16_t network_challenge_packet_block[];
 extern uint8_t network_random_seeded;
@@ -75,8 +74,18 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
 extern void network_event_feed_flush(void);
 extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value);
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream);
 extern uint8_t network_summary_log_needs_open;
+}
+
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag)
+{
+    using call_t = int32_t (*)(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, group, payload, capacity, message_type, flag);
 }
 
 namespace halo::networking {
@@ -330,7 +339,7 @@ void NetworkRuntime::dispatch_initialize()
         split_screen_quit_prompt_string[3] = 1;
     }
     if (network_disabled_flag == 0) {
-        struct_definition_table_compute_sizes(&network_game_messages_group);
+        halo::memory::struct_definition_table_compute_sizes(&network_game_messages_group);
     }
 }
 
@@ -523,7 +532,7 @@ uint16_t * NetworkRuntime::prepare_challenge_packet(int32_t message_type, void *
     int32_t length;
 
     length = 0x600;
-    if (data_packet_group_encode_packet(buffer, &network_game_messages_group, payload, &length,
+    if (data_packet_group_encode_packet_unresolved(buffer, &network_game_messages_group, payload, &length,
                                         message_type, 1) != 0) {
         return network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3,
                                            (uint32_t)length);
@@ -1005,11 +1014,11 @@ uint16_t * MessageBlocks::read_sized_buffer(uint16_t *buffer, int32_t capacity, 
     int32_t consumed;
     uint16_t header;
 
-    consumed = bit_stream_read_bits_chunked(0x10, (uint32_t *)buffer, stream);
+    consumed = halo::memory::bit_stream_read_bits_chunked(0x10, (uint32_t *)buffer, stream);
     if (consumed == 0x10) {
         header = *buffer;
         if ((int32_t)(uint32_t)(header >> 4) <= capacity) {
-            consumed = bit_stream_read_bits_chunked((header >> 4) * 8 - 0x10, (uint32_t *)(buffer + 1), stream);
+            consumed = halo::memory::bit_stream_read_bits_chunked((header >> 4) * 8 - 0x10, (uint32_t *)(buffer + 1), stream);
             if (consumed == (header >> 4) * 8 - 0x10) {
                 return buffer;
             }

@@ -1,4 +1,6 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/memory/api.hpp"
+#include <wchar.h>
 
 #ifdef interface
 #undef interface
@@ -19,9 +21,6 @@ extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, i
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence, int16_t frame);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
-extern uint32_t wcslen(uint16_t *s);
-extern void *heap_allocate(uint32_t size, heap *self);
-extern void heap_unlink_block(heap_block *block, heap *self);
 extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget);
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replacement, uint16_t **text);
@@ -205,8 +204,8 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         uint16_t *src =
             text_string_list_get_string(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id,
                                         widget->selection_index);
-        uint32_t byte_len = wcslen(src) * 2;
-        uint16_t *buf = (uint16_t *)heap_allocate(byte_len + 2, widget_memory_pool);
+        uint32_t byte_len = wcslen((const wchar_t *)src) * 2;
+        uint16_t *buf = (uint16_t *)halo::memory::heap_allocate(byte_len + 2, widget_memory_pool);
         int32_t i;
 
         text = buf;
@@ -281,7 +280,7 @@ free_and_return:
         heap_block *block = (heap_block *)((uint8_t *)text - 0x10);
         uint32_t size = block->size;
 
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated -= (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count -= 1;
     }

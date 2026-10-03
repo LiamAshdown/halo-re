@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -7,7 +8,6 @@ extern tag_instance *tag_instances;
 extern uint8_t particle_advance_frame(datum_index particle_handle);
 extern uint8_t particle_next_sequence(datum_index particle_handle);
 extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index, real intensity);
-extern void datum_delete(data_array *array, datum_index handle);
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 extern const real_vector3d *global_down3d_pointer;
@@ -18,7 +18,6 @@ extern player_globals *local_player_globals;
 extern uint8_t *first_person_weapon_interfaces;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern int32_t render_frame_index;
-extern datum_index datum_new(data_array *array);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint16_t effect_random_uint16(void);
 extern int effect_random_int_between(int16_t minimum, int16_t maximum);
@@ -30,7 +29,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t any_local_player_within_10_units(real_point3d *position);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
 extern uint8_t particle_update_motion(datum_index particle_handle, real delta_time);
 void particle_new(particle_creation_data *creation_data);
@@ -172,7 +170,7 @@ void particle_ref::impact()
             *(datum_index *)&tag->death_effect.tag_id, 0.0f);
     }
 
-    datum_delete(particle_data, particle_handle);
+    halo::memory::datum_delete(particle_data, particle_handle);
 }
 
 /**
@@ -263,7 +261,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     }
 
     {
-        datum_index handle = datum_new(particle_data);
+        datum_index handle = halo::memory::datum_new(particle_data);
 
         if (handle != (datum_index)0xffffffff) {
             particle *self = &((particle *)particle_data->data)[handle & 0xffff];
@@ -459,7 +457,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         if (object_try_and_get(self->object_index, 0xffffffff) != 0) {
             return 1;
         }
-        datum_delete(particle_data, particle_handle);
+        halo::memory::datum_delete(particle_data, particle_handle);
         return 0;
     }
 
@@ -498,7 +496,7 @@ uint8_t particle_ref::update_motion(real delta_time)
             }
             if ((tag->flags & 0x20) != 0) {
                 if (*(uint32_t *)&tag->collision_effect.tag_id != 0xffffffffu) {
-                    datum_delete(particle_data, particle_handle);
+                    halo::memory::datum_delete(particle_data, particle_handle);
                     return 0;
                 }
                 particle_impact(particle_handle);
@@ -524,7 +522,7 @@ uint8_t particle_ref::update_motion(real delta_time)
 
         if ((self->flags & _particle_first_person_bit) == 0 &&
             object_try_and_get(self->object_index, 0xffffffff) == 0) {
-            datum_delete(particle_data, particle_handle);
+            halo::memory::datum_delete(particle_data, particle_handle);
             return 0;
         }
 
@@ -575,7 +573,7 @@ uint8_t particle_ref::update_motion(real delta_time)
  */
 void particle_ref::delete_by_first_person_weapon(uint8_t first_person_weapon_index)
 {
-    datum_index particle_index = datum_next(-1, particle_data);
+    datum_index particle_index = halo::memory::datum_next(-1, particle_data);
 
     while (particle_index != k_datum_index_none) {
         particle *self = &((particle *)particle_data->data)[(uint16_t)particle_index];
@@ -583,10 +581,10 @@ void particle_ref::delete_by_first_person_weapon(uint8_t first_person_weapon_ind
         if (self->first_person_weapon_index == first_person_weapon_index &&
             (self->flags & _particle_first_person_bit) != 0 &&
             self->object_index != k_datum_index_none) {
-            datum_delete(particle_data, particle_index);
+            halo::memory::datum_delete(particle_data, particle_index);
         }
 
-        particle_index = datum_next((int16_t)particle_index, particle_data);
+        particle_index = halo::memory::datum_next((int16_t)particle_index, particle_data);
     }
 }
 
@@ -599,8 +597,8 @@ void particle_ref::refresh_structure_locations()
 {
     datum_index handle;
 
-    for (handle = datum_next(-1, particle_data); handle != k_datum_index_none;
-         handle = datum_next((int16_t)handle, particle_data)) {
+    for (handle = halo::memory::datum_next(-1, particle_data); handle != k_datum_index_none;
+         handle = halo::memory::datum_next((int16_t)handle, particle_data)) {
         particle *entry = (particle *)((uint8_t *)particle_data->data + (handle & 0xffff) * 0x70);
         real_point3d *point;
         uint32_t leaf;
@@ -615,7 +613,7 @@ void particle_ref::refresh_structure_locations()
             uint8_t *owner = (uint8_t *)object_try_and_get(entry->object_index, 0xffffffff);
 
             if (owner == 0) {
-                datum_delete(particle_data, handle);
+                halo::memory::datum_delete(particle_data, handle);
                 continue;
             }
             point = (real_point3d *)(owner + ((struct object *)owner)->nodes.offset + entry->marker_index * 0x34 + 0x28);
@@ -629,7 +627,7 @@ void particle_ref::refresh_structure_locations()
         }
         entry->location.cluster_index = cluster;
         if (cluster == -1) {
-            datum_delete(particle_data, handle);
+            halo::memory::datum_delete(particle_data, handle);
         }
     }
 }
@@ -643,7 +641,7 @@ void particle_ref::refresh_structure_locations()
  */
 void particle_ref::update(real delta_time)
 {
-    datum_index particle_index = datum_next(-1, particle_data);
+    datum_index particle_index = halo::memory::datum_next(-1, particle_data);
 
     while (particle_index != k_datum_index_none) {
         particle *self = &((particle *)particle_data->data)[(uint16_t)particle_index];
@@ -661,10 +659,10 @@ void particle_ref::update(real delta_time)
                 particle_impact(particle_index);
             }
         } else {
-            datum_delete(particle_data, particle_index);
+            halo::memory::datum_delete(particle_data, particle_index);
         }
 
-        particle_index = datum_next((int16_t)particle_index, particle_data);
+        particle_index = halo::memory::datum_next((int16_t)particle_index, particle_data);
     }
 }
 

@@ -1,18 +1,15 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
 extern decal_grid *decal_grid_block;
-extern void *data_iterator_next(data_iterator *iterator);
-extern void datum_delete(data_array *array, datum_index handle);
 extern cache *rasterizer_decal_vertex_cache_handle;
-extern void cache_evict_entry(datum_index handle, cache *self);
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern real_point2d decal_clip_buffers[2][12];
 extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
 extern const decal_type_parameters k_decal_type_parameters[4];
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -28,7 +25,6 @@ extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void rasterizer_decals_initialize(void);
 extern void decal_update_fade(datum_index decal_index);
 void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
@@ -142,7 +138,7 @@ void decal_ref::clear_flags(uint8_t clear_object_attached)
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-        self = (decal *)data_iterator_next(&iterator);
+        self = (decal *)halo::memory::data_iterator_next(&iterator);
 
         while (self != 0) {
             if ((self->flags & _decal_temporary_bit) != 0) {
@@ -153,7 +149,7 @@ void decal_ref::clear_flags(uint8_t clear_object_attached)
                 self->flags = self->flags & ~_decal_object_attached_bit;
                 decal_grid_block->object_count = decal_grid_block->object_count - 1;
             }
-            self = (decal *)data_iterator_next(&iterator);
+            self = (decal *)halo::memory::data_iterator_next(&iterator);
         }
     }
 }
@@ -182,7 +178,7 @@ void decal_ref::destroy()
         decal_grid_block->cluster_first[self->layer][self->cluster_index] = next;
     }
 
-    datum_delete(decal_data, decal_index);
+    halo::memory::datum_delete(decal_data, decal_index);
 }
 
 /**
@@ -216,7 +212,7 @@ void decal_ref::evict_object_decals(int16_t cluster_index)
                 if ((self->flags & _decal_object_attached_bit) != 0) {
                     self->flags = self->flags & ~_decal_object_attached_bit;
                     decal_grid_block->object_count = decal_grid_block->object_count - 1;
-                    cache_evict_entry(current, rasterizer_decal_vertex_cache_handle);
+                    halo::memory::cache_evict_entry(current, rasterizer_decal_vertex_cache_handle);
                 }
 
                 current = next;
@@ -465,7 +461,7 @@ void decal_ref::link(int16_t cluster_index, int16_t layer)
  */
 datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached)
 {
-    datum_index handle = datum_new_at_index_with_salt(requested_handle, decal_data);
+    datum_index handle = halo::memory::datum_new_at_index_with_salt(requested_handle, decal_data);
     decal *self;
 
     if (handle == k_datum_index_none) {
@@ -492,7 +488,7 @@ datum_index decal_ref::create(datum_index requested_handle, int16_t cluster_inde
                 iterator.signature = (uint32_t)(uintptr_t)decal_data ^ k_data_iterator_signature;
 
                 while (decal_grid_block->temporary_count > k_temporary_decal_eviction_target) {
-                    decal *candidate = (decal *)data_iterator_next(&iterator);
+                    decal *candidate = (decal *)halo::memory::data_iterator_next(&iterator);
 
                     if (candidate == 0) {
                         restarts = (int16_t)(restarts + 1);
@@ -635,7 +631,7 @@ void decal_ref::update_fade()
                 self->flags = self->flags & ~_decal_temporary_bit;
                 decal_grid_block->temporary_count = decal_grid_block->temporary_count - 1;
             }
-            cache_evict_entry(decal_index, rasterizer_decal_vertex_cache_handle);
+            halo::memory::cache_evict_entry(decal_index, rasterizer_decal_vertex_cache_handle);
             return;
         }
 
@@ -707,7 +703,7 @@ void decal_ref::initialize()
 
     decal_grid_block = (decal_grid *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + sizeof(decal_grid);
-    crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
     rasterizer_decals_initialize();
 }
@@ -727,7 +723,7 @@ void decal_ref::update_fade_all()
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        while (data_iterator_next(&iterator) != 0) {
+        while (halo::memory::data_iterator_next(&iterator) != 0) {
             decal_update_fade(iterator.index);
         }
     }

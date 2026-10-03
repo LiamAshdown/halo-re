@@ -1,5 +1,6 @@
 #include "halo/ai/actor_looks.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -79,7 +80,6 @@ extern game_time_globals *game_time;
 extern float actor_vocalization_duration[14];
 extern int16_t actor_vocalization_variant[14][2];
 
-extern void * datum_get(datum_index handle, data_array *array);
 }
 }
 
@@ -122,7 +122,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     if (context->kind == 1) {
 
-        target = (prop *)datum_get(context->handle, prop_data);
+        target = (prop *)halo::memory::datum_get(context->handle, prop_data);
         if (target == (prop *)0) {
             return 0;
         }

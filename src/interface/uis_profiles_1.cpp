@@ -16,6 +16,7 @@
 #include <wchar.h>
 
 #include "halo/interface/uis_profiles.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -27,7 +28,6 @@ extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern uint8_t default_profile_data[0x1ffc];
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count);
 extern uint8_t saved_game_last_profile_read(char *name_buffer);
@@ -35,7 +35,6 @@ extern int32_t saved_game_find_by_name(char *name, int32_t unknown);
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob,
                                uint32_t data_size, uint8_t is_default);
-extern void heap_unlink_block(heap_block *block, heap *self);
 extern void ui_list_free_all(void);
 extern int16_t new_profile_name_entry_player_00692b00;
 extern virtual_keyboard_globals virtual_keyboard;
@@ -84,7 +83,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
     profile_slot_lookup_cache_00692ac8 = -1;
     memset(profile_carousel_slots, 0xff, sizeof(profile_carousel_slots));
 
-    slot_ids = (int32_t *)heap_reallocate(widget->list_items, 400, widget_memory_pool);
+    slot_ids = (int32_t *)halo::memory::heap_reallocate(widget->list_items, 400, widget_memory_pool);
     widget->list_items = slot_ids;
     if (slot_ids != (int32_t *)0) {
         uint8_t profile_buffer[0x1ffc];
@@ -151,7 +150,7 @@ uint32_t UiProfiles::free_profile_list(widget_instance *widget)
         heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
         uint32_t size = block->size;
 
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated =
             widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
@@ -234,7 +233,7 @@ void UiProfiles::profile_carousel_fetch_name(widget_instance *widget)
 
     memcpy(profile_record, &profile_globals_block[widget->controller_index].profile, sizeof(profile_record));
 
-    dest = (uint16_t *)heap_reallocate(widget->text, 0x18, widget_memory_pool);
+    dest = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x18, widget_memory_pool);
     widget->text = dest;
     if (dest != 0) {
         wcsncpy((wchar_t *)dest, (const wchar_t *)(profile_record + 2), 0x0b);

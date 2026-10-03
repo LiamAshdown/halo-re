@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_controls_bindings.hpp"
 #include <string.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -33,7 +34,6 @@ extern int32_t controls_selected_device;
 extern uint8_t controls_input_capture_flags;
 extern int16_t controls_captured_binding[6];
 extern uint32_t controls_input_capture_buffer[0xa0];
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32_t page);
 extern uint8_t controls_key_is_bindable(int32_t control);
 extern uint8_t controls_binding_clear(int32_t action_index, int32_t device);
@@ -67,7 +67,7 @@ static void controls_set_dimmed(widget_instance *widget, uint8_t dimmed)
 
 static void controls_set_cell_text(widget_instance *cell, const uint16_t *text)
 {
-    uint16_t *buffer = (uint16_t *)heap_reallocate(cell->text, 0x40, widget_memory_pool);
+    uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(cell->text, 0x40, widget_memory_pool);
 
     cell->text = buffer;
     if (buffer != 0) {
@@ -292,7 +292,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
         device++;
     }
     controls_selected_device = device;
-    spinner->list_render_data = heap_reallocate(spinner->list_render_data, 0x80, widget_memory_pool);
+    spinner->list_render_data = halo::memory::heap_reallocate(spinner->list_render_data, 0x80, widget_memory_pool);
     if (spinner->list_render_data != 0) {
         int32_t label = spinner->selection_index;
         wcsncpy((wchar_t *)spinner->list_render_data,

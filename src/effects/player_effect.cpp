@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -27,7 +28,6 @@ extern void player_effect_set_camera_impulse(player_effect *self, int16_t local_
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
 extern double cos(double x);
 extern double sin(double x);
@@ -395,8 +395,8 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
     iterator.next_index = 0;
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (record = (player *)data_iterator_next(&iterator); record != 0;
-         record = (player *)data_iterator_next(&iterator)) {
+    for (record = (player *)halo::memory::data_iterator_next(&iterator); record != 0;
+         record = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (record->local_player_index != -1) {
             dd.damage_effect_tag = fields[0];
             dd.responsible_object = (fields[1] != 0) ?
@@ -598,7 +598,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
     iterator.index = (datum_index)0xffffffff;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    record = (player *)data_iterator_next(&iterator);
+    record = (player *)halo::memory::data_iterator_next(&iterator);
     while (record != (player *)0) {
         datum_index unit_index = record->unit;
 
@@ -631,7 +631,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
             }
         }
 
-        record = (player *)data_iterator_next(&iterator);
+        record = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }

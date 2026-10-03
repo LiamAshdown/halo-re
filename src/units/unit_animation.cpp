@@ -5,12 +5,12 @@
 #include "ai.h"
 #include "crt.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
@@ -63,7 +63,7 @@ void unit_ai_update_stagger_allocate(void)
     int32_t size = 8;
 
     game_state_cursor = game_state_cursor + 8;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     ai_update_stagger = (ai_update_stagger_state *)block;
 }
 

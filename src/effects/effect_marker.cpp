@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -8,15 +9,12 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern data_array *effect_location_data;
-extern datum_index datum_new(data_array *array);
 extern player_globals *local_player_globals;
 extern uint8_t *effect_marker_callback_context;
 extern void effect_marker_from_node_table(int16_t entry_index, uint8_t *context, object_marker *out);
 extern data_array *effect_data;
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
-extern void datum_delete(data_array *array, datum_index handle);
 extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 void effect_marker_environment_probe(uint32_t definition_index, int16_t location_index, real_point3d *marker_position, uint32_t sound_param);
@@ -103,7 +101,7 @@ void effect_view::from_node_table(int16_t entry_index, uint8_t *context, object_
 datum_index effect_view::create(int16_t location_index, object_marker *resolved_marker, uint8_t first_person)
 {
     effect * self = record;
-    datum_index handle = datum_new(effect_location_data);
+    datum_index handle = halo::memory::datum_new(effect_location_data);
 
     if (handle != k_datum_index_none) {
         effect_location_marker *marker =
@@ -196,7 +194,7 @@ int32_t effect_view::node_table_resolver(uint32_t object_index, const char *loca
  */
 void effect_view::reattach_markers_for_object(int16_t first_person_weapon_index, datum_index object_index)
 {
-    datum_index effect_index = datum_next(-1, effect_data);
+    datum_index effect_index = halo::memory::datum_next(-1, effect_data);
 
     while (effect_index != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)effect_index];
@@ -206,7 +204,7 @@ void effect_view::reattach_markers_for_object(int16_t first_person_weapon_index,
             effect_rebuild_markers(self, first_person_weapon_get_marker_data);
         }
 
-        effect_index = datum_next((int16_t)effect_index, effect_data);
+        effect_index = halo::memory::datum_next((int16_t)effect_index, effect_data);
     }
 }
 
@@ -220,7 +218,7 @@ void effect_view::reattach_markers_for_object(int16_t first_person_weapon_index,
  */
 void effect_view::release_first_person_markers(int16_t first_person_weapon_index)
 {
-    datum_index effect_index = datum_next(-1, effect_data);
+    datum_index effect_index = halo::memory::datum_next(-1, effect_data);
 
     while (effect_index != k_datum_index_none) {
         effect *self = &((effect *)effect_data->data)[(uint16_t)effect_index];
@@ -240,7 +238,7 @@ void effect_view::release_first_person_markers(int16_t first_person_weapon_index
                         link = &marker->next_marker;
                     } else {
                         datum_index next = marker->next_marker;
-                        datum_delete(effect_location_data, *link);
+                        halo::memory::datum_delete(effect_location_data, *link);
                         *link = next;
                     }
                 }
@@ -249,7 +247,7 @@ void effect_view::release_first_person_markers(int16_t first_person_weapon_index
             self->first_person_weapon_index = -1;
         }
 
-        effect_index = datum_next((int16_t)effect_index, effect_data);
+        effect_index = halo::memory::datum_next((int16_t)effect_index, effect_data);
     }
 }
 

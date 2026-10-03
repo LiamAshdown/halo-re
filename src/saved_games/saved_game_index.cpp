@@ -10,6 +10,7 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -24,7 +25,6 @@ extern uint8_t savegame_find_next(void *out_find_data, int32_t handle);
 extern uint8_t user_save_path_remove(int32_t handle);
 extern game_variant *game_engine_variant_defaults_classic_slayer(game_variant *out);
 extern void game_variant_sanitize_options(game_variant *variant);
-extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size);
 extern uint8_t savegame_index_dirty;
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
@@ -249,7 +249,7 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
         wcsncpy((wchar_t *)file.variant.name, (const wchar_t *)name, 0x17);
         file.variant.name[0x17] = 0;
         file.checksum = 0xffffffff;
-        crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
+        halo::memory::crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
 
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0 || (written = file_reference_write(&ref, &file, sizeof(file)), written == 0)) {
@@ -291,7 +291,7 @@ uint32_t create_default_profile(uint16_t *name)
     wcsncpy((wchar_t *)file.profile.name, (const wchar_t *)name, 0xb);
 
     file.checksum = 0xffffffff;
-    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         saved_game_delete_by_handle(handle);
@@ -404,7 +404,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
             if (ok) {
                 memset(body, 0, sizeof(body));
                 *(uint32_t *)(body + body_size) = 0xffffffff;
-                crc32_update((uint32_t *)(body + body_size), body, body_size);
+                halo::memory::crc32_update((uint32_t *)(body + body_size), body, body_size);
                 ok = file_reference_write(&ref, body, sizeof(body));
                 if (ok) {
                     entry.checksum_valid = 1;
@@ -922,7 +922,7 @@ uint8_t get_variant(int32_t handle, game_variant *out)
             read_ok = file_reference_read(&ref, &file, sizeof(file));
             if (read_ok != 0) {
                 checksum = 0xffffffff;
-                crc32_update(&checksum, &file.variant, sizeof(file.variant));
+                halo::memory::crc32_update(&checksum, &file.variant, sizeof(file.variant));
                 if (checksum == file.checksum) {
                     memcpy(out, &file.variant, sizeof(*out));
                 } else {
@@ -1061,7 +1061,7 @@ int16_t index_register_default_playlists(void)
                     read_ok = file_reference_read(&ref, body, sizeof(body));
                     if (read_ok != 0) {
                         checksum = 0xffffffff;
-                        crc32_update(&checksum, body, sizeof(game_variant));
+                        halo::memory::crc32_update(&checksum, body, sizeof(game_variant));
                         if (checksum == *(uint32_t *)(body + sizeof(game_variant))) {
                             entry.checksum_valid = 1;
                         }
@@ -1166,7 +1166,7 @@ int16_t index_register_default_profiles(void)
                     read_ok = file_reference_read(&ref, &file, sizeof(file));
                     if (read_ok != 0) {
                         checksum = 0xffffffff;
-                        crc32_update(&checksum, &file.profile, sizeof(file.profile));
+                        halo::memory::crc32_update(&checksum, &file.profile, sizeof(file.profile));
                         if (checksum == file.checksum) {
                             entry.checksum_valid = 1;
                         }
@@ -1436,7 +1436,7 @@ void list_rebuild_index(void)
                         read_ok = file_reference_read(&ref, body, sizeof(body));
                         if (read_ok != 0) {
                             checksum = 0xffffffff;
-                            crc32_update(&checksum, body, body_size);
+                            halo::memory::crc32_update(&checksum, body, body_size);
                             if (checksum == *(uint32_t *)(body + body_size)) {
                                 entry.checksum_valid = 1;
                             }
@@ -1570,7 +1570,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
         previous_crc = *expected_crc;
         running_crc = 0xffffffff;
         *expected_crc = 0;
-        ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, header_buffer, header_size);
+        halo::memory::crc32_update(&running_crc, header_buffer, header_size);
 
         remaining = total_size - header_size;
         while (0 < remaining) {
@@ -1581,7 +1581,7 @@ uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_bu
                 chunk = 0x20000;
             }
             if (ReadFile(file, chunk_buffer, chunk, (LPDWORD)&bytes_read, 0) != 0 && bytes_read == (uint32_t)chunk) {
-                ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, chunk_buffer, chunk);
+                halo::memory::crc32_update(&running_crc, chunk_buffer, chunk);
             }
             sound_idle_update();
             remaining = remaining - chunk;

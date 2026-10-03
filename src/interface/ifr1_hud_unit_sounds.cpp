@@ -1,8 +1,8 @@
 #include "halo/interface/ifr1_hud_unit_sounds.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
-extern datum_index datum_new(data_array *array);
 extern void sound_impulse_fade_out(int32_t sound_handle);
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
@@ -40,7 +40,7 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
                     datum_index handle = (datum_index)-1;
 
                     if (tag != (datum_index)-1) {
-                        handle = datum_new(game_looping_sound_data);
+                        handle = halo::memory::datum_new(game_looping_sound_data);
                         if (handle != (datum_index)-1) {
                             uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handle & 0xffff) * 0x34;
                             *(int32_t *)&((game_looping_sound *)element)->object_index = -1;

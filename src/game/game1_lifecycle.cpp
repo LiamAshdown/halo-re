@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "halo/game/game1_lifecycle.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -51,7 +52,6 @@ extern void saved_game_files_dispose(void);
 extern void network_shutdown(void);
 extern data_array *object_data;
 extern object *object_iterator_next(object_iterator *iterator);
-extern void *data_iterator_next(data_iterator *iterator);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t unit_any_dying_or_seat_transition(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param);
@@ -229,7 +229,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
     best_root = (datum_index)-1;
     success = 0;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     if (plr != (player *)0) {
         do {
             unit_handle = plr->unit;
@@ -262,7 +262,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                     }
                 }
             }
-            plr = (player *)data_iterator_next(&player_iter);
+            plr = (player *)halo::memory::data_iterator_next(&player_iter);
             best_root = root;
         } while (plr != (player *)0);
 
@@ -273,7 +273,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
             player_iter.next_index = 0;
             player_iter.index = (datum_index)-1;
             player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-            plr = (player *)data_iterator_next(&player_iter);
+            plr = (player *)halo::memory::data_iterator_next(&player_iter);
             while (plr != (player *)0) {
                 if (plr->unit == (datum_index)-1) {
                     player_handle = player_iter.index;
@@ -285,7 +285,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                         success = player_attach_unit_to_parent(player_handle, best_root, (uint8_t *)root_obj + 0xa0);
                     }
                 }
-                plr = (player *)data_iterator_next(&player_iter);
+                plr = (player *)halo::memory::data_iterator_next(&player_iter);
             }
         }
     }
@@ -355,13 +355,13 @@ void Lifecycle::end_game_sequence_stage2(void)
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
             object *unit_obj = ((object_header *)object_data->data)[p->unit & 0xffff].data;
             unit_obj->vitality_flags = unit_obj->vitality_flags | 0x0020;
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
 
     (void)unused_checksum;

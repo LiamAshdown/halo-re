@@ -13,6 +13,7 @@
 #include "interface.h"
 
 #include "halo/game/game1_variants.hpp"
+#include "halo/memory/api.hpp"
 
 typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 typedef void (*profile_post_update_proc)(uint32_t arg_edx, uint32_t arg_ecx);
@@ -31,7 +32,6 @@ extern int32_t unknown_0087aaf8;
 extern player_profile player_profile_cache[16];
 extern game_variant game_engine_variant;
 extern data_array *player_data;
-extern void *datum_get(datum_index handle, data_array *array);
 extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
 extern uint8_t message_delta_decode_compound_field_forced(void *event, uint32_t *cache_tail, uint32_t *scratch, int32_t zero);
@@ -205,7 +205,7 @@ void Variants::apply_player_profile_entry(void *event)
         return;
     }
 
-    p = (player *)datum_get(profile->player, player_data);
+    p = (player *)halo::memory::datum_get(profile->player, player_data);
     if (p == (player *)0) {
         return;
     }

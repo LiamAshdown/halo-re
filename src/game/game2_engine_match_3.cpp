@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -8,7 +9,6 @@ extern data_array *player_data;
 extern uint8_t game_engine_unknown_1cfc;
 extern uint8_t network_message_scratch[0x7ff8];
 extern void game_engine_player_round_reset(void);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void chat_queue_team_message(int32_t color, int32_t message_id);
 extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
 extern void message_delta_decode_compound_field_staged(void *event);
@@ -85,13 +85,13 @@ void EngineMatch::update_lead_change_state(void **envelope, uint8_t *message)
             player_iter.next_index = 0;
             player_iter.index = k_datum_index_none;
             player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-            player_element = data_iterator_next(&player_iter);
+            player_element = halo::memory::data_iterator_next(&player_iter);
             while (player_element != 0) {
                 if (((player *)player_element)->team_index_desired == (int8_t)color) {
                     game_engine_player_round_reset();
                     break;
                 }
-                player_element = data_iterator_next(&player_iter);
+                player_element = halo::memory::data_iterator_next(&player_iter);
             }
         }
 

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -74,7 +75,6 @@ extern uint8_t profile_globals_block[0x1ffc];
 extern void gcd_compute_response(void *a, void *request, uint8_t *out);
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern network_server_globals *network_server;
 extern game_time_globals *game_time;
 extern int64_t performance_frequency;
@@ -82,7 +82,6 @@ extern void update_client_advance_read_cursor(void *payload);
 extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream, const uint32_t *sender);
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
 extern char network_game_message_decode_dispatch(network_client_globals *client, uint16_t *record, int32_t record_length, const uint32_t *sender);
-extern int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_packet_group *group, void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
 extern data_packet_group network_game_messages_group;
 extern int32_t network_game_search_results_add_or_update(network_game_search_entry *results, const uint8_t *announcement);
 extern void network_session_player_join_notify(network_client_globals *client, const uint32_t *source);
@@ -520,9 +519,9 @@ compare_done:
             {
 
                 channel->send_budget = channel->send_budget + bits_to_send + 1;
-                { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
                 *((uint8_t *)channel + 0x2c) = 0;
-                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
+                halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
                 *((uint8_t *)channel + 0x2c) = 0;
             }
         }
@@ -638,7 +637,7 @@ int32_t ClientMessageDecoder::and_discard_ingame_message(const uint8_t *buffer, 
     network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *sender_address && client->state == 4) {
         length = length - 2;
-        data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+        halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 6);
     }
     return 1;
@@ -661,7 +660,7 @@ int32_t ClientMessageDecoder::and_discard_join_message(const uint8_t *buffer, in
     network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *sender_address && client->state == 2) {
         length = length - 2;
-        data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+        halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 2);
     }
     return 1;
@@ -685,7 +684,7 @@ int32_t ClientMessageDecoder::beacon_reply(const uint8_t *buffer, int32_t length
         return 1;
     }
     length = length - 2;
-    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+    if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 1) != 0) {
         network_game_search_results_add_or_update((network_game_search_entry *)((uint8_t *)client + 4),
                                                    decoded_body);
@@ -713,7 +712,7 @@ int32_t ClientMessageDecoder::join_accepted(const uint8_t *buffer, int32_t lengt
         return 0;
     }
     length = length - 2;
-    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+    if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 2) == 0) {
         return 0;
     }
@@ -740,7 +739,7 @@ int32_t ClientMessageDecoder::join_complete(const uint8_t *buffer, int32_t lengt
         return 0;
     }
     length = length - 2;
-    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+    if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 2) == 0) {
         return 0;
     }
@@ -766,7 +765,7 @@ int32_t ClientMessageDecoder::join_finalize_ack(const uint8_t *buffer, int32_t l
     network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *sender_address && client->state == 2) {
         length = length - 2;
-        if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+        if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 2) != 0) {
             network_client_timer_default_or_disconnect(client);
         }
@@ -796,7 +795,7 @@ int32_t ClientMessageDecoder::join_finalize_message(const uint8_t *buffer, int32
         return 0;
     }
     length = length - 2;
-    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+    if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 2) == 0) {
         return 0;
     }
@@ -820,7 +819,7 @@ int32_t ClientMessageDecoder::player_config_value(const uint8_t *buffer, int32_t
     network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *sender_address && client->state == 2) {
         length = length - 2;
-        if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, &decoded_value,
+        if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, &decoded_value,
                                             (uint8_t *)buffer + 2, &out_type, &out_version, 2) != 0) {
             client->game_start_countdown_seconds = (uint16_t)decoded_value;
         }
@@ -854,7 +853,7 @@ char ClientMessageDecoder::player_join_chunk(uint8_t *param_1, int32_t param_2, 
         return 1;
     }
     if (client->state == 3) {
-        if (data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
+        if (halo::memory::data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
                 decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 4) != 0) {
             result = network_player_join_finalize(client, decoded_body);
             if (result != 0) {
@@ -896,7 +895,7 @@ char ClientMessageDecoder::player_slot_chunk(uint8_t *param_1, int32_t param_2, 
     }
     state = client->state;
     if (state == 3 || state == 4 || state == 2) {
-        if (data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
+        if (halo::memory::data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
                 decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 4) != 0) {
             result = network_session_player_table_index_apply(client, (int32_t)decoded_body[8], (const uint8_t *)decoded_body);
 
@@ -928,7 +927,7 @@ int32_t ClientMessageDecoder::pong_reply(const uint8_t *buffer, int32_t length, 
         return 1;
     }
     length = length - 2;
-    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+    if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 1) != 0) {
         network_connection_retransmit_if_overdue(sender_address, client, decoded_body[0], (int32_t)decoded_body[1]);
     }
@@ -958,7 +957,7 @@ char ClientMessageDecoder::state_update_chunk(uint8_t *param_1, int32_t param_2,
     if ((sender.address.ipv4 != *param_3) || (client->state != 3)) {
         return 1;
     }
-    if (data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
+    if (halo::memory::data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
             decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 4) != 0) {
         result = network_game_state_update_receive(client, decoded_body);
         if (result != 0) {
@@ -987,7 +986,7 @@ int32_t ClientMessageDecoder::sync_complete(const uint8_t *buffer, int32_t lengt
     network_channel_remote_address_or_default(client->channel, &sender);
     if (sender.address.ipv4 == *sender_address && client->state == 3) {
         length = length - 2;
-        data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+        halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 4);
         client->state = 4;
     }
@@ -1044,7 +1043,7 @@ int32_t ClientMessageDecoder::ingame_notification(const uint8_t *buffer, int32_t
         return 0;
     }
     length = length - 2;
-    if (data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
+    if (halo::memory::data_packet_group_decode_packet((int16_t *)&length, &network_game_messages_group, decoded_body,
                                         (uint8_t *)buffer + 2, &out_type, &out_version, 6) != 0) {
         decoded = 1;
     }
@@ -1082,7 +1081,7 @@ int32_t ClientMessageDecoder::replicated_command(uint8_t *param_1, int32_t param
         return 1;
     }
     if (client->state == 4 &&
-        data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
+        halo::memory::data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
             decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 6) != 0) {
         if (network_game_mode != 1) {
             return 1;

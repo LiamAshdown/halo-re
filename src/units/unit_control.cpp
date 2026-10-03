@@ -4,6 +4,7 @@
 #include "physics.h"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -25,7 +26,6 @@ extern void *global_structure_collision_bsp;
 extern const real_vector3d *global_down3d_pointer;
 extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction);
 extern data_array *player_data;
-extern void * data_iterator_next(data_iterator *iterator);
 extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
@@ -477,12 +477,12 @@ uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vec
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        entry = data_iterator_next(&iterator);
+        entry = halo::memory::data_iterator_next(&iterator);
         if (entry == 0) {
             return 0;
         }
         while (*(int16_t *)((uint8_t *)entry + 2) == -1) {
-            entry = data_iterator_next(&iterator);
+            entry = halo::memory::data_iterator_next(&iterator);
             if (entry == 0) {
                 return 0;
             }

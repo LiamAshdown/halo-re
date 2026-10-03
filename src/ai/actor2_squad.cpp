@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::ai {
 
@@ -135,7 +136,6 @@ extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator);
 extern int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario);
 extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
 extern char hs_call_script_by_name(char *name);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
                                                 real_vector3d *up, real_point3d *position);
@@ -316,7 +316,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                 players.next_index = 0;
                 players.index = k_datum_index_none;
                 players.signature = (uint32_t)(uintptr_t)player_data ^ 0x69746572;
-                for (player = (uint8_t *)data_iterator_next(&players); player != 0; player = (uint8_t *)data_iterator_next(&players)) {
+                for (player = (uint8_t *)halo::memory::data_iterator_next(&players); player != 0; player = (uint8_t *)halo::memory::data_iterator_next(&players)) {
                     datum_index player_unit = ((struct player *)player)->unit;
 
                     if (player_unit != k_datum_index_none) {

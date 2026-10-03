@@ -5,12 +5,11 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 
 extern void decal_delete(datum_index decal_index);
-extern void crc32_update(uint32_t *crc, const void *data, uint32_t length);
-extern void cache_new(char *name, void *self, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure);
 
 }  // extern "C"
 
@@ -525,9 +524,9 @@ void rasterizer_decals_initialize(void)
 
     block = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0xe07c;
-    crc32_update(&game_state_crc, &region_size, 4);
+    halo::memory::crc32_update(&game_state_crc, &region_size, 4);
 
-    cache_new((char *)"decal vertex cache", block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
+    halo::memory::cache_new((char *)"decal vertex cache", (cache *)block, 0xa00, 6, 0x800, (void *)decal_vertex_cache_release,
               (void *)decal_vertex_cache_in_use);
     rasterizer_decal_vertex_cache_handle = block;
 }

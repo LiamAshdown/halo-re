@@ -1,12 +1,11 @@
 #include "halo/devices/device.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *device_groups;
-extern datum_index datum_new(data_array *array);
 extern tag_instance *tag_instances;
-extern void datum_delete(data_array *array, datum_index handle);
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern void animation_overlay_frame_orientations(ModelAnimationsAnimation *animation, int16_t frame, real_orientation *out_orientations);
 extern uint8_t device_group_set_value(uint16_t group_index, float value);
@@ -18,7 +17,6 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern object *object_iterator_next(object_iterator *iterator);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void data_delete_all(data_array *array);
 extern void device_groups_initialize(void);
 extern Scenario *global_scenario;
 void device_new(uint32_t object_index, device_placement_data *placement);
@@ -66,7 +64,7 @@ void DeviceHandle::construct(device_placement_data *placement)
     uint16_t position_group;
 
     if (power_group == -1) {
-        datum_index new_group = datum_new(device_groups);
+        datum_index new_group = halo::memory::datum_new(device_groups);
         power_group = (int16_t)new_group;
         if (power_group != -1) {
             device_group *group = &((device_group *)device_groups->data)[(uint16_t)new_group];
@@ -78,7 +76,7 @@ void DeviceHandle::construct(device_placement_data *placement)
 
     position_group = placement->position_group;
     if (position_group == 0xffff) {
-        datum_index new_group = datum_new(device_groups);
+        datum_index new_group = halo::memory::datum_new(device_groups);
         position_group = (uint16_t)new_group;
         if (position_group != 0xffff) {
             device_group *group = &((device_group *)device_groups->data)[position_group];
@@ -133,11 +131,11 @@ void DeviceHandle::destroy()
     int16_t group = ((device_object *)obj)->device.power_group;
 
     if (group != -1 && (((uint8_t *)device_groups->data)[(uint16_t)group * 8 + 2] & 4) != 0) {
-        datum_delete(device_groups, (datum_index)(int32_t)group);
+        halo::memory::datum_delete(device_groups, (datum_index)(int32_t)group);
     }
     group = ((device_object *)obj)->device.position_group;
     if (group != -1 && (((uint8_t *)device_groups->data)[(uint16_t)group * 8 + 2] & 4) != 0) {
-        datum_delete(device_groups, (datum_index)(int32_t)group);
+        halo::memory::datum_delete(device_groups, (datum_index)(int32_t)group);
     }
 }
 
@@ -679,7 +677,7 @@ void DeviceGroupPool::clear_disposing_flag()
 void DeviceGroupPool::dispose()
 {
     device_groups->valid = 1;
-    data_delete_all(device_groups);
+    halo::memory::data_delete_all(device_groups);
     device_groups_initialize();
 }
 
@@ -700,7 +698,7 @@ void DeviceGroupPool::initialize()
 
     for (i = 0; i < (int32_t)scenario->device_groups.count; i++) {
         ScenarioDeviceGroup *scenario_group = &scenario_groups[i];
-        datum_index new_group = datum_new(device_groups);
+        datum_index new_group = halo::memory::datum_new(device_groups);
 
         if ((uint16_t)new_group != 0xffff) {
             device_group *group = &((device_group *)device_groups->data)[(uint16_t)new_group];

@@ -1,6 +1,7 @@
 #include "halo/networking/net1_client.hpp"
 #include <stdlib.h>
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t network_disconnect_timeout_flag;
@@ -32,12 +33,10 @@ extern void player_update_history_destroy(player_update_history *history);
 extern void network_channel_delete(network_channel *channel);
 extern void network_stats_summary_log_write(void);
 extern uint8_t network_session_active;
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
 extern data_packet_group network_game_messages_group;
 extern uint16_t network_challenge_packet_block[];
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern uint8_t server_browser_join_target_has_password;
 extern uint16_t network_join_target_address[128];
 extern uint16_t empty_string;
@@ -53,6 +52,17 @@ extern int32_t join_ui_state;
 extern int16_t network_game_mode;
 extern int32_t interface_loading_screen_request_id;
 extern const char network_ellipsis_dots[];
+}
+
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag)
+{
+    using call_t = int32_t (*)(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, group, payload, capacity, message_type, flag);
 }
 
 namespace halo::networking {
@@ -343,7 +353,7 @@ int32_t ConnectionView::send_join_request_packet()
     }
 
     capacity = 0x600;
-    if ((char)data_packet_group_encode_packet(encoded, &network_game_messages_group, &payload, &capacity, 0x1e, 1) == 0) {
+    if ((char)data_packet_group_encode_packet_unresolved(encoded, &network_game_messages_group, &payload, &capacity, 0x1e, 1) == 0) {
         return 0;
     }
 
@@ -367,9 +377,9 @@ int32_t ConnectionView::send_join_request_packet()
         }
         channel->send_budget = channel->send_budget + total_bits;
         item_flag = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1);
         channel->outgoing.empty = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)record, bits_to_send);
         channel->outgoing.empty = 0;
     }
     return result;

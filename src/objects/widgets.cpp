@@ -1,9 +1,7 @@
 #include "halo/objects/widgets.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
-extern void data_delete_all(data_array *array);
-extern void datum_delete(data_array *array, datum_index handle);
-extern datum_index datum_new(data_array *array);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern data_array *object_data;
 extern tag_instance *tag_instances;
@@ -42,7 +40,7 @@ void halo::objects::WidgetSystem::dispose()
     int32_t i;
 
     widget_data->valid = 1;
-    data_delete_all(widget_data);
+    halo::memory::data_delete_all(widget_data);
 
     for (i = 0; i < k_maximum_widget_types; i++) {
         if (widget_type_definitions[i].dispose != 0) {
@@ -93,7 +91,7 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
         for (type = 0; type < k_maximum_widget_types; type++) {
             if (widget_type_definitions[type].group_tag == *(uint32_t *)attachment) {
                 if (*(int32_t *)&((struct ObjectWidget *)attachment)->reference.tag_id != -1) {
-                    datum_index handle = datum_new(widget_data);
+                    datum_index handle = halo::memory::datum_new(widget_data);
                     if (handle != (datum_index)0xffffffff) {
                         widget *entry = &((widget *)widget_data->data)[handle & 0xffff];
                         entry->type = (int16_t)type;
@@ -109,7 +107,7 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
 
                             entry->instance = instance;
                             if (instance == (datum_index)0xffffffff) {
-                                datum_delete(widget_data, handle);
+                                halo::memory::datum_delete(widget_data, handle);
                             } else {
                                 entry->next_widget = obj->first_widget;
                                 obj->first_widget = handle;
@@ -147,7 +145,7 @@ void halo::objects::WidgetSystem::delete_all(uint32_t object_index)
                 (void (*)(datum_index))widget_type_definitions[entry->type].delete_instance;
             delete_instance(instance);
         }
-        datum_delete(widget_data, handle);
+        halo::memory::datum_delete(widget_data, handle);
         handle = next;
     }
 

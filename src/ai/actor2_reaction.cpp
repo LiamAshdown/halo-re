@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::ai {
 
@@ -346,7 +347,6 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
                                         uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
                                         uint8_t unknown_348);
-extern void * datum_get(datum_index handle, data_array *array);
 extern int16_t actor_dialogue_variant_table_b[];
 }
 }
@@ -413,7 +413,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
 
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0) &&
-        (kind != 1 || datum_get(payload, prop_data) != 0)) {
+        (kind != 1 || halo::memory::datum_get(payload, prop_data) != 0)) {
         wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 5.0f : 2.5f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -498,7 +498,6 @@ extern data_array *actor_data;
 extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern data_array *prop_data;
-extern void * datum_get(datum_index handle, data_array *array);
 extern int16_t actor_dialogue_variant_table_c[];
 }
 }
@@ -519,7 +518,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
         int16_t recent = self->vocalization_unknown_3e8;
-        prop *target = (prop *)datum_get(target_prop_index, prop_data);
+        prop *target = (prop *)halo::memory::datum_get(target_prop_index, prop_data);
 
         if (target != 0) {
             if ((target->enemy == 0 && target->dead == 0) ||
@@ -697,7 +696,6 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
                                         uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
                                         uint8_t unknown_348);
-extern void * datum_get(datum_index handle, data_array *array);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int16_t actor_dialogue_variant_table_a[];
 }
@@ -728,7 +726,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
         int16_t recent = self->vocalization_unknown_3e8;
 
-        validated = (prop *)datum_get(target_prop_index, prop_data);
+        validated = (prop *)halo::memory::datum_get(target_prop_index, prop_data);
         if (validated != 0) {
             if ((validated->enemy == 0 && validated->dead == 0) ||
                 (validated->dead != 0 && self->awareness_level > 2)) {
@@ -1023,7 +1021,6 @@ extern void actor_queue_search_position(datum_index actor_index, real_point3d *p
                                         uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
                                         uint8_t unknown_348);
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
-extern void * datum_get(datum_index handle, data_array *array);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
     datum_index owner_reference, datum_index pair_reference);
@@ -1080,7 +1077,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
         int16_t recent = self->vocalization_unknown_3e8;
 
-        prop *validated = (prop *)datum_get(target_prop_index, prop_data);
+        prop *validated = (prop *)halo::memory::datum_get(target_prop_index, prop_data);
         if (validated != 0) {
             if ((validated->enemy == 0 && validated->dead == 0) ||
                 (validated->dead != 0 && self->awareness_level > 2)) {

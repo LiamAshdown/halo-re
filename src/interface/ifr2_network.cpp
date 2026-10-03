@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_network.hpp"
 #include "crt.h"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -32,7 +33,6 @@ extern tag_instance *tag_instances;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern datum_index tag_lookup(tag_group group, char *path);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t default_profile_data[0x1ffc];
 extern char k_empty_string[];
@@ -176,7 +176,7 @@ void MenuListView::update_item(const uint16_t *record)
     icon_widget->hidden = 0;
 
     if (record == (const uint16_t *)0) {
-        uint16_t *name_buf = (uint16_t *)heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
+        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
 
         name_widget->text = name_buf;
         if (name_buf != (uint16_t *)0) {
@@ -185,7 +185,7 @@ void MenuListView::update_item(const uint16_t *record)
         desc_widget->background_bitmap_frame = 5;
 
         {
-            uint16_t *desc_buf = (uint16_t *)heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
+            uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
 
             desc_widget->text = desc_buf;
             if (desc_buf != (uint16_t *)0) {
@@ -217,7 +217,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
 
     {
-        uint16_t *name_buf = (uint16_t *)heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
+        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
 
         name_widget->text = name_buf;
         if (name_buf != (uint16_t *)0) {
@@ -227,7 +227,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
     desc_widget->background_bitmap_frame = 5;
     {
-        uint16_t *desc_buf = (uint16_t *)heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
+        uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
 
         desc_widget->text = desc_buf;
         if (desc_buf != (uint16_t *)0) {

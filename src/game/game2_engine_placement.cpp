@@ -1,5 +1,6 @@
 #include "halo/game/game2_engine_placement.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -10,7 +11,6 @@ typedef struct netgame_equipment_spawn_message {
 
 extern "C" {
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern void object_get_position(real_point3d *out, datum_index object_index);
 extern double sqrt(double x);
 extern double pow(double base, double exponent);
@@ -73,7 +73,6 @@ extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void object_notify_predicted_resources_if_valid(datum_index definition_tag);
 extern void predicted_resource_list_touch(TagReflexive *resources);
 extern object *object_iterator_next(object_iterator *iterator);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void game_engine_notify_item_expired(datum_index object_index);
 extern int32_t game_engine_round_reset_tick;
 extern void game_engine_reset_all_unit_grenade_counts(void);
@@ -108,7 +107,7 @@ float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     if (element != 0) {
         do {
             player *other = (player *)element;
@@ -126,7 +125,7 @@ float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3
                     bonus = bonus + (float)pow((double)(1.0f - (distance - 1.0f) * 0.2f), (double)0.6f);
                 }
             }
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         } while (element != 0);
 
         if (3.0f < bonus) {
@@ -157,7 +156,7 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         player *other = (player *)element;
 
@@ -191,7 +190,7 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
                 }
             }
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     }
     return scale;
 }
@@ -959,7 +958,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
         }
 
         if (current_game_engine != 0 && current_game_engine->object_in_play_update != 0) {
-            object_header *hdr = (object_header *)datum_get(iterator.handle, object_data);
+            object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
                 ((*(uint32_t *)((uint8_t *)tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {

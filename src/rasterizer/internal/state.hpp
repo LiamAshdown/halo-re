@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include "bitmaps.h"
 #include "halo/rasterizer/render_device.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 
@@ -283,8 +284,6 @@ extern uint32_t graphics_device_id;
 extern uint32_t graphics_vendor_id;
 extern uint32_t video_memory;
 extern uint32_t required_video_memory;
-extern uint8_t crc32_lookup_table_initialized;
-extern crc32_table crc32_lookup_table;
 extern void (*unknown_00721eac)(void *engine);
 extern lens_flare_batch_key lens_flare_applied_key;
 extern lens_flare_batch lens_flare_batches[k_lens_flare_batch_slots];

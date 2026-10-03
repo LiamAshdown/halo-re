@@ -1,21 +1,19 @@
 #include "halo/game/gamerest_updates.hpp"
 #include <string.h>
 #include <stdint.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t update_client_unknown_ea0;
 extern update_record *update_client_queue_get_slot(int32_t tick);
 extern data_array *update_client_queues;
 extern data_array *player_data;
-extern void data_delete_all(data_array *array);
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint32_t update_client_staged[8];
 extern uint32_t update_client_unknown_ec8;
 extern int32_t update_client_unknown_ec4;
 extern int32_t update_client_base_tick;
 extern uint8_t update_client_initialized;
 extern update_record update_client_history[128];
-extern data_array *data_new(int16_t element_size, char *name, int16_t maximum_count);
 extern int16_t network_game_mode;
 extern int32_t update_client_write_cursor;
 extern uint32_t update_client_unknown_ea8;
@@ -27,7 +25,6 @@ extern uint8_t update_server_initialized;
 extern int32_t update_server_tick;
 extern update_record update_server_history[32];
 extern uint32_t update_client_new(void);
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern datum_index machine_to_player[16];
 extern game_time_globals *game_time;
 extern void update_server_dispose(void);
@@ -96,14 +93,14 @@ void UpdateClient::dispose()
     void *player_element;
 
     update_client_queues->valid = 1;
-    data_delete_all(update_client_queues);
-    data_delete_all(update_client_queues);
+    halo::memory::data_delete_all(update_client_queues);
+    halo::memory::data_delete_all(update_client_queues);
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-    player_element = data_iterator_next(&player_iter);
+    player_element = halo::memory::data_iterator_next(&player_iter);
     while (player_element != 0) {
         datum_index player_handle = player_iter.index;
         int16_t index = (int16_t)player_handle;
@@ -130,7 +127,7 @@ void UpdateClient::dispose()
                 *(int16_t *)slot = salt;
             }
         }
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
     }
 }
 
@@ -155,7 +152,7 @@ uint32_t UpdateClient::distribute_staged_entry(uint8_t *out)
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         uint32_t *record;
         int32_t i;
@@ -169,7 +166,7 @@ uint32_t UpdateClient::distribute_staged_entry(uint8_t *out)
         if (index == 0) {
             update_client_unknown_ec4 = update_client_unknown_ec4 - 1;
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     }
 
     update_client_base_tick = update_client_base_tick + 1;
@@ -188,7 +185,7 @@ uint32_t UpdateClient::update_client_new()
 {
     memset(&update_client_initialized, 0, 0x1843c);
 
-    update_client_queues = data_new(0x28, (char *)"update client queues", 16);
+    update_client_queues = halo::memory::data_new(0x28, (char *)"update client queues", 16);
     if (update_client_queues != 0) {
         memset(update_client_history, 0xff, sizeof(update_client_history));
         update_client_unknown_ea0 = -1;
@@ -224,7 +221,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
         player_iter.next_index = 0;
         player_iter.index = k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
         while (player_element != 0) {
             index = index + 1;
             if (index < *(int16_t *)&((struct update_record *)slot_bytes)->player_count) {
@@ -241,7 +238,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
                 *(uint16_t *)(dst + 0x22) = *(uint16_t *)(record + 0x1a);
                 *(uint16_t *)(dst + 0x24) = *(uint16_t *)(record + 0x1c);
             }
-            player_element = data_iterator_next(&player_iter);
+            player_element = halo::memory::data_iterator_next(&player_iter);
         }
 
         index = -1;
@@ -249,7 +246,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
         player_iter.next_index = 0;
         player_iter.index = k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
         while (player_element != 0) {
             uint8_t *dst = (uint8_t *)player_element;
             uint32_t *out_record = (uint32_t *)(((uint8_t *)out_actions) + (int32_t)(++index) * 0x20);
@@ -271,7 +268,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
             for (k = 0; k < 4; k++) {
                 carry_dst[k] = carry_src[k];
             }
-            player_element = data_iterator_next(&player_iter);
+            player_element = halo::memory::data_iterator_next(&player_iter);
         }
     }
 
@@ -337,14 +334,14 @@ void UpdateServer::dispose()
     void *player_element;
 
     update_server_queues->valid = 1;
-    data_delete_all(update_server_queues);
-    data_delete_all(update_server_queues);
+    halo::memory::data_delete_all(update_server_queues);
+    halo::memory::data_delete_all(update_server_queues);
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
     player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-    player_element = data_iterator_next(&player_iter);
+    player_element = halo::memory::data_iterator_next(&player_iter);
     while (player_element != 0) {
         datum_index player_handle = player_iter.index;
         int16_t index = (int16_t)player_handle;
@@ -374,7 +371,7 @@ void UpdateServer::dispose()
                 player_update_queue_create(&slot->queue);
             }
         }
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
     }
 
     UpdateClient::dispose();
@@ -391,7 +388,7 @@ uint8_t UpdateServer::update_server_new()
 {
     memset(&update_server_initialized, 0, 0x610c);
 
-    update_server_queues = data_new(0x64, (char *)"update server queues", 16);
+    update_server_queues = halo::memory::data_new(0x64, (char *)"update server queues", 16);
     if (update_server_queues != 0) {
         memset(update_server_history, 0, sizeof(update_server_history));
         if (UpdateClient::update_client_new() != 0) {
@@ -411,7 +408,7 @@ uint8_t UpdateServer::update_server_new()
  */
 void UpdateServer::queue_create_entry(datum_index requested_handle)
 {
-    datum_index handle = datum_new_at_index_with_salt(requested_handle, update_server_queues);
+    datum_index handle = halo::memory::datum_new_at_index_with_salt(requested_handle, update_server_queues);
     update_server_queue *entry = (update_server_queue *)
         ((uint8_t *)update_server_queues->data + ((uint32_t)handle & 0xffff) * sizeof(update_server_queue));
     player_update_queue_create(&entry->queue);

@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -29,8 +30,6 @@ extern void object_sample_ambient_lighting(datum_index object_index, render_ligh
 extern void object_gather_light_list(datum_index object_index, render_lighting *out);
 extern int32_t render_window_count;
 extern int32_t render_frame_index;
-extern datum_index datum_new(data_array *array);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t render_lighting_smoothing_enabled;
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity);
@@ -532,10 +531,10 @@ datum_index get_cached_render_state(datum_index object_index, real level_of_deta
         return cache_index;
     }
 
-    cache_index = datum_new(object_render_state_cache);
+    cache_index = halo::memory::datum_new(object_render_state_cache);
     if (cache_index == k_datum_index_none) {
         float oldest_age = -3.4028235e+38f;
-        datum_index candidate = datum_next(-1, object_render_state_cache);
+        datum_index candidate = halo::memory::datum_next(-1, object_render_state_cache);
         int32_t current_window = render_window_count;
 
         while (candidate != k_datum_index_none) {
@@ -549,7 +548,7 @@ datum_index get_cached_render_state(datum_index object_index, real level_of_deta
                 cache_index = candidate;
                 oldest_age = age;
             }
-            candidate = datum_next((int16_t)candidate, object_render_state_cache);
+            candidate = halo::memory::datum_next((int16_t)candidate, object_render_state_cache);
         }
         if (cache_index == k_datum_index_none) {
             return k_datum_index_none;

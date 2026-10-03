@@ -3,10 +3,10 @@
 #include "physics.h"
 #include "structures.h"
 #include "hs.h"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
-extern void block_list_compact(memory_pool *arena);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void cluster_partition_new(cluster_reference_group *out, char *name);
 extern datum_index *collideable_cluster_first;
@@ -14,9 +14,6 @@ extern void *collideable_cluster_partition;
 extern data_array *collideable_object_references;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern void console_print_error_va(const char *format, ...);
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
-extern void data_delete_all(data_array *array);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
@@ -141,13 +138,13 @@ void halo::objects::ObjectManager::initialize()
     globals_region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x98;
     size = 0x98;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     name_list_region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x800;
     size = 0x800;
     object_globals_pointer = (object_globals *)globals_region;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
     cluster_partition_new(&collideable_cluster_first__as_objects_initialize, (char *)"collideable object");
@@ -181,7 +178,7 @@ void halo::objects::ObjectManager::reset()
     lights_dispose_all();
 
     object_data->valid = 1;
-    data_delete_all(object_data);
+    halo::memory::data_delete_all(object_data);
 
     slot = object_name_list;
     for (i = k_maximum_object_names; i != 0; i--) {
@@ -196,9 +193,9 @@ void halo::objects::ObjectManager::reset()
     }
 
     ((data_array *)collideable_cluster_partition)->valid = 1;
-    data_delete_all((data_array *)collideable_cluster_partition);
+    halo::memory::data_delete_all((data_array *)collideable_cluster_partition);
     collideable_object_references->valid = 1;
-    data_delete_all(collideable_object_references);
+    halo::memory::data_delete_all(collideable_object_references);
 
     slot = noncollideable_cluster_first;
     for (i = k_maximum_clusters; i != 0; i--) {
@@ -207,9 +204,9 @@ void halo::objects::ObjectManager::reset()
     }
 
     ((data_array *)noncollideable_cluster_partition)->valid = 1;
-    data_delete_all((data_array *)noncollideable_cluster_partition);
+    halo::memory::data_delete_all((data_array *)noncollideable_cluster_partition);
     noncollideable_object_references->valid = 1;
-    data_delete_all(noncollideable_object_references);
+    halo::memory::data_delete_all(noncollideable_object_references);
 
     for (i = 0; i < 16; i++) {
         object_globals_pointer->cluster_pvs_previous[i] = 0;
@@ -254,10 +251,10 @@ void halo::objects::ObjectManager::flush_dirty_state()
     }
 
     if (object_data->valid != 0) {
-        index = datum_next(-1, object_data);
+        index = halo::memory::datum_next(-1, object_data);
         while (index != k_datum_index_none) {
             object_block_data_free(object_data, index);
-            index = datum_next((int16_t)index, object_data);
+            index = halo::memory::datum_next((int16_t)index, object_data);
         }
         object_data->valid = 0;
     }
@@ -657,7 +654,7 @@ void halo::objects::ObjectManager::garbage_collection()
             (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
                       (uint8_t *)object_memory_pool->base);
         if (object_memory_pool->size - used <= 0x19999) {
-            block_list_compact(object_memory_pool);
+            halo::memory::block_list_compact(object_memory_pool);
             used = (object_memory_pool->last_block == 0) ? 0 :
                 (int32_t)((uint8_t *)object_memory_pool->last_block + object_memory_pool->last_block->size -
                           (uint8_t *)object_memory_pool->base);
@@ -719,7 +716,7 @@ void halo::objects::ObjectManager::garbage_collection()
         object_delete_4f9030(handle, 0);
     }
 
-    block_list_compact(object_memory_pool);
+    halo::memory::block_list_compact(object_memory_pool);
     if (done) {
         object_globals_pointer->unknown_02[0] = 0;
         return;
@@ -814,7 +811,7 @@ void halo::objects::ObjectManager::garbage_collection()
                 }
             }
             retried = 1;
-            block_list_compact(object_memory_pool);
+            halo::memory::block_list_compact(object_memory_pool);
         }
     }
 

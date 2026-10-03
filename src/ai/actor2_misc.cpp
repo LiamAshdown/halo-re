@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::ai {
 
@@ -7,7 +8,6 @@ namespace actor_new_local {
 extern "C" {
 extern data_array *actor_data;
 extern tag_instance *tag_instances;
-extern datum_index datum_new(data_array *array);
 extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed);
 extern void actor_dispatch_type_vtable_0x10(datum_index actor_index);
 }
@@ -42,7 +42,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 
     actor_tag = (Actor *)(tag_instances[actor_definition_tag & 0xffff].data);
 
-    actor_index = datum_new(actor_data);
+    actor_index = halo::memory::datum_new(actor_data);
     if (actor_index == (datum_index)k_datum_index_none) {
         return (datum_index)k_datum_index_none;
     }
@@ -714,7 +714,6 @@ extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
-extern void *datum_get(datum_index handle, data_array *array);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
     real_point3d *position);
@@ -825,7 +824,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;
@@ -1257,7 +1256,6 @@ extern data_array *object_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -1303,7 +1301,7 @@ void ActorView::remove_from_unit_cluster(datum_index unit_index)
                         s->unit_index[i] = s->unit_index[new_count];
                         s->component_index[i] = s->component_index[new_count];
                     }
-                    datum_delete(swarm_component_data, freed_component);
+                    halo::memory::datum_delete(swarm_component_data, freed_component);
                     break;
                 }
             }

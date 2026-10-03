@@ -1,11 +1,11 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern hud_waypoint_state *hud_waypoints;
-extern void *data_iterator_next(data_iterator *iterator);
 extern HUDGlobals *hud_globals_tag_data;
 extern player_globals *local_player_globals;
 extern real_matrix4x3 render_camera_world_to_view;
@@ -59,8 +59,8 @@ void LocalPlayerVisitor::for_each_on_team(int16_t team, LocalPlayerVisitor &visi
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (p = (player *)data_iterator_next(&iterator); p != 0;
-         p = (player *)data_iterator_next(&iterator)) {
+    for (p = (player *)halo::memory::data_iterator_next(&iterator); p != 0;
+         p = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (p->local_player_index != -1 && (int32_t)team == p->team) {
             visitor.visit(iterator.index);
         }
@@ -418,8 +418,8 @@ void HudWaypoints::draw_all_for_player(void)
     iterator.next_index = 0;
     iterator.index = (datum_index)-1;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (entry = (player *)data_iterator_next(&iterator); entry != 0;
-         entry = (player *)data_iterator_next(&iterator)) {
+    for (entry = (player *)halo::memory::data_iterator_next(&iterator); entry != 0;
+         entry = (player *)halo::memory::data_iterator_next(&iterator)) {
         if (local_player != iterator.index && entry->team == team && entry->unit != (datum_index)-1) {
             teammates[count] = iterator.index;
             count++;

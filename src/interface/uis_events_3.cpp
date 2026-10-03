@@ -18,6 +18,7 @@
 #include "networking.h"
 
 #include "halo/interface/uis_event_handlers.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -64,7 +65,6 @@ extern void network_game_server_host_dispose(void *host);
 extern uint8_t network_server_host_valid;
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
-extern void heap_unlink_block(heap_block *block, heap *self);
 extern uint8_t level_select_flags_0071916b;
 extern char level_select_current_path_00719068[0x106];
 extern int16_t level_select_frame_00719168;
@@ -589,7 +589,7 @@ uint8_t UiEventHandlers::event_4a1b00(widget_instance *widget, int16_t *event, u
         uint32_t size = block->size & 0x7fffffff;
 
         ui_widget_history[controller] = node->next;
-        heap_unlink_block(block, widget_memory_pool);
+        halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated -= (int32_t)size;
         widget_memory_pool->allocation_count -= 1;
     }

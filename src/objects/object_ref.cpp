@@ -4,6 +4,7 @@
 #include "networking.h"
 #include "projectiles.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -19,7 +20,6 @@ extern data_array *collideable_object_references;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void console_print_va(const char *format, ...);
 extern double cos(double x);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern uint8_t *global_scenario;
@@ -1235,7 +1235,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
             if ((int16_t)ref != -1) {
                 float search_radius = obj->bounding_radius;
 
-                uint32_t zone_index = datum_next(-1, player_data);
+                uint32_t zone_index = halo::memory::datum_next(-1, player_data);
 
                 while (zone_index != 0xffffffff) {
                     uint8_t *zone_table = *(uint8_t **)((uint8_t *)player_data + 0x34);
@@ -1272,12 +1272,12 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
                             if (delta.i * *(float *)(extended + 0x230) +
                                 delta.j * *(float *)(extended + 0x234) +
                                 delta.k * *(float *)(extended + 0x238) <= c) {
-                                zone_index = datum_next((int16_t)zone_index, player_data);
+                                zone_index = halo::memory::datum_next((int16_t)zone_index, player_data);
                                 continue;
                             }
                         }
                     } else {
-                        zone_index = datum_next((int16_t)zone_index, player_data);
+                        zone_index = halo::memory::datum_next((int16_t)zone_index, player_data);
                         continue;
                     }
 

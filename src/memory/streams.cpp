@@ -1,12 +1,9 @@
+#include "halo/memory/globals.hpp"
 #include "halo/memory/memory.hpp"
 
 #include "tags.h"
 #include "crt.h"
 
-extern "C" {
-extern uint8_t bit_mask_keep[9];
-extern uint8_t bit_mask_clear[8];
-}
 
 namespace halo::memory {
 
@@ -96,7 +93,7 @@ uint32_t bit_stream_view::read_bits(uint32_t bit_count, uint32_t *out_value)
             if (7 < chunk) {
                 take = 8;
             }
-            *dst = data[this->byte_cursor] & bit_mask_keep[take];
+            *dst = data[this->byte_cursor] & globals().bit_mask_keep[take];
             pos = take + (uint32_t)this->byte_cursor * 8 + (uint32_t)this->bit_cursor;
             dst = dst + 1;
             if ((this->first_bit <= pos && pos <= this->last_bit) || pos == this->last_bit + 1) {
@@ -114,7 +111,7 @@ uint32_t bit_stream_view::read_bits(uint32_t bit_count, uint32_t *out_value)
     }
     byte_cursor_ptr = this->data + initial_byte_cursor;
     *out_value = ((uint32_t)(*byte_cursor_ptr >> (initial_bit_cursor & 0x1f)) &
-                  bit_mask_keep[first_run]) |
+                  globals().bit_mask_keep[first_run]) |
                  (*out_value & low_mask) | (accumulator << (first_run & 0x1f));
     return bit_count;
 }
@@ -222,10 +219,10 @@ uint8_t bit_stream_view::write_bits(uint32_t bit_count, uint32_t value)
 
             uint32_t room_in_byte = 8 - (uint32_t)initial_bit_cursor;
             if (bit_count < room_in_byte) {
-                merge_mask = bit_mask_keep[bit_count];
+                merge_mask = globals().bit_mask_keep[bit_count];
                 written = bit_count;
             } else {
-                merge_mask = bit_mask_keep[8 - initial_bit_cursor];
+                merge_mask = globals().bit_mask_keep[8 - initial_bit_cursor];
                 written = room_in_byte;
             }
             byte_ptr = this->data + this->byte_cursor;
@@ -244,8 +241,8 @@ uint8_t bit_stream_view::write_bits(uint32_t bit_count, uint32_t value)
             chunk = bit_count - written;
             if (chunk < 8) {
                 byte_ptr = this->data + this->byte_cursor;
-                *byte_ptr = (bit_mask_clear[chunk] & *byte_ptr) |
-                            (bit_mask_keep[chunk] & (uint8_t)value);
+                *byte_ptr = (globals().bit_mask_clear[chunk] & *byte_ptr) |
+                            (globals().bit_mask_keep[chunk] & (uint8_t)value);
                 written = written + chunk;
                 value = value >> (chunk & 0x1f);
                 pos = chunk + (uint32_t)this->byte_cursor * 8 + (uint32_t)this->bit_cursor;

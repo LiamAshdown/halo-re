@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *particle_system_data;
@@ -8,7 +9,6 @@ extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
 extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle);
-extern void datum_delete(data_array *array, datum_index handle);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
@@ -276,7 +276,7 @@ void particle_system_ref::update(float delta_time)
                         ((particle_system_particle *)particle_system_particle_data->data)
                             [previous_particle].next_particle = particle->next_particle;
                     }
-                    datum_delete(particle_system_particle_data, particle_index);
+                    halo::memory::datum_delete(particle_system_particle_data, particle_index);
                     particle_index = (uint16_t)particle->next_particle;
                     state->particle_count = state->particle_count - 1;
                 }

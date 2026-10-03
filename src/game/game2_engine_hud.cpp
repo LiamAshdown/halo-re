@@ -1,5 +1,6 @@
 #include "halo/game/game2_engine_hud.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -45,7 +46,6 @@ extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, w
 extern Globals *global_globals;
 extern int16_t network_game_mode;
 extern void game_engine_queue_status_sound_message(int32_t sound_index, datum_index recipient_player);
-extern void *datum_get(datum_index handle, data_array *array);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
 extern uint8_t multiplayer_sound_enabled[];
 extern int32_t multiplayer_sound_queue_count;
@@ -464,7 +464,7 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
     if (recipient_player == (datum_index)0xffffffff || network_game_mode != 2) {
         sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
     } else {
-        player *p = (player *)datum_get(recipient_player, player_data);
+        player *p = (player *)halo::memory::datum_get(recipient_player, player_data);
         if (p != (player *)0 && p->local_player_index != -1) {
             sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
         }

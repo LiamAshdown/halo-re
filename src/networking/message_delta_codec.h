@@ -18,10 +18,10 @@ extern "C" { /* HALO_CXX_LINKAGE */
 extern message_delta_field_type_vtable message_delta_field_type_table[28]; // 0x0069a2f0
 extern uint8_t message_delta_item_count_bits[];                             // 0x0065d51f, [n] = bits for 0..n-1
 
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream);      // 0x4cf950
-extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // 0x4cf9a0
-extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);  // 0x4cfb80
+ // 0x4cf8f0
+      // 0x4cf950
+ // 0x4cf9a0
+  // 0x4cfb80
 
 typedef int32_t (*message_delta_codec_proc)(message_delta_field_type *field_type, void *previous, void *current,
     bit_stream *stream);

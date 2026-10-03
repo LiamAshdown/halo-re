@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -60,11 +61,9 @@ extern ai_communication_event_definition ai_communication_event_definitions[];
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern float ai_communication_class_repeat_delay[];
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *player_data;
-extern void * data_iterator_next(data_iterator *iterator);
 extern int8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern data_array *prop_data;
 extern int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class);
@@ -931,7 +930,7 @@ void AiCommunication::initialize()
         int32_t allocation_size = (int32_t)communication_line_count * 0x10;
         communication_line_base = (int32_t)(game_state_base + game_state_cursor);
         game_state_cursor = game_state_cursor + allocation_size;
-        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+        halo::memory::crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     conversation_line_count = 0;
@@ -945,7 +944,7 @@ void AiCommunication::initialize()
         int32_t allocation_size = (int32_t)conversation_line_count * 0x10;
         conversation_line_base = (int32_t)(game_state_base + game_state_cursor);
         game_state_cursor = game_state_cursor + allocation_size;
-        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+        halo::memory::crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     conversation_index = 0;
@@ -976,7 +975,7 @@ void AiCommunication::initialize()
     game_state_cursor = game_state_cursor + 0x358;
     {
         int32_t allocation_size = 0x358; // matches this allocation's own byte count exactly
-        crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+        halo::memory::crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     header = dest;
@@ -1201,7 +1200,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    player = data_iterator_next(&iterator);
+    player = halo::memory::data_iterator_next(&iterator);
     if (player != 0) {
         do {
             if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
@@ -1286,7 +1285,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                 }
             }
 advance:
-            player = data_iterator_next(&iterator);
+            player = halo::memory::data_iterator_next(&iterator);
         } while (player != 0);
         if (saw_any_player) {
             goto done;

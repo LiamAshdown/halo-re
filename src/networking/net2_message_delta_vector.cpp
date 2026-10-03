@@ -5,10 +5,9 @@
 #include "message_delta_codec.h"
 #include <math.h>
 #include "halo/networking/net2_message_delta_vector.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer,
-    bit_stream *stream);
 extern void vector3d_lerp_by_mode_denominator(void *table, real_vector3d *out_point,
     int32_t *ratios);
 extern double sqrt(double x);
@@ -19,8 +18,6 @@ extern uint32_t message_delta_vector3d_delta_bits;
 extern uint32_t message_delta_vector3d_absolute_bits_mode0;
 extern uint32_t message_delta_vector3d_absolute_bits_mode1;
 extern double floor(double x);
-extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern void message_delta_parameters_protocol_register(char *scope, char *name, int32_t type, void *value);
 extern uint8_t message_delta_parameters_enabled;
 extern void vector3d_from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch);
@@ -93,9 +90,9 @@ int32_t VectorFieldCodec::decode_vector3d_indexed(int32_t param_1, int32_t mode,
     total_bits = 0;
 
     if (mode != 0) {
-        (void)bit_stream_read_bits_chunked(0, (uint32_t *)&a, stream);
-        (void)bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
-        (void)bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
+        (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&a, stream);
+        (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
+        (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
         ratios[0] = a; ratios[1] = b; ratios[2] = c;
         vector3d_lerp_by_mode_denominator(table, (real_vector3d *)destination, ratios);
         return a + b + c;
@@ -130,9 +127,9 @@ int32_t VectorFieldCodec::decode_vector3d_indexed(int32_t param_1, int32_t mode,
         return total_bits;
     }
 
-    (void)bit_stream_read_bits_chunked(0, (uint32_t *)&a, stream);
-    (void)bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
-    (void)bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
+    (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&a, stream);
+    (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&b, stream);
+    (void)halo::memory::bit_stream_read_bits_chunked(0, (uint32_t *)&c, stream);
     ratios[0] = a; ratios[1] = b; ratios[2] = c;
     vector3d_lerp_by_mode_denominator(table, (real_vector3d *)destination, ratios);
     return total_bits + a + b + c;
@@ -189,7 +186,7 @@ int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *
                 total_bits = 1;
             }
             for (i = 0; i < 3; i = i + 1) {
-                total_bits = total_bits + (bit_stream_write_bit(sign[i], stream) != 0);
+                total_bits = total_bits + (halo::memory::bit_stream_write_bit(sign[i], stream) != 0);
                 level_count = (1u << (message_delta_vector3d_delta_bits & 0x1f)) - 1;
                 level_count_as_float = (real)(int32_t)level_count;
                 if ((int32_t)level_count < 0) {
@@ -201,7 +198,7 @@ int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *
                 if (level_count < quantized) {
                     quantized = level_count;
                 }
-                written_bits = bit_stream_write_bits_chunked(stream, &quantized,
+                written_bits = halo::memory::bit_stream_write_bits_chunked(stream, &quantized,
                     (int32_t)message_delta_vector3d_delta_bits);
                 total_bits = total_bits + written_bits;
             }
@@ -235,7 +232,7 @@ int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *
         if (level_count < quantized) {
             quantized = level_count;
         }
-        written_bits = bit_stream_write_bits_chunked(stream, &quantized, (int32_t)absolute_bits);
+        written_bits = halo::memory::bit_stream_write_bits_chunked(stream, &quantized, (int32_t)absolute_bits);
         total_bits = total_bits + written_bits;
     }
     return total_bits;
@@ -262,15 +259,15 @@ int32_t VectorFieldCodec::locality_decode(message_delta_field_type *field_type, 
     if (previous != 0) {
         uint8_t absolute;
 
-        total = (int32_t)bit_stream_read_bit(&absolute, stream);
+        total = (int32_t)halo::memory::bit_stream_read_bit(&absolute, stream);
         if (!absolute) {
             uint8_t sign[3];
             real delta[3];
 
             for (i = 0; i < 3; i++) {
                 uint32_t value = 0;
-                int32_t sign_bits = (int32_t)bit_stream_read_bit(&sign[i], stream);
-                int32_t value_bits = bit_stream_read_bits_chunked((int32_t)message_delta_vector3d_delta_bits, &value, stream);
+                int32_t sign_bits = (int32_t)halo::memory::bit_stream_read_bit(&sign[i], stream);
+                int32_t value_bits = halo::memory::bit_stream_read_bits_chunked((int32_t)message_delta_vector3d_delta_bits, &value, stream);
 
                 total += value_bits + sign_bits;
                 delta[i] = (real)((double)value / (double)(uint32_t)((1 << message_delta_vector3d_delta_bits) - 1)) *
@@ -289,7 +286,7 @@ int32_t VectorFieldCodec::locality_decode(message_delta_field_type *field_type, 
     for (i = 0; i < 3; i++) {
         uint32_t value = 0;
 
-        total += bit_stream_read_bits_chunked((int32_t)bits, &value, stream);
+        total += halo::memory::bit_stream_read_bits_chunked((int32_t)bits, &value, stream);
         destination[i] = (real)((double)value / (double)(uint32_t)((1 << bits) - 1)) * 10000.0f - 5000.0f;
     }
     return total;
@@ -331,8 +328,8 @@ int32_t VectorFieldCodec::normal_decode(message_delta_field_type *field_type, vo
     real angle_b;
 
     (void)previous;
-    bits = bit_stream_read_bits_chunked(bits_a, &value_a, stream);
-    bits += bit_stream_read_bits_chunked(bits_b, &value_b, stream);
+    bits = halo::memory::bit_stream_read_bits_chunked(bits_a, &value_a, stream);
+    bits += halo::memory::bit_stream_read_bits_chunked(bits_b, &value_b, stream);
     angle_a = (real)((double)value_a / (double)(uint32_t)((1 << bits_a) - 1)) * 3.1415927f;
     angle_b = (real)((double)value_b / (double)(uint32_t)((1 << bits_b) - 1)) * 6.2831855f - 1.5707964f;
     vector3d_from_yaw_pitch((real_vector3d *)current, angle_a, angle_b);
@@ -370,7 +367,7 @@ int32_t VectorFieldCodec::normal_encode(message_delta_field_type *field_type, vo
             return 0;
         }
     }
-    return bit_stream_write_bits_chunked(stream, &level_a, bits_a) + bit_stream_write_bits_chunked(stream, &level_b, bits_b);
+    return halo::memory::bit_stream_write_bits_chunked(stream, &level_a, bits_a) + halo::memory::bit_stream_write_bits_chunked(stream, &level_b, bits_b);
 }
 
 uint8_t VectorFieldCodec::normal_initialize(message_delta_field_type *field_type)
@@ -407,7 +404,7 @@ int32_t VectorFieldCodec::quantized_real_decode(message_delta_field_type *field_
 {
     uint32_t *descriptor = (uint32_t *)field_type->array_descriptor;
     uint32_t level = 0;
-    int32_t bits = bit_stream_read_bits_chunked((int32_t)descriptor[0], &level, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked((int32_t)descriptor[0], &level, stream);
 
     (void)previous;
     *(real *)current = (real)((double)level / (double)descriptor[1]);
@@ -426,7 +423,7 @@ int32_t VectorFieldCodec::quantized_real_encode(message_delta_field_type *field_
     if (previous != 0 && level == message_delta_quantize_float_to_int(descriptor[1], *(real *)previous, 0.0f, 1.0f)) {
         return 0;
     }
-    return bit_stream_write_bits_chunked(stream, &level, (int32_t)descriptor[0]);
+    return halo::memory::bit_stream_write_bits_chunked(stream, &level, (int32_t)descriptor[0]);
 }
 
 uint8_t VectorFieldCodec::quantized_real_initialize(message_delta_field_type *field_type)
@@ -446,13 +443,13 @@ int32_t VectorFieldCodec::real_encode(message_delta_field_type *field_type, void
             return 0;
         }
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 0x20);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 0x20);
 }
 
 int32_t VectorFieldCodec::throttle_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
     uint32_t code = 0;
-    int32_t bits = bit_stream_read_bits_chunked(4, &code, stream);
+    int32_t bits = halo::memory::bit_stream_read_bits_chunked(4, &code, stream);
 
     (void)field_type;
     (void)previous;
@@ -468,7 +465,7 @@ int32_t VectorFieldCodec::throttle_encode(message_delta_field_type *field_type, 
     if (previous != 0 && code == digital_throttle_encode_vector(*(real_vector3d *)previous)) {
         return 0;
     }
-    return bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 4);
+    return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&code, 4);
 }
 
 int32_t VectorFieldCodec::vector_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
@@ -512,7 +509,7 @@ int32_t VectorFieldCodec::velocity_encode(message_delta_field_type *field_type, 
             }
         }
         if (i < descriptor[6]) {
-            total = bit_stream_write_bits_chunked(stream, message_delta_unary_ones, i + 1);
+            total = halo::memory::bit_stream_write_bits_chunked(stream, message_delta_unary_ones, i + 1);
             if (descriptor[6] > 1) {
                 total += write_zero_bit(stream);
             }
@@ -528,9 +525,9 @@ int32_t VectorFieldCodec::velocity_encode(message_delta_field_type *field_type, 
         }
         total = 0;
     }
-    total += bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[0], bits);
-    total += bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[1], bits);
-    total += bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[2], bits);
+    total += halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[0], bits);
+    total += halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[1], bits);
+    total += halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)&quantized[2], bits);
     return total;
 }
 

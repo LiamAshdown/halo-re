@@ -1,6 +1,7 @@
 #include "halo/objects/light_volume.hpp"
 #include "bitmaps.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
@@ -12,9 +13,6 @@ extern float camera_position_z;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern float curve_apply_exponent(float value, float exponent);
-extern void data_delete_all(data_array *array);
-extern void datum_delete(data_array *array, datum_index index);
-extern datum_index datum_new(data_array *array);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_vector3d *global_white_color;
 extern data_array *light_volume_instances;
@@ -61,7 +59,7 @@ void halo::objects::LightVolumeSystem::dispose()
 {
     if (light_volume_instances != 0) {
         light_volume_instances->valid = 1;
-        data_delete_all(light_volume_instances);
+        halo::memory::data_delete_all(light_volume_instances);
     }
 }
 
@@ -105,7 +103,7 @@ static void *datum_try_get(data_array *array, datum_index index)
  */
 datum_index halo::objects::LightVolumeSystem::create(datum_index definition_tag)
 {
-    datum_index index = datum_new(light_volume_instances);
+    datum_index index = halo::memory::datum_new(light_volume_instances);
 
     if (index != k_datum_index_none) {
         *(datum_index *)((uint8_t *)datum_try_get(light_volume_instances, index) + 4) = definition_tag;
@@ -123,7 +121,7 @@ datum_index halo::objects::LightVolumeSystem::create(datum_index definition_tag)
 void halo::objects::LightVolumeSystem::destroy(datum_index light_volume_index)
 {
     if (light_volume_index != k_datum_index_none) {
-        datum_delete(light_volume_instances, light_volume_index);
+        halo::memory::datum_delete(light_volume_instances, light_volume_index);
     }
 }
 
@@ -324,7 +322,7 @@ void halo::objects::LightningSystem::dispose()
 {
     if (lightning_instances != 0) {
         lightning_instances->valid = 1;
-        data_delete_all(lightning_instances);
+        halo::memory::data_delete_all(lightning_instances);
     }
 }
 
@@ -351,7 +349,7 @@ void halo::objects::LightningSystem::clear_disposing_flag()
  */
 datum_index halo::objects::LightningSystem::create(datum_index definition_tag)
 {
-    datum_index index = datum_new(lightning_instances);
+    datum_index index = halo::memory::datum_new(lightning_instances);
 
     if (index != k_datum_index_none) {
         *(datum_index *)((uint8_t *)datum_try_get(lightning_instances, index) + 4) = definition_tag;
@@ -369,7 +367,7 @@ datum_index halo::objects::LightningSystem::create(datum_index definition_tag)
 void halo::objects::LightningSystem::destroy(datum_index lightning_index)
 {
     if (lightning_index != k_datum_index_none) {
-        datum_delete(lightning_instances, lightning_index);
+        halo::memory::datum_delete(lightning_instances, lightning_index);
     }
 }
 

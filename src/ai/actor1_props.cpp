@@ -1,10 +1,10 @@
 #include "halo/ai/actor_props.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
 extern data_array *prop_data;
-extern datum_index datum_new(data_array *array);
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
                                         datum_index prop_index);
 extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop);
@@ -23,7 +23,7 @@ datum_index halo::ai::prop_ops::allocate_paired_prop(datum_index existing_prop)
 {
     using namespace c_actor_allocate_paired_prop;
     datum_index actor_index = datum;
-    datum_index new_prop = datum_new(prop_data);
+    datum_index new_prop = halo::memory::datum_new(prop_data);
 
     actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
     if (new_prop != k_datum_index_none) {
@@ -45,7 +45,6 @@ extern "C" datum_index actor_allocate_paired_prop(datum_index actor_index, datum
 namespace c_actor_allocate_paired_prop_with_kind {
 extern "C" {
 extern data_array *prop_data;
-extern datum_index datum_new(data_array *array);
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index,
                                         datum_index prop_index);
 extern void actor_copy_prop_and_reset(datum_index dest_prop, datum_index src_prop);
@@ -64,7 +63,7 @@ datum_index halo::ai::prop_ops::allocate_paired_prop_with_kind(datum_index exist
 {
     using namespace c_actor_allocate_paired_prop_with_kind;
     datum_index actor_index = datum;
-    datum_index new_prop = datum_new(prop_data);
+    datum_index new_prop = halo::memory::datum_new(prop_data);
 
     actor_init_prop_from_object(k_datum_index_none, actor_index, new_prop);
     if (new_prop == k_datum_index_none) {
@@ -231,7 +230,6 @@ extern data_array *prop_data;
 
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -256,7 +254,7 @@ void halo::ai::prop_ops::clear_perceived_props()
         (void)p;
         actor_replace_object_reference(actor_index, 0xffffffff, prop_index);
         actor_unlink_prop(actor_index, prop_index);
-        datum_delete(prop_data, prop_index);
+        halo::memory::datum_delete(prop_data, prop_index);
     }
 }
 
@@ -719,7 +717,6 @@ extern data_array *encounter_data;
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
 extern void actor_init_prop_from_object(datum_index object_index, datum_index actor_index, datum_index prop_index);
-extern datum_index datum_new(data_array *array);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
 
 enum {
@@ -873,7 +870,7 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
         }
     }
     if (result == k_datum_index_none) {
-        result = datum_new(prop_data);
+        result = halo::memory::datum_new(prop_data);
     } else {
         uint8_t *p = (uint8_t *)prop_data->data + (result & 0xffff) * 0x138;
         int16_t salt = *(int16_t *)p;

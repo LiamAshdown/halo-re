@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "crt.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -40,20 +41,16 @@ extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
 extern void unit_recompute_seat_occupants(uint32_t unit_index);
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern void player_update_history_free_all(void *history);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
 extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees);
 extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
-extern datum_index datum_new(data_array *array);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void object_notify_children_recursive(datum_index object_index);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void object_delete(datum_index object_index);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,
     int32_t fire_trigger_event);
 extern void object_delete_unparented(uint32_t object_index);
@@ -63,7 +60,6 @@ extern void object_set_permutation_by_name(uint32_t object_index, char *name, in
     char use_matched_index);
 extern data_array *object_headers;
 extern void objects_garbage_collection(void);
-extern void block_list_compact(memory_pool *arena);
 extern memory_pool *object_memory_pool;
 }
 
@@ -150,7 +146,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         }
         unit = OBJ(object_index);
         if (network_game_mode == 1) {
-            uint8_t *player = (uint8_t *)datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
+            uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
             if (player != 0 && ((struct player *)player)->local_player_index == -1) {
                 *(uint32_t *)&((struct player *)player)->position_updates.read_index = 0;
                 *(uint32_t *)&((struct player *)player)->position_updates.write_index = 0;
@@ -487,7 +483,7 @@ datum_index ScriptObjects::object_list_collect_player_units() const
     datum_index reference_index;
     object_list_reference *reference;
 
-    header_index = datum_new(object_list_header_data);
+    header_index = halo::memory::datum_new(object_list_header_data);
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
             (header_index & 0xffff) * 0x0c);
@@ -495,14 +491,14 @@ datum_index ScriptObjects::object_list_collect_player_units() const
         header->first_reference = k_datum_index_none;
     }
 
-    player_index = datum_next(-1, player_data);
+    player_index = halo::memory::datum_next(-1, player_data);
     while (player_index != k_datum_index_none) {
         unit = ((hs_player_record *)((uint8_t *)player_data->data +
             (player_index & 0xffff) * 0x200))->unit;
         if (unit != k_datum_index_none) {
             header = (object_list_header *)((uint8_t *)object_list_header_data->data +
                 (header_index & 0xffff) * 0x0c);
-            reference_index = datum_new(object_list_reference_data);
+            reference_index = halo::memory::datum_new(object_list_reference_data);
             if (reference_index != k_datum_index_none) {
                 reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
                     (reference_index & 0xffff) * 0x0c);
@@ -512,7 +508,7 @@ datum_index ScriptObjects::object_list_collect_player_units() const
             }
             header->count = header->count + 1;
         }
-        player_index = datum_next((int16_t)player_index, player_data);
+        player_index = halo::memory::datum_next((int16_t)player_index, player_data);
     }
     return header_index;
 }
@@ -574,7 +570,7 @@ datum_index ScriptObjects::object_list_new_singleton(datum_index object_index) c
 
     header_index = k_datum_index_none;
     if (object_index != k_datum_index_none) {
-        header_index = datum_new(object_list_header_data);
+        header_index = halo::memory::datum_new(object_list_header_data);
         if (header_index != k_datum_index_none) {
             header = (object_list_header *)((uint8_t *)object_list_header_data->data +
                 (header_index & 0xffff) * 0x0c);
@@ -682,7 +678,7 @@ void ScriptObjects::object_runtime_cleanup() const
     player_iter.next_index = 0;
     player_iter.index = (datum_index)0xffffffff;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-    player_element = data_iterator_next(&player_iter);
+    player_element = halo::memory::data_iterator_next(&player_iter);
     while (player_element != 0) {
         unit = *(datum_index *)((uint8_t *)player_element + 0x34);
         if (unit != k_datum_index_none) {
@@ -695,7 +691,7 @@ void ScriptObjects::object_runtime_cleanup() const
                 unit_detach_from_seat(unit, 0, 1, 1);
             }
         }
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
     }
 
     object_iter.type_filter = -1;
@@ -812,7 +808,7 @@ void ScriptObjects::objects_delete_by_type(uint32_t tag_id) const
         object_index = iter.index;
         if (element == 0) {
             objects_garbage_collection();
-            block_list_compact(object_memory_pool);
+            halo::memory::block_list_compact(object_memory_pool);
             return;
         }
         if (element->tag_id == tag_id) {

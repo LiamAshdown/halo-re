@@ -23,7 +23,7 @@ inline growable_array_view *view(::growable_array *record) { return static_cast<
  * viewed as a circular_buffer_view in place and the C layout is unchanged.
  */
 struct circular_buffer_view : ::circular_buffer {
-    static void create(char *name, int32_t requested_size);
+    static circular_buffer *create(char *name, int32_t requested_size);
     uint32_t read(uint8_t *destination, uint32_t byte_count, char consume);
     uint32_t write(uint32_t byte_count, uint8_t *source);
 };
@@ -181,7 +181,7 @@ struct data_packet_group_view : ::data_packet_group {
 
 inline data_packet_group_view *view(::data_packet_group *record) { return static_cast<data_packet_group_view *>(record); }
 
-void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
+void crc32_update(uint32_t *crc, const void *data, int32_t length);
 void datum_index_invalidate(datum_index *out_index);
 void byte_swap_array(int32_t size_code, uint32_t *array, int32_t count);
 

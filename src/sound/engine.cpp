@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::sound {
 
@@ -76,10 +77,10 @@ void initialize(void)
 
             if (driver != (sound_driver *)0 && driver->type == driver_parameters.driver_index) {
                 current_sound_driver = driver;
-                sound_data = data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds);
+                sound_data = halo::memory::data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds);
 
                 if (sound_data != (data_array *)0) {
-                    looping_sound_data = data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds);
+                    looping_sound_data = halo::memory::data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds);
                 }
 
                 if (sound_data != (data_array *)0 && looping_sound_data != (data_array *)0) {
@@ -93,9 +94,9 @@ void initialize(void)
                         int32_t type;
 
                         sound_data->valid = 1;
-                        data_delete_all(sound_data);
+                        halo::memory::data_delete_all(sound_data);
                         looping_sound_data->valid = 1;
-                        data_delete_all(looping_sound_data);
+                        halo::memory::data_delete_all(looping_sound_data);
 
                         for (type = 0; type < 4; type++) {
                             int16_t slot_count = driver_parameters.slot_counts[type];
@@ -131,12 +132,12 @@ void initialize(void)
 
 uint8_t reopen_device(sound_driver_parameters *new_parameters)
 {
-    datum_index index = datum_next(-1, sound_data);
+    datum_index index = halo::memory::datum_next(-1, sound_data);
     uint8_t initialized;
 
     while (index != k_datum_index_none) {
         instances::stop(index);
-        index = datum_next((int16_t)index, sound_data);
+        index = halo::memory::datum_next((int16_t)index, sound_data);
     }
 
     audio_device().dispose();

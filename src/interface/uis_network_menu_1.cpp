@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "halo/interface/uis_network_menu.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -22,7 +23,6 @@ extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
 extern void set_profile_name(widget_instance *widget, const uint16_t *name_source);
 extern heap *widget_memory_pool;
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
 extern int32_t saved_player_profile_slots_handle;
@@ -133,7 +133,7 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
         c1->selection_index = (int16_t)blob[0];
         c2->background_bitmap_frame = (int16_t)blob[0];
 
-        c3->text = heap_reallocate(c3->text, 0x40, widget_memory_pool);
+        c3->text = halo::memory::heap_reallocate(c3->text, 0x40, widget_memory_pool);
         if (c3->text != (void *)0) {
             wcsncpy((wchar_t *)((uint16_t *)c3->text), (const wchar_t *)(blob + 4), 0x1f);
             ((uint16_t *)c3->text)[0x1f] = 0;
@@ -231,7 +231,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     int32_t resolution_index;
     widget_instance *ip_control;
 
-    buffer = (uint16_t *)heap_reallocate(control->text, 0x80, widget_memory_pool);
+    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x80, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_00719170, 0x3f);
@@ -243,7 +243,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
 
     row = row->next_sibling;
     control = row->first_child->next_sibling;
-    buffer = (uint16_t *)heap_reallocate(control->text, 0x12, widget_memory_pool);
+    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
@@ -291,7 +291,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     row = row->next_sibling;
     row->hidden = 1;
     ip_control = row->first_child->next_sibling;
-    ip_control->text = heap_reallocate(ip_control->text, 0x40, widget_memory_pool);
+    ip_control->text = halo::memory::heap_reallocate(ip_control->text, 0x40, widget_memory_pool);
     if (ip_control->text != (void *)0) {
         uint32_t swapped = ((network_resolved_local_address << 0x10 | network_resolved_local_address & 0xff00 |
                              network_resolved_local_address >> 0x10 & 0xff) << 8) |
@@ -341,7 +341,7 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
     int32_t tab_index = -1;
     uint16_t *buffer;
 
-    buffer = (uint16_t *)heap_reallocate(control->text, 0x40, widget_memory_pool);
+    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x40, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_field_00719238, 0x1f);
@@ -353,7 +353,7 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
 
     row = row->next_sibling;
     control = row->first_child->next_sibling;
-    buffer = (uint16_t *)heap_reallocate(control->text, 0x12, widget_memory_pool);
+    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
     control->text = buffer;
     if (buffer != (uint16_t *)0) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);

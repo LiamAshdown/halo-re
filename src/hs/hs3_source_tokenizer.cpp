@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "win32.h"
+#include "halo/memory/api.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -29,7 +30,6 @@ extern datum_index global_scenario_index;
 extern tag_instance *tag_instances;
 extern char *hs_compiled_source;
 extern int32_t hs_compiled_source_length;
-extern datum_index datum_new(data_array *array);
 extern void hs_tokenize_primitive(char **cursor, datum_index node_index);
 extern void hs_tokenize_nonprimitive(datum_index node_index, char **cursor);
 extern data_array *hs_syntax_data;
@@ -178,7 +178,7 @@ datum_index SourceTokenizer::tokenize(char **cursor) const
     hs_syntax_node *node;
 
     nodes = hs_syntax_data;
-    index = datum_new(nodes);
+    index = halo::memory::datum_new(nodes);
     if (index == k_datum_index_none) {
         hs_compile_error = (char *)"i couldn't allocate a syntax node.";
         return k_datum_index_none;

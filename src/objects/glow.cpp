@@ -4,6 +4,7 @@
 #include "render.h"
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -11,9 +12,6 @@ extern uint8_t *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag_ind
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
-extern void data_delete_all(data_array *array);
-extern void datum_delete(data_array *array, datum_index index);
-extern datum_index datum_new(data_array *array);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
@@ -80,11 +78,11 @@ void halo::objects::GlowSystem::dispose()
 {
     if (glow_data != 0) {
         glow_data->valid = 1;
-        data_delete_all(glow_data);
+        halo::memory::data_delete_all(glow_data);
     }
     if (glow_particle_data != 0) {
         glow_particle_data->valid = 1;
-        data_delete_all(glow_particle_data);
+        halo::memory::data_delete_all(glow_particle_data);
     }
 }
 
@@ -140,7 +138,7 @@ datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
     if (glow_tag == k_datum_index_none) {
         return k_datum_index_none;
     }
-    index = datum_new(glow_data);
+    index = halo::memory::datum_new(glow_data);
     if (index == k_datum_index_none) {
         return index;
     }
@@ -176,10 +174,10 @@ void halo::objects::GlowSystem::destroy(datum_index glow_index)
     while (particle != 0) {
         uint8_t *next = *(uint8_t **)(particle + 0x5c);
 
-        datum_delete(glow_particle_data, *(datum_index *)(particle + 4));
+        halo::memory::datum_delete(glow_particle_data, *(datum_index *)(particle + 4));
         particle = next;
     }
-    datum_delete(glow_data, glow_index);
+    halo::memory::datum_delete(glow_data, glow_index);
 }
 
 /**
@@ -398,7 +396,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
                     } else {
                         *(glow_particle **)&((struct glow_particle *)prev)->next = next;
                     }
-                    datum_delete(glow_particle_data, ((struct glow_particle *)p)->handle);
+                    halo::memory::datum_delete(glow_particle_data, ((struct glow_particle *)p)->handle);
                     entry->spawn_count = entry->spawn_count - 1;
                 }
             }
@@ -811,7 +809,7 @@ glow_particle * halo::objects::GlowView::particle_spawn()
  */
 glow_particle * halo::objects::GlowSystem::particle_datum_new()
 {
-    datum_index handle = datum_new(glow_particle_data);
+    datum_index handle = halo::memory::datum_new(glow_particle_data);
     glow_particle *entry = 0;
 
     if (handle != (datum_index)0xffffffff) {

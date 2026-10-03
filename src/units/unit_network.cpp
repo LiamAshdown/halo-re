@@ -2,6 +2,7 @@
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "networking.h"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -11,7 +12,6 @@ extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern int32_t hash_table_get(hash_table *table, int32_t key);
@@ -79,7 +79,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
     }
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
     if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != (datum_index)0xffffffff) {
-        uint8_t *player = (uint8_t *)datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
         if (player != 0) {
             *(uint32_t *)&((struct player *)player)->respawn_timer = message.player_2c;

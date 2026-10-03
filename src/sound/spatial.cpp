@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::sound {
 
@@ -168,8 +169,8 @@ void refresh_structure_locations(void)
     if (!sound_initialized || !sound_enabled || sound_disabled) {
         return;
     }
-    for (handle = datum_next(-1, sound_data); handle != k_datum_index_none;
-         handle = datum_next((int16_t)handle, sound_data)) {
+    for (handle = halo::memory::datum_next(-1, sound_data); handle != k_datum_index_none;
+         handle = halo::memory::datum_next((int16_t)handle, sound_data)) {
         sound *entry = (sound *)sound_data->data + (handle & 0xffff);
         uint32_t leaf;
 
@@ -310,7 +311,7 @@ void update_range_and_ducking(void)
     no_player_has_a_unit = local_player_globals->no_player_has_a_unit;
     saw_dialog_class = 0;
 
-    sound_handle = datum_next(-1, sound_data);
+    sound_handle = halo::memory::datum_next(-1, sound_data);
     while (sound_handle != 0xffffffff) {
         instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
         definition = (Sound *)tag_instances[instance->definition_index & 0xffff].data;
@@ -362,7 +363,7 @@ void update_range_and_ducking(void)
         }
 
     next_sound:
-        sound_handle = datum_next((int16_t)sound_handle, sound_data);
+        sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data);
     }
 
     if (saw_dialog_class) {

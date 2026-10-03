@@ -11,6 +11,7 @@
 #include "saved_games.h"
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern network_thread_record *variant_write_thread;
@@ -18,7 +19,6 @@ extern variant_write_request variant_write_request_state;
 extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
     network_thread_record **out_handle);
 extern network_mutex_record *saved_game_files_mutex;
-extern void crc32_update(uint32_t *checksum, const void *data, uint32_t size);
 extern uint32_t player_color_table[k_player_color_count];
 extern network_thread_record *player_profile_thread;
 extern saved_player_profile default_profile_data;
@@ -103,7 +103,7 @@ uint32_t halo::saved_games::VariantWriteRequest::thread_proc()
     if (opened != 0) {
         file.variant = request->variant;
         file.checksum = 0xffffffff;
-        crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
+        halo::memory::crc32_update(&file.checksum, &file.variant, sizeof(file.variant));
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0) {
             write_failed = 1;
@@ -167,7 +167,7 @@ uint8_t halo::saved_games::PlayerProfile::get(int32_t index)
         if (saved_game_open_file_by_handle(index, &ref) != 0) {
             if (file_reference_read(&ref, &file, sizeof(file)) != 0) {
                 running_crc = 0xffffffff;
-                ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
+                halo::memory::crc32_update(&running_crc, (uint8_t *)&file.profile, k_saved_player_profile_size);
                 if (running_crc == file.checksum && file.profile.version == k_saved_player_profile_version) {
                     *out_buffer = file.profile;
                 } else {
@@ -562,7 +562,7 @@ void halo::saved_games::PlayerProfile::write_data(int32_t handle)
 
     file.profile = *profile;
     file.checksum = 0xffffffff;
-    ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+    halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         write_failed = 1;
@@ -958,7 +958,7 @@ void write_default_files(void)
         ref.flags |= 1;
 
         file.checksum = 0xffffffff;
-        ((void (*)(uint32_t *crc, uint8_t *data, int32_t length))crc32_update)(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
+        halo::memory::crc32_update(&file.checksum, (uint8_t *)&file.profile, k_saved_player_profile_size);
 
         if (file_reference_create(&ref) != 0 && file_reference_open(&ref, 2) != 0 &&
             file_reference_seek(0, &ref) != 0) {
@@ -1031,7 +1031,7 @@ void create_default_profiles_on_disk(void)
             (int16_t)((uint16_t)variant_file.variant.variant_flags | ((uint16_t)(uint8_t)i << 8));
 
         variant_file.checksum = 0xffffffff;
-        crc32_update(&variant_file.checksum, &variant_file.variant, sizeof(variant_file.variant));
+        halo::memory::crc32_update(&variant_file.checksum, &variant_file.variant, sizeof(variant_file.variant));
 
         memset(&ref, 0, sizeof(ref));
         ref.signature = k_file_reference_signature;

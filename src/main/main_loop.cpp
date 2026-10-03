@@ -23,6 +23,7 @@
 #include "cache.h"
 
 #include "halo/main/main_loop.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -297,7 +298,6 @@ extern "C" { extern int32_t game_engine_accumulate_simulation_ticks(float elapse
 extern "C" { extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time, int32_t ticks_this_frame); }
 extern "C" { extern uint8_t chat_poll_hotkeys(void); }
 extern "C" { extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow); }
-extern "C" { extern void *data_iterator_next(data_iterator *iterator); }
 extern "C" { extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask, const char *format, ...); }
 extern "C" { extern void camera_update(float dt); }
 extern "C" { extern uint8_t camera_is_local_player_default_first_person(void); }
@@ -658,7 +658,7 @@ void MainLoop::loop(void)
                 iterator.next_index = 0;
                 iterator.index = (datum_index)-1;
                 iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-                while ((local_player = (player *)data_iterator_next(&iterator)) != 0) {
+                while ((local_player = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
                     if (local_player->local_player_index == -1) {
                         continue;
                     }

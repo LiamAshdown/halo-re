@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include "halo/networking/net2_server_browser.hpp"
 #include "halo/networking/server_sort.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -72,7 +73,6 @@ extern void widget_play_sound_effect(int16_t effect_id);
 extern void master_server_process_pending_requests(void);
 extern int32_t SBServerHasFullKeys(void *entry);
 extern int32_t ServerBrowserState(void *engine);
-extern void * heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern int64_t performance_frequency;
 extern void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self);
 extern ticker_text_buffer server_browser_player_ticker;
@@ -490,7 +490,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 
         w_iter = browser_widget->status_root->first_child;
         if (bVar11) {
-            label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
+            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 6);
@@ -500,7 +500,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
+            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 join_game_ticker_string_copy((uint16_t *)scratch_80, 0x40, 7);
@@ -510,7 +510,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
         }
         w_iter = w_iter->next_sibling;
         if (bVar11) {
-            label = heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
+            label = halo::memory::heap_reallocate(w_iter->label_text, 0x40, widget_memory_pool);
             w_iter->label_text = (uint16_t *)label;
             if (label != 0) {
                 if (player_count < 1) {
@@ -1431,7 +1431,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2 = w1->next_sibling;
     w1->highlight_flag = 1;
     w1->visible = flag2 != 0;
-    text = (wchar_t *)heap_reallocate(w2->label_text, 0x80, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x80, widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, server_name);
@@ -1439,7 +1439,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         *(uint16_t *)((uint8_t *)w2->label_text + 0x7e) = 0;
     }
     w1 = w2->next_sibling;
-    text = (wchar_t *)heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         wcsncpy(text, map_name, 0x1f);
@@ -1449,7 +1449,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
     w2 = w1->next_sibling;
     w1->highlight_flag = 1;
     w1->visible = flag3 != 0;
-    text = (wchar_t *)heap_reallocate(w2->label_text, 0x40, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w2->label_text, 0x40, widget_memory_pool);
     w2->label_text = (uint16_t *)text;
     if (text != 0) {
         wchar_t *source = string_convert_ascii_to_unicode(string_widen_scratch, 0x800, gametype_name);
@@ -1457,7 +1457,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         *(uint16_t *)((uint8_t *)w2->label_text + 0x3e) = 0;
     }
     w1 = w2->next_sibling;
-    text = (wchar_t *)heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x40, widget_memory_pool);
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (count_a == -1 || count_b == -1) {
@@ -1468,7 +1468,7 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
         }
     }
     w1 = w1->next_sibling;
-    text = (wchar_t *)heap_reallocate(w1->label_text, 0x10, widget_memory_pool);
+    text = (wchar_t *)halo::memory::heap_reallocate(w1->label_text, 0x10, widget_memory_pool);
     w1->label_text = (uint16_t *)text;
     if (text != 0) {
         if (0 < ping && ping < 9999) {

@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::ai {
 
@@ -29,7 +30,6 @@ extern void actor_target_get_relationship_object(datum_index target_prop_index);
 extern datum_index actor_allocate_paired_prop(uint32_t actor_index, datum_index prop_index);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index,
                                        datum_index object_a, int32_t param_d,
                                        datum_index object_b, datum_index object_c,
@@ -547,7 +547,7 @@ check_cooldown:
     }
     actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index);
     actor_unlink_prop(actor_index, target_prop_index);
-    datum_delete(prop_data, target_prop_index);
+    halo::memory::datum_delete(prop_data, target_prop_index);
     goto restart;
 }
 

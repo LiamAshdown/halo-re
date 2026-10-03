@@ -1,5 +1,6 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -19,7 +20,6 @@ extern double fsin(double x);
 extern double fcos(double x);
 extern data_array *player_data;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void *datum_get(datum_index handle, data_array *array);
 void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 void item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position);
@@ -252,7 +252,7 @@ uint8_t item_ref::get_effective_position(real_point3d *out_position)
             return 0;
         }
         {
-            uint8_t *player = (uint8_t *)datum_get(owner_linkage, player_data);
+            uint8_t *player = (uint8_t *)halo::memory::datum_get(owner_linkage, player_data);
             if (player == 0) {
                 return 0;
             }

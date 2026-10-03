@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern encounter_platoon_state *encounter_platoon_states;
@@ -15,7 +16,6 @@ extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, dat
 extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *object_list_header_data;
-extern datum_index datum_new(data_array *array);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
@@ -52,7 +52,6 @@ extern void actor_dispatch_perception_reset(datum_index actor_index);
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
 extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index);
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
 extern void encounter_activate(datum_index encounter_index);
 extern datum_index actor_find_or_create_shared_prop(datum_index unit_index, datum_index actor_index, int32_t flag_a, int32_t flag_b);
@@ -63,7 +62,6 @@ extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void player_update_history_free_all(void *history);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
@@ -367,7 +365,7 @@ datum_index ReferenceView::build_object_list()
     datum_index header_index = (datum_index)k_datum_index_none;
 
     if (packed_reference != (uint32_t)k_datum_index_none) {
-        header_index = datum_new(object_list_header_data);
+        header_index = halo::memory::datum_new(object_list_header_data);
         if (header_index != (datum_index)k_datum_index_none) {
             object_list_header *header =
                 (object_list_header *)((uint8_t *)object_list_header_data->data + (header_index & 0xffff) * 0x0c);
@@ -1000,10 +998,10 @@ void ReferenceView::respawn_all_players()
         iterator.index = (datum_index)k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
         while (p != 0) {
             ai_reference_respawn_member(packed_reference, p->unit);
-            p = (player *)data_iterator_next(&iterator);
+            p = (player *)halo::memory::data_iterator_next(&iterator);
         }
     }
 }
@@ -1437,7 +1435,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     if (network_game_mode == 1) {
-        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(*(datum_index *)(self + 0x218), player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
             ((struct player *)player)->position_updates.read_index = 0;

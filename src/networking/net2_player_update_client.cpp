@@ -13,13 +13,13 @@
 #include "units.h"
 #include "halo/networking/net2_player_update_client.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
 extern game_time_globals * game_time;
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern void message_delta_decode_compound_field_staged(void *decode_context);
-extern void * data_iterator_next(data_iterator *iterator);
 extern uint8_t is_local_player_update_in_order(int32_t current_update_id, int32_t new_update_id);
 extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
     const char *format, ...);
@@ -27,7 +27,6 @@ extern void player_update_history_play_for_update_index(void *update_history, in
 extern void * object_network_id_table;
 extern network_client_globals * network_client;
 extern datum_index players_find_local_owned_unclear(void);
-extern void * datum_get(datum_index handle, data_array *array);
 extern void player_update_history_play(uint8_t flag, uint32_t control_ec, void *update_history,
     datum_index unit, float x, float y, float z, void *control_ptr);
 extern network_id_table * machine_table;
@@ -86,12 +85,12 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    candidate = (player *)data_iterator_next(&iter);
+    candidate = (player *)halo::memory::data_iterator_next(&iter);
     if (candidate == 0) {
         return;
     }
     while (candidate->local_player_index == -1) {
-        candidate = (player *)data_iterator_next(&iter);
+        candidate = (player *)halo::memory::data_iterator_next(&iter);
         if (candidate == 0) {
             return;
         }
@@ -140,7 +139,7 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
     halo::math::vector3d_normalize_with_length(ack.vehicle.up);
 
     vehicle_handle = players_find_local_owned_unclear();
-    candidate = (player *)datum_get(vehicle_handle, player_data);
+    candidate = (player *)halo::memory::datum_get(vehicle_handle, player_data);
     if (candidate == 0) {
         return;
     }

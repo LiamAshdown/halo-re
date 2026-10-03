@@ -1,5 +1,6 @@
 #include "halo/game/game2_engine_players.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -13,7 +14,6 @@ extern uint8_t ui_split_screen;
 extern uint8_t global_00719750;
 extern int16_t global_00719772;
 extern uint32_t update_client_distribute_staged_entry(uint8_t *out);
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
 extern void player_apply_first_position_update(uint32_t field0, player *plr);
 extern uint8_t game_engine_player_ready_to_respawn(uint32_t player_index);
@@ -117,7 +117,7 @@ void EnginePlayerSync::players_update_client(void)
     carried_weapon_index = 0;
     carried_grenade_or_zoom = 0;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
         if (plr->local_player_index == -1) {
             player_update_record peek;
@@ -214,7 +214,7 @@ void EnginePlayerSync::players_update_client(void)
             }
         }
 
-        plr = (player *)data_iterator_next(&player_iter);
+        plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x58, 1);
@@ -254,7 +254,7 @@ void EnginePlayerSync::players_update_server(void)
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     counter = 0;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
         action = &actions[counter];
         entry = &carry[counter];
@@ -377,7 +377,7 @@ void EnginePlayerSync::players_update_server(void)
             }
         }
 
-        plr = (player *)data_iterator_next(&player_iter);
+        plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
     game_engine_build_visible_cluster_bitmask((uint8_t *)local_player_globals + 0x58, 1);
@@ -407,7 +407,7 @@ void EnginePlayerSync::server_update_player_positions(void)
     iter.index = (datum_index)-1;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    plr = (player *)data_iterator_next(&iter);
+    plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
         if (plr->unit != (datum_index)-1) {
             object *unit_obj = ((object_header *)object_data->data)[plr->unit & 0xffff].data;
@@ -441,7 +441,7 @@ void EnginePlayerSync::server_update_player_positions(void)
                 }
             }
         }
-        plr = (player *)data_iterator_next(&iter);
+        plr = (player *)halo::memory::data_iterator_next(&iter);
     }
 }
 

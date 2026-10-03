@@ -20,6 +20,7 @@
 #include "hs.h"
 
 #include "halo/main/console.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" { void console_autocomplete_command(void); }
 extern "C" { uint32_t console_command_context_mask(uint32_t context_flags); }
@@ -352,7 +353,6 @@ extern "C" { extern data_array *terminal_messages; }
 extern "C" { extern datum_index console_message_head; }
 extern "C" { extern datum_index console_message_tail; }
 extern "C" { extern uint8_t error_file_logging_enabled; }
-extern "C" { extern void data_delete_all(data_array *array); }
 extern "C" { extern void console_clear_screen(void); }
 extern "C" { extern void chimera__console_out(ColorARGB *color, char *format, ...); }
 extern "C" { extern void write_to_error_file(char *message, char with_timestamp); }
@@ -376,7 +376,7 @@ extern "C" void console_out_printf(uint8_t clear_first, const char *format, ...)
     if (clear_first != 0 && terminal_initialized != 0) {
         console_message_head = k_datum_index_none;
         console_message_tail = k_datum_index_none;
-        data_delete_all(terminal_messages);
+        halo::memory::data_delete_all(terminal_messages);
         console_clear_screen();
     }
 
@@ -436,7 +436,7 @@ extern "C" void console_print_error_va(uint8_t clear_first, const char *format, 
     if (clear_first != 0 && terminal_initialized != 0) {
         console_message_head = k_datum_index_none;
         console_message_tail = k_datum_index_none;
-        data_delete_all(terminal_messages);
+        halo::memory::data_delete_all(terminal_messages);
         console_clear_screen();
     }
 

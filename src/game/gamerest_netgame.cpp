@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_netgame.hpp"
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -25,8 +26,6 @@ extern uint8_t ctf_team_return_credit_active[2];
 extern int32_t ctf_team_return_credit_ticks[2];
 extern datum_index ctf_team_flag_object[2];
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern void *data_iterator_next(data_iterator *iterator);
-extern void *datum_get(datum_index handle, data_array *array);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 extern void unit_ready_desired_weapon(uint32_t unit_index, uint8_t force);
@@ -81,7 +80,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
             if (ctf_flag_auto_return_ticks == 0) {
                 if ((item->flags & _item_in_inventory_bit) != 0) {
                     if (ctf_single_flag_mode != 0 && *(int32_t *)&((struct object *)flag_obj)->owner_linkage != -1) {
-                        player *carrier = (player *)datum_get(
+                        player *carrier = (player *)halo::memory::datum_get(
                             (datum_index)((struct object *)flag_obj)->owner_linkage, player_data);
                         if (carrier != (player *)0) {
                             object *unit_obj = object_try_and_get(carrier->unit, _object_mask_unit);
@@ -119,10 +118,10 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     iter.next_index = 0;
                     iter.index = (datum_index)0xffffffff;
                     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-                    element = data_iterator_next(&iter);
+                    element = halo::memory::data_iterator_next(&iter);
                     while (element != 0) {
                         chimera__kill_feed((datum_index)0xffffffff, 0x2d, (uint32_t)0xffffffff, 1, 0);
-                        element = data_iterator_next(&iter);
+                        element = halo::memory::data_iterator_next(&iter);
                     }
                 }
 

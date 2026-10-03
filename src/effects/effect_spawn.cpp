@@ -1,12 +1,12 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern int16_t light_count_enabled;
 extern const real_vector3d *global_origin3d_pointer;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void *datum_get(datum_index handle, data_array *array);
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
 extern void damage_apply_area_effect(damage_data *dd);
 extern datum_index light_new_positioned(datum_index light_tag, int32_t marker_index, int16_t marker_sub_index, real_point3d *position, uint32_t param_5, real_vector3d *direction);
@@ -139,7 +139,7 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
             uint8_t *creator = (uint8_t *)object_try_and_get(SELF_FIELD(datum_index, 0x40), 3);
 
             if (creator != 0) {
-                uint8_t *owner = (uint8_t *)datum_get(*(datum_index *)(creator + 0x218), player_data);
+                uint8_t *owner = (uint8_t *)halo::memory::datum_get(*(datum_index *)(creator + 0x218), player_data);
 
                 if (owner != 0 && ((struct player *)owner)->local_player_index != -1) {
                     first_person = 1;

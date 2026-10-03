@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -12,11 +13,9 @@ extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern int32_t player_data_iterator_advance(int16_t step_count);
 extern char network_player_entry_validate(void);
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, uint32_t *capacity, int32_t packet_type, int32_t version);
 extern uint16_t network_challenge_packet_block;
 extern uint32_t network_broadcast_body[];
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern void widget_close_all(void);
 extern void game_engine_init_tick_record_for_mode(void);
 extern void game_engine_reset_all_players(void);
@@ -26,6 +25,17 @@ extern int32_t join_ui_state;
 extern int32_t time_query_performance_counter_ms(void);
 extern int32_t interface_loading_screen_address_b;
 extern int32_t interface_loading_screen_address_a;
+}
+
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, uint32_t *capacity, int32_t packet_type, int32_t version)
+{
+    using call_t = int32_t (*)(uint8_t *buffer, uint32_t *capacity, int32_t packet_type, int32_t version);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
 }
 
 namespace halo::networking {
@@ -126,7 +136,7 @@ after_search:
     *(int32_t *)(iVar6 + 4) = now_ms;
 
     capacity = 0x600;
-    ok = (char)data_packet_group_encode_packet(encode_buffer, &capacity, 0x1a, 1);
+    ok = (char)data_packet_group_encode_packet_unresolved(encode_buffer, &capacity, 0x1a, 1);
     if (ok != 0) {
         uint32_t *src, *dst8;
         uint8_t *src_b, *dst_b;
@@ -158,9 +168,9 @@ after_search:
             {
 
                 *(int32_t *)(iVar6 + 0xa80) = *(int32_t *)(iVar6 + 0xa80) + iVar12 + 1;
-                { uint32_t item_flag = 0; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), &item_flag, 1); }
+                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), &item_flag, 1); }
                 *(uint8_t *)(iVar6 + 0x2c) = 0;
-                bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), (const uint32_t *)(&network_challenge_packet_block), iVar12);
+                halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)iVar6 + 0x10), (const uint32_t *)(&network_challenge_packet_block), iVar12);
                 *(uint8_t *)(iVar6 + 0x2c) = 0;
             }
         }

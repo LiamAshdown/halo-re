@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -29,10 +30,7 @@ extern uint8_t render_frustum_global;
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern datum_index datum_new(data_array *array);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 
 namespace halo::structures {
@@ -316,7 +314,7 @@ void cluster_references::partition_new(cluster_reference_group *out, char *name)
     region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x800;
     size = 0x800;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     out->cluster_first = (datum_index *)region;
 
     sprintf(format_buffer, "cluster %s", name);
@@ -355,7 +353,7 @@ void cluster_references::add_within_radius(uint32_t light_or_object_handle, datu
         int16_t cluster = clusters[i];
         datum_index handle;
 
-        handle = datum_new(cluster_list->object_cluster_references);
+        handle = halo::memory::datum_new(cluster_list->object_cluster_references);
         if (handle != k_datum_index_none) {
             object_cluster_reference *ref = (object_cluster_reference *)
                 cluster_list->object_cluster_references->data + (handle & 0xffff);
@@ -366,7 +364,7 @@ void cluster_references::add_within_radius(uint32_t light_or_object_handle, datu
 
         {
             datum_index *cluster_head = &cluster_list->cluster_first[cluster];
-            handle = datum_new(cluster_list->cluster_object_references);
+            handle = halo::memory::datum_new(cluster_list->cluster_object_references);
             if (handle != k_datum_index_none) {
                 object_cluster_reference *ref = (object_cluster_reference *)
                     cluster_list->cluster_object_references->data + (handle & 0xffff);
@@ -388,7 +386,7 @@ void cluster_references::remove_all(uint32_t handle, datum_index *link, cluster_
         int16_t cluster = (int16_t)own_ref->object_index;
         datum_index next_entry;
 
-        datum_delete(cluster_list->object_cluster_references, entry);
+        halo::memory::datum_delete(cluster_list->object_cluster_references, entry);
 
         {
             datum_index *scan = &cluster_list->cluster_first[cluster];
@@ -397,7 +395,7 @@ void cluster_references::remove_all(uint32_t handle, datum_index *link, cluster_
                     object_cluster_reference *cluster_ref = (object_cluster_reference *)
                         cluster_list->cluster_object_references->data + (*scan & 0xffff);
                     if (cluster_ref->object_index == handle) {
-                        datum_delete(cluster_list->cluster_object_references, *scan);
+                        halo::memory::datum_delete(cluster_list->cluster_object_references, *scan);
                         *scan = cluster_ref->next_reference;
                         break;
                     }

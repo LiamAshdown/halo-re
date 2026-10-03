@@ -1,5 +1,6 @@
 #include "halo/ai/actor_movement.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -604,7 +605,6 @@ extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *object_data;
 
-extern datum_index datum_new(data_array *array);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
@@ -624,7 +624,7 @@ datum_index halo::ai::movement_ops::create_swarm()
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     if (self->swarm_index == (datum_index)k_datum_index_none) {
-        self->swarm_index = datum_new(swarm_data);
+        self->swarm_index = halo::memory::datum_new(swarm_data);
         if (self->swarm_index != (datum_index)k_datum_index_none) {
             datum_index unit_index = self->cluster_unit_index;
             swarm *s = &((swarm *)swarm_data->data)[self->swarm_index & 0xffff];
@@ -635,7 +635,7 @@ datum_index halo::ai::movement_ops::create_swarm()
             while (unit_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
                 object *unit_object = header->data;
-                datum_index component_index = datum_new(swarm_component_data);
+                datum_index component_index = halo::memory::datum_new(swarm_component_data);
 
                 if (component_index == (datum_index)k_datum_index_none) {
                     return self->swarm_index;
@@ -675,7 +675,6 @@ extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -699,9 +698,9 @@ void halo::ai::movement_ops::delete_swarm()
         int16_t i;
 
         for (i = 0; i < s->component_count; i++) {
-            datum_delete(swarm_component_data, s->component_index[i]);
+            halo::memory::datum_delete(swarm_component_data, s->component_index[i]);
         }
-        datum_delete(swarm_data, swarm_index);
+        halo::memory::datum_delete(swarm_data, swarm_index);
         self->swarm_index = (datum_index)k_datum_index_none;
     }
 }

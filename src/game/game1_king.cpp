@@ -12,6 +12,7 @@
 #include "networking.h"
 
 #include "halo/game/game1_king.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -20,7 +21,6 @@ extern wchar_t empty_string;
 extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
@@ -89,12 +89,12 @@ const uint16_t *King::place_text(datum_index recipient)
  */
 uint8_t King::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    uint8_t *player = (uint8_t *)datum_get(subject, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(subject, player_data);
     int32_t seconds;
 
     switch (message_type) {
     case 0x22:
-        if (datum_get(recipient, player_data) == 0 || player == 0) {
+        if (halo::memory::datum_get(recipient, player_data) == 0 || player == 0) {
             return 0;
         }
         {
@@ -267,7 +267,7 @@ void King::player_new_life(datum_index player_index)
  */
 void King::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)datum_get(player_index, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
         *(int16_t *)&((struct player *)player)->objective_time = 0;
@@ -354,7 +354,7 @@ void King::profile_post_update(void **context)
 uint8_t King::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)datum_get(handle, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
     char text[0x100];
 
     if (player == 0 || key != 0x16) {

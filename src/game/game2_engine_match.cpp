@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -13,7 +14,6 @@ extern void game_engine_broadcast_kill_feed_gated(int32_t broadcast_enabled, int
 extern void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int32_t message_type, datum_index subject);
 extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
 extern void chimera__multiplayer_message(wchar_t *text);
-extern void *data_iterator_next(data_iterator *iterator);
 extern game_engine_state game_engine_state_value;
 extern float game_engine_end_game_timer;
 extern uint32_t game_engine_unknown_aa00;
@@ -42,7 +42,6 @@ extern uint8_t shared_hud_text_draw_state;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t network_client[];
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2], int32_t filter_value);
 }
 
@@ -96,10 +95,10 @@ void EngineMatch::message_players(datum_index killer, uint32_t message_type, dat
         iter.next_index = 0;
         iter.index = (datum_index)0xffffffff;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
             send_message(iter.index, message_type, victim, buffer);
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         }
     }
 }
@@ -251,7 +250,7 @@ void EngineMatch::tick(void)
         player_iter.next_index = 0;
         player_iter.index = (datum_index)0xffffffff;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
 
         while (player_element != 0) {
             game_engine_clear_unit_shields_when_disabled(player_iter.index);
@@ -302,7 +301,7 @@ void EngineMatch::tick(void)
                 }
             }
 
-            player_element = data_iterator_next(&player_iter);
+            player_element = halo::memory::data_iterator_next(&player_iter);
         }
     }
 
@@ -426,13 +425,13 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
     player_iter.next_index = 0;
     player_iter.index = k_datum_index_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-    player_element = data_iterator_next(&player_iter);
+    player_element = halo::memory::data_iterator_next(&player_iter);
     while (player_element != 0) {
         if (((player *)player_element)->local_player_index != -1) {
             team_index_desired = (uint8_t)((player *)player_element)->team_index_desired;
             break;
         }
-        player_element = data_iterator_next(&player_iter);
+        player_element = halo::memory::data_iterator_next(&player_iter);
     }
 
     record.broadcast = (uint8_t)broadcast;
@@ -450,9 +449,9 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
              network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
 
             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-            { uint32_t item_flag = 1; bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
+            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
             *(uint8_t *)(session + 0x2c) = 0;
-            bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
+            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
             *(uint8_t *)(session + 0x2c) = 0;
         }
     }

@@ -13,6 +13,7 @@
 #include "units.h"
 #include <string.h>
 #include "halo/networking/net2_player_update_build.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t network_ack_resend_interval_ms;
@@ -34,7 +35,6 @@ extern double cos(double x);
 extern uint8_t network_broadcast_event_feed_mode;
 extern int32_t network_action_resend_interval_ms;
 extern int32_t network_action_resend_interval_ms_alt;
-extern void * data_iterator_next(data_iterator *iterator);
 extern network_machine * network_machine_find_by_id(network_server_globals *server,
     int32_t machine_id);
 extern void network_event_feed_queue_append(uint8_t *queue, uint32_t *key,
@@ -336,7 +336,7 @@ encode:
                 iter.next_index = 0;
                 iter.index = k_datum_index_none;
                 iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-                candidate = (player *)data_iterator_next(&iter);
+                candidate = (player *)halo::memory::data_iterator_next(&iter);
                 while (candidate != 0) {
 
                     if (candidate->local_player_index == -1) {
@@ -347,7 +347,7 @@ encode:
                             network_session_send_to_machine(1, 0, encoded_size, is_full, 0, 0, 1);
                         }
                     }
-                    candidate = (player *)data_iterator_next(&iter);
+                    candidate = (player *)halo::memory::data_iterator_next(&iter);
                 }
             }
         }
@@ -424,7 +424,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                 iter.next_index = 0;
                 iter.index = k_datum_index_none;
                 iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-                candidate = (player *)data_iterator_next(&iter);
+                candidate = (player *)halo::memory::data_iterator_next(&iter);
                 while (candidate != 0) {
                     if (player_index != 0xffffffff && candidate->local_player_index == -1) {
                         machine_id_slot = (int16_t *)((uint8_t *)network_server + 0x3c4);
@@ -441,7 +441,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                             }
                         }
                     }
-                    candidate = (player *)data_iterator_next(&iter);
+                    candidate = (player *)halo::memory::data_iterator_next(&iter);
                 }
                 now = (*(uint32_t *)(cache + 0x160) + 1) & 0x80000007;
                 if ((int32_t)now < 0) {

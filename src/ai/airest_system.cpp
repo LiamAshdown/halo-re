@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -25,7 +26,6 @@ extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_i
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
 extern int ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
-extern void * data_iterator_next(data_iterator *iterator);
 extern game_main_globals *main_game_globals;
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
@@ -33,7 +33,6 @@ extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification)
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern void actors_initialize(void);
 extern void encounters_initialize(void);
 extern void ai_communication_initialize(void);
@@ -60,7 +59,6 @@ extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counter
 extern void actor_movement_action_cancel(datum_index actor_index);
 extern void actor_clear_target_state(datum_index actor_index);
 extern void encounter_deactivate(datum_index encounter_index);
-extern void data_delete_all(data_array *array);
 extern void encounters_reset(void);
 extern void ai_communication_reset(void);
 extern game_time_globals *game_time;
@@ -312,7 +310,7 @@ void AiSystem::build_priority_target_list(ai_priority_target_list *out_list)
             encounter *enc;
 
             do {
-                enc = (encounter *)data_iterator_next(&iterator);
+                enc = (encounter *)halo::memory::data_iterator_next(&iterator);
                 if (enc == 0 || scan_more == 0) {
                     break;
                 }
@@ -477,7 +475,7 @@ void AiSystem::initialize_for_new_map()
     int32_t size = k_ai_globals_size;
 
     game_state_cursor = game_state_cursor + k_ai_globals_size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     ai_globals_ptr = globals;
     memset(globals, 0, k_ai_globals_size);
@@ -1044,13 +1042,13 @@ void AiSystem::reset_for_new_map()
     }
 
     actor_data->valid = 1;
-    data_delete_all(actor_data);
+    halo::memory::data_delete_all(actor_data);
     swarm_data->valid = 1;
-    data_delete_all(swarm_data);
+    halo::memory::data_delete_all(swarm_data);
     swarm_component_data->valid = 1;
-    data_delete_all(swarm_component_data);
+    halo::memory::data_delete_all(swarm_component_data);
     prop_data->valid = 1;
-    data_delete_all(prop_data);
+    halo::memory::data_delete_all(prop_data);
 
     encounters_reset();
     ai_communication_reset();
@@ -1088,7 +1086,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (prop *)data_iterator_next(&iterator);
+    p = (prop *)halo::memory::data_iterator_next(&iterator);
 
     while (p != 0) {
         if (p->is_parented && p->enemy) {
@@ -1143,7 +1141,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
             }
         }
 next_prop:
-        p = (prop *)data_iterator_next(&iterator);
+        p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }

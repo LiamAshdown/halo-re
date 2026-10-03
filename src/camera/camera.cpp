@@ -1,5 +1,6 @@
 #include "halo/camera/camera.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -23,7 +24,6 @@ extern void camera_third_person_compute_pov(director_camera_data *data, camera_i
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern Scenario *global_scenario;
 extern float observer_dt;
 extern void camera_update(float dt);
@@ -399,7 +399,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     best = k_datum_index_none;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (iterator.index != reference_player && p->unit != k_datum_index_none &&
             (!require_same_team || p->team == team)) {
@@ -410,7 +410,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
                 break;
             }
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
 
     return (best == k_datum_index_none) ? current_target : best;
@@ -440,12 +440,12 @@ uint8_t CameraSystem::dead_player_has_teammate(datum_index reference_player)
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         if (iterator.index != reference_player && p->team == team) {
             return 1;
         }
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }

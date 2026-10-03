@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_players.hpp"
 #include "rasterizer.h"
+#include "halo/memory/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -34,7 +35,6 @@ extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_m
 extern uint8_t rasterizer_device_reset(void *present_parameters);
 extern void rasterizer_resize_game_window(int32_t height, int32_t width);
 extern void chimera__gamma(void);
-extern void cache_flush(struct cache *self);
 }
 
 typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);
@@ -123,7 +123,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
 
     if (mode_changed) {
         texture_cache->age = texture_cache->age + 1;
-        cache_flush(texture_cache);
+        halo::memory::cache_flush(texture_cache);
     }
     return reset >= 0;
 }

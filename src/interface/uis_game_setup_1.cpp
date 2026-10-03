@@ -16,6 +16,7 @@
 #include "units.h"
 
 #include "halo/interface/uis_game_setup.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int16_t local_player_count;
@@ -42,7 +43,6 @@ extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern datum_index tag_lookup(tag_group group, char *path);
 extern void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3);
-extern int32_t growable_array_add_element(growable_array *array);
 extern uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty,
     char *out_scenario_name);
 extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
@@ -164,7 +164,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         }
 
         is_selected = (i == widget->selection_index);
-        element_index = growable_array_add_element(&ui_lists[1]);
+        element_index = halo::memory::growable_array_add_element(&ui_lists[1]);
         if (element_index != -1) {
             ui_list_item *item = (ui_list_item *)ui_lists[1].data + element_index;
             uint32_t name_length = wcslen((const wchar_t *)entry_name);

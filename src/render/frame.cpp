@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -32,7 +33,6 @@ extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern uint8_t rasterizer_initialize_direct3d(void);
 extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
@@ -137,7 +137,7 @@ uint8_t initialize(void)
     rasterizer_model_ambient_reflection_tint =
         (ColorARGB *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + 0x10;
-    crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
     return rasterizer_initialize_direct3d();
 }
 

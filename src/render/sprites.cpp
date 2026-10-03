@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -54,14 +55,12 @@ extern void *rasterizer_dynamic_index_buffer;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 extern data_array *contrail_data;
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t particle_spawn_debug_mode;
 extern int16_t current_local_player_index;
 extern data_array *particle_data;
 extern uint32_t cluster_visible_bits[0x10];
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t render_frame_index;
-extern void datum_delete(data_array *array, datum_index index);
 }
 
 typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
@@ -934,7 +933,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
  */
 void render_all(uint32_t render_type_flags)
 {
-    datum_index index = datum_next(-1, contrail_data);
+    datum_index index = halo::memory::datum_next(-1, contrail_data);
 
     while (index != k_datum_index_none) {
         contrail *c = &((contrail *)contrail_data->data)[(uint16_t)index];
@@ -948,7 +947,7 @@ void render_all(uint32_t render_type_flags)
             }
         }
 
-        index = datum_next((int16_t)index, contrail_data);
+        index = halo::memory::datum_next((int16_t)index, contrail_data);
     }
 }
 
@@ -981,8 +980,8 @@ void particles(void)
     }
     viewer_value = (int32_t)viewer;
 
-    for (index = datum_next(-1, particle_data); index != 0xffffffff;
-         index = datum_next((int16_t)index, particle_data)) {
+    for (index = halo::memory::datum_next(-1, particle_data); index != 0xffffffff;
+         index = halo::memory::datum_next((int16_t)index, particle_data)) {
         particle *p = &((particle *)particle_data->data)[(uint16_t)index];
         int32_t cluster = (int32_t)p->location.cluster_index;
         uint8_t owned = (int32_t)p->first_person_weapon_index == viewer_value;
@@ -1100,7 +1099,7 @@ void particles(void)
                             }
                         }
                         if (m == 0) {
-                            datum_delete(particle_data, (datum_index)(int32_t)(int16_t)particle_index);
+                            halo::memory::datum_delete(particle_data, (datum_index)(int32_t)(int16_t)particle_index);
                             continue;
                         }
                     }

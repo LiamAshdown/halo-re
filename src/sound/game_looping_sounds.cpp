@@ -6,6 +6,7 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::sound {
 
@@ -31,14 +32,14 @@ void initialize(void)
     game_looping_sound_data = (data_array *)game_state_new((char *)"object looping sounds", k_maximum_game_looping_sounds, sizeof(game_looping_sound));
 
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     game_sound_globals_ptr = globals;
 }
 
 void revert_scripting_sounds(void)
 {
-    datum_index index = datum_next(-1, game_looping_sound_data);
+    datum_index index = halo::memory::datum_next(-1, game_looping_sound_data);
 
     while (index != k_datum_index_none) {
         game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[(uint16_t)index];
@@ -48,14 +49,14 @@ void revert_scripting_sounds(void)
             *(uint32_t *)&definition->runtime_scripting_sound = (uint32_t)k_datum_index_none;
         }
 
-        index = datum_next((int16_t)index, game_looping_sound_data);
+        index = halo::memory::datum_next((int16_t)index, game_looping_sound_data);
     }
 }
 
 void reconcile_scripting_state(void)
 {
     tag_iterator iterator;
-    datum_index index = datum_next(-1, game_looping_sound_data);
+    datum_index index = halo::memory::datum_next(-1, game_looping_sound_data);
     datum_index tag_id;
 
     while (index != k_datum_index_none) {
@@ -67,11 +68,11 @@ void reconcile_scripting_state(void)
             if ((definition->flags & 0x02) == 0) {
                 *(uint32_t *)&definition->runtime_scripting_sound = (uint32_t)index;
             } else {
-                datum_delete(game_looping_sound_data, index);
+                halo::memory::datum_delete(game_looping_sound_data, index);
             }
         }
 
-        index = datum_next((int16_t)index, game_looping_sound_data);
+        index = halo::memory::datum_next((int16_t)index, game_looping_sound_data);
     }
 
     iterator.next_index = 0;
@@ -100,7 +101,7 @@ datum_index create(datum_index object_index, datum_index definition_index, char 
         }
     }
 
-    handle = datum_new(game_looping_sound_data);
+    handle = halo::memory::datum_new(game_looping_sound_data);
     if (handle != k_datum_index_none) {
         game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[(uint16_t)handle];
 
@@ -216,7 +217,7 @@ void update_sound(datum_index looping_sound_index, int32_t *root_location)
         if (*(uint32_t *)&definition->runtime_scripting_sound == (uint32_t)looping_sound_index) {
             *(uint32_t *)&definition->runtime_scripting_sound = 0xffffffff;
         }
-        datum_delete(game_looping_sound_data, looping_sound_index);
+        halo::memory::datum_delete(game_looping_sound_data, looping_sound_index);
         goto done;
     }
 
@@ -229,7 +230,7 @@ void update_sound(datum_index looping_sound_index, int32_t *root_location)
         self->state = _game_looping_sound_stopped;
         goto done;
     }
-    datum_delete(game_looping_sound_data, looping_sound_index);
+    halo::memory::datum_delete(game_looping_sound_data, looping_sound_index);
 
 done:
     self->last_update = game_sound_globals_ptr->update_count;
@@ -240,10 +241,10 @@ void update(void)
     int32_t now_ms = game_sound_update_now_ms();
 
     if ((uint32_t)(now_ms - game_sound_globals_ptr->last_update_time) < k_game_sound_update_interval_ms) {
-        datum_index index = datum_next(-1, game_looping_sound_data);
+        datum_index index = halo::memory::datum_next(-1, game_looping_sound_data);
         while (index != k_datum_index_none) {
             game_looping::touch_if_valid(index);
-            index = datum_next((int16_t)index, game_looping_sound_data);
+            index = halo::memory::datum_next((int16_t)index, game_looping_sound_data);
         }
         return;
     }
@@ -280,7 +281,7 @@ void update(void)
             }
         }
 
-        index = datum_next(-1, game_looping_sound_data);
+        index = halo::memory::datum_next(-1, game_looping_sound_data);
         while (index != k_datum_index_none) {
             game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[(uint16_t)index];
             datum_index object_index = self->object_index;
@@ -307,10 +308,10 @@ void update(void)
                 if (*(uint32_t *)&definition->runtime_scripting_sound == (uint32_t)index) {
                     *(uint32_t *)&definition->runtime_scripting_sound = (uint32_t)k_datum_index_none;
                 }
-                datum_delete(game_looping_sound_data, index);
+                halo::memory::datum_delete(game_looping_sound_data, index);
             }
 
-            index = datum_next((int16_t)index, game_looping_sound_data);
+            index = halo::memory::datum_next((int16_t)index, game_looping_sound_data);
         }
 
         game_sound_globals_ptr->update_count += 1;
@@ -320,7 +321,7 @@ void update(void)
 
 void stop_loops_conflicting_with_music(void)
 {
-    datum_index index = datum_next(-1, game_looping_sound_data);
+    datum_index index = halo::memory::datum_next(-1, game_looping_sound_data);
 
     while (index != k_datum_index_none) {
         game_looping_sound *self = &((game_looping_sound *)game_looping_sound_data->data)[(uint16_t)index];
@@ -344,7 +345,7 @@ void stop_loops_conflicting_with_music(void)
             }
         }
 
-        index = datum_next((int16_t)index, game_looping_sound_data);
+        index = halo::memory::datum_next((int16_t)index, game_looping_sound_data);
     }
 }
 

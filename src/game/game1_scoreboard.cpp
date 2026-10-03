@@ -14,6 +14,7 @@
 #include "networking.h"
 
 #include "halo/game/game1_scoreboard.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -31,7 +32,6 @@ extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entr
 extern void game_engine_get_player_scoreboard_entry(datum_index player_handle, scoreboard_entry *out);
 extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type,
     datum_index subject, size_t buffer_size);
-extern void *data_iterator_next(data_iterator *iterator);
 extern void qsort(void *base, uint32_t count, uint32_t size,
     uint32_t (*compare)(const void *, const void *));
 extern uint32_t scoreboard_entry_compare_by_unknown_04(const scoreboard_entry *a,
@@ -267,7 +267,7 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     count = 0;
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     entry = out_entries;
     if (p != (player *)0) {
         while (p != (player *)0) {
@@ -276,7 +276,7 @@ int32_t Scoreboard::build_sorted_player_list(uint8_t invert_low_stat, scoreboard
                 count = count + 1;
                 entry = entry + 1;
             }
-            p = (player *)data_iterator_next(&iterator);
+            p = (player *)halo::memory::data_iterator_next(&iterator);
         }
     }
 
@@ -371,7 +371,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
         iter.index = (datum_index)0xffffffff;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-        p = (player *)data_iterator_next(&iter);
+        p = (player *)halo::memory::data_iterator_next(&iter);
         while (p != (player *)0) {
             if (p->team == bucket && p->marked_for_deletion == 0) {
                 int32_t value = *(int16_t *)((uint8_t *)p + 0xc6);
@@ -388,7 +388,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                 }
                 count++;
             }
-            p = (player *)data_iterator_next(&iter);
+            p = (player *)halo::memory::data_iterator_next(&iter);
         }
 
         game_engine_bucket_scores[bucket] = aggregate;
@@ -492,7 +492,7 @@ uint32_t Scoreboard::compare_score_to_others(uint32_t subject, int32_t team_mode
         iter.index = (datum_index)0xffffffff;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
             player *entry = (player *)element;
             uint8_t skip;
@@ -528,7 +528,7 @@ uint32_t Scoreboard::compare_score_to_others(uint32_t subject, int32_t team_mode
                 }
             }
         next:
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         }
     }
 
@@ -568,7 +568,7 @@ uint8_t Scoreboard::find_first_eligible_player_on_team(int32_t team)
     iterator.next_index = 0;
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     if (p == (player *)0) {
         return 0;
     }
@@ -591,7 +591,7 @@ uint8_t Scoreboard::find_first_eligible_player_on_team(int32_t team)
             break;
         }
 
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
         if (p == (player *)0) {
             return 0;
         }
@@ -620,10 +620,10 @@ void Scoreboard::find_player_by_name(char *source_name)
         iter.next_index = 0;
         iter.index = k_datum_index_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
             wcscmp((wchar_t *)((uint8_t *)element + 4), name);
-            element = data_iterator_next(&iter);
+            element = halo::memory::data_iterator_next(&iter);
         }
     }
 }
@@ -645,7 +645,7 @@ datum_index Scoreboard::find_player_holding_object(datum_index target_object)
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iter);
+    p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         if (p->unit != (datum_index)0xffffffff) {
             object *unit_obj = ((object_header *)object_data->data)[(uint32_t)p->unit & 0xffff].data;
@@ -657,7 +657,7 @@ datum_index Scoreboard::find_player_holding_object(datum_index target_object)
                 }
             }
         }
-        p = (player *)data_iterator_next(&iter);
+        p = (player *)halo::memory::data_iterator_next(&iter);
     }
     return (datum_index)0xffffffff;
 }
@@ -853,7 +853,7 @@ uint32_t Scoreboard::is_tracked_object_winner(int32_t team)
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    for (element = data_iterator_next(&iter); element != 0; element = data_iterator_next(&iter)) {
+    for (element = halo::memory::data_iterator_next(&iter); element != 0; element = halo::memory::data_iterator_next(&iter)) {
         player *p = (player *)element;
         if (p->team == team) {
             break;

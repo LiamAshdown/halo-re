@@ -1,5 +1,6 @@
 #include "halo/ai/actor_core.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
@@ -311,9 +312,7 @@ extern void actor_unlink_unit(datum_index actor_index);
 extern void actor_delete_swarm(datum_index actor_index);
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern void actor_clear_perceived_props(datum_index actor_index);
-extern void * data_iterator_next(data_iterator *iterator);
 extern void ai_conversation_clear_participant(datum_index actor_index);
-extern void datum_delete(data_array *array, datum_index handle);
 }
 }
 
@@ -354,16 +353,16 @@ void halo::ai::actor_ref::delete_(uint32_t flag)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (prop *)data_iterator_next(&iterator);
+    p = (prop *)halo::memory::data_iterator_next(&iterator);
     while (p != 0) {
         if (p->owner_actor_index == actor_index) {
             p->owner_actor_index = (datum_index)k_datum_index_none;
         }
-        p = (prop *)data_iterator_next(&iterator);
+        p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
 
     ai_conversation_clear_participant(actor_index);
-    datum_delete(actor_data, actor_index);
+    halo::memory::datum_delete(actor_data, actor_index);
 }
 
 extern "C" void actor_delete(datum_index actor_index, uint32_t flag)
@@ -491,7 +490,6 @@ extern data_array *actor_data;
 
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
 extern void actor_scan_ally_death_panic_reaction(datum_index target_prop_index, datum_index actor_index);
-extern void * datum_get(datum_index handle, data_array *array);
 extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
     datum_index owner_reference, datum_index pair_reference);
 }
@@ -519,7 +517,7 @@ void halo::ai::actor_ref::dispatch_squad_order(datum_index prop_index, const act
         prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
         if (p->owner_actor_index != (datum_index)k_datum_index_none) {
             datum_index ordered = *(datum_index *)((uint8_t *)order + 0x18);
-            prop *other = (prop *)datum_get(ordered, prop_data);
+            prop *other = (prop *)halo::memory::datum_get(ordered, prop_data);
 
             if (other != 0) {
                 actor_target_data_acquire(actor_index, other->object_index, p->owner_actor_index, ordered);
@@ -995,7 +993,6 @@ extern "C" {
 extern ai_globals *ai_globals_ptr;
 extern data_array *actor_data;
 
-extern void *data_iterator_next(data_iterator *iterator);
 }
 }
 
@@ -1019,7 +1016,7 @@ actor * halo::ai::actor_ref::iterator_next(actor_iterator_state *iterator)
 
     next = iterator->next_actor_index;
     while (next == (datum_index)k_datum_index_none) {
-        encounter *enc = (encounter *)data_iterator_next((data_iterator *)iterator);
+        encounter *enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)iterator);
         if (enc == 0) {
             if (iterator->encounterless_done == 0) {
                 iterator->next_actor_index = ai_globals_ptr->first_encounterless_actor;
@@ -1063,7 +1060,6 @@ extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index 
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_unlink_unit(datum_index actor_index);
 extern void swarm_add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index);
-extern datum_index datum_new(data_array *array);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
 extern void object_mark_pending_delete(datum_index object_index);
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_index, uint8_t initial_targeting_flag);
@@ -1093,7 +1089,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     }
 
     if (self->swarm_index != (datum_index)k_datum_index_none) {
-        new_component = datum_new(swarm_component_data);
+        new_component = halo::memory::datum_new(swarm_component_data);
         if (new_component == (datum_index)k_datum_index_none) {
             return 0;
         }

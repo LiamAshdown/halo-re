@@ -1,5 +1,6 @@
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -86,7 +87,6 @@ extern uint8_t update_server_new(void);
 extern void players_dispose(void);
 extern void hs_scripts_reload(void);
 extern void interface_local_player_state_reset(void);
-extern void data_delete_all(data_array *array);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
@@ -114,7 +114,6 @@ extern void decal_clear_flags(uint8_t clear_object_attached);
 extern void particle_systems_delete_all(void);
 extern void update_queues_dispose(void);
 extern void hs_scripts_free(void);
-extern void cache_flush(cache *self);
 extern void objects_flush_dirty_state(void);
 extern void font_glyph_cache_clear_all(void);
 extern void game_sound_revert_scripting_sounds(void);
@@ -276,7 +275,7 @@ void GameLifecycle::start_new_map(void)
 
     objects_reset();
     object_render_state_cache->valid = 1;
-    data_delete_all(object_render_state_cache);
+    halo::memory::data_delete_all(object_render_state_cache);
 
     dst = detail_objects;
     for (i = 0x290c; i != 0; i = i - 1) {
@@ -296,31 +295,31 @@ void GameLifecycle::start_new_map(void)
     dst[1] = 0;
     dst[2] = 0;
     decal_data->valid = 1;
-    data_delete_all(decal_data);
+    halo::memory::data_delete_all(decal_data);
 
     camera_initialize();
     observer_new(&observers[0]);
 
     contrail_data->valid = 1;
-    data_delete_all(contrail_data);
+    halo::memory::data_delete_all(contrail_data);
     contrail_point_data->valid = 1;
-    data_delete_all(contrail_point_data);
+    halo::memory::data_delete_all(contrail_point_data);
     particle_data->valid = 1;
-    data_delete_all(particle_data);
+    halo::memory::data_delete_all(particle_data);
     effect_data->valid = 1;
-    data_delete_all(effect_data);
+    halo::memory::data_delete_all(effect_data);
     effect_location_data->valid = 1;
-    data_delete_all(effect_location_data);
+    halo::memory::data_delete_all(effect_location_data);
     *((uint8_t *)particle_system_data + 0x24) = 1;
-    data_delete_all((data_array *)particle_system_data);
+    halo::memory::data_delete_all((data_array *)particle_system_data);
     particle_system_particle_data->valid = 1;
-    data_delete_all(particle_system_particle_data);
+    halo::memory::data_delete_all(particle_system_particle_data);
 
     if (sound_disabled == 0) {
         *((uint8_t *)sound_data + 0x24) = 1;
-        data_delete_all((data_array *)sound_data);
+        halo::memory::data_delete_all((data_array *)sound_data);
         *((uint8_t *)looping_sound_data + 0x24) = 1;
-        data_delete_all((data_array *)looping_sound_data);
+        halo::memory::data_delete_all((data_array *)looping_sound_data);
     }
 
     record = (uint8_t *)sound_class_gains + 8;
@@ -335,7 +334,7 @@ void GameLifecycle::start_new_map(void)
 
     if (game_looping_sound_data != (data_array *)0) {
         game_looping_sound_data->valid = 1;
-        data_delete_all(game_looping_sound_data);
+        halo::memory::data_delete_all(game_looping_sound_data);
         game_sound_globals_ptr[1] = 0xffffffff;
         game_sound_globals_ptr[0] = 0;
         game_sound_globals_ptr[2] = 0;
@@ -344,7 +343,7 @@ void GameLifecycle::start_new_map(void)
     weather_instances = -1;
     weather_instance_count = 0;
     weather_particle_data->valid = 1;
-    data_delete_all(weather_particle_data);
+    halo::memory::data_delete_all(weather_particle_data);
 
     k_air_density = unknown_0069c534 * 118613.34f;
     k_water_density = unknown_0069c530 * 118613.34f;
@@ -375,7 +374,7 @@ void GameLifecycle::start_new_map(void)
     cinematic_saved_music_gain = 0xbf800000;
     hs_scripts_reload();
     *((uint8_t *)recorded_animations + 0x24) = 1;
-    data_delete_all((data_array *)recorded_animations);
+    halo::memory::data_delete_all((data_array *)recorded_animations);
 
     main_game_globals->active = 1;
     *object_globals_pointer = 1;
@@ -416,7 +415,7 @@ void GameLifecycle::stop_current_map(void)
     }
     if (rasterizer_decal_vertex_cache_handle != 0) {
         decal_clear_flags(1);
-        cache_flush((cache *)rasterizer_decal_vertex_cache_handle);
+        halo::memory::cache_flush((cache *)rasterizer_decal_vertex_cache_handle);
     }
     decal_data->valid = 0;
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {

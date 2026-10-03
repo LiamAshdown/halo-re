@@ -16,6 +16,7 @@
 #include "units.h"
 
 #include "halo/input/game_actions.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::input {
 
@@ -729,7 +730,6 @@ extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern data_array *player_data; }
 extern "C" { extern data_array *object_data; }
 extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern void *datum_get(datum_index handle, data_array *array); }
 extern "C" { extern object *object_try_and_get(datum_index object_index, uint32_t type_mask); }
 namespace halo::input {
 
@@ -759,7 +759,7 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
     if (player_handle == (datum_index)0xffffffff) {
         return 0;
     }
-    player_record = datum_get(player_handle, player_data);
+    player_record = halo::memory::datum_get(player_handle, player_data);
     if (player_record == (void *)0) {
         return 0;
     }

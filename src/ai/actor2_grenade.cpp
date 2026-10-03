@@ -1,5 +1,6 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::ai {
 
@@ -134,7 +135,6 @@ extern data_array *prop_data;
 extern tag_instance *tag_instances;
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
-extern void *datum_get(datum_index handle, data_array *array);
 extern int32_t fistp_round(float x);
 }
 }
@@ -180,7 +180,7 @@ void ActorView::schedule_grenade_throw()
     if (((actor *)a)->mode == 0xb && !a[0x9f]) {
         return;
     }
-    if (*(int16_t *)request == 1 && datum_get(*(datum_index *)(request + 0x4), prop_data) == 0) {
+    if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), prop_data) == 0) {
         return;
     }
     delay = (((actor *)a)->awareness_level < 3 || ((struct actor *)a)->combat_status == 0) ? 2.4f : 1.2f;

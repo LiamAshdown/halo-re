@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -58,7 +59,6 @@ extern const real_point3d *global_origin3d_pointer;
 extern uint8_t network_client_vehicle_ack_enabled;
 extern int32_t server_maximum_queued_client_updates;
 extern int32_t server_maximum_pending_client_update_ticks;
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
@@ -481,8 +481,8 @@ void Players::server_catchup_on_client_updates()
     player_iter.index = (datum_index)-1;
     player_iter.signature = (uint32_t)(uintptr_t)player_data ^ k_data_iterator_signature;
 
-    for (plr = (player *)data_iterator_next(&player_iter); plr != 0;
-         plr = (player *)data_iterator_next(&player_iter)) {
+    for (plr = (player *)halo::memory::data_iterator_next(&player_iter); plr != 0;
+         plr = (player *)halo::memory::data_iterator_next(&player_iter)) {
         player_update_queue *queue;
 
         if (plr->local_player_index != -1) {
@@ -611,7 +611,7 @@ void StructureBsp::switch_structure_bsp()
     player_iter.index = (datum_index)-1;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
 
-    plr = (player *)data_iterator_next(&player_iter);
+    plr = (player *)halo::memory::data_iterator_next(&player_iter);
     while (plr != (player *)0) {
         player_handle = player_iter.index;
 
@@ -694,7 +694,7 @@ void StructureBsp::switch_structure_bsp()
             player_update_nearby_interactions_primary(player_handle);
         }
 
-        plr = (player *)data_iterator_next(&player_iter);
+        plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
     {

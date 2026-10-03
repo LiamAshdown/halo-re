@@ -1,12 +1,8 @@
 #include "halo/objects/object_block_storage.hpp"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
-extern int32_t block_list_allocate(memory_pool *arena, int32_t requested_size, void **owner);
-extern int32_t block_list_reallocate(void **owner_cell, int32_t new_size, memory_pool *arena);
-extern void datum_delete(data_array *array, datum_index handle);
-extern datum_index datum_new(data_array *array);
-extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern data_array *object_data;
 extern memory_pool *object_memory_pool;
 }
@@ -18,12 +14,12 @@ extern memory_pool *object_memory_pool;
  */
 datum_index halo::objects::ObjectBlockStorage::create(int32_t specific_index, data_array *array, int16_t size)
 {
-    datum_index handle = (specific_index == -1) ? datum_new(array) : datum_new_at_index_with_salt(specific_index, array);
+    datum_index handle = (specific_index == -1) ? halo::memory::datum_new(array) : halo::memory::datum_new_at_index_with_salt(specific_index, array);
 
     if (handle != k_datum_index_none) {
         object_header *header = (object_header *)array->data + (handle & 0xffff);
 
-        if (block_list_allocate(object_memory_pool, size, (void **)&header->data) != 0) {
+        if (halo::memory::block_list_allocate(object_memory_pool, size, (void **)&header->data) != 0) {
             uint8_t *data = (uint8_t *)header->data;
             int16_t i;
             header->block_size = size;
@@ -33,7 +29,7 @@ datum_index halo::objects::ObjectBlockStorage::create(int32_t specific_index, da
             return handle;
         }
 
-        datum_delete(array, handle);
+        halo::memory::datum_delete(array, handle);
         handle = k_datum_index_none;
     }
 
@@ -68,7 +64,7 @@ void halo::objects::ObjectBlockStorage::release(data_array *array, datum_index h
         }
     }
 
-    datum_delete(array, handle);
+    halo::memory::datum_delete(array, handle);
     header->data = 0;
     header->flags = 0;
 }
@@ -86,7 +82,7 @@ uint8_t halo::objects::ObjectBlockStorage::grow(uint32_t object_index, int16_t f
     uint8_t *data;
     object_block_reference *field;
 
-    if ((uint8_t)block_list_reallocate((void **)&header->data, (int32_t)header->block_size + extra,
+    if ((uint8_t)halo::memory::block_list_reallocate((void **)&header->data, (int32_t)header->block_size + extra,
             object_memory_pool) == 0) {
         return 0;
     }

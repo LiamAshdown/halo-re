@@ -1,5 +1,6 @@
 #include "halo/networking/net1_channel.hpp"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t network_buffer_pair_pool;
@@ -9,7 +10,6 @@ extern network_channel_list *network_channel_list_new(int16_t requested_capacity
 extern int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list);
 extern network_receive_queue *network_receive_queue_new(void);
 extern uint32_t network_listen_start(network_receive_queue *queue);
-extern circular_buffer *circular_buffer_new(char *name, int32_t requested_size);
 extern void network_channel_delete(network_channel *channel);
 extern void network_channel_record_timestamp(network_channel *channel);
 extern void network_channel_stream_init(network_channel_stream *stream);
@@ -79,8 +79,6 @@ extern void server_browser_ui_refresh(void);
 extern void network_receive_queue_free(network_receive_queue *queue);
 extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list);
 extern int32_t network_bit_chunk_size;
-extern uint32_t circular_buffer_read(uint8_t *destination, uint32_t byte_count, char consume, circular_buffer *stream);
-extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream);
 extern int32_t network_pending_connection_count;
 extern int32_t network_channel_list_mark_readable(network_channel_list *list);
 extern network_receive_queue *network_listen_accept_pending_connection(void);
@@ -88,7 +86,6 @@ extern uint32_t network_listen_reject_pending_connection(int32_t reject_code);
 extern network_channel *network_channel_new_child(network_receive_queue *endpoint);
 extern char network_channel_transmit(network_channel *channel);
 extern int32_t network_server_validate_join_request(network_receive_queue *listen_endpoint);
-extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data, uint8_t *header_data, int32_t priority, uint32_t header_bits, uint32_t body_bits);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern int64_t performance_frequency;
@@ -103,7 +100,6 @@ extern void network_channel_scan_retransmit_timeouts(network_channel *channel);
 extern char network_channel_listen_service(network_channel *channel, network_channel **out_new_child);
 extern network_server_globals *network_server;
 extern uint8_t network_disconnect_timeout_flag;
-extern int32_t circular_buffer_write(uint8_t *data, uint32_t byte_count, circular_buffer *stream);
 extern uint8_t network_channel_key_resolve_target(network_player_entry *entry);
 extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index, int16_t local_player_index, uint16_t *identifier_record);
 extern int32_t player_new_network(int32_t machine_index, int16_t machine_player_index);
@@ -223,7 +219,7 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
         ((flags & k_network_channel_listening) == 0 ||
          (network_listen_start(channel->endpoint) == 0 &&
           network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
-        channel->incoming = circular_buffer_new((char *)"transport-incoming", 0);
+        channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
         if (channel->incoming != 0) {
             goto primed;
         }
@@ -261,7 +257,7 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
     if (channel != 0) {
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
-        channel->incoming = circular_buffer_new((char *)"transport-incoming", 0);
+        channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
         network_channel_record_timestamp(channel);
         channel->reliable_count = 0;
         channel->reliable = 0;
@@ -973,7 +969,7 @@ int32_t ChannelView::incoming_read_item(uint8_t *destination, int32_t *out_bit_o
         return 0;
     }
     item_length = 0;
-    if (circular_buffer_read(peeked, 2, 0, incoming) == 0) {
+    if (halo::memory::circular_buffer_read(peeked, 2, 0, incoming) == 0) {
         return 0;
     }
     chunk_size = network_bit_chunk_size;
@@ -983,7 +979,7 @@ int32_t ChannelView::incoming_read_item(uint8_t *destination, int32_t *out_bit_o
     length_stream.byte_cursor = 0;
     length_stream.bit_cursor = 0;
     length_stream.last_bit = 0xf;
-    consumed_bits = bit_stream_read_bits_chunked(chunk_size, (uint32_t *)&item_length, &length_stream);
+    consumed_bits = halo::memory::bit_stream_read_bits_chunked(chunk_size, (uint32_t *)&item_length, &length_stream);
     if (consumed_bits != chunk_size) {
         return 0;
     }
@@ -996,7 +992,7 @@ int32_t ChannelView::incoming_read_item(uint8_t *destination, int32_t *out_bit_o
                 available2 = available2 + incoming->capacity;
             }
             if (item_length <= available2) {
-                circular_buffer_read(destination, item_length, 1, incoming);
+                halo::memory::circular_buffer_read(destination, item_length, 1, incoming);
                 if (out_address != 0) {
                     if (network_channel_get_remote_address(out_address, channel->endpoint) != 0) {
                         out_address->ipv4 = 0;
@@ -1177,9 +1173,9 @@ char ChannelView::queue_message(uint32_t header_value, uint32_t body_value, int3
             }
         }
         channel->send_budget = channel->send_budget + body_bit_count + header_bit_count;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)header_value, header_bit_count);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)header_value, header_bit_count);
         channel->outgoing.empty = 0;
-        bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)body_value, body_bit_count);
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)body_value, body_bit_count);
         channel->outgoing.empty = 0;
         if (flush_after != 1) {
             return result;
@@ -1419,9 +1415,9 @@ void ChannelView::scan_retransmit_timeouts()
                                     channel->retransmit.stream.bit_cursor + 1;
                         if (message_bits <= free_bits ||
                             network_channel_stream_flush(&channel->retransmit, channel, 0) != 0) {
-                            bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->header, slot->header_bits);
+                            halo::memory::bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->header, slot->header_bits);
                             channel->retransmit.empty = 0;
-                            bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->body, slot->body_bits);
+                            halo::memory::bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->body, slot->body_bits);
                             channel->retransmit.empty = 0;
                         }
                         channel->send_budget = channel->send_budget + message_bits;
@@ -1698,7 +1694,7 @@ char ChannelView::transmit()
         if (count > 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
-            circular_buffer_write(scratch, (uint32_t)count, channel->incoming);
+            halo::memory::circular_buffer_write((uint32_t)count, channel->incoming, scratch);
         } else {
             if (count == -4) {
                 break;
@@ -1994,7 +1990,7 @@ char ChannelStreamView::flush(network_channel *channel, char mode)
         stream->stream.byte_cursor = first_bit >> 3;
         stream->stream.bit_cursor = first_bit & 7;
 
-        send_result = bit_stream_write_bits_chunked(&stream->stream, (const uint32_t *)&byte_count, network_bit_chunk_size);
+        send_result = halo::memory::bit_stream_write_bits_chunked(&stream->stream, (const uint32_t *)&byte_count, network_bit_chunk_size);
         if (send_result == network_bit_chunk_size) {
             do {
                 if (channel->endpoint->connection_failed == 1) {
@@ -2018,7 +2014,7 @@ char ChannelStreamView::flush(network_channel *channel, char mode)
     }
     {
         uint32_t zero = 0;
-        bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
+        halo::memory::bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
     }
     channel->send_budget = channel->send_budget + 0xe0;
     channel->budget_base_tick = GetTickCount();
@@ -2051,7 +2047,7 @@ void ChannelStreamView::init()
     stream->empty = 1;
     {
         uint32_t zero = 0;
-        bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
+        halo::memory::bit_stream_write_bits_chunked(&stream->stream, &zero, network_bit_chunk_size);
     }
 }
 

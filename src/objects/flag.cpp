@@ -1,14 +1,11 @@
 #include "halo/objects/flag.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
 extern int32_t __ftol(double);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void data_delete_all(data_array *array);
-extern void datum_delete(data_array *array, datum_index index);
-extern datum_index datum_new(data_array *array);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void flag_cloth_init_shape_constraints(flag *entry);
 extern void flag_cloth_mark_border_cells(flag *entry);
 extern void flag_cloth_stamp_region_split_flags(int16_t outer_start, Flag *tag, flag *entry, int16_t inner_start, int16_t size, uint16_t split_code);
@@ -59,7 +56,7 @@ void halo::objects::FlagSystem::initialize()
 void halo::objects::FlagSystem::dispose()
 {
     flag_data->valid = 1;
-    data_delete_all(flag_data);
+    halo::memory::data_delete_all(flag_data);
 }
 
 /**
@@ -102,7 +99,7 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
     if (flag_tag != (datum_index)0xffffffff) {
         Flag *tag = (Flag *)tag_instances[flag_tag & 0xffff].data;
 
-        handle = datum_new(flag_data);
+        handle = halo::memory::datum_new(flag_data);
         if (handle != (datum_index)0xffffffff) {
             flag *entry = &((flag *)flag_data->data)[handle & 0xffff];
 
@@ -279,7 +276,7 @@ void halo::objects::FlagView::cloth_stamp_region_split_flags(int16_t outer_start
  */
 void halo::objects::FlagSystem::destroy(datum_index flag_index)
 {
-    datum_delete(flag_data, flag_index);
+    halo::memory::datum_delete(flag_data, flag_index);
 }
 
 /**
@@ -317,7 +314,7 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
 void halo::objects::FlagSystem::update(float dt)
 {
     data_array *flags = flag_data;
-    datum_index current = datum_next(-1, flags);
+    datum_index current = halo::memory::datum_next(-1, flags);
 
     for (;;) {
         int32_t next_index;

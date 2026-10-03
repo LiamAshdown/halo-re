@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include "halo/game/game1_clock.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_main_globals *main_game_globals;
@@ -37,10 +38,8 @@ extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, ch
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t game_engine_players_ready_for_bsp_switch_strict(void);
 extern int32_t game_engine_get_time_remaining(void);
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type,
@@ -171,7 +170,7 @@ void SimulationClock::allocate_tick_record(void)
     int32_t record_size = 0x20;
 
     game_state_cursor = game_state_cursor + 0x20;
-    crc32_update(&game_state_crc, (uint8_t *)&record_size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&record_size, 4);
 
     memset(record, 0, sizeof(*record));
 
@@ -234,11 +233,11 @@ announce:
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
-    p = (player *)data_iterator_next(&iterator);
+    p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
         chimera__kill_feed(iterator.index, (int32_t)iterator.index, 0x1e,
                             (datum_index)time_remaining, 1);
-        p = (player *)data_iterator_next(&iterator);
+        p = (player *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
 }
@@ -260,13 +259,13 @@ void SimulationClock::apply_catchup_speed_boost(void)
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iter);
+    p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         int16_t value = *(int16_t *)((uint8_t *)p + 0xc6);
         if (leader <= value) {
             leader = value;
         }
-        p = (player *)data_iterator_next(&iter);
+        p = (player *)halo::memory::data_iterator_next(&iter);
     }
 
     iter.data = player_data;
@@ -274,7 +273,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
     iter.index = (datum_index)0xffffffff;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    p = (player *)data_iterator_next(&iter);
+    p = (player *)halo::memory::data_iterator_next(&iter);
     while (p != (player *)0) {
         float speed = 1.0f;
         int32_t gap = leader - *(int16_t *)((uint8_t *)p + 0xc6);
@@ -289,7 +288,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
             speed = 1.2f;
         }
         p->speed = speed;
-        p = (player *)data_iterator_next(&iter);
+        p = (player *)halo::memory::data_iterator_next(&iter);
     }
 }
 

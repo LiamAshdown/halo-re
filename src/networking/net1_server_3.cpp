@@ -1,5 +1,6 @@
 #include "halo/networking/net1_server.hpp"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int64_t performance_frequency;
@@ -16,8 +17,18 @@ extern uint8_t network_server_any_machine_awaiting_flag(network_server_globals *
 extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
 extern uint16_t network_challenge_packet_block;
 extern uint8_t network_broadcast_body[1536];
-extern int32_t data_packet_group_encode_packet(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
 extern char network_session_send_to_machine(int32_t a, void *packet, int32_t byte_count, int32_t b, int32_t c, int32_t d, int32_t e);
+}
+
+/**
+ * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
+ * different list, so the call reads whatever the original left in the registers it takes the rest in.
+ * Unresolved until the callers are reversed.
+ */
+static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version)
+{
+    using call_t = int32_t (*)(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
+    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
 }
 
 namespace halo::networking {
@@ -191,7 +202,7 @@ void HostServerView::full_state_broadcast()
             if ((machine->flags & 2) != 0 || (machine->flags & 0x10) != 0) {
                 tick = timestamp;
                 capacity = 0x600;
-                encode_ok = (char)data_packet_group_encode_packet(encode_buffer, &capacity, 0x21, 1);
+                encode_ok = (char)data_packet_group_encode_packet_unresolved(encode_buffer, &capacity, 0x21, 1);
                 (void)tick;
                 if (encode_ok != 0) {
                     network_challenge_packet_block = ((int16_t)capacity + 2) * 0x10 | 0xc;

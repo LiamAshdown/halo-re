@@ -1,5 +1,6 @@
 #include "halo/effects/effects.hpp"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
@@ -22,8 +23,6 @@ extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t spr
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
-extern datum_index cache_allocate_block(cache *self, uint32_t requested_bytes);
-extern void cache_evict_entry(datum_index handle, cache *self);
 extern void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count);
 void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t requested_sequence_index);
 }
@@ -484,7 +483,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             block_count += ((int32_t)accumulator.visited_surfaces[k] - 1) / 2;
         }
 
-        geometry_handle = cache_allocate_block(rasterizer_decal_vertex_cache_handle,
+        geometry_handle = halo::memory::cache_allocate_block(rasterizer_decal_vertex_cache_handle,
             (uint32_t)((int32_t)(int16_t)block_count << 6));
         if (geometry_handle == k_datum_index_none) {
             return;
@@ -492,14 +491,14 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
         decal_index = decal_new(geometry_handle, placement->leaf.cluster_index, (int16_t)definition->layer,
             k_datum_index_none, object_attached);
         if (decal_index == k_datum_index_none) {
-            cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
+            halo::memory::cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
             return;
         }
         self = &((decal *)decal_data->data)[(uint16_t)decal_index];
         out = (decal_place_vertex *)rasterizer_decal_vertex_cache_lock(geometry_handle,
             (int32_t)(int16_t)block_count << 6);
         if (out == 0) {
-            cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
+            halo::memory::cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
             return;
         }
 

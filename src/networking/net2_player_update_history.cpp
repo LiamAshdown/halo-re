@@ -17,10 +17,10 @@
 #include <wchar.h>
 #include "crt.h"
 #include "halo/networking/net2_player_update_history.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
-extern void * data_iterator_next(data_iterator *iterator);
 extern data_array * object_data;
 extern game_time_globals * game_time;
 extern uint8_t player_unit_has_parent(datum_index player_handle);
@@ -80,7 +80,7 @@ int32_t PlayerUpdateHistory::advance(int16_t step_count)
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
-    element = data_iterator_next(&iter);
+    element = halo::memory::data_iterator_next(&iter);
     if (element == 0) {
         return -1;
     }
@@ -88,7 +88,7 @@ int32_t PlayerUpdateHistory::advance(int16_t step_count)
         if (step_count == -1) {
             return -1;
         }
-        element = data_iterator_next(&iter);
+        element = halo::memory::data_iterator_next(&iter);
     } while (element != 0);
     return -1;
 }
@@ -541,9 +541,9 @@ void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    candidate = (player *)data_iterator_next(&iter);
+    candidate = (player *)halo::memory::data_iterator_next(&iter);
     while (candidate != 0 && candidate->local_player_index == -1) {
-        candidate = (player *)data_iterator_next(&iter);
+        candidate = (player *)halo::memory::data_iterator_next(&iter);
     }
     if (candidate != 0) {
         unit_index = candidate->unit;
@@ -599,7 +599,7 @@ void PlayerUpdateHistory::flush_by_name(char *name)
     iter.next_index = 0;
     iter.index = k_datum_index_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
-    candidate = (player *)data_iterator_next(&iter);
+    candidate = (player *)halo::memory::data_iterator_next(&iter);
     while (candidate != 0) {
         if (wcscmp((wchar_t *)candidate->name, (wchar_t *)filter_name) == 0) {
             for (index = candidate->update_history.queue.read_index;
@@ -609,7 +609,7 @@ void PlayerUpdateHistory::flush_by_name(char *name)
             }
             players_find_local_owned_unclear();
         }
-        candidate = (player *)data_iterator_next(&iter);
+        candidate = (player *)halo::memory::data_iterator_next(&iter);
     }
 }
 

@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/memory/api.hpp"
 
 namespace halo::sound {
 
@@ -44,7 +45,7 @@ void assign(void)
     int16_t target_channel;
     datum_index occupant;
 
-    sound_handle = datum_next(-1, sound_data);
+    sound_handle = halo::memory::datum_next(-1, sound_data);
     while (sound_handle != 0xffffffff) {
         instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & 0xffff) * sizeof(sound));
 
@@ -81,7 +82,7 @@ void assign(void)
             }
         }
 
-        sound_handle = datum_next((int16_t)sound_handle, sound_data);
+        sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data);
     }
 }
 

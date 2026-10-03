@@ -1,11 +1,9 @@
 #include "halo/effects/effects.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
 extern tag_instance *tag_instances;
-extern datum_index datum_new(data_array *array);
-extern void datum_delete(data_array *array, datum_index handle);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern const ColorRGB *global_white_color;
 extern datum_index effect_new(datum_index definition_index, datum_index creator_object_index, uint8_t force_create);
@@ -48,11 +46,11 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
         Effect *tag = (Effect *)tag_instances[(uint16_t)definition_index].data;
 
         if ((force_create != 0 || (tag->flags & 4) == 0) && tag->events.count > 0) {
-            handle = datum_new(effect_data);
+            handle = halo::memory::datum_new(effect_data);
 
             if (handle == k_datum_index_none) {
                 if ((tag->flags & 4) != 0) {
-                    handle = datum_next(-1, effect_data);
+                    handle = halo::memory::datum_next(-1, effect_data);
                     if (handle == k_datum_index_none) {
                         return k_datum_index_none;
                     }
@@ -64,13 +62,13 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
                         if ((candidate_tag->flags & 4) == 0) {
                             break;
                         }
-                        handle = datum_next((int16_t)handle, effect_data);
+                        handle = halo::memory::datum_next((int16_t)handle, effect_data);
                         if (handle == k_datum_index_none) {
                             return k_datum_index_none;
                         }
                     }
-                    datum_delete(effect_data, handle);
-                    handle = datum_new(effect_data);
+                    halo::memory::datum_delete(effect_data, handle);
+                    handle = halo::memory::datum_new(effect_data);
                 }
                 if (handle == k_datum_index_none) {
                     return k_datum_index_none;

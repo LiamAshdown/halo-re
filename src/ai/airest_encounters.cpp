@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -54,7 +55,6 @@ extern int32_t actor_find_nearest_grenade_ally(datum_index actor_index, int32_t 
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
 extern float ticks_per_second;
-extern datum_index datum_new(data_array *array);
 extern int32_t __ftol(double value);
 extern void encounter_squad_reset_starting_location_mask(datum_index encounter_index, int16_t squad_index);
 extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index);
@@ -64,7 +64,6 @@ extern void encounter_release_stale_props(datum_index encounter_index);
 extern void encounter_choose_vocalizations(datum_index encounter_index);
 extern data_array *player_data;
 extern void *ai_actor_mode_dispatch_table;
-extern void *data_iterator_next(data_iterator *iterator);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
@@ -73,7 +72,6 @@ extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counter
 extern double sqrt(double x);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
 extern game_main_globals *main_game_globals;
 extern int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad);
 extern void encounter_recompute_morale(datum_index encounter_index);
@@ -91,8 +89,6 @@ extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void crc32_update(uint32_t *crc, void *data, int32_t length);
-extern void data_delete_all(data_array *array);
 extern void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition, int16_t *platoon_cursor);
 extern void encounter_spawn_squads(datum_index encounter_index, int16_t squad_filter, int16_t platoon_filter);
 extern void encounter_advance_grenade_timers(datum_index encounter_index);
@@ -1760,7 +1756,7 @@ void Encounters::create(int16_t *squad_cursor, ScenarioEncounter *definition, in
     int16_t respawn_budget;
     int16_t count;
 
-    encounter_index = datum_new(encounter_data);
+    encounter_index = halo::memory::datum_new(encounter_data);
     if (encounter_index == (datum_index)k_datum_index_none) {
         return;
     }
@@ -2261,7 +2257,7 @@ void EncounterView::redistribute_squads_toward_targets()
         player_iter.next_index = 0;
         player_iter.index = (datum_index)k_datum_index_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
-        player_record = data_iterator_next(&player_iter);
+        player_record = halo::memory::data_iterator_next(&player_iter);
         if (player_record == 0) {
             return;
         }
@@ -2270,7 +2266,7 @@ void EncounterView::redistribute_squads_toward_targets()
                 targets[(int16_t)target_count] = *(datum_index *)((uint8_t *)player_record + 0x34);
                 target_count = target_count + 1;
             }
-            player_record = data_iterator_next(&player_iter);
+            player_record = halo::memory::data_iterator_next(&player_iter);
         } while (player_record != 0);
     } else if (target_mode == 2) {
         datum_index cached_target = self->follow_target;
@@ -2622,7 +2618,7 @@ void EncounterView::release_stale_props()
                 props[p->pair_index & 0xffff].pair_index = (datum_index)k_datum_index_none;
                 actor_replace_object_reference(current, k_datum_index_none, prop_index);
                 actor_unlink_prop(current, prop_index);
-                datum_delete(prop_data, prop_index);
+                halo::memory::datum_delete(prop_data, prop_index);
             }
         }
     }
@@ -3056,12 +3052,12 @@ void Encounters::initialize()
     encounter_squad_states = (encounter_squad_state *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + 0x8000;
     reserved_size = 0x8000;
-    crc32_update(&game_state_crc, &reserved_size, 4);
+    halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
 
     encounter_platoon_states = (encounter_platoon_state *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + 0x1000;
     reserved_size = 0x1000;
-    crc32_update(&game_state_crc, &reserved_size, 4);
+    halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
 
     ai_pursuit_data = (data_array *)game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }
@@ -3097,7 +3093,7 @@ void Encounters::note_hostile_object(datum_index object_index)
 
     while (ai_globals_ptr->actors_valid != 0) {
         do {
-            enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+            enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
             if (enc == 0 || iterator.active_only == 0) {
                 break;
             }
@@ -3155,7 +3151,7 @@ void Encounters::recompute_dirty()
             return;
         }
         do {
-            enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+            enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
             if (enc == 0 || iterator.active_only == 0) {
                 break;
             }
@@ -3189,9 +3185,9 @@ void Encounters::reset()
     platoon_cursor = 0;
 
     encounter_data->valid = 1;
-    data_delete_all(encounter_data);
+    halo::memory::data_delete_all(encounter_data);
     ai_pursuit_data->valid = 1;
-    data_delete_all(ai_pursuit_data);
+    halo::memory::data_delete_all(ai_pursuit_data);
 
     zero = (uint32_t *)encounter_squad_states;
     for (i = 0x2000; i != 0; i = i - 1) {
@@ -3239,7 +3235,7 @@ void Encounters::spawn_initial()
             return;
         }
         do {
-            enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+            enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
             if (enc == 0 || iterator.active_only == 0) {
                 break;
             }
@@ -3288,7 +3284,7 @@ void Encounters::update()
             return;
         }
         do {
-            enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+            enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
             if (enc == 0 || iterator.active_only == 0) {
                 break;
             }
@@ -3450,7 +3446,7 @@ void Encounters::update_activation()
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
 
-    enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+    enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
     while (enc != 0) {
         definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
             [iterator.index & 0xffff];
@@ -3480,7 +3476,7 @@ void Encounters::update_activation()
             if (wants_active != 0 || overlaps != 0) {
                 enc->activation_delay = 0x96;
                 encounter_activate(iterator.index);
-                enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+                enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
                 continue;
             }
         }
@@ -3505,7 +3501,7 @@ void Encounters::update_activation()
         } else {
             enc->activation_delay = (int16_t)(enc->activation_delay - 0x1e);
         }
-        enc = (encounter *)data_iterator_next((data_iterator *)&iterator);
+        enc = (encounter *)halo::memory::data_iterator_next((data_iterator *)&iterator);
     }
 }
 
@@ -3804,7 +3800,7 @@ datum_index EncounterView::recent_object_get_or_create(int16_t type, int32_t min
     }
 
     if (create_if_missing != 0) {
-        datum_index new_handle = datum_new(ai_pursuit_data);
+        datum_index new_handle = halo::memory::datum_new(ai_pursuit_data);
         if (new_handle != (datum_index)k_datum_index_none) {
             ai_pursuit *new_pursuit = &((ai_pursuit *)ai_pursuit_data->data)[new_handle & 0xffff];
             new_pursuit->type = type;
@@ -3851,7 +3847,7 @@ void EncounterView::recent_object_list_clear()
     while (cursor != (datum_index)k_datum_index_none) {
         ai_pursuit *pursuit = &((ai_pursuit *)ai_pursuit_data->data)[cursor & 0xffff];
         enc->first_pursuit = pursuit->next;
-        datum_delete(ai_pursuit_data, cursor);
+        halo::memory::datum_delete(ai_pursuit_data, cursor);
         cursor = enc->first_pursuit;
     }
 }

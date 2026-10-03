@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 #include <string.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -74,7 +75,6 @@ extern hud_globals_flags *hud_flags;
 extern hud_messaging_globals *hud_messaging;
 extern hud_waypoint_state *hud_waypoints;
 extern motion_sensor_globals *motion_sensor;
-extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern HUDGlobals *hud_messaging_parameters;
 extern void motion_sensor_reset(void);
 extern void hud_weapon_interface_state_update(void);
@@ -839,32 +839,32 @@ void HudFrame::state_allocate(void)
     size = sizeof(hud_globals_flags);
     hud_flags = (hud_globals_flags *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_messaging_globals);
     hud_messaging = (hud_messaging_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_unit_meter_globals);
     hud_unit_meters = (hud_unit_meter_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_weapon_interface_state);
     hud_weapon_state = (hud_weapon_interface_state *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(hud_waypoint_state);
     hud_waypoints = (hud_waypoint_state *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 
     size = sizeof(motion_sensor_globals);
     motion_sensor = (motion_sensor_globals *)(game_state_cursor + (int32_t)game_state_base);
     game_state_cursor = game_state_cursor + size;
-    crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
 }
 
 /**

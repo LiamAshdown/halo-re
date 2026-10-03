@@ -5,11 +5,11 @@
 #include "networking.h"
 #include "cutscene.h"
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern int32_t animation_state_advance(uint32_t animation_graph_tag_index, void *state, int32_t *sound_tag_id, int32_t random_stream);
-extern void block_list_compact(memory_pool *arena);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern cinematic_globals *cinematic_globals_ptr;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
@@ -245,7 +245,7 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
         }
         if (place) {
             objects_garbage_collection();
-            block_list_compact(object_memory_pool);
+            halo::memory::block_list_compact(object_memory_pool);
             for (i = 0; i < (int32_t)placements->count; i++) {
                 uint8_t *placement = (uint8_t *)placements->pointer + i * size;
                 int16_t name = *(int16_t *)(placement + 2);

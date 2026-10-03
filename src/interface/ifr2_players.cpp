@@ -2,6 +2,7 @@
 #include "crt.h"
 #include <string.h>
 #include <wchar.h>
+#include "halo/memory/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -45,7 +46,6 @@ extern uint16_t empty_string[];
 extern heap *widget_memory_pool;
 extern void ui_profile_carousel_slot_cache_populate(int32_t count, const int32_t *candidate_ids);
 extern datum_index tag_lookup(tag_group group, char *path);
-extern void *heap_reallocate(void *old_payload, uint32_t new_size, heap *self);
 extern uint16_t *text_string_list_get_string(datum_index tag, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 extern int32_t ui_carousel_slot_compare_valid_first(const void *a, const void *b);
@@ -351,7 +351,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                 const uint8_t *profile = profile_carousel_slots[slot].profile;
                 uint16_t flags = *(const uint16_t *)(profile + 0x11c);
                 int16_t color = *(const int16_t *)(profile + 0x11a);
-                uint16_t *name = (uint16_t *)heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
+                uint16_t *name = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
 
                 widget->list_render_data = name;
                 if (name == 0) {
@@ -371,7 +371,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
 
                 name_row->background_bitmap_frame = (color < 0) ? 0 : (color > 0x11) ? 0x11 : color;
 
-                description_row->text = heap_reallocate(description_row->text, 0x200, widget_memory_pool);
+                description_row->text = halo::memory::heap_reallocate(description_row->text, 0x200, widget_memory_pool);
                 if (description_row->text == 0) {
                     return;
                 }
@@ -407,13 +407,13 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
         }
 
         if (widget->item_count == 0) {
-            uint16_t *text = (uint16_t *)heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
+            uint16_t *text = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
             widget->list_render_data = text;
             if (text != 0) {
                 text[0] = 0;
             }
             name_row->background_bitmap_frame = 0;
-            text = (uint16_t *)heap_reallocate(description_row->text, 4, widget_memory_pool);
+            text = (uint16_t *)halo::memory::heap_reallocate(description_row->text, 4, widget_memory_pool);
             description_row->text = text;
             if (text != 0) {
                 text[0] = 0;
@@ -602,7 +602,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
     i->state = 1;
     j->state = 1;
 
-    a->text = heap_reallocate(a->text, 0x18, widget_memory_pool);
+    a->text = halo::memory::heap_reallocate(a->text, 0x18, widget_memory_pool);
     if (a->text != 0) {
         uint16_t flags = *(const uint16_t *)(profile_record + 0x11c);
 

@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -12,7 +13,6 @@ extern wchar_t empty_string;
 extern datum_index tag_lookup(tag_group group, char *path);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
-extern void *datum_get(datum_index handle, data_array *array);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
@@ -20,7 +20,6 @@ extern int16_t network_game_mode;
 extern void game_engine_animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player);
 extern void game_engine_player_select_random_target(datum_index player_or_all);
 extern game_engine_definition *current_game_engine;
-extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags, int32_t changed_offset, int32_t destination_offset);
 extern uint8_t network_message_scratch[0x7ff8];
@@ -100,7 +99,7 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
         return 1;
     }
     if (message_type == 0x20) {
-        uint8_t *player = (uint8_t *)datum_get(subject, player_data);
+        uint8_t *player = (uint8_t *)halo::memory::datum_get(subject, player_data);
 
         if (player == 0) {
             return 0;
@@ -238,7 +237,7 @@ void SlayerEngine::player_new_life(datum_index player_index)
  */
 void SlayerEngine::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)datum_get(player_index, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
     data_iterator iterator;
     uint8_t *other;
 
@@ -251,7 +250,7 @@ void SlayerEngine::player_round_reset(datum_index player_index)
     iterator.next_index = 0;
     iterator.index = 0xffffffff;
     iterator.signature = (uint32_t)player_data ^ 0x69746572;
-    for (other = (uint8_t *)data_iterator_next(&iterator); other != 0; other = (uint8_t *)data_iterator_next(&iterator)) {
+    for (other = (uint8_t *)halo::memory::data_iterator_next(&iterator); other != 0; other = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
         if (*(datum_index *)(other + 0x88) == player_index) {
             *(int32_t *)(other + 0x88) = -1;
         }
@@ -360,7 +359,7 @@ void SlayerEngine::profiles_updated(int32_t mode, int32_t machine_index)
 uint8_t SlayerEngine::query_player_score(int32_t key, int32_t index, void *buffer)
 {
     uint32_t handle = players_get_active_by_index(index);
-    uint8_t *player = (uint8_t *)datum_get(handle, player_data);
+    uint8_t *player = (uint8_t *)halo::memory::datum_get(handle, player_data);
 
     if (player == 0 || key != 0x16) {
         return 0;

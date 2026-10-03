@@ -3,6 +3,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/math/api.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -16,10 +17,6 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
-extern void data_delete_all(data_array *array);
-extern void datum_delete(data_array *array, datum_index index);
-extern datum_index datum_new(data_array *array);
-extern datum_index datum_next(int16_t after_index, data_array *array);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -53,7 +50,7 @@ void halo::objects::AntennaSystem::initialize()
 void halo::objects::AntennaSystem::dispose()
 {
     antenna_data->valid = 1;
-    data_delete_all(antenna_data);
+    halo::memory::data_delete_all(antenna_data);
 }
 
 /**
@@ -96,7 +93,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
 
     if (antenna_tag != k_datum_index_none) {
         Antenna *tag = (Antenna *)tag_instances[antenna_tag & 0xffff].data;
-        handle = datum_new(antenna_data);
+        handle = halo::memory::datum_new(antenna_data);
 
         if (handle != k_datum_index_none) {
             antenna *ant = (antenna *)antenna_data->data + (handle & 0xffff);
@@ -172,7 +169,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
  */
 void halo::objects::AntennaSystem::destroy(datum_index antenna_index)
 {
-    datum_delete(antenna_data, antenna_index);
+    halo::memory::datum_delete(antenna_data, antenna_index);
 }
 
 /**
@@ -209,7 +206,7 @@ void halo::objects::AntennaSystem::render_callback(datum_index object_index, dat
  */
 void halo::objects::AntennaSystem::update(float dt)
 {
-    datum_index handle = datum_next(-1, antenna_data);
+    datum_index handle = halo::memory::datum_next(-1, antenna_data);
 
     while (handle != k_datum_index_none) {
         antenna *ant = (antenna *)antenna_data->data + (handle & 0xffff);
@@ -223,7 +220,7 @@ void halo::objects::AntennaSystem::update(float dt)
             }
         }
 
-        handle = datum_next((int16_t)handle, antenna_data);
+        handle = halo::memory::datum_next((int16_t)handle, antenna_data);
     }
 }
 

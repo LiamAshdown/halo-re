@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 
 #include <stdint.h>
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -14,8 +15,6 @@ extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern void datum_delete(data_array *array, datum_index handle);
-extern void * data_iterator_next(data_iterator *iterator);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
 extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
@@ -187,18 +186,18 @@ void AiObjects::clear_object_references(datum_index object_index)
     iterator.next_index = 0;
     iterator.index = (datum_index)k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    p = (prop *)data_iterator_next(&iterator);
+    p = (prop *)halo::memory::data_iterator_next(&iterator);
     while (p != 0) {
         if (p->object_index == object_index) {
             actor_replace_object_reference(p->actor_index, 0xffffffff, iterator.index);
             actor_unlink_prop(p->actor_index, iterator.index);
-            datum_delete(prop_data, iterator.index);
+            halo::memory::datum_delete(prop_data, iterator.index);
         } else if (p->relationship_object_index == (int32_t)object_index) {
             p->relationship_object_index = -1;
             p->is_vehicle_driver = 0;
             p->is_vehicle_gunner = 0;
         }
-        p = (prop *)data_iterator_next(&iterator);
+        p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
 
     ai_conversation_clear_object_references(object_index, 1);

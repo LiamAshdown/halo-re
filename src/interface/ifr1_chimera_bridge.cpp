@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/memory/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -60,7 +61,6 @@ extern void widget_close(widget_instance *widget);
 extern void list_node_prepend(widget_history_node *template_record, widget_history_node **head);
 extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_index, widget_instance *parent,
                                        uint16_t controller_index, UIWidgetDefinition *tag);
-extern void *heap_allocate(uint32_t size, heap *self);
 extern void sound_looping_stop(datum_index sound_tag);
 extern void sound_stop_all(void);
 extern void rasterizer_end_frame(void);
@@ -288,7 +288,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
         }
     }
     tag = (UIWidgetDefinition *)tag_instances[tag_index & 0xffff].data;
-    widget = (widget_instance *)heap_allocate(sizeof(widget_instance), widget_memory_pool);
+    widget = (widget_instance *)halo::memory::heap_allocate(sizeof(widget_instance), widget_memory_pool);
     if (widget == (widget_instance *)0) {
         return (widget_instance *)0;
     }
