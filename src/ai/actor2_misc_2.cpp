@@ -73,7 +73,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
 }
 
 namespace actor_refresh_combat_context_local {
-static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &ai_marker_name_b = halo::link::ref<char []>(halo::ai::vars().ai_marker_name_b);
 static uint8_t *object_get(datum_index object_index)
@@ -241,7 +241,7 @@ void ActorView::refresh_combat_context()
             } else {
                 int32_t bit = actor_team * 10 + child_team;
 
-                enemy = (((uint32_t *)(team_pair_data + 0xa4))[bit >> 5] & (1u << (bit & 0x1f))) == 0;
+                enemy = (team_pair_data->enemy_bits[bit >> 5] & (1u << (bit & 0x1f))) == 0;
             }
             if (enemy) {
                 self->enemy_child_attached = 1;

@@ -32,7 +32,7 @@ static auto &ai_vocalization_line_table = halo::link::ref<int16_t [4]>(halo::ai:
 static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-static auto &ai_actor_mode_dispatch_table = halo::link::ref<void *>(halo::ai::vars().ai_actor_mode_dispatch_table);
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 
@@ -2455,8 +2455,8 @@ void EncounterView::redistribute_squads_toward_targets()
                                 member->active_movement.extra = halo::k_dword_none;
                             }
                             {
-                                void (*dispatch)(datum_index) = *(void (**)(datum_index))
-                                    ((uint8_t *)&ai_actor_mode_dispatch_table + member->mode * 0x38);
+                                void (*dispatch)(datum_index) = (void (*)(datum_index))(uintptr_t)
+                                    actor_mode_definitions[member->mode].carry_over_proc;
                                 if (dispatch != 0) {
                                     dispatch(current_actor);
                                 }
@@ -2482,8 +2482,8 @@ void EncounterView::redistribute_squads_toward_targets()
                                         member->active_movement.extra = halo::k_dword_none;
                                     }
                                     {
-                                        void (*dispatch)(datum_index) = *(void (**)(datum_index))
-                                            ((uint8_t *)&ai_actor_mode_dispatch_table + member->mode * 0x38);
+                                        void (*dispatch)(datum_index) = (void (*)(datum_index))(uintptr_t)
+                                            actor_mode_definitions[member->mode].carry_over_proc;
                                         if (dispatch != 0) {
                                             dispatch(current_actor);
                                         }

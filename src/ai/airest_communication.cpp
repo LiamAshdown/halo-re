@@ -25,7 +25,7 @@ static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().
 static auto &global_structure_bsp_typed = reinterpret_cast<ScenarioStructureBSP *&>(global_structure_bsp);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
-static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &conversation_index_lookup = halo::link::ref<int16_t []>(halo::ai::vars().conversation_index_lookup);
 static auto &ai_communication_lines = halo::link::ref<uint8_t []>(halo::ai::vars().ai_communication_lines);
 static auto &ai_communication_direction_table = halo::link::ref<float []>(halo::ai::vars().ai_communication_direction_table);
@@ -252,7 +252,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (team_u != team_o && team_u >= 0 && team_u < 10 && team_o >= 0 && team_o < 10) {
             int32_t bit = team_u * 10 + team_o;
 
-            if (*(uint32_t *)(team_pair_data + 0x94 + (bit >> 5) * 4) & (1u << (bit & 0x1f))) {
+            if (team_pair_data->secondary_bits[bit >> 5] & (1u << (bit & 0x1f))) {
                 uint8_t react = 0;
                 uint8_t hostile = 0;
 
@@ -1599,7 +1599,7 @@ datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_in
                 accept = (uint8_t)(team != other_team);
             } else if (team >= 0 && team < 10 && other_team >= 0 && other_team < 10) {
                 pair = (int32_t)other_team + (int32_t)team * 10;
-                accept = (uint8_t)(((*(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4)) &
+                accept = (uint8_t)(((team_pair_data->enemy_bits[pair >> 5]) &
                                     (1u << ((uint8_t)pair & 0x1f))) == 0);
             }
             if (match_mode == 0) {
@@ -2034,7 +2034,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
                 continue;
             }
             bit = team * 10 + object_team;
-            if (!(*(uint32_t *)(team_pair_data + 0xa4 + (bit >> 5) * 4) & (1u << (bit & 0x1f)))) {
+            if (!(team_pair_data->enemy_bits[bit >> 5] & (1u << (bit & 0x1f)))) {
                 continue;
             }
         }

@@ -28,7 +28,7 @@
 
 static auto &prop_array_name = halo::link::ref<char []>(halo::ai::vars().prop_array_name);
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
-static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -674,7 +674,7 @@ void AiSystem::process_vehicle_entry_queue()
             actor_index = halo::ai::actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
                 halo::units::unit_enter_vehicle_seat(vehicle_index, seat_index,
-                    *(datum_index *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size + 0x18));
+                    halo::ai::actor_at(actor_index)->unit_index);
             }
         }
     }
@@ -730,7 +730,7 @@ void AiSystem::recompute_all_relationship_flags()
             if (halo::game::globals().current_engine == 0) {
                 if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                     int32_t pair = (int32_t)object_team + actor_team * 10;
-                    uint32_t bit = *(uint32_t *)(team_pair_data + 0xa4 + (pair >> 5) * 4);
+                    uint32_t bit = team_pair_data->enemy_bits[pair >> 5];
                     hostile = 1 - ((bit & (1u << (pair & 0x1f))) != 0);
                 }
             } else {
@@ -741,7 +741,7 @@ void AiSystem::recompute_all_relationship_flags()
             marked = 0;
             if (-1 < actor_team && actor_team < 10 && -1 < object_team && object_team < 10) {
                 int32_t pair = (int32_t)object_team + actor_team * 10;
-                uint32_t bit = *(uint32_t *)(team_pair_data + 0x94 + (pair >> 5) * 4);
+                uint32_t bit = team_pair_data->secondary_bits[pair >> 5];
                 marked = (bit & (1u << (pair & 0x1f))) != 0;
             }
             p->allegiance = marked;
@@ -808,7 +808,7 @@ static uint8_t ai_bsp_actor_should_carry(struct actor *actor)
                 return 0;
             }
             index = team * 10 + 1;
-            enemies = (*(uint32_t *)(team_pair_data + 0xa4 + (index >> 5) * 4) & (1u << (index & 0x1f))) == 0;
+            enemies = (team_pair_data->enemy_bits[index >> 5] & (1u << (index & 0x1f))) == 0;
         }
         if (enemies) {
             return 0;
@@ -837,16 +837,16 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         return 0;
     }
     swarm = halo::ai::swarm_at(actor->swarm_index);
-    count = *(int16_t *)((uint8_t *)swarm + 2);
+    count = swarm->component_count;
     for (i = 0; i < count; i++) {
-        datum_index unit_index = *(datum_index *)((uint8_t *)swarm + 0x18 + i * 4);
+        datum_index unit_index = swarm->unit_index[i];
         datum_index root = unit_index;
         int16_t cluster;
 
         while (halo::ai::object_at(root)->parent_object != k_datum_index_none) {
             root = halo::ai::object_at(root)->parent_object;
         }
-        cluster = *(int16_t *)(halo::ai::object_bytes(root) + 0x9c);
+        cluster = halo::ai::object_at(root)->location_cluster_index;
         if (cluster == -1 ||
             (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
@@ -866,7 +866,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         actor = halo::ai::actor_at(actor_index);
         if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, actor->actor_variant_tag, actor->encounter_index,
                 actor->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
-            int32_t kind = *(int32_t *)(halo::ai::object_bytes(unit_index) + 4);
+            int32_t kind = halo::ai::object_at(unit_index)->network_role;
 
             if (kind == 0) {
                 halo::objects::object_delete_unparented(unit_index);
@@ -924,7 +924,7 @@ void AiSystem::reset_fire_group_assignments()
             }
             {
                 void (*carry_proc)(datum_index) =
-                    *(void (**)(datum_index))((uint8_t *)&actor_mode_definitions[actor->mode] + 0x24);
+                    (void (*)(datum_index))(uintptr_t)actor_mode_definitions[actor->mode].carry_over_proc;
 
                 if (carry_proc != 0) {
                     carry_proc(actor_index);
@@ -1143,7 +1143,7 @@ void AiSystem::unassigned_actors_attach_to_structure_bsp()
         datum_index next = entry->next_in_encounter;
 
         if (encounter_index != k_datum_index_none &&
-            *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (encounter_index & halo::k_slot_mask) * 0xb0 + 0x7e) ==
+            (int16_t)halo::ai::reflexive_data<ScenarioEncounter>(halo::scenario::globals().scenario->encounters)[encounter_index & halo::k_slot_mask].precomputed_bsp_index ==
                 bsp_index) {
             halo::ai::ai_actor_unlink_from_unassigned_list(actor_index);
             halo::ai::encounter_add_actor(entry->original_squad_index, actor_index, entry->original_encounter_index, 1);
