@@ -138,12 +138,11 @@ void ScriptCommands::evaluate_version(int16_t function_index, uint32_t thread_in
  */
 void ScriptCommands::evaluate_wake(int16_t function_index, uint32_t thread_index, char first) const
 {
-    uint8_t *syntax = (uint8_t *)halo::hs::globals().syntax_data->data;
-    uint8_t *frame = *(uint8_t **)((uint8_t *)halo::hs::globals().thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
-    uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
-    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
-    uint32_t argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & halo::k_slot_mask;
-    datum_index thread = halo::hs::hs_thread_find_by_script_index(*(int16_t *)(syntax + argument * 0x14 + 0x10));
+    hs_stack_frame *frame = halo::hs::thread_at(thread_index)->stack;
+    hs_syntax_node *call_node = halo::hs::syntax_node_at(frame->syntax_node);
+    hs_syntax_node *name_node = halo::hs::syntax_node_at(call_node->data.first_child);
+    hs_syntax_node *argument = halo::hs::syntax_node_at(name_node->next_node);
+    datum_index thread = halo::hs::hs_thread_find_by_script_index(argument->data.short_value);
 
     (void)function_index;
     (void)first;

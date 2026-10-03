@@ -85,7 +85,7 @@ char Parser::parse_ai(datum_index node_index) const
         (uint32_t *)&node->data);
 
     if (!found) {
-        halo::hs::globals().compile_error = (char *)"this is not a valid ai encounter or squad.";
+        halo::hs::globals().compile_error = const_cast<char *>("this is not a valid ai encounter or squad.");
         halo::hs::globals().compile_error_offset = node->source_offset;
     }
     return found;
@@ -171,7 +171,7 @@ char Parser::parse_begin(int16_t function_index, datum_index node_index) const
         return 0;
     }
     if (count > 0x20 && function_index == 1) {
-        halo::hs::globals().compile_error = (char *)"begin_random can take a maximum of 32 arguments (matt can increase this.)";
+        halo::hs::globals().compile_error = const_cast<char *>("begin_random can take a maximum of 32 arguments (matt can increase this.)");
         halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
@@ -196,7 +196,7 @@ char Parser::parse_boolean(datum_index node_index) const
         node->data.boolean_value = 1;
         return 1;
     }
-    halo::hs::globals().compile_error = (char *)"i expected \"true\" or \"false\".";
+    halo::hs::globals().compile_error = const_cast<char *>("i expected \"true\" or \"false\".");
     halo::hs::globals().compile_error_offset = node->source_offset;
     node->data.boolean_value = (uint8_t)node_index;
     return 0;
@@ -256,7 +256,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
     new_index = halo::memory::datum_new(nodes);
     cond_node = halo::hs::syntax_node_at(cond_node_index);
     if (new_index == k_datum_index_none) {
-        halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
+        halo::hs::globals().compile_error = const_cast<char *>("i couldn't allocate a syntax node.");
         halo::hs::globals().compile_error_offset = cond_node->source_offset;
         return k_datum_index_none;
     }
@@ -276,7 +276,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
 
     pair_node = halo::hs::syntax_node_at(pair_index);
     if ((pair_node->flags & _hs_syntax_node_primitive_bit) != 0) {
-        halo::hs::globals().compile_error = (char *)"this argument to cond should be a condition/result pair";
+        halo::hs::globals().compile_error = const_cast<char *>("this argument to cond should be a condition/result pair");
         halo::hs::globals().compile_error_offset = pair_node->source_offset;
         return k_datum_index_none;
     }
@@ -289,7 +289,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
         if ((new_if_index == k_datum_index_none) || (replacement_index == k_datum_index_none)) {
             nodes = halo::hs::globals().syntax_data;
             cond_node = halo::hs::syntax_node_at(cond_node_index);
-            halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
+            halo::hs::globals().compile_error = const_cast<char *>("i couldn't allocate a syntax node.");
             halo::hs::globals().compile_error_offset = cond_node->source_offset;
             return k_datum_index_none;
         }
@@ -329,7 +329,7 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
         return new_index;
     }
 
-    halo::hs::globals().compile_error = (char *)"this argument to cond needs a result.";
+    halo::hs::globals().compile_error = const_cast<char *>("this argument to cond needs a result.");
     halo::hs::globals().compile_error_offset = condition_node->source_offset;
     return k_datum_index_none;
 }
@@ -516,7 +516,7 @@ char Parser::parse_if(int16_t function_index, datum_index node_index) const
             return halo::hs::hs_parse(then_index, resolved_type);
         }
     }
-    halo::hs::globals().compile_error = (char *)"i expected (if <condition> <then> [<else>]).";
+    halo::hs::globals().compile_error = const_cast<char *>("i expected (if <condition> <then> [<else>]).");
     halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
@@ -538,7 +538,7 @@ char Parser::parse_inspect(int16_t function_index, datum_index node_index) const
     }
     if (halo::hs::globals().compile_error == 0) {
         halo::hs::globals().compile_error = hs_inspect_not_a_reference;
-        halo::hs::globals().compile_error_offset = *(int32_t *)((uint8_t *)halo::hs::globals().syntax_data->data + (argument & halo::k_slot_mask) * 0x14 + 0xc);
+        halo::hs::globals().compile_error_offset = halo::hs::syntax_node_at(argument)->source_offset;
     }
     return 0;
 }
@@ -560,7 +560,7 @@ char Parser::parse_integer(datum_index node_index) const
     }
     for (; *p != 0; p++) {
         if (!isdigit((unsigned char)*p)) {
-            halo::hs::globals().compile_error = (char *)"this is not a valid integer.";
+            halo::hs::globals().compile_error = const_cast<char *>("this is not a valid integer.");
             halo::hs::globals().compile_error_offset = node->source_offset;
             valid = 0;
             break;
@@ -568,7 +568,7 @@ char Parser::parse_integer(datum_index node_index) const
     }
     value = atoi(halo::hs::globals().compiled_source + node->source_offset);
     if (valid && node->type != 8 && (value > 0x7fff || value < -0x8000)) {
-        halo::hs::globals().compile_error = (char *)"shorts must be in the range [-32767, 32768].";
+        halo::hs::globals().compile_error = const_cast<char *>("shorts must be in the range [-32767, 32768].");
         halo::hs::globals().compile_error_offset = node->source_offset;
         valid = 0;
     }
@@ -653,9 +653,9 @@ char Parser::parse_nonprimitive(datum_index node_index) const
     identifier_node = halo::hs::syntax_node_at(node->data.first_child);
 
     if ((identifier_node->flags & _hs_syntax_node_primitive_bit) == 0) {
-        message = (char *)"\"script\" or \"global\"";
+        message = const_cast<char *>("\"script\" or \"global\"");
         if (node->type != _hs_type_special_form) {
-            message = (char *)"a function name";
+            message = const_cast<char *>("a function name");
         }
         sprintf(halo::hs::globals().compile_error_buffer, "i expected %s, but i got an expression.", message);
         halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
@@ -667,7 +667,7 @@ char Parser::parse_nonprimitive(datum_index node_index) const
         halo::hs::hs_resolve_identifier_as_function_or_script(node_index);
         resolved_index = node->index_union;
         if (resolved_index == -1) {
-            halo::hs::globals().compile_error = (char *)"this is not a valid function or script name.";
+            halo::hs::globals().compile_error = const_cast<char *>("this is not a valid function or script name.");
             halo::hs::globals().compile_error_offset = identifier_node->source_offset;
             return 0;
         }
@@ -688,12 +688,12 @@ char Parser::parse_nonprimitive(datum_index node_index) const
                 }
             }
             if ((halo::hs::globals().blocking_forbidden != 0) && ((resolved_index == _hs_function_sleep) || (resolved_index == _hs_function_sleep_until))) {
-                halo::hs::globals().compile_error = (char *)"it is illegal to block in this context.";
+                halo::hs::globals().compile_error = const_cast<char *>("it is illegal to block in this context.");
                 halo::hs::globals().compile_error_offset = node->source_offset;
                 return 0;
             }
             if ((halo::hs::globals().set_forbidden != 0) && (resolved_index == _hs_function_set)) {
-                halo::hs::globals().compile_error = (char *)"it is illegal to set the value of variables in this context.";
+                halo::hs::globals().compile_error = const_cast<char *>("it is illegal to set the value of variables in this context.");
                 halo::hs::globals().compile_error_offset = node->source_offset;
                 return 0;
             }
@@ -706,7 +706,7 @@ char Parser::parse_nonprimitive(datum_index node_index) const
 
         script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + resolved_index;
         if ((script->script_type != _hs_script_static) && (script->script_type != _hs_script_stub)) {
-            halo::hs::globals().compile_error = (char *)"this is not a static script.";
+            halo::hs::globals().compile_error = const_cast<char *>("this is not a static script.");
             halo::hs::globals().compile_error_offset = node->source_offset;
             return 0;
         }
@@ -735,7 +735,7 @@ char Parser::parse_nonprimitive(datum_index node_index) const
     if (strncmp(identifier_text, "script", 7) == 0) {
         return halo::hs::hs_add_script(node_index);
     }
-    halo::hs::globals().compile_error = (char *)"i expected \"script\" or \"global\".";
+    halo::hs::globals().compile_error = const_cast<char *>("i expected \"script\" or \"global\".");
     halo::hs::globals().compile_error_offset = identifier_node->source_offset;
     return 0;
 }
@@ -797,7 +797,7 @@ char Parser::parse_object_name(datum_index node_index) const
 
     match_index = halo::scenario::scenario_object_name_find_index(scenario, halo::hs::globals().compiled_source + node->source_offset);
     if (match_index == -1) {
-        halo::hs::globals().compile_error = (char *)"this is not a valid object name.";
+        halo::hs::globals().compile_error = const_cast<char *>("this is not a valid object name.");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
@@ -833,12 +833,12 @@ char Parser::parse_primitive(datum_index node_index) const
     result = 0;
 
     if (node_type == _hs_type_special_form) {
-        halo::hs::globals().compile_error = (char *)"i expected a script or variable definition.";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected a script or variable definition.");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return result;
     }
     if (node_type == _hs_type_void) {
-        halo::hs::globals().compile_error = (char *)"the value of this expression (in a <void> slot) can never be used.";
+        halo::hs::globals().compile_error = const_cast<char *>("the value of this expression (in a <void> slot) can never be used.");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return result;
     }
@@ -895,7 +895,7 @@ char Parser::parse_real(datum_index node_index) const
         }
         if (!isdigit((unsigned char)c)) {
             if ((has_dot != 0) || (*p != '.')) {
-                halo::hs::globals().compile_error = (char *)"this is not a valid real number.";
+                halo::hs::globals().compile_error = const_cast<char *>("this is not a valid real number.");
                 halo::hs::globals().compile_error_offset = node->source_offset;
                 valid = 0;
                 node->data.real_value = (float)atof(halo::hs::globals().compiled_source + node->source_offset);
@@ -955,7 +955,7 @@ char Parser::parse_script(datum_index node_index) const
         node->data.short_value = script_index;
         return 1;
     }
-    halo::hs::globals().compile_error = (char *)"this is not a valid script name.";
+    halo::hs::globals().compile_error = const_cast<char *>("this is not a valid script name.");
     halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
@@ -984,28 +984,28 @@ char Parser::parse_set(int16_t function_index, datum_index node_index) const
     node = halo::hs::syntax_node_at(node_index);
     variable_index = node->data.first_child;
     if (variable_index == k_datum_index_none) {
-        halo::hs::globals().compile_error = (char *)"i expected a variable to set and a value.";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected a variable to set and a value.");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
     variable_node = halo::hs::syntax_node_at(variable_index);
     value_index = variable_node->next_node;
     if (value_index == k_datum_index_none) {
-        halo::hs::globals().compile_error = (char *)"i expected an assignment value.";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected an assignment value.");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
     value_node = halo::hs::syntax_node_at(value_index);
     if (value_node->next_node != k_datum_index_none) {
         extra_node = halo::hs::syntax_node_at(value_node->next_node);
-        halo::hs::globals().compile_error = (char *)"i didn't expect this argument.";
+        halo::hs::globals().compile_error = const_cast<char *>("i didn't expect this argument.");
         halo::hs::globals().compile_error_offset = extra_node->source_offset;
         return 0;
     }
 
     global = halo::hs::hs_find_global_by_name(halo::hs::globals().compiled_source + variable_node->source_offset);
     if (global == k_hs_global_reference_none) {
-        halo::hs::globals().compile_error = (char *)"this is not a valid global variable.";
+        halo::hs::globals().compile_error = const_cast<char *>("this is not a valid global variable.");
         halo::hs::globals().compile_error_offset = variable_node->source_offset;
         return 0;
     }
@@ -1040,7 +1040,7 @@ char Parser::parse_sleep(int16_t function_index, datum_index node_index) const
     datum_index script;
 
     if (time == halo::k_dword_none) {
-        halo::hs::globals().compile_error = (char *)"the sleep call requires a time and, optionally, a script name.";
+        halo::hs::globals().compile_error = const_cast<char *>("the sleep call requires a time and, optionally, a script name.");
         halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
@@ -1068,7 +1068,7 @@ char Parser::parse_sleep_until(int16_t function_index, datum_index node_index) c
     char ok;
 
     if (condition == halo::k_dword_none) {
-        halo::hs::globals().compile_error = (char *)"the sleep_until call requires a condition and, optionally, a period.";
+        halo::hs::globals().compile_error = const_cast<char *>("the sleep_until call requires a condition and, optionally, a period.");
         halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
@@ -1298,7 +1298,7 @@ char Parser::parse_variable(datum_index node_index) const
     node->data.global_reference = (int16_t)global;
     if ((int16_t)global == -1) {
         if (halo::hs::globals().postprocessing != 0) {
-            halo::hs::globals().compile_error = (char *)"this is not a valid variable name.";
+            halo::hs::globals().compile_error = const_cast<char *>("this is not a valid variable name.");
             halo::hs::globals().compile_error_offset = node->source_offset;
         }
         return 0;
@@ -1349,7 +1349,7 @@ char Parser::parse_wake(int16_t function_index, datum_index node_index) const
     }
     script = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer + node->data.short_value;
     if (script->script_type == 3 || script->script_type == 4) {
-        halo::hs::globals().compile_error = (char *)"this static script cannot be awakened.";
+        halo::hs::globals().compile_error = const_cast<char *>("this static script cannot be awakened.");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }

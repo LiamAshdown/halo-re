@@ -408,8 +408,8 @@ void ScriptAutocomplete::autocomplete_test_candidate(char *candidate)
  */
 void ScriptAutocomplete::enumerate_special_form_names(void)
 {
-    halo::hs::hs_autocomplete_test_candidate((char *)"script");
-    halo::hs::hs_autocomplete_test_candidate((char *)"global");
+    halo::hs::hs_autocomplete_test_candidate(const_cast<char *>("script"));
+    halo::hs::hs_autocomplete_test_candidate(const_cast<char *>("global"));
 }
 
 }

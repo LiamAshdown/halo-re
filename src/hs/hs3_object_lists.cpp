@@ -155,7 +155,7 @@ void ObjectLists::initialize() const
 {
     char name[256];
 
-    halo::objects::globals().object_list_header_data = halo::saved_games::game_state_new((char *)"object list header", k_hs_object_list_header_count, 0xc );
+    halo::objects::globals().object_list_header_data = halo::saved_games::game_state_new(const_cast<char *>("object list header"), k_hs_object_list_header_count, 0xc );
     sprintf(name, "%s reference", "list object");
     halo::objects::globals().object_list_reference_data = halo::saved_games::game_state_new(name, k_hs_object_list_reference_count, 0xc );
 }

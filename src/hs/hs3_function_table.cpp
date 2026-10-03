@@ -28,7 +28,7 @@ int16_t FunctionTable::find_function_by_name(char *name) const
 
     strcpy(alias, "player_effect_set_max_rumble");
     if (_stricmp(name, alias) == 0) {
-        name = (char *)"player_effect_set_max_vibrate";
+        name = const_cast<char *>("player_effect_set_max_vibrate");
     }
     for (index = 0; index < k_hs_function_count; index++) {
         if (_stricmp(halo::hs::globals().function_definitions[index]->name, name) == 0) {

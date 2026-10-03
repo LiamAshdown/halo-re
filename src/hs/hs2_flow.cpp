@@ -37,7 +37,7 @@ static void object_list_adjust_references(hs_global_reference reference, int16_t
 
 static hs_thread *thread_get(datum_index thread_index)
 {
-    return (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    return halo::hs::thread_at(thread_index);
 }
 
 namespace halo::hs {
@@ -50,12 +50,11 @@ namespace halo::hs {
  */
 void FlowCommands::evaluate_equality(int16_t function_index, uint32_t thread_index, char first)
 {
-    uint8_t *syntax = (uint8_t *)halo::hs::globals().syntax_data->data;
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
-    uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
-    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
-    uint32_t first_argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & halo::k_slot_mask;
-    int16_t type = *(int16_t *)(syntax + first_argument * 0x14 + 4);
+    hs_stack_frame *frame = halo::hs::thread_at(thread_index)->stack;
+    hs_syntax_node *call_node = halo::hs::syntax_node_at(frame->syntax_node);
+    hs_syntax_node *name_node = halo::hs::syntax_node_at(call_node->data.first_child);
+    hs_syntax_node *first_argument = halo::hs::syntax_node_at(name_node->next_node);
+    int16_t type = first_argument->type;
     int16_t types[2];
     uint8_t *arguments;
     uint8_t equal;
@@ -100,7 +99,7 @@ int32_t FlowCommands::evaluate_expression(datum_index node)
     if (thread_handle == k_datum_index_none) {
         return -1;
     }
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+    thread = halo::hs::thread_at(thread_handle);
     halo::hs::hs_thread_push(node, thread_handle, &thread->result);
     if ((thread->flags & 1) != 0) {
         halo::hs::hs_thread_evaluate_step(thread_handle);
@@ -117,7 +116,7 @@ int32_t FlowCommands::evaluate_expression(datum_index node)
  */
 void FlowCommands::evaluate_if(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    hs_thread *thread = halo::hs::thread_at(thread_index);
     hs_stack_frame *frame;
     int32_t *condition;
     datum_index *branch;
@@ -225,7 +224,7 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
     int16_t chosen_index;
     datum_index chosen_child;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
 
     state = halo::hs::frame_scratch<hs_random_state>(frame);
@@ -297,7 +296,7 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
  */
 void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    hs_thread *thread = halo::hs::thread_at(thread_index);
     hs_syntax_node *variable;
     hs_global_reference reference;
     uint16_t index;
@@ -354,7 +353,7 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
     int32_t wake_tick;
     int32_t capped;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
+    thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
     condition = halo::hs::frame_scratch<char>(frame);
     frame->size = frame->size + 4;

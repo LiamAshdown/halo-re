@@ -2976,7 +2976,7 @@ void Encounters::initialize()
 {
     uint32_t reserved_size;
 
-    halo::ai::globals().encounter_data = (data_array *)halo::saved_games::game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
+    halo::ai::globals().encounter_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>("encounter"), k_encounter_data_maximum_count, k_encounter_size);
 
     halo::ai::globals().squad_states = (encounter_squad_state *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
     halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x8000;
@@ -2988,7 +2988,7 @@ void Encounters::initialize()
     reserved_size = 0x1000;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, &reserved_size, 4);
 
-    halo::ai::globals().pursuit_data = (data_array *)halo::saved_games::game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
+    halo::ai::globals().pursuit_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>("ai pursuit"), k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }
 
 /**

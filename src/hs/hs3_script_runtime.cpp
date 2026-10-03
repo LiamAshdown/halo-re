@@ -61,8 +61,8 @@ void ScriptRuntime::runtime_initialize() const
 {
     int32_t i;
 
-    halo::hs::globals().thread_data = halo::saved_games::game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 );
-    halo::hs::globals().globals_data = halo::saved_games::game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 );
+    halo::hs::globals().thread_data = halo::saved_games::game_state_new(const_cast<char *>("hs thread"), k_hs_thread_maximum_count, 0x218 );
+    halo::hs::globals().globals_data = halo::saved_games::game_state_new(const_cast<char *>("hs globals"), k_hs_global_maximum_count, 0x8 );
     if (halo::hs::globals().thread_data != 0 && halo::hs::globals().globals_data != 0) {
         halo::hs::globals().globals_data->valid = 1;
         halo::memory::data_delete_all(halo::hs::globals().globals_data);
