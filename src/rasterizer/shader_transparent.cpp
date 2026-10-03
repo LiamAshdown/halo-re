@@ -26,6 +26,11 @@ constexpr uint32_t k_extra_flag_numeric_countdown_timer =
     static_cast<uint32_t>(halo::tags::shader_transparent_chicago_extra_tag_flag::numeric_countdown_timer);
 constexpr uint16_t k_glass_bump_map_is_specular_mask =
     static_cast<uint16_t>(halo::tags::shader_transparent_glass_tag_flag::bump_map_is_specular_mask);
+constexpr uint16_t k_water_base_map_alpha_modulates_reflection =
+    static_cast<uint16_t>(halo::tags::shader_transparent_water_tag_flag::base_map_alpha_modulates_reflection);
+constexpr uint16_t k_water_base_map_color_modulates_background =
+    static_cast<uint16_t>(halo::tags::shader_transparent_water_tag_flag::base_map_color_modulates_background);
+constexpr uint16_t k_water_draw_before_fog = static_cast<uint16_t>(halo::tags::shader_transparent_water_tag_flag::draw_before_fog);
 constexpr uint16_t k_map_unfiltered = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::unfiltered);
 constexpr uint16_t k_map_u_clamped = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::u_clamped);
 constexpr uint16_t k_map_v_clamped = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::v_clamped);
@@ -41,6 +46,23 @@ static_assert(offsetof(ShaderTransparentGlass, bump_map) + offsetof(TagDependenc
 static_assert(offsetof(ShaderTransparentGlass, reflection_map) + offsetof(TagDependency, tag_id) == 0xb8, "glass reflection id");
 static_assert(offsetof(ShaderTransparentGlass, diffuse_map) + offsetof(TagDependency, tag_id) == 0x164, "glass diffuse id");
 static_assert(offsetof(ShaderTransparentGlass, diffuse_detail_map) + offsetof(TagDependency, tag_id) == 0x178, "glass detail id");
+static_assert(offsetof(ShaderTransparentPlasma, tint_color_source) == 0x80, "plasma tint source");
+static_assert(offsetof(ShaderTransparentPlasma, primary_animation_period) == 0xc0, "plasma primary");
+static_assert(offsetof(ShaderTransparentPlasma, secondary_animation_period) == 0x108, "plasma secondary");
+static_assert(offsetof(ShaderTransparentPlasma, primary_noise_map) + offsetof(TagDependency, tag_id) == 0xe0, "plasma noise id");
+static_assert(offsetof(ShaderTransparentPlasma, secondary_noise_map) + offsetof(TagDependency, tag_id) == 0x128, "plasma noise id 2");
+static_assert(offsetof(ShaderTransparentWater, base_map) + offsetof(TagDependency, tag_id) == 0x58, "water base map id");
+static_assert(offsetof(ShaderTransparentWater, view_perpendicular_brightness) == 0x6c, "water brightness");
+static_assert(offsetof(ShaderTransparentWater, view_parallel_brightness) == 0x7c, "water parallel brightness");
+static_assert(offsetof(ShaderTransparentWater, view_parallel_tint_color) == 0x80, "water parallel tint");
+static_assert(offsetof(ShaderTransparentWater, reflection_map) + offsetof(TagDependency, tag_id) == 0xa8, "water reflection id");
+static_assert(offsetof(ShaderTransparentWater, ripple_animation_angle) == 0xbc, "water ripple angle");
+static_assert(offsetof(ShaderTransparentWater, ripple_scale) == 0xc4, "water ripple scale");
+static_assert(offsetof(ShaderTransparentWater, ripple_maps) + offsetof(TagDependency, tag_id) == 0xd4, "water ripple map id");
+static_assert(offsetof(ShaderTransparentWater, ripple_mipmap_levels) == 0xd8, "water mipmap levels");
+static_assert(offsetof(ShaderTransparentWater, ripples) == 0x124, "water ripples");
+static_assert(sizeof(ShaderTransparentWaterRipple) == 0x4c, "water ripple size");
+static_assert(offsetof(ShaderTransparentWaterRipple, map_repeats) == 0x38, "ripple repeats");
 static_assert(sizeof(ShaderTransparentChicagoMap) == 0xdc, "chicago map size");
 static_assert(offsetof(ShaderTransparentChicago, extra_flags) == 0x60, "chicago extra flags");
 static_assert(offsetof(ShaderTransparentChicagoExtended, extra_flags) == 0x6c, "chicago extended extra flags");
@@ -1507,11 +1529,6 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
     render_device().set_sampler_state(sampler, type, value);
 }
 
-static inline float plasma_float(const uint8_t *shader, uint32_t offset)
-{
-    return *(const float *)(shader + offset);
-}
-
 /**
  * Direct3D 9 back end function rasterizer_shader_transparent_plasma_draw. The original author notes are in
  * docs/original/rasterizer/rasterizer_shader_transparent_plasma_draw.c.txt.
@@ -1520,7 +1537,7 @@ static inline float plasma_float(const uint8_t *shader, uint32_t offset)
  */
 void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group)
 {
-    const uint8_t *shader;
+    const ShaderTransparentPlasma *shader;
     const ColorRGB *tint;
     float intensity;
     float offset;
@@ -1537,7 +1554,7 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     if (!console_debug_toggle_689423) {
         return;
     }
-    shader = (const uint8_t *)(uintptr_t)group->shader;
+    shader = (const ShaderTransparentPlasma *)(uintptr_t)group->shader;
     tint = global_white_color;
     intensity = 1.0f;
     offset = 0.0f;
@@ -1547,18 +1564,18 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         const float *function_values = (const float *)(uintptr_t)function_source[1];
         int16_t source;
 
-        source = *(const int16_t *)(shader + 0x80);
+        source = shader->tint_color_source;
         if (colors != NULL && source >= 1 && source <= 4) {
             tint = &colors[source - 1];
         }
         if (function_values != NULL) {
-            source = *(const int16_t *)(shader + 0x2c);
+            source = shader->intensity_source;
             if (source >= 1 && source <= 4) {
-                intensity = (float)halo::libm::pow(function_values[source - 1], plasma_float(shader, 0x30));
+                intensity = (float)halo::libm::pow(function_values[source - 1], shader->intensity_exponent);
             }
-            source = *(const int16_t *)(shader + 0x34);
+            source = shader->offset_source;
             if (source >= 1 && source <= 4) {
-                offset = (float)halo::libm::pow(function_values[source - 1], plasma_float(shader, 0x3c)) * plasma_float(shader, 0x38);
+                offset = (float)halo::libm::pow(function_values[source - 1], shader->offset_exponent) * shader->offset_amount;
             }
         }
     }
@@ -1567,10 +1584,10 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         return;
     }
 
-    secondary_scale = plasma_float(shader, 0x118);
-    primary_phase = (float)(rasterizer_time.time / plasma_float(shader, 0xc0));
-    secondary_phase = (float)(rasterizer_time.time / plasma_float(shader, 0x108));
-    primary_scale = plasma_float(shader, 0xd0);
+    secondary_scale = shader->secondary_noise_map_scale;
+    primary_phase = (float)(rasterizer_time.time / shader->primary_animation_period);
+    secondary_phase = (float)(rasterizer_time.time / shader->secondary_animation_period);
+    primary_scale = shader->primary_noise_map_scale;
     if (offset < 0.0005f) {
         offset = 0.0f;
     }
@@ -1583,12 +1600,12 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     vertex_constants[0][0] = primary_scale;
     vertex_constants[1][1] = primary_scale;
     vertex_constants[2][2] = primary_scale;
-    vertex_constants[0][3] = primary_phase * plasma_float(shader, 0xc4);
-    vertex_constants[1][3] = primary_phase * plasma_float(shader, 0xc8);
-    vertex_constants[2][3] = primary_phase * plasma_float(shader, 0xcc);
-    vertex_constants[3][3] = secondary_phase * plasma_float(shader, 0x10c);
-    vertex_constants[4][3] = secondary_phase * plasma_float(shader, 0x110);
-    vertex_constants[5][3] = secondary_phase * plasma_float(shader, 0x114);
+    vertex_constants[0][3] = primary_phase * shader->primary_animation_direction.i;
+    vertex_constants[1][3] = primary_phase * shader->primary_animation_direction.j;
+    vertex_constants[2][3] = primary_phase * shader->primary_animation_direction.k;
+    vertex_constants[3][3] = secondary_phase * shader->secondary_animation_direction.i;
+    vertex_constants[4][3] = secondary_phase * shader->secondary_animation_direction.j;
+    vertex_constants[5][3] = secondary_phase * shader->secondary_animation_direction.k;
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
 
         vertex_constants[0][2] = 0.01f;
@@ -1606,10 +1623,10 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         vertex_constants[4][1] = secondary_scale;
         vertex_constants[5][2] = secondary_scale;
         render_device().set_vertex_shader_constant_f(0xd, &vertex_constants[0][0], 6);
-        chimera__rasterizer_set_texture(*(const uint32_t *)(shader + 0xe0), 0, 1, 0,
+        chimera__rasterizer_set_texture(*(const uint32_t *)&shader->primary_noise_map.tag_id, 0, 1, 0,
                                         (int16_t)group->shader_permutation);
         set_sampler_state(0, halo::d3d9::ss::address_w, 1);
-        chimera__rasterizer_set_texture(*(const uint32_t *)(shader + 0x128), 1, 1, 0,
+        chimera__rasterizer_set_texture(*(const uint32_t *)&shader->secondary_noise_map.tag_id, 1, 1, 0,
                                         (int16_t)group->shader_permutation);
         set_sampler_state(1, halo::d3d9::ss::address_w, 1);
     }
@@ -1635,14 +1652,14 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
     for (i = 0; i < 4; i++) {
         color_constants[0][i] = 1.0f;
     }
-    color_constants[1][0] = (plasma_float(shader, 0x64) - plasma_float(shader, 0x74)) * tint->red;
-    color_constants[1][1] = (plasma_float(shader, 0x68) - plasma_float(shader, 0x78)) * tint->green;
-    color_constants[1][2] = (plasma_float(shader, 0x6c) - plasma_float(shader, 0x7c)) * tint->blue;
-    color_constants[1][3] = (plasma_float(shader, 0x60) - plasma_float(shader, 0x70)) * intensity;
-    color_constants[2][0] = tint->red * plasma_float(shader, 0x74);
-    color_constants[2][1] = plasma_float(shader, 0x78) * tint->green;
-    color_constants[2][2] = plasma_float(shader, 0x7c) * tint->blue;
-    color_constants[2][3] = intensity * plasma_float(shader, 0x70);
+    color_constants[1][0] = (shader->perpendicular_tint_color.red - shader->parallel_tint_color.red) * tint->red;
+    color_constants[1][1] = (shader->perpendicular_tint_color.green - shader->parallel_tint_color.green) * tint->green;
+    color_constants[1][2] = (shader->perpendicular_tint_color.blue - shader->parallel_tint_color.blue) * tint->blue;
+    color_constants[1][3] = (shader->perpendicular_brightness - shader->parallel_brightness) * intensity;
+    color_constants[2][0] = tint->red * shader->parallel_tint_color.red;
+    color_constants[2][1] = shader->parallel_tint_color.green * tint->green;
+    color_constants[2][2] = shader->parallel_tint_color.blue * tint->blue;
+    color_constants[2][3] = intensity * shader->parallel_brightness;
     render_device().set_vertex_shader_constant_f(10, &color_constants[0][0], 3);
 
     render_device().effect_begin(effect, &passes, 3);
@@ -1709,9 +1726,8 @@ static void effect_draw(void *effect, int32_t only_pass, transparent_geometry_gr
  */
 void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
 {
-    uint8_t *raw = (uint8_t *)group;
-    uint8_t *water = *(uint8_t **)&((struct transparent_geometry_group *)raw)->shader;
-    uint16_t frame = ((struct transparent_geometry_group *)raw)->shader_permutation;
+    ShaderTransparentWater *water = (ShaderTransparentWater *)(uintptr_t)group->shader;
+    uint16_t frame = group->shader_permutation;
     int16_t vertex_type = -1;
     uint32_t declaration;
     uint8_t z_write;
@@ -1720,14 +1736,14 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
     if (rasterizer_water_enabled == 0) {
         return;
     }
-    if (*(void **)&((struct transparent_geometry_group *)raw)->vertex_buffer != 0) {
-        vertex_type = **(int16_t **)&((struct transparent_geometry_group *)raw)->vertex_buffer;
-    } else if (((struct transparent_geometry_group *)raw)->dynamic_vertex_slot != -1) {
-        vertex_type = rasterizer_dynamic_vertex_slots[((struct transparent_geometry_group *)raw)->dynamic_vertex_slot].vertex_type;
+    if (group->vertex_buffer != 0) {
+        vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
+    } else if (group->dynamic_vertex_slot != -1) {
+        vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
     declaration = (uint32_t)rasterizer_vertex_declarations[vertex_type].declaration;
 
-    if ((*(uint16_t *)(water + 0x28) & 8) != 0 && (raw[0] & 0x12) == 0) {
+    if ((water->water_flags & k_water_draw_before_fog) != 0 && (group->flags & (_group_immediate_bit | _group_flag_10_bit)) == 0) {
         d3d_call3_fn set_texture_stage_state;
 
         set_render_state(halo::d3d9::rs::cull_mode, 1);
@@ -1753,13 +1769,13 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         return;
     }
 
-    z_write = (uint8_t)((raw[0] & 0x10) == 0 && (*(uint16_t *)(water + 0x28) & 8) == 0);
+    z_write = (uint8_t)((group->flags & _group_flag_10_bit) == 0 && (water->water_flags & k_water_draw_before_fog) == 0);
 
     effect = (void *)rasterizer_effects[102].effect;
     if (effect != 0) {
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(0);
-        if (water[0x28] & 1) {
+        if (water->water_flags & k_water_base_map_alpha_modulates_reflection) {
             set_render_state(halo::d3d9::rs::cull_mode, 1);
             set_render_state(halo::d3d9::rs::color_write_enable, 8);
             set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
@@ -1768,12 +1784,12 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
             set_render_state(halo::d3d9::rs::z_func, 4);
             set_render_state(halo::d3d9::rs::z_write_enable, z_write);
             set_render_state(halo::d3d9::rs::fog_enable, 0);
-            chimera__rasterizer_set_texture(*(uint32_t *)(water + 0x58), 0, 0, 1, (int16_t)frame);
+            chimera__rasterizer_set_texture(*(const uint32_t *)&water->base_map.tag_id, 0, 0, 1, (int16_t)frame);
             set_stage0_samplers(3);
             effect_draw(effect, 0, group);
         }
-        if (water[0x28] & 2) {
-            chimera__rasterizer_set_texture(*(uint32_t *)(water + 0x58), 0, 0, 1, (int16_t)frame);
+        if (water->water_flags & k_water_base_map_color_modulates_background) {
+            chimera__rasterizer_set_texture(*(const uint32_t *)&water->base_map.tag_id, 0, 0, 1, (int16_t)frame);
             set_stage0_samplers(3);
             set_render_state(halo::d3d9::rs::cull_mode, 1);
             set_render_state(halo::d3d9::rs::color_write_enable, 7);
@@ -1785,7 +1801,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
             set_render_state(halo::d3d9::rs::z_enable, 1);
             set_render_state(halo::d3d9::rs::z_func, 4);
             set_render_state(halo::d3d9::rs::z_write_enable, z_write);
-            set_render_state(halo::d3d9::rs::fog_enable, (water[0x28] >> 2) & 1);
+            set_render_state(halo::d3d9::rs::fog_enable, (water->water_flags >> 2) & 1);
             effect_draw(effect, 1, group);
         }
     }
@@ -1794,15 +1810,15 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
     if (effect != 0) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
         set_render_state(halo::d3d9::rs::color_write_enable, 7);
-        set_render_state(halo::d3d9::rs::alpha_blend_enable, (~(*(uint32_t *)raw >> 4)) & 1);
-        set_render_state(halo::d3d9::rs::src_blend, (water[0x28] & 1) ? 7 : 2);
+        set_render_state(halo::d3d9::rs::alpha_blend_enable, (~(group->flags >> 4)) & 1);
+        set_render_state(halo::d3d9::rs::src_blend, (water->water_flags & k_water_base_map_alpha_modulates_reflection) ? 7 : 2);
         set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         set_render_state(halo::d3d9::rs::blend_op, 1);
         set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
         set_render_state(halo::d3d9::rs::z_enable, 1);
         set_render_state(halo::d3d9::rs::z_func, 4);
         set_render_state(halo::d3d9::rs::z_write_enable, z_write);
-        set_render_state(halo::d3d9::rs::fog_enable, (water[0x28] >> 2) & 1);
+        set_render_state(halo::d3d9::rs::fog_enable, (water->water_flags >> 2) & 1);
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(0);
         chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->test_0.tag_id, 0, 0);
@@ -1879,9 +1895,8 @@ static void effect_draw_pass(void *effect, uint32_t pass, transparent_geometry_g
  */
 void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
 {
-    uint8_t *raw = (uint8_t *)group;
-    uint8_t *water = *(uint8_t **)&((struct transparent_geometry_group *)raw)->shader;
-    uint16_t frame = ((struct transparent_geometry_group *)raw)->shader_permutation;
+    ShaderTransparentWater *water = (ShaderTransparentWater *)(uintptr_t)group->shader;
+    uint16_t frame = group->shader_permutation;
     int16_t vertex_type = -1;
     int16_t shader_index = 0;
     uint32_t declaration;
@@ -1891,10 +1906,10 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     if (rasterizer_caps_flag_689 != 0 || rasterizer_water_enabled == 0) {
         return;
     }
-    if (*(void **)&((struct transparent_geometry_group *)raw)->vertex_buffer != 0) {
-        vertex_type = **(int16_t **)&((struct transparent_geometry_group *)raw)->vertex_buffer;
-    } else if (((struct transparent_geometry_group *)raw)->dynamic_vertex_slot != -1) {
-        vertex_type = rasterizer_dynamic_vertex_slots[((struct transparent_geometry_group *)raw)->dynamic_vertex_slot].vertex_type;
+    if (group->vertex_buffer != 0) {
+        vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
+    } else if (group->dynamic_vertex_slot != -1) {
+        vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
     if (vertex_type == 0 || vertex_type == 2) {
         shader_index = 0;
@@ -1903,7 +1918,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     }
     declaration = (uint32_t)rasterizer_vertex_declarations[vertex_type].declaration;
 
-    if ((*(uint16_t *)(water + 0x28) & 8) != 0 && (raw[0] & 0x12) == 0) {
+    if ((water->water_flags & k_water_draw_before_fog) != 0 && (group->flags & (_group_immediate_bit | _group_flag_10_bit)) == 0) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
         set_render_state(halo::d3d9::rs::color_write_enable, 0);
         set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
@@ -1926,7 +1941,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         return;
     }
 
-    z_write = (uint8_t)((raw[0] & 0x10) == 0 && (*(uint16_t *)(water + 0x28) & 8) == 0);
+    z_write = (uint8_t)((group->flags & _group_flag_10_bit) == 0 && (water->water_flags & k_water_draw_before_fog) == 0);
     if (halo::rasterizer::fields::water_ripple_update_pending != 0) {
         rasterizer_water_update_ripple_texture(water);
         halo::rasterizer::fields::water_ripple_update_pending = 0;
@@ -1936,11 +1951,11 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     if (effect != 0) {
         float constants[8];
 
-        constants[0] = constants[1] = constants[2] = constants[3] = *(float *)(water + 0x6c);
-        constants[4] = constants[5] = constants[6] = constants[7] = *(float *)(water + 0x7c);
+        constants[0] = constants[1] = constants[2] = constants[3] = water->view_perpendicular_brightness;
+        constants[4] = constants[5] = constants[6] = constants[7] = water->view_parallel_brightness;
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[60 + shader_index].shader);
-        if (water[0x28] & 1) {
+        if (water->water_flags & k_water_base_map_alpha_modulates_reflection) {
             set_render_state(halo::d3d9::rs::cull_mode, 1);
             set_render_state(halo::d3d9::rs::color_write_enable, 8);
             set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
@@ -1949,15 +1964,15 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
             set_render_state(halo::d3d9::rs::z_func, 4);
             set_render_state(halo::d3d9::rs::z_write_enable, z_write);
             set_render_state(halo::d3d9::rs::fog_enable, 0);
-            chimera__rasterizer_set_texture(*(uint32_t *)(water + 0x58), 0, 0, 1, (int16_t)frame);
+            chimera__rasterizer_set_texture(*(const uint32_t *)&water->base_map.tag_id, 0, 0, 1, (int16_t)frame);
             set_stage_samplers(0, 3, 0);
             chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 1, 0);
             set_stage_samplers(1, 3, 1);
             render_device().set_pixel_shader_constant_f(0, constants, 2);
             effect_draw_pass(effect, 0, group);
         }
-        if (water[0x28] & 2) {
-            chimera__rasterizer_set_texture(*(uint32_t *)(water + 0x58), 0, 0, 1, (int16_t)frame);
+        if (water->water_flags & k_water_base_map_color_modulates_background) {
+            chimera__rasterizer_set_texture(*(const uint32_t *)&water->base_map.tag_id, 0, 0, 1, (int16_t)frame);
             set_stage_samplers(0, 3, 0);
             set_render_state(halo::d3d9::rs::cull_mode, 1);
             set_render_state(halo::d3d9::rs::color_write_enable, 7);
@@ -1969,7 +1984,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
             set_render_state(halo::d3d9::rs::z_enable, 1);
             set_render_state(halo::d3d9::rs::z_func, 4);
             set_render_state(halo::d3d9::rs::z_write_enable, z_write);
-            set_render_state(halo::d3d9::rs::fog_enable, (water[0x28] >> 2) & 1);
+            set_render_state(halo::d3d9::rs::fog_enable, (water->water_flags >> 2) & 1);
             render_device().set_pixel_shader_constant_f(0, constants, 2);
             effect_draw_pass(effect, 1, group);
         }
@@ -1981,22 +1996,22 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
 
         set_render_state(halo::d3d9::rs::cull_mode, 1);
         set_render_state(halo::d3d9::rs::color_write_enable, 7);
-        set_render_state(halo::d3d9::rs::alpha_blend_enable, (~(*(uint32_t *)raw >> 4)) & 1);
-        set_render_state(halo::d3d9::rs::src_blend, (water[0x28] & 1) ? 7 : 2);
+        set_render_state(halo::d3d9::rs::alpha_blend_enable, (~(group->flags >> 4)) & 1);
+        set_render_state(halo::d3d9::rs::src_blend, (water->water_flags & k_water_base_map_alpha_modulates_reflection) ? 7 : 2);
         set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         set_render_state(halo::d3d9::rs::blend_op, 1);
         set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
         set_render_state(halo::d3d9::rs::z_enable, 1);
         set_render_state(halo::d3d9::rs::z_func, 4);
         set_render_state(halo::d3d9::rs::z_write_enable, z_write);
-        set_render_state(halo::d3d9::rs::fog_enable, (water[0x28] >> 2) & 1);
+        set_render_state(halo::d3d9::rs::fog_enable, (water->water_flags >> 2) & 1);
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[62 + shader_index].shader);
         memset(vertex_constants, 0, sizeof vertex_constants);
-        vertex_constants[0] = *(float *)(water + 0xc4);
-        vertex_constants[1] = *(float *)(water + 0xc4);
-        vertex_constants[2] = (float)(halo::libm::cos((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
-        vertex_constants[3] = (float)(halo::libm::sin((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
+        vertex_constants[0] = water->ripple_scale;
+        vertex_constants[1] = water->ripple_scale;
+        vertex_constants[2] = (float)(halo::libm::cos((double)water->ripple_animation_angle) * water->ripple_animation_velocity * rasterizer_time.time);
+        vertex_constants[3] = (float)(halo::libm::sin((double)water->ripple_animation_angle) * water->ripple_animation_velocity * rasterizer_time.time);
         render_device().set_vertex_shader_constant_f(10, vertex_constants, 3);
 
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
@@ -2007,11 +2022,11 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         }
         {
             float pixel_constant[4];
-            real_vector3d *normal = (real_vector3d *)(raw + 0x88);
+            real_vector3d *normal = (real_vector3d *)&group->tint;
 
             render_device().set_texture(0, rasterizer_render_targets[8].texture);
             set_stage_samplers(0, 1, 0);
-            chimera__rasterizer_set_texture(*(uint32_t *)(water + 0xa8), 3, 2, 0, (int16_t)frame);
+            chimera__rasterizer_set_texture(*(const uint32_t *)&water->reflection_map.tag_id, 3, 2, 0, (int16_t)frame);
             set_stage_samplers(3, 3, 1);
             if (halo::math::vector3d_length(*normal) > 0.0f) {
                 float facing = -(rasterizer_camera_forward[1] * normal->j + rasterizer_camera_forward[2] * normal->k +
@@ -2027,9 +2042,9 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
                     t = facing;
                 }
                 one_minus_t = 1.0f - t;
-                pixel_constant[0] = one_minus_t * *(float *)(water + 0x80) + t * *(float *)(water + 0x70);
-                pixel_constant[1] = one_minus_t * *(float *)(water + 0x84) + t * *(float *)(water + 0x74);
-                pixel_constant[2] = t * *(float *)(water + 0x78) + one_minus_t * *(float *)(water + 0x88);
+                pixel_constant[0] = one_minus_t * water->view_parallel_tint_color.red + t * water->view_perpendicular_tint_color.red;
+                pixel_constant[1] = one_minus_t * water->view_parallel_tint_color.green + t * water->view_perpendicular_tint_color.green;
+                pixel_constant[2] = t * water->view_perpendicular_tint_color.blue + one_minus_t * water->view_parallel_tint_color.blue;
             } else {
                 pixel_constant[0] = 1.0f;
                 pixel_constant[1] = 1.0f;
@@ -2210,11 +2225,6 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
 
 
 
-static inline float &field_f(void *p, uint32_t o)
-{
-    return *(float *)((uint8_t *)p + o);
-}
-
 static void set_render_state(uint32_t state, uint32_t value)
 {
     render_device().set_render_state(state, value);
@@ -2231,12 +2241,12 @@ static void set_linear_clamped_stage(uint32_t stage)
     set_sampler_state(rasterizer_device, stage, 7, 2);
 }
 
-static void bind_ripple_bitmap(uint32_t stage, uint8_t *bitmap)
+static void bind_ripple_bitmap(uint32_t stage, BitmapData *bitmap)
 {
-    halo::cache::texture_cache_get((BitmapData *)bitmap, 1, 1);
-    render_device().set_texture(stage, ((struct BitmapData *)bitmap)->hardware_texture);
-    rasterizer_bound_bitmap_size_a[0] = *(int16_t *)&((struct BitmapData *)bitmap)->width;
-    rasterizer_bound_bitmap_size_a[1] = *(int16_t *)&((struct BitmapData *)bitmap)->height;
+    halo::cache::texture_cache_get(bitmap, 1, 1);
+    render_device().set_texture(stage, bitmap->hardware_texture);
+    rasterizer_bound_bitmap_size_a[0] = (int16_t)bitmap->width;
+    rasterizer_bound_bitmap_size_a[1] = (int16_t)bitmap->height;
 }
 
 /**
@@ -2247,7 +2257,7 @@ static void bind_ripple_bitmap(uint32_t stage, uint8_t *bitmap)
  */
 void rasterizer_water_update_ripple_texture(void *water_shader)
 {
-    uint8_t *water = (uint8_t *)water_shader;
+    const ShaderTransparentWater *water = (const ShaderTransparentWater *)water_shader;
     void *effect;
 
     if (rasterizer_water_enabled == 0) {
@@ -2261,7 +2271,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             {0.9921875f, -0.9921875f, 0.0f, 0.0f, 1.0f, 1.0f},
             {-1.0078125f, -0.9921875f, 0.0f, 0.0f, 0.0f, 1.0f},
         };
-        uint8_t layers[4][0x4c];
+        ShaderTransparentWaterRipple layers[4];
         float pixel_constants[16];
         float vertex_constants[32];
         int16_t ripple_count;
@@ -2284,7 +2294,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | rasterizer_vertex_declarations[8].usage) & 0x10);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
 
-        ripple_count = *(int16_t *)(water + 0xd8);
+        ripple_count = water->ripple_mipmap_levels;
         if (ripple_count > 4) {
             ripple_count = 4;
         }
@@ -2294,43 +2304,43 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
         set_linear_clamped_stage(3);
 
         for (k = 0; k < 4; k++) {
-            if (k < *(int32_t *)(water + 0x124)) {
-                memcpy(layers[k], *(uint8_t **)(water + 0x128) + k * 0x4c, 0x4c);
+            if (k < (int32_t)water->ripples.count) {
+                layers[k] = ((const ShaderTransparentWaterRipple *)(uintptr_t)water->ripples.pointer)[k];
             } else {
-                memset(layers[k], 0, 0x4c);
-                *(int16_t *)(layers[k] + 0x38) = 1;
+                memset(&layers[k], 0, sizeof(layers[k]));
+                layers[k].map_repeats = 1;
             }
         }
-        if (field_f(layers[0], 0x4) == 0.0f && field_f(layers[1], 0x4) == 0.0f) {
-            field_f(layers[1], 0x4) = 1.0f;
+        if (layers[0].contribution_factor == 0.0f && layers[1].contribution_factor == 0.0f) {
+            layers[1].contribution_factor = 1.0f;
         }
-        if (field_f(layers[2], 0x4) == 0.0f && field_f(layers[3], 0x4) == 0.0f) {
-            field_f(layers[3], 0x4) = 1.0f;
+        if (layers[2].contribution_factor == 0.0f && layers[3].contribution_factor == 0.0f) {
+            layers[3].contribution_factor = 1.0f;
         }
 
         for (k = 0; k < 4; k++) {
-            float frame = (float)(int32_t)*(int16_t *)(layers[k] + 0x38);
-            float angle = field_f(layers[k], 0x28);
+            float frame = (float)(int32_t)(int16_t)layers[k].map_repeats;
+            float angle = layers[k].animation_angle;
             float *r = &vertex_constants[k * 8];
 
             r[0] = frame;
             r[1] = 0.0f;
             r[2] = 0.0f;
-            r[3] = (float)(halo::libm::cos((double)angle) * field_f(layers[k], 0x2c) * rasterizer_time.time + field_f(layers[k], 0x30));
+            r[3] = (float)(halo::libm::cos((double)angle) * layers[k].animation_velocity * rasterizer_time.time + layers[k].map_offset.i);
             r[4] = 0.0f;
             r[5] = frame;
             r[6] = 0.0f;
-            r[7] = (float)(halo::libm::sin((double)angle) * field_f(layers[k], 0x2c) * rasterizer_time.time + field_f(layers[k], 0x34));
+            r[7] = (float)(halo::libm::sin((double)angle) * layers[k].animation_velocity * rasterizer_time.time + layers[k].map_offset.j);
         }
         render_device().set_vertex_shader_constant_f(0xd, vertex_constants, 8);
 
         {
-            float sum01 = field_f(layers[1], 0x4) + field_f(layers[0], 0x4);
-            float sum23 = field_f(layers[3], 0x4) + field_f(layers[2], 0x4);
+            float sum01 = layers[1].contribution_factor + layers[0].contribution_factor;
+            float sum23 = layers[3].contribution_factor + layers[2].contribution_factor;
 
-            pixel_constants[3] = field_f(layers[0], 0x4) / sum01;
-            pixel_constants[7] = field_f(layers[2], 0x4) / sum23;
-            pixel_constants[11] = sum01 / (field_f(layers[1], 0x4) + field_f(layers[0], 0x4) + sum23);
+            pixel_constants[3] = layers[0].contribution_factor / sum01;
+            pixel_constants[7] = layers[2].contribution_factor / sum23;
+            pixel_constants[11] = sum01 / (layers[1].contribution_factor + layers[0].contribution_factor + sum23);
         }
         rasterizer_set_shader_stage_config(0);
 
@@ -2339,15 +2349,15 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             uint32_t pass;
             int32_t stage;
 
-            if (*(int16_t *)(water + 0xd8) > 1) {
-                float fraction = (float)(int32_t)pass_index / (float)(int32_t)(*(int16_t *)(water + 0xd8) - 1);
-                float alpha = fraction * field_f(water, 0xdc);
+            if (water->ripple_mipmap_levels > 1) {
+                float fraction = (float)(int32_t)pass_index / (float)(int32_t)(water->ripple_mipmap_levels - 1);
+                float alpha = fraction * water->ripple_mipmap_fade_factor;
                 uint32_t packed = ((uint32_t)halo::libm::lrint((double)alpha * 255.0) << 24) | 0x8080ff;
 
                 pixel_constants[12] = (float)(int32_t)((packed >> 16) & 0xff) * 0.003921569f;
                 pixel_constants[13] = (float)(int32_t)((packed >> 8) & 0xff) * 0.003921569f;
                 pixel_constants[14] = (float)(int32_t)(packed & 0xff) * 0.003921569f;
-                pixel_constants[15] = fraction * field_f(water, 0xdc);
+                pixel_constants[15] = fraction * water->ripple_mipmap_fade_factor;
             } else {
                 pixel_constants[12] = 0.5019608f;
                 pixel_constants[13] = 0.5019608f;
@@ -2373,22 +2383,22 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             }
 
             for (stage = 0; stage < 4; stage++) {
-                datum_index ripple_bitmap = (stage < *(int32_t *)(water + 0x124)) ?
-                    *(datum_index *)(water + 0xd4) : k_datum_index_none;
+                datum_index ripple_bitmap = (stage < (int32_t)water->ripples.count) ?
+                    *(const datum_index *)&water->ripple_maps.tag_id : k_datum_index_none;
                 uint8_t bound = 0;
 
                 if (halo::rasterizer::fields::bump_mapping_enabled != 0 && ripple_bitmap != k_datum_index_none) {
-                    uint8_t *bitmap_tag = (uint8_t *)halo::cache::globals().tag_instances[ripple_bitmap & 0xffff].data;
-                    int32_t bitmap_count = *(int32_t *)(bitmap_tag + 0x60);
+                    const Bitmap *bitmap_tag = (const Bitmap *)halo::cache::globals().tag_instances[ripple_bitmap & 0xffff].data;
+                    int32_t bitmap_count = (int32_t)bitmap_tag->bitmap_data.count;
 
                     if (bitmap_count > 0) {
-                        int16_t index = (int16_t)(*(int16_t *)(layers[stage] + 0x3a) % bitmap_count);
-                        uint8_t *bitmap = 0;
+                        int16_t index = (int16_t)((int16_t)layers[stage].map_index % bitmap_count);
+                        BitmapData *bitmap = 0;
 
                         if (bitmap_tag != 0 && index >= 0 && index < bitmap_count) {
-                            bitmap = *(uint8_t **)(bitmap_tag + 0x64) + index * 0x30;
+                            bitmap = (BitmapData *)(uintptr_t)bitmap_tag->bitmap_data.pointer + index;
                         }
-                        if (*(int16_t *)&((struct BitmapData *)bitmap)->type == 0) {
+                        if (bitmap->type == 0) {
                             bind_ripple_bitmap((uint32_t)stage, bitmap);
                             bound = 1;
                         }
@@ -2398,10 +2408,10 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                     datum_index fallback = *(datum_index *)&rasterizer_globals_data->default_2d.tag_id;
 
                     if (fallback != k_datum_index_none) {
-                        uint8_t *bitmap_tag = (uint8_t *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
+                        const Bitmap *bitmap_tag = (const Bitmap *)halo::cache::globals().tag_instances[fallback & 0xffff].data;
 
-                        if (bitmap_tag != 0 && *(int32_t *)(bitmap_tag + 0x60) > 3) {
-                            bind_ripple_bitmap((uint32_t)stage, *(uint8_t **)(bitmap_tag + 0x64) + 0x90);
+                        if (bitmap_tag != 0 && (int32_t)bitmap_tag->bitmap_data.count > 3) {
+                            bind_ripple_bitmap((uint32_t)stage, (BitmapData *)(uintptr_t)bitmap_tag->bitmap_data.pointer + 3);
                         }
                     }
                 }

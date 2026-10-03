@@ -795,6 +795,7 @@ typedef enum transparent_geometry_group_flags {
     _group_immediate_bit = 0x00000002,          // draw now through the static record
     _group_flag_4_bit = 0x00000004,
     _group_flag_8_bit = 0x00000008,
+    _group_flag_10_bit = 0x00000010,
     _group_flag_20_bit = 0x00000020,
     _group_sort_first_bit = 0x00000080,         // compare sorts these ahead; also frustum z
     _group_node_parts_bit = 0x00000100,
