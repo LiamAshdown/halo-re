@@ -108,7 +108,7 @@ void main_queue_cache_file_open(char *name)
     halo::main::LevelControl::queue_cache_file_open(name);
 }
 
-void main_queue_map_change(char *map_name)
+void main_queue_map_change(const char *map_name)
 {
     halo::main::LevelControl::queue_map_change(map_name);
 }

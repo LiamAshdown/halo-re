@@ -50,7 +50,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         obj->flags &= ~(uint32_t)_object_at_rest_bit;
     } else if (0.0001f <= delta->i * delta->i + delta->j * delta->j + delta->k * delta->k) {
         object_marker marker;
-        if (halo::objects::object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
+        if (halo::objects::object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
             real_plane3d plane;
             int32_t surface_plane_ref = *(int32_t *)((uint8_t *)((ModelCollisionGeometryBSP *)global_structure_collision_bsp)->surfaces.pointer
                 + (int32_t)(int16_t)item->resting_surface_index * 0x0c);
@@ -107,7 +107,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         real_vector3d axis;
         real angle;
 
-        if (halo::objects::object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
+        if (halo::objects::object_get_node_local_transform(item_index, "ground point", &marker, 1) != 0) {
             axis = marker.node_transform.up;
         } else {
             axis = *halo::math::globals().global_up3d_pointer;
@@ -142,7 +142,7 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
     real s;
     real_point3d discard;
 
-    if (halo::objects::object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) == 0) {
+    if (halo::objects::object_get_node_local_transform(item_index, "ground point", &marker, 1) == 0) {
         return;
     }
 

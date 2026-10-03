@@ -47,7 +47,7 @@ void BindingNames::chimera__axis_text(int16_t axis_index, uint8_t direction, uin
     uint16_t direction_name[9];
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
     halo::input::BindingNames::get_axis_direction_name(direction == 0 ? 1 : 0, direction_name);
 
     source = input_state().missing_string_text;
@@ -86,7 +86,7 @@ void BindingNames::chimera__button_text(int16_t button_index, uint16_t *out_text
     uint16_t *source;
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
     source = input_state().missing_string_text;
     if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
@@ -123,7 +123,7 @@ void BindingNames::chimera__pov_text(int16_t pov_index, int16_t direction_index,
     int16_t direction_entry_index;
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_gamepad_names");
 
     pov_name = input_state().missing_string_text;
     if (tag_id != halo::k_dword_none) {
@@ -243,7 +243,7 @@ void BindingNames::get_axis_direction_name(int16_t direction_index, uint16_t *ou
     uint16_t *source;
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_axis_direction_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_axis_direction_names");
     source = input_state().missing_string_text;
     if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
@@ -329,7 +329,7 @@ void BindingNames::get_keyboard_key_name(int16_t key_index, uint16_t *out_name)
     uint16_t *source;
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_keyboard_button_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_keyboard_button_names");
     source = input_state().missing_string_text;
     if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;
@@ -368,7 +368,7 @@ void BindingNames::get_mouse_axis_name(int16_t axis_index, uint8_t direction, ui
     uint16_t direction_name[9];
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
     lookup_index = axis_index + 8;
     source = input_state().missing_string_text;
     if (tag_id != halo::k_dword_none) {
@@ -410,7 +410,7 @@ void BindingNames::get_mouse_button_name(int16_t button_index, uint16_t *out_nam
     uint16_t *source;
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
+        "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_mouse_button_names");
     source = input_state().missing_string_text;
     if (tag_id != halo::k_dword_none) {
         list = (UnicodeStringList *)halo::cache::globals().tag_instances[(uint16_t)tag_id].data;

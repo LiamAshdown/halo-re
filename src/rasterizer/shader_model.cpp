@@ -193,7 +193,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
             if ((context->flags & _model_draw_fixed_function_fog_bit) != 0) {
                 float world_matrix[16];
-                const real_matrix4x3 *m = reinterpret_cast<const real_matrix4x3 *>(static_cast<uintptr_t>(context->node_matrices));
+                const real_matrix4x3 *m = context->node_matrices;
 
                 world_matrix[0] = m->forward.i;
                 world_matrix[1] = m->forward.j;

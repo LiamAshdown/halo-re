@@ -75,7 +75,7 @@ struct profile_path {
     static void initialize();
 };
 
-char directory_create_recursive(char *path);
+char directory_create_recursive(const char *path);
 char *string_to_lowercase(char *string);
 void function_do_nothing();
 

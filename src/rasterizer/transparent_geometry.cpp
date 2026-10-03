@@ -175,14 +175,14 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
 
     if (!rasterizer_model_scratch_valid) {
         rasterizer_model_scratch_node_matrices =
-            chimera__rasterizer_memory_alloc(reinterpret_cast<void *>(static_cast<uintptr_t>(context->node_matrices)),
+            chimera__rasterizer_memory_alloc(context->node_matrices,
                                              (uint32_t)(context->node_count * 0x34));
         rasterizer_model_scratch_node_count = context->node_count;
         rasterizer_model_scratch_lighting = chimera__rasterizer_memory_alloc(&context->lighting, 0x74);
         rasterizer_model_scratch_function_source = chimera__rasterizer_memory_alloc(&context->change_colors, 8);
         rasterizer_model_scratch_valid = 1;
     }
-    group->node_matrices = (uint32_t)(uintptr_t)rasterizer_model_scratch_node_matrices;
+    group->node_matrices = static_cast<real_matrix4x3 *>(rasterizer_model_scratch_node_matrices);
     group->lighting = static_cast<render_lighting *>(rasterizer_model_scratch_lighting);
     group->node_count = rasterizer_model_scratch_node_count;
     group->lighting_extra = static_cast<render_animation *>(rasterizer_model_scratch_function_source);
@@ -263,7 +263,7 @@ static void set_group_skinning(const transparent_geometry_group *flags_group,
         nodes.matrices = source->node_matrices;
         nodes.node_count = source->node_count;
     } else {
-        nodes.matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
+        nodes.matrices = k_render_identity_matrix_ptr;
         nodes.node_count = 1;
     }
     chimera__rasterizer_set_model_skinning((uint8_t)((flags_group->flags & _group_node_parts_bit) == 0), &nodes);

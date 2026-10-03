@@ -2,12 +2,14 @@
  * @file src/networking/net2_message_delta_driver.cpp
  * Message encode/decode drivers and field binding lifecycle.
  */
+#include <string.h>
 #include "tags.h"
 #include "halo/networking/delta_message_types.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
 #include "networking.h"
+#include "halo/networking/message_delta_context.hpp"
 #include "halo/networking/net2_message_delta_driver.hpp"
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
@@ -246,10 +248,9 @@ void DeltaMessageDriver::definitions_teardown_field_bindings(void)
     }
 }
 
-uint8_t DeltaMessageDriver::encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base)
+uint8_t DeltaMessageDriver::encode_all_fields(message_delta_encode_context *ctx, int32_t static_base, int32_t item, int32_t type_base)
 {
-    #define CTXD(off) (*(int32_t *)(ctx + (off)))
-    message_delta_definition *definition = message_delta_definitions[CTXD(4)];
+    message_delta_definition *definition = message_delta_definitions[ctx->message_type];
     message_delta_static_fields *statics = definition->statics;
     int32_t field_count;
     int32_t i;
@@ -260,12 +261,12 @@ uint8_t DeltaMessageDriver::encode_all_fields(uint8_t *ctx, int32_t static_base,
         ok = 1;
         for (i = 0; i < count; i++) {
             message_delta_field_binding *binding =
-                &message_delta_definitions[CTXD(4)]->statics->fields[i];
+                &message_delta_definitions[ctx->message_type]->statics->fields[i];
             message_delta_field_encode_fn encode =
                 *(message_delta_field_encode_fn *)((uint8_t *)binding->field_type + 0x50);
-            int32_t field_bits = encode(binding->field_type, 0, static_base + binding->destination_offset, ctx + 0x64);
+            int32_t field_bits = encode(binding->field_type, 0, static_base + binding->destination_offset, &ctx->item_stream);
             if (field_bits > 0) {
-                CTXD(0x40) = CTXD(0x40) + field_bits;
+                ctx->static_bits = ctx->static_bits + field_bits;
                 ok = ok ? 1 : 0;
             } else {
                 ok = 0;
@@ -280,76 +281,70 @@ uint8_t DeltaMessageDriver::encode_all_fields(uint8_t *ctx, int32_t static_base,
     for (i = 0; i < 0x10; i++) {
         ((int32_t *)message_delta_field_changed_flags)[i] = 0;
     }
-    ok = (uint8_t)(CTXD(8) != 1);
+    ok = (uint8_t)(ctx->mode != 1);
     for (i = 0; i < field_count; i++) {
         uint8_t changed = halo::networking::message_delta_encode_field(type_base, ctx, i, item);
-        if (CTXD(8) == 1) {
+        if (ctx->mode == 1) {
             ok = (ok || changed) ? 1 : 0;
         } else {
             ok = (ok && changed) ? 1 : 0;
         }
     }
     return ok;
-    #undef CTXD
 }
 
-uint8_t DeltaMessageDriver::encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset)
+uint8_t DeltaMessageDriver::encode_field(int32_t changed_offset, message_delta_encode_context *ctx, int32_t field_index, int32_t type_offset)
 {
-    #define CTXD(off) (*(int32_t *)(ctx + (off)))
     message_delta_definition *definition;
     message_delta_field_binding *binding;
     int32_t src_offset;
     int32_t field_bits;
     uint8_t changed;
 
-    definition = message_delta_definitions[CTXD(4)];
+    definition = message_delta_definitions[ctx->message_type];
     binding = &definition->fields[field_index];
     src_offset = (changed_offset == 0) ? 0 : (binding->source_offset + changed_offset);
     {
         message_delta_field_encode_fn encode =
             *(message_delta_field_encode_fn *)((uint8_t *)binding->field_type + 0x50);
-        field_bits = encode(binding->field_type, src_offset, binding->destination_offset + type_offset, ctx + 100);
+        field_bits = encode(binding->field_type, src_offset, binding->destination_offset + type_offset, &ctx->item_stream);
     }
 
     changed = 0;
-    if (CTXD(8) == 1) {
+    if (ctx->mode == 1) {
         if (halo::memory::bit_stream_write_bit(field_bits != 0, 0) != 0) {
             changed = 1;
         }
     } else if (0 < field_bits) {
         changed = 1;
     }
-    CTXD(0x44) = CTXD(0x44) + field_bits;
+    ctx->field_bits = ctx->field_bits + field_bits;
     message_delta_field_changed_flags[field_index] = (uint8_t)(field_bits != 0);
     return changed;
-    #undef CTXD
 }
 
 int32_t DeltaMessageDriver::encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
                                       int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
                                       char force_changed)
 {
-    uint32_t ctx_storage[0x98 / 4];
-    uint8_t *ctx = (uint8_t *)ctx_storage;
-    #define CTXD(off) (*(int32_t *)(ctx + (off)))
+    message_delta_encode_context context;
+    message_delta_encode_context *ctx = &context;
     message_delta_definition *definition;
     int32_t header_bits;
     int32_t i;
 
-    for (i = 0; i < 0x98 / 4; i++) {
-        ctx_storage[i] = 0;
-    }
+    memset(ctx, 0, sizeof(*ctx));
     header_bits = message_delta_definitions[message_type]->header_bits;
-    CTXD(4) = message_type;
-    CTXD(8) = flag;
-    CTXD(0xc) = extra_eax;
-    CTXD(0x10) = extra_edx;
-    CTXD(0x18) = extra_edx - header_bits;
-    CTXD(0x20) = extra_eax;
-    CTXD(0x30) = header_bits - 1;
-    CTXD(0x34) = header_bits;
-    CTXD(0x3c) = header_bits;
-    ctx[0] = 1;
+    ctx->message_type = message_type;
+    ctx->mode = flag;
+    ctx->buffer = reinterpret_cast<uint8_t *>(static_cast<uintptr_t>(extra_eax));
+    ctx->buffer_bits = extra_edx;
+    ctx->remaining_bits = extra_edx - header_bits;
+    ctx->stream.data = ctx->buffer;
+    ctx->stream.last_bit = header_bits - 1;
+    ctx->header_bits = header_bits;
+    ctx->bit_offset = header_bits;
+    ctx->active = 1;
     halo::networking::message_delta_encode_message_header(ctx);
 
     if (0 < count) {
@@ -364,100 +359,95 @@ int32_t DeltaMessageDriver::encode_message(int32_t extra_eax, int32_t extra_edx,
 
             halo::networking::message_delta_encode_prepare_item(ctx);
             halo::networking::message_delta_encode_all_fields(ctx, baseline, (int32_t)item, type);
-            if (0 < CTXD(0x44) || force_changed != 0) {
-                int32_t bits = CTXD(0x44) + CTXD(0x40);
-                CTXD(0x14) = CTXD(0x14) + bits;
-                CTXD(0x18) = CTXD(0x18) - bits;
-                CTXD(0x3c) = CTXD(0x3c) + bits;
-                CTXD(0x38) = CTXD(0x38) + 1;
+            if (0 < ctx->field_bits || force_changed != 0) {
+                int32_t bits = ctx->field_bits + ctx->static_bits;
+                ctx->item_bits = ctx->item_bits + bits;
+                ctx->remaining_bits = ctx->remaining_bits - bits;
+                ctx->bit_offset = ctx->bit_offset + bits;
+                ctx->item_count = ctx->item_count + 1;
             }
-            if (CTXD(8) == 1) {
-                CTXD(0x48) = -1;
-                CTXD(0x4c) = 0; CTXD(0x50) = 0; CTXD(0x54) = 0; CTXD(0x58) = 0; CTXD(0x5c) = 0; CTXD(0x60) = 0;
+            if (ctx->mode == 1) {
+                ctx->baseline_stream.unknown_00 = -1;
+                ctx->baseline_stream.data = 0; ctx->baseline_stream.first_bit = 0; ctx->baseline_stream.byte_cursor = 0; ctx->baseline_stream.bit_cursor = 0; ctx->baseline_stream.last_bit = 0; ctx->baseline_bits = 0;
             }
-            CTXD(0x64) = -1;
-            CTXD(0x68) = 0; CTXD(0x6c) = 0; CTXD(0x70) = 0; CTXD(0x74) = 0; CTXD(0x78) = 0; CTXD(0x7c) = 0;
+            ctx->item_stream.unknown_00 = -1;
+            ctx->item_stream.data = 0; ctx->item_stream.first_bit = 0; ctx->item_stream.byte_cursor = 0; ctx->item_stream.bit_cursor = 0; ctx->item_stream.last_bit = 0; ctx->item_stream_bits = 0;
             cursor = cursor + 1;
             remaining = remaining - 1;
         } while (remaining != 0);
     }
 
-    definition = message_delta_definitions[CTXD(4)];
-    if (CTXD(0x14) <= 0) {
+    definition = message_delta_definitions[ctx->message_type];
+    if (ctx->item_bits <= 0) {
         return 0;
     }
     if (1 < definition->maximum_items) {
         int32_t count_bits = message_delta_item_count_bits[definition->maximum_items];
-        uint32_t value = (uint32_t)(CTXD(0x38) - 1);
-        halo::memory::bit_stream_write_bits_chunked((bit_stream *)(ctx + 0x1c), &value, count_bits);
-        CTXD(0x88) = count_bits;
+        uint32_t value = (uint32_t)(ctx->item_count - 1);
+        halo::memory::bit_stream_write_bits_chunked(&ctx->stream, &value, count_bits);
+        ctx->parameter_bits = count_bits;
     }
-    return definition->header_bits + CTXD(0x14);
-    #undef CTXD
+    return definition->header_bits + ctx->item_bits;
 }
 
-uint8_t DeltaMessageDriver::encode_message_header(uint8_t *ctx)
+uint8_t DeltaMessageDriver::encode_message_header(message_delta_encode_context *ctx)
 {
-    #define CTXD(off) (*(int32_t *)(ctx + (off)))
-    bit_stream *stream = (bit_stream *)(ctx + 0x1c);
+    bit_stream *stream = &ctx->stream;
     uint32_t parameters = (uint32_t)message_delta_parameters_protocol_sequence;
     uint8_t ok;
     int32_t written;
 
-    ok = halo::memory::bit_stream_write_bit((uint8_t)CTXD(8), stream) != 0;
-    CTXD(0x80) = 1;
-    CTXD(0x84) = CTXD(0x84) + 6;
-    written = halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)(ctx + 4), CTXD(0x84));
+    ok = halo::memory::bit_stream_write_bit((uint8_t)ctx->mode, stream) != 0;
+    ctx->header_written = 1;
+    ctx->type_bits = ctx->type_bits + 6;
+    written = halo::memory::bit_stream_write_bits_chunked(stream, reinterpret_cast<const uint32_t *>(&ctx->message_type), ctx->type_bits);
     ok = (written != 0 && ok) ? 1 : 0;
     if (message_delta_parameters_enabled != 1) {
         return ok;
     }
-    CTXD(0x88) = 2;
+    ctx->parameter_bits = 2;
     ok = (halo::memory::bit_stream_write_bit(message_delta_parameters_sending, stream) != 0 && ok) ? 1 : 0;
-    written = halo::memory::bit_stream_write_bits_chunked(stream, &parameters, CTXD(0x88));
-    CTXD(0x88) = CTXD(0x88) + 1;
+    written = halo::memory::bit_stream_write_bits_chunked(stream, &parameters, ctx->parameter_bits);
+    ctx->parameter_bits = ctx->parameter_bits + 1;
     return (written != 0 && ok) ? 1 : 0;
-    #undef CTXD
 }
 
-uint8_t DeltaMessageDriver::encode_prepare_item(uint8_t *ctx)
+uint8_t DeltaMessageDriver::encode_prepare_item(message_delta_encode_context *ctx)
 {
-    #define CTXW(off) (*(int32_t *)(ctx + (off)))
 
-    CTXW(0x40) = 0;
-    CTXW(0x44) = 0;
-    if (CTXW(8) == 1) {
-        uint32_t bit_offset = (uint32_t)CTXW(0x3c);
-        int32_t field_bits = message_delta_definitions[CTXW(4)]->field_bits;
-        CTXW(0x58) = bit_offset & 7;
-        CTXW(0x50) = (int32_t)bit_offset;
-        CTXW(0x5c) = (int32_t)(bit_offset - 1) + field_bits;
-        CTXW(0x54) = (int32_t)(bit_offset >> 3);
-        CTXW(0x48) = 0;
-        CTXW(0x4c) = CTXW(0xc);
-        CTXW(0x60) = field_bits;
-        CTXW(0x40) = CTXW(0x40) + field_bits;
+    ctx->static_bits = 0;
+    ctx->field_bits = 0;
+    if (ctx->mode == 1) {
+        uint32_t bit_offset = (uint32_t)ctx->bit_offset;
+        int32_t field_bits = message_delta_definitions[ctx->message_type]->field_bits;
+        ctx->baseline_stream.bit_cursor = bit_offset & 7;
+        ctx->baseline_stream.first_bit = (int32_t)bit_offset;
+        ctx->baseline_stream.last_bit = (int32_t)(bit_offset - 1) + field_bits;
+        ctx->baseline_stream.byte_cursor = (int32_t)(bit_offset >> 3);
+        ctx->baseline_stream.unknown_00 = 0;
+        ctx->baseline_stream.data = ctx->buffer;
+        ctx->baseline_bits = field_bits;
+        ctx->static_bits = ctx->static_bits + field_bits;
     } else {
-        CTXW(0x48) = 0;
-        CTXW(0x4c) = 0;
-        CTXW(0x50) = 0;
-        CTXW(0x54) = 0;
-        CTXW(0x58) = 0;
-        CTXW(0x5c) = 0;
-        CTXW(0x60) = 0;
+        ctx->baseline_stream.unknown_00 = 0;
+        ctx->baseline_stream.data = 0;
+        ctx->baseline_stream.first_bit = 0;
+        ctx->baseline_stream.byte_cursor = 0;
+        ctx->baseline_stream.bit_cursor = 0;
+        ctx->baseline_stream.last_bit = 0;
+        ctx->baseline_bits = 0;
     }
     {
-        uint32_t total_offset = (uint32_t)(CTXW(0x3c) + CTXW(0x40));
-        int32_t remaining = CTXW(0x18) - CTXW(0x40);
-        CTXW(0x74) = total_offset & 7;
-        CTXW(0x64) = 0;
-        CTXW(0x6c) = (int32_t)total_offset;
-        CTXW(0x68) = CTXW(0xc);
-        CTXW(0x70) = (int32_t)(total_offset >> 3);
-        CTXW(0x78) = (remaining - 1) + (int32_t)total_offset;
-        CTXW(0x7c) = remaining;
+        uint32_t total_offset = (uint32_t)(ctx->bit_offset + ctx->static_bits);
+        int32_t remaining = ctx->remaining_bits - ctx->static_bits;
+        ctx->item_stream.bit_cursor = total_offset & 7;
+        ctx->item_stream.unknown_00 = 0;
+        ctx->item_stream.first_bit = (int32_t)total_offset;
+        ctx->item_stream.data = ctx->buffer;
+        ctx->item_stream.byte_cursor = (int32_t)(total_offset >> 3);
+        ctx->item_stream.last_bit = (remaining - 1) + (int32_t)total_offset;
+        ctx->item_stream_bits = remaining;
     }
-    #undef CTXW
     return 1;
 }
 
@@ -651,12 +641,12 @@ void message_delta_definitions_teardown_field_bindings(void)
     halo::networking::DeltaMessageDriver::definitions_teardown_field_bindings();
 }
 
-uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base)
+uint8_t message_delta_encode_all_fields(message_delta_encode_context *ctx, int32_t static_base, int32_t item, int32_t type_base)
 {
     return halo::networking::DeltaMessageDriver::encode_all_fields(ctx, static_base, item, type_base);
 }
 
-uint8_t message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset)
+uint8_t message_delta_encode_field(int32_t changed_offset, message_delta_encode_context *ctx, int32_t field_index, int32_t type_offset)
 {
     return halo::networking::DeltaMessageDriver::encode_field(changed_offset, ctx, field_index, type_offset);
 }
@@ -668,12 +658,12 @@ int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32
     return halo::networking::DeltaMessageDriver::encode_message(extra_eax, extra_edx, flag, message_type, changed_offset, items, type_offset, count, force_changed);
 }
 
-uint8_t message_delta_encode_message_header(uint8_t *ctx)
+uint8_t message_delta_encode_message_header(message_delta_encode_context *ctx)
 {
     return halo::networking::DeltaMessageDriver::encode_message_header(ctx);
 }
 
-uint8_t message_delta_encode_prepare_item(uint8_t *ctx)
+uint8_t message_delta_encode_prepare_item(message_delta_encode_context *ctx)
 {
     return halo::networking::DeltaMessageDriver::encode_prepare_item(ctx);
 }

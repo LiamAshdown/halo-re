@@ -25,13 +25,13 @@ inline const float *animation_function_values(const render_animation *animation)
     if (animation == nullptr) {
         return nullptr;
     }
-    return reinterpret_cast<const float *>(static_cast<uintptr_t>(animation->function_values));
+    return animation->function_values;
 }
 
 /** The change color table of a group's animation source (render_animation.change_colors). */
 inline const ColorRGB *animation_change_colors(const render_animation *animation)
 {
-    return reinterpret_cast<const ColorRGB *>(static_cast<uintptr_t>(animation->change_colors));
+    return animation->change_colors;
 }
 
 /** True when the tag reference has a target (its tag id is not the none value). */

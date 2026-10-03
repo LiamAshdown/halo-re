@@ -2,6 +2,9 @@
 
 /* Include after the engine type headers (types/*.h carry no include guards). */
 
+struct render_lighting;
+struct render_animation;
+
 namespace halo::game::engine1 {
 
 /**
@@ -26,7 +29,7 @@ public:
     static void relocate_hill_marker(int32_t ball_index);
     static void relocate_object_hill(uint32_t object_index);
     static void reset_hill_marker_history(void);
-    static void submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4, uint32_t param_5, float *vertex_source);
+    static void submit_hill_marker_geometry(uint32_t tag_handle_as_uint, const render_lighting *lighting_override, const render_animation *animation_override, uint32_t param_4, uint32_t param_5, float *vertex_source);
     static void update_hill_occupancy_state(void);
     static void update_occupant_table(uint32_t index);
 };

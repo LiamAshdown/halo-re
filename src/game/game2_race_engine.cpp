@@ -51,55 +51,54 @@ datum_index RaceEngine::race_pick_vehicle_tag(int32_t index)
     uint8_t *vehicles = *(uint8_t **)(information + 0x24);
     datum_index tag = halo::k_dword_none;
 
-#define VEHICLE(k) (*(datum_index *)(vehicles + (k) * 0x10 + 0x0c))
+auto vehicle = [vehicles](int32_t k) -> datum_index & { return *(datum_index *)(vehicles + k * 0x10 + 0x0c); };
     switch (vehicle_set & 0xf) {
     case 0:
         if (index == 0) {
-            return VEHICLE(0);
+            return vehicle(0);
         }
         if (index == 1) {
-            return VEHICLE(2);
+            return vehicle(2);
         }
-        return index < 6 ? VEHICLE(1) : halo::k_dword_none;
+        return index < 6 ? vehicle(1) : halo::k_dword_none;
     case 2:
-        return index < 4 ? VEHICLE(0) : halo::k_dword_none;
+        return index < 4 ? vehicle(0) : halo::k_dword_none;
     case 3:
-        return index < 8 ? VEHICLE(1) : halo::k_dword_none;
+        return index < 8 ? vehicle(1) : halo::k_dword_none;
     case 4:
-        return index < 4 ? VEHICLE(2) : halo::k_dword_none;
+        return index < 4 ? vehicle(2) : halo::k_dword_none;
     case 5:
-        return index < 4 ? VEHICLE(5) : halo::k_dword_none;
+        return index < 4 ? vehicle(5) : halo::k_dword_none;
     case 8:
         if (race_vehicle_counts[0] < ((vehicle_set >> 4) & 7)) {
-            tag = VEHICLE(0);
+            tag = vehicle(0);
             race_vehicle_counts[0]++;
             if (tag != halo::k_dword_none) {
                 return tag;
             }
         }
         if (race_vehicle_counts[1] < ((vehicle_set >> 7) & 7)) {
-            tag = VEHICLE(1);
+            tag = vehicle(1);
             race_vehicle_counts[1]++;
             if (tag != halo::k_dword_none) {
                 return tag;
             }
         }
         if (race_vehicle_counts[3] < ((vehicle_set >> 13) & 7)) {
-            tag = VEHICLE(5);
+            tag = vehicle(5);
             race_vehicle_counts[3]++;
             if (tag != halo::k_dword_none) {
                 return tag;
             }
         }
         if (race_vehicle_counts[2] < ((vehicle_set >> 10) & 7)) {
-            tag = VEHICLE(2);
+            tag = vehicle(2);
             race_vehicle_counts[2]++;
         }
         return tag;
     default:
         return halo::k_dword_none;
     }
-#undef VEHICLE
 }
 
 /**

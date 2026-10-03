@@ -30,6 +30,7 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/game/api.hpp"
+#include "halo/units/records.hpp"
 
 namespace halo::input {
 
@@ -732,7 +733,7 @@ uint8_t GameActions::should_invert_look(int16_t local_player_index)
     if (unit_object->parent_object == halo::k_dword_none) {
         return 0;
     }
-    unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    unit = halo::units::unit_data_of(unit_object);
     if (unit->vehicle_seat_index == -1) {
         return 0;
     }

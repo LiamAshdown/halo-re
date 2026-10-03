@@ -296,10 +296,10 @@ void bitmap_data_view::free()
     }
 }
 
-char * bitmap_data_view::targa_export(file_reference_record *destination)
+const char * bitmap_data_view::targa_export(file_reference_record *destination)
 {
     targa_header header;
-    char *error;
+    const char *error;
     int32_t row;
     int32_t row_byte_size;
     void *row_pixels;
@@ -321,7 +321,7 @@ char * bitmap_data_view::targa_export(file_reference_record *destination)
 
         error = 0;
         if (halo::saved_games::file_reference_write(destination, &header, sizeof(header)) == 0) {
-            error = (char *)"couldn't write header";
+            error = "couldn't write header";
         } else if (0 < (int16_t)self->height) {
             row_byte_size = (int32_t)(int16_t)self->width * 4;
             row = 0;
@@ -329,7 +329,7 @@ char * bitmap_data_view::targa_export(file_reference_record *destination)
                 row_pixels = bitmap_data_view(self).get_row_address(0, 0, (int16_t)row);
                 if (halo::saved_games::file_reference_write(destination, row_pixels, row_byte_size) == 0) {
                     halo::saved_games::file_reference_close(destination);
-                    return (char *)"couldn't write row";
+                    return "couldn't write row";
                 }
                 row = row + 1;
             } while (row < (int16_t)self->height);
@@ -339,7 +339,7 @@ char * bitmap_data_view::targa_export(file_reference_record *destination)
         halo::saved_games::file_reference_close(destination);
         return error;
     }
-    return (char *)"couldn't open file";
+    return "couldn't open file";
 }
 
 uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type)

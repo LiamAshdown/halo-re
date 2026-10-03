@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <type_traits>
 
+#include "halo/core/com.hpp"
+
 namespace halo::sound::dsound_slot {
 
 /** IUnknown. */
@@ -60,22 +62,7 @@ inline constexpr uint32_t ks_query_support = 0x14 / 4;
 
 namespace halo::sound {
 
-/** The method table (first dword) of a COM object held as a pointer or as a 32-bit handle. */
-template <typename T>
-inline void **com_methods(T object) noexcept
-{
-    if constexpr (std::is_pointer_v<T>) {
-        return *reinterpret_cast<void ***>(const_cast<std::remove_cv_t<std::remove_pointer_t<T>> *>(object));
-    } else {
-        return *reinterpret_cast<void ***>(static_cast<uintptr_t>(object));
-    }
-}
-
-/** Method of a COM object by its method table slot (byte offset / 4), typed as the given function pointer. */
-template <typename Fn, typename T>
-inline Fn com_method(T object, uint32_t slot) noexcept
-{
-    return reinterpret_cast<Fn>(com_methods(object)[slot]);
-}
+using halo::com_method;
+using halo::com_methods;
 
 }  // namespace halo::sound

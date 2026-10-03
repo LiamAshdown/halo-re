@@ -105,7 +105,7 @@ void data_files::open()
 
     halo::cache::data_files::zero(&globals().bitmaps_data_file);
     globals().cache_file_index = -1;
-    globals().bitmaps_data_file.name = (char *)"bitmaps";
+    globals().bitmaps_data_file.name = "bitmaps";
     globals().bitmaps_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "bitmaps");
 
@@ -139,7 +139,7 @@ void data_files::open()
     }
 
     halo::cache::data_files::zero(&globals().sounds_data_file);
-    globals().sounds_data_file.name = (char *)"sounds";
+    globals().sounds_data_file.name = "sounds";
     globals().sounds_data_file.unknown_24 = 0;
     sprintf(path, "maps\\%s.map", "sounds");
 

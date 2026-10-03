@@ -92,7 +92,7 @@ void allocate_new_slot(uint16_t *out_name)
     char scratch_path[k_path_buffer_size];
 
     out_name[0] = 0;
-    tag_index = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\saved_game_file_strings");
+    tag_index = halo::cache::tag_lookup(groups::unicode_string_list, "ui\\saved_game_file_strings");
     if (tag_index != -1) {
         memset(scratch_path, 0, sizeof(scratch_path));
         number = 0;
@@ -180,7 +180,7 @@ int32_t check_storage_availability(void)
  *
  * @address 0x005387e0
  */
-uint8_t copy_files_to_target(char *source_directory, char *source_name, char *target_name)
+uint8_t copy_files_to_target(char *source_directory, const char *source_name, const char *target_name)
 {
     char check_path[256];
     win32_find_dataa find_data;
@@ -613,7 +613,7 @@ void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only
  *
  * @address 0x00538770
  */
-uint8_t file_exists(char *name)
+uint8_t file_exists(const char *name)
 {
     char directory[264];
     char path[832];
@@ -1001,7 +1001,7 @@ int16_t index_register_default_playlists(void)
     uint8_t written;
 
     count = default_game_variant_count;
-    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, "ui\\default_multiplayer_game_setting_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none && 0 < count) {
@@ -1106,7 +1106,7 @@ int16_t index_register_default_profiles(void)
     saved_player_profile_file file;
     uint8_t written;
 
-    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\shell\\strings\\default_player_profile_names");
+    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, "ui\\shell\\strings\\default_player_profile_names");
     i = 0;
     last = 0;
     if (tag_id != k_datum_index_none) {

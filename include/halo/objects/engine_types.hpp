@@ -42,3 +42,4 @@ struct real_matrix4x3;
 struct real_point3d;
 struct real_vector3d;
 struct render_lighting;
+struct render_animation;

@@ -23,7 +23,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 
-#define k_uninitialized_fill 0xfafafafau
+static constexpr uint32_t k_uninitialized_fill = 0xfafafafau;
 
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);

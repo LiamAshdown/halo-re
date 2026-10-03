@@ -27,7 +27,7 @@ inline tag_iterator_view *view(::tag_iterator *record) { return static_cast<tag_
  * tag_table: the cache module operations of this topic, grouped as static members.
  */
 struct tag_table {
-    static datum_index lookup(tag_group group, char *path);
+    static datum_index lookup(tag_group group, const char *path);
 };
 
 /**

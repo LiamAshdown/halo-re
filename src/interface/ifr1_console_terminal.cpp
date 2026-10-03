@@ -480,7 +480,7 @@ void ConsoleTerminal::position_cursor(void)
  *
  * @address 0x496a80
  */
-void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list args)
+void ConsoleTerminal::printf_verbose(ColorARGB *color, const char *format, va_list args)
 {
     static const ColorARGB k_default_color = { 1.0f, 0.7f, 0.7f, 0.7f };
     datum_index message_handle;

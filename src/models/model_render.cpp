@@ -95,7 +95,7 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
                         halo::math::matrix4x3_transform_point(transformed_centroid, *((real_point3d *)&p->base.centroid), *centroid_node_matrix);
 
                         halo::rasterizer::rasterizer_transparent_geometry_group_build(
-                            (transparent_geometry_group_link *)&links[link_count], (uint8_t *)shader, permutation,
+                            (transparent_geometry_group_link *)&links[link_count], shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type, -1,
                             (int32_t)p->base.triangle_count, (rasterizer_vertex_buffer *)&p->base.vertex_type, -1,
                             &transformed_centroid);
@@ -110,13 +110,13 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
                     }
                 } else if (shader_type == 4 && (((ShaderModel *)shader)->shader_model_flags & 8) != 0) {
                     if (pass == _model_render_pass_model_decal) {
-                        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(-1, (uint8_t *)shader, permutation,
+                        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(-1, shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type, -1,
                             p->base.triangle_count, (rasterizer_vertex_buffer *)&p->base.vertex_type);
                     }
                 } else if (pass == _model_render_pass_opaque) {
                     if ((flags & _model_render_immediate_bit) == 0) {
-                        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(-1, (uint8_t *)shader, permutation,
+                        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(-1, shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type, -1,
                             p->base.triangle_count, (rasterizer_vertex_buffer *)&p->base.vertex_type);
                     } else {
@@ -219,9 +219,9 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     context.bounding_radius = bounding_radius;
     context.group_parameters = *(rasterizer_geometry_group_parameters *)effect;
 
-    context.change_colors = (uint32_t)(uintptr_t)change_colors;
-    context.function_values = (uint32_t)(uintptr_t)function_out_values;
-    context.node_matrices = (uint32_t)(uintptr_t)node_matrix_array;
+    context.change_colors = change_colors;
+    context.function_values = function_out_values;
+    context.node_matrices = node_matrix_array;
     context.base_map_u_scale = model->base_map_u_scale;
     context.node_count = (int16_t)model->nodes.count;
     context.base_map_v_scale = model->base_map_v_scale;

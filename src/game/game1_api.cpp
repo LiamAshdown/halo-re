@@ -387,9 +387,9 @@ void game_engine_koth_reset_hill_marker_history(void)
     halo::game::engine1::Koth::reset_hill_marker_history();
 }
 
-void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4, uint32_t param_5, float *vertex_source)
+void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint, const render_lighting *lighting_override, const render_animation *animation_override, uint32_t param_4, uint32_t param_5, float *vertex_source)
 {
-    halo::game::engine1::Koth::submit_hill_marker_geometry(tag_handle_as_uint, position_override, orientation_override, param_4, param_5, vertex_source);
+    halo::game::engine1::Koth::submit_hill_marker_geometry(tag_handle_as_uint, lighting_override, animation_override, param_4, param_5, vertex_source);
 }
 
 void game_engine_koth_update_hill_occupancy_state(void)

@@ -210,8 +210,8 @@ void LevelControl::credits_load_directly_for_endgame(void)
         halo::saved_games::player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
     }
     halo::main::main_menu_return_and_reset();
-    main_menu_tag = halo::cache::tag_lookup(k_ui_widget_definition_group, (char *)"ui\\shell\\main_menu\\main_menu");
-    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", k_datum_index_none,
+    main_menu_tag = halo::cache::tag_lookup(k_ui_widget_definition_group, "ui\\shell\\main_menu\\main_menu");
+    halo::interface::chimera__load_ui_widget("ui\\shell\\main_menu\\credits_screen", k_datum_index_none,
                              (widget_instance *)0, (uint16_t)-1, main_menu_tag, k_datum_index_none,
                              -1);
     hud_text_message_cycle_state_00719230 = 1;
@@ -499,7 +499,7 @@ namespace halo::main {
  *
  * @address 0x4c8740
  */
-void LevelControl::queue_map_change(char *map_name)
+void LevelControl::queue_map_change(const char *map_name)
 {
     main_globals_data.return_to_main_menu = 0;
     strncpy(main_globals_data.scenario_path, map_name, k_main_path_length - 1);

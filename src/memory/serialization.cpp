@@ -603,7 +603,7 @@ int32_t data_packet_group_view::append_packet_header(uint8_t *buffer, int16_t *c
         globals().data_packet_group_error = 0;
         return 1;
     }
-    globals().data_packet_group_error = (char *)"couldn't append header to encoded packet";
+    globals().data_packet_group_error = "couldn't append header to encoded packet";
     return 0;
 }
 
@@ -622,7 +622,7 @@ int32_t data_packet_group_view::decode_packet(int16_t *remaining_length, void *d
     int8_t type;
 
     if ((uint16_t)*remaining_length < 1) {
-        globals().data_packet_group_error = (char *)"got packet with no header";
+        globals().data_packet_group_error = "got packet with no header";
         return 0;
     }
 
@@ -633,19 +633,19 @@ int32_t data_packet_group_view::decode_packet(int16_t *remaining_length, void *d
     type = (int8_t)*header_byte;
 
     if (type < 0 || type >= this->type_count) {
-        globals().data_packet_group_error = (char *)"got packet with bad type";
+        globals().data_packet_group_error = "got packet with bad type";
         return 0;
     }
     {
         data_packet_type *entry = &this->types[(int)type];
         if (entry->packet_class != expected_class) {
-            globals().data_packet_group_error = (char *)"got packet with mismatched class";
+            globals().data_packet_group_error = "got packet with mismatched class";
             return 0;
         }
         *remaining_length = *remaining_length - 1;
         if (entry->definition != 0 &&
             halo::memory::view(entry->definition)->decode_packet_body(buffer, *remaining_length, decoded_body, out_version_used, 0) == 0) {
-            globals().data_packet_group_error = (char *)"got packet which wouldn't decode";
+            globals().data_packet_group_error = "got packet which wouldn't decode";
             return 0;
         }
         *out_type = (int16_t)(int8_t)*header_byte;
@@ -663,11 +663,11 @@ int32_t data_packet_group_view::decode_packet(int16_t *remaining_length, void *d
  */
 int32_t data_packet_group_view::encode_packet(uint8_t *buffer, void *source, int16_t *length_inout, int16_t type, int16_t version)
 {
-    char *error = 0;
+    const char *error = 0;
     struct_definition *definition = this->types[(int)type].definition;
 
     if (halo::memory::view(definition)->encode_packet_body(buffer, source, length_inout, (int16_t)(uint16_t)this->maximum_encoded_size, version) == 0) {
-        error = (char *)"couldn't encode packet";
+        error = "couldn't encode packet";
     } else if (this->append_packet_header(buffer, length_inout, (uint8_t)type) == 0) {
         return globals().data_packet_group_error == 0;
     }

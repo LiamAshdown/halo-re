@@ -19,11 +19,6 @@
 #include "halo/game/vars.hpp"
 #include "halo/ai/api.hpp"
 
-#ifdef __cplusplus
-#define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
-#else
-#define CTF_CUSTOM_WAYPOINT_ZERO (custom_waypoint){0}
-#endif
 
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
 static auto &ctf_flag_auto_return_ticks = halo::link::ref<int32_t>(halo::game::vars().ctf_flag_auto_return_ticks);
@@ -121,8 +116,8 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                 ctf_team_return_credit_active[1] = 0;
                 ctf_team_return_credit_ticks[0] = 0;
                 ctf_team_return_credit_ticks[1] = 0;
-                custom_waypoints[0] = CTF_CUSTOM_WAYPOINT_ZERO;
-                custom_waypoints[1] = CTF_CUSTOM_WAYPOINT_ZERO;
+                custom_waypoints[0] = custom_waypoint{};
+                custom_waypoints[1] = custom_waypoint{};
                 ctf_team_flag_object[team = ((struct object *)flag_obj)->owner_team] = (datum_index)halo::k_dword_none;
 
                 {
@@ -138,8 +133,8 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
                     item = halo::game::item_data_of(flag_obj);
                     halo::game::game_engine_queue_multiplayer_sound(0x25 + (((struct object *)flag_obj)->owner_team != 0), halo::k_dword_none, 1);
                     halo::game::game_engine_ctf_reset_team_return_credit(flag_handle);
-                    custom_waypoints[2] = CTF_CUSTOM_WAYPOINT_ZERO;
-                    custom_waypoints[3] = CTF_CUSTOM_WAYPOINT_ZERO;
+                    custom_waypoints[2] = custom_waypoint{};
+                    custom_waypoints[3] = custom_waypoint{};
                     ctf_flag_auto_return_ticks = game_engine_variant.engine.ctf.single_flag_time;
                     halo::game::game_engine_ctf_notify_both_teams((int32_t)toggled);
                 }
@@ -214,7 +209,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
             halo::game::custom_waypoint_register((datum_index)halo::k_dword_none, (int16_t)(team + 2), &other_stand,
                 "default", 0.3f, (datum_index)player_filter, (int16_t)0xffffffff);
         } else {
-            custom_waypoints[team + 2] = CTF_CUSTOM_WAYPOINT_ZERO;
+            custom_waypoints[team + 2] = custom_waypoint{};
         }
     }
 }

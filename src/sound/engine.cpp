@@ -79,10 +79,10 @@ void initialize(void)
 
             if (driver != nullptr && driver->type == driver_parameters.driver_index) {
                 current_sound_driver = driver;
-                sound_data = halo::memory::data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds);
+                sound_data = halo::memory::data_new(sizeof(sound), "sounds", k_maximum_sounds);
 
                 if (sound_data != nullptr) {
-                    looping_sound_data = halo::memory::data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds);
+                    looping_sound_data = halo::memory::data_new(sizeof(looping_sound), "looping sounds", k_maximum_looping_sounds);
                 }
 
                 if (sound_data != nullptr && looping_sound_data != nullptr) {

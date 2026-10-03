@@ -24,7 +24,7 @@ typedef uint32_t datum_index;
 
 namespace halo::bitmaps {
 
-char * targa_export(BitmapData *bitmap, file_reference_record *destination);
+const char * targa_export(BitmapData *bitmap, file_reference_record *destination);
 uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type);
 void bitmap_data_block_delete_element(TagReflexive *block, int32_t index);
 BitmapData * bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);

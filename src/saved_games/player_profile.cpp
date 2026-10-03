@@ -999,7 +999,7 @@ void create_default_profiles_on_disk(void)
     char *end;
     uint8_t written;
 
-    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, (char *)"ui\\default_multiplayer_game_setting_names");
+    tag_id = halo::cache::tag_lookup(groups::unicode_string_list, "ui\\default_multiplayer_game_setting_names");
     if (tag_id == k_datum_index_none) {
         return;
     }

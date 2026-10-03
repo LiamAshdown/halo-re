@@ -167,7 +167,7 @@ uint8_t UiEventHandlers::event_4a4190(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t has_save = halo::saved_games::saved_game_file_exists((char *)"savegame");
+    uint8_t has_save = halo::saved_games::saved_game_file_exists("savegame");
     uint8_t has_checkpoints = (uint8_t)(halo::saved_games::game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
     widget_instance *child = widget->first_child;
 
@@ -199,7 +199,7 @@ uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4270(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    return halo::saved_games::saved_game_load_checkpoint_by_name((char *)"savegame");
+    return halo::saved_games::saved_game_load_checkpoint_by_name("savegame");
 }
 
 /**

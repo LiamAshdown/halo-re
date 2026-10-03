@@ -31,7 +31,7 @@
 static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<rasterizer_dynamic_vertex_slot [k_rasterizer_dynamic_vertex_slots]>(halo::game::vars().rasterizer_dynamic_vertex_slots);
 static auto &rasterizer_dynamic_vertex_caches = halo::link::ref<rasterizer_dynamic_vertex_cache [k_rasterizer_vertex_type_count]>(halo::rasterizer::vars().rasterizer_dynamic_vertex_caches);
 static auto &rasterizer_vertex_buffer_slots = halo::link::ref<rasterizer_vertex_buffer_slot [k_rasterizer_vertex_buffer_slots]>(halo::rasterizer::vars().rasterizer_vertex_buffer_slots);
-static auto &k_render_identity_matrix_ptr = halo::link::ref<void *>(halo::effects::vars().k_render_identity_matrix_ptr);
+static auto &k_render_identity_matrix_ptr = halo::link::ref<real_matrix4x3 *>(halo::effects::vars().k_render_identity_matrix_ptr);
 static auto &flag_data = halo::link::ref<data_array *>(halo::objects::vars().flag_data);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
@@ -301,7 +301,7 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
     }
     self->update_counter = 0;
     if (self->invalid == 0) {
-        halo::objects::flag_render(tag, (flag *)self, (const render_lighting *)(uintptr_t)arg3, (const uint32_t *)(uintptr_t)arg4);
+        halo::objects::flag_render(tag, (flag *)self, (const render_lighting *)(uintptr_t)arg3, (const render_animation *)(uintptr_t)arg4);
     }
 }
 
@@ -706,7 +706,7 @@ typedef int32_t (__stdcall *flag_d3d_unlock_fn)(void *self);
  * @address 0x004fc350
  */
 void halo::objects::FlagSystem::render(Flag *tag, flag *entry, const render_lighting *lighting,
-    const uint32_t *animation)
+    const render_animation *animation)
 {
     object *owner = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(entry->object_index)].data;
     datum_index shader_index = *(datum_index *)(owner->owner_team != 0 ? &tag->blue_flag_shader.tag_id : &tag->red_flag_shader.tag_id);
@@ -850,11 +850,11 @@ void halo::objects::FlagSystem::render(Flag *tag, flag *entry, const render_ligh
             context_words[word] = 0;
         }
         context.object_index = 1;
-        context.node_matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
+        context.node_matrices = k_render_identity_matrix_ptr;
         context.node_count = 1;
         context.lighting = *lighting;
-        context.change_colors = animation[0];
-        context.function_values = animation[1];
+        context.change_colors = animation->change_colors;
+        context.function_values = animation->function_values;
         context.center = center;
         context.base_map_u_scale = 1.0f;
         context.base_map_v_scale = 1.0f;
@@ -869,10 +869,10 @@ void halo::objects::FlagSystem::render(Flag *tag, flag *entry, const render_ligh
 
         halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
         if (shader->shader_type == 1 || (4 < shader->shader_type && shader->shader_type < 0xc)) {
-            halo::rasterizer::rasterizer_transparent_geometry_group_build(nullptr, (uint8_t *)shader, 0, nullptr,
+            halo::rasterizer::rasterizer_transparent_geometry_group_build(nullptr, shader, 0, nullptr,
                 index_slot, triangle_count, nullptr, vertex_slot, &center);
         } else {
-            halo::rasterizer::rasterizer_shader_environment_draw_dispatch(vertex_slot, (uint8_t *)shader, 0, nullptr,
+            halo::rasterizer::rasterizer_shader_environment_draw_dispatch(vertex_slot, shader, 0, nullptr,
                 index_slot, triangle_count, nullptr);
         }
         halo::rasterizer::rasterizer_model_draw_restore_states();

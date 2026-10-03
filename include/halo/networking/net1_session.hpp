@@ -111,7 +111,7 @@ public:
     static void qr2_team_key(int32_t key_id, int32_t index, void *buffer, void *user_data);
     static uint8_t reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip, int32_t local_id);
     static int32_t start(void *user_data);
-    static void start_info_set(char *host_name, char *map_name, char *variant_name, int32_t game_type);
+    static void start_info_set(const char *host_name, char *map_name, char *variant_name, int32_t game_type);
     static void update_();
 };
 

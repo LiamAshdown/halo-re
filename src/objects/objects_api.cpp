@@ -2268,7 +2268,7 @@ void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref,
  *
  * @address 0x004fc350
  */
-void flag_render(Flag *tag, flag *entry, const render_lighting *lighting, const uint32_t *animation)
+void flag_render(Flag *tag, flag *entry, const render_lighting *lighting, const render_animation *animation)
 {
     halo::objects::FlagSystem::render(tag, entry, lighting, animation);
 }

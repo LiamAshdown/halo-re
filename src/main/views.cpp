@@ -406,7 +406,7 @@ void RenderViews::screenshot_render(render_view *views)
                 sprintf(filename, "%s\\%dscreenshot%d%d.tga", "screenshots",
                         (uint32_t)main_globals_data.screenshot_index, (int32_t)page_row,
                         (int32_t)page_col);
-                halo::cseries::directory_create_recursive((char *)"screenshots");
+                halo::cseries::directory_create_recursive("screenshots");
 
                 memset(&request, 0, sizeof(request));
                 request.signature = k_file_reference_signature;

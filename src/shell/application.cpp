@@ -468,7 +468,7 @@ void Application::run_engine()
     }
     memset(secret_key, 0, sizeof(secret_key));
     memcpy(secret_key, "e4Rd9J", 7);
-    halo::networking::network_session_host_start_info_set((char *)"halor", secret_key, (char *)ip_value, (int32_t)halo::networking::globals().game_socket_port);
+    halo::networking::network_session_host_start_info_set("halor", secret_key, (char *)ip_value, (int32_t)halo::networking::globals().game_socket_port);
     halo::main::main_loop();
     EngineLifecycle::shutdown();
 }

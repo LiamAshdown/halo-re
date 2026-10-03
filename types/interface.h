@@ -371,12 +371,30 @@ typedef struct first_person_weapon_interface {
     uint8_t unknown_1c[4];     // 0x001c
     int16_t overcharged_animation; // 0x0020 0x493150 set to fp list[15] (overcharged-jitter overlay) in state 4,
                                    //    frame float +0x24 advanced by weapon +0x244; 0x493740 weighted overlay
-    uint8_t unknown_22[6];     // 0x0022
+    uint8_t unknown_22[2];     // 0x0022
+    float overcharge_frame;    // 0x0024 advanced by weapon +0x244 in state 4; frame of the overcharged overlay
     float recoil;              // 0x0028 0x493150 real_seek_toward_clamped(velocity=+0x2c 'charge', value=+0x28);
                                //    action 0 (primary fire, weapon_fire_trigger) kicks +0x2c; overlays frame 8
                                //    weighted by it
     float charge;              // 0x002c nudged by action code 0 in 0x4940f0
-    uint8_t unknown_30[0x58];  // 0x0030 aim sway and idle timers written by 0x493150
+    float move_sway_x;         // 0x0030 seeks the unit throttle.i (0x493150)
+    float move_sway_y;         // 0x0034 seeks the unit throttle.j
+    float move_sway_x_velocity; // 0x0038
+    float move_sway_y_velocity; // 0x003c
+    float aim_sway_yaw;        // 0x0040 seeks the clamped change of aim_yaw
+    float aim_sway_pitch;      // 0x0044
+    float aim_sway_yaw_velocity;   // 0x0048
+    float aim_sway_pitch_velocity; // 0x004c
+    uint8_t aim_seeded;        // 0x0050 set once seed_aim has run
+    uint8_t unknown_51[0xf];   // 0x0051
+    float aim_yaw;             // 0x0060 camera forward yaw, set by seed_aim
+    float aim_pitch;           // 0x0064
+    float previous_aim_yaw;    // 0x0068
+    float previous_aim_pitch;  // 0x006c
+    float previous_camera_x;   // 0x0070 camera position seeded by seed_aim
+    float previous_camera_y;   // 0x0074
+    float previous_camera_z;   // 0x0078
+    uint8_t unknown_7c[0xc];   // 0x007c
     int16_t blend_start;       // 0x0088 written by 0x4930b0 when a blended change starts
     int16_t blend_end;         // 0x008a
     uint8_t animation_control[0x800]; // 0x008c node control block fed to the animation system
@@ -404,6 +422,10 @@ typedef struct first_person_weapon_interface {
     int16_t unknown_1e9e;             // 0x1e9e
 } first_person_weapon_interface;      // size 0x1ea0
 static_assert(sizeof(first_person_weapon_interface) == 0x1ea0, "first_person_weapon_interface layout");
+static_assert(offsetof(first_person_weapon_interface, overcharge_frame) == 0x24, "first_person_weapon_interface layout");
+static_assert(offsetof(first_person_weapon_interface, aim_yaw) == 0x60, "first_person_weapon_interface layout");
+static_assert(offsetof(first_person_weapon_interface, previous_camera_x) == 0x70, "first_person_weapon_interface layout");
+static_assert(offsetof(first_person_weapon_interface, blend_start) == 0x88, "first_person_weapon_interface layout");
 static_assert(offsetof(first_person_weapon_interface, device_reload_marker) == 0x1e94, "first_person_weapon_interface layout");
 
 // ---------------------------------------------------------------------------

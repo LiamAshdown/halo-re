@@ -28,14 +28,6 @@ typedef int32_t (*message_delta_codec_proc)(message_delta_field_type *field_type
     bit_stream *stream);
 typedef uint8_t (*message_delta_initialize_proc)(message_delta_field_type *field_type);
 
-#define MESSAGE_DELTA_COMPUTE_SIZE(type) (message_delta_field_type_table[(type)->kind].compute_size(type))
-#define MESSAGE_DELTA_INITIALIZE(type) \
-    (((message_delta_initialize_proc)message_delta_field_type_table[(type)->kind].initialize)(type))
-#define MESSAGE_DELTA_ENCODE(type, previous, current, stream) \
-    (((message_delta_codec_proc)(type)->encode)((type), (previous), (current), (stream)))
-#define MESSAGE_DELTA_DECODE(type, previous, current, stream) \
-    (((message_delta_codec_proc)(type)->decode)((type), (previous), (current), (stream)))
-
 // The inlined absolute seek every array codec uses: move the cursor to base + delta when that neither wraps nor
 // leaves [first_bit, last_bit + 1].
 static __inline void message_delta_stream_seek(bit_stream *stream, uint32_t base, int32_t delta)

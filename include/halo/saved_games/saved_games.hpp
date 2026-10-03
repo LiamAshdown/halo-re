@@ -136,7 +136,7 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
 uint8_t get_next_filename(char *out_name, char *directory);
 uint8_t print_list_entry(int32_t index, const char *name, int32_t level_index, int32_t difficulty,
     int32_t game_time_ticks, const win32_systemtime *time, void *user_data);
-int16_t read_stats_file(int32_t *out_difficulty, char *name, int32_t *out_game_time, win32_systemtime *out_time);
+int16_t read_stats_file(int32_t *out_difficulty, const char *name, int32_t *out_game_time, win32_systemtime *out_time);
 uint8_t reclaim_slot_callback(int32_t index, const char *name, int32_t level_index, int32_t difficulty,
     int32_t game_time_ticks, const win32_systemtime *time, void *user_data);
 uint8_t save_new(void);
@@ -216,7 +216,7 @@ namespace halo::saved_games::saved_game {
 
 void allocate_new_slot(uint16_t *out_name);
 int32_t check_storage_availability(void);
-uint8_t copy_files_to_target(char *source_directory, char *source_name, char *target_name);
+uint8_t copy_files_to_target(char *source_directory, const char *source_name, const char *target_name);
 uint32_t create_custom_variant(uint32_t unused, uint16_t *name);
 uint32_t create_default_profile(uint16_t *name);
 uint32_t create_slot(uint16_t type, uint16_t *name);
@@ -224,7 +224,7 @@ void delete_by_display_name(const char *name);
 uint8_t delete_by_handle(int32_t handle);
 uint8_t delete_files(char *name);
 void enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
-uint8_t file_exists(char *name);
+uint8_t file_exists(const char *name);
 void files_dispose(void);
 void files_initialize(void);
 int32_t find_by_name(char *name, int16_t type);
@@ -242,7 +242,7 @@ void last_profile_clear(const void *data);
 uint8_t last_profile_read(uint8_t *out_data);
 void list_rebuild_index(void);
 uint8_t load_checkpoint(char *name);
-uint8_t load_checkpoint_by_name(char *name);
+uint8_t load_checkpoint_by_name(const char *name);
 uint8_t name_is_available(const uint16_t *name);
 uint8_t open_file_by_handle(int32_t handle, file_reference_record *out_ref);
 uint8_t validate_crc(int32_t total_size, int32_t header_size, uint8_t *header_buffer, uint32_t *expected_crc,

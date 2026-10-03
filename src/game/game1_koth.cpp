@@ -91,7 +91,7 @@ constexpr size_t k_hill_marker_vertex_size = 0x44;
 constexpr size_t k_hill_marker_vertex_copy_size = 0x3c;
 }
 
-static auto &k_render_identity_matrix_ptr = halo::link::ref<void *>(halo::effects::vars().k_render_identity_matrix_ptr);
+static auto &k_render_identity_matrix_ptr = halo::link::ref<real_matrix4x3 *>(halo::effects::vars().k_render_identity_matrix_ptr);
 static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
 static auto &default_axis_b = halo::link::ref<const real_vector3d *>(halo::game::vars().default_axis_b);
 static auto &king_hill_single_occupant_flag = halo::link::ref<uint8_t>(halo::game::vars().king_hill_single_occupant_flag);
@@ -515,7 +515,7 @@ void Koth::build_hill_boundary_fence(void)
 
             {
                 float length_period_f = (float)length_period;
-                halo::game::game_engine_koth_submit_hill_marker_geometry(hill_shader_tag, (uint32_t *)0, (uint32_t *)0,
+                halo::game::game_engine_koth_submit_hill_marker_geometry(hill_shader_tag, nullptr, nullptr,
                     *(uint32_t *)&length_period_f, 0x3f800000, (float *)quad);
             }
 
@@ -586,9 +586,7 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
     }
 
     if (p->unit != (datum_index)halo::k_dword_none) {
-        unit_data *unit = (unit_data *)((uint8_t *)
-            halo::game::object_at((uint32_t)p->unit) +
-            k_unit_data_offset);
+        unit_data *unit = halo::game::unit_data_of(halo::game::object_at((uint32_t)p->unit));
         if (unit->current_weapon_index != -1) {
             datum_index weapon = unit->weapons[unit->current_weapon_index];
             if (weapon != (datum_index)halo::k_dword_none) {
@@ -927,11 +925,10 @@ static_assert(offsetof(hill_marker_draw_record, param_5) == 0xd4);
  *
  * @address 0x46b2f0
  */
-void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4, uint32_t param_5, float *vertex_source)
+void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, const render_lighting *lighting_override, const render_animation *animation_override, uint32_t param_4, uint32_t param_5, float *vertex_source)
 {
     const int32_t k_vertex_count = 4;
     const int32_t k_triangle_count = 2;
-    const render_lighting *lighting_override = (const render_lighting *)position_override;
     int32_t index_slot;
     int32_t vertex_slot;
 
@@ -997,7 +994,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             context_words[word] = 0;
         }
         context.object_index = 1;
-        context.node_matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
+        context.node_matrices = k_render_identity_matrix_ptr;
         context.node_count = 1;
 
         if (lighting_override != (const render_lighting *)0) {
@@ -1013,12 +1010,12 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             context.lighting.shadow_color = *(const ColorRGB *)default_axis_b;
         }
 
-        if (orientation_override != (uint32_t *)0) {
-            context.change_colors = orientation_override[0];
-            context.function_values = orientation_override[1];
+        if (animation_override != nullptr) {
+            context.change_colors = animation_override->change_colors;
+            context.function_values = animation_override->function_values;
         } else {
-            context.change_colors = (uint32_t)(uintptr_t)&king_hill_markers.position[0];
-            context.function_values = (uint32_t)(uintptr_t)&king_hill_markers.state[0];
+            context.change_colors = reinterpret_cast<const ColorRGB *>(&king_hill_markers.position[0]);
+            context.function_values = reinterpret_cast<const float *>(&king_hill_markers.state[0]);
         }
         context.center = center;
         context.base_map_u_scale = *(float *)&param_4;
@@ -1034,10 +1031,10 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
 
         halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 1);
         if (shader->shader_type == 1 || (4 < shader->shader_type && shader->shader_type < 0xc)) {
-            halo::rasterizer::rasterizer_transparent_geometry_group_build(nullptr, (uint8_t *)shader, 0, nullptr,
+            halo::rasterizer::rasterizer_transparent_geometry_group_build(nullptr, shader, 0, nullptr,
                 index_slot, k_triangle_count, nullptr, vertex_slot, &center);
         } else {
-            halo::rasterizer::rasterizer_shader_environment_draw_dispatch(vertex_slot, (uint8_t *)shader, 0, nullptr,
+            halo::rasterizer::rasterizer_shader_environment_draw_dispatch(vertex_slot, shader, 0, nullptr,
                 index_slot, k_triangle_count, nullptr);
         }
         halo::rasterizer::rasterizer_model_draw_restore_states();

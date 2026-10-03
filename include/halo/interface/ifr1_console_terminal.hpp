@@ -35,7 +35,7 @@ public:
     static datum_index message_new(void);
     static uint8_t open(terminal_console *console);
     static void position_cursor(void);
-    static void printf_verbose(ColorARGB *color, char *format, va_list args);
+    static void printf_verbose(ColorARGB *color, const char *format, va_list args);
     static void process_input_events(void);
     static uint8_t process_queued_input(void);
     static void restore_cursor(void);

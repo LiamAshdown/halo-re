@@ -561,7 +561,7 @@ void heap_view::unlink_block(heap_block *block)
  *
  * @address 0x4d1750
  */
-void cache_view::initialize(char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
+void cache_view::initialize(const char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure)
 {
     data_array *entries = &this->entry_data;
 

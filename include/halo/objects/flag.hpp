@@ -97,7 +97,7 @@ public:
      *
      * @address 0x004fc350
      */
-    static void render(Flag *tag, flag *entry, const render_lighting *lighting, const uint32_t *animation);
+    static void render(Flag *tag, flag *entry, const render_lighting *lighting, const render_animation *animation);
 };
 
 /**

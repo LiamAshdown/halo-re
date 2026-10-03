@@ -119,7 +119,7 @@ uint8_t periodic_functions_initialized;                                // 0x006b
 real_point3d * sphere_point_table;                                     // 0x006b7af4
 int16_t sphere_point_table_count;                                      // 0x006b7af8
 crc32_table crc32_lookup_table;                                        // 0x006b7b00
-char * data_packet_group_error;                                        // 0x006b7f00
+const char * data_packet_group_error;                                        // 0x006b7f00
 float model_render_default_function_values[4];                         // 0x006b7f08
 render_model_effect model_render_default_effect;                       // 0x006b7f18
 uint8_t model_render_default_region_permutations[32];                  // 0x006b7f40

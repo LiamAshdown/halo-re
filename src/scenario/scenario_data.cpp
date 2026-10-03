@@ -43,7 +43,7 @@ uint8_t scenario_loader::load(char *path)
     }
 
     globals().global_globals = (::Globals *)halo::cache::globals().tag_instances[
-        halo::datum_slot(halo::cache::tag_lookup(halo::groups::globals, (char *)"globals\\globals"))].data;
+        halo::datum_slot(halo::cache::tag_lookup(halo::groups::globals, "globals\\globals"))].data;
 
     if (structure_bsp_switcher::switch_to(0) == 0) {
         return 0;
